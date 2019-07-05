@@ -30,3 +30,10 @@ search ResourceGuard
 ```
 ###### main4
 notepad++ Hex-editor plugin
+
+###### main5
+```
+0x004D,7CE5: -> push ebp
+0x004D,7CE6: -> mov ebp,esp
+0x004D,7CE8: -> mov eax,1B60
+```
