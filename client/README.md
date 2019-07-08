@@ -32,8 +32,19 @@ search ResourceGuard
 notepad++ Hex-editor plugin
 
 ##### main5
+instead obfuscation with normal code
 ```
 0x004D,7CE5: -> push ebp
 0x004D,7CE6: -> mov ebp,esp
 0x004D,7CE8: -> mov eax,1B60
 ```
+
+##### main6
+一方面，因为壳的导入表把IAT指定到.rsrc段的0x099E,917C ~ 0x099E,9B3F位置  
+另一方面，壳的导入表在kernel32.dll中多加了一个API叫VirtualQueryEx  
+
+修复步骤  
+在main基础上使用x64dbg自带的Scylla插件对main5的IAT进行修复(Fix Dump)  
+恢复的本质是修复导入表把IAT指定到.rdata段的0x00de,9000 ~ 0x00de,99BF位置  
+但是Scylla把符号表也复制了一份放在SCY段，有这个必要吗？
+然后Scylla一致性很差，总是会在IAT尾部多分析出一些乱七八糟的import，虽然不影响使用但给人一种不靠谱的感觉

@@ -34,7 +34,7 @@ type dsound struct {
 }
 
 // gdi32.dll, /c/windows/syswow64/gdi32.dll
-// 这里定义所有用到的API指针变量，24个
+// 这里定义所有用到的API指针变量，20个
 // 最后一个DWORD为0
 type gdi32 struct {
 	CreateCompatibleDC func()
@@ -80,6 +80,7 @@ type iphlpapi struct {
 // kernel32.dll, /c/windows/syswow64/kernel32.dll
 // 这里定义所有用到的API指针变量，219个
 // 最后一个DWORD为0
+// IAT多了第一个VirtualQueryEx
 type kernel32 struct {
 	GlobalLock      func()
 	CreateFileA     func()
@@ -192,7 +193,7 @@ type ws2_32 struct {
 
 // dbghelp.dll, /c/windows/syswow64/dbghelp.dll
 // debghelp.dll, /c/mu/dbghelp.dll 这个和系统的有什么区别？
-// 这里定义所有用到的API指针变量，35个
+// 这里定义所有用到的API指针变量，7个
 // 最后一个DWORD为0
 type dbghelp struct {
 	SymGetLineFromAddr64 func()
