@@ -58,21 +58,40 @@ func _004D6D64() {
 
 }
 
+type conf struct {
+	a uint32
+	b uint32
+}
+
+type t1000 struct {
+	f00h  uint32
+	f04h  int32
+	f08h  [260]uint8
+	f10Ch uint32
+}
+
+// hError
+var _01319E08 = t1000{
+	f00h: 0x01180F50,
+	f04h: 0xE0, //hFile
+	// f08h: "MuError.log"
+	f10Ch: 0x0F,
+}
+
 // 0x004D,7CE5
 func run() {
+	//
+
 	checkupdate()
 
-	var pathenc1 = "Data/Enc1.dat"
-	keyenc1 := new([54]uint8)     // 0x08C8,D050
-	getenc1(pathenc1, keyenc1[:]) // call 0x00B6,2CF0
+	keyenc1 := new([54]uint8)            // 0x08C8,D050
+	getenc1("Data/Enc1.dat", keyenc1[:]) // call 0x00B6,2CF0
 
-	var pathdec2 = "Data/Dec2.dat"
-	keydec2 := new([54]uint8)     // 0x08C8,D098
-	getdec2(pathdec2, keydec2[:]) // call 0x00B6,2D30
+	keydec2 := new([54]uint8)            // 0x08C8,D098
+	getdec2("Data/Dec2.dat", keydec2[:]) // call 0x00B6,2D30
 
-	var pathconf = "> To read config.ini.\r\n"
-	bufconf := new([20]uint8)      // 0x0131,9E08
-	readconf(pathconf, bufconf[:]) // call 0x00B3,BAE4
+	// 似乎返回值并没有体现出来
+	s := _00B3BAE4(&_01319E08, "> To read config.ini.\r\n")
 
 	_004D6D64()
 }
