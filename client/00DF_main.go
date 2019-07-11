@@ -2,6 +2,15 @@ package main
 
 import "unsafe"
 
+// _00DE8000 copy src to dst
+func _00DE8000(dst []uint8, src []uint8) {
+	copy(dst, src)
+}
+
+func _00DE8010(buf []uint8, fileName string) {
+
+}
+
 func _00DE8100(buf []uint8, value uint8, size uint32) uint32 {
 	if size == 0 {
 		return 0
@@ -282,4 +291,8 @@ func _00DFC9DD(buf []uint8, value uint8, size uint32) uint32 {
 	size -= uint32(offset)
 	_00DFC9DD(buf[offset:], 0, size)
 	return 0
+}
+
+func _00DECD20(x []uint8, strfmt string, y []uint8) int32 {
+	return -1
 }
