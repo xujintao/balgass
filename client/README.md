@@ -48,3 +48,10 @@ instead obfuscation with normal code
 恢复的本质是修复导入表把IAT指定到.rdata段的0x00de,9000 ~ 0x00de,99BF位置  
 但是Scylla把符号表也复制了一份放在SCY段，有这个必要吗？
 然后Scylla一致性很差，总是会在IAT尾部多分析出一些乱七八糟的import，虽然不影响使用但给人一种不靠谱的感觉
+
+##### main7
+r6602 floating point support not loaded
+```
+0x00E1,A4AC: push 2 -> ret
+让它直接ret，这样靠谱吗？
+```
