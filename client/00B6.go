@@ -169,6 +169,10 @@ func (p *t1000) _00B38D31_begin() {
 	p._00B38AE4("###### Log Begin ######\r\n")
 }
 
+func (p *t1000) _00B38D49(x uint32) {
+	// 系统时间
+}
+
 func (p *t1000) _00B38E3C() {
 	p._00B38AE4("<OpenGL information>\r\n>")
 	p._00B38AE4("Vendor\t\t: %s\r\n", glGetString(0x1F00))
@@ -206,7 +210,7 @@ func _00B4C1FF(hWnd uint32) {
 }
 
 // 0x00B6,2CF0
-func getenc1(path string, key []uint8) {}
+func _00B62CF0(path string, key []uint8) {}
 
 // 0x00B6,2D30
-func getdec2(path string, key []uint8) {}
+func _00B62D30(path string, key []uint8) {}

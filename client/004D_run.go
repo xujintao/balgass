@@ -18,7 +18,9 @@ const (
 
 // 这里使用数组，确保在data段，固定在某个地址上
 // 如果使用string，那么读文件后对buf进行string类型转换，会memmove到堆上
-var _012E233C uint16 // 0xAD75
+var _012E222C *os.File
+var _012E2338_ip string = "192.168.0.100"
+var _012E233C_port uint16 = 44405
 var _012E3F08 struct {
 	height uint32 // 0x258, 600
 	width  uint32 // 0x320, 800
@@ -26,7 +28,7 @@ var _012E3F08 struct {
 var _012F7910 [100]uint8
 var _01319A38 [8]uint8 // "1.04R+"	// 可执行程序版本号
 var _01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
-var _01319A50 uint32 = 0
+var _01319A50_ip string
 
 var _01319D68 uint32
 var _01319D6C_hWnd uint32 // hWnd, 0x0073,1366
@@ -46,6 +48,26 @@ type version struct {
 
 func _004D52AB(fileName []uint8, cmd string) bool {
 	// 从命令行字符串中提取出应用程序名，也就是main.exe，存到fileName数组中
+	return true
+}
+
+func _004D5368() bool {
+	var fileName [260]uint8 // ebp-110
+	cmd := os.Args[0]       // ebp-4
+	_004D52AB(fileName[:], cmd)
+
+	// dwDesiredAccess = 1<<31, GENERIC_READ
+	// dwShareMode = 3, FILE_SHARE_READ | FILE_SHARE_WRITE
+	// psa = 0, default security and cannot be inherited by any child
+	// dwCreationDisposition = 3, OPEN_EXISTING
+	// dwFlagsAndAttributes = 0x80, FILE_ATTRIBUTE_NORMAL
+	// dwFileTemplate = 0, When opening an existing file, CreateFile ignores this parameter
+	// hFile := CreateFile(fileName[:], 1<<31, 3, 0, 3, 0x80, 0)
+	file, err := os.Open(string(fileName[:]))
+	if err != nil {
+		return false
+	}
+	_012E222C = file
 	return true
 }
 
@@ -251,15 +273,15 @@ func _004D7281() bool {
 			}
 
 			// _00DE94F0
-			nRet = func(x *uint32, y []uint8) int32 {
+			nRet = func(x string, y []uint8) int32 {
 				return -1
-			}(&_01319A50, partition.name[:])
+			}(_01319A50_ip, partition.name[:])
 			if nRet == 0 {
 				// _00DECBD1
 				nRet := func(x []uint8) uint32 {
 					return 0
 				}(partition.ip[:])
-				if nRet == uint32(_012E233C) {
+				if nRet == uint32(_012E233C_port) {
 					_00DE8000_strcpy(_01319DB8[:], partition.num[:])
 					// _00DE8C84
 					func() {
@@ -284,10 +306,45 @@ func _004D7281() bool {
 	return true
 }
 
-func _004D7CE5_run(hModule uint32, ebpC uint32, ebp10 uint32, ebp14 uint32) {
-	// 1B60h，近两页也就是8k字节的局部变量
+func _004D755F(haystack []uint8, y int, buf []uint8) []uint8 {
+	return nil
+}
+
+// 该函数被花掉了
+func _004D7A1F(haystack []uint8, ip string, z *uint32) uint16 {
+	// x=0x0B37,3D25，存放的是[0,0,0,'K']
+
+	// ebp-100
+	var buf [256]uint8
+	buf[0] = 0
+	_00DE8100(buf[1:], 0, 0xFF)
+
+	// _004472C9
+	sRet := func(haystack []uint8, needle string) []uint8 {
+		return _00DE92E0_strstr(haystack, needle)
+	}(haystack, "battle")
+	if len(sRet) == 0 {
+		sRet = _004D755F(haystack, 0x79, buf[:])
+		if len(sRet) == 0 {
+			sRet = _004D755F(haystack, 0x75, buf[:])
+			if len(sRet) == 0 {
+				return 0
+			}
+		}
+	}
 
 	// ...
+	return 1000
+}
+
+func _004D7CE5_run(hModule uint32, ebpC uint32, haystack []uint8, ebp14 uint32) {
+	// 1B60h，近两页也就是8k字节的局部变量
+
+	// _004D7CE5， 设置一下栈
+
+	// if _00DE7C00() < 1 { // jae -> jmp
+	// 启动mu.exe然后退出
+	// }
 
 	// vc编译器把先定义的变量地址在高位置？
 	var ebp_230 struct {
@@ -322,13 +379,30 @@ func _004D7CE5_run(hModule uint32, ebpC uint32, ebp10 uint32, ebp14 uint32) {
 		ebp_238_ver[:], _01319DFC,
 		ebp_244_ver.major, ebp_244_ver.minor, ebp_244_ver.patch, ebp_244_ver.fourth)
 
-	checkupdate()
+	_01319E08_log._00B38D49(1)
 
-	keyenc1 := new([54]uint8)            // 0x08C8,D050
-	getenc1("Data/Enc1.dat", keyenc1[:]) // call 0x00B6,2CF0
+	// system information
 
-	keydec2 := new([54]uint8)            // 0x08C8,D098
-	getdec2("Data/Dec2.dat", keydec2[:]) // call 0x00B6,2D30
+	// direct-x information
+
+	var ebp_8 uint32 = 10
+	var port uint16 = _004D7A1F(haystack, _01319A50_ip, &ebp_8) // 这里重新设置ip地址和端口失败了
+	if port > 0 {
+		_012E2338_ip = _01319A50_ip
+		_012E233C_port = port
+	}
+
+	// open main.exe
+	if !_004D5368() {
+		_004D9F88()
+		return
+	}
+
+	keyenc1 := new([54]uint8) // 0x08C8,D050
+	_00B62CF0("Data/Enc1.dat", keyenc1[:])
+
+	keydec2 := new([54]uint8) // 0x08C8,D098
+	_00B62D30("Data/Dec2.dat", keydec2[:])
 
 	_01319E08_log._00B38AE4("> To read config.ini.\r\n")
 	bRet := _004D7281()
@@ -391,4 +465,8 @@ func _004D7CE5_run(hModule uint32, ebpC uint32, ebp10 uint32, ebp14 uint32) {
 	// ...
 
 	_01319E08_log._00B38AE4("> Loading ok.\r\n")
+}
+
+func _004D9F88() {
+
 }

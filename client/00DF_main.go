@@ -110,6 +110,10 @@ func _00DE852F(x uint32) {
 	}
 }
 
+func _00DE92E0_strstr(haystack []uint8, needle string) []uint8 {
+	return nil
+}
+
 func _00DECD20(x []uint8, strfmt string, y []uint8) int32 {
 	return -1
 }
@@ -332,7 +336,10 @@ func _00DF0805(buf []uint8, format string, a ...interface{}) {
 func main() {
 	// check pe
 
-	_004D7CE5_run(0x00400000, 0, 0x0B433D25, 10) // call 0x004D,7CE5
+	checkupdate()
+
+	haystack := []uint8("000K")                // 底层数组强行放在堆上0x0B37,3D25
+	_004D7CE5_run(0x00400000, 0, haystack, 10) // call 0x004D,7CE5
 }
 
 // 大范围清零操作

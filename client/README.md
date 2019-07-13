@@ -9,24 +9,24 @@ x64dbg
 ##### main2
 search mu.exe
 ```
-0x004D,7E2A: 73 6D -> EB 6D ;disable mu.exe
+0x004D,7E2A: 73 6D -> EB 6D ;jae to jmp, disable mu.exe
 ```
 
 ##### main31
 search config.ini read error
 ```
-0x004D,8102: 74 19 -> EB 19 ;disable GameGuard
+0x004D,8102: 74 19 -> EB 19 ;je to jmp, disable GameGuard
 ```
 ##### main32
 search gg init error
 ```
-0x004D,8145: 75 7C -> EB 7C ;disable GameGuard
+0x004D,8145: 75 7C -> EB 7C ;jne to jmp, disable GameGuard
 ```
 
 ##### main33
 search ResourceGuard
 ```
-0x004D,D639: 74 23 -> EB 23 ;disable GameGuard
+0x004D,D639: 74 23 -> EB 23 ;je to jmp, disable GameGuard
 ```
 ##### main4
 notepad++ Hex-editor plugin
