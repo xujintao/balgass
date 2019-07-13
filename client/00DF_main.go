@@ -1,14 +1,30 @@
 package main
 
-import "unsafe"
+import (
+	"fmt"
+	"unsafe"
+)
 
-// _00DE8000 copy src to dst
-func _00DE8000(dst []uint8, src []uint8) {
+const (
+	_01149E44 uint32 = 0x004075A0
+	_012DA28C uint32 = 0
+)
+
+var _012F7B90 uint32 = 0x5F709C77
+var _012F8738 *t15    // [_012F8738]=0x012F8660
+var _012F8558 *uint32 // [_012F8558]=0x0D921A80
+
+var _09D9D9FC uint32
+var _09D9DA08 uint8 = 0
+var _09D9DA0C uint32 = 1
+var _09D9DB88 uint32 = 0xBD6A970F
+
+func _00DE8000_strcpy(dst []uint8, src []uint8) {
 	copy(dst, src)
 }
 
-func _00DE8010(buf []uint8, fileName string) {
-
+func _00DE8010_strcat(dst []uint8, src string) {
+	dst = append(dst, src...)
 }
 
 func _00DE8100(buf []uint8, value uint8, size uint32) uint32 {
@@ -29,12 +45,91 @@ func _00DE8100(buf []uint8, value uint8, size uint32) uint32 {
 	return 0
 }
 
-var _09D9DB88 uint32 = 0xBD6A970F
+// _00DE817A_sprintf
+func _00DE817A_sprintf(buf []uint8, strfmt string, a ...interface{}) int {
+	str := fmt.Sprint(strfmt, a...)
+	buf = []uint8(str) // 从堆上复制到data段
+	return len(str)
+}
 
-var _012F8738 *t15    // [_012F8738]=0x012F8660
-var _012F8558 *uint32 // [_012F8558]=0x0D921A80
+func _00DE852F(x uint32) {
 
-var _012F7B90 uint32 = 0x5F709C77
+	var ebp_C uint32
+	for {
+		// _00DF0F2F
+		entry := func(x uint32) string {
+			return ":\r"
+		}(x)
+		if len(entry) != 0 {
+			return
+		}
+
+		// // _00DFB084
+		// bRet = func(x uint32) bool {
+		// 	return false
+		// }(x)
+		// if !bRet {
+		// 	if _09D9DA08&1 == 0 {
+		// 		_09D9DA08 |= 1
+
+		// 		// _00415D00
+		// 		func() {
+
+		// 			// _00DE85F8
+		// 			func() {
+
+		// 			}()
+		// 		}()
+
+		// 		// _00DE8BF6
+		// 		func(fval func()) {
+		// 			// _00DE8BBA
+		// 			nRet := func(fval func()) uint32 {
+		// 				return 1
+		// 			}(fval)
+		// 		}(_01148F33)
+
+		// 		// _004075D0
+		// 		func(x *uint32) {
+		// 			// 能使用到ebp_C
+		// 			// _00DE8615
+		// 			func(x *uint32) {
+
+		// 			}(x)
+		// 			ebp_C = _01149E44
+		// 		}(&_09D9D9FC)
+
+		// 		// _00DE84E3
+		// 		// func() {
+
+		// 		// }(&_012DA28C)
+
+		// 		// int3
+		// 	}
+		// }
+	}
+}
+
+func _00DECD20(x []uint8, strfmt string, y []uint8) int32 {
+	return -1
+}
+
+// setlocale?
+func _00DEE8171(x uint32, lang string) {
+	// _00DFD850
+	// _00DFC3E9
+	// _00DEDA19
+	// _00DF9D56
+	// _00DFF2B2
+	// _00DED9B5
+	// _00DEE99F
+	// _00DEE556
+	// _00DE94F0
+	// _00DFF2B2
+	// _00DED9D8
+	// _00DED91C
+	// ...
+}
 
 type t14 struct {
 	data [124]uint8
@@ -117,8 +212,11 @@ func _00DECDA2(prevt16p *t16, t16p *t16) {
 }
 
 // 好复杂的函数
-func _00DFCCB0(infop *info, logconf string, t16p *t16, c *conf) uint32 {
+func _00DFCCB0(infop *info, format string, t16p *t16, a ...interface{}) int {
 	// 278h字节的局部变量
+
+	// 功能就是 format = fmt.Sprintf(format, a...)
+	// 再copy(buf, format)
 
 	var ebp_25c t16 // 0x0018,DCB8
 	// ebp-25c
@@ -132,7 +230,7 @@ func _00DFCCB0(infop *info, logconf string, t16p *t16, c *conf) uint32 {
 	// ebp-238
 	// ebp-234
 	// ebp-230
-	var ebp_224 *conf = c
+	// var ebp_224 *conf = c
 	// ebp-218
 	// ebp-210
 
@@ -140,14 +238,14 @@ func _00DFCCB0(infop *info, logconf string, t16p *t16, c *conf) uint32 {
 
 	_00DECDA2(t16p, &ebp_25c)
 
-	if infop == nil || len(logconf) == 0 {
+	if infop == nil || len(format) == 0 {
 		// ...
 	}
 	if infop.f0Ch == 40 {
 		// ...
 	}
 
-	var ebp_23C string = logconf[1:] // 拿掉 '>' 字符
+	var ebp_23C string = format[1:] // 拿掉 '>' 字符
 	// ...
 
 	var ebp_228 uint32 // 0x0018,DCEC
@@ -194,7 +292,7 @@ func _00DFCCB0(infop *info, logconf string, t16p *t16, c *conf) uint32 {
 			return
 		}()
 	}
-	return ebp_228
+	return int(ebp_228)
 }
 
 type info struct {
@@ -204,15 +302,15 @@ type info struct {
 	f0Ch uint32
 }
 
-func _00DF0787(buf []uint8, logconf string, x *t16, c *conf) uint32 {
+func _00DF0787(buf []uint8, format string, x *t16, a ...interface{}) int {
 	// 如果接下来会用到ebx，那么先把ebx压栈
 
 	// c里面判断字符串指针变量是否为空
 	// 等效为go里面判断string类型变量长度是否为0
 	// 或者切片长度是否为0
-	if len(logconf) == 0 || len(buf) == 0 {
+	if len(format) == 0 || len(buf) == 0 {
 		// ...
-		return 0 // ?
+		return -1 // ?
 	}
 
 	i := info{
@@ -221,20 +319,20 @@ func _00DF0787(buf []uint8, logconf string, x *t16, c *conf) uint32 {
 		f08h: buf,       // ebp-18
 		f0Ch: 0x42,
 	}
-	cnt := _00DFCCB0(&i, logconf, x, c) // 其实就是把logconf字符串copy到buf切片
+	cnt := _00DFCCB0(&i, format, x, a...) // 其实就是把logconf字符串copy到buf切片
 	// i.f00h = append(i.f00h,0) // golang不需要追加0
 	return cnt
 }
 
-func _00DF0805(buf []uint8, logconf string, c *conf) {
-	_00DF0787(buf, logconf, nil, c)
+func _00DF0805(buf []uint8, format string, a ...interface{}) {
+	_00DF0787(buf, format, nil, a...)
 }
 
 // OEP: 0x00DF,478C
 func main() {
 	// check pe
 
-	run() // call 0x004D,7CE5
+	_004D7CE5_run(0x00400000, 0, 0x0B433D25, 10) // call 0x004D,7CE5
 }
 
 // 大范围清零操作
@@ -291,8 +389,4 @@ func _00DFC9DD(buf []uint8, value uint8, size uint32) uint32 {
 	size -= uint32(offset)
 	_00DFC9DD(buf[offset:], 0, size)
 	return 0
-}
-
-func _00DECD20(x []uint8, strfmt string, y []uint8) int32 {
-	return -1
 }

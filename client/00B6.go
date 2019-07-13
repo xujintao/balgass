@@ -37,18 +37,39 @@ func _00B385D6(buf []uint8, size uint32, flag uint32) {
 	}
 }
 
-func _00B3BAE4(p *t1000, log string) conf {
+type t1000 struct {
+	f00h  uint32
+	f04h  int32
+	f08h  [260]uint8
+	f10Ch uint32
+}
+
+// hError, 0x0131,9E08
+var _01319E08_log = t1000{}
+
+// var _01319E08_log = t1000{
+// 	f00h: 0x01180F50,
+// 	f04h: 0xE0, //hFile
+// 	// f08h: "MuError.log"
+// 	f10Ch: 0x0F,
+// }
+func init() {
+	file := &DefaultFile
+	// OpenFile
+	file.f04h = 0xE0
+	copy(file.f08h[:], path)
+	file.f10Ch = 0x0F
+}
+
+func (p *t1000) _00B38AE4(format string, a ...interface{}) []uint8 {
 	// 1024+4字节的局部变量
 
-	// 当返回值是个大结构时，c编译器会使用命名返回值，
-	// 所以这里经过优化后在汇编层面其实是var c *conf，指向外面的结构
-	// 在go里面就比较简单了，func类型返回值特征标写为*conf就行或者直接使用匿名调用
-	var c *conf
+	// ebp_404 := a // go里面可变切片a...貌似没法落在局部变量中，只能直接作为参数
 	var buf [1024]uint8
 	buf[0] = 0
 
-	_00DE8100(buf[1:], 0, 0x3FF) // buf清零操作
-	_00DF0805(buf[:], log, c)    // 把logconf字符串写到切片里，这个在golang里面很简单
+	_00DE8100(buf[1:], 0, 0x3FF)    // buf清零操作
+	_00DF0805(buf[:], format, a...) // 把logconf字符串写到切片里，这个在golang里面很简单
 
 	// 将buf编码后再写进文件
 	// _00B38A8D
@@ -72,7 +93,7 @@ func _00B3BAE4(p *t1000, log string) conf {
 		// _00B38A4D
 		func(hFile int32, buf []uint8, len uint32, pdwNumBytes *uint32, pOverlapped uint32) {
 			// 这个变量是push ecx得到的
-			// 局部变量<=8个字节，c编译器使用push，性能比sub指令高
+			// 局部变量<=8个字节，c编译器使用push，指令数比sub指令少，但性能不行
 			var ebp_4 *t1000 = p
 
 			// _00B38653 疑似编码函数
@@ -137,7 +158,51 @@ func _00B3BAE4(p *t1000, log string) conf {
 		return
 	}(buf[:])
 
-	return *c
+	return buf[:]
+}
+
+func (p *t1000) _00B38D19_cut() {
+	p._00B38AE4("-----------------\r\n")
+}
+
+func (p *t1000) _00B38D31_begin() {
+	p._00B38AE4("###### Log Begin ######\r\n")
+}
+
+func (p *t1000) _00B38E3C() {
+	p._00B38AE4("<OpenGL information>\r\n>")
+	p._00B38AE4("Vendor\t\t: %s\r\n", glGetString(0x1F00))
+	p._00B38AE4("Render\t\t: %s\r\n", glGetString(0x1F01))
+	p._00B38AE4("OpenGL version\t: %s\r\n", glGetString(0x1F02))
+	var ebp_8 struct {
+		data [2]uint32 // ebp-8 and ebp-4
+	}
+	glGetIntegerv(0xD33, &ebp_8)
+	p._00B38AE4("Max Texture size\t: %d x %d\r\n", ebp_8.data[0], ebp_8.data[0])
+	glGetIntegerv(0xD3A, &ebp_8)
+	p._00B38AE4("Max Viewport size\t: %d x %d\r\n", ebp_8.data[0], ebp_8.data[1])
+}
+
+func (p *t1000) _00B3902D() {
+	// <Sound card information>\r\n
+
+	// C:\\Windows\\system32\drivers\{...}
+
+	// cut
+}
+
+func (p *t1000) _00B38EF4(hWnd uint32) {
+	// <IME information>\r\n
+}
+
+func _00B4C1B8() {
+
+}
+
+func _00B4C1FF(hWnd uint32) {
+	if _01319D68 != 0 {
+		// ...
+	}
 }
 
 // 0x00B6,2CF0

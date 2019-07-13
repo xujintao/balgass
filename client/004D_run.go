@@ -1,11 +1,69 @@
 package main
 
 import (
-	"fmt"
+	"os"
 	"unsafe"
 )
 
-func _004D6D64() {
+type conf struct {
+	a uint32
+	b uint32
+}
+
+const (
+	_0114D912 uint8  = 0
+	_0114D913 uint8  = 0
+	_0114DD64 uint16 = 0x0061
+)
+
+// 这里使用数组，确保在data段，固定在某个地址上
+// 如果使用string，那么读文件后对buf进行string类型转换，会memmove到堆上
+var _012E233C uint16 // 0xAD75
+var _012E3F08 struct {
+	height uint32 // 0x258, 600
+	width  uint32 // 0x320, 800
+}
+var _012F7910 [100]uint8
+var _01319A38 [8]uint8 // "1.04R+"	// 可执行程序版本号
+var _01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
+var _01319A50 uint32 = 0
+
+var _01319D68 uint32
+var _01319D6C_hWnd uint32 // hWnd, 0x0073,1366
+var _01319D70_hModule uint32
+var _01319D74_hDC uint32   // hDC, 0x1401,11A6
+var _01319D78_hGLRC uint32 // hGLRC, OpenGL rendering context, 0x0001,0000
+var _01319DB8 [64]uint8
+var _01319DFC string = "Chs"
+var _01319E00 string = "chinese"
+
+type version struct {
+	major  uint16 // ebp_244
+	minor  uint16 // ebp_242
+	patch  uint16 // ebp_240
+	fourth uint16 // ebp_23E
+}
+
+func _004D52AB(fileName []uint8, cmd string) bool {
+	// 从命令行字符串中提取出应用程序名，也就是main.exe，存到fileName数组中
+	return true
+}
+
+func _004D55C6(fileName []uint8, ver *version) bool {
+	// 获取可执行文件版本
+	// GetFileVersionInfoSize()
+	// GetFileVersionInfo()
+	// VerQueryValue()
+
+	// fileVersion: 1.4.44.0
+	ver.major = 0x01
+	ver.minor = 0x04
+	ver.patch = 0x2C
+	ver.fourth = 0
+	return true
+}
+
+func _004D6D64() bool {
 	// 40+4个字节局部变量
 
 	// typedef struct tagPIXELFORMATDESCRIPTOR {
@@ -31,77 +89,60 @@ func _004D6D64() {
 
 	_00DE8100(pixelfd.data[:], 0, 0x28) // 清零
 
-	hWnd := 0x01319D6C // hWnd是全局变量
-	// hDC := GetDC(hWnd) //把hDC的值存到0x01319D74
-	// if hDC == nil {
-	// 	nRet := GetLastError()
-	// 	_00B38AE4(0x01319E08, "OpenGL Get DC Error - ErrorCode : %d\n\r", nRet)
-	// 	_004D51C8()
-	// 	nRet = _00436DA8(4, "OpenGL Get DC Error.", 30)
-	// 	MessageBoxA(0, nRet)
-	// 	return
-	// }
+	_01319D74_hDC = GetDC(_01319D6C_hWnd) // 从hWnd中拿到hDC
+	if _01319D74_hDC == 0 {
+		// var nRet int32 = GetLastError()
+		// _01319E08_log._00B38AE4("OpenGL Get DC Error - ErrorCode : %d\n\r", nRet)
+		// _004D51C8()
+		// nRet = _00436DA8(4, "OpenGL Get DC Error.", 30)
+		// MessageBoxA(0, nRet)
+		return false
+	}
 
-	// pfdindex = ChoosePixelFormat(hDC, &pixelfd) // return 4
-	// if pfdindex == 0 {
-	// 	nRet := GetLastError()
-	// 	_00B38AE4(0x01319E08, "OpenGL Choose Pixel Format Error - ErrorCode : %d\n\r", nRet)
-	// 	_004D51C8()
-	// 	nRet = _00436DA8(4, "OpenGL Choose Pixel Format Error.", 30)
-	// 	MessageBoxA(0, nRet)
-	// 	return
-	// }
+	pfdindex = ChoosePixelFormat(_01319D74_hDC, &pixelfd) // return 4
+	if pfdindex == 0 {
+		// var nRet int32 = GetLastError()
+		// _01319E08_log._00B38AE4("OpenGL Choose Pixel Format Error - ErrorCode : %d\n\r", nRet)
+		// _004D51C8()
+		// nRet = _00436DA8(4, "OpenGL Choose Pixel Format Error.", 30)
+		// MessageBoxA(0, nRet)
+		return false
+	}
 
-	// if !SetPixelFormat(hDC, pfdindex, &pixelfd) { // return true
-	// 	nRet := GetLastError()
-	// 	_00B38AE4(0x01319E08, "OpenGL Set Pixel Format Error - ErrorCode : %d\n\r", nRet)
-	// 	_004D51C8()
-	// 	nRet = _00436DA8(4, "OpenGL Set Pixel Format Error.", 30)
-	// 	MessageBoxA(0, nRet)
-	// 	return
-	// }
+	if !SetPixelFormat(_01319D74_hDC, pfdindex, &pixelfd) { // return true
+		// var nRet int32 = GetLastError()
+		// _01319E08_log._00B38AE4("OpenGL Set Pixel Format Error - ErrorCode : %d\n\r", nRet)
+		// _004D51C8()
+		// nRet = _00436DA8(4, "OpenGL Set Pixel Format Error.", 30)
+		// MessageBoxA(0, nRet)
+		return false
+	}
 
+	_01319D78_hGLRC = wglCreateContext(_01319D74_hDC) // return 0x0001,0000
+	if _01319D78_hGLRC == 0 {
+		// OpenGL Create Context Error
+		return false
+	}
+
+	if !wglMakeCurrent(_01319D74_hDC, _01319D78_hGLRC) { // return true
+		// OpenGL Make Current Error
+		return false
+	}
+
+	// ShowWindow(_01319D6C_hWnd, 5)
+	// SetForegroundWindow(_01319D6C_hWnd)
+	// SetFocus(_01319D6C_hWnd)
+
+	return true
 }
 
-type conf struct {
-	a uint32
-	b uint32
+func _004D6F82(hModule uint32, x uint32) uint32 {
+	return 0
 }
-
-type t1000 struct {
-	f00h  uint32
-	f04h  int32
-	f08h  [260]uint8
-	f10Ch uint32
-}
-
-// hError
-var _01319E08 = t1000{
-	f00h: 0x01180F50,
-	f04h: 0xE0, //hFile
-	// f08h: "MuError.log"
-	f10Ch: 0x0F,
-}
-
-// 如果是结构体的话，程序会用偏移
-const (
-	_0114D912 uint8  = 0
-	_0114D913 uint8  = 0
-	_0114DD64 uint16 = 0x0061
-)
-
-// 这里使用数组，确保在data段，固定在某个地址上
-// 如果使用string，那么读文件后对buf进行string类型转换，会memmove到堆上
-var _012E233C uint16 // 0xAD75
-var _012F7910 [100]uint8
-var _01319A38 [8]uint8 // "1.04R+"	// 可执行程序版本号
-var _01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
-var _01319A50 uint32 = 0
-var _01319DB8 [64]uint8
 
 // 这个函数被花的厉害，难道是核心业务？
 // 追踪只能追踪一个函数
-func _004D7281() {
+func _004D7281() bool {
 	// CURRENT_USER
 	// SOFTWARE\\Webzen\\Mu\\Config
 	// 348h个字节的局部变量
@@ -112,12 +153,7 @@ func _004D7281() {
 	}
 
 	// ebp-334 ~ ebp-330
-	var ebp_334 struct {
-		v1 uint16 // ebp_334, major
-		v2 uint16 // ebp_332, minor
-		v3 uint16 // ebp_330, patch
-		v4 uint16 // ebp_32E
-	}
+	var ebp_334 version
 
 	// ebp-328 ~ ebp-225
 	var fileName [260]uint8
@@ -131,47 +167,30 @@ func _004D7281() {
 	var bufDir [256]uint8
 	GetCurrentDirectory(0x100, bufDir[:])
 
-	_00DE8000(buf[:], bufDir[:])
+	_00DE8000_strcpy(buf[:], bufDir[:])
 
 	// _00DE7C00
 	nameLen := func(bufDir []uint8) uint32 {
 		return uint32(len(bufDir))
 	}(bufDir[:])
 	if bufDir[nameLen-1] == 0x5C {
-		_00DE8010(buf[:], "config.ini")
+		_00DE8010_strcat(buf[:], "config.ini")
 	}
-	_00DE8010(buf[:], "\\config.ini") // cat拼凑字符串
+	_00DE8010_strcat(buf[:], "\\config.ini") // cat拼凑字符串
 
 	GetPrivateProfileString("LOGIN", "Version", &_0114D913, _01319A44[:], 8, buf[:]) // 1.04.44写到全局变量中
 	// ebp_8的底层数组在堆上
-	var ebp_8 string = GetCommandLine()
+	// var ebp_8 string = GetCommandLine()
+	var ebp_8 string = os.Args[0]
 
 	// _004D52AB
-	bRet := func(fileName []uint8, cmd string) bool {
-		// 从命令行字符串中提取出应用程序名，也就是main.exe，存到fileName数组中
-		return true
-	}(fileName[:], ebp_8)
+	bRet := _004D52AB(fileName[:], ebp_8)
 	if bRet {
-		// _004D55C6
-		bRet := func(fileName []uint8) bool {
-			// 获取可执行文件版本
-			// fileVersion: 1.4.44.0
-			ebp_334.v1 = 0x01
-			ebp_334.v2 = 0x04
-			ebp_334.v3 = 0x2C
-			ebp_334.v4 = 0
-			return true
-		}(fileName[:]) // }(fileName[:], &ebp_334)
-
+		bRet := _004D55C6(fileName[:], &ebp_334)
 		if bRet { // je 0x004D,741B
-			// _00DE817A
-			func(verbuf []uint8, strfmt string, major uint16, minor uint16) int {
-				verstr := fmt.Sprint(strfmt, major, minor)
-				verbuf = []uint8(verstr) // 从堆上复制到rdata
-				return len(verstr)
-			}(_01319A38[:], "%d.%02d", ebp_334.v1, ebp_334.v2)
+			_00DE817A_sprintf(_01319A38[:], "%d.%02d", ebp_334.major, ebp_334.minor)
 
-			if ebp_334.v3 > 0 { // jle 0x004D,7419
+			if ebp_334.patch > 0 { // jle 0x004D,7419
 				*(*uint16)(unsafe.Pointer(&ebp_338)) = _0114DD64
 				ebp_338.patch[2] = 0
 
@@ -179,11 +198,11 @@ func _004D7281() {
 				// 27就是A+
 				// 28就是B+
 				// 44就是R+
-				if ebp_334.v3 > 0x1A { // jle 0x004D,73EE
-					ebp_338.patch[0] = 'A' - 27 + uint8(ebp_334.v3) // 65-27+44=82='R'
+				if ebp_334.patch > 0x1A { // jle 0x004D,73EE
+					ebp_338.patch[0] = 'A' - 27 + uint8(ebp_334.patch) // 65-27+44=82='R'
 					ebp_338.patch[1] = '+'
 				}
-				_00DE8010(_01319A38[:], string(ebp_338.patch[:]))
+				_00DE8010_strcat(_01319A38[:], string(ebp_338.patch[:]))
 			}
 		}
 	}
@@ -241,7 +260,7 @@ func _004D7281() {
 					return 0
 				}(partition.ip[:])
 				if nRet == uint32(_012E233C) {
-					_00DE8000(_01319DB8[:], partition.num[:])
+					_00DE8000_strcpy(_01319DB8[:], partition.num[:])
 					// _00DE8C84
 					func() {
 
@@ -260,12 +279,48 @@ func _004D7281() {
 		return false
 	}("partition.inf")
 
-	var ebp_4 uint32
+	// 接下来还有一段处理，我没看
+
+	return true
 }
 
-// 0x004D,7CE5
-func run() {
-	//
+func _004D7CE5_run(hModule uint32, ebpC uint32, ebp10 uint32, ebp14 uint32) {
+	// 1B60h，近两页也就是8k字节的局部变量
+
+	// ...
+
+	// vc编译器把先定义的变量地址在高位置？
+	var ebp_230 struct {
+		data [248]uint8
+	}
+	var ebp_238_ver [8]uint8
+	copy(ebp_238_ver[:], "unknown")
+	_00DE8100(ebp_230.data[:], 0, 0xF8)
+
+	// var cmd string = GetCommandLine()
+	ebp_23C_cmd := os.Args[0]
+
+	var ebp_244_ver version // ebp-244 ~ ebp-23E，这里会有清零操作，应该是程序员自己清的
+	var ebp_350_fileName [260]uint8
+	if _004D52AB(ebp_350_fileName[:], ebp_23C_cmd) {
+		if _004D55C6(ebp_350_fileName[:], &ebp_244_ver) {
+			_00DE817A_sprintf(ebp_238_ver[:], "%d.%02d", ebp_244_ver.major, ebp_244_ver.minor)
+			if ebp_244_ver.patch > 0 {
+				var ebp_4DC [2]uint8
+				ebp_4DC[0] = uint8('a' + ebp_244_ver.patch - 1) // 0x8C，这里是有问题的，超过ASCII编码范围了
+				ebp_4DC[1] = 0                                  // 我猜测作者是想表达R
+				_00DE8010_strcat(ebp_238_ver[:], string(ebp_4DC[:]))
+			}
+		}
+	}
+
+	_01319E08_log._00B38AE4("\r\n")
+	_01319E08_log._00B38D31_begin()
+	_01319E08_log._00B38D19_cut()
+
+	_01319E08_log._00B38AE4("Mu online %s (%s) executed. (%d.%d.%d.%d)\r\n",
+		ebp_238_ver[:], _01319DFC,
+		ebp_244_ver.major, ebp_244_ver.minor, ebp_244_ver.patch, ebp_244_ver.fourth)
 
 	checkupdate()
 
@@ -275,9 +330,65 @@ func run() {
 	keydec2 := new([54]uint8)            // 0x08C8,D098
 	getdec2("Data/Dec2.dat", keydec2[:]) // call 0x00B6,2D30
 
-	// 似乎返回值并没有体现出来
-	s := _00B3BAE4(&_01319E08, "> To read config.ini.\r\n")
-	_004D7281()
+	_01319E08_log._00B38AE4("> To read config.ini.\r\n")
+	bRet := _004D7281()
+	if !bRet {
+		// _00B38AE4
+		// _004D9F88
+		return
+	}
 
-	_004D6D64()
+	_00DE852F(1)
+
+	_00B4C1B8()
+
+	// gg
+	// 已经被禁用了
+	_01319E08_log._00B38AE4("> gg init success.\r\n")
+	_01319E08_log._00B38D19_cut()
+
+	// window
+	_01319E08_log._00B38AE4("> Screen size = %d x %d.\r\n", _012E3F08.height, _012E3F08.width)
+	_01319D70_hModule = hModule
+	_01319D6C_hWnd = _004D6F82(hModule, ebp14) // 创建hWnd
+	_01319E08_log._00B38AE4("> Start window success.\r\n")
+
+	// opengl
+	bRet = _004D6D64() // 设置hWnd资源
+	if !bRet {
+		// 失败处理
+		return
+	}
+	_01319E08_log._00B38AE4("> OpenGL init success.\r\n")
+	_01319E08_log._00B38D19_cut()
+
+	// opengl information
+	_01319E08_log._00B38E3C()
+	_01319E08_log._00B38D19_cut()
+
+	// sound card information
+	_01319E08_log._00B3902D() // 自带cut
+
+	// ShowWindow(_01319D6C_hWnd, 10)
+	// UpdateWindow(_01319D6C_hWnd)
+
+	_00B4C1FF(_01319D6C_hWnd)
+	_01319E08_log._00B38AE4("> gg connect window Handle.\r\n")
+	_01319E08_log._00B38D19_cut()
+
+	// ime information
+	_01319E08_log._00B38EF4(_01319D6C_hWnd)
+	_01319E08_log._00B38D19_cut()
+
+	_00DEE871(0, _01319E00)
+	_0043BF3F(_01319D6C_hWnd, _012E3F08.height, _012E3F08.width)
+	_0043BF9C()
+	_0090E94C()
+	_0090B256()
+	_00A49798(_01319D6C_hWnd, _012E3F08.height, _012E3F08.width)
+	_00A49E40() // r6602 floating point support not loaded
+
+	// ...
+
+	_01319E08_log._00B38AE4("> Loading ok.\r\n")
 }
