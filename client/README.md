@@ -55,3 +55,9 @@ r6602 floating point support not loaded
 0x00E1,A4AC: push 2 -> ret
 让它直接ret，这样靠谱吗？
 ```
+
+##### main8
+disable log encode
+```
+0x00B3,8653: push ebp -> ret
+```
