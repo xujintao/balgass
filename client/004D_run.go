@@ -18,6 +18,10 @@ const (
 
 // 这里使用数组，确保在data段，固定在某个地址上
 // 如果使用string，那么读文件后对buf进行string类型转换，会memmove到堆上
+var _012E2210 uint32 = 1
+var _012E2214 string = "MUCN"
+var _012E2224 uint32 = 1
+var _012E2228 uint32 = 16
 var _012E222C *os.File
 var _012E2338_ip string = "192.168.0.100"
 var _012E233C_port uint16 = 44405
@@ -25,12 +29,13 @@ var _012E3F08 struct {
 	height uint32 // 0x258, 600
 	width  uint32 // 0x320, 800
 }
+
 var _012F7910 [100]uint8
 var _01319A38 [8]uint8 // "1.04R+"	// 可执行程序版本号
 var _01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
 var _01319A50_ip string
 
-var _01319D68 uint32
+var _01319D68 *uint32
 var _01319D6C_hWnd uint32 // hWnd, 0x0073,1366
 var _01319D70_hModule uint32
 var _01319D74_hDC uint32   // hDC, 0x1401,11A6
@@ -385,8 +390,9 @@ func _004D7CE5_run(hModule uint32, ebpC uint32, haystack []uint8, ebp14 uint32) 
 
 	// direct-x information
 
+	// 这里重新设置ip地址和端口失败了，为什么？
 	var ebp_8 uint32 = 10
-	var port uint16 = _004D7A1F(haystack, _01319A50_ip, &ebp_8) // 这里重新设置ip地址和端口失败了
+	var port uint16 = _004D7A1F(haystack, _01319A50_ip, &ebp_8)
 	if port > 0 {
 		_012E2338_ip = _01319A50_ip
 		_012E233C_port = port
@@ -398,36 +404,55 @@ func _004D7CE5_run(hModule uint32, ebpC uint32, haystack []uint8, ebp14 uint32) 
 		return
 	}
 
-	keyenc1 := new([54]uint8) // 0x08C8,D050
-	_00B62CF0("Data/Enc1.dat", keyenc1[:])
+	// enc and dec init
+	_08C8D050_enc._00B62CF0_init("Data/Enc1.dat")
+	_08C8D098_dec._00B62D30_init("Data/Dec2.dat")
 
-	keydec2 := new([54]uint8) // 0x08C8,D098
-	_00B62D30("Data/Dec2.dat", keydec2[:])
-
+	// read config.ini
 	_01319E08_log._00B38AE4("> To read config.ini.\r\n")
 	bRet := _004D7281()
 	if !bRet {
-		// _00B38AE4
-		// _004D9F88
+		_01319E08_log._00B38AE4("config.ini read error\r\n")
+		_004D9F88()
 		return
 	}
 
-	_00DE852F(1)
+	// gg init
+	// ebp_1A38也可能是个实例指针变量，值是0x0D9F,EA10
+	var ebp_1A38 *uint32 = _00DE852F(1)
+	var ebp_1B0C *uint32
+	if ebp_1A38 == nil { // if true，disable GameGurad
+		ebp_1B0C = nil
+	} else {
+		// ebp_1B0C = _004D936A(_012E2214)
+	}
 
-	_00B4C1B8()
-
-	// gg
-	// 已经被禁用了
+	_01319D68 = ebp_1B0C
+	bRet = _00B4C1B8()
+	if !bRet { // if false, disable GameGurad
+		// gg init error
+		// _004D51C8()
+		// _004D9335()
+		// _004D9f88()
+		return
+	}
 	_01319E08_log._00B38AE4("> gg init success.\r\n")
 	_01319E08_log._00B38D19_cut()
 
-	// window
+	if _012E2210 == 1 {
+		// ShowCursor(0)
+	}
+	if _012E2224 == 0 {
+		// DisplaySetting
+	}
+
+	// window init
 	_01319E08_log._00B38AE4("> Screen size = %d x %d.\r\n", _012E3F08.height, _012E3F08.width)
 	_01319D70_hModule = hModule
 	_01319D6C_hWnd = _004D6F82(hModule, ebp14) // 创建hWnd
 	_01319E08_log._00B38AE4("> Start window success.\r\n")
 
-	// opengl
+	// opengl init
 	bRet = _004D6D64() // 设置hWnd资源
 	if !bRet {
 		// 失败处理
@@ -454,19 +479,110 @@ func _004D7CE5_run(hModule uint32, ebpC uint32, haystack []uint8, ebp14 uint32) 
 	_01319E08_log._00B38EF4(_01319D6C_hWnd)
 	_01319E08_log._00B38D19_cut()
 
-	_00DEE871(0, _01319E00)
-	_0043BF3F(_01319D6C_hWnd, _012E3F08.height, _012E3F08.width)
-	_0043BF9C()
-	_0090E94C()
-	_0090B256()
-	_00A49798(_01319D6C_hWnd, _012E3F08.height, _012E3F08.width)
-	_00A49E40() // r6602 floating point support not loaded
+	//
+	_00DEE871_setlocale(0, _01319E00) // 参数0是哪个LC？
+	// _0043BF3F(_01319D6C_hWnd, _012E3F08.height, _012E3F08.width)
+	// _0043BF9C()
+	// _0090E94C()
+	// _0090B256()
+	// _00A49798(_01319D6C_hWnd, _012E3F08.height, _012E3F08.width)
+	// _00A49E40() // r6602 floating point support not loaded
 
 	// ...
 
 	_01319E08_log._00B38AE4("> Loading ok.\r\n")
+
+	// ...
+
+	// ebp-28
+	var msg struct {
+		hWnd    uint32
+		message uint32
+		// ...
+	}
+
+	// 消息循环
+	for {
+		if msg.message == 0x12 || msg.message == 0x10 {
+			break
+		}
+		if PeekMessage(&msg, 0, 0, 0) {
+			ImmIsUIMessage()
+			_00A49798()
+			_00A4DF87()
+			if !GetMessage(&msg, 0, 0, 0) {
+				break
+			}
+			TranslateMessage(&msg)
+			DispatchMessage(&msg)
+		}
+		if _012E2224 == 0 {
+
+		}
+
+		_00760292(_08c88FF0, 0, 0)
+		_01319D2C._004B9492()
+	}
 }
 
 func _004D9F88() {
 
+}
+
+// //
+// func _004E6233(hDC uint32) {
+// 	// _004E4F1C
+// 	func(hDC uint32) {
+// 		// _004E1E1E
+// 		func() {
+// 			// _004E1CEE
+// 			func() {
+
+// 				// _006BF89A
+// 				func(ip string, port uint16) {
+// 					// 可能是建立连接
+// 				}(_012E2338_ip, _012E233C_port)
+
+// 				// _004DE036 被花了 改为call 0B28810A试试
+// 				func() {
+// 					// 需要改为 jmp 0a4e0788
+// 					// _01089680
+// 					func() {
+
+// 					}(0x202)
+// 				}()
+// 			}()
+// 		}()
+// 	}(hDC)
+// }
+
+// 这个函数被花了
+func _00760292() {
+
+	// _006C75A7，也被花了
+	func() {
+
+		// _004A9146
+		func() {
+
+		}()
+
+		// _004A9EEB
+		func() {
+
+		}()
+
+		_01319E08_log._00B38AE4("Version dismatch - Join server.\r\n")
+
+		// _0051FB61
+		func() {
+
+		}()
+
+	}()
+
+	// _006BDC33
+	func() {
+
+	}()
 }
