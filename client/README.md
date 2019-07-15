@@ -3,7 +3,7 @@
 ##### main1
 x64dbg
 ```
-0x00DF,478C: 55             ;OEP
+0x00DF,478C: 55             ;OEP, dump
 ```
 
 ##### main2
