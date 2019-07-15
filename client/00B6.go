@@ -1,5 +1,17 @@
 package main
 
+import (
+	"os"
+	"unsafe"
+)
+
+var _012EC83C = [16]uint8{
+	0x9B, 0xA7, 0x08, 0x3F,
+	0x87, 0xC2, 0x5C, 0xE2,
+	0xb9, 0x7A, 0xD2, 0x93,
+	0xBF, 0xA7, 0xDE, 0x20,
+}
+
 func _00B385D6(buf []uint8, size uint32, flag uint32) {
 	// 20个局部变量
 
@@ -54,7 +66,7 @@ var _01319E08_log = t1000{}
 // 	f10Ch: 0x0F,
 // }
 func init() {
-	file := &DefaultFile
+	file := &_01319E08_log
 	// OpenFile
 	file.f04h = 0xE0
 	copy(file.f08h[:], path)
@@ -199,8 +211,8 @@ func (p *t1000) _00B38EF4(hWnd uint32) {
 	// <IME information>\r\n
 }
 
-func _00B4C1B8() {
-
+func _00B4C1B8() bool {
+	return false
 }
 
 func _00B4C1FF(hWnd uint32) {
@@ -209,8 +221,108 @@ func _00B4C1FF(hWnd uint32) {
 	}
 }
 
-// 0x00B6,2CF0
-func _00B62CF0(path string, key []uint8) {}
+type t2000 struct {
+	data [64]uint8
+}
 
-// 0x00B6,2D30
-func _00B62D30(path string, key []uint8) {}
+var _08C8D050_enc t2000
+var _08C8D098_dec t2000
+
+func (p *t2000) _00B62CF0_init(path string) {
+	return p._00B62EC0(path, 0x1112, 1, 1, 0, 1)
+}
+
+func (p *t2000) _00B62D30_init(path string) {
+	return p._00B62EC0(path, 0x1112, 1, 0, 1, 1)
+}
+
+func (p *t2000) _00B62EC0(path string, begin uint32, x1 uint32, x2 uint32, x3 uint32, x4 uint32) bool {
+
+	var buf struct {
+		head [8]uint8
+		data [16]uint8
+	}
+
+	// var nLen uint32
+	// dwDesiredAccess = 1<<31, GENERIC_READ
+	// dwShareMode = 1, FILE_SHARE_READ
+	// psa = 0, default security and cannot be inherited by any child
+	// dwCreationDisposition = 3, OPEN_EXISTING
+	// dwFlagsAndAttributes = 0x80, FILE_ATTRIBUTE_NORMAL
+	// dwFileTemplate = 0, When opening an existing file, CreateFile ignores this parameter
+	// hFile := CreateFile(path, 1<<31, 1, 0, 3, 0x80, 0)
+	// ReadFile(hFile, buf[:], 6, &nLen, 0)
+	file, error := os.Open(path)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+	nLen, err := file.Read(buf.head[:6])
+	if err != nil {
+		return false
+	}
+
+	// compare begin
+	if uint16(begin) != *(*uint16)(unsafe.Pointer(&buf.head[0])) {
+		return false
+	}
+
+	// compare len
+	if *(*uint32)(unsafe.Pointer(&buf.head[2])) != (x1+x2+x3+x4)<<4+6 {
+		return false
+	}
+
+	if x1 != 0 {
+		file.Read(buf.data[:])
+		index := 0
+		enc := _08C8D050_enc.data[:]
+		for {
+			enc[index] = _012EC83C[index] ^ buf.data[index]
+			index++
+			if index >= 16 {
+				break
+			}
+		}
+	}
+
+	if x2 != 0 {
+		file.Read(buf.data[:])
+		index := 0
+		enc := _08C8D050_enc.data[16:]
+		for {
+			enc[index] = _012EC83C[index] ^ buf.data[index]
+			index++
+			if index >= 16 {
+				break
+			}
+		}
+	}
+
+	if x3 != 0 {
+		file.Read(buf.data[:])
+		index := 0
+		enc := _08C8D050_enc.data[32:]
+		for {
+			enc[index] = _012EC83C[index] ^ buf.data[index]
+			index++
+			if index >= 16 {
+				break
+			}
+		}
+	}
+
+	if x4 != 0 {
+		file.Read(buf.data[:])
+		index := 0
+		enc := _08C8D050_enc.data[48:]
+		for {
+			enc[index] = _012EC83C[index] ^ buf.data[index]
+			index++
+			if index >= 16 {
+				break
+			}
+		}
+	}
+
+	return true
+}
