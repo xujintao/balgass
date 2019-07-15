@@ -52,7 +52,7 @@ func _00DE817A_sprintf(buf []uint8, strfmt string, a ...interface{}) int {
 	return len(str)
 }
 
-func _00DE852F(x uint32) {
+func _00DE852F(x uint32) *uint32 {
 
 	var ebp_C uint32
 	for {
@@ -61,7 +61,7 @@ func _00DE852F(x uint32) {
 			return ":\r"
 		}(x)
 		if len(entry) != 0 {
-			return
+			return nil
 		}
 
 		// // _00DFB084
@@ -108,6 +108,10 @@ func _00DE852F(x uint32) {
 		// 	}
 		// }
 	}
+}
+
+func _00DEE871_setlocale(category uint32, locale string) {
+
 }
 
 func _00DE92E0_strstr(haystack []uint8, needle string) []uint8 {
