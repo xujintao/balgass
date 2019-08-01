@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"unsafe"
 )
 
@@ -18,6 +19,10 @@ var _09D9D9FC uint32
 var _09D9DA08 uint8 = 0
 var _09D9DA0C uint32 = 1
 var _09D9DB88 uint32 = 0xBD6A970F
+
+func _00DE7C90_memcpy(dst, src []uint8, len uint32) {
+
+}
 
 func _00DE8000_strcpy(dst []uint8, src []uint8) {
 	copy(dst, src)
@@ -342,8 +347,12 @@ func main() {
 
 	checkupdate()
 
-	haystack := []uint8("000K")                // 底层数组强行放在堆上0x0B37,3D25
-	_004D7CE5_run(0x00400000, 0, haystack, 10) // call 0x004D,7CE5
+	var szcmdLine string = os.Args[1]
+	// hInstance
+	// hPrevInstance
+	// szcmdline
+	// SW_SHOWDEFAULT
+	_004D7CE5_WinMain(0x00400000, 0, szcmdLine, 10) // call 0x004D,7CE5
 }
 
 // 大范围清零操作

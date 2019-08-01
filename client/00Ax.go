@@ -1,5 +1,9 @@
 package main
 
+func _00A49798(wParam, lParam uint32) {
+
+}
+
 func _00A49E40() {
 
 	// ...

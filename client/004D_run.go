@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 	"unsafe"
+
+	"github.com/xujintao/balgass/client/dll"
 )
 
 type conf struct {
@@ -33,8 +35,9 @@ var _012E3F08 struct {
 var _012F7910 [100]uint8
 var _01319A38 [8]uint8 // "1.04R+"	// 可执行程序版本号
 var _01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
-var _01319A50_ip string
+var _01319A50_ip [16]uint8
 
+var _01319D1C_oWndProc uint32
 var _01319D68 *uint32
 var _01319D6C_hWnd uint32 // hWnd, 0x0073,1366
 var _01319D70_hModule uint32
@@ -88,6 +91,35 @@ func _004D55C6(fileName []uint8, ver *version) bool {
 	ver.patch = 0x2C
 	ver.fourth = 0
 	return true
+}
+
+// old callback
+func _004D5F98_WndProc(hWnd uint32, message uint32, wParam uint32, lParam uint32) uint32 {
+	switch message {
+	case dll.WM_CREATE_1:
+	case dll.WM_USER_400:
+		switch lParam {
+		case 1:
+			_08C88FF0._006BDA03_Read()
+		case 2:
+			_08C88FF0._006BD945_Write()
+		case 20:
+		}
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam)
+	}
+	return 0
+}
+
+// new callback
+func _004D6C2B_WndProc(hWnd uint32, message uint32, wParam uint32, lParam uint32) uint32 {
+	switch message {
+	case dll.WM_CHAR_102:
+		_00A49798(wParam, lParam)
+	default:
+		CallWindowProcw(_01319D1C_oWndProc, hWnd, message, wParam, lParam)
+	}
+	return 0
 }
 
 func _004D6D64() bool {
@@ -163,7 +195,74 @@ func _004D6D64() bool {
 	return true
 }
 
-func _004D6F82(hModule uint32, x uint32) uint32 {
+func _004D6F82_initWindow(hModule uint32, iCmdShow uint32) uint32 {
+
+	// 这里windows那边使用的是数组，编译器会使用movsw和movsb来给字符数组赋值
+	var ebp_78 string = "MU"
+
+	// ...
+
+	// 140字节局部变量
+	// typedef struct tagWNDCLASSEXA {
+	// 	UINT      cbSize;
+	// 	UINT      style;
+	// 	WNDPROC   lpfnWndProc;
+	// 	int       cbClsExtra;
+	// 	int       cbWndExtra;
+	// 	HINSTANCE hInstance;
+	// 	HICON     hIcon;
+	// 	HCURSOR   hCursor;
+	// 	HBRUSH    hbrBackground;
+	// 	LPCSTR    lpszMenuName;
+	// 	LPCSTR    lpszClassName;
+	// 	HICON     hIconSm;
+	// } WNDCLASSEXA, *PWNDCLASSEXA, *NPWNDCLASSEXA, *LPWNDCLASSEXA;
+
+	ebp_34 := struct {
+		cbSize        uint32
+		style         uint32
+		lpfnWndProc   func()
+		cbClsExtra    int32
+		cbWndExtra    int32
+		hInstance     uint32
+		hIcon         uint32
+		hCursor       uint32
+		hbrBackground uint32
+		lpszMenuName  string
+		lpszClassName string
+		hIconSm       uint32
+	}{
+		cbSize:        0x30, // ebp-34
+		style:         0x2B, // CS_OWNDC | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW
+		lpfnWndProc:   _004D5F98_WndProc,
+		cbClsExtra:    0,
+		cbWndExtra:    0,
+		hInstance:     GetModuleHandle(0),
+		hIcon:         LoadIcon(0, 0x65),     // IDI_APPLICATION)
+		hCursor:       LoadCursor(0, 0x7F00), // IDC_ARROW
+		hbrBackground: SetStockObject(4),     // WHITE_BRUSH
+		lpszMenuName:  "",
+		lpszClassName: ebp_78,     // "MU"
+		hIconSm:       0x141F0439, // ebp-8
+	}
+	RegisterClassEx(&ebp_34)
+
+	// ...
+	var ebp_4 uint32 = CreateWindowEx( // CreateWindow会发大概3条消息给WndProc
+		0,
+		ebp_78,     // "MU"
+		ebp_78,     // "MU"
+		0x02CA0000, // WS_CLIPCHILDREN | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU
+		0x118,
+		0x46,
+		0x326,
+		0x274,
+		0,
+		0,
+		0x00400000,
+		0,
+	)
+	_01319D1C_oWndProc = SetWindowLong(ebp_4, -4, _004D6C2B_WndProc) // GWL_WNDPROC
 	return 0
 }
 
@@ -278,9 +377,9 @@ func _004D7281() bool {
 			}
 
 			// _00DE94F0
-			nRet = func(x string, y []uint8) int32 {
+			nRet = func(x []uint8, y []uint8) int32 {
 				return -1
-			}(_01319A50_ip, partition.name[:])
+			}(_01319A50_ip[:], partition.name[:])
 			if nRet == 0 {
 				// _00DECBD1
 				nRet := func(x []uint8) uint32 {
@@ -316,7 +415,7 @@ func _004D755F(haystack []uint8, y int, buf []uint8) []uint8 {
 }
 
 // 该函数被花掉了
-func _004D7A1F(haystack []uint8, ip string, z *uint32) uint16 {
+func _004D7A1F(haystack []uint8, ip []uint8, z *uint32) uint16 {
 	// x=0x0B37,3D25，存放的是[0,0,0,'K']
 
 	// ebp-100
@@ -342,10 +441,25 @@ func _004D7A1F(haystack []uint8, ip string, z *uint32) uint16 {
 	return 1000
 }
 
-func _004D7CE5_run(hModule uint32, ebpC uint32, haystack []uint8, ebp14 uint32) {
+func _004D7CE5_WinMain(hModule uint32, hPrevInstance uint32, szCmdLine []uint8, iCmdShow uint32) {
 	// 1B60h，近两页也就是8k字节的局部变量
 
 	// _004D7CE5， 设置一下栈
+
+	// ebp-4 和 ebp-8是什么？
+	var ebp_4 uint32 = 0x004D7CF2 // 一个函数指针
+	var ebp_8 uint32 = 0x0A
+
+	// ebp-28
+	var msg struct {
+		hWnd     uint32    // ebp-28
+		message  uint32    // ebp-24
+		wParam   uint32    // ebp-20
+		lParam   uint32    // ebp-1C
+		time     uint32    // ebp-18
+		pt       [2]uint32 // ebp-14, ebp-10
+		lPrivate uint32    // ebp-C
+	}
 
 	// if _00DE7C00() < 1 { // jae -> jmp
 	// 启动mu.exe然后退出
@@ -391,10 +505,10 @@ func _004D7CE5_run(hModule uint32, ebpC uint32, haystack []uint8, ebp14 uint32) 
 	// direct-x information
 
 	// 这里重新设置ip地址和端口失败了，为什么？
-	var ebp_8 uint32 = 10
-	var port uint16 = _004D7A1F(haystack, _01319A50_ip, &ebp_8)
+	// 从命令行中提取指定的ip地址和端口，因为没有通过mu.exe启动，所有没有命令行
+	var port uint16 = _004D7A1F(szCmdLine, _01319A50_ip[:], &ebp_8)
 	if port > 0 {
-		_012E2338_ip = _01319A50_ip
+		_012E2338_ip = string(_01319A50_ip[:])
 		_012E233C_port = port
 	}
 
@@ -449,7 +563,7 @@ func _004D7CE5_run(hModule uint32, ebpC uint32, haystack []uint8, ebp14 uint32) 
 	// window init
 	_01319E08_log._00B38AE4("> Screen size = %d x %d.\r\n", _012E3F08.height, _012E3F08.width)
 	_01319D70_hModule = hModule
-	_01319D6C_hWnd = _004D6F82(hModule, ebp14) // 创建hWnd
+	_01319D6C_hWnd = _004D6F82_initWindow(hModule, iCmdShow) // 创建hWnd
 	_01319E08_log._00B38AE4("> Start window success.\r\n")
 
 	// opengl init
@@ -468,8 +582,8 @@ func _004D7CE5_run(hModule uint32, ebpC uint32, haystack []uint8, ebp14 uint32) 
 	// sound card information
 	_01319E08_log._00B3902D() // 自带cut
 
-	// ShowWindow(_01319D6C_hWnd, 10)
-	// UpdateWindow(_01319D6C_hWnd)
+	// ShowWindow(_01319D6C_hWnd, 10) // 发很多消息给WndProc
+	// UpdateWindow(_01319D6C_hWnd) // 发很多消息给WndProc
 
 	_00B4C1FF(_01319D6C_hWnd)
 	_01319E08_log._00B38AE4("> gg connect window Handle.\r\n")
@@ -494,33 +608,39 @@ func _004D7CE5_run(hModule uint32, ebpC uint32, haystack []uint8, ebp14 uint32) 
 
 	// ...
 
-	// ebp-28
-	var msg struct {
-		hWnd    uint32
-		message uint32
-		// ...
-	}
+	var ebp_595 uint8 // ImmIsUIMessage返回值
 
 	// 消息循环
 	for {
-		if msg.message == 0x12 || msg.message == 0x10 {
+		if msg.message == 0x10 || // WM_CLOSE
+			msg.message == 0x12 { // WM_QUIT
 			break
 		}
+
 		if PeekMessage(&msg, 0, 0, 0) {
 			ImmIsUIMessage()
-			_00A49798()
-			_00A4DF87()
-			if !GetMessage(&msg, 0, 0, 0) {
+			if msg.message == 0x100 || // WM_KEYFIRST, WM_KEYDOWN
+				msg.message == 0x101 || // WM_KEYUP
+				ebp_595 != 0 ||
+				msg.message == 0x201 || // WM_LBUTTONDOWN
+				msg.message == 0x202 { // WM_LBUTTONUP
+				_00A49798(msg.hWnd, msg.message, msg.wParam, msg.lParam, 1)
+				_00A4DFB7()
+			}
+
+			if !GetMessage(&msg, 0, 0, 0) { // WM_QUIT返回0，出错返回-1
 				break
 			}
 			TranslateMessage(&msg)
-			DispatchMessage(&msg)
-		}
-		if _012E2224 == 0 {
+			DispatchMessage(&msg) // 到WndProc
+		} else {
+			if _012E2224 == 0 {
 
-		}
+			} else if _012E2224 == 1 {
 
-		_00760292(_08c88FF0, 0, 0)
+			}
+		}
+		_00760292(&_08C88FF0, 0, 0) // 比较重要
 		_01319D2C._004B9492()
 	}
 }
@@ -529,60 +649,73 @@ func _004D9F88() {
 
 }
 
-// //
-// func _004E6233(hDC uint32) {
-// 	// _004E4F1C
-// 	func(hDC uint32) {
-// 		// _004E1E1E
-// 		func() {
-// 			// _004E1CEE
-// 			func() {
-
-// 				// _006BF89A
-// 				func(ip string, port uint16) {
-// 					// 可能是建立连接
-// 				}(_012E2338_ip, _012E233C_port)
-
-// 				// _004DE036 被花了 改为call 0B28810A试试
-// 				func() {
-// 					// 需要改为 jmp 0a4e0788
-// 					// _01089680
-// 					func() {
-
-// 					}(0x202)
-// 				}()
-// 			}()
-// 		}()
-// 	}(hDC)
-// }
-
 // 这个函数被花了
-func _00760292() {
+func _00760292(t *t2000, x, y uint32) {
 
-	// _006C75A7，也被花了
+	var ebp18 *t2002 // 从表中拿到一个帧
+	var ebp14 uint32
+	var ebp10 uint32
+	switch ebp18.buf[0] {
+	case 0xC1:
+		ebp14 = ebp18.buf[2]
+	case 0xC2:
+		ebp14 = ebp18.buf[3]
+		ebp10 = ebp18.buf[1]<<8 + ebp18.buf[2]
+		_086A3C28 += ebp10 // 累计接收字节数
+	case 0xC3:
+		ebp10 = ebp18.buf[1]
+		_08C8D014._00B98FC0(t, &ebp181A)
+	case 0xC4:
+	}
+
+	// _0075C3B2
 	func() {
-
-		// _004A9146
+		// _006C75A7，也被花了
 		func() {
 
+			// _004A9146
+			func() {
+
+			}()
+
+			// _004A9EEB
+			func() {
+
+			}()
+
+			_01319E08_log._00B38AE4("Version dismatch - Join server.\r\n")
+
+			// _0051FB61
+			func() {
+
+			}()
+
 		}()
-
-		// _004A9EEB
-		func() {
-
-		}()
-
-		_01319E08_log._00B38AE4("Version dismatch - Join server.\r\n")
-
-		// _0051FB61
-		func() {
-
-		}()
-
 	}()
 
 	// _006BDC33
 	func() {
 
 	}()
+}
+
+// 很复杂 0x004E4F1C ~ 0x004E6232，不到5000行并且几乎都是函数调用
+func _004E4F1C() {
+
+	// _004E1CEE
+	func() {
+		// _006BF89A 连接
+		func() {
+
+			_01319E08_log._00B38AE4()
+		}()
+	}()
+
+}
+
+// 进度加载完毕handle
+func _004E6233() {
+
+	_004E4F1C()
+
 }
