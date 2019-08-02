@@ -326,3 +326,29 @@ func (t *t2000) _006BD945_Write() uint32 {
 		return 1
 	}
 }
+
+// t3001
+type t3001 struct {
+	fs []func()
+}
+
+// t3000
+var _0130F728 t3000
+
+type t3000 struct {
+	data  [4880]uint8
+	f4880 t3001 // 01313FA8
+}
+
+func (t *t3000) _004A9083(p *t3000) {
+
+}
+
+func (t *t3000) _004A9123(p *t3001) {
+	p.fs[10]
+	t._004A9083(p)
+}
+
+var _08C88E08 uint32
+var _08C88E0C uint32
+var _012E4018 string = "22789" // 版本怎么会是这个？

@@ -649,54 +649,116 @@ func _004D9F88() {
 
 }
 
+// 也可能是map
+var _0075FF6A_cmd []struct{}
+var _0075FCB2_cmd []struct{}
+
 // 这个函数被花了
 func _00760292(t *t2000, x, y uint32) {
-
-	var ebp18 *t2002 // 从表中拿到一个帧
+	var ebp18 []uint8 // t.t2002
 	var ebp14 uint32
 	var ebp10 uint32
-	switch ebp18.buf[0] {
+	switch ebp18[0] {
 	case 0xC1:
-		ebp14 = ebp18.buf[2]
+		ebp14 = ebp18[2]
 	case 0xC2:
-		ebp14 = ebp18.buf[3]
-		ebp10 = ebp18.buf[1]<<8 + ebp18.buf[2]
-		_086A3C28 += ebp10 // 累计接收字节数
+		ebp14 = ebp18[3]
+		ebp10 = ebp18[1]<<8 + ebp18[2]
 	case 0xC3:
-		ebp10 = ebp18.buf[1]
+		ebp10 = ebp18[1]
 		_08C8D014._00B98FC0(t, &ebp181A)
 	case 0xC4:
 	}
+	_086A3C28 += ebp10 // 累计接收字节数
+	if y == 1 {
+	}
 
-	// _0075C3B2
-	func() {
-		// _006C75A7，也被花了
-		func() {
+	ebp1820 := 0
 
-			// _004A9146
-			func() {
+	// _0075C3B2 被花到 0x009FE6362
+	func(typ uint32, buf []uint8, len uint32, x uint32) {
+		ebp5D8 := typ
+		if ebp5D8 > 0xFD {
+		}
 
-			}()
+		// 寻找处理器
+		_0075FCB2_cmd[4*_0075FF6A_cmd[ebp5D8]]
 
-			// _004A9EEB
-			func() {
+		// 0x00 处理器
+		// _006FA9EB
+		func(buf []uint8) {
+			// 业务逻辑很复杂
+			// send c1 04 f4 06
+		}(buf)
 
-			}()
+		// 0xF1 处理器
+		ebp4 = buf
+		ebp5DC := ebp4[3]
+		if ebp5DC > 4 {
+		}
+		switch ebp5DC {
+		case 4:
+		case 0: // version match, buf: 01 2E 87 "10525"
+			// _006C75A7 被花到 0x0A4E7A49
+			func(buf []uint8) {
+				ebp4 := buf
+				ebp10 := buf[4]
+				if ebp10 == 1 {
+					ebp8 := &_0130F728
+					ebp8._004A9123(&ebp8.f4880)
+				}
+				_08C88E0C = ebp4[5]<<8 + ebp4[6]
+				_08C88E08 = 2
+				ebpC := 0
+				if ebpC >= 5 {
+				}
+				for {
+					if _012E4018[ebpC]-ebpC-1 != ebp4[7+ebpC] { // 改为jmp
+						break
+					}
+					ebpC++
+					if ebpC >= 5 {
+						break
+					}
+				}
 
-			_01319E08_log._00B38AE4("Version dismatch - Join server.\r\n")
+				// _004A9146
+				func() {}()
 
-			// _0051FB61
-			func() {
+				// _004A9EEB
+				func() {}()
+				_01319E08_log._00B38AE4("Version dismatch - Join server.\r\n")
+				// _0051FB61
+				func() {}()
+			}(buf)
+		}
 
-			}()
+		// 0xFA 处理器(没有)
 
-		}()
-	}()
+		// 0xF4 处理器
+		if buf[0] == 0xC1 {
+		}
+		ebp1C := buf
+		ebp14 := ebp1C[4]
+		ebp5EC := ebp14
+		switch ebp5EC {
+		case 3:
+		case 5:
+		case 6:
+			// _006BFA3E
+			func(buf []uint8) {
+				ebp4 := 6
+				ebp9 := buf[ebp4]
+				ebp4++
+				if ebp14 >= buf[5]<<8|1 {
+				}
+				ebp18 := buf[ebp4:]
+			}(buf)
+		}
+	}(ebp14, ebp18, ebp10, ebp1820)
 
 	// _006BDC33
-	func() {
-
-	}()
+	func() {}()
 }
 
 // 很复杂 0x004E4F1C ~ 0x004E6232，不到5000行并且几乎都是函数调用

@@ -341,8 +341,8 @@ func _00DF0805(buf []uint8, format string, a ...interface{}) {
 	_00DF0787(buf, format, nil, a...)
 }
 
-// OEP: 0x00DF,478C
-func main() {
+// OEP
+func _00DF478C_OEP() {
 	// check pe
 
 	checkupdate()
