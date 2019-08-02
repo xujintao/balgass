@@ -1,13 +1,13 @@
 package main
 
-// t2004
-type t2004 struct {
+// t3004
+type t3004 struct {
 	f14 uint32 // 0x0DA6D830
 	f18 uint32 // 1
 }
 
 // 比较复杂，可能是解析
-func (t *t2004) _006BDE09() {
+func (t *t3004) _006BDE09() {
 	// _006BE122
 	func() {
 
@@ -159,22 +159,22 @@ func (t *t2004) _006BDE09() {
 	}()
 }
 
-// t2003
-type t2003 struct{}
+// t3003
+type t3003 struct{}
 
-func (t *t2003) _006BEB1E(x uint32) {
+func (t *t3003) _006BEB1E(x uint32) {
 
 }
 
-func (t *t2003) _006BEB35(p **t2002, pp **t2002) {
+func (t *t3003) _006BEB35(p **t3002, pp **t3002) {
 	t._006BF322(p, pp)
 }
 
-func (t *t2003) _006BF322(p **t2002, pp **t2002) {
+func (t *t3003) _006BF322(p **t3002, pp **t3002) {
 	ebp4 := p
 
 	// _00405BF0
-	ebp8 := func(x uint32, p **t2002) {
+	ebp8 := func(x uint32, p **t3002) {
 		return p
 	}(4, p)
 	if ebp8 == nil {
@@ -183,38 +183,38 @@ func (t *t2003) _006BF322(p **t2002, pp **t2002) {
 	*p = *pp
 }
 
-// t2002
-type t2002 struct {
+// t3002
+type t3002 struct {
 	buf [2000]uint8
 	len uint32
 }
 
-func (t *t2002) _006BDFED(buf []uint8, len uint32) *t2002 {
+func (t *t3002) _006BDFED(buf []uint8, len uint32) *t3002 {
 	_00DE7C90_memcpy(t.buf[:], buf, len)
 	t.buf[len] = 0xFD
 	t.len = len
 	return t
 }
 
-// t2001
-type t2001 struct {
+// t3001
+type t3001 struct {
 	data [12]uint8
-	f0C  *t2003      // 0x0D906A78
-	f10  [][]**t2002 // 指针数组, 0x2817EFA0
+	f0C  *t3003      // 0x0D906A78
+	f10  [][]**t3002 // 指针数组, 0x2817EFA0
 	f14  uint32
 	f18  uint32
 	f1C  uint32
-	f20  *t2004 // 0x0DA6FFC0
+	f20  *t3004 // 0x0DA6FFC0
 }
 
-func (t *t2001) _006BDDF5() {
+func (t *t3001) _006BDDF5() {
 	t.f20._006BDE09()
 }
 
-func (t *t2001) _006BDF76(buf []uint8, len uint32) {
+func (t *t3001) _006BDF76(buf []uint8, len uint32) {
 	// 带SEH了
-	var ebp18 *t2002 = _00DE852F(2004) // 可能是new
-	var ebp20 *t2002
+	var ebp18 *t3002 = _00DE852F(2004) // 可能是new
+	var ebp20 *t3002
 	if ebp18 == nil {
 		ebp20 = nil
 	} else {
@@ -225,11 +225,11 @@ func (t *t2001) _006BDF76(buf []uint8, len uint32) {
 	t._006BE241(&ebp10) // 填表
 }
 
-func (t *t2001) _006BE241(pp **t2002) {
+func (t *t3001) _006BE241(pp **t3002) {
 	t._006BE6D9(pp)
 }
 
-func (t *t2001) _006BE6D9(pp **t2002) {
+func (t *t3001) _006BE6D9(pp **t3002) {
 	if (t.f18+t.f1C)%4 == 0 && t.f14 <= (t.f1C+4)>>2 {
 		t._006BEC73(1)
 	}
@@ -245,24 +245,24 @@ func (t *t2001) _006BE6D9(pp **t2002) {
 	t.f1C++
 }
 
-func (t *t2001) _006BEC73(x uint32) {
+func (t *t3001) _006BEC73(x uint32) {
 
 }
 
-// t2000
-type t2000 struct {
+// t3000
+type t3000 struct {
 	f0000 [12]uint8   // f0000
 	fd    uint32      // f000C
 	bufw  [2000]uint8 // f0010
 	w     uint32      // f2010
 	bufr  [2000]uint8 // f2014
 	r     uint32      // f4014
-	f4020 *t2001      // f4020
+	f4020 *t3001      // f4020
 }
 
-var _08C88FF0 t2000
+var _08C88FF0 t3000
 
-func (t *t2000) _006BDA03_Read() uint32 {
+func (t *t3000) _006BDA03_Read() uint32 {
 	if t.r >= 0x2000 {
 		_01319E08_log._00B38AE4("Receive Packet Buffer Overflow")
 		return 1
@@ -321,30 +321,30 @@ func (t *t2000) _006BDA03_Read() uint32 {
 	return 0
 }
 
-func (t *t2000) _006BD945_Write() uint32 {
+func (t *t3000) _006BD945_Write() uint32 {
 	if t.w <= 0 {
 		return 1
 	}
 }
 
-// t3001
-type t3001 struct {
+// t4001
+type t4001 struct {
 	fs []func()
 }
 
-// t3000
-var _0130F728 t3000
+// t4000
+var _0130F728 t4000
 
-type t3000 struct {
+type t4000 struct {
 	data  [4880]uint8
-	f4880 t3001 // 01313FA8
+	f4880 t4001 // 01313FA8
 }
 
-func (t *t3000) _004A9083(p *t3000) {
+func (t *t4000) _004A9083(p *t4000) {
 
 }
 
-func (t *t3000) _004A9123(p *t3001) {
+func (t *t4000) _004A9123(p *t4001) {
 	p.fs[10]
 	t._004A9083(p)
 }
