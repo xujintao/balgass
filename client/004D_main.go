@@ -38,12 +38,12 @@ var _01319A38 [8]uint8 // "1.04R+"	// 可执行程序版本号
 var _01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
 var _01319A50_ip [16]uint8
 
-var _01319D1C_oWndProc uint32
-var _01319D68 *uint32
-var _01319D6C_hWnd uint32 // hWnd, 0x0073,1366
-var _01319D70_hModule uint32
-var _01319D74_hDC uint32   // hDC, 0x1401,11A6
-var _01319D78_hGLRC uint32 // hGLRC, OpenGL rendering context, 0x0001,0000
+var _01319D1C_oWndProc dll.WndProc
+var v01319D68 *t1319D68
+var _01319D6C_hWnd uintptr // hWnd, 0x0073,1366
+var _01319D70_hModule uintptr
+var _01319D74_hDC uintptr   // hDC, 0x1401,11A6
+var _01319D78_hGLRC uintptr // hGLRC, OpenGL rendering context, 0x0001,0000
 var _01319DB8 [64]uint8
 var _01319DFC string = "Chs"
 var _01319E00 string = "chinese"
@@ -95,9 +95,22 @@ func _004D55C6(fileName []uint8, ver *version) bool {
 }
 
 // old callback
-func _004D5F98_WndProc(hWnd uint32, message uint32, wParam uint32, lParam uint32) uint32 {
+func _004D5F98_WndProc(hWnd, message, wParam, lParam int) int {
 	switch message {
 	case dll.WM_CREATE_1:
+	case dll.WM_TIMER_113:
+		switch wParam {
+		case 0x3E8:
+			// f00B4C239
+			func() {
+				if v01319D68 == nil {
+					return
+				}
+				v01319D68.f00B4CC0D()
+				// ...
+			}()
+			f004D8FF5() // 心跳
+		}
 	case dll.WM_USER_400:
 		switch lParam {
 		case 1:
@@ -107,18 +120,22 @@ func _004D5F98_WndProc(hWnd uint32, message uint32, wParam uint32, lParam uint32
 		case 20:
 		}
 	default:
-		return DefWindowProc(hWnd, message, wParam, lParam)
+		// v08C88BC0 = 0
+		// if v08C88BC5 == 1 && (v01319DA8 != v08C88C80 || v01319DAC != v08C88C80) {
+		// 	v08C88BC5 = 0
+		// }
+		return dll.User32.DefWindowProc(hWnd, message, wParam, lParam)
 	}
 	return 0
 }
 
 // new callback
-func _004D6C2B_WndProc(hWnd uint32, message uint32, wParam uint32, lParam uint32) uint32 {
+func _004D6C2B_WndProc(hWnd, message, wParam, lParam int) int {
 	switch message {
 	case dll.WM_CHAR_102:
 		_00A49798(wParam, lParam)
 	default:
-		CallWindowProcw(_01319D1C_oWndProc, hWnd, message, wParam, lParam)
+		dll.User32.CallWindowProc(_01319D1C_oWndProc, hWnd, message, wParam, lParam)
 	}
 	return 0
 }
@@ -142,14 +159,12 @@ func _004D6D64() bool {
 	// 	DWORD dwDamageMask;
 	//   } PIXELFORMATDESCRIPTOR, *PPIXELFORMATDESCRIPTOR, *LPPIXELFORMATDESCRIPTOR;
 	// 等效
-	var pixelfd struct {
-		data [40]uint8
-	}
-	var pfdindex uint32 // ebp-4
+	var pixelfd dll.Pixelfd
+	var pfdindex int // ebp-4
 
-	_00DE8100(pixelfd.data[:], 0, 0x28) // 清零
+	_00DE8100(pixelfd.Data[:], 0, 0x28) // 清零
 
-	_01319D74_hDC = GetDC(_01319D6C_hWnd) // 从hWnd中拿到hDC
+	_01319D74_hDC = dll.User32.GetDC(_01319D6C_hWnd) // 从hWnd中拿到hDC
 	if _01319D74_hDC == 0 {
 		// var nRet int32 = GetLastError()
 		// _01319E08_log._00B38AE4("OpenGL Get DC Error - ErrorCode : %d\n\r", nRet)
@@ -159,7 +174,7 @@ func _004D6D64() bool {
 		return false
 	}
 
-	pfdindex = ChoosePixelFormat(_01319D74_hDC, &pixelfd) // return 4
+	pfdindex = dll.Gdi32.ChoosePixelFormat(_01319D74_hDC, &pixelfd) // return 4
 	if pfdindex == 0 {
 		// var nRet int32 = GetLastError()
 		// _01319E08_log._00B38AE4("OpenGL Choose Pixel Format Error - ErrorCode : %d\n\r", nRet)
@@ -169,7 +184,7 @@ func _004D6D64() bool {
 		return false
 	}
 
-	if !SetPixelFormat(_01319D74_hDC, pfdindex, &pixelfd) { // return true
+	if !dll.Gdi32.SetPixelFormat(_01319D74_hDC, pfdindex, &pixelfd) { // return true
 		// var nRet int32 = GetLastError()
 		// _01319E08_log._00B38AE4("OpenGL Set Pixel Format Error - ErrorCode : %d\n\r", nRet)
 		// _004D51C8()
@@ -178,13 +193,13 @@ func _004D6D64() bool {
 		return false
 	}
 
-	_01319D78_hGLRC = wglCreateContext(_01319D74_hDC) // return 0x0001,0000
+	_01319D78_hGLRC = dll.Opengl32.WglCreateContext(_01319D74_hDC) // return 0x0001,0000
 	if _01319D78_hGLRC == 0 {
 		// OpenGL Create Context Error
 		return false
 	}
 
-	if !wglMakeCurrent(_01319D74_hDC, _01319D78_hGLRC) { // return true
+	if !dll.Opengl32.WglMakeCurrent(_01319D74_hDC, _01319D78_hGLRC) { // return true
 		// OpenGL Make Current Error
 		return false
 	}
@@ -219,34 +234,21 @@ func _004D6F82_initWindow(hModule uint32, iCmdShow uint32) uint32 {
 	// 	HICON     hIconSm;
 	// } WNDCLASSEXA, *PWNDCLASSEXA, *NPWNDCLASSEXA, *LPWNDCLASSEXA;
 
-	ebp_34 := struct {
-		cbSize        uint32
-		style         uint32
-		lpfnWndProc   func()
-		cbClsExtra    int32
-		cbWndExtra    int32
-		hInstance     uint32
-		hIcon         uint32
-		hCursor       uint32
-		hbrBackground uint32
-		lpszMenuName  string
-		lpszClassName string
-		hIconSm       uint32
-	}{
-		cbSize:        0x30, // ebp-34
-		style:         0x2B, // CS_OWNDC | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW
-		lpfnWndProc:   _004D5F98_WndProc,
-		cbClsExtra:    0,
-		cbWndExtra:    0,
-		hInstance:     GetModuleHandle(0),
-		hIcon:         LoadIcon(0, 0x65),     // IDI_APPLICATION)
-		hCursor:       LoadCursor(0, 0x7F00), // IDC_ARROW
-		hbrBackground: SetStockObject(4),     // WHITE_BRUSH
-		lpszMenuName:  "",
-		lpszClassName: ebp_78,     // "MU"
-		hIconSm:       0x141F0439, // ebp-8
+	ebp_34 := dll.WNDCLASSEX{
+		CbSize:        0x30, // ebp-34
+		Style:         0x2B, // CS_OWNDC | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW
+		LpfnWndProc:   _004D5F98_WndProc,
+		CbClsExtra:    0,
+		CbWndExtra:    0,
+		HInstance:     dll.Kernel32.GetModuleHandle(""),
+		HIcon:         dll.User32.LoadIcon(0, ""),   // IDI_APPLICATION)
+		HCursor:       dll.User32.LoadCursor(0, ""), // IDC_ARROW
+		HbrBackground: dll.Gdi32.GetStockObject(4),  // WHITE_BRUSH
+		LpszMenuName:  "",
+		LpszClassName: ebp_78,     // "MU"
+		HIconSm:       0x141F0439, // ebp-8
 	}
-	RegisterClassEx(&ebp_34)
+	dll.User32.RegisterClassEx(&ebp_34)
 
 	// ...
 	var ebp_4 uint32 = CreateWindowEx( // CreateWindow会发大概3条消息给WndProc
@@ -442,7 +444,7 @@ func _004D7A1F(haystack []uint8, ip []uint8, z *uint32) uint16 {
 	return 1000
 }
 
-func _004D7CE5_WinMain(hModule uint32, hPrevInstance uint32, szCmdLine []uint8, iCmdShow uint32) {
+func _004D7CE5_WinMain(hModule uintptr, hPrevInstance uint32, szCmdLine []uint8, iCmdShow uint32) {
 	// 1B60h，近两页也就是8k字节的局部变量
 
 	// _004D7CE5， 设置一下栈
@@ -542,7 +544,7 @@ func _004D7CE5_WinMain(hModule uint32, hPrevInstance uint32, szCmdLine []uint8, 
 		// ebp_1B0C = _004D936A(_012E2214)
 	}
 
-	_01319D68 = ebp_1B0C
+	v01319D68 = ebp_1B0C
 	bRet = _00B4C1B8()
 	if !bRet { // if false, disable GameGurad
 		// gg init error
@@ -644,6 +646,34 @@ func _004D7CE5_WinMain(hModule uint32, hPrevInstance uint32, szCmdLine []uint8, 
 		_00760292(&_08C88FF0, 0, 0) // 业务逻辑，比较重要
 		_01319D2C._004B9492()
 	}
+}
+
+var v08C88F62 int
+var v08C88F64 int
+var v08C88F84 int
+
+func f004D8FF5() {
+	// SEH
+	// 0x1488字节局部变量
+	_00DE8A70()
+	if v08C88F64 == 0 {
+		return
+	}
+	var ebp1494 heartbeat
+
+	// 构造心跳报文
+	ebp1494.f00439178(0xC1, 0xE)
+	ebp1494.f0043922C()
+	ebp10 := dll.Kernel32.GetTickCount()
+	ebp1494.f0043974F(1)
+	ebp1494.f0043EDF5(ebp10)
+	ebp1494.f004C65EF(v086105EC.f154, v086105EC.f160).f004C65EF()
+	ebp1494.f004393EA(1, 0) // 发送心跳报文
+	if v08C88F62 == 0 {
+		v08C88F62 = 1
+		v08C88F84 = ebp10
+	}
+	ebp1494.f004391CF()
 }
 
 func _004D9F88() {}

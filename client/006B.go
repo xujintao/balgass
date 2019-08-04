@@ -275,7 +275,7 @@ func (t *t3000) _006BD3A7_Init() {
 	dll.Ws2_32.WSAStartup()
 }
 
-func (t *t3000) _006BD509_Socket(hWnd int, x int) int {
+func (t *t3000) _006BD509_Socket(hWnd uintptr, x int) int {
 	t.fd = dll.Ws2_32.Socket(2, 1, 0) // AF_INT, SOCK_STREAM, 0
 	t.f0004 = x
 	if t.fd == -1 { // INVALID_SOCKET
@@ -358,7 +358,7 @@ func (t *t3000) _006BD945_Write() uint32 {
 }
 
 // 发送协议报文
-func (t *t3000) _004397E3_Write(buf []uint8, len int) int {
+func (t *t3000) f004397E3_Write(buf []uint8, len int) int {
 	// ebp10 := t // ecx也要落到栈上
 	ebp4 := len
 	ebp8_sum := 0
@@ -432,41 +432,80 @@ var _08C88E08 uint32
 var _08C88E0C uint32
 var _012E4018 string = "22789" // 版本怎么会是这个？
 
-// t5000
-type t5000 struct {
+// heartbeat
+type heartbeat struct {
 	len uint16
 	buf []uint8
 }
 
-var _012E4034 *t3000
+var v012E4034 *t3000
+var v08C88F60 int
 
-func (t *t5000) _004393EA(needEnc, C2 int) {
+func (t *heartbeat) f00439178(x, y int) {}
+func (t *heartbeat) f004391CF()         {}
+func (t *heartbeat) f0043922C()         {}
+
+func (t *heartbeat) f004393EA(needEnc, C2 int) {
 	t._00439612()
 	t._0043968F()
+
 	// _00439420
 	func(buf []uint8, len int, needEnc, C2 int) {
 		// 0x3124字节的局部变量，还是很复杂的
 		_00DE8A70()
 
 		if needEnc == 0 {
-			_012E4034._004397E3_Write(buf, len)
+			v012E4034.f004397E3_Write(buf, len)
 			return
 		}
 
-		var ebp3118 [2000]uint8
+		var ebp3124 int
+		var ebp3120 int
+		var ebp311C int
+		var ebp3118 [1000]uint8 // 原始缓存
+		var ebp1914 int
+		var ebp1910 [1000]uint8 // C4编码缓存
+		var ebp108 [1000]uint8  // C3编码缓存
 
 		// 编码数据
 		_00DE7C90_memcpy(ebp3118, buf, len)
 		ebp3118[len] = uint8(_00DE8AAD_rand() & 0xFF) // 源码带绝对值
+		if C2 == 1 {
+			ebp3118[0] = 0xC2
+		}
+		if ebp3118[0] != 0xC1 {
+			ebp311C = 1
+		}
+		ebp311C += 2
+		ebp3118[ebp311C-1] = v08C88F60
+		v08C88F60++
+		ebp311C--
+
+		ebp1914 = v08C88FB4.f00B98ED0(v012E4034, 0, ebp3118[ebp311C:], len-ebp311C) // 得到len为0x11
+
+		if ebp1914 < 0x100 {
+			if C2 == 0 {
+				ebp3120 = ebp1914 + 2 // 0x13
+				ebp108[0] = 0xC3
+				ebp108[1] = ebp3120
+				v08C88FB4.f00B98ED0(v012E4034, ebp108[2:], ebp3118[ebp311C:], len-ebp311C) // 编码数据
+				v012E4034.f004397E3_Write(ebp108[:], ebp3120)
+				return
+			}
+		}
+		// len >= 0x100或者C2 编码方案
+		// ...
 
 	}(t.buf, int(t.len), needEnc, C2)
 }
 
-func (t *t5000) _00439612() {}
-func (t *t5000) _0043968F() {}
+func (t *heartbeat) f00439612()         {}
+func (t *heartbeat) f0043968F()         {}
+func (t *heartbeat) f0043974F(x int)    {}
+func (t *heartbeat) f004C65EF(x, y int) {}
 
 // t6000
-var _01310798 t6000
+var v01310798 t6000
 
 type t6000 struct {
 	fs []func()
@@ -479,8 +518,8 @@ func (t *t6000) _00446D6D() {
 
 	// ...
 
-	var ebp149C t5000
-	ebp149C._004393EA(0, 0) // 发送协议报文
+	var ebp149C heartbeat
+	ebp149C.f004393EA(0, 0) // 发送协议报文
 
 	// ...
 }
@@ -490,3 +529,16 @@ func (t *t6000) _004CCC07() {
 	t.fs[11]
 	t.fs[12] // _00446D6D
 }
+
+// t08C88FB4
+var v08C88FB4 t08C88FB4
+
+type t08C88FB4 struct {
+	f18 int
+}
+
+func (t *t08C88FB4) f00B98ED0(p *t3000, x int, buf []uint8, len int) int {
+	// 被花了
+}
+
+func (t *t08C88FB4) f00B98D90() {}

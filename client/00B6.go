@@ -207,7 +207,7 @@ func (p *t1000) _00B3902D() {
 	// cut
 }
 
-func (p *t1000) _00B38EF4(hWnd uint32) {
+func (p *t1000) _00B38EF4(hWnd uintptr) {
 	// <IME information>\r\n
 }
 
@@ -215,11 +215,19 @@ func _00B4C1B8() bool {
 	return false
 }
 
-func _00B4C1FF(hWnd uint32) {
-	if _01319D68 != 0 {
+func _00B4C1FF(hWnd uintptr) {
+	if v01319D68 != 0 {
 		// ...
 	}
 }
+
+type t1319D68 struct{}
+
+func (t *t1319D68) f00B4CC0D() {
+	t.f00B63460()
+}
+
+func (t *t1319D68) f00B63460() {}
 
 type t2000 struct {
 	data [64]uint8

@@ -42,3 +42,5 @@ const (
 	WM_USER_400 = 0x0400
 	// 401
 )
+
+type WndProc func(int, int, int, int) int

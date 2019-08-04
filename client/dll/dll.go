@@ -30,6 +30,10 @@ type dsound interface {
 	DirectSoundCreate()
 }
 
+type Pixelfd struct {
+	Data [40]uint8
+}
+
 // gdi32.dll, /c/windows/syswow64/gdi32.dll
 // 这里定义所有用到的API指针变量，20个
 // 最后一个DWORD为0
@@ -37,10 +41,15 @@ type gdi32 interface {
 	CreateCompatibleDC()
 	CreateDIBSection()
 	DeleteDC()
+	ChoosePixelFormat(hDC uintptr, pfd *Pixelfd) int
+	SetPixelFormat(hDC uintptr, index int, pfd *Pixelfd) bool
+	GetStockObject(int) uintptr
 	// ...
 	GetTextMetricsW()
 	CreateFontA()
 }
+
+var Gdi32 gdi32
 
 // glu32.dll, /c/windows/syswow64/glu32.dll
 // 这里定义所有用到的API指针变量，3个
@@ -79,9 +88,12 @@ type kernel32 interface {
 	CreateFileA()
 	GetCommandLineA()
 	CloseHandle()
+	GetModuleHandle(moduleName string) uintptr
 	// ...
-	GetTickCOunt()
+	GetTickCount() int
 }
+
+var Kernel32 kernel32
 
 // oleaut32.dll, /c/windows/syswow64/oleaut32.dll
 // 这里定义所有用到的API指针变量，6个
@@ -102,9 +114,13 @@ type opengl32 interface {
 	glScissor()
 	glStencilMask()
 	glTexCoordPointer()
+	WglCreateContext(hDC uintptr) uintptr
+	WglMakeCurrent(hDC uintptr, hGLRC uintptr) bool
 	// ...
 	wglGetProcAddress()
 }
+
+var Opengl32 opengl32
 
 // shell32.dll, /c/windows/syswow64/shell32.dll
 // 这里定义所有用到的API指针变量，1个
@@ -120,6 +136,21 @@ type sh1wapi interface {
 	PathFileExistsA()
 }
 
+type WNDCLASSEX struct {
+	CbSize        uint32
+	Style         uint32
+	LpfnWndProc   WndProc
+	CbClsExtra    int32
+	CbWndExtra    int32
+	HInstance     uintptr
+	HIcon         uintptr
+	HCursor       uintptr
+	HbrBackground uint32
+	LpszMenuName  string
+	LpszClassName string
+	HIconSm       uint32
+}
+
 // user32.dll, /c/windows/syswow64/user32.dll
 // 这里定义所有用到的API指针变量，100个
 // 最后一个DWORD为0
@@ -127,10 +158,18 @@ type user32 interface {
 	FindWindowA()
 	IntersetRect()
 	wsprintfA()
+	DefWindowProc(hWnd, message, wParam, lParam int) int
+	CallWindowProc(wndProc WndProc, hWnd, message, wParam, lParam int)
+	GetDC(hWnd uintptr) uintptr
+	RegisterClassEx(wc *WNDCLASSEX)
+	LoadIcon(hInstance uintptr, iconName string) uintptr
+	LoadCursor(hInstance uintptr, cursorName string) uintptr
 	// ...
 	SetWindowLongW()
 	ReleaseDC()
 }
+
+var User32 user32
 
 // version.dll, /c/windows/syswow64/version.dll
 // 这里定义所有用到的API指针变量，3个
