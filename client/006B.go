@@ -1,5 +1,11 @@
 package main
 
+import (
+	"sync"
+
+	"github.com/xujintao/balgass/client/dll"
+)
+
 // t3004
 type t3004 struct {
 	f14 uint32 // 0x0DA6D830
@@ -251,33 +257,57 @@ func (t *t3001) _006BEC73(x uint32) {
 
 // t3000
 type t3000 struct {
-	f0000 [12]uint8   // f0000
+	hWnd  int         // f0000
+	f0004 int         // f0004
+	f0008 int         // f0008
 	fd    uint32      // f000C
 	bufw  [2000]uint8 // f0010
 	w     uint32      // f2010
 	bufr  [2000]uint8 // f2014
 	r     uint32      // f4014
 	f4020 *t3001      // f4020
+	once  sync.Once   // f40EC, _08C8D0DC
 }
 
 var _08C88FF0 t3000
+
+func (t *t3000) _006BD3A7_Init() {
+	dll.Ws2_32.WSAStartup()
+}
+
+func (t *t3000) _006BD509_Socket(hWnd int, x int) int {
+	t.fd = dll.Ws2_32.Socket(2, 1, 0) // AF_INT, SOCK_STREAM, 0
+	t.f0004 = x
+	if t.fd == -1 { // INVALID_SOCKET
+		dll.Ws2_32.WSAGetLastError()
+		// log
+		// MessageBoxA
+		return 0
+	}
+	t.hWnd = hWnd
+	return 1
+}
+
+func (t *t3000) _006BD708_Dial(ip string, port int, x int) {
+
+}
 
 func (t *t3000) _006BDA03_Read() uint32 {
 	if t.r >= 0x2000 {
 		_01319E08_log._00B38AE4("Receive Packet Buffer Overflow")
 		return 1
 	}
-	ebp_C := recv(t.s, t.bufr[t.r:], 0x2000-t.r, 0)
-	if ebp_C == 0 {
+	ebpC := dll.Ws2_32.Recv(t.s, t.bufr[t.r:], 0x2000-t.r, 0)
+	if ebpC == 0 {
 		// 服务器关闭连接
 		return 1
 	}
-	if ebp_C == -1 { // SOCKET_ERROR
+	if ebpC == -1 { // SOCKET_ERROR
 		WSAGetLastError()
 		//...
 		return 1
 	}
-	t.r += ebp_C
+	t.r += ebpC
 	if t.r < 3 {
 		return 3 // 还没有收到完整协议报文
 	}
@@ -327,6 +357,47 @@ func (t *t3000) _006BD945_Write() uint32 {
 	}
 }
 
+// 发送协议报文
+func (t *t3000) _004397E3_Write(buf []uint8, len int) int {
+	// ebp10 := t // ecx也要落到栈上
+	ebp4 := len
+	ebp8_sum := 0
+	if t.fd == -1 {
+		return 0
+	}
+	for {
+		ebpC := dll.Ws2_32.Send(t.fd, buf[ebp8_sum:], len-ebp8_sum, 0)
+		if ebpC == -1 {
+			if 0x2733 != dll.Ws2_32.WSAGetLastError() {
+				_01319E08_log._00B38AE4("[Send Packet Error] WSAGetLastError() != WSAEWOULDBLOCK\r\n")
+				//_006BD5BB()
+				return 0
+			}
+			if t.w+len > 0x2000 {
+				_01319E08_log._00B38AE4("[Send Packet Error] SendBuffer Overflow\r\n")
+				//_006BD5BB()
+				return 0
+			}
+
+			// 发送缓存满了，留着下一次发送
+			_00DE7C90_memcpy(t.bufw[t.w:], buf, ebp4) // buf不切一下？
+			t.w += ebp4
+			return 0
+		}
+
+		if ebpC == 0 {
+			return 1
+		}
+
+		ebp8_sum += ebpC
+		ebp4 -= ebpC
+		if ebp4 <= 0 {
+			return 1
+		}
+	}
+	return 0
+}
+
 // t4001
 type t4001 struct {
 	fs []func()
@@ -340,15 +411,82 @@ type t4000 struct {
 	f4880 t4001 // 01313FA8
 }
 
-func (t *t4000) _004A9083(p *t4000) {
-
-}
+func (t *t4000) _004A9083(p *t4000) {}
 
 func (t *t4000) _004A9123(p *t4001) {
 	p.fs[10]
 	t._004A9083(p)
 }
 
+func (t *t4000) _004A9B5B() {
+	// ...
+
+	// ebp8数组在0x377E3138地址处，应该是new出来的
+	// ebp8数组有9个元素，应该是个表
+	// 分别存放的是t6000的派生类型，t6000可能是接口类型
+	// {_01310056, _01310598, _013180E0, _01317CD8,_01314300, _01313FA8, _0130FF40, _0130FB38, _0130F730}
+	ebp8[ebp24*4]._004CCC07()
+}
+
 var _08C88E08 uint32
 var _08C88E0C uint32
 var _012E4018 string = "22789" // 版本怎么会是这个？
+
+// t5000
+type t5000 struct {
+	len uint16
+	buf []uint8
+}
+
+var _012E4034 *t3000
+
+func (t *t5000) _004393EA(needEnc, C2 int) {
+	t._00439612()
+	t._0043968F()
+	// _00439420
+	func(buf []uint8, len int, needEnc, C2 int) {
+		// 0x3124字节的局部变量，还是很复杂的
+		_00DE8A70()
+
+		if needEnc == 0 {
+			_012E4034._004397E3_Write(buf, len)
+			return
+		}
+
+		var ebp3118 [2000]uint8
+
+		// 编码数据
+		_00DE7C90_memcpy(ebp3118, buf, len)
+		ebp3118[len] = uint8(_00DE8AAD_rand() & 0xFF) // 源码带绝对值
+
+	}(t.buf, int(t.len), needEnc, C2)
+}
+
+func (t *t5000) _00439612() {}
+func (t *t5000) _0043968F() {}
+
+// t6000
+var _01310798 t6000
+
+type t6000 struct {
+	fs []func()
+}
+
+func (t *t6000) _00446D6D() {
+	// 带SEH处理
+	// 0x2994字节的全局变量
+	_00DE8A70()
+
+	// ...
+
+	var ebp149C t5000
+	ebp149C._004393EA(0, 0) // 发送协议报文
+
+	// ...
+}
+
+func (t *t6000) _004CCC07() {
+	// ...
+	t.fs[11]
+	t.fs[12] // _00446D6D
+}
