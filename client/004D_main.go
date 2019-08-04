@@ -15,6 +15,7 @@ type conf struct {
 const (
 	_0114D912 uint8  = 0
 	_0114D913 uint8  = 0
+	_0114DB18 string = "서버와의 접속종료." // 终止与服务器的连接
 	_0114DD64 uint16 = 0x0061
 )
 
@@ -640,20 +641,18 @@ func _004D7CE5_WinMain(hModule uint32, hPrevInstance uint32, szCmdLine []uint8, 
 
 			}
 		}
-		_00760292(&_08C88FF0, 0, 0) // 比较重要
+		_00760292(&_08C88FF0, 0, 0) // 业务逻辑，比较重要
 		_01319D2C._004B9492()
 	}
 }
 
-func _004D9F88() {
-
-}
+func _004D9F88() {}
 
 // 也可能是map
 var _0075FF6A_cmd []struct{}
 var _0075FCB2_cmd []struct{}
 
-// 这个函数被花了
+// 业务逻辑，这个函数被花了
 func _00760292(t *t2000, x, y uint32) {
 	var ebp18 []uint8 // t.t2002
 	var ebp14 uint32
@@ -761,23 +760,43 @@ func _00760292(t *t2000, x, y uint32) {
 	func() {}()
 }
 
-// 很复杂 0x004E4F1C ~ 0x004E6232，不到5000行并且几乎都是函数调用
-func _004E4F1C() {
-
-	// _004E1CEE
-	func() {
-		// _006BF89A 连接
-		func() {
-
-			_01319E08_log._00B38AE4()
-		}()
-	}()
-
-}
-
-// 进度加载完毕handle
+// 网络
 func _004E6233() {
 
-	_004E4F1C()
+	// _004E4F1C
+	func() {
+		// 很复杂 0x004E4F1C ~ 0x004E6232，不到5000行并且几乎都是函数调用
+		// ...
 
+		_0130F728._004A9B5B() // 请求服务器列表
+
+		ebp40C := _012E2340
+		switch ebp40C {
+		case 2:
+			// _004E1E1E
+			func() {
+				// 带SEH
+				_00DE8A70()
+
+				// _004E1CEE
+				func() {
+					// _006BF89A 拨号
+					func(ip string, port int) {
+						_08C88FF0.once.Do(_006BD3A7_Init())
+						_01319E08_log._00B38AE4("[Connect to Server] ip address = %s, port = %d\r\n")
+						_08C88FF0._006BD509_Socket(_01319D6C_hWnd, 1)
+						_08C88FF0._006BD708_Dial(ip, port, 400)
+					}(_012E2338_ip, _012E233C_port)
+				}()
+			}()
+		case 4:
+			// _004DDD4F
+			func() {}()
+		case 5:
+			// _004DF0D5
+			func() {}
+		}
+
+		// ...
+	}()
 }
