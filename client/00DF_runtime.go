@@ -115,6 +115,12 @@ func _00DE852F(x uint32) *uint32 {
 	}
 }
 
+// 拿着eax做栈分配，这个骚套路是什么API？目的是什么？
+func _00DE8A70() {}
+
+// 猜测
+func _00DE8AAD_rand() int {}
+
 func _00DEE871_setlocale(category uint32, locale string) {
 
 }
