@@ -85,6 +85,7 @@ a3 da 0b
 
 client(9) -> server:
 c1 09 fa 15 86 5a ca e2 c4
+<flag:0xc1 + len:9 + type:0xfa15 + data:86 5a ca e2 c4>
 ```
 
 version
@@ -95,6 +96,20 @@ c1 0c f1 00 01 2e 7e "10444"
 
 客户端判断服务器版本，匹配就继续，不匹配就RST连接并退出程序  
 (想办法禁用客户端的版本匹配)
+```
+
+unknown
+```
+// 20秒一次，也是心跳？
+client(19) -> server:
+c3 13 d4 4e 83 1e 01 45 f9 e3 c5 fb ea 32 6d 04
+3b ea 05
+<flag:0xc3 + len:19 + type:0xd44e + data:83 1e 01 45 f9 e3 c5 fb ea 32 6d 04 3b ea 05>
+
+// 服务器响应的invalid packet received OP:5
+client <- server(104):
+c1 68 fa a5 c9 b0 ...
+<flag:0xc1 + len:104 + type:0xfaa5 + data:...>
 ```
 
 login
