@@ -172,8 +172,15 @@ type ws2_32 interface {
 	gethostname()
 	ioctlsocket()
 	// ...
+	Socket(af, typ, protocol int) int
+	Send(fd int, buf []uint8, len int, flags int) int
+	Recv(fd int, buf []uint8, len int, flags int) int
+	WSAGetLastError() int
+	// ...
 	WSAStartup()
 }
+
+var Ws2_32 ws2_32
 
 // dbghelp.dll, /c/windows/syswow64/dbghelp.dll
 // debghelp.dll, /c/mu/dbghelp.dll 这个和系统的有什么区别？
