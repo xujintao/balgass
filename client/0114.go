@@ -1,5 +1,3 @@
 package main
 
-func _01148F33() {
-
-}
+func f01148F33() {}

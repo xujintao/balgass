@@ -13,40 +13,40 @@ type conf struct {
 }
 
 const (
-	_0114D912 uint8  = 0
-	_0114D913 uint8  = 0
-	_0114DB18 string = "서버와의 접속종료." // 终止与服务器的连接
-	_0114DD64 uint16 = 0x0061
+	v0114D912 uint8  = 0
+	v0114D913 uint8  = 0
+	v0114DB18 string = "서버와의 접속종료." // 终止与服务器的连接
+	v0114DD64 uint16 = 0x0061
 )
 
 // 这里使用数组，确保在data段，固定在某个地址上
 // 如果使用string，那么读文件后对buf进行string类型转换，会memmove到堆上
-var _012E2210 uint32 = 1
-var _012E2214 string = "MUCN"
-var _012E2224 uint32 = 1
-var _012E2228 uint32 = 16
-var _012E222C *os.File
-var _012E2338_ip string = "192.168.0.100"
-var _012E233C_port uint16 = 44405
-var _012E3F08 struct {
+var v012E2210 uint32 = 1
+var v012E2214 = "MUCN"
+var v012E2224 uint32 = 1
+var v012E2228 uint32 = 16
+var v012E222C *os.File
+var v012E2338ip = "192.168.0.100"
+var v012E233Cport uint16 = 44405
+var v012E3F08 struct {
 	height uint32 // 0x258, 600
 	width  uint32 // 0x320, 800
 }
 
-var _012F7910 [100]uint8
-var _01319A38 [8]uint8 // "1.04R+"	// 可执行程序版本号
-var _01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
-var _01319A50_ip [16]uint8
+var v012F7910 [100]uint8
+var v01319A38 [8]uint8 // "1.04R+"	// 可执行程序版本号
+var v01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
+var v01319A50ip [16]uint8
 
-var _01319D1C_oWndProc dll.WndProc
+var v01319D1CwndProc dll.WndProc
 var v01319D68 *t1319D68
-var _01319D6C_hWnd uintptr // hWnd, 0x0073,1366
-var _01319D70_hModule uintptr
-var _01319D74_hDC uintptr   // hDC, 0x1401,11A6
-var _01319D78_hGLRC uintptr // hGLRC, OpenGL rendering context, 0x0001,0000
-var _01319DB8 [64]uint8
-var _01319DFC string = "Chs"
-var _01319E00 string = "chinese"
+var v01319D6ChWnd uintptr // hWnd, 0x0073,1366
+var v01319D70hModule uintptr
+var v01319D74hDC uintptr   // hDC, 0x1401,11A6
+var v01319D78hGLRC uintptr // hGLRC, OpenGL rendering context, 0x0001,0000
+var v01319DB8 [64]uint8
+var v01319DFC = "Chs"
+var v01319E00 = "chinese"
 
 type version struct {
 	major  uint16 // ebp_244
@@ -55,15 +55,15 @@ type version struct {
 	fourth uint16 // ebp_23E
 }
 
-func _004D52AB(fileName []uint8, cmd string) bool {
+func f004D52AB(fileName []uint8, cmd string) bool {
 	// 从命令行字符串中提取出应用程序名，也就是main.exe，存到fileName数组中
 	return true
 }
 
-func _004D5368() bool {
+func f004D5368() bool {
 	var fileName [260]uint8 // ebp-110
 	cmd := os.Args[0]       // ebp-4
-	_004D52AB(fileName[:], cmd)
+	f004D52AB(fileName[:], cmd)
 
 	// dwDesiredAccess = 1<<31, GENERIC_READ
 	// dwShareMode = 3, FILE_SHARE_READ | FILE_SHARE_WRITE
@@ -76,11 +76,11 @@ func _004D5368() bool {
 	if err != nil {
 		return false
 	}
-	_012E222C = file
+	v012E222C = file
 	return true
 }
 
-func _004D55C6(fileName []uint8, ver *version) bool {
+func f004D55C6(fileName []uint8, ver *version) bool {
 	// 获取可执行文件版本
 	// GetFileVersionInfoSize()
 	// GetFileVersionInfo()
@@ -95,7 +95,7 @@ func _004D55C6(fileName []uint8, ver *version) bool {
 }
 
 // old callback
-func _004D5F98_WndProc(hWnd, message, wParam, lParam int) int {
+func f004D5F98wndProc(hWnd, message, wParam, lParam int) int {
 	switch message {
 	case dll.WM_CREATE_1:
 	case dll.WM_TIMER_113:
@@ -114,9 +114,9 @@ func _004D5F98_WndProc(hWnd, message, wParam, lParam int) int {
 	case dll.WM_USER_400:
 		switch lParam {
 		case 1:
-			_08C88FF0._006BDA03_Read()
+			v08C88FF0.f006BDA03read()
 		case 2:
-			_08C88FF0._006BD945_Write()
+			v08C88FF0.f006BD945write()
 		case 20:
 		}
 	default:
@@ -124,23 +124,23 @@ func _004D5F98_WndProc(hWnd, message, wParam, lParam int) int {
 		// if v08C88BC5 == 1 && (v01319DA8 != v08C88C80 || v01319DAC != v08C88C80) {
 		// 	v08C88BC5 = 0
 		// }
-		return dll.User32.DefWindowProc(hWnd, message, wParam, lParam)
+		return dll.User32.DefWindowProc(hWnd, message, wParam, lParam) // 原始是NtdllDefWindowProc，这是什么？
 	}
 	return 0
 }
 
 // new callback
-func _004D6C2B_WndProc(hWnd, message, wParam, lParam int) int {
+func f004D6C2BwndProc(hWnd, message, wParam, lParam int) int {
 	switch message {
 	case dll.WM_CHAR_102:
-		_00A49798(wParam, lParam)
+		f00A49798(wParam, lParam)
 	default:
-		dll.User32.CallWindowProc(_01319D1C_oWndProc, hWnd, message, wParam, lParam)
+		dll.User32.CallWindowProc(v01319D1CwndProc, hWnd, message, wParam, lParam)
 	}
 	return 0
 }
 
-func _004D6D64() bool {
+func f004D6D64() bool {
 	// 40+4个字节局部变量
 
 	// typedef struct tagPIXELFORMATDESCRIPTOR {
@@ -162,56 +162,56 @@ func _004D6D64() bool {
 	var pixelfd dll.Pixelfd
 	var pfdindex int // ebp-4
 
-	_00DE8100(pixelfd.Data[:], 0, 0x28) // 清零
+	f00DE8100memset(pixelfd.Data[:], 0, 0x28) // 清零
 
-	_01319D74_hDC = dll.User32.GetDC(_01319D6C_hWnd) // 从hWnd中拿到hDC
-	if _01319D74_hDC == 0 {
+	v01319D74hDC = dll.User32.GetDC(v01319D6ChWnd) // 从hWnd中拿到hDC
+	if v01319D74hDC == 0 {
 		// var nRet int32 = GetLastError()
-		// _01319E08_log._00B38AE4("OpenGL Get DC Error - ErrorCode : %d\n\r", nRet)
+		// v01319E08log.f00B38AE4printf("OpenGL Get DC Error - ErrorCode : %d\n\r", nRet)
 		// _004D51C8()
 		// nRet = _00436DA8(4, "OpenGL Get DC Error.", 30)
 		// MessageBoxA(0, nRet)
 		return false
 	}
 
-	pfdindex = dll.Gdi32.ChoosePixelFormat(_01319D74_hDC, &pixelfd) // return 4
+	pfdindex = dll.Gdi32.ChoosePixelFormat(v01319D74hDC, &pixelfd) // return 4
 	if pfdindex == 0 {
 		// var nRet int32 = GetLastError()
-		// _01319E08_log._00B38AE4("OpenGL Choose Pixel Format Error - ErrorCode : %d\n\r", nRet)
+		// v01319E08log.f00B38AE4printf("OpenGL Choose Pixel Format Error - ErrorCode : %d\n\r", nRet)
 		// _004D51C8()
 		// nRet = _00436DA8(4, "OpenGL Choose Pixel Format Error.", 30)
 		// MessageBoxA(0, nRet)
 		return false
 	}
 
-	if !dll.Gdi32.SetPixelFormat(_01319D74_hDC, pfdindex, &pixelfd) { // return true
+	if !dll.Gdi32.SetPixelFormat(v01319D74hDC, pfdindex, &pixelfd) { // return true
 		// var nRet int32 = GetLastError()
-		// _01319E08_log._00B38AE4("OpenGL Set Pixel Format Error - ErrorCode : %d\n\r", nRet)
+		// v01319E08log.f00B38AE4printf("OpenGL Set Pixel Format Error - ErrorCode : %d\n\r", nRet)
 		// _004D51C8()
 		// nRet = _00436DA8(4, "OpenGL Set Pixel Format Error.", 30)
 		// MessageBoxA(0, nRet)
 		return false
 	}
 
-	_01319D78_hGLRC = dll.Opengl32.WglCreateContext(_01319D74_hDC) // return 0x0001,0000
-	if _01319D78_hGLRC == 0 {
+	v01319D78hGLRC = dll.Opengl32.WglCreateContext(v01319D74hDC) // return 0x0001,0000
+	if v01319D78hGLRC == 0 {
 		// OpenGL Create Context Error
 		return false
 	}
 
-	if !dll.Opengl32.WglMakeCurrent(_01319D74_hDC, _01319D78_hGLRC) { // return true
+	if !dll.Opengl32.WglMakeCurrent(v01319D74hDC, v01319D78hGLRC) { // return true
 		// OpenGL Make Current Error
 		return false
 	}
 
-	// ShowWindow(_01319D6C_hWnd, 5)
-	// SetForegroundWindow(_01319D6C_hWnd)
-	// SetFocus(_01319D6C_hWnd)
+	// ShowWindow(v01319D6ChWnd, 5)
+	// SetForegroundWindow(v01319D6ChWnd)
+	// SetFocus(v01319D6ChWnd)
 
 	return true
 }
 
-func _004D6F82_initWindow(hModule uint32, iCmdShow uint32) uint32 {
+func f004D6F82initWindow(hModule uintptr, iCmdShow int) uintptr {
 
 	// 这里windows那边使用的是数组，编译器会使用movsw和movsb来给字符数组赋值
 	var ebp_78 string = "MU"
@@ -237,7 +237,7 @@ func _004D6F82_initWindow(hModule uint32, iCmdShow uint32) uint32 {
 	ebp_34 := dll.WNDCLASSEX{
 		CbSize:        0x30, // ebp-34
 		Style:         0x2B, // CS_OWNDC | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW
-		LpfnWndProc:   _004D5F98_WndProc,
+		LpfnWndProc:   f004D5F98wndProc,
 		CbClsExtra:    0,
 		CbWndExtra:    0,
 		HInstance:     dll.Kernel32.GetModuleHandle(""),
@@ -251,7 +251,9 @@ func _004D6F82_initWindow(hModule uint32, iCmdShow uint32) uint32 {
 	dll.User32.RegisterClassEx(&ebp_34)
 
 	// ...
-	var ebp_4 uint32 = CreateWindowEx( // CreateWindow会发大概3条消息给WndProc
+
+	// CreateWindow会发大概3条消息给WndProc
+	var ebp_4 uintptr = dll.User32.CreateWindowEx(
 		0,
 		ebp_78,     // "MU"
 		ebp_78,     // "MU"
@@ -263,15 +265,15 @@ func _004D6F82_initWindow(hModule uint32, iCmdShow uint32) uint32 {
 		0,
 		0,
 		0x00400000,
-		0,
+		nil,
 	)
-	_01319D1C_oWndProc = SetWindowLong(ebp_4, -4, _004D6C2B_WndProc) // GWL_WNDPROC
+	v01319D1CwndProc = dll.User32.SetWindowLong(ebp_4, -4, f004D6C2BwndProc).(dll.WndProc) // GWL_WNDPROC
 	return 0
 }
 
 // 这个函数被花的厉害，难道是核心业务？
 // 追踪只能追踪一个函数
-func _004D7281() bool {
+func f004D7281() bool {
 	// CURRENT_USER
 	// SOFTWARE\\Webzen\\Mu\\Config
 	// 348h个字节的局部变量
@@ -289,38 +291,38 @@ func _004D7281() bool {
 
 	// ebp-220 ~ ebp-10D
 	var buf [276]uint8
-	buf[0] = _0114D912           // 0
-	_00DE8100(buf[1:], 0, 0x113) // 0x113=275
+	buf[0] = v0114D912                 // 0
+	f00DE8100memset(buf[1:], 0, 0x113) // 0x113=275
 
 	// ebp-108 ~ ebp-9
 	var bufDir [256]uint8
-	GetCurrentDirectory(0x100, bufDir[:])
+	dll.Kernel32.GetCurrentDirectory(0x100, bufDir[:])
 
-	_00DE8000_strcpy(buf[:], bufDir[:])
+	f00DE8000strcpy(buf[:], bufDir[:])
 
 	// _00DE7C00
 	nameLen := func(bufDir []uint8) uint32 {
 		return uint32(len(bufDir))
 	}(bufDir[:])
 	if bufDir[nameLen-1] == 0x5C {
-		_00DE8010_strcat(buf[:], "config.ini")
+		f00DE8010strcat(buf[:], "config.ini")
 	}
-	_00DE8010_strcat(buf[:], "\\config.ini") // cat拼凑字符串
+	f00DE8010strcat(buf[:], "\\config.ini") // cat拼凑字符串
 
-	GetPrivateProfileString("LOGIN", "Version", &_0114D913, _01319A44[:], 8, buf[:]) // 1.04.44写到全局变量中
+	GetPrivateProfileString("LOGIN", "Version", &v0114D913, v01319A44[:], 8, buf[:]) // 1.04.44写到全局变量中
 	// ebp_8的底层数组在堆上
 	// var ebp_8 string = GetCommandLine()
 	var ebp_8 string = os.Args[0]
 
-	// _004D52AB
-	bRet := _004D52AB(fileName[:], ebp_8)
+	// f004D52AB
+	bRet := f004D52AB(fileName[:], ebp_8)
 	if bRet {
-		bRet := _004D55C6(fileName[:], &ebp_334)
+		bRet := f004D55C6(fileName[:], &ebp_334)
 		if bRet { // je 0x004D,741B
-			_00DE817A_sprintf(_01319A38[:], "%d.%02d", ebp_334.major, ebp_334.minor)
+			f00DE817Asprintf(v01319A38[:], "%d.%02d", ebp_334.major, ebp_334.minor)
 
 			if ebp_334.patch > 0 { // jle 0x004D,7419
-				*(*uint16)(unsafe.Pointer(&ebp_338)) = _0114DD64
+				*(*uint16)(unsafe.Pointer(&ebp_338)) = v0114DD64
 				ebp_338.patch[2] = 0
 
 				// 我的猜测是从patch=26开始使用字母和+标记标识patch，比如
@@ -331,7 +333,7 @@ func _004D7281() bool {
 					ebp_338.patch[0] = 'A' - 27 + uint8(ebp_334.patch) // 65-27+44=82='R'
 					ebp_338.patch[1] = '+'
 				}
-				_00DE8010_strcat(_01319A38[:], string(ebp_338.patch[:]))
+				f00DE8010strcat(v01319A38[:], string(ebp_338.patch[:]))
 			}
 		}
 	}
@@ -340,7 +342,7 @@ func _004D7281() bool {
 	// 这个函数在搞什么？
 	func(fileName string) bool {
 		// 204个字节的局部变量
-		_01319DB8[0] = 0
+		v01319DB8[0] = 0
 		var ebp_CC uint32 = 0
 
 		var partition struct {
@@ -356,7 +358,7 @@ func _004D7281() bool {
 			// _00DE8FDA
 			return func(fileName string, x string, y uint32) []uint8 {
 				// 这个函数会注册一个SEH
-				return _012F7910[:]
+				return v012F7910[:]
 			}(fileName, x, 0x40)
 		}(fileName, "rt")
 		if ebp_4 == nil {
@@ -365,16 +367,16 @@ func _004D7281() bool {
 
 		// 不能超过50条记录
 		for ebp_CC < 50 {
-			// _00DECD20
-			nRet := _00DECD20(ebp_4, "%s", partition.num[:])
+			// f00DECD20
+			nRet := f00DECD20(ebp_4, "%s", partition.num[:])
 			if nRet == -1 {
 				break
 			}
-			nRet = _00DECD20(ebp_4, "%s", partition.name[:])
+			nRet = f00DECD20(ebp_4, "%s", partition.name[:])
 			if nRet == -1 {
 				break
 			}
-			nRet = _00DECD20(ebp_4, "%s", partition.ip[:])
+			nRet = f00DECD20(ebp_4, "%s", partition.ip[:])
 			if nRet == -1 {
 				break
 			}
@@ -382,14 +384,14 @@ func _004D7281() bool {
 			// _00DE94F0
 			nRet = func(x []uint8, y []uint8) int32 {
 				return -1
-			}(_01319A50_ip[:], partition.name[:])
+			}(v01319A50ip[:], partition.name[:])
 			if nRet == 0 {
 				// _00DECBD1
 				nRet := func(x []uint8) uint32 {
 					return 0
 				}(partition.ip[:])
-				if nRet == uint32(_012E233C_port) {
-					_00DE8000_strcpy(_01319DB8[:], partition.num[:])
+				if nRet == uint32(v012E233Cport) {
+					f00DE8000strcpy(v01319DB8[:], partition.num[:])
 					// _00DE8C84
 					func() {
 
@@ -413,27 +415,27 @@ func _004D7281() bool {
 	return true
 }
 
-func _004D755F(haystack []uint8, y int, buf []uint8) []uint8 {
+func f004D755F(haystack []uint8, y int, buf []uint8) []uint8 {
 	return nil
 }
 
 // 该函数被花掉了
-func _004D7A1F(haystack []uint8, ip []uint8, z *uint32) uint16 {
+func f004D7A1F(haystack []uint8, ip []uint8, z *uint32) uint16 {
 	// x=0x0B37,3D25，存放的是[0,0,0,'K']
 
 	// ebp-100
 	var buf [256]uint8
 	buf[0] = 0
-	_00DE8100(buf[1:], 0, 0xFF)
+	f00DE8100memset(buf[1:], 0, 0xFF)
 
 	// _004472C9
 	sRet := func(haystack []uint8, needle string) []uint8 {
-		return _00DE92E0_strstr(haystack, needle)
+		return f00DE92E0strstr(haystack, needle)
 	}(haystack, "battle")
 	if len(sRet) == 0 {
-		sRet = _004D755F(haystack, 0x79, buf[:])
+		sRet = f004D755F(haystack, 0x79, buf[:])
 		if len(sRet) == 0 {
-			sRet = _004D755F(haystack, 0x75, buf[:])
+			sRet = f004D755F(haystack, 0x75, buf[:])
 			if len(sRet) == 0 {
 				return 0
 			}
@@ -444,7 +446,7 @@ func _004D7A1F(haystack []uint8, ip []uint8, z *uint32) uint16 {
 	return 1000
 }
 
-func _004D7CE5_WinMain(hModule uintptr, hPrevInstance uint32, szCmdLine []uint8, iCmdShow uint32) {
+func f004D7CE5winMain(hModule uintptr, hPrevInstance uint32, szCmdLine []uint8, iCmdShow int) {
 	// 1B60h，近两页也就是8k字节的局部变量
 
 	// _004D7CE5， 设置一下栈
@@ -454,15 +456,7 @@ func _004D7CE5_WinMain(hModule uintptr, hPrevInstance uint32, szCmdLine []uint8,
 	var ebp_8 uint32 = 0x0A
 
 	// ebp-28
-	var msg struct {
-		hWnd     uint32    // ebp-28
-		message  uint32    // ebp-24
-		wParam   uint32    // ebp-20
-		lParam   uint32    // ebp-1C
-		time     uint32    // ebp-18
-		pt       [2]uint32 // ebp-14, ebp-10
-		lPrivate uint32    // ebp-C
-	}
+	var msg dll.MSG
 
 	// if _00DE7C00() < 1 { // jae -> jmp
 	// 启动mu.exe然后退出
@@ -474,34 +468,34 @@ func _004D7CE5_WinMain(hModule uintptr, hPrevInstance uint32, szCmdLine []uint8,
 	}
 	var ebp_238_ver [8]uint8
 	copy(ebp_238_ver[:], "unknown")
-	_00DE8100(ebp_230.data[:], 0, 0xF8)
+	f00DE8100memset(ebp_230.data[:], 0, 0xF8)
 
 	// var cmd string = GetCommandLine()
 	ebp_23C_cmd := os.Args[0]
 
 	var ebp_244_ver version // ebp-244 ~ ebp-23E，这里会有清零操作，应该是程序员自己清的
 	var ebp_350_fileName [260]uint8
-	if _004D52AB(ebp_350_fileName[:], ebp_23C_cmd) {
-		if _004D55C6(ebp_350_fileName[:], &ebp_244_ver) {
-			_00DE817A_sprintf(ebp_238_ver[:], "%d.%02d", ebp_244_ver.major, ebp_244_ver.minor)
+	if f004D52AB(ebp_350_fileName[:], ebp_23C_cmd) {
+		if f004D55C6(ebp_350_fileName[:], &ebp_244_ver) {
+			f00DE817Asprintf(ebp_238_ver[:], "%d.%02d", ebp_244_ver.major, ebp_244_ver.minor)
 			if ebp_244_ver.patch > 0 {
 				var ebp_4DC [2]uint8
 				ebp_4DC[0] = uint8('a' + ebp_244_ver.patch - 1) // 0x8C，这里是有问题的，超过ASCII编码范围了
 				ebp_4DC[1] = 0                                  // 我猜测作者是想表达R
-				_00DE8010_strcat(ebp_238_ver[:], string(ebp_4DC[:]))
+				f00DE8010strcat(ebp_238_ver[:], string(ebp_4DC[:]))
 			}
 		}
 	}
 
-	_01319E08_log._00B38AE4("\r\n")
-	_01319E08_log._00B38D31_begin()
-	_01319E08_log._00B38D19_cut()
+	v01319E08log.f00B38AE4printf("\r\n")
+	v01319E08log.f00B38D31begin()
+	v01319E08log.f00B38D19cut()
 
-	_01319E08_log._00B38AE4("Mu online %s (%s) executed. (%d.%d.%d.%d)\r\n",
-		ebp_238_ver[:], _01319DFC,
+	v01319E08log.f00B38AE4printf("Mu online %s (%s) executed. (%d.%d.%d.%d)\r\n",
+		ebp_238_ver[:], v01319DFC,
 		ebp_244_ver.major, ebp_244_ver.minor, ebp_244_ver.patch, ebp_244_ver.fourth)
 
-	_01319E08_log._00B38D49(1)
+	v01319E08log.f00B38D49(1)
 
 	// system information
 
@@ -509,105 +503,105 @@ func _004D7CE5_WinMain(hModule uintptr, hPrevInstance uint32, szCmdLine []uint8,
 
 	// 这里重新设置ip地址和端口失败了，为什么？
 	// 从命令行中提取指定的ip地址和端口，因为没有通过mu.exe启动，所有没有命令行
-	var port uint16 = _004D7A1F(szCmdLine, _01319A50_ip[:], &ebp_8)
+	var port uint16 = f004D7A1F(szCmdLine, v01319A50ip[:], &ebp_8)
 	if port > 0 {
-		_012E2338_ip = string(_01319A50_ip[:])
-		_012E233C_port = port
+		v012E2338ip = string(v01319A50ip[:])
+		v012E233Cport = port
 	}
 
 	// open main.exe
-	if !_004D5368() {
-		_004D9F88()
+	if !f004D5368() {
+		f004D9F88()
 		return
 	}
 
 	// enc and dec init
-	_08C8D050_enc._00B62CF0_init("Data/Enc1.dat")
-	_08C8D098_dec._00B62D30_init("Data/Dec2.dat")
+	v08C8D050enc.f00B62CF0init("Data/Enc1.dat")
+	v08C8D098dec.f00B62D30init("Data/Dec2.dat")
 
 	// read config.ini
-	_01319E08_log._00B38AE4("> To read config.ini.\r\n")
-	bRet := _004D7281()
+	v01319E08log.f00B38AE4printf("> To read config.ini.\r\n")
+	bRet := f004D7281()
 	if !bRet {
-		_01319E08_log._00B38AE4("config.ini read error\r\n")
-		_004D9F88()
+		v01319E08log.f00B38AE4printf("config.ini read error\r\n")
+		f004D9F88()
 		return
 	}
 
 	// gg init
 	// ebp_1A38也可能是个实例指针变量，值是0x0D9F,EA10
-	var ebp_1A38 *uint32 = _00DE852F(1)
-	var ebp_1B0C *uint32
+	var ebp_1A38 *uint32 = f00DE852F(1)
+	var ebp_1B0C *t1319D68
 	if ebp_1A38 == nil { // if true，disable GameGurad
 		ebp_1B0C = nil
 	} else {
-		// ebp_1B0C = _004D936A(_012E2214)
+		// ebp_1B0C = _004D936A(v012E2214)
 	}
 
 	v01319D68 = ebp_1B0C
-	bRet = _00B4C1B8()
+	bRet = f00B4C1B8()
 	if !bRet { // if false, disable GameGurad
 		// gg init error
 		// _004D51C8()
 		// _004D9335()
-		// _004D9f88()
+		// f004D9F88()
 		return
 	}
-	_01319E08_log._00B38AE4("> gg init success.\r\n")
-	_01319E08_log._00B38D19_cut()
+	v01319E08log.f00B38AE4printf("> gg init success.\r\n")
+	v01319E08log.f00B38D19cut()
 
-	if _012E2210 == 1 {
+	if v012E2210 == 1 {
 		// ShowCursor(0)
 	}
-	if _012E2224 == 0 {
+	if v012E2224 == 0 {
 		// DisplaySetting
 	}
 
 	// window init
-	_01319E08_log._00B38AE4("> Screen size = %d x %d.\r\n", _012E3F08.height, _012E3F08.width)
-	_01319D70_hModule = hModule
-	_01319D6C_hWnd = _004D6F82_initWindow(hModule, iCmdShow) // 创建hWnd
-	_01319E08_log._00B38AE4("> Start window success.\r\n")
+	v01319E08log.f00B38AE4printf("> Screen size = %d x %d.\r\n", v012E3F08.height, v012E3F08.width)
+	v01319D70hModule = hModule
+	v01319D6ChWnd = f004D6F82initWindow(hModule, iCmdShow) // 创建hWnd
+	v01319E08log.f00B38AE4printf("> Start window success.\r\n")
 
 	// opengl init
-	bRet = _004D6D64() // 设置hWnd资源
+	bRet = f004D6D64() // 设置hWnd资源
 	if !bRet {
 		// 失败处理
 		return
 	}
-	_01319E08_log._00B38AE4("> OpenGL init success.\r\n")
-	_01319E08_log._00B38D19_cut()
+	v01319E08log.f00B38AE4printf("> OpenGL init success.\r\n")
+	v01319E08log.f00B38D19cut()
 
 	// opengl information
-	_01319E08_log._00B38E3C()
-	_01319E08_log._00B38D19_cut()
+	v01319E08log.f00B38E3C()
+	v01319E08log.f00B38D19cut()
 
 	// sound card information
-	_01319E08_log._00B3902D() // 自带cut
+	v01319E08log.f00B3902D() // 自带cut
 
-	// ShowWindow(_01319D6C_hWnd, 10) // 发很多消息给WndProc
-	// UpdateWindow(_01319D6C_hWnd) // 发很多消息给WndProc
+	// ShowWindow(v01319D6ChWnd, 10) // 发很多消息给WndProc
+	// UpdateWindow(v01319D6ChWnd) // 发很多消息给WndProc
 
-	_00B4C1FF(_01319D6C_hWnd)
-	_01319E08_log._00B38AE4("> gg connect window Handle.\r\n")
-	_01319E08_log._00B38D19_cut()
+	f00B4C1FF(v01319D6ChWnd)
+	v01319E08log.f00B38AE4printf("> gg connect window Handle.\r\n")
+	v01319E08log.f00B38D19cut()
 
 	// ime information
-	_01319E08_log._00B38EF4(_01319D6C_hWnd)
-	_01319E08_log._00B38D19_cut()
+	v01319E08log.f00B38EF4(v01319D6ChWnd)
+	v01319E08log.f00B38D19cut()
 
 	//
-	_00DEE871_setlocale(0, _01319E00) // 参数0是哪个LC？
-	// _0043BF3F(_01319D6C_hWnd, _012E3F08.height, _012E3F08.width)
+	f00DEE871setlocale(0, v01319E00) // 参数0是哪个LC？
+	// _0043BF3F(v01319D6ChWnd, v012E3F08.height, v012E3F08.width)
 	// _0043BF9C()
 	// _0090E94C()
 	// _0090B256()
-	// _00A49798(_01319D6C_hWnd, _012E3F08.height, _012E3F08.width)
-	// _00A49E40() // r6602 floating point support not loaded
+	// f00A49798(v01319D6ChWnd, v012E3F08.height, v012E3F08.width)
+	// f00A49E40() // r6602 floating point support not loaded
 
 	// ...
 
-	_01319E08_log._00B38AE4("> Loading ok.\r\n")
+	v01319E08log.f00B38AE4printf("> Loading ok.\r\n")
 
 	// ...
 
@@ -615,20 +609,20 @@ func _004D7CE5_WinMain(hModule uintptr, hPrevInstance uint32, szCmdLine []uint8,
 
 	// 消息循环
 	for {
-		if msg.message == 0x10 || // WM_CLOSE
-			msg.message == 0x12 { // WM_QUIT
+		if msg.Message == 0x10 || // WM_CLOSE
+			msg.Message == 0x12 { // WM_QUIT
 			break
 		}
 
 		if PeekMessage(&msg, 0, 0, 0) {
 			ImmIsUIMessage()
-			if msg.message == 0x100 || // WM_KEYFIRST, WM_KEYDOWN
-				msg.message == 0x101 || // WM_KEYUP
+			if msg.Message == 0x100 || // WM_KEYFIRST, WM_KEYDOWN
+				msg.Message == 0x101 || // WM_KEYUP
 				ebp_595 != 0 ||
-				msg.message == 0x201 || // WM_LBUTTONDOWN
-				msg.message == 0x202 { // WM_LBUTTONUP
-				_00A49798(msg.hWnd, msg.message, msg.wParam, msg.lParam, 1)
-				_00A4DFB7()
+				msg.Message == 0x201 || // WM_LBUTTONDOWN
+				msg.Message == 0x202 { // WM_LBUTTONUP
+				f00A49798(msg.hWnd, msg.Message, msg.wParam, msg.lParam, 1)
+				f00A4DFB7()
 			}
 
 			if !GetMessage(&msg, 0, 0, 0) { // WM_QUIT返回0，出错返回-1
@@ -637,14 +631,14 @@ func _004D7CE5_WinMain(hModule uintptr, hPrevInstance uint32, szCmdLine []uint8,
 			TranslateMessage(&msg)
 			DispatchMessage(&msg) // 到WndProc
 		} else {
-			if _012E2224 == 0 {
+			if v012E2224 == 0 {
 
-			} else if _012E2224 == 1 {
+			} else if v012E2224 == 1 {
 
 			}
 		}
-		_00760292(&_08C88FF0, 0, 0) // 业务逻辑，比较重要
-		_01319D2C._004B9492()
+		f00760292(&v08C88FF0, 0, 0) // 业务逻辑，比较重要
+		v01319D2C.f004B9492()
 	}
 }
 
@@ -655,7 +649,7 @@ var v08C88F84 int
 func f004D8FF5() {
 	// SEH
 	// 0x1488字节局部变量
-	_00DE8A70()
+	f00DE8A70()
 	if v08C88F64 == 0 {
 		return
 	}
@@ -676,14 +670,14 @@ func f004D8FF5() {
 	ebp1494.f004391CF()
 }
 
-func _004D9F88() {}
+func f004D9F88() {}
 
 // 也可能是map
-var _0075FF6A_cmd []struct{}
-var _0075FCB2_cmd []struct{}
+var v0075FF6Acmd []struct{}
+var v0075FCB2cmd []struct{}
 
 // 业务逻辑，这个函数被花了
-func _00760292(t *t2000, x, y uint32) {
+func f00760292(t *t2000, x, y uint32) {
 	var ebp18 []uint8 // t.t2002
 	var ebp14 uint32
 	var ebp10 uint32
@@ -695,10 +689,10 @@ func _00760292(t *t2000, x, y uint32) {
 		ebp10 = ebp18[1]<<8 + ebp18[2]
 	case 0xC3:
 		ebp10 = ebp18[1]
-		_08C8D014._00B98FC0(t, &ebp181A)
+		v08C8D014.f00B98FC0(t, &ebp181A)
 	case 0xC4:
 	}
-	_086A3C28 += ebp10 // 累计接收字节数
+	v086A3C28 += ebp10 // 累计接收字节数
 	if y == 1 {
 	}
 
@@ -711,7 +705,7 @@ func _00760292(t *t2000, x, y uint32) {
 		}
 
 		// 寻找处理器
-		_0075FCB2_cmd[4*_0075FF6A_cmd[ebp5D8]]
+		v0075FCB2cmd[4*v0075FF6Acmd[ebp5D8]]
 
 		// 0x00 处理器
 		// _006FA9EB
@@ -733,16 +727,16 @@ func _00760292(t *t2000, x, y uint32) {
 				ebp4 := buf
 				ebp10 := buf[4]
 				if ebp10 == 1 {
-					ebp8 := &_0130F728
-					ebp8._004A9123(&ebp8.f4880)
+					ebp8 := &v0130F728
+					ebp8.f004A9123(&ebp8.f4880)
 				}
-				_08C88E0C = ebp4[5]<<8 + ebp4[6]
-				_08C88E08 = 2
+				v08C88E0C = ebp4[5]<<8 + ebp4[6]
+				v08C88E08 = 2
 				ebpC := 0
 				if ebpC >= 5 {
 				}
 				for {
-					if _012E4018[ebpC]-ebpC-1 != ebp4[7+ebpC] { // 改为jmp
+					if v012E4018[ebpC]-ebpC-1 != ebp4[7+ebpC] { // 改为jmp
 						break
 					}
 					ebpC++
@@ -756,7 +750,7 @@ func _00760292(t *t2000, x, y uint32) {
 
 				// _004A9EEB
 				func() {}()
-				_01319E08_log._00B38AE4("Version dismatch - Join server.\r\n")
+				v01319E08log.f00B38AE4printf("Version dismatch - Join server.\r\n")
 				// _0051FB61
 				func() {}()
 			}(buf)
@@ -791,32 +785,32 @@ func _00760292(t *t2000, x, y uint32) {
 }
 
 // 网络
-func _004E6233() {
+func f004E6233() {
 
 	// _004E4F1C
 	func() {
 		// 很复杂 0x004E4F1C ~ 0x004E6232，不到5000行并且几乎都是函数调用
 		// ...
 
-		_0130F728._004A9B5B() // 请求服务器列表
+		v0130F728.f004A9B5B() // 请求服务器列表
 
-		ebp40C := _012E2340
+		ebp40C := v012E2340
 		switch ebp40C {
 		case 2:
 			// _004E1E1E
 			func() {
 				// 带SEH
-				_00DE8A70()
+				f00DE8A70()
 
 				// _004E1CEE
 				func() {
 					// _006BF89A 拨号
 					func(ip string, port int) {
-						_08C88FF0.once.Do(_006BD3A7_Init())
-						_01319E08_log._00B38AE4("[Connect to Server] ip address = %s, port = %d\r\n")
-						_08C88FF0._006BD509_Socket(_01319D6C_hWnd, 1)
-						_08C88FF0._006BD708_Dial(ip, port, 400)
-					}(_012E2338_ip, _012E233C_port)
+						v08C88FF0.once.Do(f006BD3A7init())
+						v01319E08log.f00B38AE4printf("[Connect to Server] ip address = %s, port = %d\r\n")
+						v08C88FF0.f006BD509socket(v01319D6ChWnd, 1)
+						v08C88FF0.f006BD708dial(ip, port, 400)
+					}(v012E2338ip, v012E233Cport)
 				}()
 			}()
 		case 4:

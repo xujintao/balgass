@@ -1,5 +1,9 @@
 package dll
 
+import (
+	"unsafe"
+)
+
 // advapi32.dll
 // 这里定义所有用到的API指针变量，36个
 // 最后一个DWORD为0
@@ -28,10 +32,6 @@ type crypt32 interface {
 type dsound interface {
 	DirectSoundEnumerateA()
 	DirectSoundCreate()
-}
-
-type Pixelfd struct {
-	Data [40]uint8
 }
 
 // gdi32.dll, /c/windows/syswow64/gdi32.dll
@@ -89,6 +89,7 @@ type kernel32 interface {
 	GetCommandLineA()
 	CloseHandle()
 	GetModuleHandle(moduleName string) uintptr
+	GetCurrentDirectory(len int, buf []uint8) int
 	// ...
 	GetTickCount() int
 }
@@ -136,21 +137,6 @@ type sh1wapi interface {
 	PathFileExistsA()
 }
 
-type WNDCLASSEX struct {
-	CbSize        uint32
-	Style         uint32
-	LpfnWndProc   WndProc
-	CbClsExtra    int32
-	CbWndExtra    int32
-	HInstance     uintptr
-	HIcon         uintptr
-	HCursor       uintptr
-	HbrBackground uint32
-	LpszMenuName  string
-	LpszClassName string
-	HIconSm       uint32
-}
-
 // user32.dll, /c/windows/syswow64/user32.dll
 // 这里定义所有用到的API指针变量，100个
 // 最后一个DWORD为0
@@ -158,6 +144,8 @@ type user32 interface {
 	FindWindowA()
 	IntersetRect()
 	wsprintfA()
+	CreateWindowEx(dwExStyle int, lpClassName, lpWindowName string, dwStyle int, X, Y, nWidth, nHeight int, hWndParent, hMenu, hInstance uintptr, lpParam unsafe.Pointer) uintptr
+	SetWindowLong(hWnd uintptr, nIdex int, dwNewLong interface{}) interface{}
 	DefWindowProc(hWnd, message, wParam, lParam int) int
 	CallWindowProc(wndProc WndProc, hWnd, message, wParam, lParam int)
 	GetDC(hWnd uintptr) uintptr

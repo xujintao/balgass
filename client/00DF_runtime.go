@@ -7,32 +7,32 @@ import (
 )
 
 const (
-	_01149E44 uint32 = 0x004075A0
-	_012DA28C uint32 = 0
+	v01149E44 uintptr = 0x004075A0
+	v012DA28C int     = 0
 )
 
-var _012F7B90 uint32 = 0x5F709C77
-var _012F8738 *t15    // [_012F8738]=0x012F8660
-var _012F8558 *uint32 // [_012F8558]=0x0D921A80
+var v012F7B90 uintptr = 0x5F709C77
+var v012F8738 *t15    // [v012F8738]=0x012F8660
+var v012F8558 *uint32 // [v012F8558]=0x0D921A80
 
-var _09D9D9FC uint32
-var _09D9DA08 uint8 = 0
-var _09D9DA0C uint32 = 1
-var _09D9DB88 uint32 = 0xBD6A970F
+var v09D9D9FC int
+var v09D9DA08 uint8
+var v09D9DA0C uint32 = 1
+var v09D9DB88 uintptr = 0xBD6A970F
 
-func _00DE7C90_memcpy(dst, src []uint8, len uint32) {
+func f00DE7C90memcpy(dst, src []uint8, len uint32) {
 
 }
 
-func _00DE8000_strcpy(dst []uint8, src []uint8) {
+func f00DE8000strcpy(dst []uint8, src []uint8) {
 	copy(dst, src)
 }
 
-func _00DE8010_strcat(dst []uint8, src string) {
+func f00DE8010strcat(dst []uint8, src string) {
 	dst = append(dst, src...)
 }
 
-func _00DE8100(buf []uint8, value uint8, size uint32) uint32 {
+func f00DE8100memset(buf []uint8, value uint8, size uint32) uint32 {
 	if size == 0 {
 		return 0
 	}
@@ -41,7 +41,7 @@ func _00DE8100(buf []uint8, value uint8, size uint32) uint32 {
 			// 这里对一个全局变量进行判断
 			if true {
 				// 编译器把这个函数调用优化为jmp
-				return _00DFC9DD(buf, value, size)
+				return f00DFC9DD(buf, value, size)
 			}
 		}
 	}
@@ -50,14 +50,13 @@ func _00DE8100(buf []uint8, value uint8, size uint32) uint32 {
 	return 0
 }
 
-// _00DE817A_sprintf
-func _00DE817A_sprintf(buf []uint8, strfmt string, a ...interface{}) int {
+func f00DE817Asprintf(buf []uint8, strfmt string, a ...interface{}) int {
 	str := fmt.Sprint(strfmt, a...)
 	buf = []uint8(str) // 从堆上复制到data段
 	return len(str)
 }
 
-func _00DE852F(x uint32) *uint32 {
+func f00DE852F(x uint32) *uint32 {
 
 	var ebp_C uint32
 	for {
@@ -74,8 +73,8 @@ func _00DE852F(x uint32) *uint32 {
 		// 	return false
 		// }(x)
 		// if !bRet {
-		// 	if _09D9DA08&1 == 0 {
-		// 		_09D9DA08 |= 1
+		// 	if v09D9DA08&1 == 0 {
+		// 		v09D9DA08 |= 1
 
 		// 		// _00415D00
 		// 		func() {
@@ -92,7 +91,7 @@ func _00DE852F(x uint32) *uint32 {
 		// 			nRet := func(fval func()) uint32 {
 		// 				return 1
 		// 			}(fval)
-		// 		}(_01148F33)
+		// 		}(f01148F33)
 
 		// 		// _004075D0
 		// 		func(x *uint32) {
@@ -102,12 +101,12 @@ func _00DE852F(x uint32) *uint32 {
 
 		// 			}(x)
 		// 			ebp_C = _01149E44
-		// 		}(&_09D9D9FC)
+		// 		}(&v09D9D9FC)
 
 		// 		// _00DE84E3
 		// 		// func() {
 
-		// 		// }(&_012DA28C)
+		// 		// }(&v012DA28C)
 
 		// 		// int3
 		// 	}
@@ -116,25 +115,25 @@ func _00DE852F(x uint32) *uint32 {
 }
 
 // 拿着eax做栈分配，这个骚套路是什么API？目的是什么？
-func _00DE8A70() {}
+func f00DE8A70() {}
 
 // 猜测
-func _00DE8AAD_rand() int {}
+func f00DE8AADrand() int {}
 
-func _00DEE871_setlocale(category uint32, locale string) {
+func f00DEE871setlocale(category uint32, locale string) {
 
 }
 
-func _00DE92E0_strstr(haystack []uint8, needle string) []uint8 {
+func f00DE92E0strstr(haystack []uint8, needle string) []uint8 {
 	return nil
 }
 
-func _00DECD20(x []uint8, strfmt string, y []uint8) int32 {
+func f00DECD20(x []uint8, strfmt string, y []uint8) int32 {
 	return -1
 }
 
 // setlocale?
-func _00DEE8171(x uint32, lang string) {
+func f00DEE8171(x uint32, lang string) {
 	// _00DFD850
 	// _00DFC3E9
 	// _00DEDA19
@@ -174,8 +173,8 @@ type t16 struct {
 	f0Ch [4]uint8
 }
 
-// _00DECDA2
-func _00DECDA2(prevt16p *t16, t16p *t16) {
+// f00DECDA2
+func f00DECDA2(prevt16p *t16, t16p *t16) {
 	t16p.f0Ch[0] = 0
 	if prevt16p == nil {
 		// _00DFC3E9
@@ -185,18 +184,18 @@ func _00DECDA2(prevt16p *t16, t16p *t16) {
 				errno := GetLastError()
 				// _00DFC1FB
 				cb := func() func(uint32) unsafe.Pointer {
-					const _012F7DC0 uint32 = 25
-					v := unsafe.Pointer(TlsGetValue(_012F7DC0))
+					const v012F7DC0 uint32 = 25
+					v := unsafe.Pointer(TlsGetValue(v012F7DC0))
 					if v == nil {
 						// _00DFC160
 						func(x uint32) {
 							// ...
-						}(_09D9DB88)
+						}(v09D9DB88)
 					}
 					return v // kernel32.FlsGetValue，这里unsafe.Pointer值能转换成函数类型吗？
 				}()
-				const _012F7DBC uint32 = 4
-				v := cb(_012F7DBC) // FlsGetValue
+				const v012F7DBC uint32 = 4
+				v := cb(v012F7DBC) // FlsGetValue
 				if v == nil {
 					// ...
 				}
@@ -212,10 +211,10 @@ func _00DECDA2(prevt16p *t16, t16p *t16) {
 		t16p.f08h = tlsv      // [0x0D92,07D0]=01BC
 		t16p.f00h = tlsv.f6Ch // [0x0D92,083C]=0x012F,8660
 		t16p.f04h = tlsv.f68h // [0x0D92,0838]=0x0D92,1A80
-		if t16p.f00h != _012F8738 {
+		if t16p.f00h != v012F8738 {
 			// ...
 		}
-		if t16p.f04h != _012F8558 {
+		if t16p.f04h != v012F8558 {
 			// ...
 		}
 		if b := tlsv.f70h; b == 2 { // [0x0D92,0840]=1 // 这里有问题，应该跳
@@ -231,7 +230,7 @@ func _00DECDA2(prevt16p *t16, t16p *t16) {
 }
 
 // 好复杂的函数
-func _00DFCCB0(infop *info, format string, t16p *t16, a ...interface{}) int {
+func f00DFCCB0(infop *info, format string, t16p *t16, a ...interface{}) int {
 	// 278h字节的局部变量
 
 	// 功能就是 format = fmt.Sprintf(format, a...)
@@ -253,9 +252,9 @@ func _00DFCCB0(infop *info, format string, t16p *t16, a ...interface{}) int {
 	// ebp-218
 	// ebp-210
 
-	var stack uint32 = _012F7B90 ^ 0x0018DF14 // ebp-4 这个是什么意思？
+	var stack uint32 = v012F7B90 ^ 0x0018DF14 // ebp-4 这个是什么意思？
 
-	_00DECDA2(t16p, &ebp_25c)
+	f00DECDA2(t16p, &ebp_25c)
 
 	if infop == nil || len(format) == 0 {
 		// ...
@@ -280,7 +279,7 @@ func _00DFCCB0(infop *info, format string, t16p *t16, a ...interface{}) int {
 		// _00E036C2
 		nRet := func(c uint8) uint32 {
 			var ebp_10 t16
-			_00DECDA2(&ebp_25c, &ebp_10)
+			f00DECDA2(&ebp_25c, &ebp_10)
 			nRet := uint32(ebp_10.f00h.fC8h.f7Ch & 8000)
 			if ebp_10.f0Ch[0]&0xFF != 0 {
 				// ...
@@ -321,7 +320,7 @@ type info struct {
 	f0Ch uint32
 }
 
-func _00DF0787(buf []uint8, format string, x *t16, a ...interface{}) int {
+func f00DF0787(buf []uint8, format string, x *t16, a ...interface{}) int {
 	// 如果接下来会用到ebx，那么先把ebx压栈
 
 	// c里面判断字符串指针变量是否为空
@@ -338,17 +337,17 @@ func _00DF0787(buf []uint8, format string, x *t16, a ...interface{}) int {
 		f08h: buf,       // ebp-18
 		f0Ch: 0x42,
 	}
-	cnt := _00DFCCB0(&i, format, x, a...) // 其实就是把logconf字符串copy到buf切片
+	cnt := f00DFCCB0(&i, format, x, a...) // 其实就是把logconf字符串copy到buf切片
 	// i.f00h = append(i.f00h,0) // golang不需要追加0
 	return cnt
 }
 
-func _00DF0805(buf []uint8, format string, a ...interface{}) {
-	_00DF0787(buf, format, nil, a...)
+func f00DF0805(buf []uint8, format string, a ...interface{}) {
+	f00DF0787(buf, format, nil, a...)
 }
 
 // OEP
-func _00DF478C_OEP() {
+func f00DF478Coep() {
 	// check pe
 
 	checkupdate()
@@ -358,11 +357,11 @@ func _00DF478C_OEP() {
 	// hPrevInstance
 	// szcmdline
 	// SW_SHOWDEFAULT
-	_004D7CE5_WinMain(0x00400000, 0, szcmdLine, 10) // call 0x004D,7CE5
+	f004D7CE5winMain(0x00400000, 0, szcmdLine, 10) // call 0x004D,7CE5
 }
 
 // 大范围清零操作
-func _00DFC986(buf []uint8, size uint32) {
+func f00DFC986(buf []uint8, size uint32) {
 	size >>= 7
 	for size != 0 {
 		// 它使用了8次 movdqa xmm指令
@@ -376,7 +375,7 @@ func _00DFC986(buf []uint8, size uint32) {
 
 // setzero， 16字节对齐
 // 某种意义上说，把迭代改为递归也可以有效防止饥饿调度问题
-func _00DFC9DD(buf []uint8, value uint8, size uint32) uint32 {
+func f00DFC9DD(buf []uint8, value uint8, size uint32) uint32 {
 	// 假设eax是0x0018,DF85，然后edx是0x3FF
 	// cdq          ;edx:eax组合成为64位
 	// mov edi,eax
@@ -399,7 +398,7 @@ func _00DFC9DD(buf []uint8, value uint8, size uint32) uint32 {
 			// ...
 		}
 		size := size - s
-		_00DFC986(buf, size)
+		f00DFC986(buf, size)
 		if size == 0 {
 			return 0
 		}
@@ -413,6 +412,6 @@ func _00DFC9DD(buf []uint8, value uint8, size uint32) uint32 {
 	}
 
 	size -= uint32(offset)
-	_00DFC9DD(buf[offset:], 0, size)
+	f00DFC9DD(buf[offset:], 0, size)
 	return 0
 }

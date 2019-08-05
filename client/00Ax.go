@@ -1,10 +1,10 @@
 package main
 
-func _00A49798(wParam, lParam int) {
+func f00A49798(wParam, lParam int) {
 
 }
 
-func _00A49E40() {
+func f00A49E40() {
 
 	// ...
 
@@ -44,7 +44,7 @@ func _00A49E40() {
 																	func() {
 																		// Runtime Error!\n
 																		// program name unknown
-																		GetModuleFileName(0, _09D9DBB1, 260)
+																		GetModuleFileName(0, v09D9DBB1, 260)
 																		// _00E1AF3C
 																		func() {
 																			// MessageBox弹出错误

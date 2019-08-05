@@ -13,7 +13,7 @@ type t3004 struct {
 }
 
 // 比较复杂，可能是解析
-func (t *t3004) _006BDE09() {
+func (t *t3004) f006BDE09() {
 	// _006BE122
 	func() {
 
@@ -168,15 +168,15 @@ func (t *t3004) _006BDE09() {
 // t3003
 type t3003 struct{}
 
-func (t *t3003) _006BEB1E(x uint32) {
+func (t *t3003) f006BEB1E(x uint32) {
 
 }
 
-func (t *t3003) _006BEB35(p **t3002, pp **t3002) {
-	t._006BF322(p, pp)
+func (t *t3003) f006BEB35(p **t3002, pp **t3002) {
+	t.f006BF322(p, pp)
 }
 
-func (t *t3003) _006BF322(p **t3002, pp **t3002) {
+func (t *t3003) f006BF322(p **t3002, pp **t3002) {
 	ebp4 := p
 
 	// _00405BF0
@@ -195,8 +195,8 @@ type t3002 struct {
 	len uint32
 }
 
-func (t *t3002) _006BDFED(buf []uint8, len uint32) *t3002 {
-	_00DE7C90_memcpy(t.buf[:], buf, len)
+func (t *t3002) f006BDFED(buf []uint8, len uint32) *t3002 {
+	f00DE7C90memcpy(t.buf[:], buf, len)
 	t.buf[len] = 0xFD
 	t.len = len
 	return t
@@ -213,31 +213,31 @@ type t3001 struct {
 	f20  *t3004 // 0x0DA6FFC0
 }
 
-func (t *t3001) _006BDDF5() {
-	t.f20._006BDE09()
+func (t *t3001) f006BDDF5() {
+	t.f20.f006BDE09()
 }
 
-func (t *t3001) _006BDF76(buf []uint8, len uint32) {
+func (t *t3001) f006BDF76(buf []uint8, len uint32) {
 	// 带SEH了
-	var ebp18 *t3002 = _00DE852F(2004) // 可能是new
+	var ebp18 *t3002 = f00DE852F(2004) // 可能是new
 	var ebp20 *t3002
 	if ebp18 == nil {
 		ebp20 = nil
 	} else {
-		ebp20 = ebp18._006BDFED(buf, len) // 可能是初始化
+		ebp20 = ebp18.f006BDFED(buf, len) // 可能是初始化
 	}
 	ebp14 := ebp20
 	ebp10 := ebp14
-	t._006BE241(&ebp10) // 填表
+	t.f006BE241(&ebp10) // 填表
 }
 
-func (t *t3001) _006BE241(pp **t3002) {
-	t._006BE6D9(pp)
+func (t *t3001) f006BE241(pp **t3002) {
+	t.f006BE6D9(pp)
 }
 
-func (t *t3001) _006BE6D9(pp **t3002) {
+func (t *t3001) f006BE6D9(pp **t3002) {
 	if (t.f18+t.f1C)%4 == 0 && t.f14 <= (t.f1C+4)>>2 {
-		t._006BEC73(1)
+		t.f006BEC73(1)
 	}
 	ebp4 := t.f18 + t.f1C
 	ebp8 := ebp4 >> 2
@@ -245,15 +245,13 @@ func (t *t3001) _006BE6D9(pp **t3002) {
 		ebp8 -= t.f14
 	}
 	if t.f10[4*ebp8] == 0 {
-		t.f10[4*ebp8] = t.f0C._006BEB1E()
+		t.f10[4*ebp8] = t.f0C.f006BEB1E()
 	}
-	t.f0C._006BEB35(t.f10[4*ebp8][ebp4%4*4], pp)
+	t.f0C.f006BEB35(t.f10[4*ebp8][ebp4%4*4], pp)
 	t.f1C++
 }
 
-func (t *t3001) _006BEC73(x uint32) {
-
-}
+func (t *t3001) f006BEC73(x uint32) {}
 
 // t3000
 type t3000 struct {
@@ -269,13 +267,13 @@ type t3000 struct {
 	once  sync.Once   // f40EC, _08C8D0DC
 }
 
-var _08C88FF0 t3000
+var v08C88FF0 t3000
 
-func (t *t3000) _006BD3A7_Init() {
+func (t *t3000) f006BD3A7init() {
 	dll.Ws2_32.WSAStartup()
 }
 
-func (t *t3000) _006BD509_Socket(hWnd uintptr, x int) int {
+func (t *t3000) f006BD509socket(hWnd uintptr, x int) int {
 	t.fd = dll.Ws2_32.Socket(2, 1, 0) // AF_INT, SOCK_STREAM, 0
 	t.f0004 = x
 	if t.fd == -1 { // INVALID_SOCKET
@@ -288,13 +286,13 @@ func (t *t3000) _006BD509_Socket(hWnd uintptr, x int) int {
 	return 1
 }
 
-func (t *t3000) _006BD708_Dial(ip string, port int, x int) {
+func (t *t3000) f006BD708dial(ip string, port int, x int) {
 
 }
 
-func (t *t3000) _006BDA03_Read() uint32 {
+func (t *t3000) f006BDA03read() uint32 {
 	if t.r >= 0x2000 {
-		_01319E08_log._00B38AE4("Receive Packet Buffer Overflow")
+		v01319E08log.f00B38AE4printf("Receive Packet Buffer Overflow")
 		return 1
 	}
 	ebpC := dll.Ws2_32.Recv(t.s, t.bufr[t.r:], 0x2000-t.r, 0)
@@ -333,7 +331,7 @@ func (t *t3000) _006BDA03_Read() uint32 {
 			return 0
 		}
 		if ebp4_len <= t.r { // 得到一个完整的协议报文了
-			t.f4020._006BDF76(t.bufr[ebp8:], ebp4_len) // 不是解析，仅仅是创建对象
+			t.f4020.f006BDF76(t.bufr[ebp8:], ebp4_len) // 不是解析，仅仅是创建对象
 			ebp8 += ebp4_len
 			t.r -= ebp4_len
 			if t.r > 0 {
@@ -342,23 +340,23 @@ func (t *t3000) _006BDA03_Read() uint32 {
 			break
 		}
 		if ebp8 > 0 && t.r >= 1 {
-			_00DE7C90(t.bufr[:], t.bufr[ebp8:], t.r)
+			f00DE7C90memcpy(t.bufr[:], t.bufr[ebp8:], t.r)
 		}
 		break
 	}
 
-	t.f4020._006BDDF5()
+	t.f4020.f006BDDF5()
 	return 0
 }
 
-func (t *t3000) _006BD945_Write() uint32 {
+func (t *t3000) f006BD945write() uint32 {
 	if t.w <= 0 {
 		return 1
 	}
 }
 
 // 发送协议报文
-func (t *t3000) f004397E3_Write(buf []uint8, len int) int {
+func (t *t3000) f004397E3write(buf []uint8, len int) int {
 	// ebp10 := t // ecx也要落到栈上
 	ebp4 := len
 	ebp8_sum := 0
@@ -369,18 +367,18 @@ func (t *t3000) f004397E3_Write(buf []uint8, len int) int {
 		ebpC := dll.Ws2_32.Send(t.fd, buf[ebp8_sum:], len-ebp8_sum, 0)
 		if ebpC == -1 {
 			if 0x2733 != dll.Ws2_32.WSAGetLastError() {
-				_01319E08_log._00B38AE4("[Send Packet Error] WSAGetLastError() != WSAEWOULDBLOCK\r\n")
+				v01319E08log.f00B38AE4printf("[Send Packet Error] WSAGetLastError() != WSAEWOULDBLOCK\r\n")
 				//_006BD5BB()
 				return 0
 			}
 			if t.w+len > 0x2000 {
-				_01319E08_log._00B38AE4("[Send Packet Error] SendBuffer Overflow\r\n")
+				v01319E08log.f00B38AE4printf("[Send Packet Error] SendBuffer Overflow\r\n")
 				//_006BD5BB()
 				return 0
 			}
 
 			// 发送缓存满了，留着下一次发送
-			_00DE7C90_memcpy(t.bufw[t.w:], buf, ebp4) // buf不切一下？
+			f00DE7C90memcpy(t.bufw[t.w:], buf, ebp4) // buf不切一下？
 			t.w += ebp4
 			return 0
 		}
@@ -404,33 +402,33 @@ type t4001 struct {
 }
 
 // t4000
-var _0130F728 t4000
+var v0130F728 t4000
 
 type t4000 struct {
 	data  [4880]uint8
 	f4880 t4001 // 01313FA8
 }
 
-func (t *t4000) _004A9083(p *t4000) {}
+func (t *t4000) f004A9083(p *t4000) {}
 
-func (t *t4000) _004A9123(p *t4001) {
+func (t *t4000) f004A9123(p *t4001) {
 	p.fs[10]
-	t._004A9083(p)
+	t.f004A9083(p)
 }
 
-func (t *t4000) _004A9B5B() {
+func (t *t4000) f004A9B5B() {
 	// ...
 
 	// ebp8数组在0x377E3138地址处，应该是new出来的
 	// ebp8数组有9个元素，应该是个表
 	// 分别存放的是t6000的派生类型，t6000可能是接口类型
 	// {_01310056, _01310598, _013180E0, _01317CD8,_01314300, _01313FA8, _0130FF40, _0130FB38, _0130F730}
-	ebp8[ebp24*4]._004CCC07()
+	ebp8[ebp24*4].f004CCC07()
 }
 
-var _08C88E08 uint32
-var _08C88E0C uint32
-var _012E4018 string = "22789" // 版本怎么会是这个？
+var v08C88E08 uint32
+var v08C88E0C uint32
+var v012E4018 = "22789" // 版本怎么会是这个？
 
 // heartbeat
 type heartbeat struct {
@@ -446,16 +444,16 @@ func (t *heartbeat) f004391CF()         {}
 func (t *heartbeat) f0043922C()         {}
 
 func (t *heartbeat) f004393EA(needEnc, C2 int) {
-	t._00439612()
-	t._0043968F()
+	t.f00439612()
+	t.f0043968F()
 
 	// _00439420
 	func(buf []uint8, len int, needEnc, C2 int) {
 		// 0x3124字节的局部变量，还是很复杂的
-		_00DE8A70()
+		f00DE8A70()
 
 		if needEnc == 0 {
-			v012E4034.f004397E3_Write(buf, len)
+			v012E4034.f004397E3write(buf, len)
 			return
 		}
 
@@ -468,8 +466,8 @@ func (t *heartbeat) f004393EA(needEnc, C2 int) {
 		var ebp108 [1000]uint8  // C3编码缓存
 
 		// 编码数据
-		_00DE7C90_memcpy(ebp3118, buf, len)
-		ebp3118[len] = uint8(_00DE8AAD_rand() & 0xFF) // 源码带绝对值
+		f00DE7C90memcpy(ebp3118, buf, len)
+		ebp3118[len] = uint8(f00DE8AADrand() & 0xFF) // 源码带绝对值
 		if C2 == 1 {
 			ebp3118[0] = 0xC2
 		}
@@ -489,7 +487,7 @@ func (t *heartbeat) f004393EA(needEnc, C2 int) {
 				ebp108[0] = 0xC3
 				ebp108[1] = ebp3120
 				v08C88FB4.f00B98ED0(v012E4034, ebp108[2:], ebp3118[ebp311C:], len-ebp311C) // 编码数据
-				v012E4034.f004397E3_Write(ebp108[:], ebp3120)
+				v012E4034.f004397E3write(ebp108[:], ebp3120)
 				return
 			}
 		}
@@ -511,10 +509,10 @@ type t6000 struct {
 	fs []func()
 }
 
-func (t *t6000) _00446D6D() {
+func (t *t6000) f00446D6D() {
 	// 带SEH处理
 	// 0x2994字节的全局变量
-	_00DE8A70()
+	f00DE8A70()
 
 	// ...
 
@@ -524,10 +522,10 @@ func (t *t6000) _00446D6D() {
 	// ...
 }
 
-func (t *t6000) _004CCC07() {
+func (t *t6000) f004CCC07() {
 	// ...
 	t.fs[11]
-	t.fs[12] // _00446D6D
+	t.fs[12] // f00446D6D
 }
 
 // t08C88FB4

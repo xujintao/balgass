@@ -44,3 +44,35 @@ const (
 )
 
 type WndProc func(int, int, int, int) int
+
+// WNDCLASSEX WNDCLASSEX
+type WNDCLASSEX struct {
+	CbSize        int
+	Style         int
+	LpfnWndProc   WndProc
+	CbClsExtra    int
+	CbWndExtra    int
+	HInstance     uintptr
+	HIcon         uintptr
+	HCursor       uintptr
+	HbrBackground uintptr
+	LpszMenuName  string
+	LpszClassName string
+	HIconSm       uintptr
+}
+
+// MSG MSG
+type MSG struct {
+	HWnd     uintptr // ebp-28
+	Message  int     // ebp-24
+	WParam   int     // ebp-20
+	LParam   int     // ebp-1C
+	Time     int     // ebp-18
+	Pt       [2]int  // ebp-14, ebp-10
+	LPrivate int     // ebp-C
+}
+
+// Pixelfd Pixelfd
+type Pixelfd struct {
+	Data [40]uint8
+}
