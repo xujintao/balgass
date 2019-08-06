@@ -4,7 +4,6 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/xujintao/balgass/client/dll"
 	"github.com/xujintao/balgass/client/win"
 )
 
@@ -371,7 +370,7 @@ func (t *t3000) f004397E3write(buf []uint8, len int) int {
 	for {
 		ebpC, err := win.Send(t.fd, buf[ebp8_sum:], len-ebp8_sum, 0)
 		if err != nil {
-			if 0x2733 != dll.Ws2_32.WSAGetLastError() {
+			if 0x2733 != win.WSAGetLastError() {
 				v01319E08log.f00B38AE4printf("[Send Packet Error] WSAGetLastError() != WSAEWOULDBLOCK\r\n")
 				//_006BD5BB()
 				return 0

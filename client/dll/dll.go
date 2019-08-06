@@ -1,9 +1,5 @@
 package dll
 
-import (
-	"unsafe"
-)
-
 // advapi32.dll
 // 这里定义所有用到的API指针变量，36个
 // 最后一个DWORD为0
@@ -41,15 +37,10 @@ type gdi32 interface {
 	CreateCompatibleDC()
 	CreateDIBSection()
 	DeleteDC()
-	ChoosePixelFormat(hDC uintptr, pfd *Pixelfd) int
-	SetPixelFormat(hDC uintptr, index int, pfd *Pixelfd) bool
-	GetStockObject(int) uintptr
 	// ...
 	GetTextMetricsW()
 	CreateFontA()
 }
-
-var Gdi32 gdi32
 
 // glu32.dll, /c/windows/syswow64/glu32.dll
 // 这里定义所有用到的API指针变量，3个
@@ -88,13 +79,9 @@ type kernel32 interface {
 	CreateFileA()
 	GetCommandLineA()
 	CloseHandle()
-	GetModuleHandle(moduleName string) uintptr
-	GetCurrentDirectory(len int, buf []uint8) int
 	// ...
-	GetTickCount() int
+	GetTickCount()
 }
-
-var Kernel32 kernel32
 
 // oleaut32.dll, /c/windows/syswow64/oleaut32.dll
 // 这里定义所有用到的API指针变量，6个
@@ -115,13 +102,9 @@ type opengl32 interface {
 	glScissor()
 	glStencilMask()
 	glTexCoordPointer()
-	WglCreateContext(hDC uintptr) uintptr
-	WglMakeCurrent(hDC uintptr, hGLRC uintptr) bool
 	// ...
 	wglGetProcAddress()
 }
-
-var Opengl32 opengl32
 
 // shell32.dll, /c/windows/syswow64/shell32.dll
 // 这里定义所有用到的API指针变量，1个
@@ -144,20 +127,10 @@ type user32 interface {
 	FindWindowA()
 	IntersetRect()
 	wsprintfA()
-	CreateWindowEx(dwExStyle int, lpClassName, lpWindowName string, dwStyle int, X, Y, nWidth, nHeight int, hWndParent, hMenu, hInstance uintptr, lpParam unsafe.Pointer) uintptr
-	SetWindowLong(hWnd uintptr, nIdex int, dwNewLong interface{}) interface{}
-	DefWindowProc(hWnd, message, wParam, lParam int) int
-	CallWindowProc(wndProc WndProc, hWnd, message, wParam, lParam int)
-	GetDC(hWnd uintptr) uintptr
-	RegisterClassEx(wc *WNDCLASSEX)
-	LoadIcon(hInstance uintptr, iconName string) uintptr
-	LoadCursor(hInstance uintptr, cursorName string) uintptr
 	// ...
 	SetWindowLongW()
 	ReleaseDC()
 }
-
-var User32 user32
 
 // version.dll, /c/windows/syswow64/version.dll
 // 这里定义所有用到的API指针变量，3个
@@ -199,15 +172,8 @@ type ws2_32 interface {
 	gethostname()
 	ioctlsocket()
 	// ...
-	Socket(af, typ, protocol int) int
-	Send(fd int, buf []uint8, len int, flags int) int
-	Recv(fd int, buf []uint8, len int, flags int) int
-	WSAGetLastError() int
-	// ...
 	WSAStartup()
 }
-
-var Ws2_32 ws2_32
 
 // dbghelp.dll, /c/windows/syswow64/dbghelp.dll
 // debghelp.dll, /c/mu/dbghelp.dll 这个和系统的有什么区别？
@@ -251,12 +217,4 @@ type wzaudio interface {
 	wzAudioOption()
 	wzAudioCreate()
 	wzAudioStop()
-}
-
-type dll struct {
-	Name string
-	Path string
-	i    interface{}
-	Num  int
-	Desc string
 }
