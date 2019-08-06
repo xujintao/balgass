@@ -7,7 +7,6 @@
 package win
 
 import (
-	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
 )
@@ -32,25 +31,14 @@ type PRINTER_INFO_4 struct {
 
 var (
 	// Library
-	libwinspool *windows.LazyDLL
-
-	// Functions
-	deviceCapabilities *windows.LazyProc
-	documentProperties *windows.LazyProc
-	enumPrinters       *windows.LazyProc
-	getDefaultPrinter  *windows.LazyProc
-)
-
-func init() {
-	// Library
-	libwinspool = windows.NewLazySystemDLL("winspool.drv")
+	libwinspool = syscall.NewLazyDLL("winspool.drv")
 
 	// Functions
 	deviceCapabilities = libwinspool.NewProc("DeviceCapabilitiesW")
 	documentProperties = libwinspool.NewProc("DocumentPropertiesW")
-	enumPrinters = libwinspool.NewProc("EnumPrintersW")
-	getDefaultPrinter = libwinspool.NewProc("GetDefaultPrinterW")
-}
+	enumPrinters       = libwinspool.NewProc("EnumPrintersW")
+	getDefaultPrinter  = libwinspool.NewProc("GetDefaultPrinterW")
+)
 
 func DeviceCapabilities(pDevice, pPort *uint16, fwCapability uint16, pOutput *uint16, pDevMode *DEVMODE) uint32 {
 	ret, _, _ := syscall.Syscall6(deviceCapabilities.Addr(), 5,

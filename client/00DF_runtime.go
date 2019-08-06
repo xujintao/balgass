@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"unsafe"
+
+	"github.com/xujintao/balgass/client/win"
 )
 
 const (
@@ -20,7 +22,7 @@ var v09D9DA08 uint8
 var v09D9DA0C uint32 = 1
 var v09D9DB88 uintptr = 0xBD6A970F
 
-func f00DE7C90memcpy(dst, src []uint8, len uint32) {
+func f00DE7C90memcpy(dst, src []uint8, len int) {
 
 }
 
@@ -51,14 +53,14 @@ func f00DE8100memset(buf []uint8, value uint8, size uint32) uint32 {
 }
 
 func f00DE817Asprintf(buf []uint8, strfmt string, a ...interface{}) int {
-	str := fmt.Sprint(strfmt, a...)
+	str := fmt.Sprint(strfmt, a)
 	buf = []uint8(str) // 从堆上复制到data段
 	return len(str)
 }
 
-func f00DE852F(x uint32) *uint32 {
+func f00DE852F(x uint32) unsafe.Pointer {
 
-	var ebp_C uint32
+	// var ebp_C uint32
 	for {
 		// _00DF0F2F
 		entry := func(x uint32) string {
@@ -118,7 +120,7 @@ func f00DE852F(x uint32) *uint32 {
 func f00DE8A70() {}
 
 // 猜测
-func f00DE8AADrand() int {}
+func f00DE8AADrand() int { return 0 }
 
 func f00DEE871setlocale(category uint32, locale string) {
 
@@ -181,25 +183,26 @@ func f00DECDA2(prevt16p *t16, t16p *t16) {
 		v := func() unsafe.Pointer {
 			// _00DFC370
 			v := func() unsafe.Pointer {
-				errno := GetLastError()
+				errno := win.GetLastError()
 				// _00DFC1FB
 				cb := func() func(uint32) unsafe.Pointer {
 					const v012F7DC0 uint32 = 25
-					v := unsafe.Pointer(TlsGetValue(v012F7DC0))
+					// v := unsafe.Pointer(win.TlsGetValue(v012F7DC0))
+					var v interface{}
 					if v == nil {
 						// _00DFC160
-						func(x uint32) {
+						func(x uintptr) {
 							// ...
 						}(v09D9DB88)
 					}
-					return v // kernel32.FlsGetValue，这里unsafe.Pointer值能转换成函数类型吗？
+					return v.(func(uint32) unsafe.Pointer) // kernel32.FlsGetValue，这里unsafe.Pointer值能转换成函数类型吗？
 				}()
 				const v012F7DBC uint32 = 4
 				v := cb(v012F7DBC) // FlsGetValue
 				if v == nil {
 					// ...
 				}
-				SetLastError(errno)
+				win.SetLastError(errno)
 				return v
 			}()
 			if v == nil {
@@ -252,7 +255,7 @@ func f00DFCCB0(infop *info, format string, t16p *t16, a ...interface{}) int {
 	// ebp-218
 	// ebp-210
 
-	var stack uint32 = v012F7B90 ^ 0x0018DF14 // ebp-4 这个是什么意思？
+	// var stack uintptr = v012F7B90 ^ 0x0018DF14 // ebp-4 这个是什么意思？
 
 	f00DECDA2(t16p, &ebp_25c)
 
@@ -347,7 +350,7 @@ func f00DF0805(buf []uint8, format string, a ...interface{}) {
 }
 
 // OEP
-func f00DF478Coep() {
+func main() {
 	// check pe
 
 	checkupdate()
@@ -357,7 +360,7 @@ func f00DF478Coep() {
 	// hPrevInstance
 	// szcmdline
 	// SW_SHOWDEFAULT
-	f004D7CE5winMain(0x00400000, 0, szcmdLine, 10) // call 0x004D,7CE5
+	f004D7CE5winMain(0x00400000, 0, []uint8(szcmdLine), 10) // call 0x004D,7CE5
 }
 
 // 大范围清零操作

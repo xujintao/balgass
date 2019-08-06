@@ -7,7 +7,6 @@
 package win
 
 import (
-	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
 )
@@ -131,33 +130,20 @@ type ARGB uint32
 
 var (
 	// Library
-	libgdiplus *windows.LazyDLL
+	libgdiplus = syscall.NewLazyDLL("gdiplus.dll")
 
 	// Functions
-	gdipCreateBitmapFromFile    *windows.LazyProc
-	gdipCreateBitmapFromHBITMAP *windows.LazyProc
-	gdipCreateHBITMAPFromBitmap *windows.LazyProc
-	gdipDisposeImage            *windows.LazyProc
-	gdiplusShutdown             *windows.LazyProc
-	gdiplusStartup              *windows.LazyProc
+	gdipCreateBitmapFromFile    = libgdiplus.NewProc("GdipCreateBitmapFromFile")
+	gdipCreateBitmapFromHBITMAP = libgdiplus.NewProc("GdipCreateBitmapFromHBITMAP")
+	gdipCreateHBITMAPFromBitmap = libgdiplus.NewProc("GdipCreateHBITMAPFromBitmap")
+	gdipDisposeImage            = libgdiplus.NewProc("GdipDisposeImage")
+	gdiplusShutdown             = libgdiplus.NewProc("GdiplusShutdown")
+	gdiplusStartup              = libgdiplus.NewProc("GdiplusStartup")
 )
 
 var (
 	token uintptr
 )
-
-func init() {
-	// Library
-	libgdiplus = windows.NewLazySystemDLL("gdiplus.dll")
-
-	// Functions
-	gdipCreateBitmapFromFile = libgdiplus.NewProc("GdipCreateBitmapFromFile")
-	gdipCreateBitmapFromHBITMAP = libgdiplus.NewProc("GdipCreateBitmapFromHBITMAP")
-	gdipCreateHBITMAPFromBitmap = libgdiplus.NewProc("GdipCreateHBITMAPFromBitmap")
-	gdipDisposeImage = libgdiplus.NewProc("GdipDisposeImage")
-	gdiplusShutdown = libgdiplus.NewProc("GdiplusShutdown")
-	gdiplusStartup = libgdiplus.NewProc("GdiplusStartup")
-}
 
 func GdipCreateBitmapFromFile(filename *uint16, bitmap **GpBitmap) GpStatus {
 	ret, _, _ := syscall.Syscall(gdipCreateBitmapFromFile.Addr(), 2,

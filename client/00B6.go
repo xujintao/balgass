@@ -2,7 +2,10 @@ package main
 
 import (
 	"os"
+	"syscall"
 	"unsafe"
+
+	"github.com/xujintao/balgass/client/win"
 )
 
 var v012EC83C = [16]uint8{
@@ -51,7 +54,7 @@ func f00B385D6(buf []uint8, size uint32, flag uint32) {
 
 type t1000 struct {
 	f00h  uint32
-	f04h  int32
+	f04h  uintptr
 	f08h  [260]uint8
 	f10Ch uint32
 }
@@ -69,7 +72,7 @@ func init() {
 	file := &v01319E08log
 	// OpenFile
 	file.f04h = 0xE0
-	copy(file.f08h[:], path)
+	// copy(file.f08h[:], path)
 	file.f10Ch = 0x0F
 }
 
@@ -89,7 +92,7 @@ func (p *t1000) f00B38AE4printf(format string, a ...interface{}) []uint8 {
 	func(buf []uint8) {
 		var ebp_4 uint32 // dwNumBytes
 		var ebp_8 *t1000 = p
-		if p.f04h == -1 {
+		if p.f04h == uintptr(^uint32(0)) {
 			return
 		}
 
@@ -103,7 +106,7 @@ func (p *t1000) f00B38AE4printf(format string, a ...interface{}) []uint8 {
 
 		// 写文件
 		// _00B38A4D
-		func(hFile int32, buf []uint8, len uint32, pdwNumBytes *uint32, pOverlapped uint32) {
+		func(hFile uintptr, buf []uint8, len uint32, pdwNumBytes *uint32, pOverlapped *syscall.Overlapped) {
 			// 这个变量是push ecx得到的
 			// 局部变量<=8个字节，c编译器使用push，指令数比sub指令少，但性能不行
 			var ebp_4 *t1000 = p
@@ -156,12 +159,12 @@ func (p *t1000) f00B38AE4printf(format string, a ...interface{}) []uint8 {
 				return ebp_4
 			}(buf, len, ebp_4.f10Ch)
 
-			WriteFile(hFile, buf, len, pdwNumBytes, pOverlapped)
-		}(ebp_8.f04h, buf, len, &ebp_4, 0)
+			win.WriteFile(syscall.Handle(hFile), buf, pdwNumBytes, pOverlapped)
+		}(ebp_8.f04h, buf, len, &ebp_4, nil)
 
 		//
 		if ebp_4 == 0 {
-			nRet := CloseHandle(ebp_8.f04h)
+			win.CloseHandle(win.HANDLE(ebp_8.f04h))
 			// _00B38781
 			func(path string) {
 				// 重新设置ebp_8的hFile
@@ -187,15 +190,15 @@ func (p *t1000) f00B38D49(x uint32) {
 
 func (p *t1000) f00B38E3C() {
 	p.f00B38AE4printf("<OpenGL information>\r\n>")
-	p.f00B38AE4printf("Vendor\t\t: %s\r\n", glGetString(0x1F00))
-	p.f00B38AE4printf("Render\t\t: %s\r\n", glGetString(0x1F01))
-	p.f00B38AE4printf("OpenGL version\t: %s\r\n", glGetString(0x1F02))
+	// p.f00B38AE4printf("Vendor\t\t: %s\r\n", win.glGetString(0x1F00))
+	// p.f00B38AE4printf("Render\t\t: %s\r\n", glGetString(0x1F01))
+	// p.f00B38AE4printf("OpenGL version\t: %s\r\n", glGetString(0x1F02))
 	var ebp_8 struct {
 		data [2]uint32 // ebp-8 and ebp-4
 	}
-	glGetIntegerv(0xD33, &ebp_8)
+	// glGetIntegerv(0xD33, &ebp_8)
 	p.f00B38AE4printf("Max Texture size\t: %d x %d\r\n", ebp_8.data[0], ebp_8.data[0])
-	glGetIntegerv(0xD3A, &ebp_8)
+	// glGetIntegerv(0xD3A, &ebp_8)
 	p.f00B38AE4printf("Max Viewport size\t: %d x %d\r\n", ebp_8.data[0], ebp_8.data[1])
 }
 
@@ -207,7 +210,7 @@ func (p *t1000) f00B3902D() {
 	// cut
 }
 
-func (p *t1000) f00B38EF4(hWnd uintptr) {
+func (p *t1000) f00B38EF4(hWnd win.HWND) {
 	// <IME information>\r\n
 }
 
@@ -215,8 +218,8 @@ func f00B4C1B8() bool {
 	return false
 }
 
-func f00B4C1FF(hWnd uintptr) {
-	if v01319D68 != 0 {
+func f00B4C1FF(hWnd win.HWND) {
+	if v01319D68 != nil {
 		// ...
 	}
 }
@@ -236,11 +239,11 @@ type t2000 struct {
 var v08C8D050enc t2000
 var v08C8D098dec t2000
 
-func (p *t2000) f00B62CF0init(path string) {
+func (p *t2000) f00B62CF0init(path string) bool {
 	return p.f00B62EC0(path, 0x1112, 1, 1, 0, 1)
 }
 
-func (p *t2000) f00B62D30init(path string) {
+func (p *t2000) f00B62D30init(path string) bool {
 	return p.f00B62EC0(path, 0x1112, 1, 0, 1, 1)
 }
 
@@ -260,7 +263,7 @@ func (p *t2000) f00B62EC0(path string, begin uint32, x1 uint32, x2 uint32, x3 ui
 	// dwFileTemplate = 0, When opening an existing file, CreateFile ignores this parameter
 	// hFile := CreateFile(path, 1<<31, 1, 0, 3, 0x80, 0)
 	// ReadFile(hFile, buf[:], 6, &nLen, 0)
-	file, error := os.Open(path)
+	file, err := os.Open(path)
 	if err != nil {
 		return false
 	}
@@ -269,6 +272,7 @@ func (p *t2000) f00B62EC0(path string, begin uint32, x1 uint32, x2 uint32, x3 ui
 	if err != nil {
 		return false
 	}
+	println(nLen)
 
 	// compare begin
 	if uint16(begin) != *(*uint16)(unsafe.Pointer(&buf.head[0])) {

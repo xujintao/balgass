@@ -2,8 +2,10 @@ package main
 
 import (
 	"sync"
+	"syscall"
 
 	"github.com/xujintao/balgass/client/dll"
+	"github.com/xujintao/balgass/client/win"
 )
 
 // t3004
@@ -158,7 +160,7 @@ func (t *t3004) f006BDE09() {
 				// _00DE7538
 				func() {
 
-				}
+				}()
 			}()
 		}
 
@@ -168,8 +170,8 @@ func (t *t3004) f006BDE09() {
 // t3003
 type t3003 struct{}
 
-func (t *t3003) f006BEB1E(x uint32) {
-
+func (t *t3003) f006BEB1E(x uint32) []**t3002 {
+	return nil
 }
 
 func (t *t3003) f006BEB35(p **t3002, pp **t3002) {
@@ -177,10 +179,10 @@ func (t *t3003) f006BEB35(p **t3002, pp **t3002) {
 }
 
 func (t *t3003) f006BF322(p **t3002, pp **t3002) {
-	ebp4 := p
+	// ebp4 := p
 
 	// _00405BF0
-	ebp8 := func(x uint32, p **t3002) {
+	ebp8 := func(x uint32, p **t3002) **t3002 {
 		return p
 	}(4, p)
 	if ebp8 == nil {
@@ -192,10 +194,10 @@ func (t *t3003) f006BF322(p **t3002, pp **t3002) {
 // t3002
 type t3002 struct {
 	buf [2000]uint8
-	len uint32
+	len int
 }
 
-func (t *t3002) f006BDFED(buf []uint8, len uint32) *t3002 {
+func (t *t3002) f006BDFED(buf []uint8, len int) *t3002 {
 	f00DE7C90memcpy(t.buf[:], buf, len)
 	t.buf[len] = 0xFD
 	t.len = len
@@ -217,9 +219,9 @@ func (t *t3001) f006BDDF5() {
 	t.f20.f006BDE09()
 }
 
-func (t *t3001) f006BDF76(buf []uint8, len uint32) {
+func (t *t3001) f006BDF76(buf []uint8, len int) {
 	// 带SEH了
-	var ebp18 *t3002 = f00DE852F(2004) // 可能是new
+	var ebp18 *t3002 = (*t3002)(f00DE852F(2004)) // 可能是new
 	var ebp20 *t3002
 	if ebp18 == nil {
 		ebp20 = nil
@@ -244,8 +246,8 @@ func (t *t3001) f006BE6D9(pp **t3002) {
 	if t.f14 <= ebp8 {
 		ebp8 -= t.f14
 	}
-	if t.f10[4*ebp8] == 0 {
-		t.f10[4*ebp8] = t.f0C.f006BEB1E()
+	if t.f10[4*ebp8] == nil {
+		t.f10[4*ebp8] = t.f0C.f006BEB1E(1)
 	}
 	t.f0C.f006BEB35(t.f10[4*ebp8][ebp4%4*4], pp)
 	t.f1C++
@@ -255,29 +257,31 @@ func (t *t3001) f006BEC73(x uint32) {}
 
 // t3000
 type t3000 struct {
-	hWnd  int         // f0000
-	f0004 int         // f0004
-	f0008 int         // f0008
-	fd    uint32      // f000C
-	bufw  [2000]uint8 // f0010
-	w     uint32      // f2010
-	bufr  [2000]uint8 // f2014
-	r     uint32      // f4014
-	f4020 *t3001      // f4020
-	once  sync.Once   // f40EC, _08C8D0DC
+	hWnd  win.HWND       // f0000
+	f0004 int            // f0004
+	f0008 int            // f0008
+	fd    syscall.Handle // f000C
+	bufw  [2000]uint8    // f0010
+	w     int            // f2010
+	bufr  [2000]uint8    // f2014
+	r     int            // f4014
+	f4020 *t3001         // f4020
+	once  sync.Once      // f40EC, _08C8D0DC
 }
 
 var v08C88FF0 t3000
 
 func (t *t3000) f006BD3A7init() {
-	dll.Ws2_32.WSAStartup()
+	// t.once.Do(win.WSAStartup(0, nil))
+	win.WSAStartup(0, nil)
 }
 
-func (t *t3000) f006BD509socket(hWnd uintptr, x int) int {
-	t.fd = dll.Ws2_32.Socket(2, 1, 0) // AF_INT, SOCK_STREAM, 0
+func (t *t3000) f006BD509socket(hWnd win.HWND, x int) int {
+	var err error
+	t.fd, err = win.Socket(2, 1, 0) // AF_INT, SOCK_STREAM, 0
 	t.f0004 = x
-	if t.fd == -1 { // INVALID_SOCKET
-		dll.Ws2_32.WSAGetLastError()
+	if err != nil { // INVALID_SOCKET
+		win.WSAGetLastError()
 		// log
 		// MessageBoxA
 		return 0
@@ -295,13 +299,13 @@ func (t *t3000) f006BDA03read() uint32 {
 		v01319E08log.f00B38AE4printf("Receive Packet Buffer Overflow")
 		return 1
 	}
-	ebpC := dll.Ws2_32.Recv(t.s, t.bufr[t.r:], 0x2000-t.r, 0)
+	ebpC, err := win.Recv(t.fd, t.bufr[t.r:], 0x2000-t.r, 0)
 	if ebpC == 0 {
 		// 服务器关闭连接
 		return 1
 	}
-	if ebpC == -1 { // SOCKET_ERROR
-		WSAGetLastError()
+	if err != nil { // SOCKET_ERROR
+		win.WSAGetLastError()
 		//...
 		return 1
 	}
@@ -317,11 +321,11 @@ func (t *t3000) f006BDA03read() uint32 {
 	for {
 		switch t.bufr[ebp8] {
 		case 0xC1, 0xC3:
-			ebp10 = bufr[ebp8:]
-			ebp4_len = ebp10[1]
+			ebp10 = t.bufr[ebp8:]
+			ebp4_len = int(ebp10[1])
 		case 0xC2, 0xC4:
-			ebp14 = bufr[ebp8:]
-			ebp4_len = ebp14[1]<<8 + ebp14[2] // big endian
+			ebp14 = t.bufr[ebp8:]
+			ebp4_len = int(ebp14[1]<<8 + ebp14[2]) // big endian
 		default:
 			t.r = 0
 			return 0
@@ -349,10 +353,11 @@ func (t *t3000) f006BDA03read() uint32 {
 	return 0
 }
 
-func (t *t3000) f006BD945write() uint32 {
+func (t *t3000) f006BD945write() int {
 	if t.w <= 0 {
 		return 1
 	}
+	return 0
 }
 
 // 发送协议报文
@@ -360,12 +365,12 @@ func (t *t3000) f004397E3write(buf []uint8, len int) int {
 	// ebp10 := t // ecx也要落到栈上
 	ebp4 := len
 	ebp8_sum := 0
-	if t.fd == -1 {
+	if uintptr(t.fd) == uintptr(^uint32(0)) {
 		return 0
 	}
 	for {
-		ebpC := dll.Ws2_32.Send(t.fd, buf[ebp8_sum:], len-ebp8_sum, 0)
-		if ebpC == -1 {
+		ebpC, err := win.Send(t.fd, buf[ebp8_sum:], len-ebp8_sum, 0)
+		if err != nil {
 			if 0x2733 != dll.Ws2_32.WSAGetLastError() {
 				v01319E08log.f00B38AE4printf("[Send Packet Error] WSAGetLastError() != WSAEWOULDBLOCK\r\n")
 				//_006BD5BB()
@@ -409,10 +414,10 @@ type t4000 struct {
 	f4880 t4001 // 01313FA8
 }
 
-func (t *t4000) f004A9083(p *t4000) {}
+func (t *t4000) f004A9083(p *t4001) {}
 
 func (t *t4000) f004A9123(p *t4001) {
-	p.fs[10]
+	_ = p.fs[10]
 	t.f004A9083(p)
 }
 
@@ -423,11 +428,11 @@ func (t *t4000) f004A9B5B() {
 	// ebp8数组有9个元素，应该是个表
 	// 分别存放的是t6000的派生类型，t6000可能是接口类型
 	// {_01310056, _01310598, _013180E0, _01317CD8,_01314300, _01313FA8, _0130FF40, _0130FB38, _0130F730}
-	ebp8[ebp24*4].f004CCC07()
+	// ebp8[ebp24*4].f004CCC07()
 }
 
 var v08C88E08 uint32
-var v08C88E0C uint32
+var v08C88E0C int
 var v012E4018 = "22789" // 版本怎么会是这个？
 
 // heartbeat
@@ -457,16 +462,16 @@ func (t *heartbeat) f004393EA(needEnc, C2 int) {
 			return
 		}
 
-		var ebp3124 int
+		// var ebp3124 int
 		var ebp3120 int
 		var ebp311C int
 		var ebp3118 [1000]uint8 // 原始缓存
 		var ebp1914 int
-		var ebp1910 [1000]uint8 // C4编码缓存
-		var ebp108 [1000]uint8  // C3编码缓存
+		// var ebp1910 [1000]uint8 // C4编码缓存
+		var ebp108 [1000]uint8 // C3编码缓存
 
 		// 编码数据
-		f00DE7C90memcpy(ebp3118, buf, len)
+		f00DE7C90memcpy(ebp3118[:], buf, len)
 		ebp3118[len] = uint8(f00DE8AADrand() & 0xFF) // 源码带绝对值
 		if C2 == 1 {
 			ebp3118[0] = 0xC2
@@ -475,17 +480,17 @@ func (t *heartbeat) f004393EA(needEnc, C2 int) {
 			ebp311C = 1
 		}
 		ebp311C += 2
-		ebp3118[ebp311C-1] = v08C88F60
+		ebp3118[ebp311C-1] = uint8(v08C88F60)
 		v08C88F60++
 		ebp311C--
 
-		ebp1914 = v08C88FB4.f00B98ED0(v012E4034, 0, ebp3118[ebp311C:], len-ebp311C) // 得到len为0x11
+		ebp1914 = v08C88FB4.f00B98ED0(v012E4034, nil, ebp3118[ebp311C:], len-ebp311C) // 得到len为0x11
 
 		if ebp1914 < 0x100 {
 			if C2 == 0 {
 				ebp3120 = ebp1914 + 2 // 0x13
 				ebp108[0] = 0xC3
-				ebp108[1] = ebp3120
+				ebp108[1] = uint8(ebp3120)
 				v08C88FB4.f00B98ED0(v012E4034, ebp108[2:], ebp3118[ebp311C:], len-ebp311C) // 编码数据
 				v012E4034.f004397E3write(ebp108[:], ebp3120)
 				return
@@ -497,10 +502,13 @@ func (t *heartbeat) f004393EA(needEnc, C2 int) {
 	}(t.buf, int(t.len), needEnc, C2)
 }
 
-func (t *heartbeat) f00439612()         {}
-func (t *heartbeat) f0043968F()         {}
-func (t *heartbeat) f0043974F(x int)    {}
-func (t *heartbeat) f004C65EF(x, y int) {}
+func (t *heartbeat) f00439612()      {}
+func (t *heartbeat) f0043968F()      {}
+func (t *heartbeat) f0043974F(x int) {}
+func (t *heartbeat) f0043EDF5(x int) {}
+func (t *heartbeat) f004C65EF(x, y int) *heartbeat {
+	return t
+}
 
 // t6000
 var v01310798 t6000
@@ -524,8 +532,8 @@ func (t *t6000) f00446D6D() {
 
 func (t *t6000) f004CCC07() {
 	// ...
-	t.fs[11]
-	t.fs[12] // f00446D6D
+	_ = t.fs[11]
+	_ = t.fs[12] // f00446D6D
 }
 
 // t08C88FB4
@@ -535,8 +543,9 @@ type t08C88FB4 struct {
 	f18 int
 }
 
-func (t *t08C88FB4) f00B98ED0(p *t3000, x int, buf []uint8, len int) int {
+func (t *t08C88FB4) f00B98ED0(p *t3000, dst []uint8, buf []uint8, len int) int {
 	// 被花了
+	return 0
 }
 
 func (t *t08C88FB4) f00B98D90() {}

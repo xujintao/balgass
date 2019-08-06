@@ -7,7 +7,6 @@
 package win
 
 import (
-	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
 )
@@ -316,43 +315,23 @@ type SHSTOCKICONINFO struct {
 
 var (
 	// Library
-	libshell32 *windows.LazyDLL
+	libshell32 = syscall.NewLazyDLL("shell32.dll")
 
 	// Functions
-	dragAcceptFiles        *windows.LazyProc
-	dragFinish             *windows.LazyProc
-	dragQueryFile          *windows.LazyProc
-	extractIcon            *windows.LazyProc
-	shBrowseForFolder      *windows.LazyProc
-	shDefExtractIcon       *windows.LazyProc
-	shGetFileInfo          *windows.LazyProc
-	shGetPathFromIDList    *windows.LazyProc
-	shGetSpecialFolderPath *windows.LazyProc
-	shParseDisplayName     *windows.LazyProc
-	shGetStockIconInfo     *windows.LazyProc
-	shellExecute           *windows.LazyProc
-	shell_NotifyIcon       *windows.LazyProc
-)
-
-func init() {
-	// Library
-	libshell32 = windows.NewLazySystemDLL("shell32.dll")
-
-	// Functions
-	dragAcceptFiles = libshell32.NewProc("DragAcceptFiles")
-	dragFinish = libshell32.NewProc("DragFinish")
-	dragQueryFile = libshell32.NewProc("DragQueryFileW")
-	extractIcon = libshell32.NewProc("ExtractIconW")
-	shBrowseForFolder = libshell32.NewProc("SHBrowseForFolderW")
-	shDefExtractIcon = libshell32.NewProc("SHDefExtractIconW")
-	shGetFileInfo = libshell32.NewProc("SHGetFileInfoW")
-	shGetPathFromIDList = libshell32.NewProc("SHGetPathFromIDListW")
+	dragAcceptFiles        = libshell32.NewProc("DragAcceptFiles")
+	dragFinish             = libshell32.NewProc("DragFinish")
+	dragQueryFile          = libshell32.NewProc("DragQueryFileW")
+	extractIcon            = libshell32.NewProc("ExtractIconW")
+	shBrowseForFolder      = libshell32.NewProc("SHBrowseForFolderW")
+	shDefExtractIcon       = libshell32.NewProc("SHDefExtractIconW")
+	shGetFileInfo          = libshell32.NewProc("SHGetFileInfoW")
+	shGetPathFromIDList    = libshell32.NewProc("SHGetPathFromIDListW")
 	shGetSpecialFolderPath = libshell32.NewProc("SHGetSpecialFolderPathW")
-	shGetStockIconInfo = libshell32.NewProc("SHGetStockIconInfo")
-	shellExecute = libshell32.NewProc("ShellExecuteW")
-	shell_NotifyIcon = libshell32.NewProc("Shell_NotifyIconW")
-	shParseDisplayName = libshell32.NewProc("SHParseDisplayName")
-}
+	shGetStockIconInfo     = libshell32.NewProc("SHGetStockIconInfo")
+	shellExecute           = libshell32.NewProc("ShellExecuteW")
+	shell_NotifyIcon       = libshell32.NewProc("Shell_NotifyIconW")
+	shParseDisplayName     = libshell32.NewProc("SHParseDisplayName")
+)
 
 func DragAcceptFiles(hWnd HWND, fAccept bool) bool {
 	ret, _, _ := syscall.Syscall(dragAcceptFiles.Addr(), 2,

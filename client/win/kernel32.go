@@ -7,7 +7,6 @@
 package win
 
 import (
-	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
 )
@@ -53,40 +52,67 @@ const (
 	LOCALE_SISO639LANGNAME2  LCTYPE = 0x67
 )
 
+// Do the interface allocations only once for common
+// Errno values.
+const (
+	errnoERROR_IO_PENDING = 997
+)
+
+var (
+	errERROR_IO_PENDING error = syscall.Errno(errnoERROR_IO_PENDING)
+)
+
+// errnoErr returns common boxed Errno values, to prevent
+// allocations at runtime.
+func errnoErr(e syscall.Errno) error {
+	switch e {
+	case 0:
+		return nil
+	case errnoERROR_IO_PENDING:
+		return errERROR_IO_PENDING
+	}
+	// TODO: add more here, after collecting data on the common
+	// error values see on Windows. (perhaps when running
+	// all.bat?)
+	return e
+}
+
 var (
 	// Library
-	libkernel32 *windows.LazyDLL
+	libkernel32 = syscall.NewLazyDLL("kernel32.dll")
 
 	// Functions
-	activateActCtx                     *windows.LazyProc
-	closeHandle                        *windows.LazyProc
-	createActCtx                       *windows.LazyProc
-	fileTimeToSystemTime               *windows.LazyProc
-	findResource                       *windows.LazyProc
-	getConsoleTitle                    *windows.LazyProc
-	getConsoleWindow                   *windows.LazyProc
-	getCurrentThreadId                 *windows.LazyProc
-	getLastError                       *windows.LazyProc
-	getLocaleInfo                      *windows.LazyProc
-	getLogicalDriveStrings             *windows.LazyProc
-	getModuleHandle                    *windows.LazyProc
-	getNumberFormat                    *windows.LazyProc
-	getPhysicallyInstalledSystemMemory *windows.LazyProc
-	getProfileString                   *windows.LazyProc
-	getThreadLocale                    *windows.LazyProc
-	getThreadUILanguage                *windows.LazyProc
-	getVersion                         *windows.LazyProc
-	globalAlloc                        *windows.LazyProc
-	globalFree                         *windows.LazyProc
-	globalLock                         *windows.LazyProc
-	globalUnlock                       *windows.LazyProc
-	moveMemory                         *windows.LazyProc
-	mulDiv                             *windows.LazyProc
-	loadResource                       *windows.LazyProc
-	lockResource                       *windows.LazyProc
-	setLastError                       *windows.LazyProc
-	sizeofResource                     *windows.LazyProc
-	systemTimeToFileTime               *windows.LazyProc
+	activateActCtx                     = libkernel32.NewProc("ActivateActCtx")
+	closeHandle                        = libkernel32.NewProc("CloseHandle")
+	createActCtx                       = libkernel32.NewProc("CreateActCtxW")
+	fileTimeToSystemTime               = libkernel32.NewProc("FileTimeToSystemTime")
+	findResource                       = libkernel32.NewProc("FindResourceW")
+	getConsoleTitle                    = libkernel32.NewProc("GetConsoleTitleW")
+	getConsoleWindow                   = libkernel32.NewProc("GetConsoleWindow")
+	getCurrentThreadId                 = libkernel32.NewProc("GetCurrentThreadId")
+	getCurrentDirectoryW               = libkernel32.NewProc("GetCurrentDirectoryW")
+	getLastError                       = libkernel32.NewProc("GetLastError")
+	getLocaleInfo                      = libkernel32.NewProc("GetLocaleInfoW")
+	getLogicalDriveStrings             = libkernel32.NewProc("GetLogicalDriveStringsW")
+	getModuleHandle                    = libkernel32.NewProc("GetModuleHandleW")
+	getNumberFormat                    = libkernel32.NewProc("GetNumberFormatW")
+	getPhysicallyInstalledSystemMemory = libkernel32.NewProc("GetPhysicallyInstalledSystemMemory")
+	getProfileString                   = libkernel32.NewProc("GetProfileStringW")
+	getThreadLocale                    = libkernel32.NewProc("GetThreadLocale")
+	getThreadUILanguage                = libkernel32.NewProc("GetThreadUILanguage")
+	getVersion                         = libkernel32.NewProc("GetVersion")
+	globalAlloc                        = libkernel32.NewProc("GlobalAlloc")
+	globalFree                         = libkernel32.NewProc("GlobalFree")
+	globalLock                         = libkernel32.NewProc("GlobalLock")
+	globalUnlock                       = libkernel32.NewProc("GlobalUnlock")
+	moveMemory                         = libkernel32.NewProc("RtlMoveMemory")
+	mulDiv                             = libkernel32.NewProc("MulDiv")
+	loadResource                       = libkernel32.NewProc("LoadResource")
+	lockResource                       = libkernel32.NewProc("LockResource")
+	setLastError                       = libkernel32.NewProc("SetLastError")
+	sizeofResource                     = libkernel32.NewProc("SizeofResource")
+	systemTimeToFileTime               = libkernel32.NewProc("SystemTimeToFileTime")
+	writeFile                          = libkernel32.NewProc("WriteFile")
 )
 
 type (
@@ -137,42 +163,6 @@ type ACTCTX struct {
 	ResourceName          *uint16 // UTF-16 string
 	ApplicationName       *uint16 // UTF-16 string
 	Module                HMODULE
-}
-
-func init() {
-	// Library
-	libkernel32 = windows.NewLazySystemDLL("kernel32.dll")
-
-	// Functions
-	activateActCtx = libkernel32.NewProc("ActivateActCtx")
-	closeHandle = libkernel32.NewProc("CloseHandle")
-	createActCtx = libkernel32.NewProc("CreateActCtxW")
-	fileTimeToSystemTime = libkernel32.NewProc("FileTimeToSystemTime")
-	findResource = libkernel32.NewProc("FindResourceW")
-	getConsoleTitle = libkernel32.NewProc("GetConsoleTitleW")
-	getConsoleWindow = libkernel32.NewProc("GetConsoleWindow")
-	getCurrentThreadId = libkernel32.NewProc("GetCurrentThreadId")
-	getLastError = libkernel32.NewProc("GetLastError")
-	getLocaleInfo = libkernel32.NewProc("GetLocaleInfoW")
-	getLogicalDriveStrings = libkernel32.NewProc("GetLogicalDriveStringsW")
-	getModuleHandle = libkernel32.NewProc("GetModuleHandleW")
-	getNumberFormat = libkernel32.NewProc("GetNumberFormatW")
-	getPhysicallyInstalledSystemMemory = libkernel32.NewProc("GetPhysicallyInstalledSystemMemory")
-	getProfileString = libkernel32.NewProc("GetProfileStringW")
-	getThreadLocale = libkernel32.NewProc("GetThreadLocale")
-	getThreadUILanguage = libkernel32.NewProc("GetThreadUILanguage")
-	getVersion = libkernel32.NewProc("GetVersion")
-	globalAlloc = libkernel32.NewProc("GlobalAlloc")
-	globalFree = libkernel32.NewProc("GlobalFree")
-	globalLock = libkernel32.NewProc("GlobalLock")
-	globalUnlock = libkernel32.NewProc("GlobalUnlock")
-	moveMemory = libkernel32.NewProc("RtlMoveMemory")
-	mulDiv = libkernel32.NewProc("MulDiv")
-	loadResource = libkernel32.NewProc("LoadResource")
-	lockResource = libkernel32.NewProc("LockResource")
-	setLastError = libkernel32.NewProc("SetLastError")
-	sizeofResource = libkernel32.NewProc("SizeofResource")
-	systemTimeToFileTime = libkernel32.NewProc("SystemTimeToFileTime")
 }
 
 func ActivateActCtx(ctx HANDLE) (uintptr, bool) {
@@ -251,6 +241,19 @@ func GetCurrentThreadId() uint32 {
 	return uint32(ret)
 }
 
+func GetCurrentDirectory(buflen uint32, buf *uint16) (n uint32, err error) {
+	r0, _, e1 := syscall.Syscall(getCurrentDirectoryW.Addr(), 2, uintptr(buflen), uintptr(unsafe.Pointer(buf)), 0)
+	n = uint32(r0)
+	if n == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
 func GetLastError() uint32 {
 	ret, _, _ := syscall.Syscall(getLastError.Addr(), 0,
 		0,
@@ -325,6 +328,15 @@ func GetProfileString(lpAppName, lpKeyName, lpDefault *uint16, lpReturnedString 
 	return ret != 0
 }
 
+// 要有golang风格
+func GetPrivateProfileStringA(lpAppName, lpKeyName, lpDefault string, lpReturnedString []uint8, nSize uint32, lpFileName string) int32 {
+	return 0
+}
+
+func GetPrivateProfileStringW(lpAppName, lpKeyName, lpDefault *uint16, lpReturnedString uintptr, nSize uint32, lpFileName *uint16) int32 {
+	return 0
+}
+
 func GetThreadLocale() LCID {
 	ret, _, _ := syscall.Syscall(getThreadLocale.Addr(), 0,
 		0,
@@ -345,6 +357,10 @@ func GetThreadUILanguage() LANGID {
 		0)
 
 	return LANGID(ret)
+}
+
+func GetTickCount() int {
+	return 0
 }
 
 func GetVersion() uint32 {
@@ -448,4 +464,20 @@ func SystemTimeToFileTime(lpSystemTime *SYSTEMTIME, lpFileTime *FILETIME) bool {
 		0)
 
 	return ret != 0
+}
+
+func WriteFile(handle syscall.Handle, buf []byte, done *uint32, overlapped *syscall.Overlapped) (err error) {
+	var _p0 *byte
+	if len(buf) > 0 {
+		_p0 = &buf[0]
+	}
+	r1, _, e1 := syscall.Syscall6(writeFile.Addr(), 5, uintptr(handle), uintptr(unsafe.Pointer(_p0)), uintptr(len(buf)), uintptr(unsafe.Pointer(done)), uintptr(unsafe.Pointer(overlapped)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
 }

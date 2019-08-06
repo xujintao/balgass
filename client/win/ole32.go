@@ -7,7 +7,6 @@
 package win
 
 import (
-	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
 )
@@ -420,29 +419,16 @@ type COSERVERINFO struct {
 
 var (
 	// Library
-	libole32 *windows.LazyDLL
+	libole32 = syscall.NewLazyDLL("ole32.dll")
 
 	// Functions
-	coCreateInstance      *windows.LazyProc
-	coGetClassObject      *windows.LazyProc
-	coTaskMemFree         *windows.LazyProc
-	oleInitialize         *windows.LazyProc
-	oleSetContainedObject *windows.LazyProc
-	oleUninitialize       *windows.LazyProc
-)
-
-func init() {
-	// Library
-	libole32 = windows.NewLazySystemDLL("ole32.dll")
-
-	// Functions
-	coCreateInstance = libole32.NewProc("CoCreateInstance")
-	coGetClassObject = libole32.NewProc("CoGetClassObject")
-	coTaskMemFree = libole32.NewProc("CoTaskMemFree")
-	oleInitialize = libole32.NewProc("OleInitialize")
+	coCreateInstance      = libole32.NewProc("CoCreateInstance")
+	coGetClassObject      = libole32.NewProc("CoGetClassObject")
+	coTaskMemFree         = libole32.NewProc("CoTaskMemFree")
+	oleInitialize         = libole32.NewProc("OleInitialize")
 	oleSetContainedObject = libole32.NewProc("OleSetContainedObject")
-	oleUninitialize = libole32.NewProc("OleUninitialize")
-}
+	oleUninitialize       = libole32.NewProc("OleUninitialize")
+)
 
 func CoCreateInstance(rclsid REFCLSID, pUnkOuter *IUnknown, dwClsContext uint32, riid REFIID, ppv *unsafe.Pointer) HRESULT {
 	ret, _, _ := syscall.Syscall6(coCreateInstance.Addr(), 5,

@@ -9,8 +9,6 @@ package win
 import (
 	"syscall"
 	"unsafe"
-
-	"golang.org/x/sys/windows"
 )
 
 // Button control messages
@@ -234,33 +232,20 @@ type NMCUSTOMDRAW struct {
 
 var (
 	// Library
-	libcomctl32 *windows.LazyDLL
+	libcomctl32 = syscall.NewLazyDLL("comctl32.dll")
 
 	// Functions
-	imageList_Add         *windows.LazyProc
-	imageList_AddMasked   *windows.LazyProc
-	imageList_Create      *windows.LazyProc
-	imageList_Destroy     *windows.LazyProc
-	imageList_ReplaceIcon *windows.LazyProc
-	initCommonControlsEx  *windows.LazyProc
-	loadIconMetric        *windows.LazyProc
-	loadIconWithScaleDown *windows.LazyProc
+	imageList_Add         = libcomctl32.NewProc("ImageList_Add")
+	imageList_AddMasked   = libcomctl32.NewProc("ImageList_AddMasked")
+	imageList_Create      = libcomctl32.NewProc("ImageList_Create")
+	imageList_Destroy     = libcomctl32.NewProc("ImageList_Destroy")
+	imageList_ReplaceIcon = libcomctl32.NewProc("ImageList_ReplaceIcon")
+	initCommonControlsEx  = libcomctl32.NewProc("InitCommonControlsEx")
+	loadIconMetric        = libcomctl32.NewProc("LoadIconMetric")
+	loadIconWithScaleDown = libcomctl32.NewProc("LoadIconWithScaleDown")
 )
 
 func init() {
-	// Library
-	libcomctl32 = windows.NewLazySystemDLL("comctl32.dll")
-
-	// Functions
-	imageList_Add = libcomctl32.NewProc("ImageList_Add")
-	imageList_AddMasked = libcomctl32.NewProc("ImageList_AddMasked")
-	imageList_Create = libcomctl32.NewProc("ImageList_Create")
-	imageList_Destroy = libcomctl32.NewProc("ImageList_Destroy")
-	imageList_ReplaceIcon = libcomctl32.NewProc("ImageList_ReplaceIcon")
-	initCommonControlsEx = libcomctl32.NewProc("InitCommonControlsEx")
-	loadIconMetric = libcomctl32.NewProc("LoadIconMetric")
-	loadIconWithScaleDown = libcomctl32.NewProc("LoadIconWithScaleDown")
-
 	// Initialize the common controls we support
 	var initCtrls INITCOMMONCONTROLSEX
 	initCtrls.DwSize = uint32(unsafe.Sizeof(initCtrls))

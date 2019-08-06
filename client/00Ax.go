@@ -1,6 +1,10 @@
 package main
 
-func f00A49798(wParam, lParam int) {
+import (
+	"github.com/xujintao/balgass/client/win"
+)
+
+func f00A49798(hWnd win.HWND, message uint32, wParam, lParam uintptr, x int) {
 
 }
 
@@ -44,7 +48,7 @@ func f00A49E40() {
 																	func() {
 																		// Runtime Error!\n
 																		// program name unknown
-																		GetModuleFileName(0, v09D9DBB1, 260)
+																		// win.GetModuleFileName(0, v09D9DBB1, 260)
 																		// _00E1AF3C
 																		func() {
 																			// MessageBox弹出错误

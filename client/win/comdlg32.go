@@ -7,7 +7,6 @@
 package win
 
 import (
-	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
 )
@@ -232,27 +231,15 @@ type PRINTDLGEX struct {
 
 var (
 	// Library
-	libcomdlg32 *windows.LazyDLL
+	libcomdlg32 = syscall.NewLazyDLL("comdlg32.dll")
 
 	// Functions
-	chooseColor          *windows.LazyProc
-	commDlgExtendedError *windows.LazyProc
-	getOpenFileName      *windows.LazyProc
-	getSaveFileName      *windows.LazyProc
-	printDlgEx           *windows.LazyProc
-)
-
-func init() {
-	// Library
-	libcomdlg32 = windows.NewLazySystemDLL("comdlg32.dll")
-
-	// Functions
-	chooseColor = libcomdlg32.NewProc("ChooseColorW")
+	chooseColor          = libcomdlg32.NewProc("ChooseColorW")
 	commDlgExtendedError = libcomdlg32.NewProc("CommDlgExtendedError")
-	getOpenFileName = libcomdlg32.NewProc("GetOpenFileNameW")
-	getSaveFileName = libcomdlg32.NewProc("GetSaveFileNameW")
-	printDlgEx = libcomdlg32.NewProc("PrintDlgExW")
-}
+	getOpenFileName      = libcomdlg32.NewProc("GetOpenFileNameW")
+	getSaveFileName      = libcomdlg32.NewProc("GetSaveFileNameW")
+	printDlgEx           = libcomdlg32.NewProc("PrintDlgExW")
+)
 
 func ChooseColor(lpcc *CHOOSECOLOR) bool {
 	ret, _, _ := syscall.Syscall(chooseColor.Addr(), 1,

@@ -8,7 +8,6 @@ package win
 
 import (
 	"fmt"
-	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
 )
@@ -419,22 +418,16 @@ type DISPPARAMS struct {
 
 var (
 	// Library
-	liboleaut32 *windows.LazyDLL
-
-	// Functions
-	sysAllocString *windows.LazyProc
-	sysFreeString  *windows.LazyProc
-	sysStringLen   *windows.LazyProc
-)
-
-func init() {
-	// Library
-	liboleaut32 = windows.NewLazySystemDLL("oleaut32.dll")
+	liboleaut32 = syscall.NewLazyDLL("oleaut32.dll")
 
 	// Functions
 	sysAllocString = liboleaut32.NewProc("SysAllocString")
-	sysFreeString = liboleaut32.NewProc("SysFreeString")
-	sysStringLen = liboleaut32.NewProc("SysStringLen")
+	sysFreeString  = liboleaut32.NewProc("SysFreeString")
+	sysStringLen   = liboleaut32.NewProc("SysStringLen")
+)
+
+func init() {
+
 }
 
 func SysAllocString(s string) *uint16 /*BSTR*/ {
