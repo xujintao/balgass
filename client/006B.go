@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/binary"
 	"sync"
 	"syscall"
+	"unsafe"
 
 	"github.com/xujintao/balgass/client/win"
 )
@@ -434,29 +436,118 @@ var v08C88E08 uint32
 var v08C88E0C int
 var v012E4018 = "22789" // 版本怎么会是这个？
 
-// heartbeat
-type heartbeat struct {
-	len uint16
-	buf []uint8
+type t1 struct{}
+
+func (t *t1) f007BF63B() {
+	// f007C47D3
+	func() {
+		var ebp4 [4]uint8
+		// t1.f007C51F5
+
+		// t1.f007C4C15
+		func(x []uint8, y []uint8) {
+			// f007C572D
+
+			// f007C56F5
+
+			// f007C536A
+		}(ebp4[2:], ebp4[3:])
+	}()
+
+}
+
+// 好复杂 12500行的汇编代码
+func (t *t1) f007BF68F() {}
+
+// pb
+type pb struct {
+	// len   uint16
+	// buf   []uint8
+	buf   [5210]uint8 // 0x145A
+	f145C t1
 }
 
 var v012E4034 *t3000
 var v08C88F60 int
 
-func (t *heartbeat) f00439178(x, y int) {}
-func (t *heartbeat) f004391CF()         {}
-func (t *heartbeat) f0043922C()         {}
+func (t *pb) f00439178() {
+	// SEH
+	t.f145C.f007BF63B()
+	t.f145C.f007BF68F()
+	t.f0043921B()
+}
+func (t *pb) f004391CF() {}
+func (t *pb) f0043921B() {
+	// t.len = 0
+	*(*uint16)(unsafe.Pointer(&t.buf[0])) = 0
+}
+func (t *pb) f0043922CwritePrefix(flag uint8, typ uint8) {
+	t.f0043921B()
 
-func (t *heartbeat) f004393EA(needEnc, C2 int) {
-	t.f00439612()
-	t.f0043968F()
+	// 写flag
+	var buf [1]uint8
+	buf[0] = flag
+	t.f00439298writeEnc(buf[:], 1, false)
+
+	// 写len，没有必要
+	switch flag {
+	case 0xC1:
+		t.f00439298writeEnc(t.buf[:], 1, false)
+	case 0xC2:
+		t.f00439298writeEnc(t.buf[:], 2, false)
+	}
+
+	// 写type
+	buf[0] = typ
+	t.f00439298writeEnc(buf[:], 1, false)
+}
+
+func (t *pb) f00439298writeEnc(buf []uint8, len int, needEnc bool) {
+	tlen := (*uint16)(unsafe.Pointer(&t.buf[0]))
+	if int(*tlen)+len > 0x145A {
+		return
+	}
+	f00DE7C90memcpy(t.buf[*tlen+2:], buf, len)
+	if needEnc {
+		t.f0043930Cenc(int(*tlen), int(*tlen)+len, 1) // (3,4,1), (4,8,1)
+	}
+	*tlen += uint16(len)
+}
+
+func (t *pb) f0043930Cenc(begin, end, interval int) {
+	var buf = [32]uint8{
+		0xAB, 0x11, 0xCD, 0xFE,
+		0x18, 0x23, 0xC5, 0xA3,
+		0xC1, 0x33, 0xC1, 0xCC,
+		0x66, 0x67, 0x21, 0xF3,
+		0x32, 0x12, 0x15, 0x35,
+		0x29, 0xFF, 0xFE, 0x1D,
+		0x44, 0xEF, 0xCD, 0x41,
+		0x26, 0x3C, 0x4E, 0x4D,
+	}
+	ebp24 := begin
+	for {
+		if ebp24 == end {
+			break
+		}
+		ebp24 %= 32                                     // 有符号和无符号是什么区别？
+		t.buf[ebp24+2] ^= (t.buf[ebp24+1] ^ buf[ebp24]) // t.buf[5] ^= t.buf[4] ^ buf[3]
+		ebp24 += interval
+	}
+}
+
+func (t *pb) f004393EAsend(needEnc, isC2 bool) {
+	// t.f00439612()
+	func() {}()
+	// t.f0043968F()
+	func() {}()
 
 	// _00439420
-	func(buf []uint8, len int, needEnc, C2 int) {
+	func(buf []uint8, len int, needEnc, isC2 bool) {
 		// 0x3124字节的局部变量，还是很复杂的
 		f00DE8A70()
 
-		if needEnc == 0 {
+		if !needEnc {
 			v012E4034.f004397E3write(buf, len)
 			return
 		}
@@ -472,7 +563,7 @@ func (t *heartbeat) f004393EA(needEnc, C2 int) {
 		// 编码数据
 		f00DE7C90memcpy(ebp3118[:], buf, len)
 		ebp3118[len] = uint8(f00DE8AADrand() & 0xFF) // 源码带绝对值
-		if C2 == 1 {
+		if isC2 {
 			ebp3118[0] = 0xC2
 		}
 		if ebp3118[0] != 0xC1 {
@@ -486,7 +577,7 @@ func (t *heartbeat) f004393EA(needEnc, C2 int) {
 		ebp1914 = v08C88FB4.f00B98ED0(v012E4034, nil, ebp3118[ebp311C:], len-ebp311C) // 得到len为0x11
 
 		if ebp1914 < 0x100 {
-			if C2 == 0 {
+			if !isC2 {
 				ebp3120 = ebp1914 + 2 // 0x13
 				ebp108[0] = 0xC3
 				ebp108[1] = uint8(ebp3120)
@@ -498,14 +589,25 @@ func (t *heartbeat) f004393EA(needEnc, C2 int) {
 		// len >= 0x100或者C2 编码方案
 		// ...
 
-	}(t.buf, int(t.len), needEnc, C2)
+	}(t.buf[:], int(*(*uint16)(unsafe.Pointer(&t.buf[0]))), needEnc, isC2)
 }
 
-func (t *heartbeat) f00439612()      {}
-func (t *heartbeat) f0043968F()      {}
-func (t *heartbeat) f0043974F(x int) {}
-func (t *heartbeat) f0043EDF5(x int) {}
-func (t *heartbeat) f004C65EF(x, y int) *heartbeat {
+func (t *pb) f0043974FwriteZero(x int) {
+	var buf [5216]uint8
+	f00DE8A70()
+
+	f00DE8100memset(buf[:], 0, x)
+	t.f00439298writeEnc(buf[:], x, true)
+}
+func (t *pb) f0043EDF5writeUint32(time uint32) {
+	var buf [4]uint8
+	binary.LittleEndian.PutUint32(buf[:], time)
+	t.f00439298writeEnc(buf[:], 4, true)
+}
+func (t *pb) f004C65EFwriteUint16(x uint16) *pb {
+	var buf [2]uint8
+	binary.LittleEndian.PutUint16(buf[:], x)
+	t.f00439298writeEnc(buf[:], 2, true)
 	return t
 }
 
@@ -518,13 +620,12 @@ type t6000 struct {
 
 func (t *t6000) f00446D6D() {
 	// 带SEH处理
-	// 0x2994字节的全局变量
-	f00DE8A70()
+	f00DE8A70() // 0x2994
 
 	// ...
 
-	var ebp149C heartbeat
-	ebp149C.f004393EA(0, 0) // 发送协议报文
+	var ebp149C pb
+	ebp149C.f004393EAsend(false, false) // 发送协议报文
 
 	// ...
 }

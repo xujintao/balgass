@@ -359,7 +359,7 @@ func GetThreadUILanguage() LANGID {
 	return LANGID(ret)
 }
 
-func GetTickCount() int {
+func GetTickCount() uint32 {
 	return 0
 }
 

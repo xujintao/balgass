@@ -614,36 +614,40 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 
 var v08C88F62 int
 var v08C88F64 int
-var v08C88F84 int
+var v08C88F84 uint32
+
+type t2 struct {
+	f154 uint16 // 0
+	f160 uint16 // 0
+}
 
 var v086105EC struct {
-	f154 uint16
-	f160 uint16
+	f00 *t2 // 指向0x0D94B0AC
 }
 
 func f004D8FF5() {
 	// SEH
-	// 0x1488字节局部变量
-	f00DE8A70()
+	var ebp1494heartbeat pb
+	f00DE8A70() // 0x1488
+
 	if v08C88F64 == 0 {
 		return
 	}
-	var ebp1494 heartbeat
 
 	// 构造心跳报文
-	ebp1494.f00439178(0xC1, 0xE)
-	ebp1494.f0043922C()
+	ebp1494heartbeat.f00439178()
+	ebp1494heartbeat.f0043922CwritePrefix(0xC1, 0x0E) // 写前缀
 	ebp10 := win.GetTickCount()
-	ebp1494.f0043974F(1)
-	ebp1494.f0043EDF5(ebp10)
-	ebp1494.f004C65EF(int(v086105EC.f154), int(v086105EC.f160))
-	ebp1494.f004C65EF(int(v086105EC.f154), int(v086105EC.f160))
-	ebp1494.f004393EA(1, 0) // 发送心跳报文
+	ebp1494heartbeat.f0043974FwriteZero(1)                    // 写0
+	ebp1494heartbeat.f0043EDF5writeUint32(ebp10)              // 写time
+	ebp1494heartbeat.f004C65EFwriteUint16(v086105EC.f00.f154) // 什么
+	ebp1494heartbeat.f004C65EFwriteUint16(v086105EC.f00.f160) // 什么
+	ebp1494heartbeat.f004393EAsend(true, false)               // 发送心跳报文
 	if v08C88F62 == 0 {
 		v08C88F62 = 1
 		v08C88F84 = ebp10
 	}
-	ebp1494.f004391CF()
+	ebp1494heartbeat.f004391CF()
 }
 
 func f004D9F88() {}
