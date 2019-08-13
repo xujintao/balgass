@@ -468,7 +468,6 @@ type pb struct {
 }
 
 var v012E4034 *t3000
-var v08C88F60 int
 
 func (t *pb) f00439178() {
 	// SEH
@@ -537,15 +536,14 @@ func (t *pb) f0043930Cenc(begin, end, interval int) {
 }
 
 func (t *pb) f004393EAsend(needEnc, isC2 bool) {
-	// t.f00439612()
+	// t.f00439612() 写len
 	func() {}()
 	// t.f0043968F()
 	func() {}()
 
 	// _00439420
 	func(buf []uint8, len int, needEnc, isC2 bool) {
-		// 0x3124字节的局部变量，还是很复杂的
-		f00DE8A70()
+		f00DE8A70() // 0x3124
 
 		if !needEnc {
 			v012E4034.f004397E3write(buf, len)
@@ -555,14 +553,14 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 		// var ebp3124 int
 		var ebp3120 int
 		var ebp311C int
-		var ebp3118 [1000]uint8 // 原始缓存
+		var ebp3118 [1000]uint8 // 原始缓存副本
 		var ebp1914 int
 		// var ebp1910 [1000]uint8 // C4编码缓存
 		var ebp108 [1000]uint8 // C3编码缓存
 
 		// 编码数据
 		f00DE7C90memcpy(ebp3118[:], buf, len)
-		ebp3118[len] = uint8(f00DE8AADrand() & 0xFF) // 源码带绝对值
+		ebp3118[len] = uint8(f00DE8AADrand() % 256) //
 		if isC2 {
 			ebp3118[0] = 0xC2
 		}
@@ -570,26 +568,24 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 			ebp311C = 1
 		}
 		ebp311C += 2
-		ebp3118[ebp311C-1] = uint8(v08C88F60)
+		ebp3118[ebp311C-1] = v08C88F60
 		v08C88F60++
 		ebp311C--
 
 		ebp1914 = v08C88FB4.f00B98ED0(v012E4034, nil, ebp3118[ebp311C:], len-ebp311C) // 得到len为0x11
 
-		if ebp1914 < 0x100 {
-			if !isC2 {
-				ebp3120 = ebp1914 + 2 // 0x13
-				ebp108[0] = 0xC3
-				ebp108[1] = uint8(ebp3120)
-				v08C88FB4.f00B98ED0(v012E4034, ebp108[2:], ebp3118[ebp311C:], len-ebp311C) // 编码数据
-				v012E4034.f004397E3write(ebp108[:], ebp3120)
-				return
-			}
+		if ebp1914 < 0x100 && !isC2 {
+			ebp3120 = ebp1914 + 2 // 0x13
+			ebp108[0] = 0xC3
+			ebp108[1] = uint8(ebp3120)
+			v08C88FB4.f00B98ED0(v012E4034, ebp108[2:], ebp3118[ebp311C:], len-ebp311C) // 编码数据
+			v012E4034.f004397E3write(ebp108[:], ebp3120)
+			return
 		}
 		// len >= 0x100或者C2 编码方案
 		// ...
 
-	}(t.buf[:], int(*(*uint16)(unsafe.Pointer(&t.buf[0]))), needEnc, isC2)
+	}(t.buf[2:], int(*(*uint16)(unsafe.Pointer(&t.buf[0]))), needEnc, isC2)
 }
 
 func (t *pb) f0043974FwriteZero(x int) {
@@ -643,8 +639,9 @@ type t08C88FB4 struct {
 	f18 int
 }
 
+// 被花了
 func (t *t08C88FB4) f00B98ED0(p *t3000, dst []uint8, buf []uint8, len int) int {
-	// 被花了
+
 	return 0
 }
 

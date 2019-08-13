@@ -1,4 +1,4 @@
-package dll
+package iat
 
 // advapi32.dll
 // 这里定义所有用到的API指针变量，36个

@@ -612,6 +612,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 	}
 }
 
+var v08C88F60 uint8
 var v08C88F62 int
 var v08C88F64 int
 var v08C88F84 uint32
