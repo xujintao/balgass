@@ -66,3 +66,9 @@ disable version match
 ```
 0x0ABD,696B: je 0x006C76BA -> jmp 0x006C76BA
 ```
+
+## build
+```
+cd ~/github.com/xujintao/balgass/client
+GOOS=windows go build -x github.com/xujintao/balgass/client &> build.out
+```
