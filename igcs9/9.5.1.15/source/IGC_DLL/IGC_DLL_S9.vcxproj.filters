@@ -58,9 +58,6 @@
     <ClCompile Include="IGC_S9E2.cpp">
       <Filter>General</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Libraries\Shared\RSA\1.0\CRC.cpp">
-      <Filter>Game\Security</Filter>
-    </ClCompile>
     <ClCompile Include="Crack.cpp">
       <Filter>System Hooks</Filter>
     </ClCompile>
@@ -168,9 +165,6 @@
     </ClInclude>
     <ClInclude Include="LogToFile.h">
       <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Libraries\Shared\RSA\1.0\CRC.h">
-      <Filter>Game\Security</Filter>
     </ClInclude>
     <ClInclude Include="Crack.h">
       <Filter>System Hooks</Filter>

@@ -5,8 +5,8 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="R_S9|Win32">
-      <Configuration>R_S9</Configuration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
@@ -14,21 +14,22 @@
     <ProjectGuid>{45CD87AE-7548-4BD0-8A07-9505898EA455}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>IGCEX702</RootNamespace>
-    <ProjectName>DLL</ProjectName>
+    <ProjectName>IGC.Client.DLL</ProjectName>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='R_S9|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -36,29 +37,29 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='R_S9|Win32'">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
-    <OutDir>..\..\Output\GameClientDLL\ex702\Trunk\</OutDir>
-    <IntDir>..\..\Output\GameClientDLL\ex702\Trunk\</IntDir>
+    <TargetName>IGC</TargetName>
+    <IncludePath>..\..\..\_Library\_Include\rsa\;..\..\..\_Library\_Include\cryptopp\;..\..\..\_Library\_Include\Mpir\;..\..\..\_Library\_Include\;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\..\_Library\v140_xp-Win32_MD\;..\..\..\_Library\;$(LibraryPath);</LibraryPath>
+    <OutDir>..\..\client</OutDir>
+    <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
     <ExecutablePath>$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
     <ReferencePath>$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
     <SourcePath>$(VCInstallDir)atlmfc\src\mfc;$(VCInstallDir)atlmfc\src\mfcm;$(VCInstallDir)atlmfc\src\atl;$(VCInstallDir)crt\src</SourcePath>
     <ExcludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;$(MSBuildToolsPath32);$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib;</ExcludePath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='R_S9|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\Libraries\Shared\Mpir\2.5.1\;..\..\..\Libraries\Shared\FreeImage\3\;..\..\..\Libraries\Shared\GLee\5.4\;$(ProjectDir);$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\Libraries\Shared\Glee\5.4\;..\..\..\Libraries\Shared\Mpir\2.5.1\lib\Win32\Release\;..\..\..\Libraries\Shared\FreeImage\3\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\..\_Library\_Include\rsa\;..\..\..\_Library\_Include\cryptopp\;..\..\..\_Library\_Include\Mpir\;..\..\..\_Library\_Include\;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\..\_Library\v140_xp-Win32_MD\;..\..\..\_Library\;$(LibraryPath);</LibraryPath>
     <TargetName>IGC</TargetName>
-    <OutDir>..\..\..\Output\Season 9\~DLL S9E2\Release\</OutDir>
-    <IntDir>..\..\..\Output\Season 9\~DLL S9E2\Trunk\</IntDir>
+    <OutDir>..\..\client</OutDir>
+    <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
     <EmbedManifest>true</EmbedManifest>
     <LibraryWPath>$(WindowsSDK_MetadataPath);</LibraryWPath>
   </PropertyGroup>
@@ -68,35 +69,37 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;IGCEX803_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>..\..\Output\GameClientDLL\ex702\Trunk\IGC_ex702.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>$(ProjectDir)$(Configuration)\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>All</AssemblerOutput>
-      <AssemblerListingLocation>..\..\Output\GameClientDLL\ex702\Trunk\</AssemblerListingLocation>
-      <ObjectFileName>..\..\Output\GameClientDLL\ex702\Trunk\</ObjectFileName>
-      <ProgramDataBaseFileName>..\..\Output\GameClientDLL\ex702\Trunk\$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation>$(ProjectDir)$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>$(ProjectDir)$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)\$(TargetName).pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>..\..\Output\GameClientDLL\ex702\Debug\IGC_ex702.dll</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <LinkStatus>true</LinkStatus>
-      <ProgramDatabaseFile>..\..\Output\GameClientDLL\ex702\Debug\IGC_ex702.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)\$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>..\..\Output\GameClientDLL\ex702\Debug\IGC_ex702.map</MapFileName>
+      <MapFileName>$(OutDir)\$(TargetName).map</MapFileName>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+      <MapExports>true</MapExports>
     </Link>
     <ResourceCompile>
       <Culture>0x0009</Culture>
     </ResourceCompile>
     <Bscmake>
-      <OutputFile>..\..\Output\GameClientDLL\ex702\Trunk\IGC_ex702.bsc</OutputFile>
+      <OutputFile>$(ProjectDir)$(Configuration)\$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='R_S9|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -108,11 +111,11 @@
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeaderOutputFile>..\..\..\Output\Season 9\~DLL S9E2\Trunk\IGC.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>$(ProjectDir)$(Configuration)\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>All</AssemblerOutput>
-      <AssemblerListingLocation>..\..\..\Output\Season 9\~DLL S9E2\Trunk\</AssemblerListingLocation>
-      <ObjectFileName>..\..\..\Output\Season 9\~DLL S9E2\Trunk\</ObjectFileName>
-      <ProgramDataBaseFileName>..\..\..\Output\Season 9\~DLL S9E2\Trunk\$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation>$(ProjectDir)$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>$(ProjectDir)$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)\$(TargetName).pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
@@ -120,11 +123,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <OutputFile>..\..\..\Output\Season 9\~DLL S9E2\Release\IGC.dll</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <LinkStatus>false</LinkStatus>
-      <ProgramDatabaseFile>..\..\..\Output\Season 9\~DLL S9E2\Release\IGC.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)\$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>..\..\..\Output\Season 9\~DLL S9E2\Release\IGC.map</MapFileName>
+      <MapFileName>$(OutDir)\$(TargetName).map</MapFileName>
       <SubSystem>Windows</SubSystem>
       <UACUIAccess>false</UACUIAccess>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -132,14 +135,15 @@
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+      <MapExports>true</MapExports>
     </Link>
     <ResourceCompile />
     <Bscmake>
-      <OutputFile>..\..\..\Output\Season 9\~DLL S9E2\Trunk\IGC.bsc</OutputFile>
+      <OutputFile>$(ProjectDir)$(Configuration)\$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Libraries\Shared\RSA\1.0\CRC.h" />
     <ClInclude Include="AntiHack.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraV2.h" />
@@ -179,7 +183,6 @@
     <ClInclude Include="WndHook.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Libraries\Shared\RSA\1.0\CRC.cpp" />
     <ClCompile Include="AntiHack.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraV2.cpp" />
@@ -193,8 +196,8 @@
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='R_S9|Win32'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='R_S9|Win32'">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="EncDec.cpp" />
@@ -218,7 +221,7 @@
     <ClCompile Include="ServerInfo.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='R_S9|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="WndHook.cpp" />

@@ -32,6 +32,7 @@
 #include <map>
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "mpir.lib")
+#pragma comment(lib, "cryptlib.lib")
 #include <gl\GL.h>
 #include <gl\GLU.h>
 #pragma comment(lib, "Opengl32.lib")
