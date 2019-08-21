@@ -1021,7 +1021,7 @@
     <ClCompile Include="SkillSafeZoneUse.cpp">
       <Filter>Game\Skills</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Libraries\Shared_VS15\pugixml\1.4\pugixml.cpp">
+    <ClCompile Include="..\..\..\_Library\_Include\pugixml\pugixml.cpp">
       <Filter>XML</Filter>
     </ClCompile>
   </ItemGroup>

@@ -48,11 +48,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\Output\GameServer\Trunk\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\Output\GameServer\Trunk\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\server\3. GameServer_Regular\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\Output\Season 9\GameServer\Debug\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\..\Output\Season 9\GameServer\Trunk\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\server\3. GameServer_Regular\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkIncremental>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
@@ -62,15 +62,15 @@
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>..\..\..\Libraries\Shared_VS15\Boost\1.59\stage\lib\;..\..\..\Libraries\Shared_VS15\pugixml\1.4\;..\..\..\Libraries\Shared_VS15\Mpir\2.5.1\lib\Win64\Release\;..\..\..\Libraries\Shared_VS15\CryptoPP\cryptlib\x64\;..\..\..\Libraries\Shared_VS15\Lua\5.2\lib\;..\..\..\Libraries\Shared_VS15\LuaEdit\lib\x64\_VS15;..\..\..\Libraries\Shared_VS15\LuaBind\lib\;..\..\..\Libraries\Shared_VS15\MAPM\lib\;..\..\..\Libraries\Shared_VS15\IniParser\3.1\;..\..\..\Libraries\Shared_VS15\VLD\lib\Win64\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\_Library\v140_x64_MT\;..\..\..\_Library\;$(LibraryPath)</LibraryPath>
     <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
-    <IncludePath>..\..\..\Libraries\Shared_VS15\Boost\1.59\;..\..\..\Libraries\Shared_VS15\Mpir\2.5.1\;..\..\..\Libraries\Shared_VS15\pugixml\1.4\;..\..\..\Libraries\Shared_VS15\CryptoPP\cryptopp\;..\..\..\Libraries\Shared_VS15\Lua\5.2\include\;..\..\..\Libraries\Shared_VS15\LuaEdit\include\;..\..\..\Libraries\Shared_VS15\LuaBind\include\;..\..\..\Libraries\Shared_VS15\IniParser\3.1\include\;..\..\..\Libraries\Shared_VS15\MAPM\include\;..\..\..\Libraries\Shared_VS15\VLD\include\;$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\_Library\_Include\;..\..\..\_Library\_Include\RSA\;..\..\..\_Library\_Include\Mpir\;..\..\..\_Library\_Include\cryptopp\;..\..\..\_Library\_Include\pugixml\;..\..\..\_Library\_Include\Lua\;..\..\..\_Library\_Include\MAPM\;..\..\..\_Library\_Include\VLD\;..\..\..\_Library\_Include\IniParser\;$(ProjectDir);$(IncludePath)</IncludePath>
     <TargetExt>.exe</TargetExt>
     <EmbedManifest>true</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\..\Libraries\Shared\Boost\1.55\;..\..\Libraries\Shared\Mpir\2.5.1\;..\..\Libraries\Shared\CryptoPP\cryptopp\;..\..\Libraries\Shared\pugixml\1.4\;..\..\Libraries\Shared\Lua\5.2\include\;..\..\Libraries\Shared\LuaEdit\include\;..\..\Libraries\Shared\LuaBind\include\;..\..\Libraries\Shared\MAPM\include\;..\..\Libraries\Shared\IniParser\3.1\include\;$(ProjectDir);$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\Libraries\Shared\Boost\1.55\;..\..\Libraries\Shared\Mpir\2.5.1\lib\Win64\Release\;..\..\Libraries\Shared\CryptoPP\cryptlib\x64\;..\..\Libraries\Shared\pugixml\1.4\;..\..\Libraries\Shared\Lua\5.2\lib\;..\..\Libraries\Shared\LuaEdit\lib\x64\;..\..\Libraries\Shared\LuaBind\lib\;..\..\Libraries\Shared\MAPM\lib\;..\..\Libraries\Shared\IniParser\3.1\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\..\_Library\_Include\;..\..\..\_Library\_Include\RSA\;..\..\..\_Library\_Include\Mpir\;..\..\..\_Library\_Include\cryptopp\;..\..\..\_Library\_Include\pugixml\;..\..\..\_Library\_Include\Lua\;..\..\..\_Library\_Include\MAPM\;..\..\..\_Library\_Include\VLD\;..\..\..\_Library\_Include\IniParser\;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\..\_Library\v140_x64_MT\;..\..\..\_Library\;$(LibraryPath)</LibraryPath>
     <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -88,14 +88,14 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_WIN64;X64;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>..\..\Output\GameServer\N\Trunk\GameServer.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>..\..\Output\GameServer\N\Trunk\</AssemblerListingLocation>
-      <ObjectFileName>..\..\Output\GameServer\N\Trunk\</ObjectFileName>
-      <ProgramDataBaseFileName>..\..\Output\GameServer\N\Trunk\$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>$(ProjectDir)$(Configuration)\$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(ProjectDir)$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>$(ProjectDir)$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)\$(TargetName).pdb</ProgramDataBaseFileName>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <MinimalRebuild>false</MinimalRebuild>
@@ -117,9 +117,9 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>..\..\Output\GameServer\N\Release\IGC.GameServer.exe</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>..\..\Output\GameServer\N\Release\IGC.GameServer.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)\$(TargetName).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
@@ -127,15 +127,17 @@
       <ShowProgress>NotSet</ShowProgress>
       <AdditionalOptions>/NODEFAULTLIB:libcmt.lib %(AdditionalOptions)</AdditionalOptions>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>..\..\Output\GameServer\N\Release\IGC.GameServer.map</MapFileName>
+      <MapFileName>$(OutDir)\$(TargetName).map</MapFileName>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <LinkStatus>true</LinkStatus>
       <TypeLibraryResourceID>1</TypeLibraryResourceID>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+      <MapExports>true</MapExports>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>..\..\Output\GameServer\N\Trunk\GameServer.bsc</OutputFile>
+      <OutputFile>$(ProjectDir)$(Configuration)\$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -150,14 +152,14 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WIN64;X64;NDEBUG;_WINDOWS;GS_NORMAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>..\..\..\Output\Season 9\GameServer\Trunk\IGC.GameServer.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>$(ProjectDir)$(Configuration)\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <AssemblerOutput>All</AssemblerOutput>
-      <AssemblerListingLocation>..\..\..\Output\Season 9\GameServer\Trunk\</AssemblerListingLocation>
-      <ObjectFileName>..\..\..\Output\Season 9\GameServer\Trunk\</ObjectFileName>
-      <ProgramDataBaseFileName>..\..\..\Output\Season 9\GameServer\Trunk\$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <AssemblerListingLocation>$(ProjectDir)$(Configuration)\</AssemblerListingLocation>
+      <ObjectFileName>$(ProjectDir)$(Configuration)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(OutDir)\$(TargetName).pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -179,13 +181,13 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>..\..\..\Output\Season 9\GameServer\Debug\IGC.GameServer.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)\$(TargetName).pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>..\..\..\Output\Season 9\GameServer\Debug\IGC.GameServer.map</MapFileName>
+      <MapFileName>$(OutDir)\$(TargetName).map</MapFileName>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>true</DataExecutionPrevention>
-      <OutputFile>..\..\..\Output\Season 9\GameServer\Debug\IGC.GameServer.exe</OutputFile>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <LinkStatus>false</LinkStatus>
       <MinimumRequiredVersion>
       </MinimumRequiredVersion>
@@ -200,17 +202,19 @@
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
+      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
+      <MapExports>true</MapExports>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>..\..\..\Output\Season 9\GameServer\Trunk\GameServer.bsc</OutputFile>
+      <OutputFile>$(ProjectDir)$(Configuration)\$(TargetName).bsc</OutputFile>
     </Bscmake>
     <Manifest>
       <VerboseOutput>false</VerboseOutput>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Libraries\Shared_VS15\pugixml\1.4\pugixml.cpp" />
+    <ClCompile Include="..\..\..\_Library\_Include\pugixml\pugixml.cpp" />
     <ClCompile Include="AcheronGuardianEvent.cpp" />
     <ClCompile Include="AntiSwear.cpp" />
     <ClCompile Include="AppointItemDrop.cpp" />
