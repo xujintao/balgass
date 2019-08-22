@@ -353,6 +353,29 @@ MigrationBackup/
 
 # custom
 9.5.1.15/client
+
 9.5.1.15/server/*
+
 !9.5.1.15/server/IGCData
+!9.5.1.15/server/Data
+
+!9.5.1.15/server/Database
+9.5.1.15/server/Database/*
+!9.5.1.15/server/Database/*.sql
+
+!9.5.1.15/server/1. DataServer
+9.5.1.15/server/1. DataServer/*
+!9.5.1.15/server/1. DataServer/*.ini
+!9.5.1.15/server/1. DataServer/*.xml
+
+!9.5.1.15/server/2. ConnectServer
+9.5.1.15/server/2. ConnectServer/*
+!9.5.1.15/server/2. ConnectServer/*.ini
+!9.5.1.15/server/2. ConnectServer/*.xml
+
+!9.5.1.15/server/3. GameServer_Regular
+9.5.1.15/server/3. GameServer_Regular/*
+!9.5.1.15/server/3. GameServer_Regular/*.ini
+!9.5.1.15/server/3. GameServer_Regular/*.xml
+
 _Library
