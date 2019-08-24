@@ -1862,7 +1862,7 @@ void JGGetCharacterInfo(SDHP_DBCHAR_INFORESULT * lpMsg)
 	pAgilityBug.h.size = sizeof(pAgilityBug);
 	pAgilityBug.subcode = 0xA2;
 
-	if (lpObj->Class == CLASS_RAGEFIGHTER || lpObj->Class == CLASS_ELF)
+	if (lpObj->Class == CLASS_RAGEFIGHTER || lpObj->Class == CLASS_ELF || lpObj->Class == CLASS_KNIGHT)
 	{
 		pAgilityBug.value = 0x0F;
 	}
