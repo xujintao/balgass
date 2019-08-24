@@ -163,11 +163,12 @@ void SCConnectResultSend(int aIndex, BYTE btResult)
 
 void SCSendNews(int aIndex)
 {
-	PMSG_SEND_TITLE pTitle;
+	PMSG_SEND_TITLE pTitle = {0};
 	pTitle.h.c = 0xC1;
 	pTitle.h.headcode = 0xFA;
 	pTitle.h.subcode = 0x00;
 	memcpy(pTitle.ServerName, m_ServerData.szTitle, sizeof(pTitle.ServerName));
+	pTitle.h.size = sizeof(PMSG_SEND_TITLE);
 
 	IOCP.DataSend(aIndex, (LPBYTE)&pTitle, pTitle.h.size);
 
