@@ -149,6 +149,15 @@ void SetValues()
 	g_Controller.Load();
 	g_ServerInfo->Load(".\\Data\\Local\\ServerInfo.bmd");
 
+	MemSet(0x004D7E2A, 0xEB, 1); // ;73->EB, jae->jmp, disable mu.exe, search "mu.exe"
+	MemSet(0x004D8102, 0xEB, 1); // ;74->EB, je->jmp, disable GameGuard, search "config.ini read error"
+	MemSet(0x004D8145, 0xEB, 1); // ;75->EB, jne->jmp, disable GameGuard, search "gg init error"
+	MemSet(0x004DD639, 0xEB, 1); // ;74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
+	MemSet(0x006B7B2A, 0xEB, 1); // ;74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
+	MemSet(0x006B7C63, 0xEB, 1); // ;74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
+	MemSet(0x00B38653, 0xC3, 1); // ;55->C3, push ebp->ret, disable log encode
+	MemAssign(0x00E1A4AC, (WORD)0x90C3); // ;6A 02->C3 90, push 02->ret, fix r6602 floating point support not loaded, search cmd "mov dword ptr ds:[ebx+0xC], esi"
+
 	MemSet(0x00A16996+3, 7, 1); // Option +28, S9
 	// GCSetCharSet(g_ServerInfo->GetCharset());
 	HookManager.MakeJmpHook(CONNECT_HOOK1, onCsHook);
