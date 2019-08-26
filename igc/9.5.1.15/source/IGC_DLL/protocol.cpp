@@ -462,55 +462,25 @@ inline void GCSendAntihackBreach(DWORD dwErrorCode)
 
 void GCSetCharSet(WORD CharSet)
 {
-
-	DWORD OldProtect;
-	VirtualProtect((LPVOID)0x00A18E07, 10, PAGE_EXECUTE_READWRITE, &OldProtect); //s9
-
 	BYTE CHAT_FIX[] = { 0xB8, LOBYTE(CharSet), HIBYTE(CharSet), 0x00, 0x00, 0x90 };
-	memcpy((LPVOID)0x00A18E07, CHAT_FIX, sizeof(CHAT_FIX)); //s9
-
-	VirtualProtect((LPVOID)0x00DF46BB, 2, PAGE_EXECUTE_READWRITE, &OldProtect); //s9
+	MemCpy(0x00A18E07, CHAT_FIX, sizeof(CHAT_FIX));
 	BYTE CHAT_ASIANFIX[] = { LOBYTE(CharSet), HIBYTE(CharSet) };
-	memcpy((LPVOID)0x00DF46BB, CHAT_ASIANFIX, sizeof(CHAT_ASIANFIX)); // s9
-
-	//s9
-	VirtualProtect((LPVOID)0x00A18FCE, 2, PAGE_EXECUTE_READWRITE, &OldProtect);
-	memcpy((LPVOID)0x00A18FCE, CHAT_ASIANFIX, sizeof(CHAT_ASIANFIX));
-
-	//s9
-	VirtualProtect((LPVOID)0x00A1912D, 2, PAGE_EXECUTE_READWRITE, &OldProtect);
-	memcpy((LPVOID)0x00A1912D, CHAT_ASIANFIX, sizeof(CHAT_ASIANFIX));
-
-
-	VirtualProtect((LPVOID)0x00A19128, 4, PAGE_EXECUTE_READWRITE, &OldProtect);
-
-	DWORD CalcValue = 0x100000000 - CharSet;
-
-	*(DWORD*)(0x00A19128) = CalcValue; //s9
-
-	VirtualProtect((LPVOID)0x00A18D3E, 2, PAGE_EXECUTE_READWRITE, &OldProtect);
-	memcpy((LPVOID)0x00A18D3E, CHAT_ASIANFIX, sizeof(CHAT_ASIANFIX)); // s9
-
-
-	VirtualProtect((LPVOID)0x0051B6AA, 1, PAGE_EXECUTE_READWRITE, &OldProtect);
-	*(BYTE*)(0x0051B6AA) = 0x6D; // s9
-
+	MemCpy(0x00DF46BB, CHAT_ASIANFIX, sizeof(CHAT_ASIANFIX));
+	MemCpy(0x00A18FCE, CHAT_ASIANFIX, sizeof(CHAT_ASIANFIX)); // s9
+	MemCpy(0x00A1912D, CHAT_ASIANFIX, sizeof(CHAT_ASIANFIX)); // s9
+	MemAssign(0x00A19128, (DWORD)(0x100000000 - CharSet)); // s9
+	MemCpy(0x00A18D3E, CHAT_ASIANFIX, sizeof(CHAT_ASIANFIX)); // s9
+	MemAssign(0x0051B6AA, (BYTE)0x6D); // s9
+	MemAssign(CHARSET_ADDRESS, CharSet);
 	MemSet(0x0045277A, 0x74, 1); // s9
 	MemSet(0x00A18D0A, 0xEB, 1); // s9
 	MemSet(0x00D5AE3E, 0xEB, 1); // s9
-
-	MemSet(0x00438528, 0xEB, 1); // s9
+	MemSet(0x00438528, 0xEB, 1); // S9 -- JE -> JMP, Opens support of Asian Symbols in character creation
+	//MemSet(0x00452685, 0xEB, 1); // S9 -- IME and Virtual inputs support
+	//MemSet(0x00452686, 0x48, 1); // S9 -- IME and Virtual inputs support
+	MemAssign(0x00452685, (WORD)0x48EB); // S9 -- IME and Virtual inputs support
 	MemSet(0x00452744, 0xEB, 1); // S9 -- Asian support for range of input boxes
-
-	BYTE charfix3[2] = { 0xEB, 0x48 };
-
-	VirtualProtect((LPVOID)0x00452685, 2, PAGE_EXECUTE_READWRITE, &OldProtect);
-	memcpy((LPVOID)0x00452685, charfix3, sizeof(charfix3)); // s9
-
-	VirtualProtect((LPVOID)0x004B391C, 2, PAGE_EXECUTE_READWRITE, &OldProtect); //s9
-
-	memcpy((LPVOID)0x004B391C, CHAT_ASIANFIX, sizeof(CHAT_ASIANFIX)); // s9
-
+	MemCpy(0x004B391C, CHAT_ASIANFIX, 2);
 }
 
 void GCRareItemSetPrices(PMSG_RAREITEMPIRCESEND * lpMsg)

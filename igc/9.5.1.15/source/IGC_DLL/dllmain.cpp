@@ -149,13 +149,8 @@ void SetValues()
 	g_Controller.Load();
 	g_ServerInfo->Load(".\\Data\\Local\\ServerInfo.bmd");
 
-
-	// 009E8D8C   837D F8 04 CMP DWORD PTR SS:[EPB-8],4
-	VirtualProtect((LPVOID)(0x00A16996 + 3), 1, PAGE_EXECUTE_READWRITE, &OldProtect); // S9
-	memset((void *)(0x00A16996 + 3), 7, 1); // Option +28, S9
-
-	
-	GCSetCharSet(g_ServerInfo->GetCharset());
+	MemSet(0x00A16996+3, 7, 1); // Option +28, S9
+	// GCSetCharSet(g_ServerInfo->GetCharset());
 	HookManager.MakeJmpHook(CONNECT_HOOK1, onCsHook);
 	MemSet(CONNECT_HOOK2, 0x90, 6);
 	HookManager.MakeCallback(CONNECT_HOOK2, OnConnect, 0, 6, false);
@@ -192,13 +187,6 @@ void SetValues()
 	MemSet(0x00641F5C, 0x90, 3); // S9 Fenrir exc visual FIX 1
 	MemSet(0x00641F78, 0x90, 2); // S9 Fenrir exc visual FIX 2
 	MemSet(0x00641F90, 0xEB, 1); // S9 Fenrir exc visual FIX 3
-
-	VirtualProtect((LPVOID)CHARSET_ADDRESS, 4, PAGE_EXECUTE_READWRITE, &OldProtect);
-	*(DWORD*)CHARSET_ADDRESS = g_ServerInfo->GetCharset();
-	MemSet(0x00438528, 0xEB, 1); // S9 -- JE -> JMP, Opens support of Asian Symbols in character creation
-	MemSet(0x00452685, 0xEB, 1); // S9 -- IME and Virtual inputs support
-	MemSet(0x00452686, 0x48, 1); // S9 -- IME and Virtual inputs support
-	MemSet(0x00452744, 0xEB, 1); // S9 -- Asian support for range of input boxes
 
 	MemSet(0x009E5EDC,0xEB,1); // S9 -- Cherry Blossom Opening MuRuumy Windows Fix, JNZ -> JMP
 	MemSet(0x00802160,0x90,6); // S9 -- Joh option display on Ancients
