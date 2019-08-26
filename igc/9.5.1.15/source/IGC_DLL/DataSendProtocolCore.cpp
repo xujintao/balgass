@@ -3,6 +3,8 @@
 #include "DataSendProtocolCore.h"
 #include "ReconnectSystem.h"
 #include "EncDec.h"
+#include "HookManager.h"
+#include "offsets.h"
 
 // # NOT IN USE ATM
 
@@ -78,15 +80,9 @@ void CGJoinIdPassRequest(PMSG_IDPASS_OLD *lpMsg, BYTE* buff, int len)
 	len = lpMsg2->h.size;
 
 	// Fix account id save for s9
-	DWORD OldProtect;
-	VirtualProtect((LPVOID)0x08B97990, 12, PAGE_EXECUTE_READWRITE, &OldProtect);
-
 	char AccountID[11];
 	AccountID[10] = 0;
 	memcpy(AccountID, lpMsg2->Id, 10);
 	CEncDec::BuxConvert(AccountID, 10);
-
-	memcpy((void*)0x08B97990, AccountID, 11);
-
-
+	MemCpy(ACCOUNT_ID, AccountID, sizeof(AccountID));
 }

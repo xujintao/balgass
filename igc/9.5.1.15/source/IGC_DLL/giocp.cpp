@@ -6,6 +6,7 @@
 #include "ReconnectSystem.h"
 #include "DataSendProtocolCore.h"
 #include "offsets.h"
+#include "HookManager.h"
 
 SOCKET* g_MuSocket = (SOCKET*)(PROTOCOL_SOCKET_ADDR);
 
@@ -173,16 +174,11 @@ void SendPacket(BYTE* buff, int len, int enc, int unk1)
 		CEncDec::EncXor32(&Login[3], 3, len - 3);
 
 		// Fix account id save for s9
-		DWORD OldProtect;
-		VirtualProtect((LPVOID)0x08B97990, 12, PAGE_EXECUTE_READWRITE, &OldProtect); // S9
-
 		char AccountID[11];
 		AccountID[10] = 0;
 		memcpy(AccountID, lpMsg2->Id, 10);
 		CEncDec::BuxConvert(AccountID, 10);
-
-		memcpy((void*)0x08B97990, AccountID, 11);
-
+		MemCpy(ACCOUNT_ID, AccountID, sizeof(AccountID));
 
 		enc = 1;
 	}
