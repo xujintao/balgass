@@ -27,8 +27,10 @@ extern CHookManager HookManager;
 
 void ChangeAddress(DWORD Addr, DWORD AddrNew);
 void MemSet(DWORD Addr, int mem, int size);
-void ChangeAddress(DWORD Addr, DWORD AddrNew);
-void SetMemory(DWORD Addr, void* mem, int size);
+void MemCpy(DWORD Addr, void* mem, int size);
+void MemAssign(DWORD Addr, BYTE value);
+void MemAssign(DWORD Addr, WORD value);
+void MemAssign(DWORD Addr, DWORD value);
 void ModifyValueInt(DWORD Addr, int Val);
 DWORD WriteMemory(const LPVOID lpAddress, const LPVOID lpBuf, const UINT uSize);
 DWORD SetRange(const LPVOID dwAddress, const USHORT wCount, const BYTE btValue);

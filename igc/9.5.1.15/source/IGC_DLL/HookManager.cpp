@@ -405,22 +405,40 @@ void MemSet(DWORD Addr, int mem, int size)
 {
 	DWORD OldProtect;
 	VirtualProtect((LPVOID)Addr, size, PAGE_EXECUTE_READWRITE, &OldProtect);
-	
 	memset((void*)Addr, mem, size);
-
 	VirtualProtect((LPVOID)Addr, size, OldProtect, &OldProtect);
 }
 
-void SetMemory(DWORD Addr, void* mem, int size)
+void MemCpy(DWORD Addr, void* mem, int size)
 {
-
 	DWORD OldProtect;
 	VirtualProtect((LPVOID)Addr, size, PAGE_EXECUTE_READWRITE, &OldProtect);
-	
 	memcpy((void*)Addr, mem, size);
-
 	VirtualProtect((LPVOID)Addr, size, OldProtect, &OldProtect);
+}
 
+void MemAssign(DWORD addr, BYTE value)
+{
+	DWORD OldProtect;
+	VirtualProtect((LPVOID)addr, 1, PAGE_EXECUTE_READWRITE, &OldProtect);
+	*(BYTE*)addr = value;
+	VirtualProtect((LPVOID)addr, 1, OldProtect, &OldProtect);
+}
+
+void MemAssign(DWORD addr, WORD value)
+{
+	DWORD OldProtect;
+	VirtualProtect((LPVOID)addr, 2, PAGE_EXECUTE_READWRITE, &OldProtect);
+	*(WORD*)addr = value;
+	VirtualProtect((LPVOID)addr, 2, OldProtect, &OldProtect);
+}
+
+void MemAssign(DWORD addr, DWORD value)
+{
+	DWORD OldProtect;
+	VirtualProtect((LPVOID)addr, 4, PAGE_EXECUTE_READWRITE, &OldProtect);
+	*(DWORD*)addr = value;
+	VirtualProtect((LPVOID)addr, 4, OldProtect, &OldProtect);
 }
 
 void ModifyValueInt(DWORD Addr, int Val)
