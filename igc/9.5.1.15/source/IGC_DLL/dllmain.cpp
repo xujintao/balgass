@@ -412,7 +412,7 @@ BOOL APIENTRY DllMain (HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReser
 			DWORD OldProtect;
 			VirtualProtect((LPVOID)0x00401000, 12681214, PAGE_EXECUTE_READ, &OldProtect);
 			CheckMainFunctions();
-			DoHooks();
+			// DoHooks();
 			SetHook();
 			SetValues();
 			g_Controller.m_Instance = hModule;
