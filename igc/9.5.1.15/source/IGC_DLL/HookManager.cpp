@@ -115,34 +115,11 @@ void CHookManager::MakeJmpHook(DWORD Addr, void* pProc)
 		memcpy((LPVOID)(NewAddr+offs), &m_Count, 4);
 		offs+=4;
 
-		DWORD OldProtect;
-		VirtualProtect((LPVOID)Addr, 5, PAGE_EXECUTE_READWRITE, &OldProtect);
-		__asm
-		{
-			MOV ECX, Addr;
-			ADD ECX, 5;
-			MOV EDX, NewAddr;
-			SUB EDX, ECX;
-			MOV EAX, Addr;
-			MOV DWORD PTR DS:[EAX+1], EDX;
-			MOV BYTE PTR DS:[EAX], 0xE9;
-		}
+		HookThis((DWORD)pProc, NewAddr+offs);
 
-		VirtualProtect((LPVOID)Addr, 5, OldProtect, &OldProtect);
-		__asm
-		{
-			MOV ECX, NewAddr;
-			ADD ECX, 5;
-			ADD ECX, offs;
-			MOV EDX, pProc;
-			SUB EDX, ECX;
-			MOV EAX, NewAddr;
-			ADD EAX, offs;
-			MOV DWORD PTR DS:[EAX+1], EDX;
-			MOV BYTE PTR DS:[EAX], 0xE9;
-		}
+		HookThis(NewAddr, Addr);
+
 		RegisterHook(Addr, 0);
-
 	}
 	catch(std::exception& e)
 	{
@@ -499,4 +476,5 @@ void HookThis(DWORD FuncOffset,DWORD JmpOffset)
 	VirtualProtect((LPVOID)JmpOffset, 4, PAGE_EXECUTE_READWRITE, &OldProtect);
 	*(DWORD*)(JmpOffset) = 0xE9;
 	*(DWORD*)(JmpOffset+1) = FuncOffset - (JmpOffset+5);
+	VirtualProtect((LPVOID)JmpOffset, 4, OldProtect, &OldProtect);
 }
