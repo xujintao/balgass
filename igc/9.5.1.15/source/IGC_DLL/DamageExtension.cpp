@@ -84,7 +84,7 @@ void __declspec(naked) manaSendHook()
 		PUSH OFFSET SetMPValString				// ; ASCII "%d %d"
 		PUSH OFFSET SetMPString					// ; ASCII "SetMP"
 		PUSH DWORD PTR SS:[EBP-0x18]
-		mov edx, 0x0095A6EA // S9
+		mov edx, MANA_SEND_HOOK1 // S9
 		call edx;
 		ADD ESP,14
 		LEAVE
@@ -108,9 +108,9 @@ void __declspec(naked) HPSendHook()
 		PUSH OFFSET SetMPValString                
 		PUSH OFFSET SetHPString               
 		PUSH DWORD PTR SS:[EBP-0x18]
-		MOV EDX, 0x0095A6EA // S9
+		MOV EDX, HP_SEND_HOOK1 // S9
 		CALL EDX
-		MOV EDX, 0x009CB1BC // S9
+		MOV EDX, HP_SEND_HOOK_RET // S9
 		jmp edx;
 	}
 }
@@ -118,17 +118,17 @@ void __declspec(naked) HPSendHook()
 void __declspec(naked) ManaSendCHook()
 {
 	_asm {
-		MOV EAX, DWORD PTR DS : [0x851ACC4] // S9
+		MOV EAX, DWORD PTR DS : [MANA_SEND_C_HOOK1] // S9
 		MOVZX EAX,WORD PTR DS:[EAX+0x128] // NEW S9
 		PUSH maxmanaDisplay
-		MOV EAX, DWORD PTR DS : [0x851ACC4] // S9
+		MOV EAX, DWORD PTR DS : [MANA_SEND_C_HOOK1] // S9
 		MOVZX EAX,WORD PTR DS:[EAX+0x124] // NEW S9
 		PUSH manaDisplay
 		PUSH 0x0D5
-		MOV ECX,0x0851ACD8 // S9
-		mov edx,0x00436D3A // S9
+		MOV ECX, MANA_SEND_C_HOOK2 // S9
+		mov edx, MANA_SEND_C_HOOK3 // S9
 		call edx
-		mov edx, 0x009AB2B0 // S9
+		mov edx, MANA_SEND_C_HOOK_RET // S9
 		jmp edx
 	}
 }
@@ -140,10 +140,10 @@ void __declspec(naked) ManaSendDKHook()
 		PUSH maxmanaDisplay
 		PUSH manaDisplay
 		PUSH 0x0D5
-		MOV ECX, 0x0851ACD8 // S9
-		mov edx, 0x00436D3A // S9
+		MOV ECX, MANA_SEND_DK_HOOK1 // S9
+		mov edx, MANA_SEND_DK_HOOK2 // S9
 		call edx
-		mov edx, 0x009AB275 // S9
+		mov edx, MANA_SEND_DK_HOOK_RET // S9
 		jmp edx
 	}
 }
@@ -151,16 +151,16 @@ void __declspec(naked) ManaSendDKHook()
 void __declspec(naked) HPSendDKHook()
 {
 	_asm {
-		MOVZX EAX, WORD PTR DS : [0x8B97870] // S9
+		MOVZX EAX, WORD PTR DS : [HP_SEND_DK_HOOK1] // S9
 		PUSH maxHPDisplay;
-		MOV EAX, DWORD PTR DS : [0x851ACC4] // S9
+		MOV EAX, DWORD PTR DS : [HP_SEND_DK_HOOK2] // S9
 		MOVZX EAX,WORD PTR DS:[EAX+0x122] // NEW S9
 		PUSH hpDisplay
 		PUSH 0x0D3
-		MOV ECX, 0x0851ACD8 // S9
-		mov edx, 0x00436D3A // S9
+		MOV ECX, HP_SEND_DK_HOOK3 // S9
+		mov edx, HP_SEND_DK_HOOK4 // S9
 		call edx
-		mov edx,0x009AAF0A // S9
+		mov edx, HP_SEND_DK_HOOK_RET // S9
 		jmp edx
 	}
 }
@@ -171,10 +171,10 @@ void __declspec(naked) HPSendCHook()
 		PUSH maxHPDisplay
 		PUSH hpDisplay
 		PUSH 0x0D3
-		MOV ECX, 0x0851ACD8 // S9
-		mov edx, 0x00436D3A // S9
+		MOV ECX, HP_SEND_C_HOOK1 // S9
+		mov edx, HP_SEND_C_HOOK2 // S9
 		call edx
-		mov edx, 0x009AAF45 // S9
+		mov edx, HP_SEND_C_HOOK_RET // S9
 		jmp edx
 	}
 }
@@ -192,10 +192,10 @@ void __declspec(naked) FixSkill65k()
 		cmp manaDisplay, EDX;
 		JGE success;
 
-		mov EDX,0x0092DA7F; // S9
+		mov EDX,SKILL_65K_HOOK_RET; // S9
 		jmp EDX;
 success:
-		mov edx, 0x0092DC22; // S9
+		mov edx, SKILL_65K_HOOK1; // S9
 		jmp edx;
 
 

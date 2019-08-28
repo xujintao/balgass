@@ -89,13 +89,13 @@ void SetHook()
 	//HookThis((DWORD)&SetPrice, 0x00594618); // S8 E3 
 	HookThis((DWORD)&dmgSendHook, DMG_SEND_HOOK); // S9
 	HookThis((DWORD)&dmgSendRFHook, DMG_SEND_RF_HOOK); // S9
-	HookThis((DWORD)&manaSendHook, 0x009CB1DD); // S9
-	HookThis((DWORD)&HPSendHook, 0x009CB186); // S9
-	HookThis((DWORD)&ManaSendCHook, 0x009AB287); // S9
-	HookThis((DWORD)&ManaSendDKHook, 0x009AB251); // S9
-	HookThis((DWORD)&HPSendDKHook, 0x009AAEE6); // S9
-	HookThis((DWORD)&HPSendCHook, 0x009AAF1C); // S9
-	HookThis((DWORD)&FixSkill65k,0x0092DA76); // S9
+	HookThis((DWORD)&manaSendHook, MANA_SEND_HOOK); // S9
+	HookThis((DWORD)&HPSendHook, HP_SEND_HOOK); // S9
+	HookThis((DWORD)&ManaSendCHook, MANA_SEND_C_HOOK); // S9
+	HookThis((DWORD)&ManaSendDKHook, MANA_SEND_DK_HOOK); // S9
+	HookThis((DWORD)&HPSendDKHook, HP_SEND_DK_HOOK); // S9
+	HookThis((DWORD)&HPSendCHook, HP_SEND_C_HOOK); // S9
+	HookThis((DWORD)&FixSkill65k,SKILL_65K_HOOK); // S9
 	HookThis((DWORD)&ErrtelMixStaffFix,0x009E3824); // S9
 	HookThis((DWORD)&ItemLevelReqFix, 0x009486F9); // S9
 	HookThis((DWORD)&MoveWndFix, 0x00C6248B);
