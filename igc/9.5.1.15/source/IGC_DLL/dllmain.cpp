@@ -84,11 +84,11 @@ void SetHook()
 {
 	HookThis((DWORD)&ParsePacket, PARSE_PACKET_HOOK); // S9
 	HookThis((DWORD)&SendPacket, SEND_PACKET_HOOK); // S9
-	HookThis((DWORD)sprintf, 0x00D0A18A); // S9
+	HookThis((DWORD)sprintf, SPRINTF_HOOK); // why hook sprintf?
 	//HookThis((DWORD)&Value, 0x0059E682);
 	//HookThis((DWORD)&SetPrice, 0x00594618); // S8 E3 
-	HookThis((DWORD)&dmgSendHook, 0x00645F40); // S9
-	HookThis((DWORD)&dmgSendRFHook, 0x00645B63); // S9
+	HookThis((DWORD)&dmgSendHook, DMG_SEND_HOOK); // S9
+	HookThis((DWORD)&dmgSendRFHook, DMG_SEND_RF_HOOK); // S9
 	HookThis((DWORD)&manaSendHook, 0x009CB1DD); // S9
 	HookThis((DWORD)&HPSendHook, 0x009CB186); // S9
 	HookThis((DWORD)&ManaSendCHook, 0x009AB287); // S9

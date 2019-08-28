@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "DamageExtension.h"
 #include "protocol.h"
+#include "offsets.h"
+#include "HookManager.h"
 // global variables
 int dmgDisplay = 0;
 int manaDisplay = 0;
@@ -26,9 +28,9 @@ void __declspec(naked) dmgSendHook()
 		MOV EAX,DWORD PTR SS:[EBP-0x34]
 		ADD EAX,0x114 // S9
 		PUSH EAX
-		mov edx, 0x007B8440 // S9
+		mov edx, DMG_SEND_HOOK1 // S9, why not jmp return early and jmp absolute address?
 		call edx
-		mov edx, 0x00645F68 // S9
+		mov edx, DMG_SEND_HOOK_RET // S9
 		jmp edx;
 	}
 }
@@ -43,7 +45,7 @@ void __declspec(naked) dmgSendRFHook()
 		XOR EAX, EAX;
 		MOV EAX, dmgDisplay;
 		PUSH EAX;
-		mov edx, 0x00645B74; // S9
+		mov edx, DMG_SEND_RF_HOOK_RET; // S9
 		jmp edx;
 	}
 }
@@ -51,19 +53,15 @@ void __declspec(naked) dmgSendRFHook()
 
 void RFSkillDamageDisplayFix()
 {
-	DWORD OldProtect;
-	VirtualProtect((LPVOID)0x00524297, 0x381, PAGE_EXECUTE_READWRITE, &OldProtect); // S9
-
 	BYTE Fix1[9] = { 0x8B, 0x44, 0x08, 0x04, 0x90, 0x89, 0x45, 0xE4, 0x90 };
-	memcpy((LPVOID)0x00524297, Fix1, 9); // S9
-
+	MemCpy(RF_SKILL_DMG_DISP_FIX_HOOK1, Fix1, sizeof(Fix1)); // S9
 	BYTE Fix2[5] = { 0xFF, 0x75, 0xE4, 0x90, 0x90 };
-	memcpy((LPVOID)0x00524476, Fix2, 5); // S9
-	memcpy((LPVOID)0x005244D8, Fix2, 5); // S9
-	memcpy((LPVOID)0x0052453A, Fix2, 5); // S9
-	memcpy((LPVOID)0x005245B1, Fix2, 5); // S9
-	memcpy((LPVOID)0x005245EF, Fix2, 5); // S9
-	memcpy((LPVOID)0x00524617, Fix2, 5); // S9
+	MemCpy(RF_SKILL_DMG_DISP_FIX_HOOK2, Fix2, sizeof(Fix2)); // S9
+	MemCpy(RF_SKILL_DMG_DISP_FIX_HOOK3, Fix2, sizeof(Fix2)); // S9
+	MemCpy(RF_SKILL_DMG_DISP_FIX_HOOK4, Fix2, sizeof(Fix2)); // S9
+	MemCpy(RF_SKILL_DMG_DISP_FIX_HOOK5, Fix2, sizeof(Fix2)); // S9
+	MemCpy(RF_SKILL_DMG_DISP_FIX_HOOK6, Fix2, sizeof(Fix2)); // S9
+	MemCpy(RF_SKILL_DMG_DISP_FIX_HOOK7, Fix2, sizeof(Fix2)); // S9
 }
 
 char SetMPString[] = "SetMP";
