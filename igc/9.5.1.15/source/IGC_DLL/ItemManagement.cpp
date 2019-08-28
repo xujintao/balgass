@@ -243,7 +243,7 @@ void __declspec(naked) ErrtelMixStaffFix() // 0x009E3824
 	__asm
 	{
 		LEA ECX, DWORD PTR SS:[EBP-0x38]
-		MOV EDX, 0x007FF2D5;
+		MOV EDX, ERRTEL_MIX_STAFF_HOOK1;
 		CALL EDX;
 		PUSH DWORD PTR DS:[EAX];
 		CALL ErrtelMixStaffCheck;
@@ -251,14 +251,14 @@ void __declspec(naked) ErrtelMixStaffFix() // 0x009E3824
 		JGE Allow;
 
 		LEA ECX, DWORD PTR SS:[EBP-0x38]
-		MOV EDX, 0x007FF2D5;
+		MOV EDX, ERRTEL_MIX_STAFF_HOOK1;
 		CALL EDX;
 
-		MOV EDX, 0x009E382C;
+		MOV EDX, ERRTEL_MIX_STAFF_HOOK_RET1;
 		JMP EDX;
 
 Allow:
-		MOV EDX, 0x009E3838;
+		MOV EDX, ERRTEL_MIX_STAFF_HOOK_RET2;
 		JMP EDX;
 	}
 }
@@ -278,7 +278,7 @@ FixLevel:
 
 End:
 		MOV ECX, DWORD PTR SS : [EBP - 0x28];
-		MOV EDX, 0x009486FF;
+		MOV EDX, ITEM_LEVEL_REQ_HOOK_RET;
 		JMP EDX;
 	}
 }
@@ -296,7 +296,7 @@ void __declspec(naked) AlterPShopDisplayCurrency()
 		PUSH pShopPriceTag;
 		MOV EAX, DWORD PTR SS:[EBP-0x78];
 		IMUL EAX,EAX, 0x64;
-		MOV EDX, 0x00800FD2;
+		MOV EDX, ALTER_PSHOP_DISPLAY_HOOK_RET;
 		JMP EDX;
 		//00800FD2   05 882D5B08      ADD EAX,main.085B2D88                    ; ASCII "Selling Price"
 

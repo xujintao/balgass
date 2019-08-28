@@ -96,13 +96,13 @@ void SetHook()
 	HookThis((DWORD)&HPSendDKHook, HP_SEND_DK_HOOK); // S9
 	HookThis((DWORD)&HPSendCHook, HP_SEND_C_HOOK); // S9
 	HookThis((DWORD)&FixSkill65k,SKILL_65K_HOOK); // S9
-	HookThis((DWORD)&ErrtelMixStaffFix,0x009E3824); // S9
-	HookThis((DWORD)&ItemLevelReqFix, 0x009486F9); // S9
-	HookThis((DWORD)&MoveWndFix, 0x00C6248B);
+	HookThis((DWORD)&ErrtelMixStaffFix,ERRTEL_MIX_STAFF_HOOK); // S9
+	HookThis((DWORD)&ItemLevelReqFix, ITEM_LEVEL_REQ_HOOK); // S9
+	HookThis((DWORD)&MoveWndFix, MOVE_WND_HOOK);
 	//AlterPShopDisplayCurrency()
-	HookThis((DWORD)&AlterPShopDisplayCurrency, 0x00800FCB); // S9
+	HookThis((DWORD)&AlterPShopDisplayCurrency, ALTER_PSHOP_DISPLAY_HOOK); // S9
 	//g_Camera->Init();
-	ChangeAddress(MU_WND_PROC_HOOK, FPTR(WndProc));
+	MemAssign(MU_WND_PROC_HOOK, FPTR(WndProc));
 
 	// HD Resolution
 	//HookManager.MakeJmpHook(RESOLUTION_HOOK, MuLoadResolutionAsm);

@@ -35,7 +35,7 @@ void Render()
 	//}
 	g_Font[ARIAL_14]->DrawColor(0x100, yPos, RGBA(255, 255, 255, 255), (char*)signature.c_str());
 //	muSetText(, 0x200, yPos);
-	g_Font[ARIAL_14]->DrawColor(0x200, yPos, RGBA(255, 255, 255, 255), "© 2013 Webzen & IGCN." );
+	g_Font[ARIAL_14]->DrawColor(0x200, yPos, RGBA(255, 255, 255, 255), "?2013 Webzen & IGCN." );
 }
 void muDrawVersionCB()
 {
@@ -65,15 +65,15 @@ void __declspec(naked) MoveWndFix()
 		CALL DWORD PTR DS:[IsBadWritePtr];
 		CMP EAX, 0;
 		JE ValidPtr;
-		MOV EDX, 0x00C624A1;
+		MOV EDX, MOVE_WND_HOOK_RET1;
 		JMP EDX;
 ValidPtr:
 		ADD DWORD PTR DS:[EBX+8],-1;
 		JNZ lb1;
-		MOV EDX, 0x00C62491;
+		MOV EDX, MOVE_WND_HOOK_RET2;
 		JMP EDX;
 lb1:
-		MOV EDX, 0x00C62498;
+		MOV EDX, MOVE_WND_HOOK1;
 		JMP EDX;
 	}
 }
