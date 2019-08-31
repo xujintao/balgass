@@ -48,19 +48,16 @@ DWORD dwHitHackTime = 0;
 void __declspec(naked) onCsHook()
 {
 	//004DE303   50               PUSH EAX
-//	004DE304   E8 68701500      CALL main_IGC.00635371
+	//004DE304   E8 68701500      CALL main_IGC.00635371
 	OnConnect();
 
 	_asm
 	{
-		push eax;
+		//push eax; // 1.04R
 		//call 0x00635371; // it's not needed, 635371 is original Connect function, we use muConnectToCS
-		mov edx ,0x004DEA9A; // S9
+		mov edx ,0x004E1D3B; // 1.04R
 		jmp edx;
-
-
 	}
-
 }
 HMODULE WINAPI LoadLibraryMine(LPCTSTR dllName)
 {
@@ -82,25 +79,25 @@ void WriteMem(HANDLE hProcess, DWORD addr, DWORD mem, DWORD size)
 
 void SetHook()
 {
-	HookThis((DWORD)&ParsePacket, PARSE_PACKET_HOOK); // S9
-	HookThis((DWORD)&SendPacket, SEND_PACKET_HOOK); // S9
-	HookThis((DWORD)sprintf, SPRINTF_HOOK); // why hook sprintf?
+	HookThis(PARSE_PACKET_HOOK, 5, (DWORD)&ParsePacket); // 1.04R
+	HookThis(SEND_PACKET_HOOK, 8, (DWORD)&SendPacket); // 1.04R
+	HookThis(SPRINTF_HOOK, 5, (DWORD)sprintf); // 1.04R, why hook sprintf?
 	//HookThis((DWORD)&Value, 0x0059E682);
 	//HookThis((DWORD)&SetPrice, 0x00594618); // S8 E3 
-	HookThis((DWORD)&dmgSendHook, DMG_SEND_HOOK); // S9
-	HookThis((DWORD)&dmgSendRFHook, DMG_SEND_RF_HOOK); // S9
-	HookThis((DWORD)&manaSendHook, MANA_SEND_HOOK); // S9
-	HookThis((DWORD)&HPSendHook, HP_SEND_HOOK); // S9
-	HookThis((DWORD)&ManaSendCHook, MANA_SEND_C_HOOK); // S9
-	HookThis((DWORD)&ManaSendDKHook, MANA_SEND_DK_HOOK); // S9
-	HookThis((DWORD)&HPSendDKHook, HP_SEND_DK_HOOK); // S9
-	HookThis((DWORD)&HPSendCHook, HP_SEND_C_HOOK); // S9
-	HookThis((DWORD)&FixSkill65k,SKILL_65K_HOOK); // S9
-	HookThis((DWORD)&ErrtelMixStaffFix,ERRTEL_MIX_STAFF_HOOK); // S9
-	HookThis((DWORD)&ItemLevelReqFix, ITEM_LEVEL_REQ_HOOK); // S9
-	HookThis((DWORD)&MoveWndFix, MOVE_WND_HOOK);
+	HookThis(DMG_SEND_HOOK, 6, (DWORD)&dmgSendHook); // 1.04R
+	HookThis(DMG_SEND_RF_HOOK, 6, (DWORD)&dmgSendRFHook); // 1.04R
+	HookThis(HP_SEND_HOOK, 7, (DWORD)&HPSendHook); // 1.04R
+	HookThis(MANA_SEND_HOOK, 7, (DWORD)&manaSendHook); // 1.04R
+	HookThis(HP_SEND_DK_HOOK, 7, (DWORD)&HPSendDKHook); // 1.04R
+	HookThis(HP_SEND_C_HOOK, 5, (DWORD)&HPSendCHook); // 1.04R
+	HookThis(MANA_SEND_DK_HOOK, 7, (DWORD)&ManaSendDKHook); // 1.04R
+	HookThis(MANA_SEND_C_HOOK, 5, (DWORD)&ManaSendCHook); // 1.04R
+	HookThis(SKILL_65K_HOOK, 9, (DWORD)&FixSkill65k); // 1.04R
+	HookThis(ERRTEL_MIX_STAFF_HOOK, 8, (DWORD)&ErrtelMixStaffFix); // 1.04R
+	HookThis(ITEM_LEVEL_REQ_HOOK, 6, (DWORD)&ItemLevelReqFix); // 1.04R
+	HookThis(MOVE_WND_HOOK, 6, (DWORD)&MoveWndFix); // 1.04R
 	//AlterPShopDisplayCurrency()
-	HookThis((DWORD)&AlterPShopDisplayCurrency, ALTER_PSHOP_DISPLAY_HOOK); // S9
+	HookThis(ALTER_PSHOP_DISPLAY_HOOK, 7, (DWORD)&AlterPShopDisplayCurrency); // 1.04R
 	//g_Camera->Init();
 	MemAssign(MU_WND_PROC_HOOK, FPTR(WndProc));
 
@@ -158,25 +155,25 @@ void SetValues()
 	MemSet(0x00B38653, 0xC3, 1); // ;55->C3, push ebp->ret, disable log encode
 	MemAssign(0x00E1A4AC, (WORD)0x90C3); // ;6A 02->C3 90, push 02->ret, fix r6602 floating point support not loaded, search cmd "mov dword ptr ds:[ebx+0xC], esi"
 
-	MemSet(0x00A16996+3, 7, 1); // Option +28, S9
+	MemSet(0x00AF4B68+3, 7, 1); // Option +28, S9
 	// GCSetCharSet(g_ServerInfo->GetCharset());
-	HookManager.MakeJmpHook(CONNECT_HOOK1, onCsHook);
-	MemSet(CONNECT_HOOK2, 0x90, 6);
-	HookManager.MakeCallback(CONNECT_HOOK2, OnConnect, 0, 6, false);
-	ChangeAddress(VERSION_HOOK1, (DWORD)g_ServerInfo->GetVersion());
-	ChangeAddress(SERIAL_HOOK1, (DWORD)g_ServerInfo->GetSerial());
-	ChangeAddress(SERIAL_HOOK2, (DWORD)g_ServerInfo->GetSerial());
-	ChangeAddress(VERSION_HOOK2, (DWORD)g_ServerInfo->GetVersion());
-	ChangeAddress(VERSION_HOOK3, (DWORD)g_ServerInfo->GetVersion());
-	ModifyValueInt(CHATSERVER_PORT,(DWORD)g_ServerInfo->GetChatServerPort());
+	HookManager.MakeJmpHook(CONNECT_HOOK1, 5, onCsHook);
+	HookManager.MakeCallback(CONNECT_HOOK2, OnConnect, 0, 5, false);
+	MemAssign(VERSION_HOOK1, (DWORD)g_ServerInfo->GetVersion());
+	MemAssign(VERSION_HOOK2, (DWORD)g_ServerInfo->GetVersion());
+	//ChangeAddress(VERSION_HOOK3, (DWORD)g_ServerInfo->GetVersion());
+	MemAssign(SERIAL_HOOK1, (DWORD)g_ServerInfo->GetSerial());
+	MemAssign(SERIAL_HOOK2, (DWORD)g_ServerInfo->GetSerial());
+	MemAssign(CHATSERVER_PORT,(DWORD)g_ServerInfo->GetChatServerPort());
 	HookManager.MakeCallback(GSCONNECT_HOOK1, OnGsConnect, 0, 10, false);
 	HookManager.MakeCallback(GSCONNECT_HOOK2, OnGsConnect, 0, 10, false);
 	MemSet(CTRL_FREEZE_FIX, 0x02, 1);
-	MemSet(MAPSRV_DELACCID_FIX, 0x90, 5); // nop call to memcpy in mapserver, because buff source is empty, due to no account id from webzen http (remove new login system)
-	HookManager.MakeCallback(RENDER_HP_BAR_CALLBACK, RenderLoadingBar, 0, 6, true);
+	//MemSet(MAPSRV_DELACCID_FIX, 0x90, 5); // nop call to memcpy in mapserver, because buff source is empty, due to no account id from webzen http (remove new login system)
+	//MemSet(MAPSRV_DELACCID_FIX, 0x90, 5); // this may be annotated in 1.04R
+	HookManager.MakeCallback(RENDER_HP_BAR_CALLBACK, RenderLoadingBar, 0, 5, true); // 1.04R
 	
 
-	HookManager.MakeJmpHook(0x004E1B9E, HookDCFunc); //s9
+	HookManager.MakeJmpHook(0x004E56C8, 10, HookDCFunc); // 1.04R, reconnect
 	//HookManager.MakeJmpHook(0x004E1B32, PreventSwapBufferHack); //s9
 	//HookManager.MakeJmpHook(0x004E1B1E, PreventSwapBufferHack2); //s9
 	//PreventSwapBufferHack2
@@ -184,36 +181,36 @@ void SetValues()
 	//009EDC9B   68 00D80901      PUSH main.0109D800                       ; ASCII "> Menu - Exit game. "
 
 
-	HookManager.MakeJmpHook(0x009EDC9B, HookExitFunc); // s9
-	HookManager.MakeJmpHook(0x0043F36F,HookExitCharSelectFunc); // s9
+	HookManager.MakeJmpHook(0x00ACD10F, 5, HookExitFunc); // 1.04R
+	HookManager.MakeJmpHook(0x0043F7EA, 5, HookExitCharSelectFunc); // 1.04R
 	ResourceManager.LoadGraphics();
 
-	HookManager.MakeJmpHook(SETGLOW_EX, OnSetGlowEx);
+	HookManager.MakeJmpHook(SETGLOW_EX, 6, OnSetGlowEx);
 
-	MemSet(0x00949B68, 0x90, 2); // Exc socket item FIX, S9
-	MemSet(0x009494ED, 0xEB, 1); // Exc Socket Visual Bug Option FIX
+	MemSet(0x00A29AC3, 0x90, 2); // 1.04R, Exc socket item FIX
+	MemSet(0x00A29448, 0xEB, 1); // 1.04R, Exc Socket Visual Bug Option FIX
 
-	MemSet(0x00641F5C, 0x90, 3); // S9 Fenrir exc visual FIX 1
-	MemSet(0x00641F78, 0x90, 2); // S9 Fenrir exc visual FIX 2
-	MemSet(0x00641F90, 0xEB, 1); // S9 Fenrir exc visual FIX 3
+	MemSet(0x006C8E82, 0x90, 3); // 1.04R, Fenrir exc visual FIX 1
+	MemSet(0x006C8E9E, 0x90, 2); // 1.04R, Fenrir exc visual FIX 2
+	MemSet(0x006C8EB6, 0xEB, 1); // 1.04R, Fenrir exc visual FIX 3
 
-	MemSet(0x009E5EDC,0xEB,1); // S9 -- Cherry Blossom Opening MuRuumy Windows Fix, JNZ -> JMP
-	MemSet(0x00802160,0x90,6); // S9 -- Joh option display on Ancients
-	MemSet(0x00A31BE6, 0x30, 1); // S9 -- Decreased limit of screen refresh frequency, 60 -> 48
-	MemSet(0x00A31BE7, 0x7D, 1); // JE -> JGE -- limit check == -> >=
-	MemSet(0x005CA914 + 2, 0x26, 1); // Box of Kundun 2-5 fix
-	MemSet(0x005CA8C7 + 3, 0x07, 1); // Box of Heaven fix
+	MemSet(0x00AC525B,0xEB,1); // 1.04R -- Cherry Blossom Opening MuRuumy Windows Fix, JNZ -> JMP
+	MemSet(0x008E55FC,0x90,6); // 1.04R -- Joh option display on Ancients
+	MemSet(0x00B0F0F4+3, 0x30, 1); // 1.04R -- Decreased limit of screen refresh frequency, 60 -> 48
+	MemSet(0x00B0F0F8, 0x7D, 1); // 1.04R, JE -> JGE -- limit check == -> >=
+	// MemSet(0x006440A7 + 2, 0x26, 1); // 1.04R may have fixed it, Box of Kundun 2-5 fix
+	MemSet(0x00644068 + 3, 0x07, 1); // 1.04R, Box of Heaven fix
 
 	RFSkillDamageDisplayFix();
 	FixTraps();
 
 	GensInitData();
-	HookManager.MakeJmpHook(0x005CD040, GensIsBattleZoneMap);
-	HookManager.MakeJmpHook(0x009DCCC4, GensWarpMenuFix);
-	MemSet(0x009DCC0F, 0x85, 1);
+	HookManager.MakeJmpHook(0x00640FF7, 6, GensIsBattleZoneMap); // 1.04R
+	HookManager.MakeJmpHook(0x00ABBF4C, 6, GensWarpMenuFix); // 1.04R
+	MemSet(0x00ABBE96+1, 0x85, 1); // 1.04R, je->jne
 
-	LoadBCEntryLevel(); // private custom !!!
-	LoadDSEntryLevel(); // private custom !!!
+	// LoadBCEntryLevel(); // private custom !!!
+	// LoadDSEntryLevel(); // private custom !!!
 
 	// Launcher init
 	SYSTEMTIME Date;
@@ -286,7 +283,7 @@ void SetValues()
 
 	// item
 
-	HookManager.MakeJmpHook(TOOLTIP_FIX, ToolTipFix);
+	HookManager.MakeJmpHook(TOOLTIP_FIX, 9, ToolTipFix); // 1.04R
 }
 
 void RecvCheckThread()

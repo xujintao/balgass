@@ -11,8 +11,8 @@ CCamera* g_Camera = new CCamera;
 void CCamera::Init()
 {
 //	MakeJmpHook(0x00645FC0, (DWORD)SetFogAsm);
-	HookManager.MakeJmpHook(CAMERA_LOOK_AT_HOOK, CCamera::SetLookAtAsm);
-	HookManager.MakeJmpHook(CAMERA_ROT_CLIP_HOOK, CCamera::SetRotClip);
+	HookManager.MakeJmpHook(CAMERA_LOOK_AT_HOOK, 6, CCamera::SetLookAtAsm);
+	HookManager.MakeJmpHook(CAMERA_ROT_CLIP_HOOK, 5, CCamera::SetRotClip);
 //	MakeJmpHook(0x005DAF9D, CCamera::SetClip);
 
 	// Rotclip - 0x005CCB2C

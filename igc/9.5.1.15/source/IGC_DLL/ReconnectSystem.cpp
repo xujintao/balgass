@@ -90,17 +90,13 @@ bool ConnectToServer(char* ip, WORD port)
 void __declspec(naked) HookDCFunc()
 {
 	//004E1394   C705 106A1E01 01>MOV DWORD PTR DS : [11E6A10], 1
-
 	//004E139E   68 08EB0101      PUSH main_f.0101EB08                     ; ASCII "> Connection closed. "
-
-
-
 
 	if (g_UserQuit == 1)
 	{
 		_asm{
-			MOV DWORD PTR DS : [0x123D09C], 1; // S9
-			mov EDX, 0x004E1BA8; // S9
+			MOV DWORD PTR DS : [0x0131A2B4], 1; // 1.04R
+			mov EDX, 0x004E56D2; // 1.04R
 			jmp EDX;
 
 		}
@@ -118,9 +114,8 @@ void __declspec(naked) HookDCFunc()
 		_asm {
 			//004E1403   833D 18F31A01 05 CMP DWORD PTR DS:[11AF318],5
 
-			MOV EDX, 0x004E1C3F; // S9
+			MOV EDX, 0x004E5802; // 1.04R
 			JMP EDX;
-
 		}
 	}
 }
@@ -212,7 +207,7 @@ void ReconnectThread() // can u attach debugger? yes
 			//else
 			//{
 				
-			//°///}
+			//?//}
 
 		}
 		if (g_ReconnectProcess == 5)
@@ -249,7 +244,7 @@ void RenderLoadingBar()
 
 
 
-	tRenderLoadingBar RenderLoadBar = (tRenderLoadingBar)0x7CB14F;
+	tRenderLoadingBar RenderLoadBar = (tRenderLoadingBar)0x008AEAEF; // 1.04R
 	//0x7A65u, v5, v7, 160.0, 18.0);
 	//int screenvec[2];
 //	muGetWindowSize(screenvec);
@@ -300,9 +295,9 @@ void __declspec(naked) HookExitCharSelectFunc()
 	//0043F244   68 C0A30101      PUSH main.0101A3C0                       ; ASCII "> Menu - Exit game."
 	g_UserQuit = 1;
 	_asm {
-		PUSH 0x0106A400; // s9
+		PUSH 0x0114A37C; // 1.04R
 		//0043F249   68 68641E01      PUSH main.011E6468
-		mov edx,0x43F374; // s9
+		mov edx,0x0043F7EF; // 1.04R
 		jmp edx;
 	}
 
@@ -314,8 +309,8 @@ void __declspec(naked) HookExitFunc()
 
 	g_UserQuit = 1;
 	_asm{
-		PUSH 0x0108AE08; // S9
-		MOV EDX, 0x009EDCA0; // S9
+		PUSH 0x0117C480; // 1.04R
+		MOV EDX, 0x00ACD114; // 1.04R
 		JMP EDX;
 	}
 }

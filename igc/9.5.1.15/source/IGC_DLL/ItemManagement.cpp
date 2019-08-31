@@ -184,20 +184,20 @@ void _declspec(naked) LuckyItemToolTipFix()
 	{
 		CMP DWORD PTR DS:[eax+0x4],0x1CA0;
 		JNZ CheckLuckyBless;
-		MOV EDX,0x00A135AD;
+		MOV EDX,0x00AF1799; // 1.04R
 		JMP EDX;
 CheckLuckyBless:
 		CMP DWORD PTR DS:[eax+0x4],0x1C0D;
 		JNZ CheckLuckySoul;
-		MOV EDX,0x00A135AD;
+		MOV EDX, 0x00AF1799; // 1.04R
 		JMP EDX;
 CheckLuckySoul:
 		CMP DWORD PTR DS:[eax+0x4],0x1C0E;
 		JNZ ItemInvalid;
-		MOV EDX,0x00A135AD;
+		MOV EDX, 0x00AF1799; // 1.04R
 		JMP EDX;
 ItemInvalid:
-		MOV EDX,0x00A135BC;
+		MOV EDX,0x00AF17A8; // 1.04R
 		JMP EDX;
 	}
 }
@@ -208,20 +208,20 @@ void _declspec(naked) LuckyItemEnhancementFix()
 	{
 		CMP DWORD PTR DS:[eax+0x4],0x1CA0;
 		JNZ CheckLuckyBless;
-		MOV EDX,0x00A152A1;
+		MOV EDX, 0x00AF348D; // 1.04R
 		JMP EDX;
 CheckLuckyBless:
 		CMP DWORD PTR DS:[eax+0x4],0x1C0D;
 		JNZ CheckLuckySoul;
-		MOV EDX,0x00A152A1;
+		MOV EDX, 0x00AF348D; // 1.04R
 		JMP EDX;
 CheckLuckySoul:
 		CMP DWORD PTR DS:[eax+0x4],0x1C0E;
 		JNZ ItemInvalid;
-		MOV EDX,0x00A152A1;
+		MOV EDX, 0x00AF348D; // 1.04R
 		JMP EDX;
 ItemInvalid:
-		MOV EDX,0x00A152B3;
+		MOV EDX, 0x00AF349F; // 1.04R
 		JMP EDX;
 	}
 }

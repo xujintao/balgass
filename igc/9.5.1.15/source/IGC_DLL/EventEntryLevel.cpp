@@ -33,7 +33,7 @@ void LoadBCEntryLevel()
 		g_BloodCastleEnterLevel_Magumsa[i][1] = GetPrivateProfileInt("BloodCastle", szTemp, 0, "./Data/Local/EventEntry.bmd");
 	}
 
-	HookManager.MakeJmpHook(0x009F45E3, HookBCLevel);
+	HookManager.MakeJmpHook(0x00AD37C8, 6, HookBCLevel); // 1.04R
 }
 
 void LoadDSEntryLevel()
@@ -84,7 +84,7 @@ void __declspec(naked) HookBCLevel()
 			PUSH EAX;
 			MOV ECX, DWORD PTR SS : [EBP - 0x74];
 			ADD ECX, 0x74;
-			MOV EDX, 0x009F4EEB;
+			MOV EDX, 0x00AD40B5; // 1.04R
 			CALL EDX;
 		}
 	}
@@ -102,46 +102,43 @@ void __declspec(naked) HookBCLevel()
 			PUSH EAX;
 			MOV ECX, DWORD PTR SS : [EBP - 0x74];
 			ADD ECX, 0x74;
-			MOV EDX, 0x009F4EEB;
+			MOV EDX, 0x00AD40B5; // 1.04R
 			CALL EDX;
 		}
 	}
 
 	__asm
 	{
-		MOV EDX, 0x009F46C1;
+		MOV EDX, 0x00AD38A6; // 1.04R
 		JMP EDX;
 	}
 }
 
 void ModifyDSLevel()
 {
-	DWORD OldProtect;
-	VirtualProtect((LPVOID)(0x00838418), 319, PAGE_EXECUTE_READWRITE, &OldProtect);
+	MemAssign(0x0091D058 + 6, (DWORD)g_DevilSquareEnterLevel_Normal[0][0]); // 1.04R
+	MemAssign(0x0091D065 + 6, (DWORD)g_DevilSquareEnterLevel_Normal[0][1]); // 1.04R
+	MemAssign(0x0091D072 + 6, (DWORD)g_DevilSquareEnterLevel_Normal[1][0]); // 1.04R
+	MemAssign(0x0091D07F + 6, (DWORD)g_DevilSquareEnterLevel_Normal[1][1]); // 1.04R
+	MemAssign(0x0091D08C + 6, (DWORD)g_DevilSquareEnterLevel_Normal[2][0]); // 1.04R
+	MemAssign(0x0091D099 + 6, (DWORD)g_DevilSquareEnterLevel_Normal[2][1]); // 1.04R
+	MemAssign(0x0091D0A6 + 6, (DWORD)g_DevilSquareEnterLevel_Normal[3][0]); // 1.04R
+	MemAssign(0x0091D0B3 + 6, (DWORD)g_DevilSquareEnterLevel_Normal[3][1]); // 1.04R
+	MemAssign(0x0091D0C0 + 6, (DWORD)g_DevilSquareEnterLevel_Normal[4][0]); // 1.04R
+	MemAssign(0x0091D0CD + 6, (DWORD)g_DevilSquareEnterLevel_Normal[4][1]); // 1.04R
+	MemAssign(0x0091D0DA + 6, (DWORD)g_DevilSquareEnterLevel_Normal[5][0]); // 1.04R
+	MemAssign(0x0091D0E7 + 6, (DWORD)g_DevilSquareEnterLevel_Normal[5][1]); // 1.04R
 
-	*(DWORD*)(0x00838412 + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[0][0];
-	*(DWORD*)(0x0083841F + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[0][1];
-	*(DWORD*)(0x0083842C + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[1][0];
-	*(DWORD*)(0x00838439 + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[1][1];
-	*(DWORD*)(0x00838446 + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[2][0];
-	*(DWORD*)(0x00838453 + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[2][1];
-	*(DWORD*)(0x00838460 + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[3][0];
-	*(DWORD*)(0x0083846D + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[3][1];
-	*(DWORD*)(0x0083847A + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[4][0];
-	*(DWORD*)(0x00838487 + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[4][1];
-	*(DWORD*)(0x00838494 + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[5][0];
-	*(DWORD*)(0x008384A1 + 6) = (DWORD)g_DevilSquareEnterLevel_Normal[5][1];
-
-	*(DWORD*)(0x008384C2 + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[0][0];
-	*(DWORD*)(0x008384CF + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[0][1];
-	*(DWORD*)(0x008384DC + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[1][0];
-	*(DWORD*)(0x008384E9 + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[1][1];
-	*(DWORD*)(0x008384F6 + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[2][0];
-	*(DWORD*)(0x00838503 + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[2][1];
-	*(DWORD*)(0x00838510 + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[3][0];
-	*(DWORD*)(0x0083851D + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[3][1];
-	*(DWORD*)(0x0083852A + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[4][0];
-	*(DWORD*)(0x00838537 + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[4][1];
-	*(DWORD*)(0x00838544 + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[5][0];
-	*(DWORD*)(0x00838551 + 6) = (DWORD)g_DevilSquareEnterLevel_Magumsa[5][1];
+	MemAssign(0x0091D108 + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[0][0]); // 1.04R
+	MemAssign(0x0091D115 + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[0][1]); // 1.04R
+	MemAssign(0x0091D122 + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[1][0]); // 1.04R
+	MemAssign(0x0091D12F + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[1][1]); // 1.04R
+	MemAssign(0x0091D13C + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[2][0]); // 1.04R
+	MemAssign(0x0091D149 + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[2][1]); // 1.04R
+	MemAssign(0x0091D156 + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[3][0]); // 1.04R
+	MemAssign(0x0091D163 + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[3][1]); // 1.04R
+	MemAssign(0x0091D170 + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[4][0]); // 1.04R
+	MemAssign(0x0091D17D + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[4][1]); // 1.04R
+	MemAssign(0x0091D18A + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[5][0]); // 1.04R
+	MemAssign(0x0091D197 + 6, (DWORD)g_DevilSquareEnterLevel_Magumsa[5][1]); // 1.04R
 }

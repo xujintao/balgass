@@ -120,8 +120,8 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 					GCSetCashItemMoveEnable();
 					break;
 				case 0xA4:
-					HookThis((DWORD)&LuckyItemToolTipFix,0x00A135A4);
-					HookThis((DWORD)&LuckyItemEnhancementFix,0x00A15298);
+					HookThis(0x00AF1790, 7, (DWORD)&LuckyItemToolTipFix); // 1.04R
+					HookThis(0x00AF3484, 7, (DWORD)&LuckyItemEnhancementFix); // 1.04R
 					break;
 				case 0xA5:
 					GCDisableReconnect();
