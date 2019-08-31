@@ -18,7 +18,7 @@ public:
 	void DumpList(std::string file);
 	void RegisterHook(DWORD Addr, DWORD Type);
 
-	void MakeJmpHook(DWORD Addr, void* pProc);
+	void MakeJmpHook(DWORD Addr, DWORD size, void* pProc);
 	void MakeCallback(DWORD Addr, void* pFunc, int Args, int MemSize, bool saveEcx);
 	void MakeClassCallback(DWORD Addr, void* pMethod, void* pObject, int Args, int MemSize, bool saveEcx);
 };
@@ -34,5 +34,5 @@ void MemAssign(DWORD Addr, DWORD value);
 void ModifyValueInt(DWORD Addr, int Val);
 DWORD WriteMemory(const LPVOID lpAddress, const LPVOID lpBuf, const UINT uSize);
 DWORD SetRange(const LPVOID dwAddress, const USHORT wCount, const BYTE btValue);
-void HookThis(DWORD FuncOffset,DWORD JmpOffset);
+void HookThis(DWORD Addr, DWORD size, DWORD newAddr);
 #endif

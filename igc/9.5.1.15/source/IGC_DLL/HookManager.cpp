@@ -90,7 +90,7 @@ void CHookManager::RegisterHook(DWORD Addr, DWORD Type)
 
 }
 
-void CHookManager::MakeJmpHook(DWORD Addr, void* pProc)
+void CHookManager::MakeJmpHook(DWORD Addr, DWORD size, void* pProc)
 {
 	try {
 		DWORD memlen = 10;		// MOV DWORD PTR...
@@ -115,9 +115,9 @@ void CHookManager::MakeJmpHook(DWORD Addr, void* pProc)
 		memcpy((LPVOID)(NewAddr+offs), &m_Count, 4);
 		offs+=4;
 
-		HookThis((DWORD)pProc, NewAddr+offs);
+		HookThis((DWORD)pProc, 5, NewAddr+offs);
 
-		HookThis(NewAddr, Addr);
+		HookThis(NewAddr, size, Addr);
 
 		RegisterHook(Addr, 0);
 	}
@@ -233,21 +233,9 @@ void CHookManager::MakeCallback(DWORD Addr, void* pFunc, int Args, int MemSize, 
 		offset+=5;
 
 		//MakeJmpHook(Addr, (LPVOID)newAddr);
-		DWORD OldProtect;
-		VirtualProtect((LPVOID)Addr, 5, PAGE_EXECUTE_READWRITE, &OldProtect);
-		__asm
-		{
-			MOV ECX, Addr;
-			ADD ECX, 5;
-			MOV EDX, newAddr;
-			SUB EDX, ECX;
-			MOV EAX, Addr;
-			MOV DWORD PTR DS:[EAX+1], EDX;
-			MOV BYTE PTR DS:[EAX], 0xE9;
-		}
-		VirtualProtect((LPVOID)Addr, 5, OldProtect, &OldProtect);
-		RegisterHook(Addr, 1);
+		HookThis(newAddr, MemSize, Addr);
 
+		RegisterHook(Addr, 1);
 	}
 	catch (std::exception& e)
 	{
@@ -488,11 +476,12 @@ DWORD SetRange(const LPVOID dwAddress, const USHORT wCount, const BYTE btValue)
 	return WriteMemory( dwAddress, (LPVOID) lpBuf, wCount);
 }
 
-void HookThis(DWORD FuncOffset,DWORD JmpOffset)
+void HookThis(DWORD Addr, DWORD size, DWORD newAddr)
 {
 	DWORD OldProtect;
-	VirtualProtect((LPVOID)JmpOffset, 4, PAGE_EXECUTE_READWRITE, &OldProtect);
-	*(DWORD*)(JmpOffset) = 0xE9;
-	*(DWORD*)(JmpOffset+1) = FuncOffset - (JmpOffset+5);
-	VirtualProtect((LPVOID)JmpOffset, 4, OldProtect, &OldProtect);
+	VirtualProtect((LPVOID)Addr, size, PAGE_EXECUTE_READWRITE, &OldProtect);
+	memset((LPVOID)Addr, 0x90, size);
+	*(BYTE*)(Addr) = 0xE9;
+	*(DWORD*)(Addr + 1) = newAddr - (Addr + 5);
+	VirtualProtect((LPVOID)Addr, size, OldProtect, &OldProtect);
 }
