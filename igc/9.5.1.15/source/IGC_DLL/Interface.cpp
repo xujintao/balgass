@@ -82,7 +82,7 @@ void __declspec(naked) ScaleFormAction(DWORD Form, LPSTR ElementName, LPSTR Comm
 {
 	__asm
 	{
-		MOV EDX, 0x0095A6EA; // S9
+		MOV EDX, 0x00A3A4F2; // 1.04R
 		JMP EDX;
 	}
 }

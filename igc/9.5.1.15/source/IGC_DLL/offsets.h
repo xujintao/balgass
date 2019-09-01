@@ -30,21 +30,21 @@ extern DWORD* g_Map;
 #define CTRL_FREEZE_FIX 0x005359B7+1 // 1.04R
 #define MAPSRV_DELACCID_FIX 0x004FAC1D // S9
 
-#define JEWEL_OF_BLESS_PRICE 0x59C295+3 // S9
-#define JEWEL_OF_SOUL_PRICE 0x59C2B1+3  // S9
-#define JEWEL_OF_CHAOS_PRICE 0x59C2CD+3 // S9
-#define JEWEL_OF_LIFE_PRICE 0x59C2E9+3 // S9
-#define JEWEL_OF_CREATION_PRICE 0x59C305+3 // S9
-#define CREST_OF_MONARCH_PRICE 0x0059C409+3 // S9
-#define LOCH_FEATHER_PRICE 0x0059C3FC+3 // S9
-#define JEWEL_OF_GUARDIAN_PRICE 0x0059CBE7+3 // S9
-#define WERERABBIT_EGG_PRICE 0x0059DF54+3 // S9
-#define ITEM_SELL_DIVISOR 0x0059DA9F+1 // S9
+#define JEWEL_OF_BLESS_PRICE 0x005A063C+3 // 1.04R
+#define JEWEL_OF_SOUL_PRICE 0x005A0658+3  // 1.04R
+#define JEWEL_OF_CHAOS_PRICE 0x005A0674+3 // 1.04R
+#define JEWEL_OF_LIFE_PRICE 0x005A0690+3 // 1.04R
+#define JEWEL_OF_CREATION_PRICE 0x005A06AC+3 // 1.04R
+#define CREST_OF_MONARCH_PRICE 0x005A07B0+3 // 1.04R
+#define LOCH_FEATHER_PRICE 0x005A07A3+3 // 1.04R
+#define JEWEL_OF_GUARDIAN_PRICE 0x005A0F8E+3 // 1.04R
+#define WERERABBIT_EGG_PRICE 0x005A22FC+3 // 1.04R
+#define ITEM_SELL_DIVISOR 0x005A1E46+1 // 1.04R
 
 
 //123CA8C
 
-#define pGameWindow				*(HWND*)(0x123CA8C)
+#define pGameWindow				*(HWND*)(0x01319D6C) // 1.04R
 
 //00958F37   55               PUSH EBP
 
@@ -54,7 +54,7 @@ extern DWORD* g_Map;
 
 
 // UI
-#define pMessageBoxThis			((DWORD(__cdecl*)()) 0x00969F14) // S9
+#define pMessageBoxThis			((DWORD(__cdecl*)()) 0x00A49798) // 1.04R
 
 enum ObjState
 {
@@ -63,7 +63,7 @@ enum ObjState
 	GameProcess		= 5,
 };
 
-#define pPlayerState			*(int*)0x1205338 // s9e2
+#define pPlayerState			*(int*)0x012E2340 // 1.04R
 
 
 #define PARSE_PACKET_HOOK 0x00760292 // 1.04R
@@ -145,3 +145,5 @@ enum ObjState
 
 #define MU_WND_PROC_HOOK 0x004D6FDC+3 // 1.04R
 #define MU_WND_PROC 0x004D5F98 // 1.04R
+
+#define IGC_STAT 0x086105EC // 1.04R

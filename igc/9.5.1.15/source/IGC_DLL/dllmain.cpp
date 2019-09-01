@@ -142,20 +142,20 @@ void SetValues()
 {
 	DWORD OldProtect;
 
-	ResourceManager.Preloader();
-	g_Controller.Load();
+	//ResourceManager.Preloader(); // 1.04R has no glow.bmd
+	//g_Controller.Load(); 1.04R
 	g_ServerInfo->Load(".\\Data\\Local\\ServerInfo.bmd");
 
-	MemSet(0x004D7E2A, 0xEB, 1); // ;73->EB, jae->jmp, disable mu.exe, search "mu.exe"
-	MemSet(0x004D8102, 0xEB, 1); // ;74->EB, je->jmp, disable GameGuard, search "config.ini read error"
-	MemSet(0x004D8145, 0xEB, 1); // ;75->EB, jne->jmp, disable GameGuard, search "gg init error"
-	MemSet(0x004DD639, 0xEB, 1); // ;74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
-	MemSet(0x006B7B2A, 0xEB, 1); // ;74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
-	MemSet(0x006B7C63, 0xEB, 1); // ;74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
-	MemSet(0x00B38653, 0xC3, 1); // ;55->C3, push ebp->ret, disable log encode
-	MemAssign(0x00E1A4AC, (WORD)0x90C3); // ;6A 02->C3 90, push 02->ret, fix r6602 floating point support not loaded, search cmd "mov dword ptr ds:[ebx+0xC], esi"
+	MemSet(0x004D7E2A, 0xEB, 1); // 1.04R, 73->EB, jae->jmp, disable mu.exe, search "mu.exe"
+	MemSet(0x004D8102, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "config.ini read error"
+	MemSet(0x004D8145, 0xEB, 1); // 1.04R, 75->EB, jne->jmp, disable GameGuard, search "gg init error"
+	MemSet(0x004DD639, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
+	MemSet(0x006B7B2A, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
+	MemSet(0x006B7C63, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
+	MemSet(0x00B38653, 0xC3, 1); // 1.04R, 55->C3, push ebp->ret, disable log encode
+	MemAssign(0x00E1A4AC, (WORD)0x90C3); // 1.04R, 6A 02->C3 90, push 02->ret, fix r6602 floating point support not loaded, search cmd "mov dword ptr ds:[ebx+0xC], esi"
 
-	MemSet(0x00AF4B68+3, 7, 1); // Option +28, S9
+	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
 	HookManager.MakeJmpHook(CONNECT_HOOK1, 5, onCsHook);
 	HookManager.MakeCallback(CONNECT_HOOK2, OnConnect, 0, 5, false);
@@ -185,7 +185,7 @@ void SetValues()
 	HookManager.MakeJmpHook(0x0043F7EA, 5, HookExitCharSelectFunc); // 1.04R
 	ResourceManager.LoadGraphics();
 
-	HookManager.MakeJmpHook(SETGLOW_EX, 6, OnSetGlowEx);
+	// HookManager.MakeJmpHook(SETGLOW_EX, 6, OnSetGlowEx); // 1.04R has no glow.bmd
 
 	MemSet(0x00A29AC3, 0x90, 2); // 1.04R, Exc socket item FIX
 	MemSet(0x00A29448, 0xEB, 1); // 1.04R, Exc Socket Visual Bug Option FIX
@@ -403,13 +403,13 @@ BOOL APIENTRY DllMain (HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReser
 		case DLL_PROCESS_ATTACH:
 		{
 			CMiniDump::Begin();
-			DWORD OldProtect;
-			VirtualProtect((LPVOID)0x00401000, 12681214, PAGE_EXECUTE_READ, &OldProtect);
+			//DWORD OldProtect;
+			//VirtualProtect((LPVOID)0x00401000, 12681214, PAGE_EXECUTE_READ, &OldProtect);
 			CheckMainFunctions();
 			// DoHooks();
 			SetHook();
 			SetValues();
-			g_Controller.m_Instance = hModule;
+			//g_Controller.m_Instance = hModule;
 		}
 		break;
 

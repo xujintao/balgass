@@ -198,7 +198,7 @@ void SendPacket(BYTE* buff, int len, int enc, int unk1)
 
 		lpMsg2->TimeH = HIBYTE(lpMsg1->Time);
 		lpMsg2->TimeL = LOBYTE(lpMsg1->Time);
-		lpMsg2->Agility = *(WORD*)((*(DWORD*)0x851ACC4) + 0x11A) + *(WORD*)((*(DWORD*)0x851ACC4) + 0x134);
+		lpMsg2->Agility = *(WORD*)((*(DWORD*)IGC_STAT) + 0x11A) + *(WORD*)((*(DWORD*)IGC_STAT) + 0x134);
 		lpMsg2->AttackSpeed = lpMsg1->AttackSpeed;
 		lpMsg2->MagicSpeed = lpMsg1->MagicSpeed;
 		memcpy(lpMsg2->Version, DLL_VERSION, strlen(DLL_VERSION));

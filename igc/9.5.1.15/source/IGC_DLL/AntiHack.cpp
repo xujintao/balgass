@@ -36,8 +36,8 @@ void AHCheckSwapBufferMod()
 	DWORD OldProtect;
 
 	
-	DWORD AH_SWAP_BUFFER_OFFSET1 = 0x004E1B57+3; // S9
-	DWORD AH_SWAP_BUFFER_OFFSET2 = 0x004E1B2F+1; // S9
+	DWORD AH_SWAP_BUFFER_OFFSET1 = 0x004E5679+3; // 1.04R
+	DWORD AH_SWAP_BUFFER_OFFSET2 = 0x004E5651+1; // 1.04R
 
 	VirtualProtect((LPVOID)(AH_SWAP_BUFFER_OFFSET1), 4, PAGE_EXECUTE_READWRITE, &OldProtect);
 	VirtualProtect((LPVOID)(AH_SWAP_BUFFER_OFFSET2), 1, PAGE_EXECUTE_READWRITE, &OldProtect);
@@ -126,8 +126,8 @@ int PrintModules( DWORD processID )
 
 int CheckHitHack()
 {
-	DWORD dwHitAddr1 = *(DWORD*)0x7f7e904;
-	DWORD dwHitAddr2 = *(DWORD*)0x9ca0aec;
+	DWORD dwHitAddr1 = *(DWORD*)0x0805BBAC; // 1.04R, bp addr:0x00592E22 compare with 0x4D4
+	DWORD dwHitAddr2 = *(DWORD*)0x09D91F4C; // 1.04R
 
 
 	BYTE ValHitHack[4];

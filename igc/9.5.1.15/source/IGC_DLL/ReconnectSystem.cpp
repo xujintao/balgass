@@ -178,7 +178,7 @@ void ReconnectThread() // can u attach debugger? yes
 		{
 			dwTickReconnect = GetTickCount();
 			g_ReconnectProcess = 2;
-			MemSet(0x1205338, 5, 1); // set to render ingame, S9
+			MemSet(0x012E2340, 5, 1); // set to render ingame, 1.04R
 			//	g_ServerInfo->GetIp();
 			do
 			{
@@ -223,7 +223,7 @@ void ReconnectThread() // can u attach debugger? yes
 			//SendPacket(bCharacter, sizeof(bCharacter), 0, 0
 			send(*g_MuSocket, (const char*)bCharacter, 0x0f, 0);
 			g_ReconnectProcess = 6;
-			MemSet(0x8B9797C, 1, 1); // S9
+			MemSet(0x08C88F74, 1, 1); // 1.04R
 			Sleep(2000);
 			CGEnableMUBot(g_MuBotEnabled);
 			gLauncherProxyReconnectInitiated = false;

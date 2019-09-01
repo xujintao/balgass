@@ -180,7 +180,7 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 
 void GCDiePlayerSend(PMSG_DIEPLAYER *lpMsg)
 {
-	int aIndex = *(DWORD*)0x8B97820; // aIndex S9
+	int aIndex = *(DWORD*)0x08C88E0C; // aIndex 1.04R
 
 	int index = MAKE_NUMBERW(lpMsg->NumberH, lpMsg->NumberL);
 
@@ -194,7 +194,7 @@ void GCAttackResult(PMSG_ATTACKRESULT *lpMsg)
 {
 	
 
-	int iIndex = *(DWORD*)0x8B97820; // aIndex S9
+	int iIndex = *(DWORD*)0x08C88E0C; // aIndex 1.04R
 	dmgDisplay = lpMsg->IGCDamage;
 
 	int IndexH = lpMsg->NumberH;
@@ -252,7 +252,7 @@ void GCRefillSend(PMSG_REFILL* lpMsg)
 
 	BYTE checksh[3];
 	BYTE original[] = { 0x83, 0xE8, 0x28 };
-	DWORD dwAddr = 0x004E16A4; // S9
+	DWORD dwAddr = 0x004E50ED; // 1.04R
 	ReadProcessMemory(GetCurrentProcess(), (LPVOID)dwAddr, checksh, 3, 0);
 
 	if (memcmp(checksh, original, 3) != 0)
@@ -346,26 +346,26 @@ void GCIGCStatsAdd(PMSG_ADDSTATS* lpMsg)
 	switch (lpMsg->statstype)
 	{
 	case 0:
-		*(WORD*)((*(DWORD*)0x851ACC4) + 0x118) = stats; // S9
+		*(WORD*)((*(DWORD*)IGC_STAT) + 0x118) = stats; // 1.04R
 		break;
 	case 1:
-		*(WORD*)((*(DWORD*)0x851ACC4) + 0x11A) = stats; // S9
+		*(WORD*)((*(DWORD*)IGC_STAT) + 0x11A) = stats; // 1.04R
 		break;
 	case 2:
-		*(WORD*)((*(DWORD*)0x851ACC4) + 0x11C) = stats; // S9
+		*(WORD*)((*(DWORD*)IGC_STAT) + 0x11C) = stats; // 1.04R
 		maxHPDisplay = lpMsg->MaxLifeAndMana;
 		break;
 	case 3:
-		*(WORD*)((*(DWORD*)0x851ACC4) + 0x11E) = stats; // S9
+		*(WORD*)((*(DWORD*)IGC_STAT) + 0x11E) = stats; // 1.04R
 		maxmanaDisplay = lpMsg->MaxLifeAndMana;
 		break;
 	case 4:
-		*(WORD*)((*(DWORD*)0x851ACC4) + 0x120) = stats; // S9
+		*(WORD*)((*(DWORD*)IGC_STAT) + 0x120) = stats; // 1.04R
 		break;
 
 	}
 
-	*(WORD*)((*(DWORD*)0x851ACC4) + 0x174) = lpMsg->LUP; // S9
+	*(WORD*)((*(DWORD*)IGC_STAT) + 0x174) = lpMsg->LUP; // S9
 }
 
 void __fastcall GCOffTradeReq(BYTE* aRecv)
@@ -376,9 +376,7 @@ void __fastcall GCOffTradeReq(BYTE* aRecv)
 
 void GCSetAgilityFix(PMSG_SETAGILITYBUG* lpMsg)
 {
-	DWORD OldProtect;
-	VirtualProtect((LPVOID)0x00562A0B, 1, PAGE_EXECUTE_READWRITE, &OldProtect); // S9
-	*(BYTE*)(0x00562A0B) = lpMsg->value;
+	MemAssign(0x00566F71 + 6, lpMsg->value); // 1.04R
 }
 
 void GCSetCashItemMoveEnable()
@@ -389,10 +387,10 @@ void GCSetCashItemMoveEnable()
 	BYTE btTradeEnable[6] = { 0xE9, 0x94, 0x00, 0x00, 0x00, 0x90 };
 
 	DWORD OldProtect;
-	VirtualProtect((LPVOID)0x009B5648, 6, PAGE_EXECUTE_READWRITE, &OldProtect);
+	VirtualProtect((LPVOID)0x009B5648, 6, PAGE_EXECUTE_READWRITE, &OldProtect);// addr wrong, not s9 or 1.04R
 	memcpy((LPVOID)0x009B5648, btWareEnable, sizeof(btWareEnable));
 
-	VirtualProtect((LPVOID)0x009B4F86, 6, PAGE_EXECUTE_READWRITE, &OldProtect);
+	VirtualProtect((LPVOID)0x009B4F86, 6, PAGE_EXECUTE_READWRITE, &OldProtect);// addr wrong, not s9 or 1.04R
 	memcpy((LPVOID)0x009B4F86, btTradeEnable, sizeof(btTradeEnable));
 
 }
@@ -408,17 +406,13 @@ void GCFriendRoomCreate(PMSG_FRIEND_ROOMCREATE_RESULT* lpMsg)
 
 void GCEnableSiegeSkills()
 {
-	DWORD OldProtect;
-	VirtualProtect((LPVOID)0x005B1C94, 50, PAGE_EXECUTE_READWRITE, &OldProtect); // S9
-
-	*(BYTE*)(0x005B1C94 + 1) = 0x4A;
-	*(BYTE*)(0x005B1C9A + 1) = 0x44;
-	*(BYTE*)(0x005B1CA0 + 1) = 0x3E;
-	*(BYTE*)(0x005B1CA6 + 1) = 0x38;
-	*(BYTE*)(0x005B1CAC + 1) = 0x32;
-	*(BYTE*)(0x005B1CB2 + 1) = 0x2C;
-	*(BYTE*)(0x005B1CBB) = 0xEB;
-	// all s9
+	MemAssign(0x005A6226 + 1, (BYTE)0x4A); // 1.04R
+	MemAssign(0x005A622C + 1, (BYTE)0x44); // 1.04R
+	MemAssign(0x005A6232 + 1, (BYTE)0x3E); // 1.04R
+	MemAssign(0x005A6238 + 1, (BYTE)0x38); // 1.04R
+	MemAssign(0x005A623E + 1, (BYTE)0x32); // 1.04R
+	MemAssign(0x005A6244 + 1, (BYTE)0x2C); // 1.04R
+	MemAssign(0x005A624D, (BYTE)0xEB); // 1.04R
 }
 
 void CGSendFilesCrc()
@@ -555,15 +549,10 @@ void GCAlterPShopVault(int type)
 
 void GCDropSellMod()
 {
-	DWORD OldProtect;
-	BYTE btDropItem[6] = { 0xE9, 0x92, 0x00, 0x00, 0x00, 0x90 };
+	BYTE btDropItem[6] = { 0xE9, 0xFB, 0x00, 0x00, 0x00, 0x90 };
+	MemCpy(0x00637209, btDropItem, sizeof(btDropItem)); // 1.04R
 	BYTE btReinforcedSell[6] = {  0xE9, 0x97, 0x00, 0x00, 0x00, 0x90 };
-
-	VirtualProtect((LPVOID)(0x005AFF17), 6, PAGE_EXECUTE_READWRITE, &OldProtect);
-	VirtualProtect((LPVOID)(0x00A1426E), 6, PAGE_EXECUTE_READWRITE, &OldProtect);
-
-	memcpy((void*)0x005AFF17, &btDropItem, 6);
-	memcpy((void*)0x00A1426E, &btReinforcedSell, 6);
+	MemCpy(0x00AF245A, btReinforcedSell, sizeof(btReinforcedSell)); // 1.04R
 }
 
 void GCCustomPost(PMSG_POST_DATA *lpMsg)
@@ -639,42 +628,13 @@ void GCCustomPost(PMSG_POST_DATA *lpMsg)
 
 void GCSetChatColors(PMSG_SET_CHAT_COLOR * lpMsg)
 {
-	DWORD OldProtect;
-	VirtualProtect((LPVOID)0x009C1C12, 50, PAGE_EXECUTE_READWRITE, &OldProtect); // S9
-
-	*(BYTE*)(0x009C1C6C + 3) = lpMsg->btChatMsg[0];
-	*(BYTE*)(0x009C1C6C + 4) = lpMsg->btChatMsg[1];
-	*(BYTE*)(0x009C1C6C + 5) = lpMsg->btChatMsg[2];
-
-	*(BYTE*)(0x009C1C4E + 3) = lpMsg->btInfoMsg[0];
-	*(BYTE*)(0x009C1C4E + 4) = lpMsg->btInfoMsg[1];
-	*(BYTE*)(0x009C1C4E + 5) = lpMsg->btInfoMsg[2];
-
-	*(BYTE*)(0x009C1C24 + 3) = lpMsg->btWhisperMsg[0];
-	*(BYTE*)(0x009C1C24 + 4) = lpMsg->btWhisperMsg[1];
-	*(BYTE*)(0x009C1C24 + 5) = lpMsg->btWhisperMsg[2];
-
-	*(BYTE*)(0x009C1C5D + 3) = lpMsg->btErrorMsg[0];
-	*(BYTE*)(0x009C1C5D + 4) = lpMsg->btErrorMsg[1];
-	*(BYTE*)(0x009C1C5D + 5) = lpMsg->btErrorMsg[2];
-
-	*(BYTE*)(0x009C1C7B + 3) = lpMsg->btPartyMsg[0];
-	*(BYTE*)(0x009C1C7B + 4) = lpMsg->btPartyMsg[1];
-	*(BYTE*)(0x009C1C7B + 5) = lpMsg->btPartyMsg[2];
-
-	*(BYTE*)(0x009C1C8A + 3) = lpMsg->btGuildMsg[0];
-	*(BYTE*)(0x009C1C8A + 4) = lpMsg->btGuildMsg[1];
-	*(BYTE*)(0x009C1C8A + 5) = lpMsg->btGuildMsg[2];
-
-	*(BYTE*)(0x009C1C99 + 3) = lpMsg->btAllianceMsg[0];
-	*(BYTE*)(0x009C1C99 + 4) = lpMsg->btAllianceMsg[1];
-	*(BYTE*)(0x009C1C99 + 5) = lpMsg->btAllianceMsg[2];
-
-	*(BYTE*)(0x009C1CB7 + 3) = lpMsg->btGensMsg[0];
-	*(BYTE*)(0x009C1CB7 + 4) = lpMsg->btGensMsg[1];
-	*(BYTE*)(0x009C1CB7 + 5) = lpMsg->btGensMsg[2];
-
-	*(BYTE*)(0x009C1CA8 + 3) = lpMsg->btGMChatMsg[0];
-	*(BYTE*)(0x009C1CA8 + 4) = lpMsg->btGMChatMsg[1];
-	*(BYTE*)(0x009C1CA8 + 5) = lpMsg->btGMChatMsg[2];
+	MemCpy(0x00AA0DC8 + 3, lpMsg->btWhisperMsg, sizeof(lpMsg->btWhisperMsg)); // 1.04R
+	MemCpy(0x00AA0DF2 + 3, lpMsg->btInfoMsg, sizeof(lpMsg->btInfoMsg)); // 1.04R
+	MemCpy(0x00AA0E01 + 3, lpMsg->btErrorMsg, sizeof(lpMsg->btErrorMsg)); // 1.04R
+	MemCpy(0x00AA0E10 + 3, lpMsg->btChatMsg, sizeof(lpMsg->btChatMsg)); // 1.04R
+	MemCpy(0x00AA0E1F + 3, lpMsg->btPartyMsg, sizeof(lpMsg->btPartyMsg)); // 1.04R
+	MemCpy(0x00AA0E2E + 3, lpMsg->btGuildMsg, sizeof(lpMsg->btGuildMsg)); // 1.04R
+	MemCpy(0x00AA0E3D + 3, lpMsg->btAllianceMsg, sizeof(lpMsg->btAllianceMsg)); // 1.04R
+	MemCpy(0x00AA0E4C + 3, lpMsg->btGMChatMsg, sizeof(lpMsg->btGMChatMsg)); // 1.04R
+	MemCpy(0x00AA0E5B + 3, lpMsg->btGensMsg, sizeof(lpMsg->btGensMsg)); // 1.04R
 }

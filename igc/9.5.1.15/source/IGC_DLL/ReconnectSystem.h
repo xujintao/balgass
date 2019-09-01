@@ -1,7 +1,7 @@
 #ifndef ANTIDC_H
 #define ANTIDC_H
 
-#define MU_FONT_ADDRESS 0x123CA9C // S9
+#define MU_FONT_ADDRESS 0x01319D7C // 1.04R
 //0080F98F   55               PUSH EBP
 #define RENDER_HP_BAR_CALLBACK 0x00904E5B // 1.04R
 
