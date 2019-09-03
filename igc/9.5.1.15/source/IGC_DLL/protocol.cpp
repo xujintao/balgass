@@ -365,7 +365,7 @@ void GCIGCStatsAdd(PMSG_ADDSTATS* lpMsg)
 
 	}
 
-	*(WORD*)((*(DWORD*)IGC_STAT) + 0x174) = lpMsg->LUP; // S9
+	*(WORD*)((*(DWORD*)IGC_STAT) + 0x174) = lpMsg->LUP; // 1.04R
 }
 
 void __fastcall GCOffTradeReq(BYTE* aRecv)

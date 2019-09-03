@@ -46,7 +46,7 @@
     <TargetName>IGC</TargetName>
     <IncludePath>..\..\..\_Library\_Include\rsa\;..\..\..\_Library\_Include\cryptopp\;..\..\..\_Library\_Include\Mpir\;..\..\..\_Library\_Include\;$(ProjectDir);$(IncludePath)</IncludePath>
     <LibraryPath>..\..\..\_Library\v140_xp-Win32_MD\;..\..\..\_Library\;$(LibraryPath);</LibraryPath>
-    <OutDir>..\..\client</OutDir>
+    <OutDir>..\..\client104R</OutDir>
     <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
     <ExecutablePath>$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
     <ReferencePath>$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
@@ -58,7 +58,7 @@
     <IncludePath>..\..\..\_Library\_Include\rsa\;..\..\..\_Library\_Include\cryptopp\;..\..\..\_Library\_Include\Mpir\;..\..\..\_Library\_Include\;$(ProjectDir);$(IncludePath)</IncludePath>
     <LibraryPath>..\..\..\_Library\v140_xp-Win32_MD\;..\..\..\_Library\;$(LibraryPath);</LibraryPath>
     <TargetName>IGC</TargetName>
-    <OutDir>..\..\client</OutDir>
+    <OutDir>..\..\client104R</OutDir>
     <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
     <EmbedManifest>true</EmbedManifest>
     <LibraryWPath>$(WindowsSDK_MetadataPath);</LibraryWPath>
