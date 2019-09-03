@@ -19,7 +19,7 @@ public:
 	void RegisterHook(DWORD Addr, DWORD Type);
 
 	void MakeJmpHook(DWORD Addr, DWORD size, void* pProc);
-	void MakeCallback(DWORD Addr, void* pFunc, int Args, int MemSize, bool saveEcx);
+	void MakeCallback(DWORD Addr, void* pFunc, int Args, int MemSize, bool saveEcx, bool keep=true);
 	void MakeClassCallback(DWORD Addr, void* pMethod, void* pObject, int Args, int MemSize, bool saveEcx);
 };
 

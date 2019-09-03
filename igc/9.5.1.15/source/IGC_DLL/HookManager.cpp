@@ -127,7 +127,7 @@ void CHookManager::MakeJmpHook(DWORD Addr, DWORD size, void* pProc)
 	}
 }
 
-void CHookManager::MakeCallback(DWORD Addr, void* pFunc, int Args, int MemSize, bool saveEcx)
+void CHookManager::MakeCallback(DWORD Addr, void* pFunc, int Args, int MemSize, bool saveEcx, bool keep)
 {
 	//MessageBox(0, "STOP", "STOP", MB_OK);
 
@@ -224,8 +224,10 @@ void CHookManager::MakeCallback(DWORD Addr, void* pFunc, int Args, int MemSize, 
 			offset+=3;
 		}
 
-		memcpy((LPVOID)offset, (LPVOID)Addr, MemSize);
-		offset+=MemSize;
+		if (keep){
+			memcpy((LPVOID)offset, (LPVOID)Addr, MemSize);
+			offset += MemSize;
+		}
 
 		*(BYTE*)offset = 0xE9;
 		DWORD jmpaddr = (Addr-(offset+5)+MemSize);

@@ -157,8 +157,9 @@ void SetValues()
 
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
-	HookManager.MakeJmpHook(CONNECT_HOOK1, 5, onCsHook);
-	HookManager.MakeCallback(CONNECT_HOOK2, OnConnect, 0, 5, false);
+	//HookManager.MakeJmpHook(CONNECT_HOOK1, 5, onCsHook);
+	HookManager.MakeCallback(CONNECT_HOOK1, OnConnect, 0, 5, false, false);
+	HookManager.MakeCallback(CONNECT_HOOK2, OnConnect, 0, 5, false, false);
 	MemAssign(VERSION_HOOK1, (DWORD)g_ServerInfo->GetVersion());
 	MemAssign(VERSION_HOOK2, (DWORD)g_ServerInfo->GetVersion());
 	//ChangeAddress(VERSION_HOOK3, (DWORD)g_ServerInfo->GetVersion());
