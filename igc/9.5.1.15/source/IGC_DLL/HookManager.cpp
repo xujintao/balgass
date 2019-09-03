@@ -115,9 +115,9 @@ void CHookManager::MakeJmpHook(DWORD Addr, DWORD size, void* pProc)
 		memcpy((LPVOID)(NewAddr+offs), &m_Count, 4);
 		offs+=4;
 
-		HookThis((DWORD)pProc, 5, NewAddr+offs);
+		HookThis(NewAddr + offs, 5, (DWORD)pProc);
 
-		HookThis(NewAddr, size, Addr);
+		HookThis(Addr, size, NewAddr);
 
 		RegisterHook(Addr, 0);
 	}
@@ -233,7 +233,7 @@ void CHookManager::MakeCallback(DWORD Addr, void* pFunc, int Args, int MemSize, 
 		offset+=5;
 
 		//MakeJmpHook(Addr, (LPVOID)newAddr);
-		HookThis(newAddr, MemSize, Addr);
+		HookThis(Addr, MemSize, newAddr);
 
 		RegisterHook(Addr, 1);
 	}
