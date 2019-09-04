@@ -146,7 +146,8 @@ void SetValues()
 	//g_Controller.Load(); 1.04R
 	g_ServerInfo->Load(".\\Data\\Local\\ServerInfo.bmd");
 
-	MemSet(0x004D7E2A, 0xEB, 1); // 1.04R, 73->EB, jae->jmp, disable mu.exe, search "mu.exe"
+	//MemSet(0x004D7E2A, 0xEB, 1); // 1.04R, 73->EB, jae->jmp, disable mu.exe, search "mu.exe"
+	MemAssign(0x004D7E2A, (BYTE)0xEB); // MemSet can not work, why?
 	MemSet(0x004D8102, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "config.ini read error"
 	MemSet(0x004D8145, 0xEB, 1); // 1.04R, 75->EB, jne->jmp, disable GameGuard, search "gg init error"
 	MemSet(0x004DD639, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
