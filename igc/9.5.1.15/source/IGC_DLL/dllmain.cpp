@@ -154,6 +154,7 @@ void SetValues()
 	MemSet(0x006B7C63, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
 	MemSet(0x00B38653, 0xC3, 1); // 1.04R, 55->C3, push ebp->ret, disable log encode
 	MemAssign(0x00E1A4AC, (WORD)0x90C3); // 1.04R, 6A 02->C3 90, push 02->ret, fix r6602 floating point support not loaded, search cmd "mov dword ptr ds:[ebx+0xC], esi"
+	//MemSet(0x0ABD696B, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable main.exe version match
 
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
@@ -162,7 +163,7 @@ void SetValues()
 	HookManager.MakeCallback(CONNECT_HOOK2, OnConnect, 0, 5, false, false);
 	MemAssign(VERSION_HOOK1, (DWORD)g_ServerInfo->GetVersion());
 	MemAssign(VERSION_HOOK2, (DWORD)g_ServerInfo->GetVersion());
-	//ChangeAddress(VERSION_HOOK3, (DWORD)g_ServerInfo->GetVersion());
+	MemAssign(VERSION_HOOK3, (DWORD)g_ServerInfo->GetVersion());
 	MemAssign(SERIAL_HOOK1, (DWORD)g_ServerInfo->GetSerial());
 	MemAssign(SERIAL_HOOK2, (DWORD)g_ServerInfo->GetSerial());
 	MemAssign(CHATSERVER_PORT,(DWORD)g_ServerInfo->GetChatServerPort());
