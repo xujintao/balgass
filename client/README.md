@@ -1,29 +1,36 @@
 ## main.exe
 
-##### main1
-notepad++ Hex-editor plugin
-```
-replace "connect.muchina.com" with "192.168.0.100"
-```
-
-##### main1_dump
-x64dbg
+##### main_dump
+x64dbg载入main，使用Scylla插件找到OEP，然后dump
 ```
 0x00DF,478C: 55             ;OEP, dump, 那么dump的原理是什么？和打补丁有什么区别？
 ```
-##### main1_dump_SCY
+##### main_dump_SCY
 ```
 一方面，因为壳的导入表把IAT指定到.rsrc段的0x099E,917C ~ 0x099E,9B3F位置  
 另一方面，壳的导入表在kernel32.dll中多加了一个API叫VirtualQueryEx  
 
 修复步骤  
-在main基础上使用x64dbg自带的Scylla插件对main5的IAT进行修复(Fix Dump)  
+在main基础上使用x64dbg自带的Scylla插件对main_dump的IAT进行修复(Fix Dump)  
 恢复的本质是修复导入表把IAT指定到.rdata段的0x00de,9000 ~ 0x00de,99BF位置  
 但是Scylla把符号表也复制了一份放在SCY段，有这个必要吗？
 然后Scylla一致性很差，总是会在IAT尾部多分析出一些乱七八糟的import，虽然不影响使用但给人一种不靠谱的感觉
 ```
 
-##### main2
+##### main1
+~~notepad++ Hex-editor plugin~~
+```
+replace "connect.muchina.com" with "192.168.0.100"
+```
+
+载入dll
+```
+内存窗口匹配15个CC的空间，这样的坑大概有2500多个，我们使用0x0114开头的空间
+0x01140B54坑 硬编码 "IGC.dll"
+0x01141792坑 硬编码 LoadLibraryA
+...
+```
+##### 以下所有hook都移动到IGC.dll中了  
 search mu.exe
 ```
 0x004D,7E2A: 73 6D -> EB 6D ;jae to jmp, disable mu.exe
@@ -61,7 +68,6 @@ fix "r6602 floating point support not loaded"
 0x004D,7CE8: -> mov eax,1B60
 ```
 
-##### main3
 disable version match
 ```
 0x0ABD,696B: je 0x006C76BA -> jmp 0x006C76BA
