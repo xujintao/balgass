@@ -256,8 +256,8 @@ func (t *t3001) f006BE6D9(pp **t3002) {
 
 func (t *t3001) f006BEC73(x uint32) {}
 
-// t3000
-type t3000 struct {
+// conn或者叫netFD
+type conn struct {
 	hWnd  win.HWND       // f0000
 	f0004 int            // f0004
 	f0008 int            // f0008
@@ -270,14 +270,14 @@ type t3000 struct {
 	once  sync.Once      // f40EC, _08C8D0DC
 }
 
-var v08C88FF0 t3000
+var v08C88FF0 conn
 
-func (t *t3000) f006BD3A7init() {
+func (t *conn) f006BD3A7init() {
 	// t.once.Do(win.WSAStartup(0, nil))
 	win.WSAStartup(0, nil)
 }
 
-func (t *t3000) f006BD509socket(hWnd win.HWND, x int) int {
+func (t *conn) f006BD509socket(hWnd win.HWND, x int) int {
 	var err error
 	t.fd, err = win.Socket(2, 1, 0) // AF_INT, SOCK_STREAM, 0
 	t.f0004 = x
@@ -291,11 +291,11 @@ func (t *t3000) f006BD509socket(hWnd win.HWND, x int) int {
 	return 1
 }
 
-func (t *t3000) f006BD708dial(ip string, port int, x int) {
+func (t *conn) f006BD708dial(ip string, port int, x int) {
 
 }
 
-func (t *t3000) f006BDA03read() uint32 {
+func (t *conn) f006BDA03read() uint32 {
 	if t.r >= 0x2000 {
 		v01319E08log.f00B38AE4printf("Receive Packet Buffer Overflow")
 		return 1
@@ -354,7 +354,7 @@ func (t *t3000) f006BDA03read() uint32 {
 	return 0
 }
 
-func (t *t3000) f006BD945write() int {
+func (t *conn) f006BD945write() int {
 	if t.w <= 0 {
 		return 1
 	}
@@ -362,7 +362,7 @@ func (t *t3000) f006BD945write() int {
 }
 
 // 发送协议报文
-func (t *t3000) f004397E3write(buf []uint8, len int) int {
+func (t *conn) f004397E3write(buf []uint8, len int) int {
 	// ebp10 := t // ecx也要落到栈上
 	ebp4 := len
 	ebp8_sum := 0
@@ -432,9 +432,10 @@ func (t *t4000) f004A9B5B() {
 	// ebp8[ebp24*4].f004CCC07()
 }
 
-var v08C88E08 uint32
+var v08C88E08 uint32 // 可能是状态
 var v08C88E0C int
 var v012E4018 = "22789" // 版本怎么会是这个？
+var v012E4020 = "M7B4VM4C5i8BC49b"
 
 type t1 struct{}
 
@@ -467,9 +468,9 @@ type pb struct {
 	f145C t1
 }
 
-var v012E4034 *t3000
+var v012E4034conn *conn
 
-func (t *pb) f00439178() {
+func (t *pb) f00439178init() {
 	// SEH
 	t.f145C.f007BF63B()
 	t.f145C.f007BF68F()
@@ -480,7 +481,7 @@ func (t *pb) f0043921B() {
 	// t.len = 0
 	*(*uint16)(unsafe.Pointer(&t.buf[0])) = 0
 }
-func (t *pb) f0043922CwritePrefix(flag uint8, typ uint8) {
+func (t *pb) f0043922CwritePrefix(flag uint8, code uint8) {
 	t.f0043921B()
 
 	// 写flag
@@ -496,8 +497,8 @@ func (t *pb) f0043922CwritePrefix(flag uint8, typ uint8) {
 		t.f00439298writeEnc(t.buf[:], 2, false)
 	}
 
-	// 写type
-	buf[0] = typ
+	// 写code
+	buf[0] = code
 	t.f00439298writeEnc(buf[:], 1, false)
 }
 
@@ -541,12 +542,13 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 	// t.f0043968F()
 	func() {}()
 
-	// _00439420
+	// f00439420
+	// hook到 IGC.dll
 	func(buf []uint8, len int, needEnc, isC2 bool) {
 		f00DE8A70() // 0x3124
 
 		if !needEnc {
-			v012E4034.f004397E3write(buf, len)
+			v012E4034conn.f004397E3write(buf, len)
 			return
 		}
 
@@ -572,14 +574,14 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 		v08C88F60++
 		ebp311C--
 
-		ebp1914 = v08C88FB4.f00B98ED0(v012E4034, nil, ebp3118[ebp311C:], len-ebp311C) // 得到len为0x11
+		ebp1914 = v08C88FB4.f00B98ED0(v012E4034conn, nil, ebp3118[ebp311C:], len-ebp311C) // 得到len为0x11
 
 		if ebp1914 < 0x100 && !isC2 {
 			ebp3120 = ebp1914 + 2 // 0x13
 			ebp108[0] = 0xC3
 			ebp108[1] = uint8(ebp3120)
-			v08C88FB4.f00B98ED0(v012E4034, ebp108[2:], ebp3118[ebp311C:], len-ebp311C) // 编码数据
-			v012E4034.f004397E3write(ebp108[:], ebp3120)
+			v08C88FB4.f00B98ED0(v012E4034conn, ebp108[2:], ebp3118[ebp311C:], len-ebp311C) // 编码数据
+			v012E4034conn.f004397E3write(ebp108[:], ebp3120)
 			return
 		}
 		// len >= 0x100或者C2 编码方案
@@ -595,14 +597,22 @@ func (t *pb) f0043974FwriteZero(x int) {
 	f00DE8100memset(buf[:], 0, x)
 	t.f00439298writeEnc(buf[:], x, true)
 }
-func (t *pb) f0043EDF5writeUint32(time uint32) {
+
+func (t *pb) f004397B1writeUint8(data uint8) *pb {
+	var buf [1]uint8
+	buf[0] = data
+	t.f00439298writeEnc(buf[:], 1, true)
+	return t
+}
+
+func (t *pb) f0043EDF5writeUint32(data uint32) {
 	var buf [4]uint8
-	binary.LittleEndian.PutUint32(buf[:], time)
+	binary.LittleEndian.PutUint32(buf[:], data)
 	t.f00439298writeEnc(buf[:], 4, true)
 }
-func (t *pb) f004C65EFwriteUint16(x uint16) *pb {
+func (t *pb) f004C65EFwriteUint16(data uint16) *pb {
 	var buf [2]uint8
-	binary.LittleEndian.PutUint16(buf[:], x)
+	binary.LittleEndian.PutUint16(buf[:], data)
 	t.f00439298writeEnc(buf[:], 2, true)
 	return t
 }
@@ -640,7 +650,7 @@ type t08C88FB4 struct {
 }
 
 // 被花了
-func (t *t08C88FB4) f00B98ED0(p *t3000, dst []uint8, buf []uint8, len int) int {
+func (t *t08C88FB4) f00B98ED0(p *conn, dst []uint8, buf []uint8, len int) int {
 
 	return 0
 }

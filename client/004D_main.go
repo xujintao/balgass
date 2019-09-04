@@ -58,6 +58,89 @@ type version struct {
 	fourth uint16 // ebp_23E
 }
 
+type t4 struct {
+	f50h func([]uint8, int)
+}
+
+type t3 struct {
+	f200h *t4
+	f204h *t4
+}
+
+func (t *t3) f0043E60C() {
+	// ...
+	t.f0043E9B6()
+	// ...
+}
+
+func (t *t3) f0043E9B6() {
+	// ...
+	f00DE8A70() // 0x152C
+	if v08C88E08 == 0 {
+		return
+	}
+
+	f004A7D34()
+	f004A9146()
+
+	var ebp18, ebp24 [11]uint8 // username, pwd
+	f00DE8100memset(ebp18[:], 0, 11)
+	t.f200h.f50h(ebp18[:], 11)       // fill username
+	f00DE8100memset(ebp24[:], 0, 11) // fill pwd
+	t.f204h.f50h(ebp24[:], 11)
+
+	// 可能是字符串合法性验证
+	// f0043EE13(ebp18[:])
+	// f0043EE13(ebp24[:])
+	if v08C88E08 != 2 {
+		return
+	}
+
+	v01319E08log.f00B38AE4printf("> Login Request.\r\n")
+	v01319E08log.f00B38AE4printf("> Try to Login \"%s\"\r\n", ebp18[:])
+
+	v08C88F74 = 1
+	f00DE8000strcpy(v08C88F78username[:], ebp18[:])
+	v08C88E08 = 13
+
+	// 构造登录报文
+	var ebp14BClogin pb
+	ebp14BClogin.f00439178init()
+	ebp14BClogin.f0043922CwritePrefix(0xC1, 0xF1) // 前缀
+	ebp14BClogin.f004397B1writeUint8(1)           // 可能是subcode
+
+	var ebp30, ebp3C [11]uint8
+	f00DE8100memset(ebp30[:], 0, 11)
+	f00DE8100memset(ebp3C[:], 0, 11)
+	f00DE7C90memcpy(ebp30[:], ebp18[:], 10)
+	f00DE7C90memcpy(ebp3C[:], ebp24[:], 10)
+	f0043B750(ebp30[:], 10) // 与igc.dll的TOOLTIP_FIX_XOR_BUFF一样了，可能有问题
+	f0043B750(ebp3C[:], 10) // 与igc.dll的TOOLTIP_FIX_XOR_BUFF一样了，可能有问题
+
+	ebp14BClogin.f00439298writeEnc(ebp30[:], 10, true)    // 写username
+	ebp14BClogin.f00439298writeEnc(ebp3C[:], 10, true)    // 写pwd
+	ebp14BClogin.f0043EDF5writeUint32(win.GetTickCount()) // 写时间戳
+	ebp14C0 := 0
+	for ebp14C0 < 5 {
+		ebp14BClogin.f004397B1writeUint8(v012E4018[ebp14C0] - (ebp14C0 + 1)) // 写版本 VERSION_HOOK1
+		ebp14C0++
+	}
+	ebp14C0 = 0
+	for ebp14C0 < 16 {
+		ebp14BClogin.f004397B1writeUint8(v012E4020[ebp14C0]) // 写序列号 SERIAL_HOOK1
+		ebp14C0++
+	}
+
+	// 发送登录报文
+	ebp14BClogin.f004393EAsend(true, false)
+
+	// ...
+}
+
+func f0043B750(buf []uint8, len int) {}
+func f004A7D34()                     {}
+func f004A9146()                     {}
+
 func f004D52AB(fileName []uint8, cmd string) bool {
 	// 从命令行字符串中提取出应用程序名，也就是main.exe，存到fileName数组中
 	return true
@@ -615,6 +698,8 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 var v08C88F60 uint8
 var v08C88F62 int
 var v08C88F64 int
+var v08C88F74 int
+var v08C88F78username [11]uint8 // username
 var v08C88F84 uint32
 
 type t2 struct {
@@ -636,7 +721,7 @@ func f004D8FF5() {
 	}
 
 	// 构造心跳报文
-	ebp1494heartbeat.f00439178()
+	ebp1494heartbeat.f00439178init()
 	ebp1494heartbeat.f0043922CwritePrefix(0xC1, 0x0E) // 写前缀
 	ebp10 := win.GetTickCount()
 	ebp1494heartbeat.f0043974FwriteZero(1)                    // 写0
@@ -662,14 +747,15 @@ var v08C8D014 t08C8D014
 
 type t08C8D014 struct{}
 
-func (t *t08C8D014) f00B98FC0(p *t3000, x *int) {
+func (t *t08C8D014) f00B98FC0(p *conn, x *int) {
 
 }
 
 var v086A3C28 int
 
 // 业务逻辑，这个函数被花了
-func f00760292(t *t3000, x, y uint32) {
+// hook到 igc.dll了
+func f00760292(t *conn, x, y uint32) {
 	var ebp18 []uint8 // t.t2002
 	var ebp14typ int
 	var ebp10 int
