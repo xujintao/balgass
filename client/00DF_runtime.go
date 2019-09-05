@@ -22,6 +22,10 @@ var v09D9DA08 uint8
 var v09D9DA0C uint32 = 1
 var v09D9DB88 uintptr = 0xBD6A970F
 
+func f00DE7C00strlen(str []uint8) {
+
+}
+
 func f00DE7C90memcpy(dst, src []uint8, len int) {
 
 }
@@ -117,7 +121,7 @@ func f00DE852F(x uint32) unsafe.Pointer {
 }
 
 // 拿着eax做栈分配，这个骚套路是什么API？目的是什么？
-func f00DE8A70() {}
+func f00DE8A70chkstk() {}
 
 // 猜测
 func f00DE8AADrand() int { return 0 }
