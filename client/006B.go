@@ -430,6 +430,14 @@ func (t *t4000) f004A9B5B() {
 	// 分别存放的是t6000的派生类型，t6000可能是接口类型
 	// {_01310056, _01310598, _013180E0, _01317CD8,_01314300, _01313FA8, _0130FF40, _0130FB38, _0130F730}
 	// ebp8[ebp24*4].f004CCC07()
+
+	// f004CCC07
+	func() {
+
+		// 查表
+		var t *t3
+		t.f0043E60C() // v01313FA8.f0043E60C 发送login报文
+	}()
 }
 
 var v08C88E08 uint32 // 可能是状态
@@ -487,22 +495,22 @@ func (t *pb) f0043922CwritePrefix(flag uint8, code uint8) {
 	// 写flag
 	var buf [1]uint8
 	buf[0] = flag
-	t.f00439298writeEnc(buf[:], 1, false)
+	t.f00439298writeBuf(buf[:], 1, false)
 
 	// 写len，没有必要
 	switch flag {
 	case 0xC1:
-		t.f00439298writeEnc(t.buf[:], 1, false)
+		t.f00439298writeBuf(t.buf[:], 1, false)
 	case 0xC2:
-		t.f00439298writeEnc(t.buf[:], 2, false)
+		t.f00439298writeBuf(t.buf[:], 2, false)
 	}
 
 	// 写code
 	buf[0] = code
-	t.f00439298writeEnc(buf[:], 1, false)
+	t.f00439298writeBuf(buf[:], 1, false)
 }
 
-func (t *pb) f00439298writeEnc(buf []uint8, len int, needEnc bool) {
+func (t *pb) f00439298writeBuf(buf []uint8, len int, needEnc bool) {
 	tlen := (*uint16)(unsafe.Pointer(&t.buf[0]))
 	if int(*tlen)+len > 0x145A {
 		return
@@ -545,7 +553,7 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 	// f00439420
 	// hook到 IGC.dll
 	func(buf []uint8, len int, needEnc, isC2 bool) {
-		f00DE8A70() // 0x3124
+		f00DE8A70chkstk() // 0x3124
 
 		if !needEnc {
 			v012E4034conn.f004397E3write(buf, len)
@@ -592,28 +600,28 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 
 func (t *pb) f0043974FwriteZero(x int) {
 	var buf [5216]uint8
-	f00DE8A70()
+	f00DE8A70chkstk()
 
 	f00DE8100memset(buf[:], 0, x)
-	t.f00439298writeEnc(buf[:], x, true)
+	t.f00439298writeBuf(buf[:], x, true)
 }
 
 func (t *pb) f004397B1writeUint8(data uint8) *pb {
 	var buf [1]uint8
 	buf[0] = data
-	t.f00439298writeEnc(buf[:], 1, true)
+	t.f00439298writeBuf(buf[:], 1, true)
 	return t
 }
 
 func (t *pb) f0043EDF5writeUint32(data uint32) {
 	var buf [4]uint8
 	binary.LittleEndian.PutUint32(buf[:], data)
-	t.f00439298writeEnc(buf[:], 4, true)
+	t.f00439298writeBuf(buf[:], 4, true)
 }
 func (t *pb) f004C65EFwriteUint16(data uint16) *pb {
 	var buf [2]uint8
 	binary.LittleEndian.PutUint16(buf[:], data)
-	t.f00439298writeEnc(buf[:], 2, true)
+	t.f00439298writeBuf(buf[:], 2, true)
 	return t
 }
 
@@ -626,7 +634,7 @@ type t6000 struct {
 
 func (t *t6000) f00446D6D() {
 	// 带SEH处理
-	f00DE8A70() // 0x2994
+	f00DE8A70chkstk() // 0x2994
 
 	// ...
 

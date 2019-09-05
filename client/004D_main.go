@@ -22,6 +22,7 @@ const (
 
 // 这里使用数组，确保在data段，固定在某个地址上
 // 如果使用string，那么读文件后对buf进行string类型转换，会memmove到堆上
+var v012E10F4 [3]uint8 // FC CF AB
 var v012E2210 uint32 = 1
 var v012E2214 = "MUCN"
 var v012E2224 uint32 = 1
@@ -47,6 +48,12 @@ var v01319D6ChWnd win.HWND // hWnd, 0x0073,1366
 var v01319D70hModule win.HMODULE
 var v01319D74hDC win.HDC     // hDC, 0x1401,11A6
 var v01319D78hGLRC win.HGLRC // hGLRC, OpenGL rendering context, 0x0001,0000
+var v01319D90 int
+var v01319D95 uint8
+var v01319D98 int
+var v01319D9C int
+var v01319DA0 int
+var v01319DB4 int
 var v01319DB8 [64]uint8
 var v01319DFC = "Chs"
 var v01319E00 = "chinese"
@@ -75,7 +82,7 @@ func (t *t3) f0043E60C() {
 
 func (t *t3) f0043E9B6() {
 	// ...
-	f00DE8A70() // 0x152C
+	f00DE8A70chkstk() // 0x152C
 	if v08C88E08 == 0 {
 		return
 	}
@@ -85,12 +92,11 @@ func (t *t3) f0043E9B6() {
 
 	var ebp18, ebp24 [11]uint8 // username, pwd
 	f00DE8100memset(ebp18[:], 0, 11)
-	t.f200h.f50h(ebp18[:], 11)       // fill username
-	f00DE8100memset(ebp24[:], 0, 11) // fill pwd
+	t.f200h.f50h(ebp18[:], 11)       // f00342929, fill username
+	f00DE8100memset(ebp24[:], 0, 11) // f00452929, fill pwd
 	t.f204h.f50h(ebp24[:], 11)
 
-	// 可能是字符串合法性验证
-	// f0043EE13(ebp18[:])
+	// f0043EE13(ebp18[:]) // 判断字符串长度
 	// f0043EE13(ebp24[:])
 	if v08C88E08 != 2 {
 		return
@@ -114,15 +120,15 @@ func (t *t3) f0043E9B6() {
 	f00DE8100memset(ebp3C[:], 0, 11)
 	f00DE7C90memcpy(ebp30[:], ebp18[:], 10)
 	f00DE7C90memcpy(ebp3C[:], ebp24[:], 10)
-	f0043B750(ebp30[:], 10) // 与igc.dll的TOOLTIP_FIX_XOR_BUFF一样了，可能有问题
-	f0043B750(ebp3C[:], 10) // 与igc.dll的TOOLTIP_FIX_XOR_BUFF一样了，可能有问题
+	f0043B750xor(ebp30[:], 10) // 与igc.dll的TOOLTIP_FIX_XOR_BUFF一样了，可能有问题
+	f0043B750xor(ebp3C[:], 10) // 与igc.dll的TOOLTIP_FIX_XOR_BUFF一样了，可能有问题
 
-	ebp14BClogin.f00439298writeEnc(ebp30[:], 10, true)    // 写username
-	ebp14BClogin.f00439298writeEnc(ebp3C[:], 10, true)    // 写pwd
+	ebp14BClogin.f00439298writeBuf(ebp30[:], 10, true)    // 写username
+	ebp14BClogin.f00439298writeBuf(ebp3C[:], 10, true)    // 写pwd
 	ebp14BClogin.f0043EDF5writeUint32(win.GetTickCount()) // 写时间戳
 	ebp14C0 := 0
 	for ebp14C0 < 5 {
-		ebp14BClogin.f004397B1writeUint8(v012E4018[ebp14C0] - (ebp14C0 + 1)) // 写版本 VERSION_HOOK1
+		ebp14BClogin.f004397B1writeUint8(v012E4018[ebp14C0] - byte(ebp14C0+1)) // 写版本 VERSION_HOOK1
 		ebp14C0++
 	}
 	ebp14C0 = 0
@@ -137,9 +143,23 @@ func (t *t3) f0043E9B6() {
 	// ...
 }
 
-func f0043B750(buf []uint8, len int) {}
-func f004A7D34()                     {}
-func f004A9146()                     {}
+func f0043B750xor(buf []uint8, len int) {
+	ebp4 := 0
+	for ebp4 < len {
+		// mov eax, dowrd ptr ss:[ebp-4]
+		// cdq ;Convert Double to Quad 把EAX的第31bit复制到EDX的每一个bit上
+		// push 3
+		// pop ecx
+		// idiv ecx ;idiv为有符号除法, div为无符号除法
+		// 如果除数为8位，则被除数为16位，则结果的商存放与al中，余数存放于ah中。
+		// 如果除数为16位，则被除数为32位，则结果的商存放与ax中，余数存放于dx中。
+		// 如果除数为32位，则被除数为64位，则结果的商存放与eax中，余数存放于edx中
+		buf[ebp4] ^= v012E10F4[ebp4%3]
+		ebp4++
+	}
+}
+func f004A7D34() {}
+func f004A9146() {}
 
 func f004D52AB(fileName []uint8, cmd string) bool {
 	// 从命令行字符串中提取出应用程序名，也就是main.exe，存到fileName数组中
@@ -509,6 +529,9 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 	// var ebp_4 uint32 = 0x004D7CF2 // 一个函数指针
 	var ebp_8 uint32 = 0x0A
 
+	// ebpC := win.CreateMutex
+	var ebpC win.HANDLE
+
 	// if _00DE7C00() < 1 { // jae -> jmp
 	// 启动mu.exe然后退出
 	// }
@@ -593,8 +616,8 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 	bRet = f00B4C1B8()
 	if !bRet { // if false, disable GameGurad
 		// gg init error
-		// _004D51C8()
-		// _004D9335()
+		// f004D51C8()
+		// f004D9335()
 		// f004D9F88()
 		return
 	}
@@ -662,11 +685,10 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 	var msg win.MSG
 	// 消息循环
 	for {
-		if msg.Message == 0x10 || // WM_CLOSE
-			msg.Message == 0x12 { // WM_QUIT
+		if msg.Message == win.WM_CLOSE ||
+			msg.Message == win.WM_QUIT {
 			break
 		}
-
 		if win.PeekMessage(&msg, 0, 0, 0, 0) {
 			// win.ImmIsUIMessage()
 			if msg.Message == 0x100 || // WM_KEYFIRST, WM_KEYDOWN
@@ -685,14 +707,65 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 			win.DispatchMessage(&msg) // 到WndProc
 		} else {
 			if v012E2224 == 0 {
+				v01319D9C++
+				if v01319D9C > 30 {
+					v01319D98++
+					if v01319D98 > 30 {
+						v01319D9C = 0
+						v01319D98 = 0
+						if v01319DB4 == 0 {
+							var packet pb
+							packet.f00439178init()
+							packet.f0043922CwritePrefix(0xC1, 0xF1)
+							packet.f004397B1writeUint8(3)
+							packet.f004397B1writeUint8(1)
+							packet.f004397B1writeUint8(0)
+							packet.f004393EAsend(true, false)
+							packet.f004391CF()
+							v01319DB4 = 1
+						}
+						win.SetTimer(v01319D6ChWnd, 1001, 1000, 0)
+						// v086A3B94 = f007452FD
+					}
 
-			} else if v012E2224 == 1 {
-
+					// 窗口非最小化
+					if !win.IsIconic(v01319D6ChWnd) {
+						v01319D98 = 0
+						v01319D9C = 0
+					}
+				}
+			}
+			if v012E2224 == 1 || v01319D95 != 0 {
+				f004E6233(v01319D74hDC) // 网络处理
+			} else if v012E2224 == 0 {
+				win.SetForegroundWindow(v01319D6ChWnd)
+				win.SetFocus(v01319D6ChWnd)
+				if v01319DA0 > 1 {
+					win.SetTimer(v01319D6ChWnd, 1001, 1000, 0) // 定时器id=1001，1秒触发
+					win.PostMessage(v01319D6ChWnd, 10, 0, 0)
+				} else {
+					v01319DA0++
+					v01319D90 = 1
+					win.ShowWindow(v01319D6ChWnd, win.SW_MINIMIZE)
+					v01319D90 = 0
+					win.ShowWindow(v01319D6ChWnd, win.SW_MAXIMIZE)
+				}
 			}
 		}
 		f00760292(&v08C88FF0, 0, 0) // 业务逻辑，比较重要
 		// v01319D2C.f004B9492()
 	}
+
+	// 退出消息循环
+	// f00535963()
+	if v01319D68 != nil {
+		//v01319D68.f004D9335(1) // 释放
+		v01319D68 = nil
+	}
+	win.CloseHandle(ebpC)
+	//f004D56B2()
+	// ebp1.f004D9F88()
+	//return ebp20
 }
 
 var v08C88F60 uint8
@@ -714,7 +787,7 @@ var v086105EC struct {
 func f004D8FF5() {
 	// SEH
 	var ebp1494heartbeat pb
-	f00DE8A70() // 0x1488
+	f00DE8A70chkstk() // 0x1488
 
 	if v08C88F64 == 0 {
 		return
@@ -751,6 +824,7 @@ func (t *t08C8D014) f00B98FC0(p *conn, x *int) {
 
 }
 
+var v086A3B94 func()
 var v086A3C28 int
 
 // 业务逻辑，这个函数被花了
@@ -864,9 +938,9 @@ func f00760292(t *conn, x, y uint32) {
 }
 
 // 网络
-func f004E6233() {
+func f004E6233(hDC win.HDC) {
 
-	// _004E4F1C
+	// f004E4F1C
 	func() {
 		// 很复杂 0x004E4F1C ~ 0x004E6232，不到5000行并且几乎都是函数调用
 		// ...
@@ -876,12 +950,12 @@ func f004E6233() {
 		ebp40C := v012E2340
 		switch ebp40C {
 		case 2:
-			// _004E1E1E
+			// f004E1E1E
 			func() {
 				// 带SEH
-				f00DE8A70()
+				f00DE8A70chkstk()
 
-				// _004E1CEE
+				// f004E1CEE
 				func() {
 					// _006BF89A 拨号
 					func(ip string, port int) {
@@ -893,10 +967,10 @@ func f004E6233() {
 				}()
 			}()
 		case 4:
-			// _004DDD4F
+			// f004DDD4F
 			func() {}()
 		case 5:
-			// _004DF0D5
+			// f004DF0D5
 			func() {}()
 		}
 
