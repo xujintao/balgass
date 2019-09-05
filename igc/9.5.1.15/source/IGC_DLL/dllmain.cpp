@@ -138,6 +138,67 @@ void SpeedCheckThread()
 {
 //	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)SpeedCheckThread, NULL, NULL, NULL);
 }*/
+
+void __declspec(naked) LoginHook1() {
+	__asm {
+		push 0x15;
+		push 0;
+		lea eax, ss:[ebp - 0x30];
+		push eax;
+		mov edx, 0x00DE8100; // 1.04R
+		call edx;
+		add esp, 0xC;
+		push 0x15;
+		lea eax, ss:[ebp - 0x30];
+		push eax;
+		mov edx, 0x0043EA62; // 1.04R
+		jmp edx;
+	}
+}
+
+void __declspec(naked) LoginHook2() {
+	__asm {
+		lea eax, ss:[ebp - 0x30];
+		push eax;
+		mov edx, 0x0043EE13; // 1.04R
+		call edx;
+		mov edx, 0x0043EAAB; // 1.04R
+		jmp edx;
+	}
+}
+
+void __declspec(naked) LoginHook3() {
+	__asm {
+		push 0xA;
+		lea eax, ss:[ebp - 0x18];
+		push eax;
+		mov edx, 0x0043B750; // 1.04R
+		call edx;
+		pop ecx;
+		pop ecx;
+		push 0x14;
+		lea eax, ss:[ebp - 0x30];
+		push eax;
+		mov edx, 0x0043B750; // 1.04R
+		call edx;
+		pop ecx;
+		pop ecx;
+		push 1;
+		push 0xA;
+		lea eax, ss:[ebp - 0x18];
+		push eax;
+		lea ecx, ss:[ebp - 0x14BC];
+		mov edx, 0x00439298; // 1.04R
+		call edx;
+		push 1;
+		push 0x14;
+		lea eax, ss:[ebp - 0x30];
+		push eax;
+		mov edx, 0x0043EBC7; // 1.04R
+		jmp edx;
+	}
+}
+
 void SetValues()
 {
 	DWORD OldProtect;
@@ -157,6 +218,9 @@ void SetValues()
 	MemAssign(0x00E1A4AC, (WORD)0x90C3); // 1.04R, 6A 02->C3 90, push 02->ret, fix r6602 floating point support not loaded, search cmd "mov dword ptr ds:[ebx+0xC], esi"
 	//MemSet(0x0ABD696B, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable main.exe version match
 	MemSet(0x0AD33703, 0xC3, 1); // 1.04R, 55->C3, push ebp->ret, disable some encode
+	HookThis(0x0043EA4C, 7, (DWORD)&LoginHook1); // 1.04R, extend pwd length, fill pwd buf
+	HookThis(0x0043EAA2, 9, (DWORD)&LoginHook2); // 1.04R, extend pwd length, validate pwd length
+	HookThis(0x0043EB4E, 7, (DWORD)&LoginHook3); // 1.04R, extend pwd length, xor pwd buf
 
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
