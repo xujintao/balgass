@@ -442,10 +442,21 @@ func (t *t4000) f004A9B5B() {
 
 var v08C88E08 uint32 // 可能是状态
 var v08C88E0C int
-var v012E4018 = "22789" // 版本怎么会是这个？
-var v012E4020 = "M7B4VM4C5i8BC49b"
+var v012E4018 = "22789"            // 版本怎么会是这个？
+var v012E4020 = "M7B4VM4C5i8BC49b" // serial
 
-type t1 struct{}
+type t5 struct{}
+
+func (t *t5) f007C483A(x *t6) {}
+func (t *t5) f007C4B15()      {}
+
+type t6 struct{}
+
+func (t *t6) f007C522A(x int, y *t1) {}
+
+type t1 struct {
+	f18 int
+}
 
 func (t *t1) f007BF63B() {
 	// f007C47D3
@@ -467,12 +478,25 @@ func (t *t1) f007BF63B() {
 
 // 好复杂 12500行的汇编代码
 func (t *t1) f007BF68F() {}
+func (t *t1) f007C2763(flag uint8, buf []uint8, len uint16) {
+	var ebpC t5
+	t.f007C4A65(&ebpC, &flag)
+	var ebp14 t6
+	ebpC.f007C483A(t.f007C4858(&ebp14))
+	ebpC.f007C4B15()
+	// ...
+}
+func (t *t1) f007C4A65(x *t5, flagp *uint8) {}
+func (t *t1) f007C4858(x *t6) *t6 {
+	x.f007C522A(t.f18, t)
+	return x
+}
 
 // pb
 type pb struct {
 	// len   uint16
-	// buf   []uint8
-	buf   [5210]uint8 // 0x145A
+	// buf   [5210]uint8 // 0x145A
+	buf   [5212]uint8 // 0x145C
 	f145C t1
 }
 
@@ -547,8 +571,8 @@ func (t *pb) f0043930Cenc(begin, end, interval int) {
 func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 	// t.f00439612() 写len
 	func() {}()
-	// t.f0043968F()
-	func() {}()
+
+	t.f0043968F() // hook到 igc.dll了，直接ret
 
 	// f00439420
 	// hook到 IGC.dll
@@ -596,6 +620,27 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 		// ...
 
 	}(t.buf[2:], int(*(*uint16)(unsafe.Pointer(&t.buf[0]))), needEnc, isC2)
+}
+
+func (t *pb) f0043968F() {
+	var ebp4len uint16
+	var ebp8buf []uint8
+	var ebp9code uint8
+	if t.buf[2] == 0xC1 {
+		ebp4len = uint16(t.buf[3])
+		ebp9code = t.buf[4]
+		ebp8buf = t.buf[5:]
+		ebp4len -= 3
+
+	}
+	if t.buf[2] == 0xC2 {
+		ebp4len = uint16(t.buf[3]<<8 + t.buf[4])
+		ebp9code = t.buf[5]
+		ebp8buf = t.buf[6:]
+		ebp4len -= 4
+	}
+
+	t.f145C.f007C2763(ebp9code, ebp8buf, ebp4len)
 }
 
 func (t *pb) f0043974FwriteZero(x int) {
