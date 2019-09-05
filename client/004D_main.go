@@ -80,6 +80,7 @@ func (t *t3) f0043E60C() {
 	// ...
 }
 
+// s9 006E855E
 func (t *t3) f0043E9B6() {
 	// ...
 	f00DE8A70chkstk() // 0x152C

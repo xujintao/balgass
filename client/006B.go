@@ -526,7 +526,7 @@ func (t *pb) f0043930Cenc(begin, end, interval int) {
 	var buf = [32]uint8{
 		0xAB, 0x11, 0xCD, 0xFE,
 		0x18, 0x23, 0xC5, 0xA3,
-		0xC1, 0x33, 0xC1, 0xCC,
+		0xCA, 0x33, 0xC1, 0xCC,
 		0x66, 0x67, 0x21, 0xF3,
 		0x32, 0x12, 0x15, 0x35,
 		0x29, 0xFF, 0xFE, 0x1D,
@@ -538,12 +538,12 @@ func (t *pb) f0043930Cenc(begin, end, interval int) {
 		if ebp24 == end {
 			break
 		}
-		ebp24 %= 32                                     // 有符号和无符号是什么区别？
-		t.buf[ebp24+2] ^= (t.buf[ebp24+1] ^ buf[ebp24]) // t.buf[5] ^= t.buf[4] ^ buf[3]
+		t.buf[ebp24+2] ^= (t.buf[ebp24+1] ^ buf[ebp24]%32) // t.buf[5] ^= t.buf[4] ^ buf[3%32]
 		ebp24 += interval
 	}
 }
 
+// s9 00439378
 func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 	// t.f00439612() 写len
 	func() {}()
