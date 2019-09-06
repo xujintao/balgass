@@ -176,6 +176,10 @@ func (p *t1000) f00B38AE4printf(format string, a ...interface{}) []uint8 {
 	return buf[:]
 }
 
+func (p *t1000) f00B38B43(buf []uint8, len int) {
+	// 打印缓存
+}
+
 func (p *t1000) f00B38D19cut() {
 	p.f00B38AE4printf("-----------------\r\n")
 }

@@ -753,7 +753,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 				}
 			}
 		}
-		f00760292(&v08C88FF0, 0, 0) // 业务逻辑，比较重要
+		f00760292parse(&v08C88FF0, 0, 0) // 从连接中获取报文并解析
 		// v01319D2C.f004B9492()
 	}
 
@@ -770,6 +770,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 }
 
 var v08C88F60 uint8
+var v08C88F61 uint8
 var v08C88F62 int
 var v08C88F64 int
 var v08C88F74 int
@@ -816,127 +817,8 @@ func f004D9F88() {}
 var v0075FF6Acmd []struct{}
 var v0075FCB2cmd []struct{}
 
-// t08C8D014
-var v08C8D014 t08C8D014
-
-type t08C8D014 struct{}
-
-func (t *t08C8D014) f00B98FC0(p *conn, x *int) {
-
-}
-
 var v086A3B94 func()
 var v086A3C28 int
-
-// 业务逻辑，这个函数被花了
-// hook到 igc.dll了
-func f00760292(t *conn, x, y uint32) {
-	var ebp18 []uint8 // t.t2002
-	var ebp14typ int
-	var ebp10 int
-	var ebp181A int
-	switch ebp18[0] {
-	case 0xC1:
-		ebp14typ = int(ebp18[2])
-	case 0xC2:
-		ebp14typ = int(ebp18[3])
-		ebp10 = int(ebp18[1]<<8 + ebp18[2])
-	case 0xC3:
-		ebp10 = int(ebp18[1])
-		v08C8D014.f00B98FC0(t, &ebp181A)
-	case 0xC4:
-	}
-	v086A3C28 += ebp10 // 累计接收字节数
-	if y == 1 {
-	}
-
-	ebp1820 := 0
-
-	// _0075C3B2 被花到 0x009FE6362
-	func(typ int, buf []uint8, len int, x int) {
-		ebp5D8 := typ
-		if ebp5D8 > 0xFD {
-		}
-
-		// 寻找处理器
-		// v0075FCB2cmd[4*v0075FF6Acmd[ebp5D8]]
-
-		// 0x00 处理器
-		// _006FA9EB
-		func(buf []uint8) {
-			// 业务逻辑很复杂
-			// send c1 04 f4 06
-		}(buf)
-
-		// 0xF1 处理器
-		ebp4 := buf
-		ebp5DC := ebp4[3]
-		if ebp5DC > 4 {
-		}
-		switch ebp5DC {
-		case 4:
-		case 0: // version match, buf: 01 2E 87 "10525"
-			// _006C75A7 被花到 0x0A4E7A49
-			func(buf []uint8) {
-				ebp4 := buf
-				ebp10 := buf[4]
-				if ebp10 == 1 {
-					ebp8 := &v0130F728
-					ebp8.f004A9123(&ebp8.f4880)
-				}
-				v08C88E0C = int(ebp4[5]<<8 + ebp4[6])
-				v08C88E08 = 2
-				var ebpC uint8
-				if ebpC >= 5 {
-				}
-				for {
-					if v012E4018[ebpC]-ebpC-1 != ebp4[7+ebpC] { // 改为jmp
-						break
-					}
-					ebpC++
-					if ebpC >= 5 {
-						break
-					}
-				}
-
-				// _004A9146
-				func() {}()
-
-				// _004A9EEB
-				func() {}()
-				v01319E08log.f00B38AE4printf("Version dismatch - Join server.\r\n")
-				// _0051FB61
-				func() {}()
-			}(buf)
-		}
-
-		// 0xFA 处理器(没有)
-
-		// 0xF4 处理器
-		if buf[0] == 0xC1 {
-		}
-		ebp1C := buf
-		ebp14 := ebp1C[4]
-		ebp5EC := ebp14
-		switch ebp5EC {
-		case 3:
-		case 5:
-		case 6:
-			// _006BFA3E
-			func(buf []uint8) {
-				ebp4 := 6
-				// ebp9 := buf[ebp4]
-				ebp4++
-				if ebp14 >= buf[5]<<8|1 {
-				}
-				// ebp18 := buf[ebp4:]
-			}(buf)
-		}
-	}(ebp14typ, ebp18, ebp10, ebp1820)
-
-	// _006BDC33
-	func() {}()
-}
 
 // 网络
 func f004E6233(hDC win.HDC) {

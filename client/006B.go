@@ -361,6 +361,10 @@ func (t *conn) f006BD945write() int {
 	return 0
 }
 
+func (t *conn) f006BDC33() []uint8 {
+	return nil
+}
+
 // 发送协议报文
 func (t *conn) f004397E3write(buf []uint8, len int) int {
 	// ebp10 := t // ecx也要落到栈上
