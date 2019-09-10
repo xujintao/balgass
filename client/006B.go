@@ -406,6 +406,38 @@ func (t *conn) f004397E3write(buf []uint8, len int) int {
 	return 0
 }
 
+type t4002 struct {
+	f04 [10]uint8
+	f18 int
+}
+
+func (t *t4002) f00406EB0(buf []uint8, len int) {
+	if t.f18 < 16 {
+		// if buf < t.f04[:] {
+
+		// }
+	}
+	if t.f18 < 16 {
+		// t.f04[]
+	}
+}
+
+func (t *t4002) f00406F90(buf []uint8) {
+	len := 0
+	for _, v := range buf {
+		if v == 0 {
+			break
+		}
+		len++
+	}
+
+	t.f00406EB0(buf, len)
+}
+
+func (t *t4002) f0043D7E2(buf []uint8) {
+	t.f00406F90(buf)
+}
+
 // t4001
 type t4001 struct {
 	fs []func()
@@ -417,6 +449,9 @@ var v0130F728 t4000
 type t4000 struct {
 	data  [4880]uint8
 	f4880 t4001 // 01313FA8
+	f9DD8 int
+	f9FE4 int
+	f9FEC *t4002 // v01319714
 }
 
 func (t *t4000) f004A9083(p *t4001) {}
@@ -442,6 +477,17 @@ func (t *t4000) f004A9B5B() {
 		var t *t3
 		t.f0043E60C() // v01313FA8.f0043E60C 发送login报文
 	}()
+}
+
+func (t *t4000) f004A9F3B(buf []uint8) {
+	if len(buf) == 0 {
+		return
+	}
+	if t.f9FE4 == 4 {
+		// t.f9DD8.f00445A2A(buf)
+	} else {
+		t.f9FEC.f0043D7E2(buf)
+	}
 }
 
 var v08C88E08 uint32 // 可能是状态

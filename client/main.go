@@ -159,8 +159,8 @@ func f0043B750xor(buf []uint8, len int) {
 		ebp4++
 	}
 }
-func f004A7D34() {}
-func f004A9146() {}
+func f004A7D34() *t4000 {}
+func f004A9146()        {}
 
 func f004D52AB(fileName []uint8, cmd string) bool {
 	// 从命令行字符串中提取出应用程序名，也就是main.exe，存到fileName数组中

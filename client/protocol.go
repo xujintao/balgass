@@ -1,5 +1,153 @@
 package main
 
+type command struct {
+	code     int
+	handle   func(buf []uint8, len int) bool
+	comamnds []*command
+}
+
+var cmds = []*command{
+	{0x00, handle00, nil},
+	{0x01, handle01, nil},
+	{0x02, handle02, nil},
+	{0x0D, f007087BFhandle0D, nil},
+	{0xF1, nil, []*command{
+		{0x00, handleF100versionmatch, nil},
+		{0x04, handleF104, nil},
+	}},
+	{0xFA, nil, nil},
+	{0xF4, nil, []*command{
+		{0x03, handleF403, nil},
+		{0x05, handleF405, nil},
+		{0x06, handleF406, nil},
+	}},
+}
+
+func handlecmd(code int, subcode int, buf []uint8, len int) bool {
+	for _, cmd := range cmds {
+		if code == cmd.code {
+			if cmd.handle != nil {
+				return cmd.handle(buf, len)
+			}
+			for _, subcmd := range cmd.comamnds {
+				if subcode == subcmd.code {
+					return subcmd.handle(buf, len)
+				}
+			}
+		}
+	}
+	return true
+}
+
+func handle00(buf []uint8, len int) bool { return true }
+func handle01(buf []uint8, len int) bool { return true }
+func handle02(buf []uint8, len int) bool { return true }
+func f007087BFhandle0D(buf []uint8, len int) bool {
+	switch buf[3] {
+	case 0:
+	case 1:
+		if v012E2340 == 4 {
+			ebp14 := f004A7D34()
+			ebp14.f004A9F3B(buf[13:]) // "you are logged in as Free Player"
+		}
+	}
+	return true
+}
+func handleF100versionmatch(buf []uint8, len int) bool { return true }
+func handleF104(buf []uint8, len int) bool             { return true }
+func handleFA(buf []uint8, len int) bool               { return true }
+func handleF403(buf []uint8, len int) bool             { return true }
+func handleF405(buf []uint8, len int) bool             { return true }
+func handleF406(buf []uint8, len int) bool             { return true }
+
+// cmd hook
+var cmdhooks = []*command{
+	{0xF1, nil, []*command{
+		{0x00, joinResultSend, nil},
+	}},
+	{0xF3, nil, []*command{
+		{0x03, charMapJoinResult, nil},
+		{0x04, charRegen, nil},
+		{0x05, levelUpSend, nil},
+		{0x06, levelUpPointAdd, nil},
+		{0x51, masterLevelUpSend, nil},
+	}},
+	{0xBF, nil, []*command{
+		{0x51, ansMuBotRecvUse, nil},
+	}},
+	{0xF4, nil, []*command{
+		{0x03, reconnect, nil},
+	}},
+	{0xCA, friendRoomCreate, nil},
+	{0xD4, AHCheckGetTickHook, nil},
+	{0xFA, nil, []*command{
+		{0x0D, offTradeReq, nil},
+		{0x10, customPost, nil},
+		{0x11, customPost, nil},
+		{0x12, setChatColors, nil},
+		{0x90, IGCStatAdd, nil},
+		{0xA0, enableSiegeSkills, nil},
+		{0xA2, setAgilityFix, nil},
+		{0xA3, setCashItemMoveEnable, nil},
+		{0xA4, luckyItemFix, nil}, // 区分C1和C2
+		{0xA5, disableReconnect, nil},
+		{0xA6, handleExitProcess, nil},
+		{0xA7, disableReconnectSystem, nil},
+		{0xA8, alterPShopVault, nil},
+		{0xB0, dropSellMod, nil},
+		{0xF8, setBattleZoneData, nil},
+	}},
+	{0x11, attackResult, nil},
+	{0x17, diePlayerSend, nil},
+	{0x26, refillSend, nil},
+	{0x27, manaSend, nil},
+}
+
+func handlecmdhook(code int, subcode int, buf []uint8, len int) bool {
+	for _, cmd := range cmdhooks {
+		if code == cmd.code {
+			if cmd.handle != nil {
+				return cmd.handle(buf, len)
+			}
+			for _, subcmd := range cmd.comamnds {
+				if subcode == subcmd.code {
+					return subcmd.handle(buf, len)
+				}
+			}
+		}
+	}
+	return true
+}
+
+func joinResultSend(buf []uint8, len int) bool         { return true }
+func charMapJoinResult(buf []uint8, len int) bool      { return true }
+func charRegen(buf []uint8, len int) bool              { return true }
+func levelUpSend(buf []uint8, len int) bool            { return true }
+func levelUpPointAdd(buf []uint8, len int) bool        { return true }
+func masterLevelUpSend(buf []uint8, len int) bool      { return true }
+func ansMuBotRecvUse(buf []uint8, len int) bool        { return true }
+func reconnect(buf []uint8, len int) bool              { return true }
+func friendRoomCreate(buf []uint8, len int) bool       { return true }
+func AHCheckGetTickHook(buf []uint8, len int) bool     { return true }
+func offTradeReq(buf []uint8, len int) bool            { return true }
+func customPost(buf []uint8, len int) bool             { return true }
+func setChatColors(buf []uint8, len int) bool          { return true }
+func IGCStatAdd(buf []uint8, len int) bool             { return true }
+func enableSiegeSkills(buf []uint8, len int) bool      { return true }
+func setAgilityFix(buf []uint8, len int) bool          { return true }
+func setCashItemMoveEnable(buf []uint8, len int) bool  { return true }
+func luckyItemFix(buf []uint8, len int) bool           { return true }
+func disableReconnect(buf []uint8, len int) bool       { return true }
+func handleExitProcess(buf []uint8, len int) bool      { return true }
+func disableReconnectSystem(buf []uint8, len int) bool { return true }
+func alterPShopVault(buf []uint8, len int) bool        { return true }
+func dropSellMod(buf []uint8, len int) bool            { return true }
+func setBattleZoneData(buf []uint8, len int) bool      { return true }
+func attackResult(buf []uint8, len int) bool           { return true }
+func diePlayerSend(buf []uint8, len int) bool          { return true }
+func refillSend(buf []uint8, len int) bool             { return true }
+func manaSend(buf []uint8, len int) bool               { return true }
+
 // t08C8D014
 var v08C8D014encrypt packetEncrypt
 
@@ -11,8 +159,8 @@ func f00735DC7(uk1 int, code int, buf []uint8, len int, enc int) {
 
 }
 
-func f0075C3B2(flag int, buf []uint8, len int, x int) {
-	ebp5D8 := flag
+func f0075C3B2(code int, buf []uint8, len int, x int) {
+	ebp5D8 := code
 	if ebp5D8 > 0xFD {
 	}
 
@@ -93,7 +241,7 @@ func f0075C3B2(flag int, buf []uint8, len int, x int) {
 }
 
 // hook到 igc.dll了
-func f00760292parse(conn *conn, x, y int) {
+func f00760292parse(conn *conn, unk1, unk2 int) {
 	// SEH
 	f00DE8A70chkstk() // 0x5F5C
 
@@ -188,8 +336,8 @@ func f00760292parse(conn *conn, x, y int) {
 		v086A3C28 += ebp10len // 累计接收字节数
 
 		//
-		if x == 1 {
-			f00735DC7(y, ebp14code, ebp18buf, ebp10len, ebp1820enc)
+		if unk1 == 1 {
+			f00735DC7(unk2, ebp14code, ebp18buf, ebp10len, ebp1820enc)
 		} else {
 			f0075C3B2(ebp14code, ebp18buf, ebp10len, ebp1820enc)
 		}
