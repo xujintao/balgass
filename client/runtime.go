@@ -353,7 +353,144 @@ func f00DF0805(buf []uint8, format string, a ...interface{}) {
 	f00DF0787(buf, format, nil, a...)
 }
 
-// OEP
+var v00DF490A [0x5B]uint8
+var v0B2BE8D6 [0x19]uint8
+var v0B2BE90B [0x58]uint8
+
+// shell entry point
+func f00DF490A() {
+	// vp := win.GetProcAddress(win.LoadLibrary("kernel32.dll"), "virtualProtect")
+	// var oldProtect uint32
+	// vp(0x00DF490A, 0x5B, 0x40, &oldProtect) // PAGE_EXECUTE_READWRITE
+	// vp(0x0B2BE8D6, 0x19, 0x40, &oldProtect) // PAGE_EXECUTE_READWRITE
+	// jmp 0x0B2BE8D6
+}
+
+func f0B2BE8D6() {
+	// f00DE7C90memcpy(v00DF490A[:], v0B2BE90B[:], len(v00DF490A))
+	// jmp 0x00DF490A
+}
+
+func f0B2BE90B() {
+	// E8 4A89BDFF ;call 0x006CD259, f006CD259
+	// E9 78FEFFFF ;jmp 0x00DF478C
+}
+
+var v0082505D uint32  // 0x6A7B9E4D
+var v00825070 uintptr // 0x00400000
+
+func f0082508F(start uintptr, size uint32) int{
+	if size == 0 {
+		// 0x00A10652
+		return 0
+	}
+
+	// 0x00825049
+	ebp1C := struct {
+		baseAddress       uintptr
+		allocationBase    uintptr
+		allocationProtect uint32
+		regionSize        uint32
+		state             uint32
+		protect           uint32
+		dwtype            uint32
+	}{
+		baseAddress:       0x00400000,
+		allocationBase:    0x00400000,
+		allocationProtect: 0x80, // PAGE_EXECUTE_WRITECOPY
+		regionSize:        0x1000,
+		state:             0x1000,     // MEM_COMMIT
+		protect:           2,          // PAGE_READONLY
+		dwtype:            0x01000000, //MEM_IMAGE
+	}
+	// win.VirtualQuery(start, ebp1C[:], 28) // 内存布局中region的概念
+
+	// 0x00A0B204
+	ebp1C.protect &= 0x80
+	if int8(ebp1C.protect) < 0 {
+		// 0x00A10657
+		return 1
+	}
+	// 0x0075ACD9
+	// win.VirtualProtect(start, size, win.PAGE_EXECUTE_READWRITE, &ebp1C.protect)
+
+	// 0x00825022
+	return 1
+}
+}
+
+// 壳逻辑
+func f006CD259() {
+	// push eax
+	// push ecx
+	// push esi
+	// pushfd
+	// push edx
+	// push ebx
+	// push edi
+
+	// 0x007269EA
+	ret := func() int {
+		ebp8 := v00825070
+		if v0082505D == 0 {
+			return 0
+		}
+
+		// 0x00825061
+		ebp2C := struct {
+			dummyName  uint32
+			dwPageSize uint32
+			data       [24]uint8
+		}{0, 0x1000}
+		// win.GetSystemInfo(&ebp2C)
+
+		// 修改PE段访问权限
+		f0082508F(ebp8, ebp2C.dwPageSize-1) // (0x00400000, 0x00001000)
+
+		// 0x005C751F
+		var ebp4 uint
+		// 0x0082500A
+		addr := func(start, x *uint) uintptr {
+			var tmp uintptr = *(start + 0x3C) + start + 4 // 0x00400144
+			if tmp == 0 {
+				return tmp
+			}
+
+			// 0x00824FF8
+			*x = *(*uint16)(tmp + 2)          // 0x00400146结果是4
+			return tmp + *(tmp + 70)*8 + 0x74 // 0x004001B4结果是10, 0x00400238结果是".text"
+		}(ebp8, &ebp4)
+
+		// 0x0082502A
+		if ebp4 <= 0 {
+			v0082505D = 0
+			return 0 // 0x00400238
+		}
+
+		// 0x00A1063F
+		addrtextoffset := addr + 0x0C // 0x0040244
+		addrtextsize := addr + 0x08   // 0x0040240
+		ebx := addr + 0x24            // 0x004025C
+		// 0x00825080
+		if *(*uint8)(ebx + 3) != 0x10 { // 这里比较有问题，0x60和0x10不等
+			// 0x006F4DE8
+		}
+		// 0x0079ACB5
+		// 修改text段访问权限
+		f0082508F(ebp8+addrtextoffset, *addrtextsize) // (0x00401000, 0x00D48000)
+
+		return 0
+	}()
+	// pop edi
+	// pop ebx
+	// pop edx
+	// popfd
+	// pop esi
+	// pop ecx
+	// pop eax
+}
+
+// OEP 0x00DF478C
 func main() {
 	// check pe
 

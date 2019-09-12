@@ -159,7 +159,7 @@ func f0043B750xor(buf []uint8, len int) {
 		ebp4++
 	}
 }
-func f004A7D34() *t4000 {}
+func f004A7D34() *t4000 { return nil }
 func f004A9146()        {}
 
 func f004D52AB(fileName []uint8, cmd string) bool {
