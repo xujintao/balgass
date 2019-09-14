@@ -376,10 +376,17 @@ func f0B2BE90B() {
 	// E9 78FEFFFF ;jmp 0x00DF478C
 }
 
-var v0082505D uint32  // 0x6A7B9E4D
-var v00825070 uintptr // 0x00400000
+var v0082505D uint32           // 0x6A7B9E4D
+var v00825070imageBase uintptr // 0x00400000
+var v0A327567imageBase uint32 = 0x00400000
+var v0A0032DB uint32 = 0x1CA9625E
+var v09E2BC68 uint32 = 0x2DBE21DC
+var v0A8FE0E0 uint32 = 0x12A225EC
+var v0A746588 uint32 = 0xF7598681
+var v0AAB950C uint32 = 0x1000
+var v0AF77FE4 uint32 = 0x839A83C7
 
-func f0082508F(start uintptr, size uint32) int{
+func f0082508F(imageBase uintptr, size uint32) int {
 	if size == 0 {
 		// 0x00A10652
 		return 0
@@ -403,7 +410,7 @@ func f0082508F(start uintptr, size uint32) int{
 		protect:           2,          // PAGE_READONLY
 		dwtype:            0x01000000, //MEM_IMAGE
 	}
-	// win.VirtualQuery(start, ebp1C[:], 28) // 内存布局中region的概念
+	// win.VirtualQuery(imageBase, ebp1C[:], 28) // 内存布局中region的概念
 
 	// 0x00A0B204
 	ebp1C.protect &= 0x80
@@ -412,11 +419,10 @@ func f0082508F(start uintptr, size uint32) int{
 		return 1
 	}
 	// 0x0075ACD9
-	// win.VirtualProtect(start, size, win.PAGE_EXECUTE_READWRITE, &ebp1C.protect)
+	// win.VirtualProtect(imageBase, size, win.PAGE_EXECUTE_READWRITE, &ebp1C.protect)
 
 	// 0x00825022
 	return 1
-}
 }
 
 // 壳逻辑
@@ -429,9 +435,10 @@ func f006CD259() {
 	// push ebx
 	// push edi
 
-	// 0x007269EA
+	// 0x00705113
+	// 0x007269EA, 设置所有段属性为ERWC
 	ret := func() int {
-		ebp8 := v00825070
+		ebp8imageBase := v00825070imageBase
 		if v0082505D == 0 {
 			return 0
 		}
@@ -445,42 +452,51 @@ func f006CD259() {
 		// win.GetSystemInfo(&ebp2C)
 
 		// 修改PE段访问权限
-		f0082508F(ebp8, ebp2C.dwPageSize-1) // (0x00400000, 0x00001000)
+		f0082508F(ebp8imageBase, ebp2C.dwPageSize-1) // (0x00400000, 0x00000FFF)
 
 		// 0x005C751F
-		var ebp4 uint
+		var ebp4numberofSections uint
 		// 0x0082500A
-		addr := func(start, x *uint) uintptr {
-			var tmp uintptr = *(start + 0x3C) + start + 4 // 0x00400144
-			if tmp == 0 {
-				return tmp
+		imageSectionHeader := func(imageBase uintptr, numberofSectionsp *uint) *pe.SectionHeader {
+			var fileHeader uintptr = imageBase + *(imageBase + 0x3C) + 4 // IMAGE_NT_HEADERS.IMAGE_FILE_HEADER, 0x00400144
+			if fileHeader == 0 {
+				return fileHeader
 			}
 
 			// 0x00824FF8
-			*x = *(*uint16)(tmp + 2)          // 0x00400146结果是4
-			return tmp + *(tmp + 70)*8 + 0x74 // 0x004001B4结果是10, 0x00400238结果是".text"
-		}(ebp8, &ebp4)
+			*numberofSectionsp = *(*uint16)(fileHeader + 2)   // IMAGE_NT_HEADERS.IMAGE_FILE_HEADER.NumberOfSections, 0x00400146结果是0x4
+			return fileHeader + 0x74 + *(fileHeader + 0x70)*8 // IMAGE_NT_HEADERS.IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes, 0x004001B4结果是0x10, 0x00400238结果是".text"
+		}(ebp8imageBase, &ebp4numberofSections)
 
 		// 0x0082502A
-		if ebp4 <= 0 {
+		if ebp4numberofSections <= 0 {
 			v0082505D = 0
 			return 0 // 0x00400238
 		}
 
-		// 0x00A1063F
-		addrtextoffset := addr + 0x0C // 0x0040244
-		addrtextsize := addr + 0x08   // 0x0040240
-		ebx := addr + 0x24            // 0x004025C
-		// 0x00825080
-		if *(*uint8)(ebx + 3) != 0x10 { // 这里比较有问题，0x60和0x10不等
-			// 0x006F4DE8
-		}
-		// 0x0079ACB5
-		// 修改text段访问权限
-		f0082508F(ebp8+addrtextoffset, *addrtextsize) // (0x00401000, 0x00D48000)
+		for ebp4numberofSections > 0 {
+			// 0x00A1063F
+			sectionBase := imageSectionHeader.VirtualAddress  // &textSection.VirtualAddress, 0x0040244值是0x1000
+			sectionSize := imageSectionHeader.VirtualSize     // &textSection.VirtualSize, 0x0040240值是0x00D48000
+			sectionChar := imageSectionHeader.Characteristics // &textSection.Characteristics, 0x004025C值是0x60000020, code, Execute, Read
+			// 0x00825080
+			if *(*uint8)(sectionChar + 3)&0x10 == 0 { // IMAGE_SCN_MEM_SHARED
+				// 0x0079ACB5
+				// 修改text段访问权限
+				f0082508F(ebp8imageBase+*(*uint32)(sectionBase), *(*uint32)(sectionSize)) // (0x00401000, 0x00D48000), (0x01149000, 0x00198000), (0x012E1000, 0x08AC37E4), (0x09DA5000, 0x01519966)
+			}
 
-		return 0
+			// 0x006F4DE8
+			imageSectionHeader++
+			ebp4numberofSections--
+		}
+
+		// 0x0082503D
+		v0082505D = 0
+		return 1
 	}()
+
+	// 0x00825074
 	// pop edi
 	// pop ebx
 	// pop edx
@@ -488,6 +504,209 @@ func f006CD259() {
 	// pop esi
 	// pop ecx
 	// pop eax
+
+	// 0x0A048F52
+	// push eax
+
+	// 0x0AFDE4A1
+	// push ecx
+
+	// 0x0A43CFF3
+	// push esi
+	// pushfd
+	// push edx
+
+	// 0x0A930692
+	// push ebx
+
+	// 0x09F84632
+	// push edi
+
+	// 0x0AD9893F
+	// push 0x0A56ED4A
+	// push 0x0AA31853
+	// ret
+
+	// 0x0AA31853
+	func() {
+		ebp4 := v0A327567imageBase
+		if v0A0032DB == v09E2BC68 {
+			return
+		}
+		// 0x09FD9EB3
+		// push ebx
+		// push esi
+		v0A8FE0E0 ^= 0 // 0x12A225EC
+		v0A746588 ^= 0 // 0xF7598681
+		// ebx = 0
+		// ecx = 0
+		// cmp v0AAB950C, ^uint(0)
+		// mov esi, 0x0AAB950C
+		v0AF77FE4 = 0
+
+		for {
+			// push 0x0A8466A8
+			// push ebx
+			// push eax
+			// mov ebx, [esp+8]
+			// mov eax, 0x0A55F42F
+			// cmove ebx,eax
+			// mov [esp+8], ebx
+			// pop eax
+			// pop ebx
+			// ret
+
+			if v0AAB950C == ^uint32(0) {
+				// 0x0A55F42F
+				func() {
+
+				}()
+			} else {
+				// 0x0A8466A8
+				func() {
+					// push ebx
+
+					// 0x0A4E17E5
+					var ebp8 uint32
+					// push &ebp8
+					// push 4
+
+					// 0x0ABF738E
+					var ebpC uint32
+					// push &ebpC
+
+					// 0x0A889E57
+					// push eax
+					var ebp4 uint32 = 0x00400000
+					// push ebp4
+
+					// 0x0AD36283
+					// push 0x0A0C4D0F
+					// push 0x0AAB88A1
+					// ret
+
+					// 0x0AAB88A1，使用esp偏移作为变量
+					func(unk1 uint32, pv0AAB950C *uint32, unk3 *uint32, unk4 uint32, unk5 *uint32) {
+						// 0x09DE88F1
+						// push ecx
+						eax := unk3
+
+						// 0x0A7475A4
+						ecx := unk4
+
+						// 0x09E6AAB7
+						// push ebx
+						// cmp eax, eax+ecx
+
+						// 0x09E91A45
+						// push esi
+						// push edi
+
+						// 0x0A84BA1D
+						edi := pv0AAB950C
+						unk3 = eax
+
+						// 0x0A44AD5E
+						// ebp4 := edx // 这是什么来着
+						unk4 = ecx
+
+						// 0x0A563538
+						ebx := unk5
+
+						// 0x0A745BAE
+						ecx = *ebx
+
+						// 0x0AD362DE
+						eax = *edi
+						esi := *(*uint32)(unsafe.Pointer(edi) + 4) // v0AAB9510=0x46
+						eax += ecx
+
+						// 0x0A970D30
+						eax += unk1 // 0x00401000
+						esi -= ecx  // 0x46
+						// cmp unk4, esi ;0x4 - 0x46
+						// push 0x0A4EA4E2
+
+						// 0x0AD98EF4
+						// push edx
+						// push ebx
+						// edx = [esp+8] // 0x0A4EA4E2
+
+						// 0x0AF77208
+						ebx = 0x0AFD7E1C
+						// cmovae edx, ebx
+						// [esp+8] = edx
+
+						// 0x0AF7875F
+						// pop ebx
+						// pop edx
+						// ret
+
+						if unk4 >= esi {
+							// 0x0AFD7E1C
+						} else {
+							// 0x0A4EA4E2
+							// push unk4
+							// push eax
+							// push unk3
+							// push 0x0A32E5EE
+							// push 0x0A05D00F
+							// ret
+
+							// 0x0A05D00F
+							eax = 0
+							espC := 4
+							if eax < espC {
+								// 0x0AF88180
+								for {
+									var esp8 uint32 = 0x00401000
+									var esp4 uint32 = 0x0018FF58
+									(*uint8)(esp4 + eax) = *(*uint8)(uintptr(eax) + esp8) // 6->0x4F, 0x0018FF58的值由0x2A070006->0xFFC0C94F，
+
+									// 0x0AF8F817
+									eax++
+									if eax >= espC {
+										break
+									}
+								}
+							}
+							// 0x0A8FBAC6
+							// lea esp, dword ptr ss:[esp+4]
+							// jmp dword ptr ss:[esp-4]
+							// these two instructions is equivalent to ret
+
+							// 0x0A32E5EE
+							unk3 = (*uint32)(unsafe.Pointer(uintptr(unsafe.Pointer(unk3)) + unk4)) // 0x0018FF38的值0x0018FF58->0x0018FF5C
+							ebx = 0x0018FF5C
+							*ebx += unk4 // 0x0018FF5C的值是4
+							// push 0x0ABE3F38
+							// ret
+
+							// 0x0ABE3F38
+							if unk3 != ebp4 { // 都是0x0018FF5C
+								// 0x0A745BAE
+							} else {
+								// 0x0A931F7A
+								// push 0x0AF11712
+								// ret
+
+								// 0x0AF11712
+								// push edi
+								// pop eax
+								// pop edi
+								// pop esi
+								// pop ebx
+
+							}
+						}
+					}(ebp4, &v0AAB950C, &ebpC, 4, &ebp8)
+
+					// 0x0A0C4D0F
+					v0AF77FE4 += ebpC
+				}
+			}
+		}
+	}()
 }
 
 // OEP 0x00DF478C
