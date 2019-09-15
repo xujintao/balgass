@@ -506,15 +506,15 @@ func f006CD259() {
 		// 0x005C751F
 		var ebp4numberofSections uint32
 		// 0x0082500A
-		imageSectionHeader := func(imageBase uintptr, numberofSectionsp *uint32) *pe.SectionHeader32 {
+		imageSectionHeader := func(imageBase uintptr, numberofSectionsp *uint32) []pe.SectionHeader32 {
 			fileHeader := (*pe.FileHeader)(unsafe.Pointer(imageBase + uintptr(*(*uint32)(unsafe.Pointer(imageBase + 0x3C))) + 4)) // IMAGE_NT_HEADERS.IMAGE_FILE_HEADER, 0x00400144
 			if fileHeader == nil {
-				return (*pe.SectionHeader32)(unsafe.Pointer(fileHeader))
+				return (*[100]pe.SectionHeader32)(unsafe.Pointer(fileHeader))[:0]
 			}
 
 			// 0x00824FF8
-			*numberofSectionsp = uint32(fileHeader.NumberOfSections)                                                                                                    // IMAGE_NT_HEADERS.IMAGE_FILE_HEADER.NumberOfSections, 0x00400146结果是0x4
-			return (*pe.SectionHeader32)(unsafe.Pointer((uintptr(unsafe.Pointer(fileHeader)) + unsafe.Sizeof(pe.FileHeader{}) + unsafe.Sizeof(pe.OptionalHeader32{})))) // IMAGE_SECTION_HEADER
+			*numberofSectionsp = uint32(fileHeader.NumberOfSections)                                                                                                             // IMAGE_NT_HEADERS.IMAGE_FILE_HEADER.NumberOfSections, 0x00400146结果是0x4
+			return (*[100]pe.SectionHeader32)(unsafe.Pointer((uintptr(unsafe.Pointer(fileHeader)) + unsafe.Sizeof(pe.FileHeader{}) + unsafe.Sizeof(pe.OptionalHeader32{}))))[:0] // IMAGE_SECTION_HEADER
 
 		}(ebp8imageBase, &ebp4numberofSections)
 
@@ -526,9 +526,9 @@ func f006CD259() {
 
 		for ebp4numberofSections > 0 {
 			// 0x00A1063F
-			sectionBase := imageSectionHeader.VirtualAddress  // &textSection.VirtualAddress, 0x0040244值是0x1000
-			sectionSize := imageSectionHeader.VirtualSize     // &textSection.VirtualSize, 0x0040240值是0x00D48000
-			sectionChar := imageSectionHeader.Characteristics // &textSection.Characteristics, 0x004025C值是0x60000020, code, Execute, Read
+			sectionBase := imageSectionHeader[0].VirtualAddress  // &textSection.VirtualAddress, 0x0040244值是0x1000
+			sectionSize := imageSectionHeader[0].VirtualSize     // &textSection.VirtualSize, 0x0040240值是0x00D48000
+			sectionChar := imageSectionHeader[0].Characteristics // &textSection.Characteristics, 0x004025C值是0x60000020, code, Execute, Read
 			// 0x00825080
 			if *(*uint8)(unsafe.Pointer((uintptr(unsafe.Pointer(&sectionChar)) + 3)))&0x10 == 0 { // IMAGE_SCN_MEM_SHARED
 				// 0x0079ACB5
@@ -537,7 +537,7 @@ func f006CD259() {
 			}
 
 			// 0x006F4DE8
-			imageSectionHeader = (*pe.SectionHeader32)(unsafe.Pointer(uintptr(unsafe.Pointer(imageSectionHeader)) + unsafe.Sizeof(pe.SectionHeader32{})))
+			imageSectionHeader = imageSectionHeader[1:]
 			ebp4numberofSections--
 		}
 
