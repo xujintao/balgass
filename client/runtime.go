@@ -1,6 +1,7 @@
 package main
 
 import (
+	"debug/pe"
 	"fmt"
 	"os"
 	"unsafe"
@@ -384,7 +385,35 @@ var v09E2BC68 uint32 = 0x2DBE21DC
 var v0A8FE0E0 uint32 = 0x12A225EC
 var v0A746588 uint32 = 0xF7598681
 var v0AAB950C uint32 = 0x1000
-var v0AF77FE4 uint32 = 0x839A83C7
+
+type crcdata struct {
+	offset uint32
+	size   uint32
+}
+
+// 0x0AAB950C ~ 0x0AB4C31B
+var v0AAB950CcrcdataSet = [...]crcdata{
+	{0x1000, 0x46},
+	{0x1050, 0x4A},
+	{0x10A0, 0x1D},
+	// text段全部
+	{0x00D48F00, 0x47},
+	{0x00D48F50, 0x0F},
+
+	{0x00EDDA10, 0x1B4},
+	// rdata段高地址处
+	{0x00EE0ED2, 0x13},
+	{0x00EE0EE9, 0x117},
+
+	{0x099E8490, 0x16E},
+	// rsc段几乎全部
+	{0x0AE8839E, 0x11B},
+	{0x0AE884BD, 0x25},
+	{0xFFFFFFFF, 0xFFFFFFFF},
+}
+
+// v0AF77FE4sum是0x00401000~0x00401040共17个32位指令值的累加
+var v0AF77FE4sum uint32 = 0x839A83C7
 
 func f0082508F(imageBase uintptr, size uint32) int {
 	if size == 0 {
@@ -425,6 +454,25 @@ func f0082508F(imageBase uintptr, size uint32) int {
 	return 1
 }
 
+// 0x0A05D00F
+func f0A05D00Fmemcpy(dstAddr *uint32, srcAddr uint32, size uint32) {
+	var index uint32
+	if index < size {
+		// 0x0AF88180
+		for {
+			*(*uint8)(unsafe.Pointer(uintptr(unsafe.Pointer(dstAddr)) + uintptr(index))) = *(*uint8)(unsafe.Pointer(uintptr(srcAddr) + uintptr(index))) // 6->0x4F, 0x0018FF58的值由0x2A070006->0xFFC0C94F
+
+			// 0x0AF8F817
+			index++
+		}
+	}
+
+	// 0x0A8FBAC6
+	// lea esp, dword ptr ss:[esp+4]
+	// jmp dword ptr ss:[esp-4]
+	// these two instructions is equivalent to ret
+}
+
 // 壳逻辑
 func f006CD259() {
 	// push eax
@@ -437,7 +485,7 @@ func f006CD259() {
 
 	// 0x00705113
 	// 0x007269EA, 设置所有段属性为ERWC
-	ret := func() int {
+	func() int {
 		ebp8imageBase := v00825070imageBase
 		if v0082505D == 0 {
 			return 0
@@ -448,24 +496,26 @@ func f006CD259() {
 			dummyName  uint32
 			dwPageSize uint32
 			data       [24]uint8
-		}{0, 0x1000}
+		}{}
 		// win.GetSystemInfo(&ebp2C)
+		ebp2C.dwPageSize = 0x1000
 
 		// 修改PE段访问权限
 		f0082508F(ebp8imageBase, ebp2C.dwPageSize-1) // (0x00400000, 0x00000FFF)
 
 		// 0x005C751F
-		var ebp4numberofSections uint
+		var ebp4numberofSections uint32
 		// 0x0082500A
-		imageSectionHeader := func(imageBase uintptr, numberofSectionsp *uint) *pe.SectionHeader {
-			var fileHeader uintptr = imageBase + *(imageBase + 0x3C) + 4 // IMAGE_NT_HEADERS.IMAGE_FILE_HEADER, 0x00400144
-			if fileHeader == 0 {
-				return fileHeader
+		imageSectionHeader := func(imageBase uintptr, numberofSectionsp *uint32) *pe.SectionHeader32 {
+			fileHeader := (*pe.FileHeader)(unsafe.Pointer(imageBase + uintptr(*(*uint32)(unsafe.Pointer(imageBase + 0x3C))) + 4)) // IMAGE_NT_HEADERS.IMAGE_FILE_HEADER, 0x00400144
+			if fileHeader == nil {
+				return (*pe.SectionHeader32)(unsafe.Pointer(fileHeader))
 			}
 
 			// 0x00824FF8
-			*numberofSectionsp = *(*uint16)(fileHeader + 2)   // IMAGE_NT_HEADERS.IMAGE_FILE_HEADER.NumberOfSections, 0x00400146结果是0x4
-			return fileHeader + 0x74 + *(fileHeader + 0x70)*8 // IMAGE_NT_HEADERS.IMAGE_OPTIONAL_HEADER.NumberOfRvaAndSizes, 0x004001B4结果是0x10, 0x00400238结果是".text"
+			*numberofSectionsp = uint32(fileHeader.NumberOfSections)                                                                                                    // IMAGE_NT_HEADERS.IMAGE_FILE_HEADER.NumberOfSections, 0x00400146结果是0x4
+			return (*pe.SectionHeader32)(unsafe.Pointer((uintptr(unsafe.Pointer(fileHeader)) + unsafe.Sizeof(pe.FileHeader{}) + unsafe.Sizeof(pe.OptionalHeader32{})))) // IMAGE_SECTION_HEADER
+
 		}(ebp8imageBase, &ebp4numberofSections)
 
 		// 0x0082502A
@@ -480,14 +530,14 @@ func f006CD259() {
 			sectionSize := imageSectionHeader.VirtualSize     // &textSection.VirtualSize, 0x0040240值是0x00D48000
 			sectionChar := imageSectionHeader.Characteristics // &textSection.Characteristics, 0x004025C值是0x60000020, code, Execute, Read
 			// 0x00825080
-			if *(*uint8)(sectionChar + 3)&0x10 == 0 { // IMAGE_SCN_MEM_SHARED
+			if *(*uint8)(unsafe.Pointer((uintptr(unsafe.Pointer(&sectionChar)) + 3)))&0x10 == 0 { // IMAGE_SCN_MEM_SHARED
 				// 0x0079ACB5
 				// 修改text段访问权限
-				f0082508F(ebp8imageBase+*(*uint32)(sectionBase), *(*uint32)(sectionSize)) // (0x00401000, 0x00D48000), (0x01149000, 0x00198000), (0x012E1000, 0x08AC37E4), (0x09DA5000, 0x01519966)
+				f0082508F(ebp8imageBase+uintptr(sectionBase), sectionSize) // (0x00401000, 0x00D48000), (0x01149000, 0x00198000), (0x012E1000, 0x08AC37E4), (0x09DA5000, 0x01519966)
 			}
 
 			// 0x006F4DE8
-			imageSectionHeader++
+			imageSectionHeader = (*pe.SectionHeader32)(unsafe.Pointer(uintptr(unsafe.Pointer(imageSectionHeader)) + unsafe.Sizeof(pe.SectionHeader32{})))
 			ebp4numberofSections--
 		}
 
@@ -529,6 +579,8 @@ func f006CD259() {
 
 	// 0x0AA31853
 	func() {
+		// 20个字节的局部变量
+
 		ebp4 := v0A327567imageBase
 		if v0A0032DB == v09E2BC68 {
 			return
@@ -540,91 +592,87 @@ func f006CD259() {
 		v0A746588 ^= 0 // 0xF7598681
 		// ebx = 0
 		// ecx = 0
-		// cmp v0AAB950C, ^uint(0)
 		// mov esi, 0x0AAB950C
-		v0AF77FE4 = 0
+		// mov eax,esi
+		var ebp8len uint32
+		v0AF77FE4sum = 0
+		var ebpCvalue uint32
 
 		for {
-			// push 0x0A8466A8
-			// push ebx
-			// push eax
-			// mov ebx, [esp+8]
-			// mov eax, 0x0A55F42F
-			// cmove ebx,eax
-			// mov [esp+8], ebx
-			// pop eax
-			// pop ebx
-			// ret
-
-			if v0AAB950C == ^uint32(0) {
+			if v0AAB950CcrcdataSet[0].offset == ^uint32(0) {
 				// 0x0A55F42F
-				func() {
-
-				}()
 			} else {
 				// 0x0A8466A8
-				func() {
+				// push ebx
+
+				// 0x0A4E17E5
+				// push &ebp8len
+				// push 4
+
+				// 0x0ABF738E
+				// push &ebpCvalue
+
+				// 0x0A889E57
+				// push eax // 相当于push &v0AAB950C
+				// push ebp4
+
+				// 0x0AD36283
+				// push 0x0A0C4D0F
+				// push 0x0AAB88A1
+				// ret
+
+				// 0x0AAB88A1
+				func(imageBase uint32, crcdatas []crcdata, valuep *uint32, offset uint32, lenp *uint32) {
+					// 0x09DE88F1
+					// push ecx
+					//eax := valuep
+
+					// 0x0A7475A4
+					// ecx := offset
+
+					// 0x09E6AAB7
 					// push ebx
+					// cmp eax, eax+ecx
 
-					// 0x0A4E17E5
-					var ebp8 uint32
-					// push &ebp8
-					// push 4
+					// 0x09E91A45
+					// push esi
+					// push edi
 
-					// 0x0ABF738E
-					var ebpC uint32
-					// push &ebpC
+					// 0x0A84BA1D
+					// edi := crcdatas
+					// valuep = eax
 
-					// 0x0A889E57
-					// push eax
-					var ebp4 uint32 = 0x00400000
-					// push ebp4
+					valuep = valuep
 
-					// 0x0AD36283
-					// push 0x0A0C4D0F
-					// push 0x0AAB88A1
-					// ret
+					// 0x0A44AD5E
+					// ebp4 := eax + ecx
+					ebp4 := uintptr(unsafe.Pointer(valuep)) + uintptr(offset)
+					// offset = ecx
 
-					// 0x0AAB88A1，使用esp偏移作为变量
-					func(unk1 uint32, pv0AAB950C *uint32, unk3 *uint32, unk4 uint32, unk5 *uint32) {
-						// 0x09DE88F1
-						// push ecx
-						eax := unk3
+					offset = offset
 
-						// 0x0A7475A4
-						ecx := unk4
+					if valuep == (*uint32)(unsafe.Pointer(uintptr(unsafe.Pointer(valuep))+uintptr(offset))) {
+						return // 0x0AF11712
+					}
 
-						// 0x09E6AAB7
-						// push ebx
-						// cmp eax, eax+ecx
+					// 0x0A563538
+					//ebx := lenp
 
-						// 0x09E91A45
-						// push esi
-						// push edi
-
-						// 0x0A84BA1D
-						edi := pv0AAB950C
-						unk3 = eax
-
-						// 0x0A44AD5E
-						// ebp4 := edx // 这是什么来着
-						unk4 = ecx
-
-						// 0x0A563538
-						ebx := unk5
-
-						// 0x0A745BAE
-						ecx = *ebx
+					// 0x0A745BAE
+					for {
+						// ecx = *ebx ;ecx = *lenp
 
 						// 0x0AD362DE
-						eax = *edi
-						esi := *(*uint32)(unsafe.Pointer(edi) + 4) // v0AAB9510=0x46
-						eax += ecx
+						// eax := *edi
+						eax := crcdatas[0].offset
+						esi := crcdatas[0].size // v0AAB9510=0x46
+						// eax += ecx
+						eax += *lenp // 0x1000, 0x1004
 
 						// 0x0A970D30
-						eax += unk1 // 0x00401000
-						esi -= ecx  // 0x46
-						// cmp unk4, esi ;0x4 - 0x46
+						eax += imageBase // 0x00401000, 0x00401004
+						esi -= *lenp     // 0x46, 0x42
+						// cmp offset, esi
 						// push 0x0A4EA4E2
 
 						// 0x0AD98EF4
@@ -633,7 +681,7 @@ func f006CD259() {
 						// edx = [esp+8] // 0x0A4EA4E2
 
 						// 0x0AF77208
-						ebx = 0x0AFD7E1C
+						// ebx = 0x0AFD7E1C
 						// cmovae edx, ebx
 						// [esp+8] = edx
 
@@ -642,70 +690,93 @@ func f006CD259() {
 						// pop edx
 						// ret
 
-						if unk4 >= esi {
+						if offset >= esi {
 							// 0x0AFD7E1C
+							// push esi
+
+							// 0x0AF12435
+							// push eax
+							// push valuep
+
+							// 0x0A931011
+							// push 0x0B06F488
+							// push ecx ;push *lenp
+
+							// 0x0AF975AE
+							// push edx ;edx哪里来的？push lenp
+							// ecx := 0x0B06F488
+
+							// 0x0A38CEAE
+							// edx = 0x0ABE03B6
+
+							// 0x0B071867
+							// cmovne ecx, edx
+							// [esp+8] = ecx
+							// pop edx
+
+							// 0x0A558DE4
+							// pop ecx
+
+							if offset == esi {
+								// 0x0B06F488
+							} else {
+								// 0x0ABE03B6
+								// push 0x0A440234
+								// push 0x0A05D00F
+								// ret
+
+								f0A05D00Fmemcpy(valuep, eax, esi)
+
+								// 0x0A440234
+								valuep = (*uint32)(unsafe.Pointer(uintptr(unsafe.Pointer(valuep)) + uintptr(esi))) // 0x0018FF58 + 2
+								*lenp = 0
+								offset -= esi
+								crcdatas := crcdatas[1:]
+								if crcdatas[0].offset == ^uint32(0) { // 0x1050
+									// 0x0AFDFFD3
+								}
+								// else 0x0ABE3F38
+							}
 						} else {
 							// 0x0A4EA4E2
-							// push unk4
+							// push offset
 							// push eax
-							// push unk3
+							// push valuep
 							// push 0x0A32E5EE
 							// push 0x0A05D00F
 							// ret
 
-							// 0x0A05D00F
-							eax = 0
-							espC := 4
-							if eax < espC {
-								// 0x0AF88180
-								for {
-									var esp8 uint32 = 0x00401000
-									var esp4 uint32 = 0x0018FF58
-									(*uint8)(esp4 + eax) = *(*uint8)(uintptr(eax) + esp8) // 6->0x4F, 0x0018FF58的值由0x2A070006->0xFFC0C94F，
-
-									// 0x0AF8F817
-									eax++
-									if eax >= espC {
-										break
-									}
-								}
-							}
-							// 0x0A8FBAC6
-							// lea esp, dword ptr ss:[esp+4]
-							// jmp dword ptr ss:[esp-4]
-							// these two instructions is equivalent to ret
+							f0A05D00Fmemcpy(valuep, eax, offset)
 
 							// 0x0A32E5EE
-							unk3 = (*uint32)(unsafe.Pointer(uintptr(unsafe.Pointer(unk3)) + unk4)) // 0x0018FF38的值0x0018FF58->0x0018FF5C
-							ebx = 0x0018FF5C
-							*ebx += unk4 // 0x0018FF5C的值是4
+							valuep = (*uint32)(unsafe.Pointer(uintptr(unsafe.Pointer(valuep)) + uintptr(offset))) // 0x0018FF58 + 4
+							*lenp += offset                                                                       // 4,8
 							// push 0x0ABE3F38
 							// ret
-
-							// 0x0ABE3F38
-							if unk3 != ebp4 { // 都是0x0018FF5C
-								// 0x0A745BAE
-							} else {
-								// 0x0A931F7A
-								// push 0x0AF11712
-								// ret
-
-								// 0x0AF11712
-								// push edi
-								// pop eax
-								// pop edi
-								// pop esi
-								// pop ebx
-
-							}
 						}
-					}(ebp4, &v0AAB950C, &ebpC, 4, &ebp8)
 
-					// 0x0A0C4D0F
-					v0AF77FE4 += ebpC
-				}
+						// 0x0ABE3F38
+						if uintptr(unsafe.Pointer(valuep)) == ebp4 { // 正常都是0x0018FF5C，校验结束后就不等了
+							// 0x0A931F7A
+							// push 0x0AF11712
+							// ret
+							break
+						}
+					} // for loop 0x0A745BAE
+
+				}(ebp4, v0AAB950CcrcdataSet[:], &ebpCvalue, 4, &ebp8len)
+
+				// 0x0AF11712
+				// push edi
+				// pop eax
+				// pop edi
+				// pop esi
+				// pop ebx
+
+				// 0x0A0C4D0F
+				v0AF77FE4sum += ebpCvalue
 			}
-		}
+		} // for loop
 	}()
 }
 
