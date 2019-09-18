@@ -14,7 +14,9 @@ const (
 	v012DA28C int     = 0
 )
 
-var v012F7B90 uintptr = 0x5F709C77
+// 要确保v012F7B90 + v012F7B94 = 0
+var v012F7B90 uint32 = 0x5F709C77
+var v012F7B94 uint32 = 0x44BF19B1
 var v012F8738 *t15    // [v012F8738]=0x012F8660
 var v012F8558 *uint32 // [v012F8558]=0x0D921A80
 
@@ -381,6 +383,8 @@ var v0082505D uint32           // 0x6A7B9E4D
 var v00825070imageBase uintptr // 0x00400000
 var v0A327567imageBase uint32 = 0x00400000
 var v0A0032DB uint32 = 0x1CA9625E
+var v0B287362 uint32
+var v0A5578FA uint32
 var v09E2BC68 uint32 = 0x2DBE21DC
 var v0A8FE0E0 uint32 = 0x12A225EC
 var v0A746588sum uint32 = 0xF7598681
@@ -429,10 +433,80 @@ var v0AAB950CcrcDataSet = [...]crcData{
 
 var v0A330A7E uint32
 var v0A330A82 uint32
+
+//
+//
+// --------------validate read and write----------
 var v09E8FF96 uint32 = 0xFFFFFFFF
 var v0A049D16 uint32 = 0x0AD2D162
 var v0ABF9FFCimageBase uint32 = 0x00400000
 
+//
+//
+// ---------------iat move------------
+var v0A563A89 uint32 = 0xCCCCCCCC
+
+type iat struct {
+	addr uint32
+	size uint32
+}
+
+// 没必要
+var v09F8682AiatSet = [...]iat{
+	{0x099E917C, 0x1F0},
+	{0x099E9370, 0x7D0},
+	{0xFFFFFFFF, 0xFFFFFFFF},
+}
+
+type rdata struct {
+	addr uint32
+	size uint32
+}
+
+var v0A3A1688rdataSet = [...]rdata{
+	{0x00D49000, 0x9C0},
+	{0xFFFFFFFF, 0xFFFFFFFF},
+}
+
+//
+//
+// -------------text move-----------------
+var v0ABDABC7 uint32 = 8
+var v0ABE3A4F uint32 = 0x0A39221A
+var v0A5D6CCF uint32 = 7
+var v0A5557A4 uint32 = 0x0AD3B521
+var v0A0C61AD uint32 = 0x5420110F
+var v0A0526C0 uint32 = 6
+var v0AC33EA1 uint32 = 0x0AF1023E
+var v0AF0E89A uint32 = 0x546CE7AB
+
+type block struct {
+	addr uint32
+	size uint32
+}
+
+var v0A32F9C5textSet = [...]block{
+	{0x0D7CE5, 5},
+	{0x0D7CED, 0x1078},
+	{0x0D8D67, 0x28},
+	{0x0D8D91, 2},
+	{0x0D8D95, 0xEC},
+	{0x0D8E83, 0x164},
+	{0x0A956E8A, 0xD},
+	{0xFFFFFFFF, 0xFFFFFFFF},
+}
+var v0AFE0B1FimageBase uint32 = 0x00400000
+var v0A84CEC1 uint32 = 0x7B853693
+
+var v0AD2F33DopcodeSet = [...]uint8{
+	0xAA,
+	0x04,
+	0x1C,
+}
+
+// ------------------end-----------------------
+//
+//
 func f0082508F(imageBase uintptr, size uint32) int {
 	if size == 0 {
 		// 0x00A10652
@@ -782,8 +856,7 @@ func f006CD259() {
 							// 0x0AD80743
 							if crcDatas[0].size == 0xFFFFFFFF {
 								// 0x09FB8D2B
-								eax = v0B287362
-								v0A5578FA ^= eax
+								v0A5578FA ^= v0B287362
 
 								// 0x09F0180
 								// 0x0ABDAB3B
@@ -825,7 +898,7 @@ func f006CD259() {
 										edi += ecx
 										edx := ebx
 										ebx &= 3
-										ebx = *(ebx*4 + 0x0A5578FA)
+										ebx = *(*uint32)(unsafe.Pointer(uintptr(ebx*4) + uintptr(unsafe.Pointer(&v0A5578FA))))
 										ebx += edx
 										edi ^= ebx
 										eax += edi
@@ -838,7 +911,7 @@ func f006CD259() {
 										ebx = edx
 										ebx >>= 0xB
 										ebx &= 3
-										ebx = *(ebx*4 + 0x0A5578FA)
+										ebx = *(*uint32)(unsafe.Pointer(uintptr(ebx*4) + uintptr(unsafe.Pointer(&v0A5578FA))))
 										edi += eax
 										ebx += edx
 										edi ^= ebx
@@ -886,7 +959,7 @@ func f006CD259() {
 
 									// 0x0AD7BE4D
 									// push ebx
-									ebx := crcDatas
+									// ebx := crcDatas
 									// push esi
 
 									// 0x0AF7C50F
@@ -1008,7 +1081,7 @@ func f006CD259() {
 	// push edi
 
 	// 0x0A9F55F3
-	// 0x0AD2D162
+	// 0x0AD2D162, 验证读写权限？
 	func() {
 		// 0x24字节局部变量
 		if v09E8FF96 == 0 {
@@ -1070,12 +1143,281 @@ func f006CD259() {
 	// pushfd
 
 	// 0x0AFD850D
-	// 0x0A44A7FD
+	// 0x0A44A7FD, IAT move
 	func() {
+		// 0xC字节的布局变量
+		if v09F8682AiatSet[0].addr == 0 {
+			// 0x0A8429DF
+			return
+		}
+		// 0x0A4E8FC1
+		ebp4iats := v09F8682AiatSet[:]
+		ebp8rdatas := v0A3A1688rdataSet[:]
+		esiRDATAaddr := ebp8rdatas[0].addr + 0x00400000 // 0x01149000
+		ediRDATAsize := ebp8rdatas[0].size
+		ebxIATsize := ebp4iats[0].size
+		ecxIATaddr := ebp4iats[0].addr + 0x00400000 // 0x09DE917C advapi32.&CryptGetUserKey
+		if v09F8682AiatSet[0].addr == 0xFFFFFFFF {
+			return // 0x0A56CD8C
+		}
 
+		// 0x09EAE30B
+		ebpC := v0A3A1688rdataSet[0].addr
+
+		for {
+			// 0x0ABE28CC
+			if ebpC == 0x0FFFFFFFF {
+				return // 0x0A56CD8C
+			}
+
+			// 0x0A9F96DB
+			*(*uint32)(unsafe.Pointer(uintptr(esiRDATAaddr))) = *(*uint32)(unsafe.Pointer(uintptr(ecxIATaddr))) // 0x75AF350E advapi32.CryptGetUserKey
+			var eax uint32 = 4
+			esiRDATAaddr += eax // 0x01149000, 0x01149004
+			ecxIATaddr += eax   // 0x09DE917C, 0x09DE9180
+			ebxIATsize -= eax   // 0x1F0, 0x1EC
+			ediRDATAsize -= eax // 0x09C0, 0x09BC
+
+			if ebxIATsize == 0 { // kernel32.dll
+				// 0x0AC353B9
+				ebp4iats = ebp4iats[1:]
+				ecxIATaddr = ebp4iats[0].addr + 0x00400000
+				ebxIATsize = ebp4iats[0].size
+			}
+
+			// 0x0AB4F818
+			if ediRDATAsize == 0 {
+				// 0x0A4EB197
+				ebp8rdatas = ebp8rdatas[1:]
+				esiRDATAaddr = ebp8rdatas[0].addr + 0x00400000
+				ediRDATAsize = ebp8rdatas[0].size
+				ebpC = esiRDATAaddr
+			}
+
+			// 0x0A931EAB
+			if ebp4iats[0].addr == 0xFFFFFFFF { // 0x099E917C
+				return // 0x0A56CD8C
+			}
+		}
+	}()
+
+	// 0x0A56CD8C
+	// 0x0A8429DF
+	v0A563A89 = 0
+
+	// 0x0AFD8512
+	// 0x0AAB829D
+	// popfd
+	// pop esi
+	// pop ebx
+	// pop edi
+	// pop edx
+	// pop ecx
+
+	// 0x0AF8BBBA
+	// 0x0A60483B
+	// 0x0A56C231
+	// push 0x09FB8C65
+	// push 0x0AD323B3
+	// ret
+
+	// 0x0AD323B3, text move
+	func() {
+		// push 0x0A56DEAE
+		// push 0x09FFDE30
+		// ret
+
+		// 0x09FFDE30
+		func() {
+			// push 0x00DDD650
+			// push 0x0A0509F4
+			// ret
+
+			// 0x0A0509F4
+			func() {
+				// push esi
+				// push ecx
+				// push ebx
+				// push edx
+				// pushfd
+				// push edi
+
+				// 0x0AD707CA
+				// push 0x0B07273B
+				// push 0x0AF7CDBD
+				// ret
+
+				var ebp4 uint32
+				var ebp8 uint32
+				var ebpC uint32
+
+				// 0x0AF7CDBD
+				func() {
+					// push esi
+					ebp4 = v0ABE3A4F // 0x0A39221A
+					// push edi
+					esiops := v0AD2F33DopcodeSet[:]
+					editexts := v0A32F9C5textSet[:]
+					if v0A32F9C5textSet[0].addr != 0xFFFFFFFF {
+						// 0x09FFCBF1
+						// push ebx
+						// push ebp
+
+						for {
+							// 0x0AAB316A
+							eaxAddr := editexts[0].addr
+
+							// 0x0A43E504
+							// 0x0AD3B4F7
+							// 0x09E2F54F
+							// 0x09EBC1C0
+							// 0x0AF126B7
+							if eaxAddr == 0xFFFFFFFE {
+								// 0x0A8FC82C
+							}
+							// 0x0A4416F2
+							// 0x0A9F9C72
+							eaxAddr += v0AFE0B1FimageBase
+
+							// 0x0AD738B4
+							edxSize := editexts[0].size
+
+							// 0x0A9F6726
+							// 0x0A936A10
+							// 0x0AFDD768
+							if edxSize > 3 {
+								// 0x09FB7EC3
+								ecx := edxSize / 4
+								edxSize %= 4
+
+								// 商迭代
+								for {
+									// 0x0AD84E83
+									*(*uint32)(unsafe.Pointer(uintptr(eaxAddr))) = v0A84CEC1 - *(*uint32)(unsafe.Pointer((&esiops[0])))
+
+									// 0x0AA2F6ED
+									eaxAddr += 4
+									esiops = esiops[4:]
+									ecx--
+
+									// 0x0A8417D3
+									// 0x0ABE42C0
+									// 0x0A041758
+									// 0x0ABFA56D
+									// 0x0B284F49
+									// 0x0A55F76C
+									// 0x0AB4FADB
+									// 0x0A900853
+									if ecx == 0 {
+										break // // 0x0AF0FE48
+									}
+								} // for loop 0x0AD84E83
+							}
+							// 0x0AF0FE48
+							// 0x0A603BC5, 余数迭代
+							for edxSize > 0 {
+								// 0x0A4EAF80
+								*(*uint8)(unsafe.Pointer(uintptr(eaxAddr))) = uint8(v0A84CEC1) - *(*uint8)(unsafe.Pointer((&esiops[0])))
+								eaxAddr++
+								esiops = esiops[1:]
+								edxSize--
+							} // for loop 0x0A4EAF80
+
+							// 0x09F88775, next
+							editexts = editexts[1:]
+
+							// 0x09FE278E
+							// 0x0A7462B5
+							// 0x0B10D023
+							// 0x09EB7BBB
+							if editexts[0].addr == 0xFFFFFFFF {
+								// 0x09FB5670
+								break
+							}
+						} // for loop 0x0AAB316A
+						// pop ebp
+						// pop ebx
+					}
+					// 0x0A89291D
+					ebp8 = v0A5557A4 // 0x0AD3B521
+					// pop edi
+					v0AF0E89A = v0A0C61AD // 0x5420110F
+					ebpC = v0AC33EA1      // 0x0AF1023E
+					// pop esi
+				}()
+
+				// 0x0B07273B
+				// pop edi
+				// popfd
+				// pop edx
+				// pop ebx
+				// pop ecx
+				// pop esi
+
+				// 0x0A55A721
+				// replace 0x0B07273B with (ebpC 0x0AF1023E)
+				// 0x9E2FFC0
+			}()
+
+			// replace 0x00DDD650 with (ebp8 0x0AD3B521)
+		}()
+
+		// replace 0x0A56DEAE with (ebp4 0x0A39221A)
+	}()
+
+	// 0x00E10691, 计算v012F7B90和v012F7B94
+	func() {
+		// 0x10字节局部变量
+		type FileTime struct {
+			dwLowDateTime  uint32
+			dwHighDateTime uint32
+		}
+		ebp8fileTime := FileTime{}
+		// push ebx
+		// push edi
+		var edi uint32 = 0xBB40E64E
+		var ebx uint32 = 0xFFFF0000
+		// var v012F7B90 uint32 = 0xBB40E64E
+		if v012F7B90 != edi || v012F7B90 != ebx {
+			v012F7B94 = -v012F7B90
+			return
+		}
+
+		// push esi
+		//win.GetSystemTimeAsFileTime(&ebp8fileTime)
+		esi := ebp8fileTime.dwHighDateTime
+		esi ^= ebp8fileTime.dwLowDateTime
+
+		var eax uint32
+		// win.GetCurrentProcessId()
+		esi ^= eax
+
+		eax = win.GetCurrentThreadId()
+		esi ^= eax
+
+		eax = win.GetTickCount()
+		esi ^= eax
+
+		var ebp10 uint64
+		// win.QueryPerfomanceCounter(&ebp10)
+		eax = uint32(ebp10 >> 32)
+		eax ^= uint32(ebp10)
+		esi ^= eax
+
+		if esi != edi && esi == ebx { // esi是动态变化的，不可能等于ebx
+			eax = esi
+			eax <<= 16
+			esi |= eax
+		}
+		v012F7B90 = esi
+		v012F7B94 = -esi
+		// pop esi
+		// pop edi
+		// pop ebx
 	}()
 }
 
+// --------------------------------------------------------------------
 // OEP 0x00DF478C
 func main() {
 	// check pe
