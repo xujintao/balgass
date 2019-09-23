@@ -360,7 +360,7 @@ var v00DF490A [0x5B]uint8
 var v0B2BE8D6 [0x19]uint8
 var v0B2BE90B [0x58]uint8
 
-// shell entry point
+// shell entry point, 0x00DF490A
 func f00DF490A() {
 	// vp := win.GetProcAddress(win.LoadLibrary("kernel32.dll"), "virtualProtect")
 	// var oldProtect uint32
@@ -377,6 +377,8 @@ func f0B2BE8D6() {
 func f0B2BE90B() {
 	// E8 4A89BDFF ;call 0x006CD259, f006CD259
 	// E9 78FEFFFF ;jmp 0x00DF478C
+	f006CD259()
+	// 0x00DF478C
 }
 
 var v0082505D uint32           // 0x6A7B9E4D
@@ -503,6 +505,22 @@ var v0AD2F33DopcodeSet = [...]uint8{
 	0x04,
 	0x1C,
 }
+
+// ------------------winmain-------------------
+//
+var v0A7483B4 uint32 = 8
+var v0A56E4E2label1 uint32 = 0x0AD56E8A
+var v0ABF8B07 uint32 = 7
+var v09FC0B5Alabel2 uint32 = 0x0A8FE9A6
+var v0AA0D71B uint32 = 6
+var v0A557660label3 uint32 = 0x0B10933D
+
+var v0A74573D uint32 = 0x3F
+var v0A38DB63 uint32 = 0xFC24548D // v0A38DB63 = 0x310F9090 = v0AF77CE1 ^ v0B1090BA
+var v0AF77CE1 uint32 = 0x89B8FCE2
+var v0B1090BA uint32 = 0xB8B76C72
+var v09FBB49C uint32 = 0x10648B16
+var v0A325B9F uint32 = 0x721655D3
 
 // ------------------end-----------------------
 //
@@ -1418,7 +1436,7 @@ func f006CD259() {
 }
 
 // --------------------------------------------------------------------
-// OEP 0x00DF478C
+// OEP 0x00DF478C, f00DF478C
 func main() {
 	// check pe
 

@@ -521,7 +521,286 @@ func f004D7A1F(haystack []uint8, ip []uint8, z *uint32) uint16 {
 	return 1000
 }
 
+// f004D7CE5winMain, WinMain
 func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uint8, iCmdShow int) {
+	// 0x0A05E61B
+	var label1 uint32 = 0x009DCA19
+	// push label1
+	// push 0x0ABDA0EA
+	// ret
+
+	// 0x0ABDA0EA
+	var label2 uint32 = 0x0A3349B0
+	// push label2
+	// push 0x0A4420A9
+	// ret
+
+	// 0x0A4420A9
+	var label3 uint32 = 0x0A0518C4
+	// push 0x0A051BC4
+	// push 0x0A8485E3
+	// ret
+
+	// 0x0A8485E3
+	// pushfd
+	// push ebx
+	// push edi
+	// push esi
+	// push edx
+	// push ecx
+
+	// 0x09EBC742
+	// push 0x0AD2B081
+	// push 0x0AD91CED
+	// ret
+
+	// 0x0AD91CED
+	func() {
+		// 0xFC局部变量
+		// push ebx
+		// push esi
+		// push edi
+
+		var ebp14 uint32
+		var ebp18 uint32
+		var ebp20 uint32
+		var ebp28 uint32
+		var ebp30 uint32
+		var ebp34 uint32
+		var ebp38 uint32
+		var ebp40 uint32
+		var ebp44 uint32
+
+		label1 = v0A56E4E2label1 // [ebp+v0A7483B4*4+8] = v0A56E4E2label1
+		if v0A74573D == 0 {      // 0x3F
+			// 0x0AA09510
+			ebp34 = 8
+			ebp14 = 0xFF
+			// 0x0A7AC650 0x0A83CE6F
+		} else if v0A74573D > 0xFF { // 0x09FC6431 0x0AC37855 没必要再判断v0A74573D==0
+			// 0x0A9F5A38
+			// 0x0A6B0AEB
+			// ...
+		} else {
+			// 0x0A9F5A3E
+
+			ebp14 = v0A74573D
+			var ebp8 uint32
+			// 0x0AA2F062
+			ebp44 = v0A74573D
+			// 0x0A32AFCE
+			for {
+				// 0x0A058220
+				// 0x0AAB85DB
+				// 0x0AF77F6A
+				// 0x0AD80BB2
+				// 0x0A391FF8
+				// 0x0AD3B8F3
+				// 0x0A3927B1
+				// 0x09EBC1FB
+				if ebp44 <= 0 { // 迭代结束, ebp44=0, ebp34=6
+					// 0x0AF814F7
+					break // 0x0A83CE6F
+				} else {
+					// 0x0A442AC6
+					// 0x0AF7F68B
+					// 0x0A84320A
+					// 0x0A8902CD
+					// 0x0B071558
+					// 0x0AD98514
+					// 0x0ABF87EB
+					if ebp44&1 != 0 {
+						// 0x09E91EC8
+						ebp34++ // 1,2,3,4,5,6
+					}
+					// 0x09FDAD42
+					// 0x0AC3847E
+					ebp44 >>= 1
+					// 0x0A058220
+				}
+			}
+		}
+
+		// 0x0A83CE6F
+		// 0x0A38F2A7
+		// 0x0AF11D82
+		// 0x0A565A51
+		if ebp34 == 0 {
+			// 0x0A8FA42A
+			// 0x0A6B0AEB
+		}
+		// 0x0A84D90D
+		ebp38 = 0
+		// 0x0A32AF58
+		v0A38DB63 = v0AF77CE1 ^ v0B1090BA
+		// 0x0A38DB63
+		tscLeax := 0x5274DC2C
+		tscHedx := 0x00010865
+		// 0x0A32F0F4
+		ebp20 = tscLeax
+		// 0x0AF8EBF1
+		ebp20 |= ebp20 >> 16 // 0x5274DE7C
+		// 0x0A56E64F
+		// eax = ebp20
+		// edx = 0
+		// ecx = 0x1F
+		// 0x0ABE0B07
+		ebp20 %= 0x1F // 3
+		ebp8 = 1
+		for {
+			// 0x0A9FBE5C
+			// 0x0AD83B40
+			// 0x09E240E7
+			// 0x09FE52D1
+			// 0x09FCAF92
+			// 0x0B10FA31
+			// 0x09E03B4A
+			if ebp8&ebp14 != 0 { // 1&0x3F
+				// 0x0AD98F0D
+				ebp40 = ebp20 % ebp34 // 3%6
+				for {
+					// 0x0AD75B27
+					if ebp40 <= 0 {
+						break // 0x0ABB3DF5
+					}
+					// 0x0AF82F72
+					ebp8 <<= 1 // 1,2,4,8
+					// 0x0A3A7943
+					if ebp8&ebp14 == 0 { // 2&0x3F, 不超过6次
+						// 0x0A049688
+					}
+					// 0x0AC39B0A
+					// 0x09E8EB25
+					ebp40-- // 3, 2, 1, 0
+				} // for loop 0x0AD75B27
+
+				// 0x0ABB3DF5
+				// 0x0A742C83
+				// 0x0A3360C0
+				// 0x0A90096C
+				// 0x0A4DF380
+				// 0x0A8892C0
+				if ebp8&1 != 0 {
+					// 0x0ABFA5B3
+				}
+				// 0x0A4E80E3
+				// 0x0A4DDA43
+				// 0x0A05AA37
+				// 0x09FD9C5C
+				// 0x09E30794
+				// 0x0A4DDA22
+				// 0x09F8E057
+				// 0x0A7441CB
+				// 0x0A84A77E
+				if ebp8&2 != 0 {
+					// 0x0A742EF1
+				}
+				// 0x0AD31978
+				if ebp8&4 != 0 {
+					// 0x0AFDC124
+				}
+				// 0x0A92FBD9
+				if ebp8&8 != 0 {
+					// 0x09E2BB81
+					ebp30 = 1
+					// pushad
+					// push 0x0A32BD69
+					// 0x0ABFA7E5
+					// SEH
+					// 0x0A847A61
+					// push 0
+					// push 0
+					// int 1
+					ebp30 = 1
+					ebp18 = 1
+					// 0x0A904AEE
+					// 0x0A4E7E87
+					// esp+=4
+					// 0x09E25911
+					// popad
+					// 0x0A327A81
+					// 0x0A05C5B5
+					// 0x09FC28CA
+					// 0x0B10F776
+					// 0x0ABB564B
+					if ebp30 == 0 {
+						// 0x09F8768E
+						// 0x0A6B0AEB
+					}
+					// 0x09FC1A2B
+					label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8] = v09FC0B5Alabel2
+					ebp38++
+					ebp8 &= ^8 // 8&(^8)
+				}
+				// 0x0A9353C2
+				// 0x0AF8FAB1
+				// 0x0B074337
+				// 0x0AD9201D
+				// 0x0A895B6A
+				// 0x09FD5603
+				// 0x0ABB3AC2
+				// 0x0ABD65F8
+				// 0x0AAB22A0
+				if ebp8&0x10 != 0 {
+					// 0x0AFD7373
+				}
+				// 0x0A444B3D
+				// 0x09E2F73A
+				// 0x0AD813DC
+				// 0x0AF899B3
+				// 0x0A05DA3A
+				if ebp8&0x20 != 0 {
+					// 0x09E6AFDD
+				}
+				// 0x0A887F5B
+				if ebp8&0x40 != 0 {
+					// 0x09FC67DB
+				}
+				// 0x0A05A2B7
+				if ebp8&0x80 != 0 {
+					// 0x0A889EB6
+				}
+				// 0x0A56391F，判等
+				if ebp8 != 0 {
+					// 0x0B07BF42
+					// 0x0A6B0AEB
+				}
+				// 0x0AD83D30
+				if ebp38 != 1 {
+					// 0x0A9331C5
+					// 0x0A6B0AEB
+				}
+				// 0x0AF77BA8
+				v0A325B9F = v09FBB49C
+				label3 = v0A557660label3 // [ebp+v0AA0D71B*4+8] = v0A557660label3
+				break                    // 0x09FBBB94
+			}
+			// 0x0A4E4AF6
+			ebp8 <<= 1
+		} // for loop 0x0A9FBE5C
+
+		// 0x09FBBB94
+		// pop edi
+		// pop esi
+		// pop ebx
+	}()
+
+	// 0x0AD2B081 0x09FC860D 0x0AB4CCE0 0x0AF7D9C1 0x09DEB0D9 0x0A5FFBD4
+	// pop ecx
+	// pop edx
+	// pop esi
+	// pop edi
+	// pop ebx
+	// popfd
+	// 0x0A9FB977 0x0AA0931B
+	// label3(0x0B10933D)
+	// label2(0x0A8FE9A6)
+	// label1(0x0AD56E8A)
+	// push ebp
+	// ebp = esp
+	// eax = 0x1B60
+	// 0x004D7CED
+	// -------------------------肉区---------------------------------
 	// 1B60h，近两页也就是8k字节的局部变量
 
 	// _004D7CE5， 设置一下栈
