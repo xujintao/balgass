@@ -560,11 +560,11 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 		// push ebx
 		// push esi
 		// push edi
-
+		var ebp8 uint32
 		var ebp14 uint32
-		var ebp18 uint32
+		//var ebp18 uint32
 		var ebp20 uint32
-		var ebp28 uint32
+		//var ebp28 uint32
 		var ebp30 uint32
 		var ebp34 uint32
 		var ebp38 uint32
@@ -585,7 +585,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 			// 0x0A9F5A3E
 
 			ebp14 = v0A74573D
-			var ebp8 uint32
+
 			// 0x0AA2F062
 			ebp44 = v0A74573D
 			// 0x0A32AFCE
@@ -634,8 +634,8 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 		// 0x0A32AF58
 		v0A38DB63 = v0AF77CE1 ^ v0B1090BA
 		// 0x0A38DB63
-		tscLeax := 0x5274DC2C
-		tscHedx := 0x00010865
+		var tscLeax uint32 = 0x5274DC2C
+		//var tscHedx uint32 = 0x00010865
 		// 0x0A32F0F4
 		ebp20 = tscLeax
 		// 0x0AF8EBF1
@@ -712,7 +712,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 					// push 0
 					// int 1
 					ebp30 = 1
-					ebp18 = 1
+					//ebp18 = 1
 					// 0x0A904AEE
 					// 0x0A4E7E87
 					// esp+=4
@@ -730,7 +730,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 					// 0x09FC1A2B
 					label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8] = v09FC0B5Alabel2
 					ebp38++
-					ebp8 &= ^8 // 8&(^8)
+					ebp8 &= ^uint32(8) // 8&(^8)
 				}
 				// 0x0A9353C2
 				// 0x0AF8FAB1
