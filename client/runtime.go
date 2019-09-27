@@ -384,8 +384,8 @@ func f0B2BE90B() {
 //
 //
 // -----------------section ERWC-----------------
-var v0082505D uint32           // 0x6A7B9E4D
-var v00825070imageBase uintptr // 0x00400000
+var v0082505D uint32 = 0x6A7B9E4D // 0表示done
+var v00825070imageBase uintptr    // 0x00400000
 
 //
 //
@@ -513,7 +513,7 @@ var v0AF0E89A uint32 = 0x546CE7AB // v0AF0E89A = v0A0C61AD
 
 //
 //
-// ------------------winmain-------------------
+// ------------------winmain反调式-------------------
 var v0A7483B4 uint32 = 8
 var v0A56E4E2label1 uint32 = 0x0AD56E8A
 var v0ABF8B07 uint32 = 7
@@ -521,14 +521,27 @@ var v09FC0B5Alabel2 uint32 = 0x0A8FE9A6
 var v0AA0D71B uint32 = 6
 var v0A557660label3 uint32 = 0x0B10933D
 
-var v0A74573D uint32 = 0x3F
+var v0A74573D uint32 = 0x3F // 0x00111111，只做6种反调试场景检测
 
+// 异或计算的意义是什么
 var v0AF77CE1 uint32 = 0x89B8FCE2
 var v0B1090BA uint32 = 0xB8B76C72
 var v0A38DB63 uint32 = 0xFC24548D // v0A38DB63 = 0x310F9090 = v0AF77CE1 ^ v0B1090BA
 
 var v09FBB49C uint32 = 0x10648B16
 var v0A325B9F uint32 = 0x721655D3 // v0A325B9F = v09FBB49C
+
+// 异常
+var v0A88E351 uint32 = 0x004D7CED
+var v09E2318F uint32 = 0x0AD91CED
+
+// 异或得到"ntdll.dll"
+var v09FBF62E = [12]uint8{0x3E, 0x6C, 0x0C, 0x55, 0x17, 0xF9, 0x70, 0xB8, 0x18, 0x7B, 0xFF, 0x75}
+var v09F8D538 = [12]uint8{0x50, 0x18, 0x68, 0x39, 0x7B, 0xD7, 0x14, 0xD4, 0x74, 0x7B, 0x8B, 0x45}
+
+// 异或得到"NtQueryInformationProcess"
+var v0AD72DB9 = [28]uint8{}
+var v0A55FF3A = [28]uint8{}
 
 //
 //
@@ -699,7 +712,7 @@ func f006CD259() {
 	// push edi
 
 	// 0x00705113
-	// 0x007269EA, 设置所有段属性为ERWC
+	// 0x007269EA, f007269EA, 设置所有段属性为ERWC
 	func() int {
 		ebp8imageBase := v00825070imageBase
 		if v0082505D == 0 {
