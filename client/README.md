@@ -1,4 +1,4 @@
-## main.exe
+## 去壳方式得到的main1.exe
 
 ##### main_dump
 x64dbg载入main，使用Scylla插件找到OEP，然后dump
@@ -30,7 +30,15 @@ replace "connect.muchina.com" with "192.168.0.100"
 0x01141792坑 硬编码 LoadLibraryA
 ...
 ```
-##### 以下所有hook都移动到IGC.dll中了  
+## 非去壳方式得到的main2.exe
+```
+1，利用壳加密没考虑页对齐的漏洞，直接在.rsrc尾部很顺利的打上载入dll的补丁
+2，在0x0B2BE910地址(memcpy后的0x00DF490F)处hook住jmp 0x00DF478C来执行我们的补丁
+
+这样很完美，相当于把dll的载入融入壳的代码，但每次调试都要手动stepover解密函数后再启用断点
+```
+
+## 以下所有hook都移动到IGC.dll中了  
 search mu.exe
 ```
 0x004D,7E2A: 73 6D -> EB 6D ;jae to jmp, disable mu.exe
