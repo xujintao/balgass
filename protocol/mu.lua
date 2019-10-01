@@ -3,12 +3,12 @@
 local p_mu = Proto("mu", "mu protocol")
 
 -- field
-local f_flag = ProtoField.uint8("flag", "mu.flag", base.HEX)
-local f_len = ProtoField.uint8("len", "mu.len", base.DEC)
-local f_len2 = ProtoField.uint16("len2", "mu.len2", base.DEC)
-local f_code = ProtoField.uint16("code", "mu.code", base.HEX)
-local f_data = ProtoField.string("data", "mu.data")
-local f_data_enc = ProtoField.string("enc data", "mu.dataenc")
+local f_flag = ProtoField.uint8("mu.flag", "flag", base.HEX)
+local f_len = ProtoField.uint8("mu.len", "len", base.DEC)
+local f_len2 = ProtoField.uint16("mu.len2", "len2", base.DEC)
+local f_code = ProtoField.uint16("mu.code", "code", base.HEX)
+local f_data = ProtoField.bytes("mu.data", "data")
+local f_data_enc = ProtoField.bytes("mu.dataenc", "dataenc")
 
 --- bind field with protocol
 p_mu.fields = {f_flag, f_len, f_len2, f_code, f_data, f_data_enc}
@@ -25,6 +25,7 @@ function p_mu.dissector(buf, pkt, tree)
 
         local len = 0
         local offset = 0
+		local code = 0
         local flag_table = {
             [0xC1] = function()
                 -- len
@@ -33,6 +34,7 @@ function p_mu.dissector(buf, pkt, tree)
                 offset = offset + 1
 
                 -- code
+				code = buf(offset,2):uint()
                 subtree:add(f_code, buf(offset,2))
                 offset = offset + 2
 
@@ -49,6 +51,7 @@ function p_mu.dissector(buf, pkt, tree)
                 offset = offset + 2
 
                 -- code
+				code = buf(offset,2):uint()
                 subtree:add(f_code, buf(offset,2))
                 offset = offset + 2
 
@@ -98,11 +101,15 @@ function p_mu.dissector(buf, pkt, tree)
         -- other field
         dis()
 
+		-- set subtree the real length
+		subtree:set_len(len)
+		local text = string.format("<flag:0x%x + len:%04d + code:0x%04x>", flag, len, code)
+		subtree:set_text(text)
+
+        -- next
         if (buf:len() == len) then
             return
         end
-
-        -- next
         buf = buf(len):tvb()
     end
 end
