@@ -33,7 +33,10 @@ func (c *Aes) Encrypt(src []byte) ([]byte, error) {
 	}
 
 	// padding src
-	padsize := aes.BlockSize - len(src)%aes.BlockSize
+	padsize := 0
+	if len(src)%aes.BlockSize != 0 {
+		padsize = aes.BlockSize - len(src)%aes.BlockSize
+	}
 	bufpad := bytes.Repeat([]byte{0}, padsize)
 	dst := append(src, bufpad...)
 
