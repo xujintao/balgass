@@ -1,55 +1,52 @@
 package aes
 
 import (
-	"bytes"
+	"encoding/hex"
 	"testing"
 )
 
-var buf1 = [5]byte{104, 101, 108, 108, 111}
-var buf2 = [17]byte{
-	122, 84, 253, 52, 133, 151, 96, 4, 121, 51, 80, 230, 132, 236, 126, 210,
-	11,
+type text struct {
+	plaintext  string
+	cihpertext string
 }
 
-var buf3 = [16]byte{101, 120, 97, 109, 112, 108, 101, 112, 108, 97, 105, 110, 116, 101, 120, 116}
-var buf4 = [33]byte{
-	54, 51, 193, 49, 72, 227, 229, 47, 249, 28, 98, 150, 219, 34, 197, 252,
-	191, 115, 144, 50, 157, 103, 197, 75, 219, 192, 185, 180, 143, 103, 51, 113,
-	16,
+var texts = [...]text{
+	{
+		"68656c6c6f",
+		"7a54fd3485976004793350e684ec7ed20b",
+	},
+	{
+		"6578616d706c65706c61696e74657874",
+		"3633c13148e3e52ff91c6296db22c5fc00",
+	},
 }
 
-func TestEncrypt(t *testing.T) {
-	bufenc, err := Encrypt(buf1[:])
-	if err != nil {
-		t.Error(err)
-	}
-	if bytes.Compare(bufenc, buf2[:]) != 0 {
-		t.Error("Encrypt failed")
-	}
+func Test(t *testing.T) {
+	for _, v := range texts {
+		// encrypt
+		plaintext, err := hex.DecodeString(v.plaintext)
+		if err != nil {
+			t.Errorf("convert hex string failed, %s", err.Error())
+		}
+		dstcipher, err := Encrypt(plaintext)
+		if err != nil {
+			t.Errorf("Encrypt failed, %s", err.Error())
+		}
+		if hex.EncodeToString(dstcipher) != v.cihpertext {
+			t.Errorf("encrypt failed, expected(%s) got(%s)", v.cihpertext, hex.EncodeToString(dstcipher))
+		}
 
-	bufenc, err = Encrypt(buf3[:])
-	if err != nil {
-		t.Error(err)
-	}
-	if bytes.Compare(bufenc, buf4[:]) != 0 {
-		t.Error("Encrypt failed")
-	}
-}
-
-func TestDecrypt(t *testing.T) {
-	bufdec, err := Decrypt(buf2[:])
-	if err != nil {
-		t.Error(err)
-	}
-	if bytes.Compare(bufdec, buf1[:]) != 0 {
-		t.Error("Decrypt failed")
-	}
-
-	bufdec, err = Decrypt(buf4[:])
-	if err != nil {
-		t.Error(err)
-	}
-	if bytes.Compare(bufdec, buf3[:]) != 0 {
-		t.Error("Decrypt failed")
+		// decrypt
+		ciphertext, err := hex.DecodeString(v.cihpertext)
+		if err != nil {
+			t.Errorf("convert hex string failed, %s", err.Error())
+		}
+		dstplain, err := Decrypt(ciphertext)
+		if err != nil {
+			t.Errorf("Decrypt failed, %s", err.Error())
+		}
+		if hex.EncodeToString(dstplain) != v.plaintext {
+			t.Errorf("decrypt failed, expected(%s) got(%s)", v.plaintext, hex.EncodeToString(dstplain))
+		}
 	}
 }

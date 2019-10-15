@@ -4,28 +4,23 @@ local aes = require("aes")
 
 local tests = {
     {
-        plaintext = {104, 101, 108, 108, 111},
-        ciphertext = {
-            122, 84, 253, 52, 133, 151, 96, 4, 121, 51, 80, 230, 132, 236, 126, 210,
-            11 -- fill 11
-        }
+        plaintext = "68656C6C6F",
+        ciphertext = "7A54FD3485976004793350E684EC7ED20B",
     },
     {
-        plaintext = {101, 120, 97, 109, 112, 108, 101, 112, 108, 97, 105, 110, 116, 101, 120, 116},
-        ciphertext = {
-            54, 51, 193, 49, 72, 227, 229, 47, 249, 28, 98, 150, 219, 34, 197, 252,
-            0 -- fill 0
-        }
+        plaintext = "6578616D706C65706C61696E74657874",
+        ciphertext = "3633C13148E3E52FF91C6296DB22C5FC00",
     }
 }
-
 for k,v in pairs(tests) do
-    local dstcipher = aes.encrypt(v.plaintext)
-    assert(array.toHex(v.ciphertext) == array.toHex(dstcipher),
-        string.format("encrypt failed! expected(%s) got(%s)", array.toHex(v.ciphertext), array.toHex(dstcipher)))
+    local plaintext = array.fromHex(v.plaintext)
+    local dstcipher = aes.encrypt(plaintext)
+    assert(v.ciphertext == array.toHex(dstcipher),
+        string.format("encrypt failed! expected(%s) got(%s)", v.ciphertext, array.toHex(dstcipher)))
     
-    local dstplain = aes.decrypt(v.ciphertext)
-    assert(array.toHex(v.plaintext) == array.toHex(dstplain), 
-        string.format("decrypt failed! expected(%s) got(%s)", array.toHex(v.plaintext), array.toHex(dstplain)))
+    local ciphertext = array.fromHex(v.ciphertext)
+    local dstplain = aes.decrypt(ciphertext)
+    assert(v.plaintext == array.toHex(dstplain), 
+        string.format("decrypt failed! expected(%s) got(%s)", v.plaintext, array.toHex(dstplain)))
 end
 
