@@ -14,7 +14,7 @@ xor.enc = function(buf, begin, foot)
         0x26, 0x3C, 0x4E, 0x4D,
     }
     for i=begin,foot,1 do
-        buf[i] = bit32.bxor(buf[i], buf[i-1], key[i%32])
+        buf[i] = bit32.bxor(buf[i], buf[i-1], key[(i-1)%32+1])
     end
 end
 
@@ -30,7 +30,7 @@ xor.dec = function(buf, begin, foot)
         0x26, 0x3C, 0x4E, 0x4D,
     }
     for i=foot,begin,-1 do
-        buf[i] = bit32.bxor(buf[i], buf[i-1], key[i%32])
+        buf[i] = bit32.bxor(buf[i], buf[i-1], key[(i-1)%32+1])
     end
 end
 return xor
