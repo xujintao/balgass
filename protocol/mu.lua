@@ -1,9 +1,9 @@
 local path_common = "D:\\github.com\\xujintao\\balgass\\protocol\\"
 package.path = path_common .. "aes\\?.lua;"
-			.. path_common .. "aes\\?\\init.lua;"
-			.. path_common .. "xor\\?.lua;"
-			.. path_common .. "xor\\?\\init.lua;"
-			.. package.path
+            .. path_common .. "aes\\?\\init.lua;"
+            .. path_common .. "xor\\?.lua;"
+            .. path_common .. "xor\\?\\init.lua;"
+            .. package.path
 
 local aes = require("aes")
 local xor = require("xor")
@@ -29,52 +29,58 @@ local data_dis = Dissector.get("data")
 function do_dissector(tvb, pinfo, tree)
     -- protocol tree
     local subtree
-	local flag = tvb(0,1):uint()
+    local flag = tvb(0,1):uint()
     local len = 0
-	local code = 0
+    local code = 0
+    local data = "null"
     local offset = 0
-	local text = ""
+    local text = ""
     local flag_table = {
         [0xC1] = function()
-			-- xor.dec
-			len = tvb(1,1):uint()
-			local xortext = array.fromHex(tvb(0, len):bytes():tohex())
-			xor.dec(xortext, 4, #xortext)
-			tvb = ByteArray.new(array.toHex(xortext)):tvb("tvb_xor")
-			
-			-- flag
-			subtree:add(f_flag, tvb(offset,1))
-			offset = offset + 1
-			
+            -- xor.dec
+            len = tvb(1,1):uint()
+            local xortext = array.fromHex(tvb(0, len):bytes():tohex())
+            xor.dec(xortext, 4, #xortext)
+            tvb = ByteArray.new(array.toHex(xortext)):tvb("tvb_xor")
+            
+            -- flag
+            subtree:add(f_flag, tvb(offset,1))
+            offset = offset + 1
+            
             -- len
             subtree:add(f_len, tvb(offset,1))
             offset = offset + 1
-			
+            
             -- code
             code = tvb(offset,2):uint()
             subtree:add(f_code, tvb(offset,2))
             offset = offset + 2
-			
-			-- data 
-			if offset<len then
-				subtree:add(f_data, tvb(offset,len-offset))
-				-- offset = len
-			end
+            
+            -- data 
+            if offset<len then
+                subtree:add(f_data, tvb(offset,len-offset))
+                if len-offset > 10 then
+                    data = tvb(offset,10):bytes():tohex(true, " ") .. " ..."
+                else
+                    data = tvb(offset,len-offset):bytes():tohex(true, " ")
+                end
+                offset = len
+            end
 
-			-- prepare subtree text
-			text = text .. string.format("<flag:0x%x + len:%04d + code:0x%04x>", 0xC1, len, code)			
+            -- prepare subtree text
+            text = text .. string.format("<flag:%02x + len:%02x + code:%04x + data:%s>", 0xC1, len, code, data)         
         end,
         [0xC2] = function()
-			-- xor.dec
-			len = tvb(1,2):uint()		
-			local xortext = array.fromHex(tvb(0, len):bytes():tohex())
-			xor.dec(xortext, 5, #xortext)
-			tvb = ByteArray.new(array.toHex(xortext)):tvb("tvb_xor")
-			
-			-- flag
-			subtree:add(f_flag, tvb(offset,1))
-			offset = offset + 1
-			
+            -- xor.dec
+            len = tvb(1,2):uint()       
+            local xortext = array.fromHex(tvb(0, len):bytes():tohex())
+            xor.dec(xortext, 5, #xortext)
+            tvb = ByteArray.new(array.toHex(xortext)):tvb("tvb_xor")
+            
+            -- flag
+            subtree:add(f_flag, tvb(offset,1))
+            offset = offset + 1
+            
             -- len
             len = tvb(offset,2):uint()
             subtree:add(f_len2, tvb(offset,2))
@@ -84,99 +90,112 @@ function do_dissector(tvb, pinfo, tree)
             code = tvb(offset,2):uint()
             subtree:add(f_code, tvb(offset,2))
             offset = offset + 2
-			
-			-- data
-			if offset<len then
-				subtree:add(f_data, tvb(offset,len-offset))
-				offset = len
-			end
-			
-			-- prepare subtree text
-			text = text .. string.format("<flag:0x%x + len:%04d + code:0x%04x>", 0xC2, len, code)
+            
+            -- data
+            if offset<len then
+                subtree:add(f_data, tvb(offset,len-offset))
+                if len-offset > 10 then
+                    data = tvb(offset,10):bytes():tohex(true, " ") .. " ..."
+                else
+                    data = tvb(offset,len-offset):bytes():tohex(true, " ")
+                end
+                offset = len
+            end
+            
+            -- prepare subtree text
+            text = text .. string.format("<flag:%02x + len:%04x + code:%04x + data:%s>", 0xC2, len, code, data)
         end,
         [0xC3] = function()
-			-- aes.decrypt
-			local lenC3 = tvb(1,1):uint()
-			local ciphertext = array.fromHex(tvb(2, lenC3-2):bytes():tohex())
-			local plaintext = aes.decrypt(ciphertext)
-			table.insert(plaintext, 1, #plaintext + 2)
-			table.insert(plaintext, 1, 0xC1)
-			tvb = ByteArray.new(array.toHex(plaintext)):tvb("tvb_aes")
-			-- do_dissector(tvb, pinfo, subtree)
-			text = string.format("<flag:0x%x + len:%04d>", 0xC3, lenC3)
-			--flag_table[0xC1]()
-			
-			-- xor.dec
-			len = tvb(1,1):uint()
-			local xortext = array.fromHex(tvb(0, len):bytes():tohex())
-			xor.dec(xortext, 4, #xortext)
-			tvb = ByteArray.new(array.toHex(xortext)):tvb("tvb_xor")
-			
-			-- flag
-			subtree:add(f_flag, tvb(offset,1))
-			offset = offset + 1
-			
+            -- aes.decrypt
+            local lenC3 = tvb(1,1):uint()
+            local ciphertext = array.fromHex(tvb(2, lenC3-2):bytes():tohex())
+            local plaintext = aes.decrypt(ciphertext)
+            table.insert(plaintext, 1, #plaintext + 2)
+            table.insert(plaintext, 1, 0xC1)
+            tvb = ByteArray.new(array.toHex(plaintext)):tvb("tvb_aes")
+            -- do_dissector(tvb, pinfo, subtree)
+            text = string.format("<flag:%x + len:%02x>", 0xC3, lenC3)
+            --flag_table[0xC1]()
+            
+            -- xor.dec
+            len = tvb(1,1):uint()
+            local xortext = array.fromHex(tvb(0, len):bytes():tohex())
+            xor.dec(xortext, 4, #xortext)
+            tvb = ByteArray.new(array.toHex(xortext)):tvb("tvb_xor")
+            
+            -- flag
+            subtree:add(f_flag, tvb(offset,1))
+            offset = offset + 1
+            
             -- len
             len = tvb(offset,1):uint()
             subtree:add(f_len, tvb(offset,1))
             offset = offset + 1
-			
-			-- code
+            
+            -- code
             code = tvb(offset,2):uint()
-			subtree:add(f_code, tvb(offset,2))
+            subtree:add(f_code, tvb(offset,2))
             offset = offset + 2
-			
-			-- data
-			if offset<len then
-				--subtree:add(f_data_enc, tvb(offset,len-offset))
-				subtree:add(f_data, tvb(offset,len-offset))
-				offset = len
-			end
-			
-			-- prepare subtree text
-			text = text .. string.format("<flag:0x%x + len:%04d + code:0x%04x>", 0xC1, len, code)
+            
+            -- data
+            if offset<len then
+                subtree:add(f_data, tvb(offset,len-offset))
+                if len-offset > 10 then
+                    data = tvb(offset,10):bytes():tohex(true, " ") .. " ..."
+                else
+                    data = tvb(offset,len-offset):bytes():tohex(true, " ")
+                end
+                offset = len
+            end
+            
+            -- prepare subtree text
+            text = text .. string.format("<flag:%x + len:%02x + code:%04x + data:%s>", 0xC1, len, code, data)
         end,
         [0xC4] = function()
-			-- aes.decrypt
-			local lenC4 = tvb(1,2):uint()
-			local ciphertext = array.fromHex(tvb(3, lenC4-3):bytes():tohex())
-			local plaintext = aes.decrypt(ciphertext)
-			table.insert(plaintext, 1, (#plaintext + 3)%256)
-			table.insert(plaintext, 1, math.floor((#plaintext + 3)/256))
-			table.insert(plaintext, 1, 0xC2)
-			tvb = ByteArray.new(array.toHex(plaintext)):tvb("tvb_aes")
-			-- do_dissector(plainTVB, pinfo, subtree)
-			text = string.format("<flag:0x%x + len:%04d>", 0xC4, lenC4)
-			--flag_table[0xC2]()
+            -- aes.decrypt
+            local lenC4 = tvb(1,2):uint()
+            local ciphertext = array.fromHex(tvb(3, lenC4-3):bytes():tohex())
+            local plaintext = aes.decrypt(ciphertext)
+            table.insert(plaintext, 1, (#plaintext + 3)%256)
+            table.insert(plaintext, 1, math.floor((#plaintext + 3)/256))
+            table.insert(plaintext, 1, 0xC2)
+            tvb = ByteArray.new(array.toHex(plaintext)):tvb("tvb_aes")
+            -- do_dissector(plainTVB, pinfo, subtree)
+            text = string.format("<flag:%x + len:%04x>", 0xC4, lenC4)
+            --flag_table[0xC2]()
 
-			-- xor.dec
-			len = tvb(1,2):uint()		
-			local xortext = array.fromHex(tvb(0, len):bytes():tohex())
-			xor.dec(xortext, 5, #xortext)
-			tvb = ByteArray.new(array.toHex(xortext)):tvb("tvb_xor")			
-			-- flag
-			subtree:add(f_flag, tvb(offset,1))
-			offset = offset + 1
-			
+            -- xor.dec
+            len = tvb(1,2):uint()       
+            local xortext = array.fromHex(tvb(0, len):bytes():tohex())
+            xor.dec(xortext, 5, #xortext)
+            tvb = ByteArray.new(array.toHex(xortext)):tvb("tvb_xor")            
+            -- flag
+            subtree:add(f_flag, tvb(offset,1))
+            offset = offset + 1
+            
             -- len
             len = tvb(offset,2):uint()
             subtree:add(f_len2, tvb(offset,2))
             offset = offset + 2
-			
-			-- code
+            
+            -- code
             code = tvb(offset,2):uint()
-			subtree:add(f_code, tvb(offset,2))
+            subtree:add(f_code, tvb(offset,2))
             offset = offset + 2
             
-			-- data
-			if offset<len then
-				--subtree:add(f_data_enc, tvb(offset,len-offset))
-				subtree:add(f_data, tvb(offset,len-offset))
-				offset = len
-			end
+            -- data
+            if offset<len then
+                subtree:add(f_data, tvb(offset,len-offset))
+                if len-offset > 10 then
+                    data = tvb(offset,10):bytes():tohex(true, " ") .. " ..."
+                else
+                    data = tvb(offset,len-offset):bytes():tohex(true, " ")
+                end
+                offset = len
+            end
 
-			-- prepare subtree text
-			text = text .. string.format("<flag:0x%x + len:%04d + code:0x%04x>", 0xC2, len, code)
+            -- prepare subtree text
+            text = text .. string.format("<flag:%x + len:%04x + code:%04x + data:%s>", 0xC2, len, code, data)
         end,
     }
 
@@ -185,15 +204,15 @@ function do_dissector(tvb, pinfo, tree)
         data_dis:call(tvb, pinfo, tree)
         return
     end
-	
-	-- prepare subtree
-	subtree = tree:add(p_mu, tvb(0,tvb:len()))
-	
+    
+    -- prepare subtree
+    subtree = tree:add(p_mu, tvb(0,tvb:len()))
+    
     -- dissect
     dis()
 
     -- set subtree text
-	subtree:set_text(text)
+    subtree:set_text(text)
 end
 
 function get_message_len(tvb, pinfo, offset)
