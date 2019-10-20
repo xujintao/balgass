@@ -104,31 +104,33 @@ function do_dissector(tvb, pinfo, tree)
         [0xC3] = function()
             -- aes.decrypt
             local lenC3 = tvb(1,1):uint()
+            text = string.format("<flag:%x + len:%02x>", 0xC3, lenC3)
             local ciphertext = array.fromHex(tvb(2, lenC3-2):bytes():tohex())
             local plaintext,err = aes.decrypt(ciphertext)
             if string.len(err)~=0 then
+                subtree:set_text(text) -- save field
                 error(string.format("decrypt failed! %s", err))
             end
             table.insert(plaintext, 1, #plaintext + 2)
             table.insert(plaintext, 1, 0xC1)
             tvb = ByteArray.new(array.toHex(plaintext)):tvb("tvb_aes")
-            text = string.format("<flag:%x + len:%02x>", 0xC3, lenC3)
             flag = tvb(0,1):uint()
             disC1C2()
         end,
         [0xC4] = function()
             -- aes.decrypt
             local lenC4 = tvb(1,2):uint()
+            text = string.format("<flag:%x + len:%04x>", 0xC4, lenC4)
             local ciphertext = array.fromHex(tvb(3, lenC4-3):bytes():tohex())
             local plaintext,err = aes.decrypt(ciphertext)
             if string.len(err)~=0 then
+                subtree:set_text(text) -- save field
                 error(string.format("decrypt failed! %s", err))
             end
             table.insert(plaintext, 1, (#plaintext + 3)%256)
             table.insert(plaintext, 1, math.floor((#plaintext + 3)/256))
             table.insert(plaintext, 1, 0xC2)
             tvb = ByteArray.new(array.toHex(plaintext)):tvb("tvb_aes")
-            text = string.format("<flag:%x + len:%04x>", 0xC4, lenC4)
             flag = tvb(0,1):uint()
             disC1C2()
         end,
