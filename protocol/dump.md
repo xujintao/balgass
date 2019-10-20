@@ -2637,7 +2637,8 @@ Frame 1168: 65 bytes on wire (520 bits), 65 bytes captured (520 bits) on interfa
 Ethernet II, Src: HonHaiPr_f7:d7:2d (7c:e9:d3:f7:d7:2d), Dst: Tp-LinkT_e8:34:32 (d0:76:e7:e8:34:32)
 Internet Protocol Version 4, Src: 192.168.0.100, Dst: 192.168.0.100
 Transmission Control Protocol, Src Port: 9412, Dst Port: 56900, Seq: 556, Ack: 10385, Len: 11
-<flag:c3 + len:0b><flag:c1 + len:11 + code:d8d9 + data:b9 f7 5f 8c e2 eb 58 17 ab b3 ...>
+mu protocol
+Lua Error: dissect_tcp_pdus dissect_func: C:\Program Files\Wireshark\plugins\mu.lua:110: decrypt failed! src len invalid
 
 2019/272 01:24:32.535862    56900 → 9412 [PSH, ACK] Seq=10385 Ack=567 Win=65024 Len=6
 
