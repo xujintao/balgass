@@ -105,7 +105,10 @@ function do_dissector(tvb, pinfo, tree)
             -- aes.decrypt
             local lenC3 = tvb(1,1):uint()
             local ciphertext = array.fromHex(tvb(2, lenC3-2):bytes():tohex())
-            local plaintext = aes.decrypt(ciphertext)
+            local plaintext,err = aes.decrypt(ciphertext)
+            if string.len(err)~=0 then
+                error(string.format("decrypt failed! %s", err))
+            end
             table.insert(plaintext, 1, #plaintext + 2)
             table.insert(plaintext, 1, 0xC1)
             tvb = ByteArray.new(array.toHex(plaintext)):tvb("tvb_aes")
@@ -117,7 +120,10 @@ function do_dissector(tvb, pinfo, tree)
             -- aes.decrypt
             local lenC4 = tvb(1,2):uint()
             local ciphertext = array.fromHex(tvb(3, lenC4-3):bytes():tohex())
-            local plaintext = aes.decrypt(ciphertext)
+            local plaintext,err = aes.decrypt(ciphertext)
+            if string.len(err)~=0 then
+                error(string.format("decrypt failed! %s", err))
+            end
             table.insert(plaintext, 1, (#plaintext + 3)%256)
             table.insert(plaintext, 1, math.floor((#plaintext + 3)/256))
             table.insert(plaintext, 1, 0xC2)

@@ -52,7 +52,7 @@ func (c *Aes) Encrypt(src []byte) ([]byte, error) {
 
 // Decrypt decrypt buf, return buf decrypted
 func (c *Aes) Decrypt(src []byte) ([]byte, error) {
-	if len(src)%aes.BlockSize != 1 {
+	if len(src) <= aes.BlockSize || len(src)%aes.BlockSize != 1 {
 		return nil, errors.New("src len invalid")
 	}
 

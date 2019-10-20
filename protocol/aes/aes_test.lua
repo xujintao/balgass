@@ -14,12 +14,18 @@ local tests = {
 }
 for k,v in pairs(tests) do
     local plaintext = array.fromHex(v.plaintext)
-    local dstcipher = aes.encrypt(plaintext)
+    local dstcipher, err = aes.encrypt(plaintext)
+    if string.len(err)~=0 then
+        error(string.format("encrypt failed! %s", err))
+    end
     assert(v.ciphertext == array.toHex(dstcipher),
         string.format("encrypt failed! expected(%s) got(%s)", v.ciphertext, array.toHex(dstcipher)))
     
     local ciphertext = array.fromHex(v.ciphertext)
-    local dstplain = aes.decrypt(ciphertext)
+    local dstplain,err = aes.decrypt(ciphertext)
+    if string.len(err)~=0 then
+        error(string.format("decrypt failed! %s", err))
+    end
     assert(v.plaintext == array.toHex(dstplain), 
         string.format("decrypt failed! expected(%s) got(%s)", v.plaintext, array.toHex(dstplain)))
 end

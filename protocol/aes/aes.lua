@@ -32,6 +32,9 @@ aes.encrypter = function()
     end
 
     public.encrypt = function(src)
+        if #src == 0 then
+            return nil, "src len is zero"
+        end
         local dst = cipher.init()
                         .update(stream.fromArray(iv))
                         .update(stream.fromArray(src))
@@ -42,7 +45,7 @@ aes.encrypter = function()
             padsize = aes256.blockSize - rawlen(src)%aes256.blockSize
         end
         table.insert(dst, padsize)
-        return dst
+        return dst, ""
     end
 
     return public
@@ -68,6 +71,9 @@ aes.decrypter = function()
     end
 
     public.decrypt = function(src)
+        if (#src <= aes256.blockSize) or (#src % aes256.blockSize ~= 1) then
+            return nil, "src len invalid"
+        end
         local padsize = table.remove(src)
         local dst = cipher.init()
                         .update(stream.fromArray(iv))
@@ -78,7 +84,7 @@ aes.decrypter = function()
             table.remove(dst)
             padsize = padsize - 1
         end
-        return dst
+        return dst, ""
     end
 
     return public
