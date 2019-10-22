@@ -86,3 +86,15 @@ disable version match
 cd ~/github.com/xujintao/balgass/client
 GOOS=windows go build -x github.com/xujintao/balgass/client &> build.out
 ```
+
+## breakpoints
+```
+// f00439420 -> SendPacket
+// C1
+conditional breakpoints: word(edx+2)==31f3 || word(edx+2)==3cf3
+conditional tracing:     addr:{edx+2}, value:{word(edx+2)}
+
+// C2
+conditional breakpoints: 0
+conditional tracing:     addr:{edx+3}, value:{word(edx+3)}
+```

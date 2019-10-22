@@ -265,14 +265,17 @@ type conn struct {
 	bufr  [2000]uint8    // f2014
 	r     int            // f4014
 	f4020 *t3001         // f4020
-	once  sync.Once      // f40EC, _08C8D0DC
+	once  sync.Once      // f40EC, v08C8D0DC
 }
 
-var v08C88FF0 conn
+var v08C8D0DC bool // like once
+var v08C88FF0conn conn
 
 func (t *conn) f006BD3A7init() {
-	// t.once.Do(win.WSAStartup(0, nil))
-	win.WSAStartup(0, nil)
+	t.once.Do(func() {
+		win.WSAStartup(0, nil)
+	})
+	// win.WSAStartup(0, nil)
 }
 
 func (t *conn) f006BD509socket(hWnd win.HWND, x int) int {
@@ -404,6 +407,10 @@ func (t *conn) f004397E3write(buf []uint8, len int) int {
 	return 0
 }
 
+type t4003 struct {
+	f0C bool
+}
+
 type t4002 struct {
 	f04 [10]uint8
 	f18 int
@@ -445,10 +452,20 @@ type t4001 struct {
 var v0130F728 t4000
 
 type t4000 struct {
-	data  [4880]uint8
+	f14   bool
+	f410  *t4001
+	f41C  bool
+	f824  bool
+	fE7C  bool
+	f107C bool
 	f4880 t4001 // 01313FA8
+	f488C bool
+	f4BD8 *t4003
+	f4BE4 bool
 	f9DD8 int
+	f9FC8 int
 	f9FE4 int
+	f9FE9 bool
 	f9FEC *t4002 // v01319714
 }
 
@@ -538,29 +555,4 @@ func (t *t1) f007C4A65(x *t5, flagp *uint8) {}
 func (t *t1) f007C4858(x *t6) *t6 {
 	x.f007C522A(t.f18, t)
 	return x
-}
-
-// t6000
-var v01310798 t6000
-
-type t6000 struct {
-	fs []func()
-}
-
-func (t *t6000) f00446D6D() {
-	// 带SEH处理
-	f00DE8A70chkstk() // 0x2994
-
-	// ...
-
-	var ebp149C pb
-	ebp149C.f004393EAsend(false, false) // 发送协议报文
-
-	// ...
-}
-
-func (t *t6000) f004CCC07() {
-	// ...
-	_ = t.fs[11]
-	_ = t.fs[12] // f00446D6D
 }

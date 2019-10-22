@@ -221,9 +221,9 @@ func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 	case win.WM_USER: // 0x400
 		switch lParam {
 		case 1:
-			v08C88FF0.f006BDA03read()
+			v08C88FF0conn.f006BDA03read()
 		case 2:
-			v08C88FF0.f006BD945write()
+			v08C88FF0conn.f006BD945write()
 		case 20:
 		}
 	default:
@@ -603,6 +603,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 		// 0x0A32AF58
 		v0A38DB63 = v0AF77CE1 ^ v0B1090BA
 		// 0x0A38DB63
+		// rdtsc
 		var tscLeax uint32 = 0x5274DC2C
 		//var tscHedx uint32 = 0x00010865
 		// 0x0A32F0F4 0x0AF8EBF1
@@ -1044,16 +1045,18 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 
 	//
 	f00DEE871setlocale(0, v01319E00) // 参数0是哪个LC？
-	// _0043BF3F(v01319D6ChWnd, v012E3F08.height, v012E3F08.width)
-	// _0043BF9C()
-	// _0090E94C()
-	// _0090B256()
+	// f0043BF3F(v01319D6ChWnd, v012E3F08.height, v012E3F08.width)
+	// f0043BF9C()
+	// f0090E94C()
+	// f0090B256()
 	// f00A49798(v01319D6ChWnd, v012E3F08.height, v012E3F08.width)
 	// f00A49E40() // r6602 floating point support not loaded
 
 	// ...
 
 	v01319E08log.f00B38AE4printf("> Loading ok.\r\n")
+	// f004DAACA(v01319D6C)
+	v012E2340 = 2
 
 	// ...
 
@@ -1130,7 +1133,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 				}
 			}
 		}
-		f00760292parse(&v08C88FF0, 0, 0) // 从连接中获取报文并解析
+		f00760292parse(&v08C88FF0conn, 0, 0) // 从连接中获取报文并解析
 		// v01319D2C.f004B9492()
 	}
 
@@ -1165,27 +1168,26 @@ var v086105EC struct {
 
 func f004D8FF5() {
 	// SEH
-	var ebp1494heartbeat pb
 	f00DE8A70chkstk() // 0x1488
-
 	if v08C88F64 == 0 {
 		return
 	}
 
 	// 构造心跳报文
-	ebp1494heartbeat.f00439178init()
-	ebp1494heartbeat.f0043922CwritePrefix(0xC1, 0x0E) // 写前缀
+	var alive pb
+	alive.f00439178init()
+	alive.f0043922CwritePrefix(0xC1, 0x0E) // 写前缀
 	ebp10 := win.GetTickCount()
-	ebp1494heartbeat.f0043974FwriteZero(1)                    // 写0
-	ebp1494heartbeat.f0043EDF5writeUint32(ebp10)              // 写time
-	ebp1494heartbeat.f004C65EFwriteUint16(v086105EC.f00.f154) // 什么
-	ebp1494heartbeat.f004C65EFwriteUint16(v086105EC.f00.f160) // 什么
-	ebp1494heartbeat.f004393EAsend(true, false)               // 发送心跳报文
+	alive.f0043974FwriteZero(1)                    // 写0
+	alive.f0043EDF5writeUint32(ebp10)              // 写time
+	alive.f004C65EFwriteUint16(v086105EC.f00.f154) // 什么
+	alive.f004C65EFwriteUint16(v086105EC.f00.f160) // 什么
+	alive.f004393EAsend(true, false)               // 发送心跳报文
 	if v08C88F62 == 0 {
 		v08C88F62 = 1
 		v08C88F84 = ebp10
 	}
-	ebp1494heartbeat.f004391CF()
+	alive.f004391CF()
 }
 
 func f004D9F88() {}
@@ -1194,46 +1196,250 @@ func f004D9F88() {}
 var v0075FF6Acmd []struct{}
 var v0075FCB2cmd []struct{}
 
-var v086A3B94 func()
 var v086A3C28 int
 
 // 网络
 func f004E6233(hDC win.HDC) {
+	// SEH
+	f00DE8A70chkstk() //0x4734
+	// st0 = v0638C6C4 // st0~st7,浮点寄存器,80bit
+	// f00DE7C90memcpy()
 
-	// f004E4F1C
-	func() {
-		// 很复杂 0x004E4F1C ~ 0x004E6232，不到5000行并且几乎都是函数调用
-		// ...
-
-		v0130F728.f004A9B5B() // 请求服务器列表
-
-		ebp40C := v012E2340
-		switch ebp40C {
-		case 2:
-			// f004E1E1E
-			func() {
-				// 带SEH
-				f00DE8A70chkstk()
-
-				// f004E1CEE
+	switch v012E2340 {
+	case 1:
+		// f004DD578
+		func(hDC win.HDC) {}(hDC)
+	case 2, 4, 5:
+		// f004E4F1C
+		func(hDC win.HDC) {
+			// 很复杂 0x004E4F1C ~ 0x004E6232，不到5000行并且几乎都是函数调用
+			// ...
+			v0130F728.f004A9B5B() // 二次请求服务器列表
+			ebp40C := v012E2340
+			switch ebp40C {
+			case 2:
+				// f004E1E1E
 				func() {
-					// _006BF89A 拨号
-					func(ip string, port int) {
-						v08C88FF0.f006BD3A7init()
-						v01319E08log.f00B38AE4printf("[Connect to Server] ip address = %s, port = %d\r\n")
-						v08C88FF0.f006BD509socket(v01319D6ChWnd, 1)
-						v08C88FF0.f006BD708dial(ip, port, 400)
-					}(v012E2338ip, int(v012E233Cport))
+					// 带SEH
+					f00DE8A70chkstk() // 0x46E8
+					if !v0131A26C {
+						v0131A26C = true
+						// f004E1CEE
+						func() {
+							// f006BF89A 拨号
+							func(ip string, port int) {
+								v08C88FF0conn.f006BD3A7init()
+								v01319E08log.f00B38AE4printf("[Connect to Server] ip address = %s, port = %d\r\n", ip, port)
+								v08C88FF0conn.f006BD509socket(v01319D6ChWnd, 1)
+								v08C88FF0conn.f006BD708dial(ip, port, 400)
+								v08C88F60 = 0
+								v08C88F61 = 0
+							}(v012E2338ip, int(v012E233Cport))
+						}()
+					}
+					ebp1498 := f004A7D34().f4BD8
+					ebp1499 := ebp1498.f0C
+					if ebp1499 == false {
+						// f00657C13()
+						// f00670FFE()
+						// f0051B219()
+						// f0084EBF9()
+						// f00576F03()
+						// f0084B501()
+						// f0086BA70()
+						// f00884C77()
+						// f0051CFAA()
+						// v0131A294.f009D8054()
+						// v0131A2A0.f00B2136D()
+						// f004DB0B1()
+					}
+					// ebp14A0 := f0043BF3F()
+					// if ebp14A0.f31 {
+					// 	ebp14A1 := false
+					// } else {
+					// 	f008AEFAD(0x1B)
+					// }
+					var ebp14A1 bool
+					if ebp14A1 {
+						ebp10 := f004A7D34()
+						if !ebp10.f14 && !ebp10.f488C && !ebp10.f41C && !ebp10.f824 && !ebp10.f4BE4 && ebp10.fE7C && ebp10.f107C && ebp10.f9FE9 {
+							// f007DAFE0(0x19, 0, 0)
+							// ebp10.f410
+							ebp10.f004A9123(ebp10.f410)
+						}
+					}
+					if v08C88E08 != 0x14 {
+						return
+					}
+					v01319E08log.f00B38AE4printf("> Request Character list\r\n")
+					// f004E9975(0, 0, 0).f004E99D2()
+					v012E2340 = 4
+					v08C88E08 = 0x32
+					// 0x004E2050 压缩
+					var reqCharList pb // [c1 04 f3 00]
+					reqCharList.f00439178init()
+					reqCharList.buf[0] = 0xC1
+					reqCharList.buf[2] = 0xF3
+					reqCharList.buf[3] = 0
+					reqCharList.len = 4
+					reqCharList.buf[1] = uint8(reqCharList.len)
+					reqCharList.f004393EAsend(false, false)
+				}()
+			case 4:
+				// f004DDD4F()
+			case 5:
+				// f004DF0D5()
+			}
+			// 0x04E502F
+
+			// ...
+
+			// 0x004E5535
+			// f004E46B3
+			func() {
+				// ...
+				// 0x004E4818
+				// f0051B429
+				func() {
+					// 0x0A8FD064
+					var label1 uint32 = 0x0B07473F
+					// push label1
+					// push 0x0ABF9BB5
+					// ret
+
+					// 0x0ABF9BB5
+					var label2 uint32 = 0x00955C2C
+					// push label2
+					// push 0x0AAB3582
+					// ret
+
+					// 0x0AAB3582
+					var label3 uint32 = 0x0AD33A1B
+					// push label3
+					// push 0x0A4EAF02
+					// ret
+
+					// 0x0A4EAF02
+					// push eax
+					// push edx
+					// pushfd
+					// push esi
+					// push edi
+					// push ebx
+					// push ecx
+
+					// 0x0AF837C2
+					var label4 uint32 = 0x0AD33A1B
+					// push label4
+					// push 0x0A556D38
+					// ret
+
+					// 0x0A556D38
+					// push ebp
+					// ebp = esp
+					// 0x0AD3DEEC
+					// esp-=32
+					// push esi
+					// 0x09FDD040 0x0A902E30 0x0A04CEA5 0x0A9F7A5E 0x0ABF73ED
+					if v09FB8736 != v0A4E24C6 {
+						// 0x0AF940DF
+						// push eax
+						// 0x0AD84F85
+						// push edx
+						// 0x0A334194
+						v0B06F40C = v09E035DB ^ v0A43DD91
+						// 0x0B06F40C
+						// rdtsc
+						var tscLeax uint32 = 123
+						// 0x0A4E4C04
+						v09FDFB22 = tscLeax
+						// pop edx
+						// pop eax
+						v09FB8736 = v0A4E24C6
+					}
+					// 0x0AD3F139
+					if v09FDFB22 == 0 {
+						// 0x0ABF91B8
+						v09FDFB22++
+					}
+					// 0x0ABB5E49
+					v09FDFB22 = (v0AFD3C52 * v09FDFB22) % v09FB6D69
+					if v09FDFB22 <= v0A441BD1 {
+						// 0x0A904725
+						// ebpC := v0AD2DD3A
+						var ebp14 uintptr = 0x0ABFAB88
+						// 0x0A88F009
+						// *(ebp + v0AF890C3*4 + 8) = v0B287022
+						// 0x09FE38AE
+						if ebp14 == ^uintptr(0) {
+							// 0x0AC33DD2
+						} else {
+							// 0x0AAB2B15
+							if *(*uint32)(unsafe.Pointer(ebp14)) == ^uint32(1) {
+								// 0x0A88C1C8
+							} else {
+								// 0x0AF86C65
+							}
+						}
+					} else {
+						// 0x0A83F3CE
+						// *(ebp + v0AF890C3*4 + 8) = v0B287022
+						// 0x0A131864
+						// *(ebp + v09E8DF92*4 + 8) = v0AAB7324
+						// 0x0AD97228
+						// *(ebp + v0A933705*4 + 8) = v0A935B85
+						// 0x0A888DC9
+						// pop esi
+						// leave
+						// ret
+					}
 				}()
 			}()
-		case 4:
-			// f004DDD4F
-			func() {}()
-		case 5:
-			// f004DF0D5
-			func() {}()
-		}
+		}(hDC)
+	case 3:
+		// f004DB77C
+		func(hDC win.HDC) {
+			// SEH
+			ebp10 := f004A7D34()
+			if v0131A26D == false {
+				// v086A3B94 = f0098967F
+				v0131A26D = true
+				// ...
+			}
+			v08C88C69 = false
+			// f006BA133(0, 0, 0x280, 0x1E0)
+			// glClearColor()
+			// glClear()
+			// f006BB37E()
+			// ebp10.f9FC8.f0043DA73()
+			// f006BB45B()
+			// f006BA38B()
+			// SwapBuffers(hDC)
+			if ebp10.f9FC8 != 0 {
+				// 这是什么调用？
+				// ebp10.9FC8()
+				ebp10.f9FC8 = 0
+			}
+			v012E2340 = 5
+			ebp14 := 0
+			for ebp14 < 4 {
+				// f0089DB5A(ebp14+0x798D, 0)
+				ebp14++
+			}
+			// f005A4C09(1)
+		}(hDC)
+	}
 
-		// ...
-	}()
+	// f00A49798(v012E2340)
+	// f00A4E1BF
+	func() {}()
+
+	if v01319D9C <= 0x1F {
+		return
+	}
+	// var codef103 pb
+	// codef103.f00439178init()
+	// // 构造报文
+	// codef103.f0043968Fxor()
+	// v08C88FB4decrypt
 }
