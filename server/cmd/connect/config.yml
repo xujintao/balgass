@@ -1,0 +1,53 @@
+news:
+  title: "Server News"
+  news:
+  - {index: 0, dateR: 255, dateG: 0, dateB: 155, titleR: 215, titleG: 0, titleB: 100, textR: 100, textG: 0, textB: 135, Day: 10, Month: 12, Year: 2013, title: "Info", text: "This news info support all languages"}
+  - {index: 0, dateR: 255, dateG: 0, dateB: 155, titleR: 215, titleG: 0, titleB: 100, textR: 100, textG: 0, textB: 135, Day: 10, Month: 12, Year: 2013, title: "Info", text: "When no News added News Windows in Client will not be displayed"}
+
+net:
+# Port Game Client Connects to, must stay OPEN for public access,
+# can be changed to own. This port is used while generating ServerInfo.bmd
+  tcp_port: 44405
+# Port used for internal communication among DS, CS and GS
+# Must stay CLOSED for public access. Can be changed to own.
+# Same must be used in each GameServer.ini (ConnectServerPort key)
+# managed by current Connect Server
+  udp_port: 55667
+# Maximum simultaneous connections on CS TCP_PORT
+  max_connections_per_ip: 7000
+# Maximum packets per second received from specified IP
+  max_packets_per_second: 50
+# If using a IGC.Launcher (Premium) in a Proxy Mode
+# set IP the IGC.Launcher Server connects from
+# If running it from same PC as server leave default
+  launcher_proxy_white_ip: 127.0.0.1
+
+update:
+# Not used at the moment, format x.xx.xx
+  version: 1.05.25
+# Name of file storing versions list at HostURL, max 20 characters
+  version_file: version.dat
+# URL of host update packages are stored at Support of HTTP and FTP only.
+# Trailing lash required, max 100 characters
+# e.g. http://my.domain.com/patches/ or ftp://my.server.com/updates/
+  host_url: http://my.domain.com/patches/
+# Username to login to FTP server, ignored for HTTP, max 20 characters
+  ftp_login: USER_NAME
+# Password to login to FTP server, ignored for HTTP, max 20 characters
+  ftp_passwd: PASSWORD
+# Port of the FTP Host location
+  ftp_port: 21
+
+servers:
+# Code: Code of Server
+# IP: WAN IP or DNS (hostname) for the Server, max 15 characters
+# Port: PORT of the Server
+# Visible: Hide server on Server Selection List or Show it, 0/1
+# Name: Name of the Server, used for informational purpose only, max 40 alphanumerical characters
+# Server Code for Battle Core server is unmodifiable and must be set to 120
+# Code, IP and Port must match \Data\MapServer.xml and GameServer.ini configuration
+  - {code: 0,   ip: 192.168.0.100, port: 56900, visible: 1, name: Regular}
+  - {code: 12,  ip: 192.168.0.100, port: 56912, visible: 0, name: Market}
+  - {code: 13,  ip: 192.168.0.100, port: 56913, visible: 0, name: Arca}
+  - {code: 14,  ip: 192.168.0.100, port: 56914, visible: 0, name: Siege}
+  - {code: 120, ip: 192.168.0.100, port: 56120, visible: 0, name: BattleCore}
