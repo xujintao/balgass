@@ -30,7 +30,7 @@ func (k *contextKey) String() string { return "net/http context value " + k.name
 
 // Handler callback handle logic
 type Handler interface {
-	Handle(req []uint8) []uint8
+	Handle(req *Message) *Message
 }
 
 // pool
@@ -109,7 +109,7 @@ func (c *conn) close() {
 	c.rwc.Close()
 }
 
-func (c *conn) readRequest(ctx context.Context) ([]byte, error) {
+func (c *conn) readRequest(ctx context.Context) (*Message, error) {
 	// peek 3 bytes
 	frameHead, err := c.bufr.Peek(3)
 	if err != nil {
@@ -117,28 +117,29 @@ func (c *conn) readRequest(ctx context.Context) ([]byte, error) {
 	}
 
 	flag := frameHead[0]
-	len := 0
+	size := 0
 	switch flag {
 	case 0xC1, 0xC3:
-		len = int(frameHead[1])
+		size = int(frameHead[1])
 	case 0xC2, 0xC4:
-		len = int(binary.BigEndian.Uint16(frameHead[1:]))
+		size = int(binary.BigEndian.Uint16(frameHead[1:]))
 	default:
 		return nil, fmt.Errorf("invalid flag: %x", flag)
 	}
 
-	// peek len bytes
-	if _, err := c.bufr.Peek(len); err != nil {
+	// peek size bytes
+	if _, err := c.bufr.Peek(size); err != nil {
 		return nil, err
 	}
 
 	// read
-	frame := make([]byte, len)
+	frame := make([]byte, size)
 	if _, err := c.bufr.Read(frame); err != nil {
 		return nil, err
 	}
 
-	return frame, nil
+	// parse
+	return parseFrame(frame, c.server.isGame)
 }
 
 func (c *conn) serve(ctx context.Context) {
@@ -157,8 +158,9 @@ func (c *conn) serve(ctx context.Context) {
 		if err != nil {
 			log.Println(err)
 		}
-		res := c.server.Handler.Handle(req)
-		if _, err = c.bufw.Write(res); err != nil {
+		res := c.server.Handler.Handle(req) // callback
+		resFrame := createFrame(res)
+		if _, err = c.bufw.Write(resFrame); err != nil {
 			log.Println(err)
 		}
 		if err := c.bufw.Flush(); err != nil {
@@ -171,6 +173,7 @@ func (c *conn) serve(ctx context.Context) {
 type Server struct {
 	Addr    string
 	Handler Handler
+	isGame  bool
 }
 
 // Serve accepts incoming connections on the Listener l, creating a
@@ -220,7 +223,7 @@ func (srv *Server) ListenAndServe() error {
 
 // ListenAndServe listens on the TCP network address addr and then calls
 // Serve with handler to handle requests on incoming connections.
-func ListenAndServe(addr string, handler Handler) error {
-	server := &Server{Addr: addr, Handler: handler}
+func ListenAndServe(addr string, handler Handler, isGame bool) error {
+	server := &Server{Addr: addr, Handler: handler, isGame: isGame}
 	return server.ListenAndServe()
 }
