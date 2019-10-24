@@ -1,6 +1,12 @@
 package main
 
+import (
+	"fmt"
+
+	"github.com/xujintao/balgass/server/protocol"
+)
+
 func main() {
-	c := Config
-	print(c.News.News[0].Text)
+	addr := fmt.Sprintf(":%d", Config.Net.TCPPort)
+	protocol.ListenAndServe(addr, cmdHandle{}, false)
 }
