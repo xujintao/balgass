@@ -7,7 +7,7 @@ import (
 
 type text struct {
 	plaintext  string
-	cihpertext string
+	ciphertext string
 }
 
 var texts = [...]text{
@@ -32,12 +32,12 @@ func Test(t *testing.T) {
 		if err != nil {
 			t.Errorf("Encrypt failed, %s", err.Error())
 		}
-		if hex.EncodeToString(dstcipher) != v.cihpertext {
-			t.Errorf("encrypt failed, expected(%s) got(%s)", v.cihpertext, hex.EncodeToString(dstcipher))
+		if hex.EncodeToString(dstcipher) != v.ciphertext {
+			t.Errorf("encrypt failed, expected(%s) got(%s)", v.ciphertext, hex.EncodeToString(dstcipher))
 		}
 
 		// decrypt
-		ciphertext, err := hex.DecodeString(v.cihpertext)
+		ciphertext, err := hex.DecodeString(v.ciphertext)
 		if err != nil {
 			t.Errorf("convert hex string failed, %s", err.Error())
 		}
