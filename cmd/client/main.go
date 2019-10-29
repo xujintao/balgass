@@ -5,7 +5,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/xujintao/balgass/client/win"
+	"github.com/xujintao/balgass/win"
 )
 
 type conf struct {

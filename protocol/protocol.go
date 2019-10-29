@@ -3,9 +3,9 @@ package protocol
 import (
 	"encoding/binary"
 
-	"github.com/xujintao/balgass/server/xor"
+	"github.com/xujintao/balgass/xor"
 
-	"github.com/xujintao/balgass/server/aes"
+	"github.com/xujintao/balgass/aes"
 )
 
 type Message struct {

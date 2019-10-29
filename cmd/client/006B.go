@@ -4,7 +4,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/xujintao/balgass/client/win"
+	"github.com/xujintao/balgass/win"
 )
 
 // t3004

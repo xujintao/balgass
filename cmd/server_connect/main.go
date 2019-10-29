@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/xujintao/balgass/server/protocol"
+	"github.com/xujintao/balgass/protocol"
 )
 
 func main() {

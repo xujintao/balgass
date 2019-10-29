@@ -6,7 +6,7 @@ import (
 	"os"
 	"unsafe"
 
-	"github.com/xujintao/balgass/client/win"
+	"github.com/xujintao/balgass/win"
 )
 
 const (

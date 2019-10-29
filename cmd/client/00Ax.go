@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/xujintao/balgass/client/win"
+	"github.com/xujintao/balgass/win"
 )
 
 func f00A49798(hWnd win.HWND, message uint32, wParam, lParam uintptr, x int) {

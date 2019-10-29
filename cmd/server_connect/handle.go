@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/binary"
 
-	"github.com/xujintao/balgass/server/protocol"
+	"github.com/xujintao/balgass/protocol"
 )
 
 type cmdHandle struct{}

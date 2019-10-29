@@ -5,7 +5,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/xujintao/balgass/client/win"
+	"github.com/xujintao/balgass/win"
 )
 
 var v012EC83C = [16]uint8{

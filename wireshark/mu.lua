@@ -1,4 +1,4 @@
-local path_common = "D:\\github.com\\xujintao\\balgass\\protocol\\"
+local path_common = "D:\\github.com\\xujintao\\balgass\\wireshark\\"
 package.path = path_common .. "aes\\?.lua;"
             .. path_common .. "aes\\?\\init.lua;"
             .. path_common .. "xor\\?.lua;"

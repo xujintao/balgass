@@ -83,8 +83,8 @@ disable version match
 
 ## build
 ```
-cd ~/github.com/xujintao/balgass/client
-GOOS=windows go build -x github.com/xujintao/balgass/client &> build.out
+cd ~/github.com/xujintao/balgass/cmd/client
+GOOS=windows go build -x github.com/xujintao/balgass/cmd/client &> build.out
 ```
 
 ## breakpoints
