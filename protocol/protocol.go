@@ -3,9 +3,8 @@ package protocol
 import (
 	"encoding/binary"
 
-	"github.com/xujintao/balgass/xor"
-
 	"github.com/xujintao/balgass/aes"
+	"github.com/xujintao/balgass/xor"
 )
 
 type Message struct {
@@ -69,7 +68,7 @@ func parseFrame(frame []byte, needxor bool) (*Message, error) {
 	return &Message{flag, len, code, body}, nil
 }
 
-func createFrame(msg *Message) []byte {
+func newFrame(msg *Message) []byte {
 	var frame []byte
 	flag := msg.Flag
 	frame = append(frame, flag)

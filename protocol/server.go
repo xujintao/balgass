@@ -159,13 +159,14 @@ func (c *conn) serve(ctx context.Context) {
 			log.Println(err)
 		}
 		res := c.server.Handler.Handle(req) // callback
-		resFrame := createFrame(res)
+		if res == nil {
+			continue
+		}
+		resFrame := newFrame(res)
 		if _, err = c.bufw.Write(resFrame); err != nil {
 			log.Println(err)
 		}
-		if err := c.bufw.Flush(); err != nil {
-			log.Println(err)
-		}
+		c.bufw.Flush()
 	}
 }
 
