@@ -14,6 +14,14 @@ type Message struct {
 	Body []byte
 }
 
+type Message2 struct {
+	Flag    byte
+	Len     int
+	Code    uint8
+	SubCode uint8
+	Body    []byte
+}
+
 // client发往connect服务器的帧没有xor编码，
 // client发往game服务器的帧进行了xor编码
 func parseFrame(frame []byte, needxor bool) (*Message, error) {
@@ -68,19 +76,38 @@ func parseFrame(frame []byte, needxor bool) (*Message, error) {
 	return &Message{flag, len, code, body}, nil
 }
 
-func newFrame(msg *Message) []byte {
-	var frame []byte
-	flag := msg.Flag
-	frame = append(frame, flag)
-	switch flag {
-	case 0xC1:
-		frame = append(frame, byte(msg.Len))
-	case 0xC2:
-		var lenC2 [2]byte
-		binary.BigEndian.PutUint16(lenC2[:], uint16(msg.Len))
-		frame = append(frame, lenC2[:]...)
+func newFrame(msg interface{}) []byte {
+	switch msg := msg.(type) {
+	case *Message:
+		var frame []byte
+		flag := msg.Flag
+		frame = append(frame, flag)
+		switch flag {
+		case 0xC1:
+			frame = append(frame, byte(msg.Len))
+		case 0xC2:
+			var lenC2 [2]byte
+			binary.BigEndian.PutUint16(lenC2[:], uint16(msg.Len))
+			frame = append(frame, lenC2[:]...)
+		}
+		frame = append(frame, msg.Code)
+		frame = append(frame, msg.Body...)
+	case *Message2:
+		var frame []byte
+		flag := msg.Flag
+		frame = append(frame, flag)
+		switch flag {
+		case 0xC1:
+			frame = append(frame, byte(msg.Len))
+		case 0xC2:
+			var lenC2 [2]byte
+			binary.BigEndian.PutUint16(lenC2[:], uint16(msg.Len))
+			frame = append(frame, lenC2[:]...)
+		}
+		frame = append(frame, msg.Code)
+		frame = append(frame, msg.SubCode)
+		frame = append(frame, msg.Body...)
 	}
-	frame = append(frame, msg.Code)
-	frame = append(frame, msg.Body...)
+
 	return nil
 }
