@@ -43,6 +43,7 @@ var v01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
 var v01319A50ip [16]uint8
 
 var v01319D1CwndProc uintptr
+var v01319D65 uint32
 var v01319D68 *t1319D68
 var v01319D6ChWnd win.HWND // hWnd, 0x0073,1366
 var v01319D70hModule win.HMODULE
@@ -1054,10 +1055,6 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 
 	// ...
 
-	v01319E08log.f00B38AE4printf("> Loading ok.\r\n")
-	// f004DAACA(v01319D6C)
-	v012E2340 = 2
-
 	// ...
 
 	var ebp_595 uint8 // ImmIsUIMessage返回值
@@ -1156,6 +1153,7 @@ var v08C88F64 int
 var v08C88F74 int
 var v08C88F78username [11]uint8 // username
 var v08C88F84 uint32
+var v08C88F88 uint32
 
 type t2 struct {
 	f154 uint16 // 0
@@ -1208,92 +1206,140 @@ func f004E6233(hDC win.HDC) {
 	switch v012E2340 {
 	case 1:
 		// f004DD578
-		func(hDC win.HDC) {}(hDC)
+		func(hDC win.HDC) {
+			// ...
+			v01319E08log.f00B38AE4printf("> Loading ok.\r\n")
+			// f004DAACA(v01319D6ChWnd)
+			v012E2340 = 2
+		}(hDC)
 	case 2, 4, 5:
 		// f004E4F1C
 		func(hDC win.HDC) {
-			// 很复杂 0x004E4F1C ~ 0x004E6232，不到5000行并且几乎都是函数调用
-			// ...
-			v0130F728.f004A9B5B() // 二次请求服务器列表
-			ebp40C := v012E2340
-			switch ebp40C {
-			case 2:
-				// f004E1E1E
-				func() {
-					// 带SEH
-					f00DE8A70chkstk() // 0x46E8
-					if !v0131A26C {
-						v0131A26C = true
-						// f004E1CEE
-						func() {
-							// f006BF89A 拨号
-							func(ip string, port int) {
-								v08C88FF0conn.f006BD3A7init()
-								v01319E08log.f00B38AE4printf("[Connect to Server] ip address = %s, port = %d\r\n", ip, port)
-								v08C88FF0conn.f006BD509socket(v01319D6ChWnd, 1)
-								v08C88FF0conn.f006BD708dial(ip, port, 400)
-								v08C88F60 = 0
-								v08C88F61 = 0
-							}(v012E2338ip, int(v012E233Cport))
-						}()
-					}
-					ebp1498 := f004A7D34().f4BD8
-					ebp1499 := ebp1498.f0C
-					if ebp1499 == false {
-						// f00657C13()
-						// f00670FFE()
-						// f0051B219()
-						// f0084EBF9()
-						// f00576F03()
-						// f0084B501()
-						// f0086BA70()
-						// f00884C77()
-						// f0051CFAA()
-						// v0131A294.f009D8054()
-						// v0131A2A0.f00B2136D()
-						// f004DB0B1()
-					}
-					// ebp14A0 := f0043BF3F()
-					// if ebp14A0.f31 {
-					// 	ebp14A1 := false
-					// } else {
-					// 	f008AEFAD(0x1B)
-					// }
-					var ebp14A1 bool
-					if ebp14A1 {
-						ebp10 := f004A7D34()
-						if !ebp10.f14 && !ebp10.f488C && !ebp10.f41C && !ebp10.f824 && !ebp10.f4BE4 && ebp10.fE7C && ebp10.f107C && ebp10.f9FE9 {
-							// f007DAFE0(0x19, 0, 0)
-							// ebp10.f410
-							ebp10.f004A9123(ebp10.f410)
+			// SEH
+			// f00552D0D()
+			ebp178 := v0131A270
+			for ebp178 >= 0x28 {
+				// ...
+				v0130F728.f004A9B5B() // 二次请求服务器列表
+				ebp40C := v012E2340
+				switch ebp40C {
+				case 2:
+					// f004E1E1E()
+					func() {
+						// 带SEH
+						f00DE8A70chkstk() // 0x46E8
+						if !v0131A26C {
+							v0131A26C = true
+							// f004E1CEE()
+							func() {
+								// ...
+								// 0x004E1D36 hook到 dll
+								// f006BF89A 拨号
+								func(ip string, port int) {
+									v08C88FF0conn.f006BD3A7init()
+									v01319E08log.f00B38AE4printf("[Connect to Server] ip address = %s, port = %d\r\n", ip, port)
+									v08C88FF0conn.f006BD509socket(v01319D6ChWnd, 1)
+									v08C88FF0conn.f006BD708dial(ip, port, 400)
+									v08C88F60 = 0
+									v08C88F61 = 0
+								}(v012E2338ip, int(v012E233Cport))
+								// ...
+							}()
 						}
-					}
-					if v08C88E08 != 0x14 {
-						return
-					}
-					v01319E08log.f00B38AE4printf("> Request Character list\r\n")
-					// f004E9975(0, 0, 0).f004E99D2()
-					v012E2340 = 4
-					v08C88E08 = 0x32
-					// 0x004E2050 压缩
-					var reqCharList pb // [c1 04 f3 00]
-					reqCharList.f00439178init()
-					reqCharList.buf[0] = 0xC1
-					reqCharList.buf[2] = 0xF3
-					reqCharList.buf[3] = 0
-					reqCharList.len = 4
-					reqCharList.buf[1] = uint8(reqCharList.len)
-					reqCharList.f004393EAsend(false, false)
-				}()
-			case 4:
-				// f004DDD4F()
-			case 5:
-				// f004DF0D5()
+						ebp1498 := f004A7D34().f4BD8
+						ebp1499 := ebp1498.f0C
+						if ebp1499 == false {
+							// f00657C13()
+							// f00670FFE()
+							// f0051B219()
+							// f0084EBF9()
+							// f00576F03()
+							// f0084B501()
+							// f0086BA70()
+							// f00884C77()
+							// f0051CFAA()
+							// v0131A294.f009D8054()
+							// v0131A2A0.f00B2136D()
+							// f004DB0B1()
+						}
+						// ebp14A0 := f0043BF3F()
+						// if ebp14A0.f31 {
+						// 	ebp14A1 := false
+						// } else {
+						// 	f008AEFAD(0x1B)
+						// }
+						var ebp14A1 bool
+						if ebp14A1 {
+							ebp10 := f004A7D34()
+							if !ebp10.f14 && !ebp10.f488C && !ebp10.f41C && !ebp10.f824 && !ebp10.f4BE4 && ebp10.fE7C && ebp10.f107C && ebp10.f9FE9 {
+								// f007DAFE0(0x19, 0, 0)
+								// ebp10.f410
+								ebp10.f004A9123(ebp10.f410)
+							}
+						}
+						if v08C88E08 != 0x14 {
+							return
+						}
+						v01319E08log.f00B38AE4printf("> Request Character list\r\n")
+						// f004E9975(0, 0, 0).f004E99D2()
+						v012E2340 = 4
+						v08C88E08 = 0x32
+						// 0x004E2050 压缩
+						var reqCharList pb // [c1 04 f3 00]
+						reqCharList.f00439178init()
+						reqCharList.buf[0] = 0xC1
+						reqCharList.buf[2] = 0xF3
+						reqCharList.buf[3] = 0
+						reqCharList.len = 4
+						reqCharList.buf[1] = uint8(reqCharList.len)
+						reqCharList.f004393EAsend(false, false)
+					}()
+				case 4:
+					// f004DDD4F()
+				case 5:
+					// f004DF0D5()
+				}
+				// 0x04E502F
+				ebp188 := 0
+				for ebp188 < 5 {
+					// v0131A27C.f00534AFA(v0114EE48)
+					ebp188++
+				}
+				// f005AC5A0()
+				// f005A4BC5(0x2C)
+				if v08C88F88 > 0 {
+					v08C88F88--
+				}
+				if v086A3BEC > 0 {
+					v086A3BEC--
+				}
+				// v08C7CC18++
+				// v08C7CC18 %= 32
+				v0131A240++
+				ebp178 -= 0x28
 			}
-			// 0x04E502F
+			// 0x004E50FB
+			if v01319D68 != 0 {
+				return
+			}
+			// v09D24A20.f00514F8F()
+			// f007DB28F()
+			// var  uint32
+			systime := struct {
+				wYear         uint16
+				wMonth        uint16
+				wDayOfWeek    uint16
+				wDay          uint16
+				wHour         uint16
+				wMinute       uint16
+				wSecond       uint16
+				wMilliseconds uint16
+			}{}
+			// GetLocalTime(&ebp64)
+			f00DE817Asprintf(v08C88AB8[:], "Screen(%02d_%02d-%02d_%02d)-%04d.jpg", systime.wMonth, systime.wDay, systime.wHour, systime.wMinute, v08C88C74)
+			// v08610600.f00436DF1(0x1CB)
 
 			// ...
-
 			// 0x004E5535
 			// f004E46B3
 			func() {
@@ -1430,9 +1476,14 @@ func f004E6233(hDC win.HDC) {
 		}(hDC)
 	}
 
-	// f00A49798(v012E2340)
-	// f00A4E1BF
-	func() {}()
+	// 0x004E62F0
+	// f00A49798(v012E2340).f00A4E1BF()
+	func(state int) {
+		// if v09D96438 == nil{
+		// ...
+		// }
+		// return v09D96438
+	}(v012E2340)
 
 	if v01319D9C <= 0x1F {
 		return

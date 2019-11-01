@@ -1,9 +1,16 @@
 package main
 
+var v0131A240 uint32
 var v0131A26C bool
 var v0131A26D bool
+var v0131A270 int
+
+var v08C88AB8 [100]uint8
 var v08C88C69 bool
+var v08C88C6A bool
+var v08C88C74 uint32
 var v086A3B94 func()
+var v086A3BEC uint32
 
 var v0638C6C4 uint32 = 0x4EB0E616
 
