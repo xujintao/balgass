@@ -1114,7 +1114,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 				}
 			}
 			if v012E2224 == 1 || v01319D95 != 0 {
-				f004E6233(v01319D74hDC) // 网络处理
+				f004E6233(v01319D74hDC) // 状态机 重要
 			} else if v012E2224 == 0 {
 				win.SetForegroundWindow(v01319D6ChWnd)
 				win.SetFocus(v01319D6ChWnd)
@@ -1196,14 +1196,405 @@ var v0075FCB2cmd []struct{}
 
 var v086A3C28 int
 
-// 网络
+func f004E46B3(hDC win.HDC) {
+	if v0131A26C == false {
+		return
+	}
+	// ...
+	// 0x004E4819
+	// f0051B429
+	func() {
+		// 0x0A8FD064
+		var label1 uint32 = 0x0B07473F
+		// push label1
+		// push 0x0ABF9BB5
+		// ret
+
+		// 0x0ABF9BB5
+		var label2 uint32 = 0x00955C2C
+		// push label2
+		// push 0x0AAB3582
+		// ret
+
+		// 0x0AAB3582
+		var label3 uint32 = 0x0AD33A1B
+		// push label3
+		// push 0x0A4EAF02
+		// ret
+
+		// 0x0A4EAF02
+		// push eax
+		// push edx
+		// pushfd
+		// push esi
+		// push edi
+		// push ebx
+		// push ecx
+
+		// 0x0AF837C2
+		// push 0x0A4E2E5E
+		// push 0x0A556D38
+		// ret
+
+		// 0x0A556D38
+		func() {
+			// 0x0AD3DEEC
+			// push esi
+			// 0x09FDD040 0x0A902E30 0x0A04CEA5 0x0A9F7A5E 0x0ABF73ED
+			if v09FB8736 != v0A4E24C6 {
+				// 0x0AF940DF
+				// push eax
+				// 0x0AD84F85
+				// push edx
+				// 0x0A334194
+				v0B06F40C = v09E035DB ^ v0A43DD91
+				// 0x0B06F40C
+				// rdtsc
+				var tscLeax uint32 = 0x80AA05B4
+				// 0x0A4E4C04
+				v09FDFB22 = tscLeax
+				// pop edx
+				// pop eax
+				v09FB8736 = v0A4E24C6
+			}
+			// 0x0AD3F139
+			if v09FDFB22 == 0 {
+				// 0x0ABF91B8
+				v09FDFB22++
+			}
+			// 0x0ABB5E49
+			v09FDFB22 = (v0AFD3C52 * v09FDFB22) % v09FB6D69 // v09FDFB22 = 0xC8D6
+			if v09FDFB22 <= v0A441BD1 {
+				// 0x0A904725
+				ebpC := v0AD2DD3A
+				ebp14 := v0ABFAB88blocks[:]
+				// 0x0A88F009
+				label1 = v0B287022label1 // *(ebp + v0AF890C3*4 + 8) = v0B287022
+				// 0x09FE38AE
+				for {
+					if ebp14[0].addr == ^uintptr(0) {
+						break // 0x0AC33DD2
+					}
+					// 0x0AAB2B15
+					if ebp14[0].addr == ^uintptr(1) {
+						// 0x0A88C1C8
+						// ebp14 = ebp14[0].size + v0A4E85ABimageBase
+						continue
+					}
+					// 0x0AF86C65
+					ebp20 := ebp14[0].addr + v0A4E85ABimageBase
+					// 0x09FC5349 0x09FC3291
+					ebp10 := ebp14[0].size
+					// ebp1C := ebp14[0].addr
+					// 0x0AF949B9 0x0A84B475 0x0AA092FB 0x0A94F4DC 0x0A846F88
+					// 0x0AF7D073
+					for ebp10 >= 4 {
+						ebpC *= (*(*uint32)(unsafe.Pointer(ebp20))) // 4 byte block
+						ebp20 += 4
+						ebp10 -= 4
+					}
+					// 0x0AD75422
+					for ebp10 > 0 {
+						// 0x0ABD786A
+						ebpC *= (uint32)(*(*uint8)(unsafe.Pointer(ebp20))) // 1 byte block
+						ebp10--
+						ebp20++
+					}
+					// 0x09FDF2EA
+					ebp14 = ebp14[1:] // next block
+				} // for loop 0x09FE38AE
+
+				// 0x0AC33DD2
+				label2 = v0AAB7324label2
+				ebp18 := &ebpC
+				ebp4 := &v0AA2E05D
+				ebp8 := v09EB9D65 - 1
+				for {
+					// 0x09FB976E 0x09EB8681 0x0A5561A8 0x0A9F8156 0x0AB4D04C 0x0AA05397 0x0AD3ED19
+					if ebp8 >= 0 {
+						// 0x0A9D4F03
+						// *(ebp8*4 + &v0A84EAA4) = edx
+						// 0x0A55E6BE
+						ebp8--
+						// 0x09FB976E
+					} else {
+						break // 0x09F8EDD8
+					}
+				}
+				// 0x09F8EDD8
+				ebp8 = v09EB9D65 - 1
+				// 0x0AD2DAD0
+				for {
+					// 0x0A057AD3 0x0ABB5BA4 0x0A6045A4 0x0AC38DB6 0x0AAB75A9 0x0A4EBF51
+					if ebp8 >= 0 {
+						// 0x0AFDC80E
+						if *ebp18 == *ebp4 {
+							// 0x0AD8EC9E 0x0A4E2236
+							ebp8--
+							// 0x0A057AD3
+						} else {
+							// 0x0A33AA09
+							// push v0A936E16 // 0x2715
+							// push 0x0A849753
+							// push v0A4E002C // 0x007C6515
+							// ret
+
+							// 0x007C6515 0x0B10BD49
+							// var label2 uint32 = 0x0069A764
+							// push label2
+							// push 0x0A05E2CB
+							// ret
+
+							// 0x0A05E2CB
+							// push 0x008A2556
+							// push 0x09F8A379
+							// ret
+
+							// 0x09F8A379
+							// push 0x0AF87992
+							// push 0x0A9FD0D8
+							// ret
+
+							// 0x0A9FD0D8 0x09E7064B 0x0A4ED56A 0x0A9035D7 0x0B10DDBC 0x0A43C3DC
+							// push edx
+							// push edi
+							// push ebx
+							// push ecx
+							// push esi
+							// pushfd
+							// 0x0A8919E3
+							// push 0x0ABDA08C
+							// push 0x09FC49DC
+							// ret
+
+							// 0x09FC49DC 0x0B10B4CC 0x0A0585C1 0x0B2861D1 0x0A5619F2
+							// func() {
+							// 	// 0x09E8E8CE 0x09E6B4AB
+							// 	ecx := v09FFD056
+							// 	eax := v09FFD052
+							// 	edx := v0AF947E0
+							// 	// push ebx
+							// 	// push esi
+							// 	// push edi
+							// 	// 0x0ABB6C9F
+							// 	ebpC := ecx
+							// 	ebp10 := eax
+							// 	eax = v0A8FB710label2
+							// 	// 0x0AF13A88
+							// 	ecx = &ebp10
+							// 	// push 0x0A84F076
+							// 	// 0x0B286D02 0x0AF95B7F
+							// 	// push ecx
+							// 	ebx := 0x09F94DAA
+							// 	ebp10 = 0x09FFD052
+							// 	label2 = v0A8FB710label2
+							// 	// 0x0ABD639F
+							// 	// push 0x0A891A5A
+							// 	// push 0x0AD9788A
+							// 	// ret
+
+							// 	// 0x0AD9788A
+							// 	// 一个迭代
+							// }()
+
+						}
+					} else {
+						// 0x0A9D43C2
+					}
+				}
+			} else {
+				// 0x0A83F3CE
+				label1 = v0B287022label1 // *(ebp + v0AF890C3*4 + 8) = v0B287022
+				// 0x0A131864
+				label2 = v0AAB7324label2 // *(ebp + v09E8DF92*4 + 8) = v0AAB7324
+				// 0x0AD97228
+				label3 = v0A935B85label3 // *(ebp + v0A933705*4 + 8) = v0A935B85
+				// 0x0A888DC9
+			}
+			// 0x0A888DC9
+			// pop esi
+		}()
+
+		// 0x0A4E2E5E
+		// pop ecx
+		// pop ebx
+		// pop edi
+		// pop esi
+		// popfd
+		// pop edx
+		// pop eax
+		// 0x0A9D45B8 0x0AF0F2C8
+		// label3(0x0A43B47B)
+		// label2(0x0AD2CAED)
+		// label1(0x0AD98B31)
+		// 0x0AD98B31 被掩藏的函数
+		func() {
+			ebp4 := 0
+			for {
+				// 0x0051B43B
+				if ebp4 >= 10 {
+					break
+				}
+				ebp8 := &v08C86C50[ebp4]
+				// f0051B25B
+				eax := func(x *t7, y uint32) bool {
+					return true
+				}(ebp8, 0)
+				if eax == false {
+					break
+				}
+				ebp4++
+			}
+		}()
+	}()
+	// ...
+}
+
+func f004E4F1C(hDC win.HDC) {
+	// SEH
+	// f00552D0D()
+	ebp178 := v0131A270
+	for ebp178 >= 0x28 {
+		// ...
+		v0130F728.f004A9B5B() // 二次请求服务器列表
+		ebp40C := v012E2340
+		switch ebp40C {
+		case 2:
+			// f004E1E1E()
+			func() {
+				// 带SEH
+				f00DE8A70chkstk() // 0x46E8
+				if !v0131A26C {
+					v0131A26C = true
+					// f004E1CEE()
+					func() {
+						// ...
+						// 0x004E1D36 hook到 dll
+						// f006BF89A 拨号
+						func(ip string, port int) {
+							v08C88FF0conn.f006BD3A7init()
+							v01319E08log.f00B38AE4printf("[Connect to Server] ip address = %s, port = %d\r\n", ip, port)
+							v08C88FF0conn.f006BD509socket(v01319D6ChWnd, 1)
+							v08C88FF0conn.f006BD708dial(ip, port, 400)
+							v08C88F60 = 0
+							v08C88F61 = 0
+						}(v012E2338ip, int(v012E233Cport))
+						// ...
+					}()
+				}
+				ebp1498 := f004A7D34().f4BD8
+				ebp1499 := ebp1498.f0C
+				if ebp1499 == false {
+					// f00657C13() f00670FFE() f0051B219() f0084EBF9() f00576F03() f0084B501() f0086BA70()
+					// f00884C77() f0051CFAA() v0131A294.f009D8054() v0131A2A0.f00B2136D() f004DB0B1()
+				}
+				// ebp14A0 := f0043BF3F()
+				// if ebp14A0.f31 {
+				// 	ebp14A1 := false
+				// } else {
+				// 	f008AEFAD(0x1B)
+				// }
+				var ebp14A1 bool
+				if ebp14A1 {
+					ebp10 := f004A7D34()
+					if !ebp10.f14 && !ebp10.f488C && !ebp10.f41C && !ebp10.f824 && !ebp10.f4BE4 && ebp10.fE7C && ebp10.f107C && ebp10.f9FE9 {
+						// f007DAFE0(0x19, 0, 0)
+						// ebp10.f410
+						ebp10.f004A9123(ebp10.f410)
+					}
+				}
+				if v08C88E08 != 0x14 {
+					return
+				}
+				v01319E08log.f00B38AE4printf("> Request Character list\r\n")
+				// f004E9975(0, 0, 0).f004E99D2()
+				v012E2340 = 4
+				v08C88E08 = 0x32
+				// 0x004E2050 压缩
+				var reqCharList pb // [c1 04 f3 00]
+				reqCharList.f00439178init()
+				reqCharList.buf[0] = 0xC1
+				reqCharList.buf[2] = 0xF3
+				reqCharList.buf[3] = 0
+				reqCharList.len = 4
+				reqCharList.buf[1] = uint8(reqCharList.len)
+				reqCharList.f004393EAsend(false, false)
+			}()
+		case 4:
+			// f004DDD4F()
+		case 5:
+			// f004DF0D5()
+		}
+		// 0x04E502F
+		ebp188 := 0
+		for ebp188 < 5 {
+			// v0131A27C.f00534AFA(v0114EE48)
+			ebp188++
+		}
+		// f005AC5A0()
+		// f005A4BC5(0x2C)
+		if v08C88F88 > 0 {
+			v08C88F88--
+		}
+		if v086A3BEC > 0 {
+			v086A3BEC--
+		}
+		// v08C7CC18++
+		// v08C7CC18 %= 32
+		v0131A240++
+		ebp178 -= 0x28
+	}
+	// 0x004E50FB
+	if v01319D65 != 0 {
+		return
+	}
+	// v09D24A20.f00514F8F()
+	// f007DB28F()
+	// var  uint32
+	systime := struct {
+		wYear         uint16
+		wMonth        uint16
+		wDayOfWeek    uint16
+		wDay          uint16
+		wHour         uint16
+		wMinute       uint16
+		wSecond       uint16
+		wMilliseconds uint16
+	}{}
+	// GetLocalTime(&ebp64)
+	f00DE817Asprintf(v08C88AB8[:], "Screen(%02d_%02d-%02d_%02d)-%04d.jpg", systime.wMonth, systime.wDay, systime.wHour, systime.wMinute, v08C88C74)
+	// ebp220 := v08610600.f00436DF1(0x1CB)
+	// var ebp410 uint32
+	// if ebp220.f18 >= 0x10 {
+	// 	ebp410 = ebp220.f4
+	// }else{
+	// 	ebp410 = ebp220+4
+	// }
+	// var ebp174 [100]uint8
+	// f00DE817Asprintf(ebp174[:], ebp410, v08C88AB8[:])
+	// ...
+	// 0x004E5529
+	switch v012E2340 {
+	case 2:
+		f004E46B3(hDC)
+	case 4:
+		// f004E17B9(hDC)
+	case 5:
+		// f004E0E03(hDC)
+	}
+	// ...
+	ebp6C := 0x28
+	v0131A270 = ebp6C
+}
+
+// 状态机
 func f004E6233(hDC win.HDC) {
 	// SEH
 	f00DE8A70chkstk() //0x4734
 	// st0 = v0638C6C4 // st0~st7,浮点寄存器,80bit
 	// f00DE7C90memcpy()
-
-	switch v012E2340 {
+	ebp4738 := v012E2340
+	switch ebp4738 {
 	case 1:
 		// f004DD578
 		func(hDC win.HDC) {
@@ -1213,235 +1604,7 @@ func f004E6233(hDC win.HDC) {
 			v012E2340 = 2
 		}(hDC)
 	case 2, 4, 5:
-		// f004E4F1C
-		func(hDC win.HDC) {
-			// SEH
-			// f00552D0D()
-			ebp178 := v0131A270
-			for ebp178 >= 0x28 {
-				// ...
-				v0130F728.f004A9B5B() // 二次请求服务器列表
-				ebp40C := v012E2340
-				switch ebp40C {
-				case 2:
-					// f004E1E1E()
-					func() {
-						// 带SEH
-						f00DE8A70chkstk() // 0x46E8
-						if !v0131A26C {
-							v0131A26C = true
-							// f004E1CEE()
-							func() {
-								// ...
-								// 0x004E1D36 hook到 dll
-								// f006BF89A 拨号
-								func(ip string, port int) {
-									v08C88FF0conn.f006BD3A7init()
-									v01319E08log.f00B38AE4printf("[Connect to Server] ip address = %s, port = %d\r\n", ip, port)
-									v08C88FF0conn.f006BD509socket(v01319D6ChWnd, 1)
-									v08C88FF0conn.f006BD708dial(ip, port, 400)
-									v08C88F60 = 0
-									v08C88F61 = 0
-								}(v012E2338ip, int(v012E233Cport))
-								// ...
-							}()
-						}
-						ebp1498 := f004A7D34().f4BD8
-						ebp1499 := ebp1498.f0C
-						if ebp1499 == false {
-							// f00657C13()
-							// f00670FFE()
-							// f0051B219()
-							// f0084EBF9()
-							// f00576F03()
-							// f0084B501()
-							// f0086BA70()
-							// f00884C77()
-							// f0051CFAA()
-							// v0131A294.f009D8054()
-							// v0131A2A0.f00B2136D()
-							// f004DB0B1()
-						}
-						// ebp14A0 := f0043BF3F()
-						// if ebp14A0.f31 {
-						// 	ebp14A1 := false
-						// } else {
-						// 	f008AEFAD(0x1B)
-						// }
-						var ebp14A1 bool
-						if ebp14A1 {
-							ebp10 := f004A7D34()
-							if !ebp10.f14 && !ebp10.f488C && !ebp10.f41C && !ebp10.f824 && !ebp10.f4BE4 && ebp10.fE7C && ebp10.f107C && ebp10.f9FE9 {
-								// f007DAFE0(0x19, 0, 0)
-								// ebp10.f410
-								ebp10.f004A9123(ebp10.f410)
-							}
-						}
-						if v08C88E08 != 0x14 {
-							return
-						}
-						v01319E08log.f00B38AE4printf("> Request Character list\r\n")
-						// f004E9975(0, 0, 0).f004E99D2()
-						v012E2340 = 4
-						v08C88E08 = 0x32
-						// 0x004E2050 压缩
-						var reqCharList pb // [c1 04 f3 00]
-						reqCharList.f00439178init()
-						reqCharList.buf[0] = 0xC1
-						reqCharList.buf[2] = 0xF3
-						reqCharList.buf[3] = 0
-						reqCharList.len = 4
-						reqCharList.buf[1] = uint8(reqCharList.len)
-						reqCharList.f004393EAsend(false, false)
-					}()
-				case 4:
-					// f004DDD4F()
-				case 5:
-					// f004DF0D5()
-				}
-				// 0x04E502F
-				ebp188 := 0
-				for ebp188 < 5 {
-					// v0131A27C.f00534AFA(v0114EE48)
-					ebp188++
-				}
-				// f005AC5A0()
-				// f005A4BC5(0x2C)
-				if v08C88F88 > 0 {
-					v08C88F88--
-				}
-				if v086A3BEC > 0 {
-					v086A3BEC--
-				}
-				// v08C7CC18++
-				// v08C7CC18 %= 32
-				v0131A240++
-				ebp178 -= 0x28
-			}
-			// 0x004E50FB
-			if v01319D68 != 0 {
-				return
-			}
-			// v09D24A20.f00514F8F()
-			// f007DB28F()
-			// var  uint32
-			systime := struct {
-				wYear         uint16
-				wMonth        uint16
-				wDayOfWeek    uint16
-				wDay          uint16
-				wHour         uint16
-				wMinute       uint16
-				wSecond       uint16
-				wMilliseconds uint16
-			}{}
-			// GetLocalTime(&ebp64)
-			f00DE817Asprintf(v08C88AB8[:], "Screen(%02d_%02d-%02d_%02d)-%04d.jpg", systime.wMonth, systime.wDay, systime.wHour, systime.wMinute, v08C88C74)
-			// v08610600.f00436DF1(0x1CB)
-
-			// ...
-			// 0x004E5535
-			// f004E46B3
-			func() {
-				// ...
-				// 0x004E4818
-				// f0051B429
-				func() {
-					// 0x0A8FD064
-					var label1 uint32 = 0x0B07473F
-					// push label1
-					// push 0x0ABF9BB5
-					// ret
-
-					// 0x0ABF9BB5
-					var label2 uint32 = 0x00955C2C
-					// push label2
-					// push 0x0AAB3582
-					// ret
-
-					// 0x0AAB3582
-					var label3 uint32 = 0x0AD33A1B
-					// push label3
-					// push 0x0A4EAF02
-					// ret
-
-					// 0x0A4EAF02
-					// push eax
-					// push edx
-					// pushfd
-					// push esi
-					// push edi
-					// push ebx
-					// push ecx
-
-					// 0x0AF837C2
-					var label4 uint32 = 0x0AD33A1B
-					// push label4
-					// push 0x0A556D38
-					// ret
-
-					// 0x0A556D38
-					// push ebp
-					// ebp = esp
-					// 0x0AD3DEEC
-					// esp-=32
-					// push esi
-					// 0x09FDD040 0x0A902E30 0x0A04CEA5 0x0A9F7A5E 0x0ABF73ED
-					if v09FB8736 != v0A4E24C6 {
-						// 0x0AF940DF
-						// push eax
-						// 0x0AD84F85
-						// push edx
-						// 0x0A334194
-						v0B06F40C = v09E035DB ^ v0A43DD91
-						// 0x0B06F40C
-						// rdtsc
-						var tscLeax uint32 = 123
-						// 0x0A4E4C04
-						v09FDFB22 = tscLeax
-						// pop edx
-						// pop eax
-						v09FB8736 = v0A4E24C6
-					}
-					// 0x0AD3F139
-					if v09FDFB22 == 0 {
-						// 0x0ABF91B8
-						v09FDFB22++
-					}
-					// 0x0ABB5E49
-					v09FDFB22 = (v0AFD3C52 * v09FDFB22) % v09FB6D69
-					if v09FDFB22 <= v0A441BD1 {
-						// 0x0A904725
-						// ebpC := v0AD2DD3A
-						var ebp14 uintptr = 0x0ABFAB88
-						// 0x0A88F009
-						// *(ebp + v0AF890C3*4 + 8) = v0B287022
-						// 0x09FE38AE
-						if ebp14 == ^uintptr(0) {
-							// 0x0AC33DD2
-						} else {
-							// 0x0AAB2B15
-							if *(*uint32)(unsafe.Pointer(ebp14)) == ^uint32(1) {
-								// 0x0A88C1C8
-							} else {
-								// 0x0AF86C65
-							}
-						}
-					} else {
-						// 0x0A83F3CE
-						// *(ebp + v0AF890C3*4 + 8) = v0B287022
-						// 0x0A131864
-						// *(ebp + v09E8DF92*4 + 8) = v0AAB7324
-						// 0x0AD97228
-						// *(ebp + v0A933705*4 + 8) = v0A935B85
-						// 0x0A888DC9
-						// pop esi
-						// leave
-						// ret
-					}
-				}()
-			}()
-		}(hDC)
+		f004E4F1C(hDC)
 	case 3:
 		// f004DB77C
 		func(hDC win.HDC) {
