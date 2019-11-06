@@ -48,6 +48,9 @@ var v0A4E85ABimageBase uintptr = 0x00400000
 var v0AA2E05D uint32 = 0x5AA7D865
 var v09EB9D65 uint32 = 1
 
+var v0A9360CB uint32 = 0x4B0FAFAC
+var v0AFD365B uint32 = 0x5EC66E14 // v0AFD365B = v0A9360CB
+
 type t7 struct {
 	data [0x2A4]byte
 }

@@ -21,11 +21,12 @@ flag=c4, aes encrypt
 ```
 code:00   response connection result
 
-code:f33c keep alive 27s ???
+code:f33c keep alive 27s, 触发不稳定，实际上是f331的xor，发向connect服务器的消息到底要不要xor?
 
-code:f406 server list
+code:f406 server list, 第一次请求服务器列表其实是为了得到news，第二次请求服务器列表才会真正解析并渲染
 code:fa00 news title
 code:fa01 news
+
 code:f403 server ip and port
 ```
 

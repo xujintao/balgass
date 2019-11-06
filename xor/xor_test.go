@@ -27,6 +27,10 @@ var texts = [...]text{
 		"c109fa118bff558bec",
 		"c109fa15865acae2c4",
 	},
+	{
+		"c108f33100002715",
+		"c108f33c2407e553",
+	},
 }
 
 func Test(t *testing.T) {

@@ -1265,6 +1265,7 @@ func f004E46B3(hDC win.HDC) {
 			// 0x0ABB5E49
 			v09FDFB22 = (v0AFD3C52 * v09FDFB22) % v09FB6D69 // v09FDFB22 = 0xC8D6
 			if v09FDFB22 <= v0A441BD1 {
+				// 引导 trap message
 				// 0x0A904725
 				ebpC := v0AD2DD3A
 				ebp14 := v0ABFAB88blocks[:]
@@ -1398,9 +1399,11 @@ func f004E46B3(hDC win.HDC) {
 							// }()
 
 						}
-					} else {
-						// 0x0A9D43C2
 					}
+					// 0x0A9D43C2 发完trap message后会走到这里
+					v0AFD365B = v0A9360CB
+					label3 = v0A935B85label3 // [ebp+v0A933705*4+8] = v0A935B85
+					break                    // 0x0A888DC9
 				}
 			} else {
 				// 0x0A83F3CE
