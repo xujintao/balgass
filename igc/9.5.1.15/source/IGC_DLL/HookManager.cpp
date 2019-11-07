@@ -397,6 +397,11 @@ void MemSet(DWORD Addr, int mem, int size)
 	VirtualProtect((LPVOID)Addr, size, PAGE_EXECUTE_READWRITE, &OldProtect);
 	memset((void*)Addr, mem, size);
 	VirtualProtect((LPVOID)Addr, size, OldProtect, &OldProtect);
+	for (int i = 0;i < size; i++) {
+		if (0 != memcmp((void*)(Addr+i), (void*)&mem, 1)) {
+			__asm int 3;
+		}
+	}
 }
 
 void MemCpy(DWORD Addr, void* mem, int size)
@@ -413,6 +418,9 @@ void MemAssign(DWORD addr, BYTE value)
 	VirtualProtect((LPVOID)addr, 1, PAGE_EXECUTE_READWRITE, &OldProtect);
 	*(BYTE*)addr = value;
 	VirtualProtect((LPVOID)addr, 1, OldProtect, &OldProtect);
+	if (*(BYTE*)addr != value) {
+		__asm int 3;
+	}
 }
 
 void MemAssign(DWORD addr, WORD value)
@@ -421,6 +429,9 @@ void MemAssign(DWORD addr, WORD value)
 	VirtualProtect((LPVOID)addr, 2, PAGE_EXECUTE_READWRITE, &OldProtect);
 	*(WORD*)addr = value;
 	VirtualProtect((LPVOID)addr, 2, OldProtect, &OldProtect);
+	if (*(WORD*)addr != value) {
+		__asm int 3;
+	}
 }
 
 void MemAssign(DWORD addr, DWORD value)
@@ -429,6 +440,9 @@ void MemAssign(DWORD addr, DWORD value)
 	VirtualProtect((LPVOID)addr, 4, PAGE_EXECUTE_READWRITE, &OldProtect);
 	*(DWORD*)addr = value;
 	VirtualProtect((LPVOID)addr, 4, OldProtect, &OldProtect);
+	if (*(DWORD*)addr != value) {
+		__asm int 3;
+	}
 }
 
 void ModifyValueInt(DWORD Addr, int Val)
