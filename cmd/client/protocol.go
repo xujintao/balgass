@@ -338,7 +338,7 @@ func (t *pb) f0043930Cenc(begin, end, interval int) {
 	}
 }
 
-// s9 00439378
+// s9 0x00439378
 func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 	// t.f00439612() 写len
 	func() {}()

@@ -1196,13 +1196,15 @@ var v0075FCB2cmd []struct{}
 
 var v086A3C28 int
 
+// s9 0x004DEDAD
 func f004E46B3(hDC win.HDC) {
 	if v0131A26C == false {
 		return
 	}
 	// ...
-	// 0x004E4819
-	// f0051B429
+	// 1.04R location: 0x004E4819
+	// s9    location: 0x004DEED2
+	// f0051B429 hook-> f0AD98B31
 	func() {
 		// 0x0A8FD064
 		var label1 uint32 = 0x0B07473F
