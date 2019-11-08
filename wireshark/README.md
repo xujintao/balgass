@@ -21,13 +21,17 @@ flag=c4, aes encrypt
 ```
 code:00   response connection result
 
-code:f33c keep alive 27s, 触发不稳定，实际上是f331的xor，发向connect服务器的消息到底要不要xor?
-
 code:f406 server list, 第一次请求服务器列表其实是为了得到news，第二次请求服务器列表才会真正解析并渲染
 code:fa00 news title
 code:fa01 news
 
+code:f33d end
+
 code:f403 server ip and port
+```
+
+```
+code:f33c keep alive 27s, 触发不稳定，实际上是f331的xor，发向connect服务器的消息到底要不要xor?
 ```
 
 client reset CS and connect to GS
@@ -39,11 +43,9 @@ code:f100 response connection result with server's version
 code:fa11 anti hack 20s
 code:fa15 hit hack 3s
 code:0e   keep alive
-code:f331 trap message ???
 
 code:f101 login
 code:f300 character list
-code:7399 invalid packet ???
 
 code:f315 check character
 code:f303 character map
@@ -54,7 +56,14 @@ code:f621 event quest list
 code:4e11 ride select
 code:18   action
 code:40   party
+```
+
+```
+code:f331 trap message
+code:7399 invalid packet
 code:d725 invalid packet
+code:d74b invalid packet [c1 07 d7 4b bb 72 77]
+[c3 0b 25 cf 0f 39 e7 e9 66 60 01], invalid packet
 ```
 
 #### End
