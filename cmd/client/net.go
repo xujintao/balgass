@@ -556,3 +556,13 @@ func (t *t1) f007C4858(x *t6) *t6 {
 	x.f007C522A(t.f18, t)
 	return x
 }
+
+// f006BF89A 拨号
+func f006BF89ADial(ip string, port int) {
+	v08C88FF0conn.f006BD3A7init()
+	v01319E08log.f00B38AE4printf("[Connect to Server] ip address = %s, port = %d\r\n", ip, port)
+	v08C88FF0conn.f006BD509socket(v01319D6ChWnd, 1)
+	v08C88FF0conn.f006BD708dial(ip, port, 400)
+	v08C88F60 = 0
+	v08C88F61 = 0
+}

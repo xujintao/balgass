@@ -6,7 +6,50 @@ type command struct {
 	comamnds []*command
 }
 
-// all cmds
+// cmd
+func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
+	for _, cmd := range cmds {
+		if code == cmd.code {
+			if cmd.handle != nil {
+				cmd.handle(buf)
+				return
+			}
+			flag := buf[0]
+			var subcode uint8
+			switch flag {
+			case 0xC1:
+				subcode = buf[3]
+			case 0xC2:
+				subcode = buf[4]
+			}
+			for _, subcmd := range cmd.comamnds {
+				if subcode == subcmd.code {
+					subcmd.handle(buf)
+					return
+				}
+			}
+		}
+	}
+}
+
+// cmd table
+var cmds = [...]*command{
+	{0x00, f006FA9EBhandle00, nil},
+	{0x01, handle01, nil},
+	{0x02, handle02, nil},
+	{0x0D, f007087BFhandle0D, nil},
+	{0xF1, nil, []*command{
+		{0x00, handleF100versionmatch, nil},
+		{0x04, handleF104, nil},
+	}},
+	{0xFA, nil, nil},
+	{0xF4, nil, []*command{
+		{0x03, handleF403serverInfo, nil},
+		{0x05, handleF405, nil},
+		{0x06, handleF406, nil},
+	}},
+}
+
 func f006FA9EBhandle00(buf []uint8) {
 	// SEH
 	f00DE8A70chkstk() // 0x4B34
@@ -40,41 +83,21 @@ func f007087BFhandle0D(buf []uint8) {
 func handleF100versionmatch(buf []uint8) {}
 func handleF104(buf []uint8)             {}
 func handleFA(buf []uint8)               {}
-func handleF403(buf []uint8)             {}
-func handleF405(buf []uint8)             {}
-func handleF406(buf []uint8)             {}
-
-var cmds = [...]*command{
-	{0x00, f006FA9EBhandle00, nil},
-	{0x01, handle01, nil},
-	{0x02, handle02, nil},
-	{0x0D, f007087BFhandle0D, nil},
-	{0xF1, nil, []*command{
-		{0x00, handleF100versionmatch, nil},
-		{0x04, handleF104, nil},
-	}},
-	{0xFA, nil, nil},
-	{0xF4, nil, []*command{
-		{0x03, handleF403, nil},
-		{0x05, handleF405, nil},
-		{0x06, handleF406, nil},
-	}},
+func handleF403serverInfo(buf []uint8) {
+	// close连接服务器
+	// f006BF89ADial(ip, port) // 拨号游戏服务器
+	// set state
 }
+func handleF405(buf []uint8) {}
+func handleF406(buf []uint8) {}
 
-func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
-	for _, cmd := range cmds {
+// hijack cmd
+func handlecmdhook(code uint8, subcode uint8, buf []uint8, len int) {
+	for _, cmd := range cmdhooks {
 		if code == cmd.code {
 			if cmd.handle != nil {
 				cmd.handle(buf)
 				return
-			}
-			flag := buf[0]
-			var subcode uint8
-			switch flag {
-			case 0xC1:
-				subcode = buf[3]
-			case 0xC2:
-				subcode = buf[4]
 			}
 			for _, subcmd := range cmd.comamnds {
 				if subcode == subcmd.code {
@@ -86,37 +109,7 @@ func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 	}
 }
 
-// cmds hook
-func joinResultSend(buf []uint8)         {}
-func charMapJoinResult(buf []uint8)      {}
-func charRegen(buf []uint8)              {}
-func levelUpSend(buf []uint8)            {}
-func levelUpPointAdd(buf []uint8)        {}
-func masterLevelUpSend(buf []uint8)      {}
-func ansMuBotRecvUse(buf []uint8)        {}
-func reconnect(buf []uint8)              {}
-func friendRoomCreate(buf []uint8)       {}
-func AHCheckGetTickHook(buf []uint8)     {}
-func offTradeReq(buf []uint8)            {}
-func customPost(buf []uint8)             {}
-func setChatColors(buf []uint8)          {}
-func IGCStatAdd(buf []uint8)             {}
-func enableSiegeSkills(buf []uint8)      {}
-func setAgilityFix(buf []uint8)          {}
-func setCashItemMoveEnable(buf []uint8)  {}
-func luckyItemFix(buf []uint8)           {}
-func disableReconnect(buf []uint8)       {}
-func handleExitProcess(buf []uint8)      {}
-func disableReconnectSystem(buf []uint8) {}
-func alterPShopVault(buf []uint8)        {}
-func dropSellMod(buf []uint8)            {}
-func setBattleZoneData(buf []uint8)      {}
-func attackResult(buf []uint8)           {}
-func diePlayerSend(buf []uint8)          {}
-func refillSend(buf []uint8)             {}
-func manaSend(buf []uint8)               {}
-
-// hijack cmd
+// hijack cmd table
 var cmdhooks = []*command{
 	{0xF1, nil, []*command{
 		{0x00, joinResultSend, nil},
@@ -159,22 +152,35 @@ var cmdhooks = []*command{
 	{0x27, manaSend, nil},
 }
 
-func handlecmdhook(code uint8, subcode uint8, buf []uint8, len int) {
-	for _, cmd := range cmdhooks {
-		if code == cmd.code {
-			if cmd.handle != nil {
-				cmd.handle(buf)
-				return
-			}
-			for _, subcmd := range cmd.comamnds {
-				if subcode == subcmd.code {
-					subcmd.handle(buf)
-					return
-				}
-			}
-		}
-	}
-}
+// hijack cmd handle
+func joinResultSend(buf []uint8)         {}
+func charMapJoinResult(buf []uint8)      {}
+func charRegen(buf []uint8)              {}
+func levelUpSend(buf []uint8)            {}
+func levelUpPointAdd(buf []uint8)        {}
+func masterLevelUpSend(buf []uint8)      {}
+func ansMuBotRecvUse(buf []uint8)        {}
+func reconnect(buf []uint8)              {}
+func friendRoomCreate(buf []uint8)       {}
+func AHCheckGetTickHook(buf []uint8)     {}
+func offTradeReq(buf []uint8)            {}
+func customPost(buf []uint8)             {}
+func setChatColors(buf []uint8)          {}
+func IGCStatAdd(buf []uint8)             {}
+func enableSiegeSkills(buf []uint8)      {}
+func setAgilityFix(buf []uint8)          {}
+func setCashItemMoveEnable(buf []uint8)  {}
+func luckyItemFix(buf []uint8)           {}
+func disableReconnect(buf []uint8)       {}
+func handleExitProcess(buf []uint8)      {}
+func disableReconnectSystem(buf []uint8) {}
+func alterPShopVault(buf []uint8)        {}
+func dropSellMod(buf []uint8)            {}
+func setBattleZoneData(buf []uint8)      {}
+func attackResult(buf []uint8)           {}
+func diePlayerSend(buf []uint8)          {}
+func refillSend(buf []uint8)             {}
+func manaSend(buf []uint8)               {}
 
 func f00735DC7(uk1 int, code int, buf []uint8, len int, enc int) {
 
