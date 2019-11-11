@@ -346,7 +346,7 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 	t.f0043968Fxor() // hook到 igc.dll了，直接ret
 
 	// f00439420
-	// hook到 IGC.dll
+	// hook到 IGC.dll SendPacket
 	func(buf []uint8, len int, needEnc, isC2 bool) {
 		f00DE8A70chkstk() // 0x3124
 

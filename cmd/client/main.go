@@ -160,8 +160,8 @@ func f0043B750xor(buf []uint8, len int) {
 		ebp4++
 	}
 }
-func f004A7D34() *t4000 { return nil }
-func f004A9146()        {}
+
+func f004A9146() {}
 
 func f004D52AB(fileName []uint8, cmd string) bool {
 	// 从命令行字符串中提取出应用程序名，也就是main.exe，存到fileName数组中
@@ -1458,10 +1458,17 @@ func f004E46B3(hDC win.HDC) {
 func f004E4F1C(hDC win.HDC) {
 	// SEH
 	// f00552D0D()
-	ebp178 := v0131A270
+	ebp178 := v0131A270 // 0, 0x28, 0x44
 	for ebp178 >= 0x28 {
-		// ...
-		v0130F728.f004A9B5B() // 二次请求服务器列表
+		// f008AF00D().f008AF06A()
+		if v012E2340 == 2 || v012E2340 == 4 {
+			// v01319D8C.f00A08B5D()
+			// ...
+			// v01319D8C.f00A08BF0()
+			// f0043BF3F().f0043C06B() // v01308D18.f0043C06B()
+			f004A7D34().f004A9B5B(0x4069000000000000) // v0130F728.f004A9B5B 二次请求服务器列表
+		}
+		// v01308ED4 = 0
 		ebp40C := v012E2340
 		switch ebp40C {
 		case 2:

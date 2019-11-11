@@ -42,12 +42,12 @@ var cmds = [...]*command{
 		{0x00, handleF100versionmatch, nil},
 		{0x04, handleF104, nil},
 	}},
-	{0xFA, nil, nil},
 	{0xF4, nil, []*command{
 		{0x03, handleF403serverInfo, nil},
 		{0x05, handleF405, nil},
-		{0x06, handleF406, nil},
+		{0x06, handleF406serverList, nil},
 	}},
+	{0xFA, nil, nil},
 }
 
 func f006FA9EBhandle00(buf []uint8) {
@@ -63,7 +63,7 @@ func f006FA9EBhandle00(buf []uint8) {
 		reqServerList.buf[3] = 0x06
 		reqServerList.len = 4
 		reqServerList.buf[1] = uint8(reqServerList.len)
-		reqServerList.f004393EAsend(false, false)
+		// reqServerList.f004393EAsend(false, false) // 直接api发送了
 		// ...
 	}
 	// ...
@@ -82,14 +82,14 @@ func f007087BFhandle0D(buf []uint8) {
 }
 func handleF100versionmatch(buf []uint8) {}
 func handleF104(buf []uint8)             {}
-func handleFA(buf []uint8)               {}
 func handleF403serverInfo(buf []uint8) {
 	// close连接服务器
 	// f006BF89ADial(ip, port) // 拨号游戏服务器
 	// set state
 }
-func handleF405(buf []uint8) {}
-func handleF406(buf []uint8) {}
+func handleF405(buf []uint8)           {}
+func handleF406ServerList(buf []uint8) {}
+func handleFA(buf []uint8)             {}
 
 // hijack cmd
 func handlecmdhook(code uint8, subcode uint8, buf []uint8, len int) {
@@ -261,26 +261,4 @@ func f0075C3B2(code int, buf []uint8, len int, x int) {
 			// ebp18 := buf[ebp4:]
 		}(buf)
 	}
-}
-
-// t6000
-var v01310798 t6000
-
-type t6000 struct {
-	fs []func()
-}
-
-func (t *t6000) f00446D6DreqServerList() {
-	// 带SEH处理
-	f00DE8A70chkstk() // 0x2994
-	// ...
-	var ebp149C pb
-	ebp149C.f004393EAsend(false, false) // 发送协议报文
-	// ...
-}
-
-func (t *t6000) f004CCC07() {
-	// ...
-	_ = t.fs[11]
-	_ = t.fs[12] // f00446D6D
 }
