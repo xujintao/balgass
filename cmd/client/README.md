@@ -91,10 +91,11 @@ GOOS=windows go build -x github.com/xujintao/balgass/cmd/client &> build.out
 ```
 // f00439420 -> SendPacket
 // C1
-conditional breakpoints: word(edx+2)==31f3 || word(edx+2)==3cf3
-conditional tracing:     addr:{edx+2}, value:{word(edx+2)}
+conditional breakpoints: word(edx+2)==31f3 || word(edx+2)==31f3
+conditional tracing:     prefix: {mem;4@edx}
+```
 
-// C2
-conditional breakpoints: 0
-conditional tracing:     addr:{edx+3}, value:{word(edx+3)}
+```
+// igc.dll dllmain.cpp:409
+conditional tracing: tick: (x){eax}ms, (u){u:eax}ms, (u){u:eax/3E8}s
 ```
