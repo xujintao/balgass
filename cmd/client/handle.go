@@ -88,7 +88,7 @@ func handleF403serverInfo(buf []uint8) {
 	// set state
 }
 func handleF405(buf []uint8)           {}
-func handleF406ServerList(buf []uint8) {}
+func handleF406serverList(buf []uint8) {}
 func handleFA(buf []uint8)             {}
 
 // hijack cmd
@@ -210,8 +210,8 @@ func f0075C3B2(code int, buf []uint8, len int, x int) {
 			ebp4 := buf
 			ebp10 := buf[4]
 			if ebp10 == 1 {
-				ebp8 := &v0130F728
-				ebp8.f004A9123(&ebp8.f4880)
+				// ebp8 := &v0130F728
+				// ebp8.f004A9123(&ebp8.f4880)
 			}
 			v08C88E0C = int(ebp4[5]<<8 + ebp4[6])
 			v08C88E08 = 2
