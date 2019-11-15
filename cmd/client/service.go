@@ -6,65 +6,144 @@ import (
 	"github.com/xujintao/balgass/win"
 )
 
+type point struct {
+	x int
+	y int
+}
+type rect struct {
+	left   int
+	top    int
+	right  int
+	bottom int
+}
 type base1 interface {
-	do3(int) bool
+	do4(int) bool
+	do6(bool)
+	do10() bool
 }
 
 type base2 interface {
+	f004360AB(uint64)
 	f004CCC07(uint64)
 	f004CCE44(bool)
 	f004CCB8A(bool)
+	f004AA018() bool
 	f004AA068() int
+	f00436088() bool
 }
 
+// serviceBase
+// serviceBase需要实现base2接口
+// serviceBase需要继承base1接口同时各派生类需要实现base1接口
 type serviceBase struct {
-	m0C     bool
-	m10     int
-	subs    list
-	mA9done bool
+	base1
+	m0C       bool
+	m0D       bool
+	m10       int
+	m18left   int // rect left
+	m1Ctop    int // rect top
+	m20width  int // rect width
+	m24heigth int // rect height
+	subs      list
+	mA9done   bool
 }
 
-// 虽然每个service实现了do3，但是实现细节是一样的
-// 所以由serviceBase实现供各个service调用就行
-func (b *serviceBase) do3(int) bool {
+func (b *serviceBase) f004CCA35(x int) bool {
 	if b.m0C == false {
 		return false
 	}
-	return true
+	ebp18 := f0043BF3F()
+	// ebp10rect := rect{}
+	switch x {
+	case 0:
+		// SetRect(&ebp10rect, b.m18left, b.m1Ctop, b.m18left+b.m20width, b.m1Ctop+b.m24heigth)
+		ebp24pt := point{}
+		ebp18.f0043BE81(&ebp24pt)
+		// return PtInRect(&ebp10rect, ebp24pt.x, ebp24pt.y)
+	case 2:
+		// SetRect(&ebp10rect, b.m18left, b.m1Ctop, b.m18left+b.m20width, b.m1Ctop+0x1A)
+		ebp2Cpt := point{}
+		ebp18.f0043BE81(&ebp2Cpt)
+		// return PtInRect(&ebp10rect, ebp2Cpt.x, ebp2Cpt.y)
+	case 3:
+		ebp14 := b.subs.f004409AAgetList()
+		for ebp14 != nil {
+			ebp1C := b.subs.f00445530getNodeValue(&ebp14)
+			if ebp1C.(base2).f00436088() == true {
+				return true
+			}
+		}
+		b.do10()
+	}
+	return false
+}
+
+// do4 虽然每个service实现了do4，但是实现细节是一样的
+// 所以由serviceBase实现供各个service调用就行
+func (b *serviceBase) do4(x int) bool {
+	if b.m0C == false {
+		return false
+	}
+	if x == 2 {
+		return false
+	}
+	return b.f004CCA35(x)
 }
 
 func (b *serviceBase) f004CCE44(x bool) { b.mA9done = x }
 
-// f004CCB8A 设置所有子服务done标识
+// f004CCB8A 设置所有子业务done标识
 func (b *serviceBase) f004CCB8A(x bool) {
 	// init sub list
 	ebpC := b
 	ebp4 := ebpC.subs.f004409AAgetList()
 	for ebp4 != nil {
-		ebp8 := ebpC.subs.f00445530getNode(&ebp4)
+		ebp8 := ebpC.subs.f00445530getNodeValue(&ebp4)
 		ebp8.(base2).f004CCE44(x)
 	}
 }
+func (b *serviceBase) f004360AB(unk uint64) {}
 func (b *serviceBase) f004CCC07(unk uint64) {
 	if b.m0C == false {
 		return
 	}
+	ebp4 := f0043BF3F()
+	if ebp4.f004366A5() {
+		b.m10 = 0
+	}
+	if b.m10 == 0 {
+		ebp8 := b.subs.f004409AAgetList()
+		for ebp8 != nil {
+			ebpC := b.subs.f00445530getNodeValue(&ebp8)
+			ebpC.(base2).f004360AB(unk)
+		}
+	}
+
 	// var t *t3
 	// t.f0043E60C() // v01313FA8.f0043E60C 发送login报文
 	// ebp20 := b
 }
-func (b *serviceBase) f004AA068() int { return b.m10 }
+func (b *serviceBase) f004AA018() bool { return b.m0C }
+func (b *serviceBase) f004AA068() int  { return b.m10 }
+func (b *serviceBase) f00448976() bool { return false }
+func (b *serviceBase) f00436088() bool {
+	if b.mA9done {
+		return b.f00448976()
+	}
+	return false
+}
 
 // service1 sizeof(service{})=0x408
 type service1 struct {
 	serviceBase
 }
 
-// do3->f0043F608
-func (s *service1) do3(x int) bool {
-	return s.serviceBase.do3(x)
+// do4->f0043F608
+func (s *service1) do4(x int) bool {
+	return s.serviceBase.do4(x)
 }
-
+func (s *service1) do6(bool)   {}
+func (s *service1) do10() bool { return false }
 func (s *service1) f00446D6DreqServerList() {
 	// 带SEH处理
 	f00DE8A70chkstk() // 0x2994
@@ -79,60 +158,77 @@ type service2 struct {
 	serviceBase
 }
 
-// do3->f0043AA4E
-func (s *service2) do3(x int) bool {
-	return s.serviceBase.do3(x)
+// do4->f0043AA4E
+func (s *service2) do4(x int) bool {
+	return s.serviceBase.do4(x)
 }
+func (s *service2) do6(bool)   {}
+func (s *service2) do10() bool { return false }
 
 // service3 sizeof(service{})=0x408
 type service3 struct {
 	serviceBase
 }
 
-// do3->f0043E5D4
-func (s *service3) do3(x int) bool {
-	return s.serviceBase.do3(x)
+// do4->f0043E5D4
+func (s *service3) do4(x int) bool {
+	return s.serviceBase.do4(x)
 }
+func (s *service3) do6(bool)   {}
+func (s *service3) do10() bool { return false }
 
 // service4 sizeof(service{})=0x408
 type service4 struct {
 	serviceBase
 }
 
-// do3->f00446D35
-func (s *service4) do3(x int) bool {
-	return s.serviceBase.do3(x)
+// do4->f00446D35
+func (s *service4) do4(x int) bool {
+	return s.serviceBase.do4(x)
 }
+func (s *service4) do6(bool)   {}
+func (s *service4) do10() bool { return false }
 
 // service5 sizeof(service{})=0x408
 type service5 struct {
 	serviceBase
 }
 
-// do3->f0043DCD3
-func (s *service5) do3(x int) bool {
-	return s.serviceBase.do3(x)
+// do4->f0043DCD3
+func (s *service5) do4(x int) bool {
+	return s.serviceBase.do4(x)
 }
+
+// do6->f00435D53
+func (s *service5) do6(x bool) {
+	s.serviceBase.m0D = x
+}
+
+func (s *service5) do10() bool { return false }
 
 // service6 sizeof(service{})=0x408
 type service6 struct {
 	serviceBase
 }
 
-// do3->f00441096
-func (s *service6) do3(x int) bool {
-	return s.serviceBase.do3(x)
+// do4->f00441096
+func (s *service6) do4(x int) bool {
+	return s.serviceBase.do4(x)
 }
+func (s *service6) do6(bool)   {}
+func (s *service6) do10() bool { return false }
 
 // service7 sizeof(service{})=0x408
 type service7 struct {
 	serviceBase
 }
 
-// do3->f00449300
-func (s *service7) do3(x int) bool {
-	return s.serviceBase.do3(x)
+// do4->f00449300
+func (s *service7) do4(x int) bool {
+	return s.serviceBase.do4(x)
 }
+func (s *service7) do6(bool)   {}
+func (s *service7) do10() bool { return false }
 
 type node struct {
 	next  *node
@@ -152,7 +248,7 @@ func (t *list) f004AA077isNumZero() bool {
 	return true
 }
 
-func (t *list) f00445530getNode(nodep **node) interface{} {
+func (t *list) f00445530getNodeValue(nodep **node) interface{} {
 	// ebp8 := t
 	ebp4 := *nodep
 	// if IsBadReadPtr(ebp4, ebp4) {
@@ -168,6 +264,14 @@ func (t *list) f004409AAgetList() *node {
 
 func (t *list) f004AA009getNodeNum() uint32 {
 	return t.num
+}
+
+func (t *list) f004452A7getFirstNodeValue() interface{} {
+	ebp4 := t
+	if ebp4.head == nil {
+		return nil
+	}
+	return ebp4.head.value
 }
 
 type t4002 struct {
@@ -247,14 +351,24 @@ type serviceManager struct {
 	f9FEC               *t4002 // v01319714
 }
 
-func f004A7D34() *serviceManager                  { return nil }
+var v01319730 uint32 // sync.Once
+
+func f004A7D34() *serviceManager {
+	if v01319730&1 == 0 {
+		v01319730 |= 1
+		v0130F728.f004A7A82()
+		// f00DE8BF6(0x0114817A)
+	}
+	return &v0130F728
+}
+func (t *serviceManager) f004A7A82()              {}
 func (t *serviceManager) f004A9083(p interface{}) {}
 func (t *serviceManager) f004A9123(p interface{}) {}
 func (t *serviceManager) f004A91CE() {
 	ebp98 := t
 	ebp8 := ebp98.f9FD4activeServices.f004409AAgetList()
 	for ebp8 != nil {
-		ebp34 := ebp98.f9FD4activeServices.f00445530getNode(&ebp8)
+		ebp34 := ebp98.f9FD4activeServices.f00445530getNodeValue(&ebp8)
 		if ebp34.(base2).f004AA068() != 2 {
 			return
 		}
@@ -269,8 +383,12 @@ func (t *serviceManager) f004A9B5B(unk uint64) {
 	if ebp30.f9FD4activeServices.f004AA077isNumZero() == true {
 		return
 	}
-	if ebp30.f9FE8 {
-		// ...
+	if ebp30.f9FE8 { // 0, 1
+		ebp18 := ebp30.f9FD4activeServices.f004452A7getFirstNodeValue()
+		if ebp18.(base2).f004AA018() {
+			ebp18.(base1).do6(true)
+			ebp30.f9FE8 = false
+		}
 	}
 
 	ebp10 := f0043BF3F()       // v01308D18
@@ -289,15 +407,15 @@ func (t *serviceManager) f004A9B5B(unk uint64) {
 	ebp4 := ebp30.f9FD4activeServices.f004409AAgetList()     // 0x36C8E8E8
 	var ebp20 uint32
 	for ebp20 < ebp14 {
-		ebp8[ebp20] = ebp30.f9FD4activeServices.f00445530getNode(&ebp4)
+		ebp8[ebp20] = ebp30.f9FD4activeServices.f00445530getNodeValue(&ebp4)
 		ebp8[ebp20].(base2).f004CCB8A(false)
 		ebp20++
 	}
 
 	ebp4 = ebp30.f9FD4activeServices.f004409AAgetList()
 	for ebp4 != nil {
-		ebpC := ebp30.f9FD4activeServices.f00445530getNode(&ebp4)
-		if ebpC.(base1).do3(0) {
+		ebpC := ebp30.f9FD4activeServices.f00445530getNodeValue(&ebp4)
+		if ebpC.(base1).do4(0) {
 			ebpC.(base2).f004CCB8A(true)
 			break
 		}
@@ -316,7 +434,7 @@ func (t *serviceManager) f004A9B5B(unk uint64) {
 	ebp30.f004A91CE()
 	ebp4 = ebp30.f9FD4activeServices.f004409AAgetList()
 	for ebp4 != nil {
-		ebpC := ebp30.f9FD4activeServices.f00445530getNode(&ebp4)
+		ebpC := ebp30.f9FD4activeServices.f00445530getNodeValue(&ebp4)
 		ebp34 := ebpC.(base2).f004AA068()
 		switch ebp34 {
 		case 1, 2, 3, 4:
@@ -326,7 +444,7 @@ func (t *serviceManager) f004A9B5B(unk uint64) {
 		if ebp30.f9FE0 {
 			break
 		}
-		if ebpC.(base1).do3(0) == true {
+		if ebpC.(base1).do4(0) == true {
 			ebp30.f9FE0 = true
 			break
 		}
@@ -348,9 +466,11 @@ var v01308D18 t4003
 var v01308D80 uint32 // sync.Once
 
 type t4003 struct {
-	m1C bool
-	m1E bool
-	m31 bool
+	m0Cx int
+	m10y int
+	m1C  bool
+	m1E  bool
+	m31  bool
 }
 
 func f0043BF3F() *t4003 {
@@ -370,11 +490,11 @@ func (t *t4003) f0043913E(x uint32) bool {
 	}
 	return false
 }
-func (t *t4003) f00436696() bool {
-	return t.m1C
-}
-func (t *t4003) f004366A5() bool {
-	return t.m1E
+func (t *t4003) f00436696() bool { return t.m1C }
+func (t *t4003) f004366A5() bool { return t.m1E }
+func (t *t4003) f0043BE81(p *point) {
+	p.x = t.m0Cx
+	p.y = t.m10y
 }
 
 func f004DD578handleState1(hDC win.HDC) {
@@ -654,7 +774,7 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 			// ...
 			// v01319D8C.f00A08BF0()
 			// f0043BF3F().f0043C06B() // v01308D18.f0043C06B()
-			f004A7D34().f004A9B5B(0x4069000000000000) // v0130F728.f004A9B5B 二次请求服务器列表
+			f004A7D34().f004A9B5B(0x4069 << 20) // v0130F728.f004A9B5B 二次请求服务器列表
 		}
 		// v01308ED4 = 0
 		ebp40C := v012E2340
