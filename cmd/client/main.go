@@ -66,85 +66,6 @@ type version struct {
 	fourth uint16 // ebp_23E
 }
 
-type t4 struct {
-	f50h func([]uint8, int)
-}
-
-type t3 struct {
-	f200h *t4
-	f204h *t4
-}
-
-func (t *t3) f0043E60C() {
-	// ...
-	t.f0043E9B6()
-	// ...
-}
-
-// s9 006E855E
-func (t *t3) f0043E9B6() {
-	// ...
-	f00DE8A70chkstk() // 0x152C
-	if v08C88E08 == 0 {
-		return
-	}
-
-	f004A7D34getServiceManager()
-	f004A9146()
-
-	var ebp18, ebp24 [11]uint8 // username, pwd
-	f00DE8100memset(ebp18[:], 0, 11)
-	t.f200h.f50h(ebp18[:], 11)       // f00342929, fill username
-	f00DE8100memset(ebp24[:], 0, 11) // f00452929, fill pwd
-	t.f204h.f50h(ebp24[:], 11)
-
-	// f0043EE13(ebp18[:]) // 判断字符串长度
-	// f0043EE13(ebp24[:])
-	if v08C88E08 != 2 {
-		return
-	}
-
-	v01319E08log.f00B38AE4printf("> Login Request.\r\n")
-	v01319E08log.f00B38AE4printf("> Try to Login \"%s\"\r\n", ebp18[:])
-
-	v08C88F74 = 1
-	f00DE8000strcpy(v08C88F78username[:], ebp18[:])
-	v08C88E08 = 13
-
-	// 构造登录报文
-	var ebp14BClogin pb
-	ebp14BClogin.f00439178init()
-	ebp14BClogin.f0043922CwritePrefix(0xC1, 0xF1) // 前缀
-	ebp14BClogin.f004397B1writeUint8(1)           // 可能是subcode
-
-	var ebp30, ebp3C [11]uint8
-	f00DE8100memset(ebp30[:], 0, 11)
-	f00DE8100memset(ebp3C[:], 0, 11)
-	f00DE7C90memcpy(ebp30[:], ebp18[:], 10)
-	f00DE7C90memcpy(ebp3C[:], ebp24[:], 10)
-	f0043B750xor(ebp30[:], 10) // 与igc.dll的TOOLTIP_FIX_XOR_BUFF一样了，可能有问题
-	f0043B750xor(ebp3C[:], 10) // 与igc.dll的TOOLTIP_FIX_XOR_BUFF一样了，可能有问题
-
-	ebp14BClogin.f00439298writeBuf(ebp30[:], 10, true)    // 写username
-	ebp14BClogin.f00439298writeBuf(ebp3C[:], 10, true)    // 写pwd
-	ebp14BClogin.f0043EDF5writeUint32(win.GetTickCount()) // 写时间戳
-	ebp14C0 := 0
-	for ebp14C0 < 5 {
-		ebp14BClogin.f004397B1writeUint8(v012E4018[ebp14C0] - byte(ebp14C0+1)) // 写版本 VERSION_HOOK1
-		ebp14C0++
-	}
-	ebp14C0 = 0
-	for ebp14C0 < 16 {
-		ebp14BClogin.f004397B1writeUint8(v012E4020[ebp14C0]) // 写序列号 SERIAL_HOOK1
-		ebp14C0++
-	}
-
-	// 发送登录报文
-	ebp14BClogin.f004393EAsend(true, false)
-
-	// ...
-}
-
 func f0043B750xor(buf []uint8, len int) {
 	ebp4 := 0
 	for ebp4 < len {
@@ -160,8 +81,6 @@ func f0043B750xor(buf []uint8, len int) {
 		ebp4++
 	}
 }
-
-func f004A9146() {}
 
 func f004D52AB(fileName []uint8, cmd string) bool {
 	// 从命令行字符串中提取出应用程序名，也就是main.exe，存到fileName数组中

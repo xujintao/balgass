@@ -254,11 +254,13 @@ func (t *t3001) f006BE6D9(pp **t3002) {
 
 func (t *t3001) f006BEC73(x uint32) {}
 
+var v08C88FF0conn conn
+
 // conn或者叫netFD
 type conn struct {
 	hWnd  win.HWND       // f0000
-	f0004 int            // f0004
-	f0008 int            // f0008
+	f04   int            // f0004
+	f08   int            // f0008
 	fd    syscall.Handle // f000C
 	bufw  [2000]uint8    // f0010
 	w     int            // f2010
@@ -269,7 +271,6 @@ type conn struct {
 }
 
 var v08C8D0DC bool // like once
-var v08C88FF0conn conn
 
 func (t *conn) f006BD3A7init() {
 	t.once.Do(func() {
@@ -281,7 +282,7 @@ func (t *conn) f006BD3A7init() {
 func (t *conn) f006BD509socket(hWnd win.HWND, x int) int {
 	var err error
 	t.fd, err = win.Socket(2, 1, 0) // AF_INT, SOCK_STREAM, 0
-	t.f0004 = x
+	t.f04 = x
 	if err != nil { // INVALID_SOCKET
 		win.WSAGetLastError()
 		// log
@@ -290,6 +291,32 @@ func (t *conn) f006BD509socket(hWnd win.HWND, x int) int {
 	}
 	t.hWnd = hWnd
 	return 1
+}
+
+func (t *conn) f006BD5BBclose() bool {
+	if t.f04 != 0 {
+		v08C88F64 = 0
+	}
+	// ebp4 := struct {
+	// 	onoff  uint16
+	// 	linger uint16
+	// }{}
+	// ebp4.onoff = 1
+	// ebp4.linger = 0
+	// setsocketopt(t.fd, SOL_SOCKET, 0x80, &ebp4, 4)
+	f00DE8100memset(t.bufr[:], 0, 4)
+	f00DE8100memset(t.bufw[:], 0, 4)
+	t.w = 0
+	t.r = 0
+	// for t.f4020.f006BDF65() == false {
+	// 	t.f4020.f006BDF28()
+	// }
+	v01319E08log.f00B38AE4printf("[Socket CLosed][Clear PacketQueue]\r\n")
+	// v08C88FB4decrypt.f00B997E0()
+	// v08C8D014encrypt.f00B997E0()
+	// closesocket(t.fd)
+	// t.fd = syscall.Handle(-1)
+	return true
 }
 
 func (t *conn) f006BD708dial(ip string, port int, x int) {

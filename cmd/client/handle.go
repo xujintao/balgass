@@ -54,6 +54,7 @@ func f006FA9EBhandle00(buf []uint8) {
 	// SEH
 	f00DE8A70chkstk() // 0x4B34
 	if v012E2340 == 2 {
+		// 请求服务器列表
 		v01319E08log.f00B38AE4printf("Send Request Server List.\r\n")
 		// 0x006FAA2B 压缩
 		var reqServerList pb // [c1 04 f4 06]
@@ -80,8 +81,41 @@ func f007087BFhandle0D(buf []uint8) {
 		}
 	}
 }
-func handleF100versionmatch(buf []uint8) {}
-func handleF104(buf []uint8)             {}
+func handleF100versionmatch(buf []uint8) {
+	// f006C75A7 被花到 0x0A4E7A49 // version match, buf: 01 2E 87 "10525"
+	func(buf []uint8) {
+		ebp4 := buf
+		ebp10 := buf[4]
+		if ebp10 == 1 {
+			// ebp8 := &v0130F728
+			// ebp8.f004A9123(&ebp8.f4880)
+		}
+		v08C88E0C = int(ebp4[5]<<8 + ebp4[6])
+		v08C88E08 = 2
+		var ebpC uint8
+		if ebpC >= 5 {
+		}
+		for {
+			if v012E4018[ebpC]-ebpC-1 != ebp4[7+ebpC] { // 改为jmp
+				break
+			}
+			ebpC++
+			if ebpC >= 5 {
+				break
+			}
+		}
+
+		// _004A9146
+		func() {}()
+
+		// _004A9EEB
+		func() {}()
+		v01319E08log.f00B38AE4printf("Version dismatch - Join server.\r\n")
+		// _0051FB61
+		func() {}()
+	}(buf)
+}
+func handleF104(buf []uint8) {}
 func handleF403serverInfo(buf []uint8) {
 	// close连接服务器
 	// f006BF89ADial(ip, port) // 拨号游戏服务器
@@ -187,78 +221,5 @@ func f00735DC7(uk1 int, code int, buf []uint8, len int, enc int) {
 }
 
 func f0075C3B2(code int, buf []uint8, len int, x int) {
-	// 0x09FE6362
-	ebp5D8 := code
-	if ebp5D8 > 0xFD {
-		// 0x0075FCAC
-		return // return 1
-	}
-	// 0x09FB655C
-	// 寻找处理器
-	// v0075FCB2cmd[4*v0075FF6Acmd[ebp5D8]]
-
-	// 0xF1 处理器
-	ebp4 := buf
-	ebp5DC := ebp4[3]
-	if ebp5DC > 4 {
-	}
-	switch ebp5DC {
-	case 4:
-	case 0: // version match, buf: 01 2E 87 "10525"
-		// _006C75A7 被花到 0x0A4E7A49
-		func(buf []uint8) {
-			ebp4 := buf
-			ebp10 := buf[4]
-			if ebp10 == 1 {
-				// ebp8 := &v0130F728
-				// ebp8.f004A9123(&ebp8.f4880)
-			}
-			v08C88E0C = int(ebp4[5]<<8 + ebp4[6])
-			v08C88E08 = 2
-			var ebpC uint8
-			if ebpC >= 5 {
-			}
-			for {
-				if v012E4018[ebpC]-ebpC-1 != ebp4[7+ebpC] { // 改为jmp
-					break
-				}
-				ebpC++
-				if ebpC >= 5 {
-					break
-				}
-			}
-
-			// _004A9146
-			func() {}()
-
-			// _004A9EEB
-			func() {}()
-			v01319E08log.f00B38AE4printf("Version dismatch - Join server.\r\n")
-			// _0051FB61
-			func() {}()
-		}(buf)
-	}
-
-	// 0xFA 处理器(没有)
-
-	// 0xF4 处理器
-	if buf[0] == 0xC1 {
-	}
-	ebp1C := buf
-	ebp14 := ebp1C[4]
-	ebp5EC := ebp14
-	switch ebp5EC {
-	case 3:
-	case 5:
-	case 6:
-		// _006BFA3E
-		func(buf []uint8) {
-			ebp4 := 6
-			// ebp9 := buf[ebp4]
-			ebp4++
-			if ebp14 >= buf[5]<<8|1 {
-			}
-			// ebp18 := buf[ebp4:]
-		}(buf)
-	}
+	f0075C3B2handlecmd(uint8(code), buf, len, func() bool { return x == 1 }())
 }

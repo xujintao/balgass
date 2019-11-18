@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"unsafe"
 
 	"github.com/xujintao/balgass/win"
@@ -18,6 +19,7 @@ type rect struct {
 }
 type servicer interface {
 	do4(int) bool
+	do5(bool)
 	do6(bool)
 	do10() bool
 	do11(float64)
@@ -42,6 +44,12 @@ func (s *subservice) f004CCE44(x bool)  { s.mA9done = x }
 func (s *subservice) f004360AB(float64) {} // 比较复杂
 func (s *subservice) f0043912C() bool   { return s.mAA }
 func (s *subservice) f00438F7B(x bool)  { s.mAB = x }
+func (s *subservice) f00436060(x bool) {
+	// s.f0043672D(x)
+	if x == false {
+		s.mAA = false
+	}
+}
 
 type windower interface {
 	f004CCC07(float64)
@@ -62,6 +70,7 @@ type window struct {
 	m0D       bool
 	m0E       bool
 	m10       int
+	m14       *int
 	m18left   int // rect left
 	m1Ctop    int // rect top
 	m20width  int // rect width
@@ -172,86 +181,227 @@ func (b *window) f004AA018isActive() bool { return b.m0Cactive }
 func (b *window) f004AA068() int          { return b.m10 }
 func (b *window) f004AA027() bool         { return b.m0D }
 
-// service1 sizeof(service{})=0x408
+// service1 v0130F730 v01317CD8 v013180E0
 type service1 struct {
 	window
 }
 
 // do4->f0043F608
-func (s *service1) do4(x int) bool {
-	return s.window.do4(x)
-}
+func (s *service1) do4(x int) bool   { return s.window.do4(x) }
+func (s *service1) do5(x bool)       {}
 func (s *service1) do6(bool)         {}
 func (s *service1) do10() bool       { return false }
 func (s *service1) do11(unk float64) {}
 func (s *service1) do12()            {}
 
-// do13->f0043F640
+// do13->f0043F640 may exit
 func (s *service1) do13(unk float64) {}
 
-// service2 sizeof(service{})=0x408
+// service2 v01314300
 type service2 struct {
 	window
 }
 
 // do4->f0043AA4E
-func (s *service2) do4(x int) bool {
-	return s.window.do4(x)
-}
+func (s *service2) do4(x int) bool   { return s.window.do4(x) }
+func (s *service2) do5(x bool)       {}
 func (s *service2) do6(bool)         {}
 func (s *service2) do10() bool       { return false }
 func (s *service2) do11(unk float64) {}
 func (s *service2) do12()            {}
 func (s *service2) do13(unk float64) {}
 
-// service3 sizeof(service{})=0x408
+// service3 v01313FA8
 type service3 struct {
 	window
+	subs [2]subservice // offset: 0E0, v01313FE8
+	// offset: 120, v013140C8
+	// m200username uint32 // textUsername
+	// m204password uint32 // textPassword
+	// m208 [2]struct{ data [0xA8]uint8 }
 }
 
 // do4->f0043E5D4
-func (s *service3) do4(x int) bool {
-	return s.window.do4(x)
+func (s *service3) do4(x int) bool { return s.window.do4(x) }
+
+// do5->f0043E575
+func (s *service3) do5(x bool) {
+	// s.f004CCBCA(x)
+	func(x bool) {
+		if s.m14 != nil {
+			// s.m14.f0043672D(x)
+		}
+		s.m0Cactive = x
+		if s.m0Cactive == false {
+			s.m0D = false
+		}
+	}(x)
+
+	ebp4 := 0
+	for ebp4 < 2 {
+		// s.m208[ebp4].f0043672D(x)
+		s.subs[ebp4].f00436060(x)
+	}
 }
-func (s *service3) do6(bool)         {}
+
+// do6->f00435D53
+func (s *service3) do6(x bool)       { s.m0D = x }
 func (s *service3) do10() bool       { return false }
 func (s *service3) do11(unk float64) {}
 func (s *service3) do12()            {}
 
-// do->f0043E60C 发送login报文
-func (s *service3) do13(unk float64) {}
+// 关闭当前连接并重新拨号
+func (s *service3) f0043ED78() {
+	// s.f0043ED98()
+	func() {
+		v08C88FF0conn.f006BD5BBclose()
+		v08C88F74 = 0
+		v08C88E08 = 0
+		f006BF89ADial(v012E2338ip, int(v012E233Cport))
+	}()
+	f004A7D34getServiceManager().f004A9146LRU(s)
+}
 
-// service4 sizeof(service{})=0x408
+// s9: 006E855E
+func (s *service3) f0043E9B6() {
+	// seh
+	f00DE8A70chkstk() // 0x152C
+	// ebp1538 := s
+	if v08C88E08 == 0 {
+		return
+	}
+	f004A7D34getServiceManager().f004A9146LRU(s)
+
+	var ebp18, ebp24 [11]uint8 // username, pwd
+	f00DE8100memset(ebp18[:], 0, 11)
+	// s.m200username.f50h(ebp18[:], 11) // f00342929, fill username
+	f00DE8100memset(ebp24[:], 0, 11)
+	// s.m204password.f50h(ebp24[:], 11) // f00452929, fill pwd
+
+	// f0043EE13(ebp18[:]) // 判断字符串长度
+	// f0043EE13(ebp24[:])
+	if v08C88E08 != 2 {
+		return
+	}
+
+	v01319E08log.f00B38AE4printf("> Login Request.\r\n")
+	v01319E08log.f00B38AE4printf("> Try to Login \"%s\"\r\n", ebp18[:])
+
+	v08C88F74 = 1
+	f00DE8000strcpy(v08C88F78username[:], ebp18[:])
+	v08C88E08 = 13
+
+	// 构造登录报文
+	var ebp14BClogin pb
+	ebp14BClogin.f00439178init()
+	ebp14BClogin.f0043922CwritePrefix(0xC1, 0xF1) // 前缀
+	ebp14BClogin.f004397B1writeUint8(1)           // 可能是subcode
+
+	var ebp30, ebp3C [11]uint8
+	f00DE8100memset(ebp30[:], 0, 11)
+	f00DE8100memset(ebp3C[:], 0, 11)
+	f00DE7C90memcpy(ebp30[:], ebp18[:], 10)
+	f00DE7C90memcpy(ebp3C[:], ebp24[:], 10)
+	f0043B750xor(ebp30[:], 10) // 与igc.dll的TOOLTIP_FIX_XOR_BUFF一样了，可能有问题
+	f0043B750xor(ebp3C[:], 10) // 与igc.dll的TOOLTIP_FIX_XOR_BUFF一样了，可能有问题
+
+	ebp14BClogin.f00439298writeBuf(ebp30[:], 10, true)    // 写username
+	ebp14BClogin.f00439298writeBuf(ebp3C[:], 10, true)    // 写pwd
+	ebp14BClogin.f0043EDF5writeUint32(win.GetTickCount()) // 写时间戳
+	ebp14C0 := 0
+	for ebp14C0 < 5 {
+		ebp14BClogin.f004397B1writeUint8(v012E4018[ebp14C0] - byte(ebp14C0+1)) // 写版本 VERSION_HOOK1
+		ebp14C0++
+	}
+	ebp14C0 = 0
+	for ebp14C0 < 16 {
+		ebp14BClogin.f004397B1writeUint8(v012E4020[ebp14C0]) // 写序列号 SERIAL_HOOK1
+		ebp14C0++
+	}
+
+	// 发送登录报文
+	ebp14BClogin.f004393EAsend(true, false)
+
+	// var ebp4 int
+	// ebp14E0.f00406FC0(v08610600.f00436DA8(0x1D8))
+	// ebp4 = 1
+	// ebp14FC.f00406FC0(&v0114A327)
+	// ebp4 = 2
+	// f00A49798(&ebp14FC, &ebp14E0, 3, 0).f0043EE21().f00A9FB38()
+	// ebp4 = 1
+	// ebp14FC.f00407B10()
+	// ebp4 = 0
+	// ebp14E0.f00407B10()
+
+	// ebp1518.f00406FC0(v08610600.f00436DA8(0x1D9))
+	// ebp4 = 3
+	// ebp1534.f00406FC0(&v0114A33E)
+	// f00A49798(&ebp1534, &ebp1518, 3, 0).f0043EE21().f00A9FB38()
+	// ebp4 = 3
+	// ebp1534.f00407B10()
+	// ebp4 = 0
+	// ebp1518.f00407B10()
+	// ebp4 = -1
+
+	ebp14BClogin.f004391CF()
+}
+
+// do13->f0043E60C 发送login报文
+func (s *service3) do13(unk float64) {
+	if s.subs[0].f0043912C() {
+		s.f0043E9B6() // login
+		return
+	}
+	if s.subs[1].f0043912C() {
+		s.f0043ED78() // 关闭当前连接并重新拨号
+		return
+	}
+	if f0043BF3FgetT4003().f0043913E(13) {
+		// f007DAFE0(25, 0, 0)
+		s.f0043E9B6() // login
+		return
+	}
+	if f0043BF3FgetT4003().f0043913E(27) {
+		// f007DAFE0(25, 0, 0)
+		s.f0043ED78() // 关闭当前连接并重新拨号
+		f004A7D34getServiceManager().f00439161(false)
+	}
+}
+
+// service4 v01310798
 type service4 struct {
 	window
-	subs  [62]subservice
-	m3760 int
-	m3764 int
+	serverConns [21]subservice
+	serverGames [40]subservice // offset: 0x12A0
+	m3758       int
+	m3760       int
+	m3764       *int
 }
 
 // do4->f00446D35
-func (s *service4) do4(x int) bool {
-	return s.window.do4(x)
-}
+func (s *service4) do4(x int) bool   { return s.window.do4(x) }
+func (s *service4) do5(x bool)       {}
 func (s *service4) do6(bool)         {}
 func (s *service4) do10() bool       { return false }
 func (s *service4) do11(unk float64) {}
 func (s *service4) do12()            {}
 
-// do13->f00446D6D
+// do13->f00446D6D 请求服务器列表，请求服务器信息
 func (s *service4) do13(unk float64) {
 	// 带SEH处理
 	f00DE8A70chkstk() // 0x2994
-	// ...
+
+	// ... 浮点运算
 	ebp10 := 0
 	for ebp10 < 0x15 {
-		if s.subs[ebp10].f0043912C() {
+		if s.serverConns[ebp10].f0043912C() {
 			if s.m3760 != 0 {
-				s.subs[s.m3760].f00438F7B(false)
+				s.serverConns[s.m3760].f00438F7B(false)
 			}
-			s.subs[ebp10].f00438F7B(true)
+			s.serverConns[ebp10].f00438F7B(true)
 			s.m3760 = ebp10
 
+			// 请求服务器列表
 			var ebp149C pb
 			ebp149C.f00439178init()
 			ebp149C.f0043922CwritePrefix(0xC1, 0xF4)
@@ -263,8 +413,79 @@ func (s *service4) do13(unk float64) {
 		}
 		ebp10++
 	}
-	if s.m3764 == 0 {
+	if s.m3764 == nil {
 		return
+	}
+
+	ebp10 = 0
+	for ebp10 < s.m3758 {
+		if s.serverGames[ebp10].f0043912C() {
+			// ebp14 := s.m3764.f00AF712E(ebp10)
+			// if ebp14 == nil {
+			// 	break
+			// }
+			// if ebp14.m10 < 0x64 {
+			{
+				f004A7D34getServiceManager().f004A9146LRU(s)
+				// if f004472C9(&ebp14.m15, v0114A5F8) {
+				// 	f0043A2DF(true).f004472DB()
+				// } else {
+				// 	f0043A2DF(false).f004472DB()
+				// }
+				// 请求服务器信息
+				var ebp292CserverInfo pb
+				ebp292CserverInfo.f00439178init()
+				ebp292CserverInfo.f0043922CwritePrefix(0xC1, 0xF4) // header
+				var ebp14A9 [1]uint8
+				ebp14A9[0] = 3
+				ebp292CserverInfo.f00439298writeBuf(ebp14A9[:], 1, false) // subcode
+				var ebp14A8code uint16                                    // = ebp14.m0C
+				var codes [2]uint8
+				binary.BigEndian.PutUint16(codes[:], ebp14A8code)
+				ebp292CserverInfo.f00439298writeBuf(codes[:], 2, false) // server code
+				ebp292CserverInfo.f004393EAsend(false, false)
+
+				// var ebp4 int
+				// ebp2948.f00406FC0(v08610600.f00436DA8(0x1D6))
+				// ebp4 = 2
+				// ebp2964.f00406FC0(&v0114A5FF)
+				// ebp4 = 3
+				// f00A49798(&ebp2964, &ebp2948, 3, 0).f0043EE21().f00A9FB38()
+				// ebp4 = 2
+				// ebp2964.f00407B10()
+				// ebp4 = 1
+				// ebp2948.f00407B10()
+				// ebp2980.f00406FC0(v08610600.f00436DA8(0x1D7))
+				// ebp4 = 4
+				// ebp299C.f00406FC0(&v0114A600)
+				// ebp4 = 5
+				// f00A49798(&ebp299C, &ebp2980, 3, 0).f0043EE21().f00A9FB38()
+				// ebp4 = 4
+				// ebp299C.f00407B10()
+				// ebp4 = 1
+				// ebp2980.f00407B10()
+				// ebp4 = -1
+				// ebp292C.f004391CF()
+
+				// ebp14A0 := 1
+				// if s.m3764.m1C {
+				// 	ebp14A0 = 3
+				// } else if ebp14.m14&1 != 0 {
+				// 	ebp14A0 = 2
+				// }
+
+				// ebp14A1 := 0
+				// if s.m3764.m04 == false {
+				// 	ebp14A1 = 1
+				// }
+				// f00AF7DC3(&s.m3764.m31, ebp14.m08, ebp14A0, ebp14.m14, ebp14A1).f00AF876E()
+				break
+			}
+			// if ebp14.m10 < 0x80 {
+			// 	f004A7D34getServiceManager().f004A9EEB(0x63, 0)
+			// }
+		}
+		ebp10++
 	}
 }
 
@@ -276,13 +497,12 @@ type service5 struct {
 }
 
 // do4->f0043DCD3
-func (s *service5) do4(x int) bool {
-	return s.window.do4(x)
-}
+func (s *service5) do4(x int) bool { return s.window.do4(x) }
+func (s *service5) do5(x bool)     {}
 
 // do6->f00435D53
 func (s *service5) do6(x bool) {
-	s.window.m0D = x
+	s.m0D = x
 }
 func (s *service5) do10() bool { return false }
 
@@ -304,10 +524,10 @@ func (s *service5) do13(unk float64) {
 	if s.s1.f0043912C() {
 		ebp10 := f004A7D34getServiceManager()
 		ebp10.f004A9123(&ebp10.s7)
-		ebp10.f00439161(1)
+		ebp10.f00439161(true)
 	}
 	if s.s2.f0043912C() {
-		// 二次请求服务器列表
+		// 请求服务器列表(没有执行)
 		var ebp149C pb
 		ebp149C.f00439178init()
 		// ebp4 := 0
@@ -324,30 +544,28 @@ func (s *service5) do13(unk float64) {
 	}
 }
 
-// service6 sizeof(service{})=0x408
+// service6 v0130FF40
 type service6 struct {
 	window
 }
 
 // do4->f00441096
-func (s *service6) do4(x int) bool {
-	return s.window.do4(x)
-}
+func (s *service6) do4(x int) bool   { return s.window.do4(x) }
+func (s *service6) do5(x bool)       {}
 func (s *service6) do6(bool)         {}
 func (s *service6) do10() bool       { return false }
 func (s *service6) do11(unk float64) {}
 func (s *service6) do12()            {}
 func (s *service6) do13(unk float64) {}
 
-// service7 sizeof(service{})=0x408
+// service7 v0130FB38
 type service7 struct {
 	window
 }
 
 // do4->f00449300
-func (s *service7) do4(x int) bool {
-	return s.window.do4(x)
-}
+func (s *service7) do4(x int) bool   { return s.window.do4(x) }
+func (s *service7) do5(x bool)       {}
 func (s *service7) do6(bool)         {}
 func (s *service7) do10() bool       { return false }
 func (s *service7) do11(unk float64) {}
@@ -382,6 +600,87 @@ func (t *list) f00445530getNodeValue(nodep **node) interface{} {
 	return ebp4.value
 }
 
+func (t *list) f004455FBdeleteNode(n *node) bool {
+	ebp4 := n
+	// if IsBadReadPtr(ebp4, 12){
+	// 	return false
+	// }
+
+	if t.head == ebp4 {
+		t.head = ebp4.next
+	} else {
+		// if IsBadReadPtr(ebp4.prev, 12) {
+		// 	return false
+		// }
+		ebp4.prev.next = ebp4.next
+	}
+
+	if t.tail == ebp4 {
+		t.tail = ebp4.prev
+	} else {
+		// if IsBadReadPtr(ebp4.next, 12) {
+		// 	return false
+		// }
+		ebp4.next.prev = ebp4.prev
+	}
+	// t.f004458A1(ebp4)
+	func(n *node) {
+		// f00DE7538(n)
+		t.num--
+		if t.num == 0 {
+			// t.f004454EA()
+			func() {
+				for t.head != nil {
+					// ebp4 := t.head
+					t.head = t.head.next
+					// f00DE7538(ebp4)
+				}
+				t.tail = nil
+				t.num = 0
+			}()
+		}
+	}(ebp4)
+	return true
+}
+
+func (t *list) f004457B6findNode(val interface{}, n *node) *node {
+	ebp4 := n
+	if ebp4 == nil {
+		ebp4 = t.head
+	} else {
+		// if IsBadReadPtr(ebp4, 12) {
+		// 	return nil
+		// }
+		ebp4 = ebp4.next
+	}
+	for ebp4 != nil {
+		if ebp4.value == val {
+			return ebp4
+		}
+		ebp4 = ebp4.next
+	}
+	return nil
+}
+func (t *list) f00445416appendNode(val interface{}) *node {
+	// ebp4 := t.f0044585BnewNode(t.tail, nil)
+	ebp4 := func(n1, n2 *node) *node {
+		ebp8 := (*node)(f00DE852F(12))
+		ebp4 := ebp8
+		ebp4.prev = n1
+		ebp4.next = n2
+		t.num++
+		ebp4.value = nil
+		return ebp4
+	}(t.tail, nil)
+	ebp4.value = val
+	if t.tail != nil {
+		t.tail.next = ebp4
+	} else {
+		t.head = ebp4
+	}
+	t.tail = ebp4
+	return ebp4
+}
 func (t *list) f004409AAgetList() *node {
 	return t.head
 }
@@ -497,19 +796,31 @@ func (t *serviceManager) f004A9083(s interface{}) interface{} {
 		ebp4 = nil
 	}
 	if s.(windower).f004AA018isActive() {
-		// if t.f9FD4activeServices.f004455FB(t.f9FD4activeServices.f004457B6(s, 0)) == false {
-		// 	return nil
-		// }
+		if t.f9FD4activeServices.f004455FBdeleteNode(t.f9FD4activeServices.f004457B6findNode(s, nil)) == false {
+			return nil
+		}
 		t.f9FE8 = true
 		// t.f9FD4activeServices.f004453C6(s)
 	}
 	return ebp4
 }
 func (t *serviceManager) f004A9123(s interface{}) {
-	// s.(servicer).do5(1)
+	// s.(servicer).do5(true)
 	t.f004A9083(s)
 }
-func (t *serviceManager) f00439161(x int) {}
+func (t *serviceManager) f004A9146LRU(s interface{}) {
+	if t.f9FD4activeServices.f004455FBdeleteNode(t.f9FD4activeServices.f004457B6findNode(s, nil)) == false {
+		return
+	}
+	s.(servicer).do5(false)
+	s.(servicer).do6(false)
+	t.f9FD4activeServices.f00445416appendNode(s)
+	s = t.f9FD4activeServices.f004452A7getFirstNodeValue()
+	if s.(windower).f004AA018isActive() {
+		t.f9FE8 = true
+	}
+}
+func (t *serviceManager) f00439161(x bool) { t.f9FE9 = x }
 func (t *serviceManager) f004A91CE() {
 	ebp98 := t
 	ebp8 := ebp98.f9FD4activeServices.f004409AAgetList()
@@ -951,7 +1262,7 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 					}()
 				}
 				ebp1498 := &f004A7D34getServiceManager().s2
-				ebp1499 := ebp1498.window.m0Cactive
+				ebp1499 := ebp1498.m0Cactive
 				if ebp1499 == false {
 					// f00657C13() f00670FFE() f0051B219() f0084EBF9() f00576F03() f0084B501() f0086BA70()
 					// f00884C77() f0051CFAA() v0131A294.f009D8054() v0131A2A0.f00B2136D() f004DB0B1()
