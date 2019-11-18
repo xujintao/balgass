@@ -89,6 +89,9 @@ GOOS=windows go build -x github.com/xujintao/balgass/cmd/client &> build.out
 
 ## breakpoints
 ```
+// do13
+conditional tracing: do13: {ecx}.f{dword(eax+30)}
+
 // f00439420 -> SendPacket
 // C1
 conditional breakpoints: word(edx+2)==31f3 || word(edx+2)==31f3

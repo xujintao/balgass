@@ -281,8 +281,7 @@ func (t *pb) f00439178init() {
 }
 func (t *pb) f004391CF() {}
 func (t *pb) f0043921B() {
-	// t.len = 0
-	*(*uint16)(unsafe.Pointer(&t.buf[0])) = 0
+	t.len = 0
 }
 func (t *pb) f0043922CwritePrefix(flag uint8, code uint8) {
 	t.f0043921B()
@@ -292,7 +291,7 @@ func (t *pb) f0043922CwritePrefix(flag uint8, code uint8) {
 	buf[0] = flag
 	t.f00439298writeBuf(buf[:], 1, false)
 
-	// 写len，没有必要
+	// 写len
 	switch flag {
 	case 0xC1:
 		t.f00439298writeBuf(t.buf[:], 1, false)
@@ -305,19 +304,20 @@ func (t *pb) f0043922CwritePrefix(flag uint8, code uint8) {
 	t.f00439298writeBuf(buf[:], 1, false)
 }
 
-func (t *pb) f00439298writeBuf(buf []uint8, len int, needEnc bool) {
-	tlen := (*uint16)(unsafe.Pointer(&t.buf[0]))
-	if int(*tlen)+len > 0x145A {
+func (t *pb) f00439298writeBuf(buf []uint8, len int, needXor bool) {
+	tlen := int(t.len)
+	if tlen+len > 0x145A {
 		return
 	}
-	f00DE7C90memcpy(t.buf[*tlen+2:], buf, len)
-	if needEnc {
-		t.f0043930Cenc(int(*tlen), int(*tlen)+len, 1) // (3,4,1), (4,8,1)
+	f00DE7C90memcpy(t.buf[tlen:], buf, len)
+	if needXor {
+		t.f0043930Cxor(tlen, tlen+len, 1) // (3,4,1), (4,8,1)
+		// xor.Enc(t.buf[:], tlen, tlen+len)
 	}
-	*tlen += uint16(len)
+	t.len += uint16(len)
 }
 
-func (t *pb) f0043930Cenc(begin, end, interval int) {
+func (t *pb) f0043930Cxor(begin, end, interval int) {
 	var buf = [32]uint8{
 		0xAB, 0x11, 0xCD, 0xFE,
 		0x18, 0x23, 0xC5, 0xA3,
@@ -341,7 +341,15 @@ func (t *pb) f0043930Cenc(begin, end, interval int) {
 // s9 0x00439378
 func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 	// t.f00439612() 写len
-	func() {}()
+	func() []uint8 {
+		switch t.buf[0] {
+		case 0xC1:
+			f00DE7C90memcpy(t.buf[1:], ((*[1]uint8)(unsafe.Pointer(&t.len)))[:], 1)
+		case 0xC2:
+			f00DE7C90memcpy(t.buf[1:], ((*[2]uint8)(unsafe.Pointer(&t.len)))[:], 2)
+		}
+		return t.buf[:]
+	}()
 
 	t.f0043968Fxor() // hook到 igc.dll了，直接ret
 

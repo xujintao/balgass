@@ -56,3 +56,8 @@ type t7 struct {
 }
 
 var v08C86C50 = [10]t7{}
+
+var v0114EC40 float64
+
+var v012E234C = "data\\music\\mutheme.mp3"
+var v012E239C = "data\\music\\main_theme.mp3"

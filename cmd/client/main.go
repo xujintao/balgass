@@ -89,7 +89,7 @@ func (t *t3) f0043E9B6() {
 		return
 	}
 
-	f004A7D34()
+	f004A7D34getServiceManager()
 	f004A9146()
 
 	var ebp18, ebp24 [11]uint8 // username, pwd
@@ -1046,7 +1046,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 
 	//
 	f00DEE871setlocale(0, v01319E00) // 参数0是哪个LC？
-	// f0043BF3F(v01319D6ChWnd, v012E3F08.height, v012E3F08.width)
+	// f0043BF3FgetT4003(v01319D6ChWnd, v012E3F08.height, v012E3F08.width)
 	// f0043BF9C()
 	// f0090E94C()
 	// f0090B256()

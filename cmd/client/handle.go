@@ -75,7 +75,7 @@ func f007087BFhandle0D(buf []uint8) {
 	case 0:
 	case 1:
 		if v012E2340 == 4 {
-			ebp14 := f004A7D34()
+			ebp14 := f004A7D34getServiceManager()
 			ebp14.f004A9F3B(buf[13:]) // "you are logged in as Free Player"
 		}
 	}
