@@ -27,24 +27,24 @@ type servicer interface {
 	do13(float64)
 }
 
-type subservice struct {
+type button struct {
 	mA9done bool
 	mAA     bool
 	mAB     bool
 }
 
-func (s *subservice) f00448976() bool { return false }
-func (s *subservice) f00436088() bool {
+func (s *button) f00448976() bool { return false }
+func (s *button) f00436088() bool {
 	if s.mA9done {
 		return s.f00448976()
 	}
 	return false
 }
-func (s *subservice) f004CCE44(x bool)  { s.mA9done = x }
-func (s *subservice) f004360AB(float64) {} // 比较复杂
-func (s *subservice) f0043912C() bool   { return s.mAA }
-func (s *subservice) f00438F7B(x bool)  { s.mAB = x }
-func (s *subservice) f00436060(x bool) {
+func (s *button) f004CCE44(x bool)  { s.mA9done = x }
+func (s *button) f004360AB(float64) {} // 比较复杂
+func (s *button) f0043912C() bool   { return s.mAA }
+func (s *button) f00438F7B(x bool)  { s.mAB = x }
+func (s *button) f00436060(x bool) {
 	// s.f0043672D(x)
 	if x == false {
 		s.mAA = false
@@ -101,7 +101,7 @@ func (b *window) f004CCA35(x int) bool {
 		ebp14 := b.subs.f004409AAgetList()
 		for ebp14 != nil {
 			ebp1C := b.subs.f00445530getNodeValue(&ebp14)
-			if ebp1C.(*subservice).f00436088() == true {
+			if ebp1C.(*button).f00436088() == true {
 				return true
 			}
 		}
@@ -129,7 +129,7 @@ func (b *window) f004CCB8A(x bool) {
 	ebp4 := ebpC.subs.f004409AAgetList()
 	for ebp4 != nil {
 		ebp8 := ebpC.subs.f00445530getNodeValue(&ebp4)
-		ebp8.(*subservice).f004CCE44(x)
+		ebp8.(*button).f004CCE44(x)
 	}
 }
 
@@ -145,7 +145,7 @@ func (b *window) f004CCC07(unk float64) {
 		ebp8 := b.subs.f004409AAgetList()
 		for ebp8 != nil {
 			ebpC := b.subs.f00445530getNodeValue(&ebp8)
-			ebpC.(*subservice).f004360AB(unk)
+			ebpC.(*button).f004360AB(unk)
 		}
 	}
 	b.do11(unk)
@@ -182,6 +182,7 @@ func (b *window) f004AA068() int          { return b.m10 }
 func (b *window) f004AA027() bool         { return b.m0D }
 
 // service1 v0130F730 v01317CD8 v013180E0
+// exit
 type service1 struct {
 	window
 }
@@ -212,12 +213,13 @@ func (s *service2) do12()            {}
 func (s *service2) do13(unk float64) {}
 
 // service3 v01313FA8
+// login
 type service3 struct {
 	window
-	subs [2]subservice // offset: 0E0, v01313FE8
+	subs [2]button // offset: 0E0, v01313FE8
 	// offset: 120, v013140C8
-	// m200username uint32 // textUsername
-	// m204password uint32 // textPassword
+	// m200username text
+	// m204password text
 	// m208 [2]struct{ data [0xA8]uint8 }
 }
 
@@ -369,10 +371,11 @@ func (s *service3) do13(unk float64) {
 }
 
 // service4 v01310798
+// serverList and serverInfo
 type service4 struct {
 	window
-	serverConns [21]subservice
-	serverGames [40]subservice // offset: 0x12A0
+	serverConns [21]button
+	serverGames [40]button // offset: 0x12A0
 	m3758       int
 	m3760       int
 	m3764       *int
@@ -492,8 +495,8 @@ func (s *service4) do13(unk float64) {
 // service5 v01310598
 type service5 struct {
 	window
-	s1 subservice // offset: 0x040, v013105D8
-	s2 subservice // offset: 0x120, v013106B8
+	s1 button // offset: 0x040, v013105D8
+	s2 button // offset: 0x120, v013106B8
 }
 
 // do4->f0043DCD3
@@ -1223,6 +1226,156 @@ func f004E46B3(hDC win.HDC) {
 	// ...
 }
 
+func f004E17B9(hDC win.HDC) {
+	// 0x0ADB3664
+	var label1 uint32 = 0x0091AD10
+	// push label1
+	// push 0x0A4E45B0
+	// ret
+
+	// 0x0A4E45B0
+	var label2 uint32 = 0x00BFE32C
+	// push label2
+	// push 0x0A4E0636
+	// ret
+
+	// 0x0A4E0636
+	var label3 uint32 = 0x00E26B30
+	// push label3
+	// push 0x09FE242C
+	// ret
+
+	// 0x09FE242C 0x0A84C76E 0x09E72845 0x09E2466D 0x0A84D026
+	// push esi
+	// push ecx
+	// push edi
+	// push ebx
+	// pushfd
+	// push edx
+
+	// 0x0A8FCAAA
+	// push 0x0AF7DCB3
+	// push 0x09F94AB8
+	// ret
+
+	// 0x09F94AB8
+	func() {
+		// push ebx
+		// push esi
+		// push edi
+		var ecx uint32
+		if v0A443F74 == v0AD3B896 {
+			// 0x0B10C7F0
+			ecx = v0A84A81D
+		} else {
+			// 0x0AF98AAC
+			ecx = v012F7B94 // *(v09F8DB1C ^ v0A437DC7 - v0AFDC2F2 + &v09F94AB8)为v012F7B94
+			v0AD3B896 = v0A443F74
+		}
+
+		// 0x0A83DF81 0x0AF8A2A5 0x0AF7E149 0x0A8FB91A 0x0A9FE3BC 0x09E2B7D1 0x0A5D4DD2
+		if ecx == 0 {
+			// 0x0AAB6395
+			ecx++
+		}
+		// 0x0A846783 0x0A88F548
+		v0A84A81D = v0A890E43 * ecx % v0A56EB4C
+		// ecx = v0ABE324F
+		if v0A84A81D <= v09FE1805 {
+			// 0x09E2E91B
+			ebp8 := v0A88819B
+			ebp4 := ebp8 & 0x1F // 0x1A
+			ebpC := v0AF96824backupCode[:]
+			edi := v0A9F69B2blocks[:]
+			label1 = v0ABE324Flabel1 // [ebp+v0A952A97*4+8] = v0ABE324F
+			for edi[0].addr != ^uintptr(0) {
+				// 0x0AD7AFCB
+				addr := edi[0].addr
+				if addr == ^uintptr(1) {
+					// 0x09FB7DFD
+					addr = uintptr(edi[0].size) + v09FE37F3imageBase
+					break // 0x0AF8264D 0x0AF7FFE8
+				}
+				// 0x0A83CFB2 0x0AFD65B3 0x0A193940 0x0AA2DC0B 0x0ABE38DC 0x0A32E2E1
+				edx := addr + v09FE37F3imageBase
+				eax := edi[0].size
+				if eax > 3 { // 商
+					// 0x0A057F34 0x09E2E3C1 0x0ABD8DA1
+					esi := eax / 4
+					eax %= 4
+					// num = size%4
+					for {
+						// 0x0AFDFEC4
+						ebp8 <<= ebp4 // 循环左移在c语言里如何表示？
+						ebx := ebpC[0] - ebp4*ebp8
+						ebp4 ^= ^ebx
+						*(*uint32)(unsafe.Pointer(edx)) = ebx // 使用备份代码覆盖当前代码防篡改
+						ebpC = ebpC[1:]
+						edx += 4
+						esi--
+						if esi == 0 {
+							break // 0x0A04C6C1
+						}
+					} // for loop 0x0AFDFEC4
+				}
+				// 0x0A04C6C1
+				if eax > 0 { // 余数
+					// 0x0AD92EFD
+					for {
+						// 0x09EABF12 0x0AFE088E 0x09FE279B 0x0A84E240 0x0B07017C 0x0A5FD6D8 0x0A4DFCAE
+						esi := eax
+						ebp8 <<= ebp4
+						ebp8 *= ebp4
+						cl := uint8(ebpC[0] - ebp8)
+						// ebpC快进一个字节
+						ebp4 ^= ^cl
+						*(*uint8)(unsafe.Pointer(edx)) = cl
+						edx++
+						esi--
+						if esi == 0 {
+							break // 0x0A936780
+						}
+					} // for loop 0x09EABF12
+				}
+
+				// 0x0A936780
+				edi = edi[1:]
+			} // for loop 0x0AD7AFCB
+
+			// 0x0AF7FFE8 0x0A916F27
+			label2 = v0A92FC07label2 // [ebp+v0A902E49*4+8] = v0A92FC07
+			v0AA30425 = v0AFD3C89
+			// 0x0A4DFFBE
+		} else {
+			// 0x0A4375F9
+			label1 = v0ABE324Flabel1 // [ebp+v0A952A97*4+8] = v0ABE324F
+			label2 = v0A92FC07label2 // [ebp+v0A902E49*4+8] = v0A92FC07
+			// 0x0A4DFFBE
+		}
+		// 0x0A4DFFBE 0x0A903547 0x09E6F742 0x0A05A39D
+		// pop edi
+		// pop esi
+		label3 = v0A32B0C2label3 // [ebp+v0A6039A7*4+8] = v0A32B0C2
+		// pop ebx
+	}()
+
+	// 0x0AF7DCB3
+	// pop edx
+	// popfd
+	// pop ebx
+	// pop edi
+	// pop ecx
+	// pop esi
+	// 0x0AF76F24 0x0AAB7B16
+	// label3(0x0AFDEEEE)
+	// label2(0x09FDF5DF)
+	// label1(0x09EBC65D)
+
+	// f09EBC65D 隐藏函数
+	func() {
+
+	}()
+}
 func f004E4F1ChandleState245(hDC win.HDC) {
 	// SEH
 	// f00552D0D()
@@ -1354,9 +1507,9 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 	// 0x004E5529
 	switch v012E2340 {
 	case 2:
-		f004E46B3(hDC)
+		f004E46B3(hDC) // trapmessage
 	case 4:
-		// f004E17B9(hDC)
+		f004E17B9(hDC) // invalid packet, hook to call 0x09EBC65D, S9 0x09F4C56C
 	case 5:
 		// f004E0E03(hDC)
 	}

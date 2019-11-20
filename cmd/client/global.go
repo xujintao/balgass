@@ -61,3 +61,34 @@ var v0114EC40 float64
 
 var v012E234C = "data\\music\\mutheme.mp3"
 var v012E239C = "data\\music\\main_theme.mp3"
+
+// 0x09F94AB8
+var v0A443F74 uint32 = 0xE9497BA1
+var v0AD3B896 uint32 = 0x13EFEDCE // v0AD3B896 = v0A443F74
+var v0A890E43 uint32 = 0xC491
+var v0A56EB4C uint32 = 0xE521
+var v0A84A81D uint32 = 0x3E92EB75 // 0xEB
+var v09FE1805 uint32 = 0x125      // v0A84A81D 与 v09FE1805比较
+
+var v0ABE324Flabel1 uint32 = 0x09EBC65D
+var v0A952A97 uint32 = 8
+var v0A92FC07label2 uint32 = 0x09FDF5DF
+var v0A920E49 uint32 = 7
+var v0A32B0C2label3 uint32 = 0x0AFDEEEE
+var v0A6039A7 uint32 = 6
+
+var v0AFD3C89 uint32 = 0x9B20B37E
+var v0AA30425 uint32 = 0x105DA588
+
+var v0A88819B uint32 = 0xD266CC5A // key
+var v0AF96824backupCode = [...]uint32{
+	0x37664E4F,
+	0x36FE23B9,
+}
+
+var v0A9F69B2blocks = [...]block{
+	{0x000393EA, 0x192}, // f004393EA
+	{0x00039581, 0x100},
+	{0xFFFFFFFF, 0xFFFFFFFF},
+}
+var v09FE37F3imageBase uintptr = 0x00400000

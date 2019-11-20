@@ -91,14 +91,25 @@ GOOS=windows go build -x github.com/xujintao/balgass/cmd/client &> build.out
 ```
 // do13
 conditional tracing: do13: {ecx}.f{dword(eax+30)}
+```
 
-// f00439420 -> SendPacket
-// C1
+```
+// igc.dll, giocp.cpp:129
+// movzx eax,byte ptr ds:[edx+ecx]
 conditional breakpoints: word(edx+2)==31f3 || word(edx+2)==31f3
 conditional tracing:     prefix: {mem;4@edx}
 ```
 
 ```
 // igc.dll dllmain.cpp:409
+// sub eax,dword ptr ds:[unsigned long dwAntiHackTime]
 conditional tracing: tick: (x){eax}ms, (u){u:eax}ms, (u){u:eax/3E8}s
+```
+
+```
+// code:5d3f invalid packet [c1 0d 5d 3f 6b d6 08 3f e1 b0 06 12 82]
+// code:cf07 invalid packet [c1 0d cf 07 49 aa 5c 56 d9 46 01 df e0]
+// code:ab59 invalid packet [c1 0d ab 59 d3 59 7d c9 6f ee 26 21 86]
+// 004397EF: mov dword ptr ss:[ebp-4],eax
+conditional breakpoints: byte(dword(ebp+8))==c3 && byte(ebp+c)==13
 ```
