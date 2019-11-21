@@ -35,6 +35,7 @@ var texts = [...]text{
 
 func Test(t *testing.T) {
 	for _, v := range texts {
+		// encrypt
 		ciphertext, err := hex.DecodeString(v.plaintext)
 		if err != nil {
 			t.Errorf("convert hex string failed, %s", err.Error())
@@ -44,13 +45,14 @@ func Test(t *testing.T) {
 			t.Errorf("encrypt failed, expected(%s) got(%s)", v.ciphertext, hex.EncodeToString(ciphertext))
 		}
 
+		// decrypt
 		plaintext, err := hex.DecodeString(v.ciphertext)
 		if err != nil {
 			t.Errorf("convert hex string failed, %s", err.Error())
 		}
 		Dec(plaintext, 3, len(plaintext)-1)
 		if hex.EncodeToString(plaintext) != v.plaintext {
-			t.Errorf("encrypt failed, expected(%s) got(%s)", v.plaintext, hex.EncodeToString(plaintext))
+			t.Errorf("decrypt failed, expected(%s) got(%s)", v.plaintext, hex.EncodeToString(plaintext))
 		}
 	}
 }
