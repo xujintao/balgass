@@ -221,9 +221,10 @@ void SetValues()
 	HookThis(0x0043EA4C, 7, (DWORD)&LoginHook1); // 1.04R, extend pwd length, fill pwd buf
 	HookThis(0x0043EAA2, 9, (DWORD)&LoginHook2); // 1.04R, extend pwd length, validate pwd length
 	HookThis(0x0043EB4E, 7, (DWORD)&LoginHook3); // 1.04R, extend pwd length, xor pwd buf
-	MemAssign(0x004E4819 + 1, (DWORD)0x0A8B4313); // 1.04R, disable trap message
-	MemAssign(0x004E554C + 1, (DWORD)0x099D710C); // 1.04R, disable anti-temper with backup code
-
+	MemAssign(0x0051B429 + 1, (DWORD)0x0A87D703); // 1.04R, handleState2, disable anti-temper with backup code
+	MemAssign(0x004E17B9 + 1, (DWORD)0x099DAE9F); // 1.04R, handleState4, disable anti-temper with backup code
+	MemAssign(0x005B5D6C + 1, (DWORD)0x09A1DB88); // 1.04R, handleState5, disable anti-temper with backup code
+	MemAssign(0x006C18B6 + 1, (DWORD)0x0A33476B); // 1.04R, handleF6, jump over complicated shell logic, which would send trap message
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
 	//HookManager.MakeJmpHook(CONNECT_HOOK1, 5, onCsHook);
