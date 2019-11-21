@@ -290,7 +290,8 @@ void GameProtocol::ProtocolCore(BYTE protoNum, unsigned char * aRecv, int aLen, 
 			case 0x0E:
 				this->CGLiveClient((PMSG_CLIENTTIME *)aRecv, aIndex);
 				break;
-			case 0xD4:
+			case 0xD4: // s9
+			case 0xD7: // 1.04R
 				this->PMoveProc((PMSG_MOVE *)aRecv, aIndex);
 				break;
 			case 0x15:
