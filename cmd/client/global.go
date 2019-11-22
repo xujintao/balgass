@@ -22,6 +22,7 @@ var v0114EE50 = [...]uint64{
 
 var v01319F28 uint32 = 0x3F2DE762
 
+// f004E46B3handleState2
 var v09FB8736 uint32 = 0x2B2F4A3D
 var v0A4E24C6 uint32 = 0x4849459E
 var v09E035DB uint32 = 0x5433BC5D
@@ -62,7 +63,7 @@ var v0114EC40 float64
 var v012E234C = "data\\music\\mutheme.mp3"
 var v012E239C = "data\\music\\main_theme.mp3"
 
-// 0x09F94AB8
+// f004E17B9handleState4
 var v0A443F74 uint32 = 0xE9497BA1
 var v0AD3B896 uint32 = 0x13EFEDCE // v0AD3B896 = v0A443F74
 var v0A890E43 uint32 = 0xC491
@@ -93,7 +94,7 @@ var v0A9F69B2blocks = [...]block{
 }
 var v09FE37F3imageBase uintptr = 0x00400000
 
-// 0x0A000809
+// f004DF0D5handleState5
 var v0ABD75F3 uint32 = 0xE55020DE
 var v0A3268A5 uint32 = 0xC01C390C
 
@@ -119,3 +120,34 @@ var v0AFDFD32 uint32 = 6
 var v09FB8B32label2 uint32 = 0x0AC9CB58
 var v0A849070 uint32 = 5
 var v0A32C145label3 uint32 = 0x0A338F26
+
+// f004E0E03handleState5
+// 确保第一次不覆盖
+var v0A56C1BA uint32 = 0x865EB72E
+var v0AF8AF60 uint32 = 0xDCD68D02
+var v0AD73D05 uintptr = 0xD2435CB5
+var v0ABD3FEA uintptr = 0xD36C2725
+var v0B07C274 uintptr = 0x09FDEC49 // v0AD73D05 ^ v0ABD3FEA - v0B07C274 + 0x09FDEC49
+
+// 后面在一个确定的时机进行覆盖
+var v0A339687 uint32 = 0xB2F9
+var v09F87E15 uint32 = 0x8E25
+var v09DEA85C uint32 = 0x76237DA5 //
+var v0AC3A339 uint32 = 0xE5
+
+var v0A9FD787backupCode = [...]uint32{}
+var v0A56AF60blocks = [...]block{
+	{0x000393EA, 0x192},
+	{0x00039581, 0x100},
+	{0xFFFFFFFF, 0xFFFFFFFF},
+}
+
+var v09E72FAA uint32 = 0x03B1C032
+var v0A933991 uint32 = 0x922C3447 // v0A933991 = v09E72FAA
+
+var v0B07545C uint32 = 8
+var v0ABB631Flabel1 uint32 = 0x0A84CD1A
+var v0A38E67E uint32 = 7
+var v0AC36B4Dlabel2 uint32 = 0x09FC4127
+var v0AF87A7B uint32 = 6
+var v0AA2D054label3 uint32 = 0x0AF7BD1B
