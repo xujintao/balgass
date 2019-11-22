@@ -47,6 +47,7 @@ var cmds = [...]*command{
 		{0x05, handleF405, nil},
 		{0x06, handleF406serverList, nil},
 	}},
+	{0xF6, f006C18B6handleF6, nil},
 	{0xFA, nil, nil},
 }
 
@@ -124,6 +125,80 @@ func handleF403serverInfo(buf []uint8) {
 func handleF405(buf []uint8)           {}
 func handleF406serverList(buf []uint8) {}
 func handleFA(buf []uint8)             {}
+func f006C18B6handleF6(buf []uint8) {
+	// c1 05 f6 1a 00
+	// 0x0A8FB4BE hook to hide f0A9F6026, jump complicated shell logic, which would send trap message
+	var label1 uint32 = 0x00FF20B1
+	// push label1
+	// push 0x09E29528
+	// ret
+
+	// 0x09E29528
+	var label2 uint32 = 0x0042D75C
+	// push 0x0042D75C
+	// push 0x09E27458
+	// ret
+
+	// 0x09E27458
+	var label3 uint32 = 0x0A88AE46
+	// push 0x0A88AE46
+	// push 0x012DDF16
+	// ret
+
+	// 0x012DDF16 0x0ABF9D31 0x0ABE1253
+	// push edi esi ebx ecx fd edx
+
+	// 0x09FDE30A
+	// push 0x0A32AC32
+	// push 0x0A4425A9
+	// ret
+
+	// f0A4425A9
+	func() {
+		label1 = 0x0A9F6026
+		label2 = 0x0AD70BD7
+		// f0A4EC883 send trap message
+		func(unk uint32) {
+			var ebp148Ctrap pb
+			ebp148Ctrap.f00439178init()
+			ebp148Ctrap.f0043922CwritePrefix(0xC1, 0xF3)
+			ebp148Ctrap.f004397B1writeUint8(0x31)
+			// big endian
+			ebp148Ctrap.f004397B1writeUint8(uint8(unk >> 24))
+			ebp148Ctrap.f004397B1writeUint8(uint8(unk >> 16))
+			ebp148Ctrap.f004397B1writeUint8(uint8(unk >> 8))
+			ebp148Ctrap.f004397B1writeUint8(uint8(unk))
+			ebp148Ctrap.f004393EAsend(true, false)
+			ebp148Ctrap.f004391CF()
+
+			// for {
+			// 	ebp1490 := 0
+			// 	if ebp1490 >= 0x190 {
+			// 		break // 0x007C8001
+			// 	}
+			// 	if ebp1490 == v08C88CAC {
+			// 		break
+			// 	}
+			// 	ebp1494 := f004373C5(ebp1490).f00A38D5B()
+			// 	if ebp1494.m5E {
+			// 		break
+			// 	}
+			// 	ebp1490++
+			// }
+			// ebp1494.m404 = 0x2710
+		}(0x00007533)
+		// 0x0A9F747B
+		label3 = 0x0A4DD48C
+	}()
+
+	// 0x0A32AC32
+	// pop edx fd ecx ebx esi edi
+	// label3
+	// label2
+	// label1
+
+	// f0A9F6026 隐藏函数
+}
 
 // hijack cmd
 func handlecmdhook(code uint8, subcode uint8, buf []uint8, len int) {

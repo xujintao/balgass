@@ -273,6 +273,7 @@ type pb struct {
 
 var v012E4034conn *conn = &v08C88FF0conn
 
+// s9 f00439106
 func (t *pb) f00439178init() {
 	// SEH
 	t.f145C.f007BF63B()
@@ -283,6 +284,8 @@ func (t *pb) f004391CF() {}
 func (t *pb) f0043921B() {
 	t.len = 0
 }
+
+// s9 f004391BA
 func (t *pb) f0043922CwritePrefix(flag uint8, code uint8) {
 	t.f0043921B()
 
@@ -338,7 +341,7 @@ func (t *pb) f0043930Cxor(begin, end, interval int) {
 	}
 }
 
-// s9 0x00439378
+// s9 f00439378
 func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 	// t.f00439612() 写len
 	func() []uint8 {
@@ -354,8 +357,8 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 	t.f0043968Fxor() // hook到 igc.dll了，直接ret
 
 	// f00439420
-	// hook到 IGC.dll SendPacket
 	func(buf []uint8, len int, needEnc, isC2 bool) {
+		// hook到 IGC.dll SendPacket
 		f00DE8A70chkstk() // 0x3124
 
 		if !needEnc {

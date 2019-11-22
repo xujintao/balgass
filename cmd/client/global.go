@@ -92,3 +92,30 @@ var v0A9F69B2blocks = [...]block{
 	{0xFFFFFFFF, 0xFFFFFFFF},
 }
 var v09FE37F3imageBase uintptr = 0x00400000
+
+// 0x0A000809
+var v0ABD75F3 uint32 = 0xE55020DE
+var v0A3268A5 uint32 = 0xC01C390C
+
+var v0A0C2FD2 uint32 = 0x05BE6BE3
+var v0AF8FD45 uint32 = 0x34B17CF5
+var v0AA09787 uint32 = 0x0824448B // v0AA09787 = v0A0C2FD2 ^ v0AF8FD45
+
+var v0AD6FFBE uint32 = 0x90B9
+var v0ABB4649 uint32 = 0x975D
+var v0AAB36E2 uint32 = 0x531BDC38 // v0AD6FFBE * v0AAB36E2 % v0ABB4649
+var v09EAE2F8 uint32 = 0x26
+
+var v0AF781CF uint32 = 0x35C75981
+var v0A33BBC9blocks = [...]block{}
+var v0A5FCB8Bcodes = [...]uint32{}
+var v0A84B964 uint32 = 1
+
+var v09FFF8E0imageBase uintptr = 0x00400000
+
+var v0A9FB214 uint32 = 7
+var v0A443580label1 uint32 = 0x09EB9FEC
+var v0AFDFD32 uint32 = 6
+var v09FB8B32label2 uint32 = 0x0AC9CB58
+var v0A849070 uint32 = 5
+var v0A32C145label3 uint32 = 0x0A338F26
