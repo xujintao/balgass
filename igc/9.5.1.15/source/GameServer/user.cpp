@@ -18930,14 +18930,12 @@ void gObjSecondProc()
 
 			if (lpObj->m_PlayerData->AntiHackCheckTime > 0 && GetTickCount() - lpObj->m_PlayerData->AntiHackCheckTime > 180000 && lpObj->m_bOff == false)
 			{
-				g_Log.AddC(TColor::Red, "[%s][%s][%s][%s] AntiHack breach -> No response",
-					lpObj->AccountID, lpObj->Name, lpObj->m_PlayerData->Ip_addr, lpObj->m_PlayerData->HWID);
-
-				AntiHackLog->Output("[%s][%s][%s][%s] AntiHack breach -> No response",
-					lpObj->AccountID, lpObj->Name, lpObj->m_PlayerData->Ip_addr, lpObj->m_PlayerData->HWID);
-
 				if (g_ConfigRead.antihack.AntiHackBreachDisconnectUser == true)
 				{
+					g_Log.AddC(TColor::Red, "[%s][%s][%s][%s] AntiHack breach -> No response",
+						lpObj->AccountID, lpObj->Name, lpObj->m_PlayerData->Ip_addr, lpObj->m_PlayerData->HWID);
+					AntiHackLog->Output("[%s][%s][%s][%s] AntiHack breach -> No response",
+						lpObj->AccountID, lpObj->Name, lpObj->m_PlayerData->Ip_addr, lpObj->m_PlayerData->HWID);
 					GSProtocol.GCSendDisableReconnect(lpObj->m_Index);
 					//IOCP.CloseClient(lpObj->m_Index);
 				}
@@ -18947,11 +18945,10 @@ void gObjSecondProc()
 			{
 				if (lpObj->m_PlayerData->dwLastHitHackTick > 0 && GetTickCount64() - lpObj->m_PlayerData->dwLastHitHackTick > 180000 && lpObj->m_bOff == false)
 				{
-					g_Log.AddC(TColor::Red, "[%s][%s][%s][%s] AntiHack breach #2 -> No response",
-						lpObj->AccountID, lpObj->Name, lpObj->m_PlayerData->Ip_addr, lpObj->m_PlayerData->HWID);
-
 					if (g_ConfigRead.antihack.AntiHackBreachDisconnectUser == true)
 					{
+						g_Log.AddC(TColor::Red, "[%s][%s][%s][%s] AntiHack breach #2 -> No response",
+							lpObj->AccountID, lpObj->Name, lpObj->m_PlayerData->Ip_addr, lpObj->m_PlayerData->HWID);
 						GSProtocol.GCSendDisableReconnect(lpObj->m_Index);
 						//IOCP.CloseClient(lpObj->m_Index);
 					}
