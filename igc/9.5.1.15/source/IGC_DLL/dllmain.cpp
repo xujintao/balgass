@@ -227,6 +227,19 @@ void SetValues()
 	MemAssign(0x004E0E03 + 1, (DWORD)0x0A36BF12); // 1.04R, handleState5, disable anti-temper with backup code
 	MemAssign(0x006C18B6 + 1, (DWORD)0x0A33476B); // 1.04R, handleF6, jump over complicated shell logic, which would send trap message
 	//MemAssign(0x005B0252 + 6, (BYTE)0xD4); // 1.04R, modify code D7 as D4, compatible with s9 server
+	DWORD inlineAddr[] = {
+		0x004E70D9, 0x005ABA01, 0x0A8FB8B9, 0x09FC2882, 0x005CEB05, 0x005D0607, 0x005D1B5C, 0x005D38B5,
+		0x005D4974, 0x0060594F, 0x0060C8E1, 0x006144CF, 0x00615B39, 0x006171A3, 0x006185CB, 0x00619761,
+		0x0061AC07, 0x0061BE96, 0x0061D198, 0x0061E43E, 0x0061F725, 0x00620BE2, 0x00621E89, 0x00623130,
+		0x006243D7, 0x0062571C, 0x006269EA, 0x00627D25, 0x00629028, 0x00638A4C, 0x00639EE5, 0x0063B39E,
+		0x00650BE9, 0x00651E00, 0x0A8F9C57, 0x006D026C, 0x09EB7E04, 0x006D3CCA, 0x0AF1145B, 0x0A9D549B,
+		0x0A892721, 0x09FB6290, 0x0A891849, 0x0A05DCAB, 0x0A3A1A6A, 0x0A43AABA, 0x0070AB31, 0x09FB93F0,
+		0x0AF824F4, 0x0A4ECC2F, 0x0AD70413, 0x0A5D32BC, 0x0AA06551, 0x0AF8A8D1, 0x0A4E848A, 0x09F8469D,
+	};
+	for (auto addr : inlineAddr) {
+		MemAssign(addr, (BYTE)0x90); // inc eax->nop, inline send disable encrypt
+	}
+
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
 	//HookManager.MakeJmpHook(CONNECT_HOOK1, 5, onCsHook);

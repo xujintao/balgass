@@ -128,10 +128,10 @@ bool GameProtocol::DataEncryptCheck(int aIndex, BYTE protoNum, BOOL Encrypt)
 
 	if ( Encrypt == FALSE )
 	{
-		g_Log.Add("Error-L1 : Not Encrypt %s %d", gObj[aIndex].AccountID, protoNum);
-		this->GCSendDisableReconnect(aIndex);
+		g_Log.AddC(TColor::Yellow, "Not Encrypt, accountID: %s, protoNum: %x", gObj[aIndex].AccountID, protoNum);
+		//this->GCSendDisableReconnect(aIndex);
 		//IOCP.CloseClient(aIndex);
-		return false;
+		//return false;
 	}
 #endif
 	return true;
