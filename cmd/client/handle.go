@@ -179,7 +179,7 @@ func f006C18B6handleF6(buf []uint8) {
 			// 	if ebp1490 == v08C88CAC {
 			// 		break
 			// 	}
-			// 	ebp1494 := f004373C5(ebp1490).f00A38D5B()
+			// 	ebp1494 := f004373C5(ebp1490).f00A38D5BgetObject()
 			// 	if ebp1494.m5E {
 			// 		break
 			// 	}

@@ -354,7 +354,7 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 		return t.buf[:]
 	}()
 
-	t.f0043968Fxor() // hook到 igc.dll了，直接ret
+	t.f0043968Frandom() // hook到 igc.dll了，直接ret
 
 	// f00439420
 	func(buf []uint8, len int, needEnc, isC2 bool) {
@@ -407,7 +407,7 @@ func (t *pb) f004393EAsend(needEnc, isC2 bool) {
 }
 
 // hook到 igc.dll了，直接ret
-func (t *pb) f0043968Fxor() {
+func (t *pb) f0043968Frandom() {
 	var ebp4len uint16
 	var ebp8buf []uint8
 	var ebp9code uint8
@@ -443,14 +443,15 @@ func (t *pb) f004397B1writeUint8(data uint8) *pb {
 	return t
 }
 
-func (t *pb) f0043EDF5writeUint32(data uint32) {
-	var buf [4]uint8
-	binary.LittleEndian.PutUint32(buf[:], data)
-	t.f00439298writeBuf(buf[:], 4, true)
-}
 func (t *pb) f004C65EFwriteUint16(data uint16) *pb {
 	var buf [2]uint8
 	binary.LittleEndian.PutUint16(buf[:], data)
 	t.f00439298writeBuf(buf[:], 2, true)
 	return t
+}
+
+func (t *pb) f0043EDF5writeUint32(data uint32) {
+	var buf [4]uint8
+	binary.LittleEndian.PutUint32(buf[:], data)
+	t.f00439298writeBuf(buf[:], 4, true)
 }
