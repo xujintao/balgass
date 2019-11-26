@@ -1435,7 +1435,7 @@ func f005B0120() {
 	func() {
 		var ebp2918 pb
 		ebp2918.f00439178init()
-		ebp2918.f0043922CwritePrefix(0xC1, 0xD7) // hook D7 as D4
+		ebp2918.f0043922CwritePrefix(0xC1, 0xD7) // send position, hook D7 as D4
 		// ...
 	}()
 	// ...

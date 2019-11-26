@@ -38,6 +38,7 @@ var cmds = [...]*command{
 	{0x01, handle01, nil},
 	{0x02, handle02, nil},
 	{0x0D, f007087BFhandle0D, nil},
+	{0xD7, handleD7position, nil}, // hook D4->D7
 	{0xF1, nil, []*command{
 		{0x00, handleF100versionmatch, nil},
 		{0x04, handleF104, nil},
@@ -82,6 +83,7 @@ func f007087BFhandle0D(buf []uint8) {
 		}
 	}
 }
+func handleD7position(buf []uint8) {}
 func handleF100versionmatch(buf []uint8) {
 	// f006C75A7 被花到 0x0A4E7A49 // version match, buf: 01 2E 87 "10525"
 	func(buf []uint8) {
