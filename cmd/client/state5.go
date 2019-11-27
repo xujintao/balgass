@@ -6,12 +6,22 @@ import (
 )
 
 var v012E3EC8 int
+var v0805BBACself = &object{}
 
 // object sizeof=0x6BC
 type object struct {
-	m5Eid uint16
-	m166  uint16
-	m438  uint8
+	m8      uint32
+	m24     bool
+	m2B     uint8
+	m38name [32]uint8
+	m5Eid   uint16
+	m166    uint16
+	m410    struct {
+		m04 bool
+		m0E bool
+		m28 uint8
+	}
+	m438 uint8
 }
 
 // objectManager
@@ -57,7 +67,7 @@ func f00611C16() {
 			v012E31B0 = -1
 			return
 		}
-		ebp69DC := v086105EC.m10C                 // 0x190
+		ebp69DC := v086105ECcharacter.m10C        // 0x190
 		if ebp69D8.m166 == 0xEE && ebp69DC < 10 { // 0xF0
 			// ...
 			return
@@ -164,6 +174,226 @@ func f00611C16() {
 	case 6:
 		// 0x006314F8
 	}
+}
+
+// f00A0A5E1->f09E25AB0, s9 f0092E01C->f0A37F316
+func f00A0A5E1() {
+	// 0x0AD31885 hook to hide 0x09E25AB0, disable what?
+	// push 0x09FC14E5
+	// push 0x0A0084AA
+	// ret
+
+	// 0x0A0084AA
+	// push 0x00D0C808
+	// push 0x0A0C4915
+	// ret
+
+	// 0x0A0C4915
+	// push 0x00C04000
+	// push 0x0A4455E0
+	// ret
+
+	// 0x0A4455E0
+	// push ecx edi ebx esi edx fd
+
+	// 0x0A9F5744
+	// push 0x0A95171B
+	// push 0x0AD98CB3
+	// ret
+
+	// 0x0AD98CB3
+	// push ebx esi edi
+	var ecx uint32
+	if v0AA08598 != v0AD7A978 {
+		// 0x0A9F74BC
+		ecx = *(*uint32)(unsafe.Pointer(uintptr(v0A391C78 - v0A9D361D))) // 0x7FFE0014地址处的值一直在变化，体现了随机性
+		v0AA08598 = v0AD7A978
+	} else {
+		// 0x0ABB5B0F
+		ecx = v0A562D19
+	}
+	// 0x0ABD5366
+	if ecx == 0 {
+		// 0x09FCBB36
+		ecx = 1
+	}
+	// 0x0A9F74CD
+	v0A562D19 = v0AD82FDD * ecx % v0A338B93
+	if v0A562D19 > v09F876D2 {
+		// 0x0AD92B1F
+		// [ebp+v0AD574B8*4+8] = v0A0519E0label1
+		// [ebp+v0A059559*4+8] = v0AD72EA4label2
+		// [ebp+v0A048EEB*4+8] = v0A3A8521label3
+		// pop edi esi ebx
+		// leave
+		// 0x0A95171B
+	} else {
+		// 0x0A05EB51
+		// 壳业务
+		// ebpC := v0AD93A11
+		// ebp10 := v0AD93A0D[0]
+		// // ebp18 := v0A33BBC9blocks[:]
+		// // eax = &ebp10
+		// // push 0x0A7434E5
+		// // push eax
+		// // ebx = 0x0A392992
+		// ebp18 := v0AD93A0D[:]
+		// // [ebp+v0AD574B8*4+8] = v0A0519E0label1
+		// // push 0x0A4E10F4
+		// // push 0x012DDE52
+		// // ret
+		// // 0x012DDE52
+		// edx := v0AD93A0D[0]
+		// ecx := v0AD93A11
+		// // push ebx
+		// ebx := v0AFD8339
+		// // push ebp
+		// // push esi
+		// esi := v0A74649D
+		// esi ^= ebx
+		// // push edi
+	}
+	// 0x0A95171B
+	// pop fd edx esi ebx edi ecx
+	// label3(0x0AFD4238)
+	// label2(0x0A057FB2)
+	// label1(0x09E2729C)
+
+	// 0x09E25AB0 隐藏函数
+}
+
+// s9 what?
+func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
+	// 0x09FE4C03 0x007E4FE1 0x09FE4C03 0x0A4400D7, s9 0x0AA9C932
+	var ebp24 []uint32
+	// ebp2C := 5
+	ebp4 := 0
+	ebp34 := 0
+	ebp28 := v086105ECcharacter.m178[x1]
+	var ebp30 int // ebp30 := f0090E94C(ebp28).f0090EA51().f008F6A00()
+	ebpD := 0
+	if v012E3EC8 == 0x1E {
+		// 0x007E5035
+	}
+	// 0x007E5076 0x09EB65A0
+	var ebp3C int
+	for ebp3C < 0x190 {
+		// 0x007E5083 0x09FD45F8
+		ebp48obj := v01308D04objectManager.f00A38D5BgetObject(ebp3C)
+		// 陨石: 13040D54(053B),13041410(053C),13041ACC(053D),13042188(053E),13042844(053F),13042F00(0540),130435BC(0541)
+		// 死神骑士: 13043C78(068B),13044334(0691),130449F0(0692),130450AC(0694),13045E24(0695),13047FD0(068D)
+		// 死神戈登: 13045768(06A2),13046B9C(06CE),13047258(06D1)
+		// 恶魔: 130464E0(06CD),13047914(06CB)
+		// 福袋: 1304868C(1545)
+		// 月兔: 13048D48(160D),13049404(161E)
+		ebp50 := &ebp48obj.m410
+		if ebp50.m04 && ebp50.m0E && !ebp48obj.m24 && ebp48obj != v0805BBACself { // 1304A838(2E82)
+			// 渲染？
+			// 0x007E50EC 0x0AC3A648
+			// ...
+			// 0x007E512E
+			// f00DEF7A4()
+			// 0x09F8DFA8
+			// ...
+			var ah uint8
+			if ah == 0 {
+				// 0x0AC34BE5
+				if ebp50.m28 != 2 {
+					// 0x0A9FF67F
+					if ebp50.m28 == 1 {
+						// 0x007E51BB
+					} else {
+						// 0x0AF11C9D 0x0A43A6DA
+						if ebp48obj.m5Eid != x5 {
+							// 0x09EAEC52
+							if ebpD == 0 {
+								// 0x007E51BB
+							} else {
+								// 0x007E5182
+							}
+						} else {
+							// 0x007E5182
+						}
+					}
+				} else {
+					// 0x007E5182 0x0AD88F1A
+					if ebp30 == 8 {
+						// 0x007E518E 0x0A8899E7
+						if ebp48obj.m8 != 0 {
+							// 0x0AD3ED3C
+							ebp48obj.m2B = 10
+						} else {
+							// 0x007E519E
+						}
+					} else {
+						// 0x0AD9813E
+						if ebp30 == 9 {
+							// 0x007E518E
+						} else {
+							// 0x007E519E 0x0AA0E2E6
+							ebp24[ebp34] = uint32(ebp48obj.m5Eid)
+							ebp34++
+							if ebp34 >= 5 {
+								break // 0x0A916873 0x007E51C0
+							} else {
+								// 0x007E51BB
+							}
+						}
+					}
+				}
+			} else {
+				// 0x007E51BB 0x09FCD104 0x007E507C
+			}
+		}
+		// 0x007E50EA 0x007E506F 0x0A32430C 0x007E507C 0x0A83F696
+		ebp3C++
+	}
+	// 0x007E51C0 0x0A84040B
+	if ebp34 <= 0 {
+		return false // 0x007E9327
+	}
+	// 0x0A38F1B3
+	if ebp30 == 0x4E {
+		// 0x09FC6B67 // 0x007E51E5
+		// ebp51 := x6
+		// ebp2990.f00406FC0(&v0114ECB0)
+		ebp4 = 0
+		// v0805BBACself.m38name
+	}
+	// 0x007E7271
+	if ebp28 != 0 {
+		// 0x0A1B1019
+		if ebp28 != 0xEB {
+			// 0x09E27707, s9 0x0AA33867
+			// 0x007E7293 0x0A5D51ED 0x007E72AE 0x0AD57EA6 0x0AD57EA6 0x09FB45A3 0x007E72C5 0x0A05ED3A 0x09FBE557
+			// ebp29CC.f00406FC0(&v0114ECB0)
+			ebp4 = 4
+			// ebp29E8.f00406FC0(v0805BBACself.m38name[:])
+			ebp4 = 5
+			var ebp29AD bool // ebp29AD := f004CE0BD(&ebp29E8, &ebp29CC)
+			// 0x09FE37E6 0x0A55B22D 0x0A889689
+			ebp4 = 4
+			// 0x0A8FB3C7
+			ebp4 = -1
+			// 0x007E72FB
+			// ebp29CC.f00407AC0(1, 0)
+			// 0x0A4ECFA3
+			if ebp29AD == false {
+				// 0x007E9323 0x007E932E
+			}
+			// 0x0A436F59, s9 0x0AFE744C
+			var ebp2964 pb
+			ebp2964.f00439178init()
+			// 0x0A0C438C
+			ebp4 = 6
+			ebp2964.f0043922CwritePrefix(0xC1, 0x1D)
+			println(ebp4)
+		}
+	}
+	// 0x007E9323 0x007E932E 0x0A9FEC0D
+	al := true
+	// 0x007E9329 0x0AD971F6
+	return al
 }
 
 // s9 f004E077A
@@ -274,7 +504,7 @@ func f004DF0D5handleState5() {
 	func() {
 		// 很复杂
 		// ...
-		// 0x00634C73
+		// 0x00634C73, s9 0x005AF044
 		f005B0120()
 		// ...
 		// 0x006369DC, s9 0x005AF758
@@ -283,6 +513,33 @@ func f004DF0D5handleState5() {
 		// } else {
 		f00611C16() // f00611C16(ebp24, ebp2C, 1)
 		// }
+		// ...
+		// 0x0063DCD8, s9 0x005B0D93
+		// f00A09A07(), s9 f0092D446()
+		func() {
+			// 0x00A09E11, s9 0x0092D850
+			// f00A09E34(), s9 f0092D873()
+			func() {
+				// 0x00A0A472, s9 0x0092DEAD
+				// f00A0A4BE(), s9 f0092DEF9()
+				func() {
+					// 0x00A0A547, s9 0x0092DF82
+					f00A0A5E1()
+				}()
+			}()
+		}()
+	}()
+	// ...
+	// 0x004E0DD1, s9 0x004E0DD2
+	// f0086BA70(), s9 f007879A0()
+	func() {
+		// f0085A04E(), s9 f00775F5E()
+		func() {
+			// 0x0AC33981, s9 0x0A3F0B8
+			// ...
+			f007E4FC4(1, 1, 1, 1, 1, true)
+			// ...
+		}()
 	}()
 }
 

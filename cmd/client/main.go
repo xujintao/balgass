@@ -1141,13 +1141,13 @@ var v08C88F78username [11]uint8 // username
 var v08C88F84 uint32
 var v08C88F88 uint32
 
-var v086105EC = &t2{}
-
-type t2 struct {
+var v086105ECcharacter = &struct {
+	name [100]uint8
 	m10C uint16
 	m154 uint16 // 0
 	m160 uint16 // 0
-}
+	m178 [14]uint16
+}{}
 
 func f004D8FF5() {
 	// SEH
@@ -1161,11 +1161,11 @@ func f004D8FF5() {
 	alive.f00439178init()
 	alive.f0043922CwritePrefix(0xC1, 0x0E) // 写前缀
 	ebp10 := win.GetTickCount()
-	alive.f0043974FwriteZero(1)                // 写0
-	alive.f0043EDF5writeUint32(ebp10)          // 写time
-	alive.f004C65EFwriteUint16(v086105EC.m154) // 什么
-	alive.f004C65EFwriteUint16(v086105EC.m160) // 什么
-	alive.f004393EAsend(true, false)           // 发送心跳报文
+	alive.f0043974FwriteZero(1)                         // 写0
+	alive.f0043EDF5writeUint32(ebp10)                   // 写time
+	alive.f004C65EFwriteUint16(v086105ECcharacter.m154) // 什么
+	alive.f004C65EFwriteUint16(v086105ECcharacter.m160) // 什么
+	alive.f004393EAsend(true, false)                    // 发送心跳报文
 	if v08C88F62 == 0 {
 		v08C88F62 = 1
 		v08C88F84 = ebp10

@@ -151,3 +151,19 @@ var v0A38E67E uint32 = 7
 var v0AC36B4Dlabel2 uint32 = 0x09FC4127
 var v0AF87A7B uint32 = 6
 var v0AA2D054label3 uint32 = 0x0AF7BD1B
+
+// f00A0A5E1 shell
+var v0AA08598 uint32 = 0xE2209428
+var v0AD7A978 uint32 = 0xABF8FFC9
+var v0A9D361D uint32 = 0xD2B99D3B
+var v0A391C78 uint32 = 0x52B79D4F // 0x7FFE0014 = v0A391C78 - v0A9D361D
+var v0AD82FDD uint32 = 0x9EA1
+var v0A338B93 uint32 = 0xE003
+var v0A562D19 uint32 = 0x5AFBC57D
+var v09F876D2 uint32 = 0x4334
+
+var v0AD93A11 uint32 = 0x1A65E9C0
+var v0AD93A0D = [...]uint32{0x078202AD}
+
+var v0AD574B8 uint32 = 8
+var v0A0519E0label1 uint32 = 0x09E2729C
