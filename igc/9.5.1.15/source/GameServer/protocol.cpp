@@ -297,7 +297,8 @@ void GameProtocol::ProtocolCore(BYTE protoNum, unsigned char * aRecv, int aLen, 
 			case 0x15:
 				this->RecvPositionSetProc((PMSG_POSISTION_SET *)aRecv, aIndex);
 				break;
-			case 0x11:
+			case 0x11: // s9
+			case 0xD9: // 1.04R
 				this->CGAttack((PMSG_ATTACK *)aRecv, aIndex);
 				break;
 			case 0x18:
