@@ -15,7 +15,8 @@ type object struct {
 }
 
 // objectManager
-var v012E31B0 int
+var v012E31B0 int = 0
+var v012E3200 int = 5
 var v01308D04objectManager = &objectManager{}
 
 type objectManager struct {
@@ -27,6 +28,142 @@ func (t *objectManager) f00A38D5BgetObject(index int) *object {
 		return nil
 	}
 	return &t.m08objects[index]
+}
+
+// s9 f005A774E
+func f005B0120() {
+	// ...
+	// 0x005B0208 inline send, s9 f005B67D9
+	func() {
+		var ebp2918 pb
+		ebp2918.f00439178init()
+		ebp2918.f0043922CwritePrefix(0xC1, 0xD7) // send position, hook D7->D4
+		// ...
+	}()
+	// ...
+}
+
+// s9 f005A531A
+func f00611C16() {
+	var c int // c := x.m59
+	switch c {
+	case 1:
+		// 0x0061385D
+	case 2:
+		// 0x00618C52
+		// v012E3140 = 12
+		ebp69D8 := v01308D04objectManager.f00A38D5BgetObject(v012E31B0) // 0x12DABC9C
+		if ebp69D8.m438 != 4 {
+			v012E31B0 = -1
+			return
+		}
+		ebp69DC := v086105EC.m10C                 // 0x190
+		if ebp69D8.m166 == 0xEE && ebp69DC < 10 { // 0xF0
+			// ...
+			return
+		}
+		if ebp69D8.m166 == 0xF3 ||
+			ebp69D8.m166 == 0xF6 ||
+			ebp69D8.m166 == 0xFB ||
+			ebp69D8.m166 == 0x1A0 ||
+			ebp69D8.m166 == 0x242 ||
+			ebp69D8.m166 == 0x2AE ||
+			ebp69D8.m166 == 0x2AF {
+			// f00A49798().mF0.f00A700C1(1)
+		} else {
+			// f00A49798().mF0.f00A700C1(0)
+		}
+		// if f0090E94C().f0090D682(4) {
+		// 	f0090E94C().f0090DC7E(4)
+		// }
+		// if v01351ABC.f005025E9() {
+		// ... inline
+		// }
+		// if f00989D02() {
+		// 	... inline
+		// }
+		// if f00983A58() {
+		// 	... inline
+		// }
+		// if f0093F498().f0093F4F5() {
+		// 	... inline
+		// }
+		// if ebp69D8.m166 >= 0x1D4 && ebp69D8.m166 <= 0x1DB {
+		// 	... inline
+		// }
+		// if ebp69D8.m166 == 0x1DE{
+		// 	... inline
+		// }
+		// if ebp69D8.m166 == 0x21C{
+		// 	... inline
+		// }
+		// if ebp69D8.m166 == 0x223{
+		// 	... inline
+		// }
+		// if ebp69D8.m166 == 0x243{
+		// 	... inline
+		// }
+		// if ebp69D8.m166 == 0x283{
+		// 	... inline
+		// }
+		// if ebp69D8.m166 == 0x28B{
+		// 	... inline
+		// }
+		// if ebp69D8.m166 == 0x181{
+		// 	... inline
+		// }
+		// if ebp69D8.m166 == 0x2AA{
+		// 	... inline
+		// }
+		// if ebp69D8.m166 == 0x29D{
+		// 	... inline
+		// }
+		// if f0094E791() {
+		// 	... inline
+		// }
+		// ebp59538 := f0098C3F9()
+		if v012E3EC8 >= 0x62 && v012E3EC8 <= 0x63 {
+			// ... inline
+		} else if v012E3EC8 < 0x2D || v012E3EC8 > 0x32 {
+			// 0x00628420 inline send
+			var ebp1896C pb // 0x0014F870
+			ebp1896C.f00439178init()
+			// ebp4 := 51
+			ebp1896C.f0043922CwritePrefix(0xC1, 0x30) // talk
+			var ids [2]uint8
+			binary.BigEndian.PutUint16(ids[:], ebp69D8.m5Eid) // bigendian 0x0001
+			ebp1896C.f00439298writeBuf(ids[:], 2, true)
+			ebp1896C.f004393EAsend(true, false)
+			// 0x00629345
+		}
+	case 3:
+		// 0x00611C9B, s9 0x005A539E
+		// ...
+		ebp20 := v01308D04objectManager.f00A38D5BgetObject(v012E3200) // 0x12DC9B08
+		if ebp20 == nil {
+			return
+		}
+		// ...
+		var ebp14 uint8 // f00DE76F6()
+		// ...
+		// 0x00611FF5 inline send, s9
+		var ebp14A4 pb // 0x00166D38
+		ebp14A4.f00439178init()
+		// ebp4 := 2
+		ebp14A4.f0043922CwritePrefix(0xC1, 0xD9) // normal attack, hook D9->11
+		var ids [2]uint8
+		binary.BigEndian.PutUint16(ids[:], ebp20.m5Eid) // bigendian 0x166F
+		ebp14A4.f00439298writeBuf(ids[:], 2, true)
+		ebp14A4.f004397B1writeUint8(0x78)  // AttackAction
+		ebp14A4.f004397B1writeUint8(ebp14) // DirDis
+		ebp14A4.f004393EAsend(false, false)
+	case 4:
+		// 0x0062C00B
+	case 5:
+		// 0x0061362F
+	case 6:
+		// 0x006314F8
+	}
 }
 
 // s9 f004E077A
@@ -140,114 +277,11 @@ func f004DF0D5handleState5() {
 		// 0x00634C73
 		f005B0120()
 		// ...
-		// 0x00636A0B
+		// 0x006369DC, s9 0x005AF758
 		// if f00552B60(...) {
 		f005B0120() // f005B0120(ebp24, ebp2C)
 		// } else {
-		// f00611C16(ebp24, ebp2C, 1)
-		func() {
-
-			var c int // c := x.m59
-			switch c {
-			case 1:
-				// 0x0061385D
-			case 2:
-				// 0x00618C52
-				// v012E3140 = 12
-				ebp69D8 := v01308D04objectManager.f00A38D5BgetObject(v012E31B0) // 0x12DABC9C
-				if ebp69D8.m438 != 4 {
-					v012E31B0 = -1
-					return
-				}
-				ebp69DC := v086105EC.m10C                 // 0x190
-				if ebp69D8.m166 == 0xEE && ebp69DC < 10 { // 0xF0
-					// ...
-					return
-				}
-				if ebp69D8.m166 == 0xF3 ||
-					ebp69D8.m166 == 0xF6 ||
-					ebp69D8.m166 == 0xFB ||
-					ebp69D8.m166 == 0x1A0 ||
-					ebp69D8.m166 == 0x242 ||
-					ebp69D8.m166 == 0x2AE ||
-					ebp69D8.m166 == 0x2AF {
-					// f00A49798().mF0.f00A700C1(1)
-				} else {
-					// f00A49798().mF0.f00A700C1(0)
-				}
-				// if f0090E94C().f0090D682(4) {
-				// 	f0090E94C().f0090DC7E(4)
-				// }
-				// if v01351ABC.f005025E9() {
-				// ... inline
-				// }
-				// if f00989D02() {
-				// 	... inline
-				// }
-				// if f00983A58() {
-				// 	... inline
-				// }
-				// if f0093F498().f0093F4F5() {
-				// 	... inline
-				// }
-				// if ebp69D8.m166 >= 0x1D4 && ebp69D8.m166 <= 0x1DB {
-				// 	... inline
-				// }
-				// if ebp69D8.m166 == 0x1DE{
-				// 	... inline
-				// }
-				// if ebp69D8.m166 == 0x21C{
-				// 	... inline
-				// }
-				// if ebp69D8.m166 == 0x223{
-				// 	... inline
-				// }
-				// if ebp69D8.m166 == 0x243{
-				// 	... inline
-				// }
-				// if ebp69D8.m166 == 0x283{
-				// 	... inline
-				// }
-				// if ebp69D8.m166 == 0x28B{
-				// 	... inline
-				// }
-				// if ebp69D8.m166 == 0x181{
-				// 	... inline
-				// }
-				// if ebp69D8.m166 == 0x2AA{
-				// 	... inline
-				// }
-				// if ebp69D8.m166 == 0x29D{
-				// 	... inline
-				// }
-				// if f0094E791() {
-				// 	... inline
-				// }
-				// ebp59538 := f0098C3F9()
-				if v012E3EC8 >= 0x62 && v012E3EC8 <= 0x63 {
-					// ... inline
-				} else if v012E3EC8 < 0x2D || v012E3EC8 > 0x32 {
-					// 0x00628420
-					var ebp1896C pb // 0x0014F870
-					ebp1896C.f00439178init()
-					ebp4 := 51
-					ebp1896C.f0043922CwritePrefix(0xC1, 0x30)
-					var ids [2]uint8
-					binary.BigEndian.PutUint16(ids[:], ebp69D8.m5Eid)
-					ebp1896C.f00439298writeBuf(codes[:], 2, true) // bigendian 0x0001
-					ebp1896C.f004393EAsend(true, false)
-					// 0x00629345
-				}
-			case 3:
-				// 0x00611C9B
-			case 4:
-				// 0x0062C00B
-			case 5:
-				// 0x0061362F
-			case 6:
-				// 0x006314F8
-			}
-		}()
+		f00611C16() // f00611C16(ebp24, ebp2C, 1)
 		// }
 	}()
 }

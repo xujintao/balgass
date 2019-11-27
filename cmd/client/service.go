@@ -1428,19 +1428,6 @@ func f004E17B9handleState4(hDC win.HDC) {
 	// f09EBC65D 隐藏函数
 }
 
-// s9 f005A774E
-func f005B0120() {
-	// ...
-	// 0x005B0208, inline了, s9 f005B67D9
-	func() {
-		var ebp2918 pb
-		ebp2918.f00439178init()
-		ebp2918.f0043922CwritePrefix(0xC1, 0xD7) // send position, hook D7 as D4
-		// ...
-	}()
-	// ...
-}
-
 // s9 f004E14D3
 func f004E4F1ChandleState245(hDC win.HDC) {
 	// SEH
