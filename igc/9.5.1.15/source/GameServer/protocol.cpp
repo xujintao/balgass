@@ -331,7 +331,8 @@ void GameProtocol::ProtocolCore(BYTE protoNum, unsigned char * aRecv, int aLen, 
 					this->CGTargetTeleportRecv((PMSG_TARGET_TELEPORT *)aRecv, aIndex);
 				}
 				break;
-			case 0xDF:
+			case 0xDF: // s9
+			case 0x1D: // 1.04R
 				this->CGBeattackRecv(aRecv, aIndex, FALSE);
 				break;
 			case 0x1E:
@@ -13380,11 +13381,11 @@ void GameProtocol::CGBeattackRecv(unsigned char* lpRecv, int aIndex, int magic_s
 	PMSG_BEATTACK_COUNT * lpCount = (PMSG_BEATTACK_COUNT *)lpRecv;
 
 	// Check the Protocol
-	if (lpCount->h.headcode != 0xDF)
-	{
-		g_Log.Add("error-L3 %s %d", __FILE__, __LINE__);
-		return;
-	}
+	//if (lpCount->h.headcode != 0xDF)
+	//{
+	//	g_Log.Add("error-L3 %s %d", __FILE__, __LINE__);
+	//	return;
+	//}
 
 	// Check if the count is leess than 1
 	if (lpCount->Count < 1)
