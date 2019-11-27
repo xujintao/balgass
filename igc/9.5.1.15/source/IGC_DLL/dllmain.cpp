@@ -242,7 +242,7 @@ void SetValues()
 	}
 	//MemAssign(0x00612007 + 6, (BYTE)0x11); // 1.04R, normal attack send, D9->11, compatible with s9 server
 	MemAssign(0x0075FF6A + 0x11, *(BYTE*)(0x0075FF6A + 0xD9)); // 1.04R,  normal attack send recv, D9->11, compatible with s9 server
-
+	MemAssign(0x00A0A5E1 + 1, (DWORD)0x0941B4CA); // 1.04R, jump over complicated shell logic, which would send trap message
 
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
