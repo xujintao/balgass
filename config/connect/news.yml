@@ -1,0 +1,4 @@
+title: "Server News"
+news:
+- {index: 0, dateR: 255, dateG: 0, dateB: 155, titleR: 215, titleG: 0, titleB: 100, textR: 100, textG: 0, textB: 135, day: 10, month: 12, year: 2013, title: "Info", text: "This news info support all languages"}
+- {index: 0, dateR: 255, dateG: 0, dateB: 155, titleR: 215, titleG: 0, titleB: 100, textR: 100, textG: 0, textB: 135, day: 10, month: 12, year: 2013, title: "Info", text: "When no News added News Windows in Client will not be displayed"}
