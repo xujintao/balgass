@@ -1,9 +1,11 @@
 package handle
 
 import (
+	"bytes"
 	"encoding/binary"
-	"unsafe"
+	"log"
 
+	"github.com/xujintao/balgass/cmd/server_connect/model"
 	"github.com/xujintao/balgass/cmd/server_connect/service"
 	"github.com/xujintao/balgass/protocol"
 	"github.com/xujintao/balgass/wzudp"
@@ -28,51 +30,77 @@ func (CMDHandle) Handle(req *protocol.Message) interface{} {
 }
 
 var cmds = map[int]func(msg *protocol.Message) interface{}{
-	0xf3:   handleAlive,
+	0x05:   checkVersion,
 	0xf406: getServerList,
 	0xf403: getServerInfo,
 }
 
-func handleAlive(req *protocol.Message) interface{} {
-	return nil
+func checkVersion(req *protocol.Message) interface{} {
+	// unmarshal
+	ver := model.Version{}
+	binary.Read(bytes.NewReader(req.Body), binary.LittleEndian, &ver)
+
+	// service
+	result := service.Update.CheckVersion(&ver)
+
+	msg := &protocol.Message{Flag: 0xC1, Code: 0x05}
+	// marshal
+	// var body []byte
+	// switch result := result.(type) {
+	// case bool:
+	// 	body = append(body, 1)
+	// case *model.AutoUpdateConfig:
+	// 	buf := new(bytes.Buffer)
+	// 	binary.Write(buf, binary.LittleEndian, result)
+	// 	body = buf.Bytes()
+	// }
+	// msg.Body = body
+
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.LittleEndian, result)
+	msg.Body = buf.Bytes()
+	return msg
 }
 
 func getServerList(req *protocol.Message) interface{} {
-	// handle
-	sibs := service.Server.GetServerList()
+	// service
+	slis := service.Server.GetServerList()
 
 	// write head
 	msg := &protocol.Message2{Flag: 0xc1, Code: 0xf4, SubCode: 0x06}
 
-	// write body and marshal
-	var body []byte
-	binary.BigEndian.PutUint16(body, uint16(len(sibs)))
-	for _, sib := range sibs {
-		s := (*[unsafe.Sizeof(*sib)]byte)(unsafe.Pointer(sib))[:]
-		body = append(body, s...)
+	// marshal body and write
+	res := model.ServerListRes{
+		Size: int16(len(slis)),
+		Slis: slis,
 	}
-	msg.Body = body
+	buf, err := res.Marshal()
+	if err != nil {
+		log.Println("Marshal failed", err)
+	}
+	msg.Body = buf
 	return msg
 }
 
 func getServerInfo(req *protocol.Message) interface{} {
-	code := int(req.Body[0])
+	// get param
+	code := binary.LittleEndian.Uint16(req.Body)
 
-	// handle
-	sic := service.Server.GetServerInfo(code)
+	// service
+	sci := service.Server.GetServerInfo(int(code))
+	if sci == nil {
+		log.Println("GetServerInfo failed, code: %u", code)
+		return nil
+	}
 
 	// write head
 	msg := &protocol.Message2{Flag: 0xc1, Code: 0xf4, SubCode: 0x03}
-
-	// write body and marshal
-	var body []byte
-	var ip [16]byte
-	copy(ip[:], sic.IP)
-	body = append(body, ip[:]...)
-	var port []byte
-	binary.LittleEndian.PutUint16(port, sic.Port)
-	body = append(body, port...)
-	msg.Body = body
+	// marshal body and write
+	buf, err := sci.Marshal()
+	if err != nil {
+		log.Println("Marshal failed", err)
+	}
+	msg.Body = buf
 	return msg
 }
 
@@ -95,11 +123,18 @@ func (UDPCMDHandle) Handle(req *wzudp.Message) *wzudp.Message {
 }
 
 var udpcmds = map[int]func(msg *wzudp.Message) *wzudp.Message{
-	0x01: updateServerInfo,
+	0x01: registerServer,
 }
 
-func updateServerInfo(msg *wzudp.Message) *wzudp.Message {
-	si := *(**service.ServerInfo)(unsafe.Pointer(&msg.Body))
-	service.Server.UpdateServerInfo(si)
+func registerServer(msg *wzudp.Message) *wzudp.Message {
+	// unmarshal
+	sri := model.ServerRegisterInfo{}
+	if err := sri.Unmarshal(msg.Body); err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	// service
+	service.Server.RegisterServer(&sri)
 	return nil
 }

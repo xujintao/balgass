@@ -3,7 +3,7 @@ module github.com/xujintao/balgass
 go 1.12
 
 require (
-	github.com/spf13/viper v1.4.0
-	github.com/stretchr/testify v1.3.0 // indirect
-	golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb // indirect
+	github.com/smartystreets/goconvey v1.6.4 // indirect
+	gopkg.in/ini.v1 v1.51.0
+	gopkg.in/yaml.v2 v2.2.7
 )

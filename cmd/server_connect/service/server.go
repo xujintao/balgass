@@ -5,83 +5,56 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/cmd/server_connect/conf"
+	"github.com/xujintao/balgass/cmd/server_connect/model"
 )
 
-// ServerInfo server register to connect server with detail info
-type ServerInfo struct {
-	code         uint16
-	percent      byte
-	playType     byte
-	userCount    uint16
-	accountCount uint16
-	maxUserCount uint16
-}
-
-type serverInfot struct {
-	si ServerInfo
-	t  *time.Timer
+type serverInfo struct {
+	sri model.ServerRegisterInfo
+	t   *time.Timer
 }
 
 type server struct {
-	mu   sync.RWMutex
-	sits map[int]*serverInfot
+	mu  sync.RWMutex
+	sis map[int]*serverInfo
 }
 
-func (s *server) UpdateServerInfo(si *ServerInfo) {
-	code := int(si.code)
+func (s *server) RegisterServer(sri *model.ServerRegisterInfo) {
+	code := int(sri.Sli.Code)
 	s.mu.Lock()
-	if sit, ok := s.sits[code]; !ok {
+	if sit, ok := s.sis[code]; !ok {
 		t := time.AfterFunc(5*time.Second, func() {
 			s.mu.Lock()
-			delete(s.sits, code)
+			delete(s.sis, code)
 			s.mu.Unlock()
 		})
-		s.sits[code] = &serverInfot{*si, t}
+		s.sis[code] = &serverInfo{*sri, t}
 	} else {
 		sit.t.Reset(5 * time.Second)
 	}
 	s.mu.Unlock()
 }
 
-// ServerInfoBrief server list use brief info
-type ServerInfoBrief struct {
-	Code     uint16
-	Percent  byte
-	PlayType byte
-}
-
-func (s *server) GetServerList() (sibs []*ServerInfoBrief) {
-	s.mu.Lock()
-	for _, sit := range s.sits {
-		si := sit.si
-		for _, sic := range conf.Config.Servers {
-			if uint16(sic.Code) == si.code && sic.Visible == 1 {
-				sib := &ServerInfoBrief{
-					Code:     si.code,
-					Percent:  si.percent,
-					PlayType: si.playType,
-				}
-				sibs = append(sibs, sib)
-				break
+func (s *server) GetServerList() (slis []*model.ServerListInfo) {
+	s.mu.RLock()
+	for _, si := range s.sis {
+		sri := si.sri
+		for _, sci := range conf.ServerList.Servers {
+			if uint16(sci.Code) == sri.Sli.Code && sci.Visible == 1 {
+				sli := sri.Sli // copy
+				slis = append(slis, &sli)
 			}
 		}
 	}
-	s.mu.Unlock()
+	s.mu.RUnlock()
 	return
 }
 
-// ServerInfoConnect contains ip and port
-type ServerInfoConnect struct {
-	IP   string
-	Port uint16
-}
-
-func (s *server) GetServerInfo(code int) *ServerInfoConnect {
-	for _, v := range conf.Config.Servers {
-		if v.Code == code {
-			return &ServerInfoConnect{
-				IP:   v.IP,
-				Port: uint16(v.Port),
+func (s *server) GetServerInfo(code int) *model.ServerConnectInfo {
+	for _, sci := range conf.ServerList.Servers {
+		if sci.Code == code {
+			return &model.ServerConnectInfo{
+				IP:   sci.IP,
+				Port: uint16(sci.Port),
 			}
 		}
 	}
