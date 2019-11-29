@@ -7,19 +7,21 @@ import (
 	"github.com/xujintao/balgass/xor"
 )
 
+// Message without subcode
 type Message struct {
-	Flag byte
+	Flag uint8
 	Len  int
 	Code uint8
-	Body []byte
+	Body []uint8
 }
 
+// Message2 with subcode
 type Message2 struct {
-	Flag    byte
+	Flag    uint8
 	Len     int
 	Code    uint8
 	SubCode uint8
-	Body    []byte
+	Body    []uint8
 }
 
 // client发往connect服务器的帧没有xor编码，
