@@ -126,7 +126,7 @@ func getServerList(req *protocol.Request, res *protocol.Response) bool {
 	}
 
 	// write
-	res.WriteHead2(0xc1, 0xf4, 0x06).Write(buf)
+	res.WriteHead2(0xc2, 0xf4, 0x06).Write(buf)
 	return true
 }
 
