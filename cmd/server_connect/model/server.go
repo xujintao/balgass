@@ -57,7 +57,7 @@ type ServerListRes struct {
 // Marshal marshal struct to byte slice
 func (r *ServerListRes) Marshal() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	if err := binary.Write(buf, binary.LittleEndian, r.Size); err != nil {
+	if err := binary.Write(buf, binary.BigEndian, r.Size); err != nil {
 		return nil, err
 	}
 	for _, sli := range r.Slis {
