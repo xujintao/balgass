@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 )
 
 type serverInfo struct {
-	sri model.ServerRegisterInfo
+	sri *model.ServerRegisterInfo
 	t   *time.Timer
 }
 
@@ -21,17 +22,35 @@ type server struct {
 func (s *server) RegisterServer(sri *model.ServerRegisterInfo) {
 	code := int(sri.Sli.Code)
 	s.mu.Lock()
+	if s.sis == nil {
+		s.sis = make(map[int]*serverInfo)
+	}
 	if sit, ok := s.sis[code]; !ok {
 		t := time.AfterFunc(5*time.Second, func() {
 			s.mu.Lock()
 			delete(s.sis, code)
 			s.mu.Unlock()
+			// log
+			for _, sci := range conf.ServerList.Servers {
+				if sci.Code == code {
+					log.Printf("code:[%d] name:[%s] ip:[%s] port:[%d] visible:[%d] lost", sci.Code, sci.Name, sci.IP, sci.Port, sci.Visible)
+					break
+				}
+			}
 		})
-		s.sis[code] = &serverInfo{*sri, t}
+		s.sis[code] = &serverInfo{sri, t}
+		s.mu.Unlock()
+		// log
+		for _, sci := range conf.ServerList.Servers {
+			if sci.Code == code {
+				log.Printf("code:[%d] name:[%s] ip:[%s] port:[%d] visible:[%d] online", sci.Code, sci.Name, sci.IP, sci.Port, sci.Visible)
+				break
+			}
+		}
 	} else {
 		sit.t.Reset(5 * time.Second)
+		s.mu.Unlock()
 	}
-	s.mu.Unlock()
 }
 
 func (s *server) GetServerList() (slis []*model.ServerListInfo) {
