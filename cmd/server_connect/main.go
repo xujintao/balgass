@@ -24,6 +24,7 @@ func main() {
 		Handler:   ch,
 		NeedXor:   false,
 		ConnState: ch.TrackConnState,
+		OnConn:    ch.OnConn,
 	}
 	log.Printf("start tcp server")
 	go func() {
