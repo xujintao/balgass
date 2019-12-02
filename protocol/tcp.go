@@ -178,10 +178,14 @@ func (c *conn) readRequest(ctx context.Context) (req *Request, err error) {
 	//  read deadline
 	if d := c.server.ReadTimeout; d != 0 {
 		c.rwc.SetReadDeadline(time.Now().Add(d))
+		defer func() {
+			c.rwc.SetReadDeadline(time.Time{})
+		}()
 	}
 
 	// write deadline
 	if d := c.server.WriteTimeout; d != 0 {
+		c.rwc.SetWriteDeadline(time.Time{})
 		defer func() {
 			c.rwc.SetWriteDeadline(time.Now().Add(d))
 		}()
