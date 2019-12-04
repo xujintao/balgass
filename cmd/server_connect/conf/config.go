@@ -12,6 +12,37 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func mapINI(file, section string, v interface{}) {
+	log.Printf("Load %s:%s", file, section)
+	cfg, err := ini.Load(file)
+	if err != nil {
+		log.Fatalf("Failed to load %s", file)
+	}
+	cfg.Section(section).MapTo(v)
+}
+
+func mapXML(file string, v interface{}) {
+	log.Printf("Load %s", file)
+	buf, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatalf("Failed to read %s, %v", file, err)
+	}
+	if err := xml.Unmarshal(buf, v); err != nil {
+		log.Fatalf("Failed to unmarshal %s, %v", file, err)
+	}
+}
+
+func mapYAML(file string, v interface{}) {
+	log.Printf("Load %s", file)
+	buf, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatalf("Failed to read %s, %v", file, err)
+	}
+	if err := yaml.Unmarshal(buf, v); err != nil {
+		log.Fatalf("Failed to unmarshal %s, %v", file, err)
+	}
+}
+
 var (
 	// Net net config
 	Net model.NetConfig
@@ -25,33 +56,11 @@ var (
 )
 
 func init() {
-	log.Println("Load IGCCS.ini")
-	cfg, err := ini.Load("IGCCS.ini")
-	if err != nil {
-		log.Fatalf("Failed to load IGCCS.ini, %v", err)
-	}
-	cfg.Section("Config").MapTo(&Net)
-	cfg.Section("AutoUpdate").MapTo(&AutoUpdate)
-	_, err = fmt.Sscanf(AutoUpdate.VerStr, "%d.%d.%d", &AutoUpdate.Ver.Major, &AutoUpdate.Ver.Minor, &AutoUpdate.Ver.Patch)
-	if err != nil {
+	mapINI("IGCCS.ini", "Config", &Net)
+	mapINI("IGCCS.ini", "AutoUpdate", &AutoUpdate)
+	if _, err := fmt.Sscanf(AutoUpdate.VerStr, "%d.%d.%d", &AutoUpdate.Ver.Major, &AutoUpdate.Ver.Minor, &AutoUpdate.Ver.Patch); err != nil {
 		log.Fatalf("Failed sscanf ver string, %v", err)
 	}
-
-	log.Println("Load IGC_ServerList.xml")
-	buf, err := ioutil.ReadFile("IGC_ServerList.xml")
-	if err != nil {
-		log.Fatalf("Failed to read IGC_ServerList.xml, %v", err)
-	}
-	if err := xml.Unmarshal(buf, &ServerList); err != nil {
-		log.Fatalf("Failed to unmarshal IGC_ServerList.xml, %v", err)
-	}
-
-	log.Println("Load news.yml")
-	buf, err = ioutil.ReadFile("news.yml")
-	if err != nil {
-		log.Fatalf("Failed to read news.yml, %v", err)
-	}
-	if err := yaml.Unmarshal(buf, &New); err != nil {
-		log.Fatalf("Failed to unmarshal news.yml, %v", err)
-	}
+	mapXML("IGC_ServerList.xml", &ServerList)
+	mapYAML("news.yml", &New)
 }
