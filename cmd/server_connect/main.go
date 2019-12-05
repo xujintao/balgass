@@ -6,10 +6,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/xujintao/balgass/cmd/server_connect/conf"
 	"github.com/xujintao/balgass/cmd/server_connect/handle"
-	"github.com/xujintao/balgass/protocol"
+	"github.com/xujintao/balgass/network"
 )
 
 func main() {
@@ -19,12 +20,10 @@ func main() {
 	ch := handle.CMDHandle{}
 
 	// start tcp server
-	server := protocol.Server{
-		Addr:      fmt.Sprintf(":%d", conf.Net.TCPPort),
-		Handler:   ch,
-		NeedXor:   false,
-		ConnState: ch.TrackConnState,
-		OnConn:    ch.OnConn,
+	server := network.Server{
+		Addr:    fmt.Sprintf(":%d", conf.Net.TCPPort),
+		Handler: ch,
+		NeedXor: false,
 	}
 	log.Printf("start tcp server")
 	go func() {
@@ -34,7 +33,7 @@ func main() {
 
 	// start udp server
 	log.Printf("start udp server")
-	serverUDP := protocol.ServerUDP{
+	serverUDP := network.ServerUDP{
 		Addr:    fmt.Sprintf(":%d", conf.Net.UDPPort),
 		Handler: ch,
 	}
@@ -45,4 +44,5 @@ func main() {
 
 	<-exit
 	server.Close()
+	time.Sleep(2 * time.Second)
 }

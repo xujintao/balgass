@@ -4,35 +4,17 @@ import (
 	"bytes"
 	"encoding/binary"
 	"log"
-	"net"
 
 	"github.com/xujintao/balgass/cmd/server_connect/model"
 	"github.com/xujintao/balgass/cmd/server_connect/service"
-	"github.com/xujintao/balgass/protocol"
+	"github.com/xujintao/balgass/network"
 )
 
 // CMDHandle tcp cmd handle
 type CMDHandle struct{}
 
-// Handle *CMDHandle implements protocol.Handler
-func (CMDHandle) Handle(req *protocol.Request, res *protocol.Response) bool {
-	code := req.Code
-	if h, ok := cmds[int(code)]; ok {
-		return h(req, res)
-	}
-	subcode := req.Body[0]
-	codes := []byte{code, subcode}
-	code16 := binary.BigEndian.Uint16(codes)
-	if h, ok := cmds[int(code16)]; ok {
-		req.Body = req.Body[1:]
-		return h(req, res)
-	}
-	log.Printf("invalid cmd, code:%02dx, body: %v", code, req.Body)
-	return false
-}
-
-// HandleUDP implements protocol.UDPHandler
-func (CMDHandle) HandleUDP(req *protocol.Request, res *protocol.Response) bool {
+// HandleUDP implements network.UDPHandler
+func (CMDHandle) HandleUDP(req *network.Request, res *network.Response) bool {
 	code := req.Code
 	if h, ok := udpcmds[int(code)]; ok {
 		return h(req, res)
@@ -48,11 +30,11 @@ func (CMDHandle) HandleUDP(req *protocol.Request, res *protocol.Response) bool {
 	return false
 }
 
-var udpcmds = map[int]func(req *protocol.Request, res *protocol.Response) bool{
+var udpcmds = map[int]func(req *network.Request, res *network.Response) bool{
 	0x0100: registerServer,
 }
 
-func registerServer(req *protocol.Request, res *protocol.Response) bool {
+func registerServer(req *network.Request, res *network.Response) bool {
 	// unmarshal
 	sri := model.ServerRegisterInfo{}
 	if err := sri.Unmarshal(req.Body); err != nil {
@@ -61,38 +43,60 @@ func registerServer(req *protocol.Request, res *protocol.Response) bool {
 	}
 
 	// service
-	service.Server.RegisterServer(&sri)
+	service.ServerManager.RegisterServer(&sri)
 	return false
 }
 
-// OnConn implements protocol.Handler.OnConn
-func (CMDHandle) OnConn(req *protocol.Request, res *protocol.Response) bool {
-	res.WriteHead2(0xC1, 0x00, 0x01)
-	return true
-}
-
-// TrackConnState track the connect state
-func (CMDHandle) TrackConnState(c net.Conn, state protocol.ConnState) {
-	switch state {
-	case protocol.StateNew:
-		log.Printf("%s connected", c.RemoteAddr().String())
-	case protocol.StateClosed:
-		log.Printf("%s disconnected", c.RemoteAddr().String())
+// OnConn implements network.Handler.OnConn
+func (CMDHandle) OnConn(addr string, conn network.ConnWriter) (interface{}, error) {
+	if err := service.UserManager.AddUser(addr, conn); err != nil {
+		log.Printf("[%s] add user failed, %v", addr, err)
+		return nil, err
 	}
+	log.Printf("[%s] connected", addr)
+	res := &network.Response{}
+	res.WriteHead2(0xC1, 0x00, 0x01)
+	conn.Write(res)
+	return addr, nil
 }
 
-var cmds = map[int]func(req *protocol.Request, res *protocol.Response) bool{
+// OnClose implements network.Handler.OnConn
+func (CMDHandle) OnClose(v interface{}) {
+	addr := v.(string)
+	service.UserManager.DelUser(addr)
+	log.Printf("[%s] disconnected", addr)
+}
+
+// Handle *CMDHandle implements network.Handler
+func (CMDHandle) Handle(v interface{}, req *network.Request) {
+	code := req.Code
+	if h, ok := cmds[int(code)]; ok {
+		h(v, req)
+		return
+	}
+	subcode := req.Body[0]
+	codes := []byte{code, subcode}
+	code16 := binary.BigEndian.Uint16(codes)
+	if h, ok := cmds[int(code16)]; ok {
+		req.Body = req.Body[1:]
+		h(v, req)
+		return
+	}
+	log.Printf("[%s], invalid cmd, code:[%02x], body:[%v]", v.(string), code, network.Hex2string(req.Body))
+}
+
+var cmds = map[int]func(v interface{}, req *network.Request){
 	0x05:   checkVersion,
 	0xf406: getServerList,
 	0xf403: getServerInfo,
 }
 
-func checkVersion(req *protocol.Request, res *protocol.Response) bool {
+func checkVersion(v interface{}, req *network.Request) {
 	// unmarshal
 	ver := model.Version{}
 	if err := binary.Read(bytes.NewReader(req.Body), binary.LittleEndian, &ver); err != nil {
 		log.Println(err)
-		return false
+		return
 	}
 
 	// service
@@ -102,17 +106,18 @@ func checkVersion(req *protocol.Request, res *protocol.Response) bool {
 	buf := new(bytes.Buffer)
 	if err := binary.Write(buf, binary.LittleEndian, result); err != nil {
 		log.Println(err)
-		return false
+		return
 	}
 
 	// write
+	res := &network.Response{}
 	res.WriteHead(0xC1, 0x05).Write(buf.Bytes())
-	return true
+	service.UserManager.GetUser(v.(string)).Conn.Write(res)
 }
 
-func getServerList(req *protocol.Request, res *protocol.Response) bool {
+func getServerList(v interface{}, req *network.Request) {
 	// service
-	slis := service.Server.GetServerList()
+	slis := service.ServerManager.GetServerList()
 
 	// marshal body and write
 	slr := model.ServerListRes{
@@ -122,32 +127,32 @@ func getServerList(req *protocol.Request, res *protocol.Response) bool {
 	buf, err := slr.Marshal()
 	if err != nil {
 		log.Println("Marshal failed", err)
-		return false
+		return
 	}
 
 	// write
+	res := &network.Response{}
 	res.WriteHead2(0xc2, 0xf4, 0x06).Write(buf)
-	return true
+	service.UserManager.GetUser(v.(string)).Conn.Write(res)
 }
 
-func getServerInfo(req *protocol.Request, res *protocol.Response) bool {
+func getServerInfo(v interface{}, req *network.Request) {
 	// get param
 	code := binary.LittleEndian.Uint16(req.Body)
 
 	// service
-	sci := service.Server.GetServerInfo(int(code))
+	sci := service.ServerManager.GetServerInfo(int(code))
 	if sci == nil {
 		log.Println("GetServerInfo failed, code: %u", code)
-		return false
 	}
 
 	// marshal body and write
 	buf, err := sci.Marshal()
 	if err != nil {
 		log.Println("Marshal failed", err)
-		return false
 	}
 	// write head
+	res := &network.Response{}
 	res.WriteHead2(0xc1, 0xf4, 0x03).Write(buf)
-	return true
+	service.UserManager.GetUser(v.(string)).Conn.Write(res)
 }

@@ -14,12 +14,12 @@ type serverInfo struct {
 	t   *time.Timer
 }
 
-type server struct {
+type serverManager struct {
 	mu  sync.RWMutex
 	sis map[int]*serverInfo
 }
 
-func (s *server) RegisterServer(sri *model.ServerRegisterInfo) {
+func (s *serverManager) RegisterServer(sri *model.ServerRegisterInfo) {
 	code := int(sri.Sli.Code)
 	s.mu.Lock()
 	if s.sis == nil {
@@ -53,7 +53,7 @@ func (s *server) RegisterServer(sri *model.ServerRegisterInfo) {
 	}
 }
 
-func (s *server) GetServerList() (slis []*model.ServerListInfo) {
+func (s *serverManager) GetServerList() (slis []*model.ServerListInfo) {
 	s.mu.RLock()
 	for _, si := range s.sis {
 		sri := si.sri
@@ -68,7 +68,7 @@ func (s *server) GetServerList() (slis []*model.ServerListInfo) {
 	return
 }
 
-func (s *server) GetServerInfo(code int) *model.ServerConnectInfo {
+func (s *serverManager) GetServerInfo(code int) *model.ServerConnectInfo {
 	for _, sci := range conf.ServerList.Servers {
 		if sci.Code == code {
 			return &model.ServerConnectInfo{

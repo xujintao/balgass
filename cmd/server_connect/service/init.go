@@ -1,11 +1,13 @@
 package service
 
 var (
-	Server *server
-	Update *update
+	ServerManager *serverManager
+	Update        *update
+	UserManager   *userManager
 )
 
 func init() {
-	Server = &server{}
+	ServerManager = &serverManager{}
 	Update = &update{}
+	UserManager = &userManager{}
 }
