@@ -3,10 +3,9 @@ package handle
 import (
 	"encoding/binary"
 	"log"
-	"net"
 
 	"github.com/xujintao/balgass/cmd/server_game/game/user"
-	"github.com/xujintao/balgass/cmd/server_game/network"
+	"github.com/xujintao/balgass/network"
 )
 
 // CMDHandle tcp cmd handle
@@ -47,32 +46,17 @@ func (CMDHandle) HandleUDP(req *network.Request, res *network.Response) bool {
 }
 
 // OnConn implements network.Handler.OnConn
-func (CMDHandle) OnConn(conn *network.Conn) error {
+func (CMDHandle) OnConn(addr string, conn network.ConnWriter) (interface{}, error) {
 
-	index, err := user.ObjectAdd(conn)
+	index, err := user.ObjectAdd(addr, conn)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	conn.Index = index
 
 	res := &network.Response{}
 	res.WriteHead2(0xC1, 0x00, 0x01)
 	conn.Write(res)
-	return nil
-}
-
-// TrackConnState track the connect state
-func (CMDHandle) TrackConnState(c net.Conn, state network.ConnState) {
-	switch state {
-	case network.StateNew:
-		log.Printf("%s connected", c.RemoteAddr().String())
-	case network.StateClosed:
-		log.Printf("%s disconnected", c.RemoteAddr().String())
-	}
-}
-
-var udpcmds = map[int]func(req *network.Request, res *network.Response) bool{
-	// 0x0100: registerServer,
+	return index, nil
 }
 
 var cmds = map[int]func(req *network.Request, res *network.Response) bool{
