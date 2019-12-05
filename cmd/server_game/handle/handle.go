@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
+	"github.com/xujintao/balgass/cmd/server_game/game/user"
 	"github.com/xujintao/balgass/cmd/server_game/network"
-	"github.com/xujintao/balgass/cmd/server_game/user"
 )
 
 // CMDHandle tcp cmd handle
@@ -49,16 +49,16 @@ func (CMDHandle) HandleUDP(req *network.Request, res *network.Response) bool {
 // OnConn implements network.Handler.OnConn
 func (CMDHandle) OnConn(conn *network.Conn) error {
 
-	index, err := user.GetObjectIndex(conn)
+	index, err := user.ObjectAdd(conn)
 	if err != nil {
 		return err
 	}
 	conn.Index = index
 
-	res := network.Response{}
+	res := &network.Response{}
 	res.WriteHead2(0xC1, 0x00, 0x01)
 	conn.Write(res)
-	return true
+	return nil
 }
 
 // TrackConnState track the connect state
