@@ -69,9 +69,12 @@ func (CMDHandle) OnClose(v interface{}) {
 
 // Handle *CMDHandle implements network.Handler
 func (CMDHandle) Handle(v interface{}, req *network.Request) {
+	uid := v.(string)
+	user := service.UserManager.GetUser(uid)
+
 	code := req.Code
 	if h, ok := cmds[int(code)]; ok {
-		h(v, req)
+		h(user, req)
 		return
 	}
 	subcode := req.Body[0]
@@ -79,19 +82,19 @@ func (CMDHandle) Handle(v interface{}, req *network.Request) {
 	code16 := binary.BigEndian.Uint16(codes)
 	if h, ok := cmds[int(code16)]; ok {
 		req.Body = req.Body[1:]
-		h(v, req)
+		h(user, req)
 		return
 	}
-	log.Printf("[%s], invalid cmd, code:[%02x], body:[%v]", v.(string), code, network.Hex2string(req.Body))
+	log.Printf("[%s], invalid cmd, code:[%02x], body:[%v]", uid, code, network.Hex2string(req.Body))
 }
 
-var cmds = map[int]func(v interface{}, req *network.Request){
+var cmds = map[int]func(user *model.User, req *network.Request){
 	0x05:   checkVersion,
 	0xf406: getServerList,
 	0xf403: getServerInfo,
 }
 
-func checkVersion(v interface{}, req *network.Request) {
+func checkVersion(user *model.User, req *network.Request) {
 	// unmarshal
 	ver := model.Version{}
 	if err := binary.Read(bytes.NewReader(req.Body), binary.LittleEndian, &ver); err != nil {
@@ -112,10 +115,10 @@ func checkVersion(v interface{}, req *network.Request) {
 	// write
 	res := &network.Response{}
 	res.WriteHead(0xC1, 0x05).Write(buf.Bytes())
-	service.UserManager.GetUser(v.(string)).Conn.Write(res)
+	user.Conn.Write(res)
 }
 
-func getServerList(v interface{}, req *network.Request) {
+func getServerList(user *model.User, req *network.Request) {
 	// service
 	slis := service.ServerManager.GetServerList()
 
@@ -133,10 +136,10 @@ func getServerList(v interface{}, req *network.Request) {
 	// write
 	res := &network.Response{}
 	res.WriteHead2(0xc2, 0xf4, 0x06).Write(buf)
-	service.UserManager.GetUser(v.(string)).Conn.Write(res)
+	user.Conn.Write(res)
 }
 
-func getServerInfo(v interface{}, req *network.Request) {
+func getServerInfo(user *model.User, req *network.Request) {
 	// get param
 	code := binary.LittleEndian.Uint16(req.Body)
 
@@ -154,5 +157,5 @@ func getServerInfo(v interface{}, req *network.Request) {
 	// write head
 	res := &network.Response{}
 	res.WriteHead2(0xc1, 0xf4, 0x03).Write(buf)
-	service.UserManager.GetUser(v.(string)).Conn.Write(res)
+	user.Conn.Write(res)
 }

@@ -11,7 +11,7 @@ import (
 )
 
 type userManager struct {
-	mu    sync.Mutex
+	mu    sync.RWMutex
 	users map[string]*model.User
 }
 
@@ -38,8 +38,8 @@ func (um *userManager) AddUser(addr string, conn network.ConnWriter) error {
 }
 
 func (um *userManager) GetUser(addr string) *model.User {
-	um.mu.Lock()
-	defer um.mu.Unlock()
+	um.mu.RLock()
+	defer um.mu.RUnlock()
 	return um.users[addr]
 }
 
