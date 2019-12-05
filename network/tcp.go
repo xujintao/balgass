@@ -1,16 +1,14 @@
-package protocol
+package network
 
 import (
 	"bufio"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net"
 	"runtime"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -32,8 +30,14 @@ func (k *contextKey) String() string { return "net/http context value " + k.name
 
 // Handler callback user to handle request
 type Handler interface {
-	Handle(*Request, *Response) bool
-	HandleUDP(*Request, *Response) bool
+	Handle(interface{}, *Request)
+	OnConn(string, ConnWriter) (interface{}, error)
+	OnClose(interface{})
+}
+
+// ConnWriter pass to user on connect accpet
+type ConnWriter interface {
+	Write(*Response) error
 }
 
 // pool
@@ -86,32 +90,6 @@ func putBufioWriter(bw *bufio.Writer) {
 	}
 }
 
-// A ConnState represents the state of a client connection to a server.
-type ConnState int
-
-const (
-	// StateNew represents a new connection that is expected to
-	// send a request immediately. Connections begin at this
-	// state and then transition to either StateActive or
-	// StateClosed.
-	StateNew ConnState = iota
-
-	// StateActive represents a connection that has read 1 or more
-	// bytes of a request.
-	StateActive
-
-	// StateIdle represents a connection that has finished
-	// handling a request and is in the keep-alive state, waiting
-	// for a new request. Connections transition from StateIdle
-	// to either StateActive or StateClosed.
-	StateIdle
-
-	// StateClosed represents a closed connection.
-	// This is a terminal state. Hijacked connections do not
-	// transition to StateClosed.
-	StateClosed
-)
-
 // A conn represents the server side of an connection.
 type conn struct {
 	// server is the server on which the connection arrived.
@@ -136,25 +114,7 @@ type conn struct {
 	bufr *bufio.Reader
 	bufw *bufio.Writer
 
-	curState struct{ atomic uint64 } // packed (unixtime<<8|uint8(ConnState))
-}
-
-func (c *conn) setState(nc net.Conn, state ConnState) {
-	srv := c.server
-	switch state {
-	case StateNew:
-		srv.trackConn(c, true)
-	case StateClosed:
-		srv.trackConn(c, false)
-	}
-	if state > 0xff || state < 0 {
-		panic("internal error")
-	}
-	packedState := uint64(time.Now().Unix()<<8) | uint64(state)
-	atomic.StoreUint64(&c.curState.atomic, packedState)
-	if hook := srv.ConnState; hook != nil {
-		hook(nc, state)
-	}
+	userData interface{}
 }
 
 func (c *conn) finalFlush() {
@@ -194,7 +154,7 @@ func (c *conn) readRequest(ctx context.Context) (req *Request, err error) {
 	// read
 	frame, err := readFrame(c.bufr)
 	if err != nil {
-		return nil, fmt.Errorf("readFrame failed, %v", err)
+		return nil, err
 	}
 
 	// parse
@@ -213,8 +173,15 @@ func (c *conn) serve(ctx context.Context) {
 			buf = buf[:runtime.Stack(buf, false)]
 			log.Printf("panic serving %v: %v, %s", c.remoteAddr, err, buf)
 		}
+	}()
+	defer func() {
+		// callback OnClose
+		if h := c.server.Handler; h != nil && c.userData != nil {
+			h.OnClose(c.userData)
+		}
+
 		c.close()
-		c.setState(c.rwc, StateClosed)
+		c.server.trackConn(c, false)
 	}()
 
 	ctx, cancelCtx := context.WithCancel(ctx)
@@ -225,33 +192,33 @@ func (c *conn) serve(ctx context.Context) {
 	c.bufw = newBufioWriteSize(c.rwc, 4<<10)
 
 	// callback OnConn
-	if hook := c.server.OnConn; hook != nil {
-		res := new(Response)
-		hook(nil, res)
-		if err := c.write(res); err != nil {
-			log.Printf("%s, Write failed, %v", c.remoteAddr, err)
+	if h := c.server.Handler; h != nil {
+		v, err := h.OnConn(c.remoteAddr, c)
+		if err != nil {
+			log.Println(err)
+			return
 		}
+		c.userData = v
 	}
 
 	for {
 		req, err := c.readRequest(ctx)
 		if err != nil {
-			log.Printf("%s, readRequest failed, %v", c.remoteAddr, err)
+			if err != io.EOF {
+				log.Printf("[%s], readRequest failed, %v", c.remoteAddr, err)
+			}
 			return
 		}
 
 		// callback Handle
-		res := new(Response)
-		if c.server.Handler.Handle(req, res) {
-			if err := c.write(res); err != nil {
-				log.Printf("%s, Write failed, %v", c.remoteAddr, err)
-			}
+		if h := c.server.Handler; h != nil {
+			h.Handle(c.userData, req)
 		}
 	}
 }
 
 // write
-func (c *conn) write(r *Response) error {
+func (c *conn) Write(r *Response) error {
 	frame, err := newFrame(r)
 	if err != nil {
 		return err
@@ -282,13 +249,6 @@ type Server struct {
 	// request's header is read. Like ReadTimeout, it does not
 	// let Handlers make decisions on a per-request basis.
 	WriteTimeout time.Duration
-
-	// ConnState specifies an optional callback function that is
-	// called when a client connection changes state. See the
-	// ConnState type and associated constants for details.
-	ConnState func(net.Conn, ConnState)
-
-	OnConn func(req *Request, res *Response) bool
 
 	mu          sync.Mutex
 	doneChan    chan struct{}
@@ -450,7 +410,7 @@ func (srv *Server) Serve(l net.Listener) error {
 			server: srv,
 			rwc:    rw,
 		}
-		c.setState(c.rwc, StateNew) // before Serve can return
+		srv.trackConn(c, true)
 		go c.serve(ctx)
 	}
 }

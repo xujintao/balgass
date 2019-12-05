@@ -1,4 +1,4 @@
-package protocol
+package network
 
 import (
 	"log"
@@ -91,7 +91,7 @@ func (srv *ServerUDP) Close() {
 
 // Run on the UDP network address addr and then calls
 // Serve with handler to handle requests on incoming connections.
-func Run(addr string, handler Handler) error {
+func Run(addr string, handler UDPHandler) error {
 	server := &ServerUDP{Addr: addr, Handler: handler}
 	return server.Run()
 }

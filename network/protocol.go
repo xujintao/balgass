@@ -1,4 +1,4 @@
-package protocol
+package network
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ import (
 	"github.com/xujintao/balgass/xor"
 )
 
-func hex2string(src []byte) string {
+func Hex2string(src []byte) string {
 	dst := make([]byte, 2*len(src))
 	hex.Encode(dst, src)
 	buf := new(bytes.Buffer)
@@ -69,7 +69,7 @@ func readFrame(br *bufio.Reader) ([]byte, error) {
 		// peek 1 byte
 		frameHead, err := br.Peek(1)
 		if err != nil {
-			return nil, fmt.Errorf("peek 1 failed, %v", err)
+			return nil, err
 		}
 		flag := frameHead[0]
 		switch flag {
@@ -82,7 +82,7 @@ func readFrame(br *bufio.Reader) ([]byte, error) {
 		// peek 3 bytes
 		frameHead, err = br.Peek(3)
 		if err != nil {
-			return nil, fmt.Errorf("peek 3 failed, %v", err)
+			return nil, err
 		}
 		flag = frameHead[0]
 		size := 0
@@ -95,12 +95,12 @@ func readFrame(br *bufio.Reader) ([]byte, error) {
 
 		// peek size bytes
 		if _, err := br.Peek(size); err != nil {
-			return nil, fmt.Errorf("peek size failed, %v", err)
+			return nil, err
 		}
 		// now we get a valid frame and read
 		frame := make([]byte, size)
 		if _, err := br.Read(frame); err != nil {
-			return nil, fmt.Errorf("read size failed, %v", err)
+			return nil, err
 		}
 		return frame, nil
 	}
@@ -118,7 +118,7 @@ func parseFrame(frame []byte, needxor bool) (*Request, error) {
 	case 0xC3:
 		dst, err := aes.Decrypt(frame[2:])
 		if err != nil {
-			return nil, fmt.Errorf("aes decrypt failed, %s, frame: %v", err.Error(), hex2string(frame))
+			return nil, fmt.Errorf("aes decrypt failed, %s, frame: %v", err.Error(), Hex2string(frame))
 		}
 		plaintext.WriteByte(0xC1)
 		plaintext.WriteByte(byte(len(dst) + 2))
@@ -129,7 +129,7 @@ func parseFrame(frame []byte, needxor bool) (*Request, error) {
 	case 0xC4:
 		dst, err := aes.Decrypt(frame[3:])
 		if err != nil {
-			return nil, fmt.Errorf("aes decrypt failed, %s, frame: %s", err.Error(), hex2string(frame))
+			return nil, fmt.Errorf("aes decrypt failed, %s, frame: %s", err.Error(), Hex2string(frame))
 		}
 		plaintext.WriteByte(0xC2)
 		binary.Write(plaintext, binary.BigEndian, uint16(len(dst)+3))
