@@ -1,5 +1,9 @@
 package service
 
-func init() {
+var (
+	ServerManager *serverManager
+)
 
+func init() {
+	ServerManager = &serverManager{}
 }

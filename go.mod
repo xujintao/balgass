@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/denisenkom/go-mssqldb v0.0.0-20191128021309-1d7a30a10f73
+	github.com/golang/protobuf v1.3.1
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	google.golang.org/appengine v1.6.5 // indirect

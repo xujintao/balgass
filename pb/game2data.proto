@@ -1,0 +1,19 @@
+syntax = "proto3";
+package model;
+
+message serverLoginMsg {
+    int32 type = 1;
+    int32 port = 2;
+    string name = 3;
+    int32 code = 4;
+    int32 vip = 5;
+    int32 maxHWIDUseCount = 6;
+}
+
+message accountMsg {
+    string username = 1;
+    string password = 2;
+    uint32 number = 3;
+    string hWID = 4;
+    string addr = 5;
+}
