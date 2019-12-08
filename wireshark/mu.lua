@@ -172,3 +172,6 @@ end
 local tcp_encap_table = DissectorTable.get("tcp.port")
 tcp_encap_table:add(44405, p_mu)
 tcp_encap_table:add(56900, p_mu)
+tcp_encap_table:add(56970, p_mu)
+tcp_encap_table:add(56960, p_mu)
+tcp_encap_table:add(56906, p_mu)
