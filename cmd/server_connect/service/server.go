@@ -48,6 +48,7 @@ func (s *serverManager) RegisterServer(sri *model.ServerRegisterInfo) {
 			}
 		}
 	} else {
+		sit.sri = sri
 		sit.t.Reset(5 * time.Second)
 		s.mu.Unlock()
 	}
