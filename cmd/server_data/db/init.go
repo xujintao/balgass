@@ -13,9 +13,10 @@ import (
 var xdb *sqlx.DB
 
 var (
-	DBMuOnline *sqlx.DB
-	DBEvent    *sqlx.DB
-	DBRank     *sqlx.DB
+	DBMuOnline   *sqlx.DB
+	DBEvent      *sqlx.DB
+	DBRank       *sqlx.DB
+	DBBattleCore *sqlx.DB
 )
 
 func init() {
@@ -37,6 +38,7 @@ func init() {
 		{"MuOnline", DBMuOnline},
 		{"Events", DBEvent},
 		{"Ranking", DBRank},
+		{"BattleCore", DBBattleCore},
 	}
 	for _, c := range configs {
 		query := url.Values{}

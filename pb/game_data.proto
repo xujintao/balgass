@@ -1,0 +1,36 @@
+syntax = "proto3";
+package model;
+
+message serverLoginReq {
+    int32 type = 1;
+    int32 port = 2;
+    string name = 3;
+    int32 code = 4;
+    int32 vip = 5;
+    int32 maxHWIDUseCount = 6;
+}
+
+message serverLoginRes {
+    uint32 result = 1;
+}
+
+message accountAuthReq {
+    string username = 1;
+    string password = 2;
+    uint32 number = 3;
+    string machineID = 4;
+    string addr = 5;
+}
+
+message accountAuthRes {
+    uint32 result = 1;
+    string username = 2;
+    uint32 number = 3;
+    uint32 uid = 4;
+}
+
+message accountKickRes {
+    string username = 1;
+    uint32 number = 2;
+    bool force = 3;
+}
