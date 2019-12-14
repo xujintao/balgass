@@ -26,8 +26,8 @@ func (*handleBase) OnConn(addr string, conn network.ConnWriter) (interface{}, er
 // OnClose implements network.Handler.OnConn
 func (*handleBase) OnClose(v interface{}) {
 	index := v.(string)
-	server := service.ServerManager.ServerGet(index)
-	log.Printf("[%s] disconnected", server.Addr)
+	addr := service.ServerManager.ServerGetAddr(index)
+	log.Printf("[%s] disconnected", addr)
 	service.ServerManager.ServerDel(index)
 
 }
@@ -48,8 +48,8 @@ func (h *handleBase) Handle(id interface{}, req *network.Request) {
 		h(index, req)
 		return
 	}
-	server := service.ServerManager.ServerGet(index)
-	log.Printf("[%s], invalid cmd, code:[%02x], body:[%v]", server.Addr, code, network.Hex2string(req.Body))
+	addr := service.ServerManager.ServerGetAddr(index)
+	log.Printf("[%s], invalid cmd, code:[%02x], body:[%v]", addr, code, network.Hex2string(req.Body))
 }
 
 var (

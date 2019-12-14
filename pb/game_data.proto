@@ -14,7 +14,7 @@ message serverLoginRes {
     uint32 result = 1;
 }
 
-message accountAuthReq {
+message accountLoginReq {
     string username = 1;
     string password = 2;
     uint32 number = 3;
@@ -22,7 +22,7 @@ message accountAuthReq {
     string addr = 5;
 }
 
-message accountAuthRes {
+message accountLoginRes {
     uint32 result = 1;
     string username = 2;
     uint32 number = 3;
@@ -33,4 +33,8 @@ message accountKickRes {
     string username = 1;
     uint32 number = 2;
     bool force = 3;
+}
+
+message accountJoinOtherRes {
+    string username = 1;
 }

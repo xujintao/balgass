@@ -6,11 +6,11 @@ func Lookup(name string) string {
 }
 
 var index = map[string]string{
-	"account-find-passwd":         accountFindPasswd,
-	"ban_machine-find-count":      banMachineFindCount,
-	"account_join_history-insert": accountJoinHistoryInsert,
-	"account_state-insert":        accountStateInsert,
-	"account_state-update":        accountStateUpdate,
+	"account-find-passwd":          accountFindPasswd,
+	"ban_machine-find-count":       banMachineFindCount,
+	"account_login_history-insert": accountLoginHistoryInsert,
+	"account_state-insert":         accountStateInsert,
+	"account_state-update":         accountStateUpdate,
 }
 
 var accountFindPasswd = `
@@ -30,7 +30,7 @@ WHERE
 HWID = @p1
 `
 
-var accountJoinHistoryInsert = `
+var accountLoginHistoryInsert = `
 INSERT INTO ConnectionHistory (
  AccountID
 ,ServerName

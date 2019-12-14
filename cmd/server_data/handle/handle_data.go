@@ -59,7 +59,7 @@ func (h *handleData) Exit() {
 var cmdsData = map[int]func(index string, req *network.Request){
 	// join
 	0x00: serverLogin,
-	0x01: accountAuth,
+	0x01: accountLogin,
 	/*
 		0x02: accountFail,
 		0x04: accountBlock,
@@ -349,12 +349,12 @@ func serverLogin(index string, req *network.Request) {
 	}
 }
 
-func accountAuth(index string, req *network.Request) {
-	msgReq := &model.AccountAuthReq{}
+func accountLogin(index string, req *network.Request) {
+	msgReq := &model.AccountLoginReq{}
 	proto.Unmarshal(req.Body, msgReq)
-	// validate
+	// validate username and passwd
 
-	msgRes, err := service.AccountManager.AccountAuth(index, msgReq)
+	msgRes, err := service.AccountManager.AccountLogin(index, msgReq)
 	if err != nil {
 		log.Println(err)
 		return
