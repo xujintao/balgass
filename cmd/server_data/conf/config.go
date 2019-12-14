@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"gopkg.in/ini.v1"
 	"gopkg.in/yaml.v2"
@@ -89,6 +90,9 @@ var (
 )
 
 func init() {
+	log.SetOutput(os.Stdout)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	mapINI("IGCDS.ini", "SETTINGS", &Server)
 	mapINI("IGCDS.ini", "SQL", &SQL)
 	mapINI("IGCDS.ini", "GensSystem", &Gens)
