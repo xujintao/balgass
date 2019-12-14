@@ -32,19 +32,20 @@ func init() {
 	}
 	type config struct {
 		name string
-		db   *sqlx.DB
+		db   **sqlx.DB
 	}
 	configs := [...]config{
-		{"MuOnline", DBMuOnline},
-		{"Events", DBEvent},
-		{"Ranking", DBRank},
-		{"BattleCore", DBBattleCore},
+		{"MuOnline", &DBMuOnline},
+		{"Events", &DBEvent},
+		{"Ranking", &DBRank},
+		{"BattleCore", &DBBattleCore},
 	}
+	query := url.Values{}
+	query.Set("encrypt", "disable")
 	for _, c := range configs {
-		query := url.Values{}
 		query.Set("database", c.name)
 		u.RawQuery = query.Encode()
-		c.db = newDB("sqlserver", u.String())
+		*c.db = newDB("sqlserver", u.String())
 	}
 
 	log.Println("db connected")
@@ -55,7 +56,7 @@ func newDB(driverName, dsn string) (db *sqlx.DB) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	db.SetMaxIdleConns(0)
+	db.SetMaxIdleConns(2)
 	db.SetMaxOpenConns(10)
 	return
 }
