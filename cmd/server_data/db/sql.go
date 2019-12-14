@@ -9,6 +9,7 @@ var index = map[string]string{
 	"account-find-passwd":          accountFindPasswd,
 	"ban_machine-find-count":       banMachineFindCount,
 	"account_login_history-insert": accountLoginHistoryInsert,
+	"account_state-find-account":   accountStateFindAccount,
 	"account_state-insert":         accountStateInsert,
 	"account_state-update":         accountStateUpdate,
 }
@@ -47,6 +48,15 @@ VALUES (
 ,:State
 ,:HWID
 )
+`
+
+var accountStateFindAccount = `
+SELECT
+ count(*)
+FROM MEMB_STAT S
+INNER JOIN MEMB_INFO I ON S.memb___id = I.memb___id
+WHERE
+I.memb___id = @p1
 `
 
 var accountStateInsert = `

@@ -163,16 +163,8 @@ func (m *accountManager) AccountLogin(index string, req *model.AccountLoginReq) 
 	}
 
 	// verify machine id use count limit(group)
+	// ...
 
-	// account add
-	acc = &account{
-		username:    username,
-		machineID:   req.MachineID,
-		number:      req.Number,
-		addr:        req.Addr,
-		serverIndex: index,
-	}
-	m.accounts[username] = acc
 	tx := db.DBMuOnline.MustBegin()
 	// history
 	stmt = db.Lookup("account_Login_history-insert")
@@ -196,11 +188,12 @@ func (m *accountManager) AccountLogin(index string, req *model.AccountLoginReq) 
 		ConnectTime: time.Now(),
 	}
 	stmt = db.Lookup("account_state-find-account")
-	if err := tx.Get(nil, stmt, username); err != nil {
-		if err != sql.ErrNoRows {
-			tx.Rollback()
-			return nil, fmt.Errorf("%s %v", stmt, err)
-		}
+	num := 0
+	if err := tx.Get(&num, stmt, username); err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("%s %v", stmt, err)
+	}
+	if num == 0 {
 		// insert state
 		stmt = db.Lookup("account_state-insert")
 		if _, err := tx.NamedExec(stmt, &state); err != nil {
@@ -217,5 +210,14 @@ func (m *accountManager) AccountLogin(index string, req *model.AccountLoginReq) 
 	}
 	tx.Commit()
 
+	// account add
+	acc = &account{
+		username:    username,
+		machineID:   req.MachineID,
+		number:      req.Number,
+		addr:        req.Addr,
+		serverIndex: index,
+	}
+	m.accounts[username] = acc
 	return res, nil
 }
