@@ -4,12 +4,13 @@ import "time"
 
 type Account struct {
 	ID        int    `db:"memb_guid"`
-	Passwd    string `db:"memb__pwd"`
+	Username  string `db:"memb___id"`
+	Password  string `db:"memb__pwd"`
 	BlockCode int    `db:"bloc_code"`
 }
 
 type AccountLoginHistory struct {
-	UserName   string    `db:"AccountID"`
+	Username   string    `db:"AccountID"`
 	ServerName string    `db:"ServerName"`
 	IP         string    `db:"IP"`
 	Date       time.Time `db:"Date"`
@@ -18,7 +19,7 @@ type AccountLoginHistory struct {
 }
 
 type AccountState struct {
-	UserName       string    `db:"memb___id"`
+	Username       string    `db:"memb___id"`
 	State          int       `db:"ConnectStat"`
 	ServerName     string    `db:"ServerName"`
 	IP             string    `db:"IP"`

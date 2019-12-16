@@ -38,3 +38,15 @@ message accountKickRes {
 message accountJoinOtherRes {
     string username = 1;
 }
+
+message accountLoginFailedReq {
+    string username = 1;
+}
+
+message accountBlockReq {
+    string username = 1;
+}
+
+message accountExitReq {
+    string username = 1;
+}

@@ -23,6 +23,12 @@ type account struct {
 	tick        int64
 }
 
+func (a *account) getIP() string {
+	addr := a.addr
+	ip := addr[:strings.Index(addr, ":")]
+	return ip
+}
+
 type accountManager struct {
 	mu       sync.RWMutex
 	accounts map[string]*account
@@ -91,7 +97,7 @@ func (m *accountManager) AccountLogin(index interface{}, req *model.AccountLogin
 	}
 
 	// verify password
-	if accDB.Passwd != req.Password {
+	if accDB.Password != req.Password {
 		res.Result = 0
 		return res, nil
 	}
@@ -170,7 +176,7 @@ func (m *accountManager) AccountLogin(index interface{}, req *model.AccountLogin
 	// history
 	stmt = db.Lookup("account_Login_history-insert")
 	loginHistory := model.AccountLoginHistory{
-		UserName:   username,
+		Username:   username,
 		ServerName: ServerManager.ServerGetName(index),
 		IP:         req.Addr[:strings.Index(req.Addr, ":")],
 		State:      "Connected",
@@ -182,7 +188,7 @@ func (m *accountManager) AccountLogin(index interface{}, req *model.AccountLogin
 	}
 	// state
 	state := model.AccountState{
-		UserName:    username,
+		Username:    username,
 		State:       1,
 		ServerName:  ServerManager.ServerGetName(index),
 		IP:          req.Addr[:strings.Index(req.Addr, ":")],
@@ -203,7 +209,7 @@ func (m *accountManager) AccountLogin(index interface{}, req *model.AccountLogin
 		}
 	} else {
 		// update state
-		stmt = db.Lookup("account_state-update")
+		stmt = db.Lookup("account_state-update-connect")
 		if _, err := tx.NamedExec(stmt, &state); err != nil {
 			tx.Rollback()
 			return nil, fmt.Errorf("%s, %v", stmt, err)
@@ -221,4 +227,115 @@ func (m *accountManager) AccountLogin(index interface{}, req *model.AccountLogin
 	}
 	m.accounts[username] = acc
 	return res, nil
+}
+
+func (m *accountManager) AccountLoginFailed(index interface{}, req *model.AccountLoginFailedReq) error {
+	username := req.Username
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	acc, ok := m.accounts[username]
+	if !ok {
+		return fmt.Errorf("account not exist")
+	}
+
+	tx := db.DBMuOnline.MustBegin()
+	// history
+	stmt := db.Lookup("account_Login_history-insert")
+	loginHistory := model.AccountLoginHistory{
+		Username:   username,
+		ServerName: ServerManager.ServerGetName(index),
+		IP:         acc.getIP(),
+		State:      "Login Failed",
+		MID:        "N/A",
+	}
+	if _, err := tx.NamedExec(stmt, &loginHistory); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("%s, %v", stmt, err)
+	}
+	// state
+	state := model.AccountState{
+		Username:       username,
+		State:          0,
+		DisConnectTime: time.Now(),
+	}
+	stmt = db.Lookup("account_state-find-account")
+	num := 0
+	if err := tx.Get(&num, stmt, username); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("%s %v", stmt, err)
+	}
+	if num == 1 {
+		// update state
+		stmt = db.Lookup("account_state-update-disconn")
+		if _, err := tx.NamedExec(stmt, &state); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("%s, %v", stmt, err)
+		}
+	}
+	tx.Commit()
+
+	delete(m.accounts, username)
+	return nil
+}
+
+func (m *accountManager) AccountExit(index interface{}, req *model.AccountExitReq) error {
+	username := req.Username
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	acc, ok := m.accounts[username]
+	if !ok {
+		return fmt.Errorf("account not exist")
+	}
+
+	tx := db.DBMuOnline.MustBegin()
+	// history
+	stmt := db.Lookup("account_Login_history-insert")
+	loginHistory := model.AccountLoginHistory{
+		Username:   username,
+		ServerName: ServerManager.ServerGetName(index),
+		IP:         acc.getIP(),
+		State:      "Login Failed",
+		MID:        "N/A",
+	}
+	if _, err := tx.NamedExec(stmt, &loginHistory); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("%s, %v", stmt, err)
+	}
+	// state
+	state := model.AccountState{
+		Username:       username,
+		State:          0,
+		DisConnectTime: time.Now(),
+	}
+	stmt = db.Lookup("account_state-find-account")
+	num := 0
+	if err := tx.Get(&num, stmt, username); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("%s %v", stmt, err)
+	}
+	if num == 1 {
+		// update state
+		stmt = db.Lookup("account_state-update-disconn")
+		if _, err := tx.NamedExec(stmt, &state); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("%s, %v", stmt, err)
+		}
+	}
+	tx.Commit()
+
+	delete(m.accounts, username)
+	return nil
+}
+
+func (m *accountManager) AccountBlock(index interface{}, req *model.AccountBlockReq) error {
+	acc := model.Account{
+		Username:  req.Username,
+		BlockCode: 1,
+	}
+	stmt := db.Lookup("account-update-block")
+	if _, err := db.DBMuOnline.NamedExec(stmt, &acc); err != nil {
+		return fmt.Errorf("%s, %v", stmt, err)
+	}
+	// delete(m.accounts, req.Username)
+	return nil
 }

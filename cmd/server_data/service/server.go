@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/xujintao/balgass/cmd/server_data/conf"
@@ -104,4 +105,17 @@ func (m *serverManager) ServerGetAddr(index interface{}) string {
 		panic("server manager")
 	}
 	return server.addr
+}
+
+func (m *serverManager) ServerGetIP(index interface{}) string {
+	sid := index.(string)
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	server, ok := m.servers[sid]
+	if !ok {
+		panic("server manager")
+	}
+	addr := server.addr
+	ip := addr[:strings.Index(addr, ":")]
+	return ip
 }

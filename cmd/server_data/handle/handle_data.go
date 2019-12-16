@@ -60,7 +60,9 @@ var cmdsData = map[int]func(index interface{}, req *network.Request){
 	// join
 	0x00: serverLogin,
 	0x01: accountLogin,
-	0x02: accountExit,
+	0x02: accountLoginFailed,
+	0x04: accountBlock,
+	0x05: accountExit,
 	/*
 		0x04: accountBlock,
 		0x05: userClose,
@@ -328,7 +330,10 @@ var cmdsData = map[int]func(index interface{}, req *network.Request){
 
 func serverLogin(index interface{}, req *network.Request) {
 	msgReq := &model.ServerLoginReq{}
-	proto.Unmarshal(req.Body, msgReq)
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
 
 	msgRes, err := service.ServerManager.ServerLogin(index, msgReq)
 	if err != nil {
@@ -351,7 +356,10 @@ func serverLogin(index interface{}, req *network.Request) {
 
 func accountLogin(index interface{}, req *network.Request) {
 	msgReq := &model.AccountLoginReq{}
-	proto.Unmarshal(req.Body, msgReq)
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
 	// validate username and passwd
 
 	msgRes, err := service.AccountManager.AccountLogin(index, msgReq)
@@ -373,6 +381,38 @@ func accountLogin(index interface{}, req *network.Request) {
 	}
 }
 
-func accountExit(index interface{}, req *network.Request) {
+func accountLoginFailed(index interface{}, req *network.Request) {
+	msgReq := &model.AccountLoginFailedReq{}
+	proto.Unmarshal(req.Body, msgReq)
+	// validate username
 
+	err := service.AccountManager.AccountLoginFailed(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func accountBlock(index interface{}, req *network.Request) {
+	msgReq := &model.AccountBlockReq{}
+	proto.Unmarshal(req.Body, msgReq)
+	// validate username
+
+	err := service.AccountManager.AccountBlock(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func accountExit(index interface{}, req *network.Request) {
+	msgReq := &model.AccountExitReq{}
+	proto.Unmarshal(req.Body, msgReq)
+	// validate username
+
+	err := service.AccountManager.AccountExit(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 }
