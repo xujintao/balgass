@@ -56,12 +56,12 @@ func (h *handleData) Exit() {
 	h.exit <- struct{}{}
 }
 
-var cmdsData = map[int]func(index string, req *network.Request){
+var cmdsData = map[int]func(index interface{}, req *network.Request){
 	// join
 	0x00: serverLogin,
 	0x01: accountLogin,
+	0x02: accountExit,
 	/*
-		0x02: accountFail,
 		0x04: accountBlock,
 		0x05: userClose,
 		0x06: billLoginCheck,
@@ -326,7 +326,7 @@ var cmdsData = map[int]func(index string, req *network.Request){
 	*/
 }
 
-func serverLogin(index string, req *network.Request) {
+func serverLogin(index interface{}, req *network.Request) {
 	msgReq := &model.ServerLoginReq{}
 	proto.Unmarshal(req.Body, msgReq)
 
@@ -349,7 +349,7 @@ func serverLogin(index string, req *network.Request) {
 	}
 }
 
-func accountLogin(index string, req *network.Request) {
+func accountLogin(index interface{}, req *network.Request) {
 	msgReq := &model.AccountLoginReq{}
 	proto.Unmarshal(req.Body, msgReq)
 	// validate username and passwd
@@ -371,4 +371,8 @@ func accountLogin(index string, req *network.Request) {
 	if err := service.ServerManager.Send(index, res); err != nil {
 		log.Printf("Send failed, %v", err)
 	}
+}
+
+func accountExit(index interface{}, req *network.Request) {
+
 }

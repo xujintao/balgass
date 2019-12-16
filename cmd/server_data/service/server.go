@@ -39,10 +39,11 @@ func (m *serverManager) ServerAdd(addr string, c network.ConnWriter) (string, er
 	return index, nil
 }
 
-func (m *serverManager) ServerLogin(index string, msg *model.ServerLoginReq) (*model.ServerLoginRes, error) {
+func (m *serverManager) ServerLogin(index interface{}, msg *model.ServerLoginReq) (*model.ServerLoginRes, error) {
+	sid := index.(string)
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	if server, ok := m.servers[index]; ok {
+	if server, ok := m.servers[sid]; ok {
 		server.name = msg.Name
 		server.code = uint16(msg.Code)
 		server.port = uint16(msg.Port)
@@ -51,49 +52,54 @@ func (m *serverManager) ServerLogin(index string, msg *model.ServerLoginReq) (*m
 		server.maxMIDUseCount = int(msg.MaxHWIDUseCount)
 		return &model.ServerLoginRes{Result: 1}, nil
 	}
-	return nil, fmt.Errorf("%s is off line", index)
+	return nil, fmt.Errorf("%s is off line", sid)
 }
 
-func (m *serverManager) ServerDel(index string) {
+func (m *serverManager) ServerDel(index interface{}) {
+	sid := index.(string)
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	delete(m.servers, index)
+	delete(m.servers, sid)
 }
 
 // Send send package to server with index
-func (m *serverManager) Send(index string, res *network.Response) error {
+func (m *serverManager) Send(index interface{}, res *network.Response) error {
+	sid := index.(string)
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	if server, ok := m.servers[index]; ok {
+	if server, ok := m.servers[sid]; ok {
 		return server.conn.Write(res)
 	}
 	return fmt.Errorf("%s is off line", index)
 }
 
-func (m *serverManager) ServerGetMIDUseCount(index string) int {
+func (m *serverManager) ServerGetMIDUseCount(index interface{}) int {
+	sid := index.(string)
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	server, ok := m.servers[index]
+	server, ok := m.servers[sid]
 	if !ok {
 		panic("server manager")
 	}
 	return server.maxMIDUseCount
 }
 
-func (m *serverManager) ServerGetName(index string) string {
+func (m *serverManager) ServerGetName(index interface{}) string {
+	sid := index.(string)
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	server, ok := m.servers[index]
+	server, ok := m.servers[sid]
 	if !ok {
 		panic("server manager")
 	}
 	return server.name
 }
 
-func (m *serverManager) ServerGetAddr(index string) string {
+func (m *serverManager) ServerGetAddr(index interface{}) string {
+	sid := index.(string)
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	server, ok := m.servers[index]
+	server, ok := m.servers[sid]
 	if !ok {
 		panic("server manager")
 	}

@@ -18,7 +18,7 @@ type account struct {
 	machineID   string
 	number      uint32
 	addr        string
-	serverIndex string
+	serverIndex interface{}
 	offTrade    bool
 	tick        int64
 }
@@ -48,7 +48,8 @@ func (m *accountManager) accountKick(acc *account, force bool) error {
 	return nil
 }
 
-func (m *accountManager) accountJoinOther(index string, acc *account) error {
+func (m *accountManager) accountJoinOther(index interface{}, acc *account) error {
+	sid := index.(string)
 	msgRes := &model.AccountJoinOtherRes{
 		Username: acc.username,
 	}
@@ -59,7 +60,7 @@ func (m *accountManager) accountJoinOther(index string, acc *account) error {
 
 	res := &network.Response{}
 	res.WriteHead(0xc1, 0x08).Write(buf)
-	if err := ServerManager.Send(index, res); err != nil {
+	if err := ServerManager.Send(sid, res); err != nil {
 		return fmt.Errorf("Send failed, %v", err)
 	}
 
@@ -71,7 +72,7 @@ func (m *accountManager) accountLoginTrack(data *model.AccountLoginHistory) {
 	db.DBMuOnline.Exec(stmt, data)
 }
 
-func (m *accountManager) AccountLogin(index string, req *model.AccountLoginReq) (*model.AccountLoginRes, error) {
+func (m *accountManager) AccountLogin(index interface{}, req *model.AccountLoginReq) (*model.AccountLoginRes, error) {
 	res := &model.AccountLoginRes{
 		Username: req.Username,
 		Number:   req.Number,

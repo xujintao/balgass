@@ -9,7 +9,7 @@ import (
 )
 
 type handleBase struct {
-	cmds map[int]func(index string, req *network.Request)
+	cmds map[int]func(index interface{}, req *network.Request)
 }
 
 // OnConn implements network.Handler.OnConn
@@ -33,8 +33,7 @@ func (*handleBase) OnClose(v interface{}) {
 }
 
 // Handle *CMDHandle implements network.Handler
-func (h *handleBase) Handle(id interface{}, req *network.Request) {
-	index := id.(string)
+func (h *handleBase) Handle(index interface{}, req *network.Request) {
 	code := req.Code
 	if h, ok := h.cmds[int(code)]; ok {
 		h(index, req)
