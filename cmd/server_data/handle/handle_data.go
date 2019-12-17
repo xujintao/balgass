@@ -63,17 +63,15 @@ var cmdsData = map[int]func(index interface{}, req *network.Request){
 	0x02: accountLoginFailed,
 	0x04: accountBlock,
 	0x05: accountExit,
+	0x06: vipCheck,
+	0xD3: vipAdd,
 	/*
-		0x04: accountBlock,
-		0x05: userClose,
-		0x06: billLoginCheck,
 		0x30: loveHeartEventReq,
 		0x31: loveHeartCreate,
 		0x7A: mapSvrMoveReq,
 		0x7B: mapSvrAuthReq,
 		0x7C: notifyMaxUserCount,
 		0x80: offTradeSetReq,
-		0xD3: vipAddReq,
 		0xFE: userKill,
 		0xFF: serverDisconnect,
 
@@ -383,7 +381,10 @@ func accountLogin(index interface{}, req *network.Request) {
 
 func accountLoginFailed(index interface{}, req *network.Request) {
 	msgReq := &model.AccountLoginFailedReq{}
-	proto.Unmarshal(req.Body, msgReq)
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
 	// validate username
 
 	err := service.AccountManager.AccountLoginFailed(index, msgReq)
@@ -395,7 +396,10 @@ func accountLoginFailed(index interface{}, req *network.Request) {
 
 func accountBlock(index interface{}, req *network.Request) {
 	msgReq := &model.AccountBlockReq{}
-	proto.Unmarshal(req.Body, msgReq)
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
 	// validate username
 
 	err := service.AccountManager.AccountBlock(index, msgReq)
@@ -407,10 +411,53 @@ func accountBlock(index interface{}, req *network.Request) {
 
 func accountExit(index interface{}, req *network.Request) {
 	msgReq := &model.AccountExitReq{}
-	proto.Unmarshal(req.Body, msgReq)
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
 	// validate username
 
 	err := service.AccountManager.AccountExit(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func vipCheck(index interface{}, req *network.Request) {
+	msgReq := &model.VipCheckReq{}
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
+	// validate username
+	msgRes, err := service.VIPManager.VIPCheck(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	buf, err := proto.Marshal(msgRes)
+	if err != nil {
+		log.Printf("Marshal failed, %v", err)
+		return
+	}
+
+	res := &network.Response{}
+	res.WriteHead(0xc1, 0x01).Write(buf)
+	if err := service.ServerManager.Send(index, res); err != nil {
+		log.Printf("Send failed, %v", err)
+	}
+}
+
+func vipAdd(index interface{}, req *network.Request) {
+	msgReq := &model.VipAddReq{}
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
+	// validate username
+	err := service.VIPManager.VIPAdd(index, msgReq)
 	if err != nil {
 		log.Println(err)
 		return

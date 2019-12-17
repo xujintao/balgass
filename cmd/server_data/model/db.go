@@ -26,3 +26,9 @@ type AccountState struct {
 	ConnectTime    time.Time `db:"ConnectTM"`
 	DisConnectTime time.Time `db:"DisConnectTM"`
 }
+
+type VIP struct {
+	Username string    `db:"AccountID"`
+	Date     time.Time `db:"Date"`
+	Type     int       `db:"Type"`
+}

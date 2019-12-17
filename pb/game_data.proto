@@ -50,3 +50,21 @@ message accountBlockReq {
 message accountExitReq {
     string username = 1;
 }
+
+message vipAddReq {
+    string username = 1;
+    int32 type = 2;
+    int32 days = 3;
+}
+
+message vipCheckReq {
+    string username = 1;
+}
+
+message vipCheckRes {
+    string username = 1;
+    int32 payCode = 2;
+    int32 type = 3;
+    int32 endDays = 4;
+}
+

@@ -14,6 +14,10 @@ var index = map[string]string{
 	"account_state-insert":         accountStateInsert,
 	"account_state-update-connect": accountStateUpdateConnect,
 	"account_state-update-disconn": accountStateUpdateDisconn,
+	"vip-find-account":             vipFindAccount,
+	"vip-find-account-update":      vipFindAccountUpdate,
+	"vip-update-renew":             vipUpdateRenew,
+	"vip-update-upgrade":           vipUpdateUpgrade,
 }
 
 var accountFindPasswd = `
@@ -95,10 +99,45 @@ SET
 ,ConnectTM = :ConnectTM
 WHERE memb___id = :memb___id
 `
+
 var accountStateUpdateDisconn = `
 UPDATE MEMB_STAT
 SET
  ConnectStat = :ConnectStat
 ,DisConnectTM = :DisConnectTM
 WHERE memb___id = :memb___id
+`
+
+var vipFindAccount = `
+SELECT
+ Date
+,Type
+FROM T_VIPList
+WHERE AccountID = @p1
+  AND Date > @p2
+`
+
+var vipFindAccountUpdate = `
+SELECT
+ count(*)
+,(SELECT count(*) FROM T_VIPList WHERE AccountID = @p1 AND Date > @p2)
+FROM T_VIPList
+WHERE AccountID = @p1
+`
+
+var vipUpdateRenew = `
+UPDATE T_VIPList
+SET
+ Date = :Date
+,Type = :Type
+WHERE AccountID = :AccountID
+`
+
+var vipUpdateUpgrade = `
+UPDATE T_VIPList
+SET
+ Date = :Date
+,Type = :Type
+WHERE AccountID = :AccountID
+  AND Type < :Type
 `
