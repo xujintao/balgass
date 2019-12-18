@@ -6,21 +6,21 @@ func Lookup(name string) string {
 }
 
 var index = map[string]string{
-	"account-find-passwd":          accountFindPasswd,
-	"account-update-block":         accountUpdateBlock,
-	"ban_machine-find-count":       banMachineFindCount,
-	"account_login_history-insert": accountLoginHistoryInsert,
-	"account_state-find-account":   accountStateFindAccount,
-	"account_state-insert":         accountStateInsert,
-	"account_state-update-connect": accountStateUpdateConnect,
-	"account_state-update-disconn": accountStateUpdateDisconn,
-	"vip-find-account":             vipFindAccount,
-	"vip-find-account-update":      vipFindAccountUpdate,
-	"vip-update-renew":             vipUpdateRenew,
-	"vip-update-upgrade":           vipUpdateUpgrade,
+	"users-find-user":            usersFindUser,
+	"users-update-block":         usersUpdateBlock,
+	"ban_machines-find-count":    banMachinesFindCount,
+	"user_login_historys-insert": userLoginHistorysInsert,
+	"user_states-find-user":      userStatesFindUser,
+	"user_states-insert":         userStatesInsert,
+	"user_states-update-connect": userStatesUpdateConnect,
+	"user_states-update-disconn": userStatesUpdateDisconn,
+	"vips-find-user":             vipsFindUser,
+	"vips-find-user-update":      vipsFindUserUpdate,
+	"vips-update-renew":          vipsUpdateRenew,
+	"vips-update-upgrade":        vipsUpdateUpgrade,
 }
 
-var accountFindPasswd = `
+var usersFindUser = `
 SELECT
  memb_guid
 ,memb__pwd
@@ -30,14 +30,14 @@ WHERE
 memb___id = @p1
 `
 
-var accountUpdateBlock = `
+var usersUpdateBlock = `
 UPDATE MEMB_INFO
 SET
  bloc_code = :bloc_code
 WHERE memb___id = :memb___id
 `
 
-var banMachineFindCount = `
+var banMachinesFindCount = `
 SELECT
  count(*)
 FROM IGC_MachineID_Banned
@@ -45,7 +45,7 @@ WHERE
 HWID = @p1
 `
 
-var accountLoginHistoryInsert = `
+var userLoginHistorysInsert = `
 INSERT INTO ConnectionHistory (
  AccountID
 ,ServerName
@@ -64,7 +64,7 @@ VALUES (
 )
 `
 
-var accountStateFindAccount = `
+var userStatesFindUser = `
 SELECT
  count(*)
 FROM MEMB_STAT S
@@ -73,7 +73,7 @@ WHERE
 I.memb___id = @p1
 `
 
-var accountStateInsert = `
+var userStatesInsert = `
 INSERT INTO MEMB_STAT (
  memb___id
 ,ConnectStat
@@ -90,7 +90,7 @@ VALUES (
 )
 `
 
-var accountStateUpdateConnect = `
+var userStatesUpdateConnect = `
 UPDATE MEMB_STAT
 SET
  ConnectStat = :ConnectStat
@@ -100,7 +100,7 @@ SET
 WHERE memb___id = :memb___id
 `
 
-var accountStateUpdateDisconn = `
+var userStatesUpdateDisconn = `
 UPDATE MEMB_STAT
 SET
  ConnectStat = :ConnectStat
@@ -108,7 +108,7 @@ SET
 WHERE memb___id = :memb___id
 `
 
-var vipFindAccount = `
+var vipsFindUser = `
 SELECT
  Date
 ,Type
@@ -117,7 +117,7 @@ WHERE AccountID = @p1
   AND Date > @p2
 `
 
-var vipFindAccountUpdate = `
+var vipsFindUserUpdate = `
 SELECT
  count(*)
 ,(SELECT count(*) FROM T_VIPList WHERE AccountID = @p1 AND Date > @p2)
@@ -125,7 +125,7 @@ FROM T_VIPList
 WHERE AccountID = @p1
 `
 
-var vipUpdateRenew = `
+var vipsUpdateRenew = `
 UPDATE T_VIPList
 SET
  Date = :Date
@@ -133,7 +133,7 @@ SET
 WHERE AccountID = :AccountID
 `
 
-var vipUpdateUpgrade = `
+var vipsUpdateUpgrade = `
 UPDATE T_VIPList
 SET
  Date = :Date

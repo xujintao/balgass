@@ -138,7 +138,62 @@ func (m *ServerLoginRes) GetResult() uint32 {
 	return 0
 }
 
-type AccountLoginReq struct {
+type ServerUserCountSetReq struct {
+	Code                 int32    `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	UserCount            int32    `protobuf:"varint,2,opt,name=UserCount,proto3" json:"UserCount,omitempty"`
+	UserCountMax         int32    `protobuf:"varint,3,opt,name=UserCountMax,proto3" json:"UserCountMax,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ServerUserCountSetReq) Reset()         { *m = ServerUserCountSetReq{} }
+func (m *ServerUserCountSetReq) String() string { return proto.CompactTextString(m) }
+func (*ServerUserCountSetReq) ProtoMessage()    {}
+func (*ServerUserCountSetReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{2}
+}
+
+func (m *ServerUserCountSetReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ServerUserCountSetReq.Unmarshal(m, b)
+}
+func (m *ServerUserCountSetReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ServerUserCountSetReq.Marshal(b, m, deterministic)
+}
+func (m *ServerUserCountSetReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ServerUserCountSetReq.Merge(m, src)
+}
+func (m *ServerUserCountSetReq) XXX_Size() int {
+	return xxx_messageInfo_ServerUserCountSetReq.Size(m)
+}
+func (m *ServerUserCountSetReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_ServerUserCountSetReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ServerUserCountSetReq proto.InternalMessageInfo
+
+func (m *ServerUserCountSetReq) GetCode() int32 {
+	if m != nil {
+		return m.Code
+	}
+	return 0
+}
+
+func (m *ServerUserCountSetReq) GetUserCount() int32 {
+	if m != nil {
+		return m.UserCount
+	}
+	return 0
+}
+
+func (m *ServerUserCountSetReq) GetUserCountMax() int32 {
+	if m != nil {
+		return m.UserCountMax
+	}
+	return 0
+}
+
+type UserLoginReq struct {
 	Username             string   `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Password             string   `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	Number               uint32   `protobuf:"varint,3,opt,name=number,proto3" json:"number,omitempty"`
@@ -149,67 +204,67 @@ type AccountLoginReq struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AccountLoginReq) Reset()         { *m = AccountLoginReq{} }
-func (m *AccountLoginReq) String() string { return proto.CompactTextString(m) }
-func (*AccountLoginReq) ProtoMessage()    {}
-func (*AccountLoginReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cc2b35845d6121f3, []int{2}
+func (m *UserLoginReq) Reset()         { *m = UserLoginReq{} }
+func (m *UserLoginReq) String() string { return proto.CompactTextString(m) }
+func (*UserLoginReq) ProtoMessage()    {}
+func (*UserLoginReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{3}
 }
 
-func (m *AccountLoginReq) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AccountLoginReq.Unmarshal(m, b)
+func (m *UserLoginReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserLoginReq.Unmarshal(m, b)
 }
-func (m *AccountLoginReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AccountLoginReq.Marshal(b, m, deterministic)
+func (m *UserLoginReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserLoginReq.Marshal(b, m, deterministic)
 }
-func (m *AccountLoginReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AccountLoginReq.Merge(m, src)
+func (m *UserLoginReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserLoginReq.Merge(m, src)
 }
-func (m *AccountLoginReq) XXX_Size() int {
-	return xxx_messageInfo_AccountLoginReq.Size(m)
+func (m *UserLoginReq) XXX_Size() int {
+	return xxx_messageInfo_UserLoginReq.Size(m)
 }
-func (m *AccountLoginReq) XXX_DiscardUnknown() {
-	xxx_messageInfo_AccountLoginReq.DiscardUnknown(m)
+func (m *UserLoginReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserLoginReq.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AccountLoginReq proto.InternalMessageInfo
+var xxx_messageInfo_UserLoginReq proto.InternalMessageInfo
 
-func (m *AccountLoginReq) GetUsername() string {
+func (m *UserLoginReq) GetUsername() string {
 	if m != nil {
 		return m.Username
 	}
 	return ""
 }
 
-func (m *AccountLoginReq) GetPassword() string {
+func (m *UserLoginReq) GetPassword() string {
 	if m != nil {
 		return m.Password
 	}
 	return ""
 }
 
-func (m *AccountLoginReq) GetNumber() uint32 {
+func (m *UserLoginReq) GetNumber() uint32 {
 	if m != nil {
 		return m.Number
 	}
 	return 0
 }
 
-func (m *AccountLoginReq) GetMachineID() string {
+func (m *UserLoginReq) GetMachineID() string {
 	if m != nil {
 		return m.MachineID
 	}
 	return ""
 }
 
-func (m *AccountLoginReq) GetAddr() string {
+func (m *UserLoginReq) GetAddr() string {
 	if m != nil {
 		return m.Addr
 	}
 	return ""
 }
 
-type AccountLoginRes struct {
+type UserLoginRes struct {
 	Result               uint32   `protobuf:"varint,1,opt,name=result,proto3" json:"result,omitempty"`
 	Username             string   `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Number               uint32   `protobuf:"varint,3,opt,name=number,proto3" json:"number,omitempty"`
@@ -219,60 +274,60 @@ type AccountLoginRes struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AccountLoginRes) Reset()         { *m = AccountLoginRes{} }
-func (m *AccountLoginRes) String() string { return proto.CompactTextString(m) }
-func (*AccountLoginRes) ProtoMessage()    {}
-func (*AccountLoginRes) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cc2b35845d6121f3, []int{3}
+func (m *UserLoginRes) Reset()         { *m = UserLoginRes{} }
+func (m *UserLoginRes) String() string { return proto.CompactTextString(m) }
+func (*UserLoginRes) ProtoMessage()    {}
+func (*UserLoginRes) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{4}
 }
 
-func (m *AccountLoginRes) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AccountLoginRes.Unmarshal(m, b)
+func (m *UserLoginRes) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserLoginRes.Unmarshal(m, b)
 }
-func (m *AccountLoginRes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AccountLoginRes.Marshal(b, m, deterministic)
+func (m *UserLoginRes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserLoginRes.Marshal(b, m, deterministic)
 }
-func (m *AccountLoginRes) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AccountLoginRes.Merge(m, src)
+func (m *UserLoginRes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserLoginRes.Merge(m, src)
 }
-func (m *AccountLoginRes) XXX_Size() int {
-	return xxx_messageInfo_AccountLoginRes.Size(m)
+func (m *UserLoginRes) XXX_Size() int {
+	return xxx_messageInfo_UserLoginRes.Size(m)
 }
-func (m *AccountLoginRes) XXX_DiscardUnknown() {
-	xxx_messageInfo_AccountLoginRes.DiscardUnknown(m)
+func (m *UserLoginRes) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserLoginRes.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AccountLoginRes proto.InternalMessageInfo
+var xxx_messageInfo_UserLoginRes proto.InternalMessageInfo
 
-func (m *AccountLoginRes) GetResult() uint32 {
+func (m *UserLoginRes) GetResult() uint32 {
 	if m != nil {
 		return m.Result
 	}
 	return 0
 }
 
-func (m *AccountLoginRes) GetUsername() string {
+func (m *UserLoginRes) GetUsername() string {
 	if m != nil {
 		return m.Username
 	}
 	return ""
 }
 
-func (m *AccountLoginRes) GetNumber() uint32 {
+func (m *UserLoginRes) GetNumber() uint32 {
 	if m != nil {
 		return m.Number
 	}
 	return 0
 }
 
-func (m *AccountLoginRes) GetUid() uint32 {
+func (m *UserLoginRes) GetUid() uint32 {
 	if m != nil {
 		return m.Uid
 	}
 	return 0
 }
 
-type AccountKickRes struct {
+type UserKickRes struct {
 	Username             string   `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Number               uint32   `protobuf:"varint,2,opt,name=number,proto3" json:"number,omitempty"`
 	Force                bool     `protobuf:"varint,3,opt,name=force,proto3" json:"force,omitempty"`
@@ -281,206 +336,760 @@ type AccountKickRes struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AccountKickRes) Reset()         { *m = AccountKickRes{} }
-func (m *AccountKickRes) String() string { return proto.CompactTextString(m) }
-func (*AccountKickRes) ProtoMessage()    {}
-func (*AccountKickRes) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cc2b35845d6121f3, []int{4}
+func (m *UserKickRes) Reset()         { *m = UserKickRes{} }
+func (m *UserKickRes) String() string { return proto.CompactTextString(m) }
+func (*UserKickRes) ProtoMessage()    {}
+func (*UserKickRes) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{5}
 }
 
-func (m *AccountKickRes) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AccountKickRes.Unmarshal(m, b)
+func (m *UserKickRes) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserKickRes.Unmarshal(m, b)
 }
-func (m *AccountKickRes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AccountKickRes.Marshal(b, m, deterministic)
+func (m *UserKickRes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserKickRes.Marshal(b, m, deterministic)
 }
-func (m *AccountKickRes) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AccountKickRes.Merge(m, src)
+func (m *UserKickRes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserKickRes.Merge(m, src)
 }
-func (m *AccountKickRes) XXX_Size() int {
-	return xxx_messageInfo_AccountKickRes.Size(m)
+func (m *UserKickRes) XXX_Size() int {
+	return xxx_messageInfo_UserKickRes.Size(m)
 }
-func (m *AccountKickRes) XXX_DiscardUnknown() {
-	xxx_messageInfo_AccountKickRes.DiscardUnknown(m)
+func (m *UserKickRes) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserKickRes.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AccountKickRes proto.InternalMessageInfo
+var xxx_messageInfo_UserKickRes proto.InternalMessageInfo
 
-func (m *AccountKickRes) GetUsername() string {
+func (m *UserKickRes) GetUsername() string {
 	if m != nil {
 		return m.Username
 	}
 	return ""
 }
 
-func (m *AccountKickRes) GetNumber() uint32 {
+func (m *UserKickRes) GetNumber() uint32 {
 	if m != nil {
 		return m.Number
 	}
 	return 0
 }
 
-func (m *AccountKickRes) GetForce() bool {
+func (m *UserKickRes) GetForce() bool {
 	if m != nil {
 		return m.Force
 	}
 	return false
 }
 
-type AccountJoinOtherRes struct {
+type UserJoinOtherRes struct {
 	Username             string   `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AccountJoinOtherRes) Reset()         { *m = AccountJoinOtherRes{} }
-func (m *AccountJoinOtherRes) String() string { return proto.CompactTextString(m) }
-func (*AccountJoinOtherRes) ProtoMessage()    {}
-func (*AccountJoinOtherRes) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cc2b35845d6121f3, []int{5}
-}
-
-func (m *AccountJoinOtherRes) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AccountJoinOtherRes.Unmarshal(m, b)
-}
-func (m *AccountJoinOtherRes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AccountJoinOtherRes.Marshal(b, m, deterministic)
-}
-func (m *AccountJoinOtherRes) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AccountJoinOtherRes.Merge(m, src)
-}
-func (m *AccountJoinOtherRes) XXX_Size() int {
-	return xxx_messageInfo_AccountJoinOtherRes.Size(m)
-}
-func (m *AccountJoinOtherRes) XXX_DiscardUnknown() {
-	xxx_messageInfo_AccountJoinOtherRes.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_AccountJoinOtherRes proto.InternalMessageInfo
-
-func (m *AccountJoinOtherRes) GetUsername() string {
-	if m != nil {
-		return m.Username
-	}
-	return ""
-}
-
-type AccountLoginFailedReq struct {
-	Username             string   `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *AccountLoginFailedReq) Reset()         { *m = AccountLoginFailedReq{} }
-func (m *AccountLoginFailedReq) String() string { return proto.CompactTextString(m) }
-func (*AccountLoginFailedReq) ProtoMessage()    {}
-func (*AccountLoginFailedReq) Descriptor() ([]byte, []int) {
+func (m *UserJoinOtherRes) Reset()         { *m = UserJoinOtherRes{} }
+func (m *UserJoinOtherRes) String() string { return proto.CompactTextString(m) }
+func (*UserJoinOtherRes) ProtoMessage()    {}
+func (*UserJoinOtherRes) Descriptor() ([]byte, []int) {
 	return fileDescriptor_cc2b35845d6121f3, []int{6}
 }
 
-func (m *AccountLoginFailedReq) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AccountLoginFailedReq.Unmarshal(m, b)
+func (m *UserJoinOtherRes) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserJoinOtherRes.Unmarshal(m, b)
 }
-func (m *AccountLoginFailedReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AccountLoginFailedReq.Marshal(b, m, deterministic)
+func (m *UserJoinOtherRes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserJoinOtherRes.Marshal(b, m, deterministic)
 }
-func (m *AccountLoginFailedReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AccountLoginFailedReq.Merge(m, src)
+func (m *UserJoinOtherRes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserJoinOtherRes.Merge(m, src)
 }
-func (m *AccountLoginFailedReq) XXX_Size() int {
-	return xxx_messageInfo_AccountLoginFailedReq.Size(m)
+func (m *UserJoinOtherRes) XXX_Size() int {
+	return xxx_messageInfo_UserJoinOtherRes.Size(m)
 }
-func (m *AccountLoginFailedReq) XXX_DiscardUnknown() {
-	xxx_messageInfo_AccountLoginFailedReq.DiscardUnknown(m)
+func (m *UserJoinOtherRes) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserJoinOtherRes.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AccountLoginFailedReq proto.InternalMessageInfo
+var xxx_messageInfo_UserJoinOtherRes proto.InternalMessageInfo
 
-func (m *AccountLoginFailedReq) GetUsername() string {
+func (m *UserJoinOtherRes) GetUsername() string {
 	if m != nil {
 		return m.Username
 	}
 	return ""
 }
 
-type AccountBlockReq struct {
+type UserLoginFailedReq struct {
 	Username             string   `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AccountBlockReq) Reset()         { *m = AccountBlockReq{} }
-func (m *AccountBlockReq) String() string { return proto.CompactTextString(m) }
-func (*AccountBlockReq) ProtoMessage()    {}
-func (*AccountBlockReq) Descriptor() ([]byte, []int) {
+func (m *UserLoginFailedReq) Reset()         { *m = UserLoginFailedReq{} }
+func (m *UserLoginFailedReq) String() string { return proto.CompactTextString(m) }
+func (*UserLoginFailedReq) ProtoMessage()    {}
+func (*UserLoginFailedReq) Descriptor() ([]byte, []int) {
 	return fileDescriptor_cc2b35845d6121f3, []int{7}
 }
 
-func (m *AccountBlockReq) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AccountBlockReq.Unmarshal(m, b)
+func (m *UserLoginFailedReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserLoginFailedReq.Unmarshal(m, b)
 }
-func (m *AccountBlockReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AccountBlockReq.Marshal(b, m, deterministic)
+func (m *UserLoginFailedReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserLoginFailedReq.Marshal(b, m, deterministic)
 }
-func (m *AccountBlockReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AccountBlockReq.Merge(m, src)
+func (m *UserLoginFailedReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserLoginFailedReq.Merge(m, src)
 }
-func (m *AccountBlockReq) XXX_Size() int {
-	return xxx_messageInfo_AccountBlockReq.Size(m)
+func (m *UserLoginFailedReq) XXX_Size() int {
+	return xxx_messageInfo_UserLoginFailedReq.Size(m)
 }
-func (m *AccountBlockReq) XXX_DiscardUnknown() {
-	xxx_messageInfo_AccountBlockReq.DiscardUnknown(m)
+func (m *UserLoginFailedReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserLoginFailedReq.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AccountBlockReq proto.InternalMessageInfo
+var xxx_messageInfo_UserLoginFailedReq proto.InternalMessageInfo
 
-func (m *AccountBlockReq) GetUsername() string {
+func (m *UserLoginFailedReq) GetUsername() string {
 	if m != nil {
 		return m.Username
 	}
 	return ""
 }
 
-type AccountExitReq struct {
+type UserBlockReq struct {
 	Username             string   `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AccountExitReq) Reset()         { *m = AccountExitReq{} }
-func (m *AccountExitReq) String() string { return proto.CompactTextString(m) }
-func (*AccountExitReq) ProtoMessage()    {}
-func (*AccountExitReq) Descriptor() ([]byte, []int) {
+func (m *UserBlockReq) Reset()         { *m = UserBlockReq{} }
+func (m *UserBlockReq) String() string { return proto.CompactTextString(m) }
+func (*UserBlockReq) ProtoMessage()    {}
+func (*UserBlockReq) Descriptor() ([]byte, []int) {
 	return fileDescriptor_cc2b35845d6121f3, []int{8}
 }
 
-func (m *AccountExitReq) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AccountExitReq.Unmarshal(m, b)
+func (m *UserBlockReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserBlockReq.Unmarshal(m, b)
 }
-func (m *AccountExitReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AccountExitReq.Marshal(b, m, deterministic)
+func (m *UserBlockReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserBlockReq.Marshal(b, m, deterministic)
 }
-func (m *AccountExitReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AccountExitReq.Merge(m, src)
+func (m *UserBlockReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserBlockReq.Merge(m, src)
 }
-func (m *AccountExitReq) XXX_Size() int {
-	return xxx_messageInfo_AccountExitReq.Size(m)
+func (m *UserBlockReq) XXX_Size() int {
+	return xxx_messageInfo_UserBlockReq.Size(m)
 }
-func (m *AccountExitReq) XXX_DiscardUnknown() {
-	xxx_messageInfo_AccountExitReq.DiscardUnknown(m)
+func (m *UserBlockReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserBlockReq.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AccountExitReq proto.InternalMessageInfo
+var xxx_messageInfo_UserBlockReq proto.InternalMessageInfo
 
-func (m *AccountExitReq) GetUsername() string {
+func (m *UserBlockReq) GetUsername() string {
 	if m != nil {
 		return m.Username
 	}
 	return ""
+}
+
+type UserExitReq struct {
+	Username             string   `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserExitReq) Reset()         { *m = UserExitReq{} }
+func (m *UserExitReq) String() string { return proto.CompactTextString(m) }
+func (*UserExitReq) ProtoMessage()    {}
+func (*UserExitReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{9}
+}
+
+func (m *UserExitReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserExitReq.Unmarshal(m, b)
+}
+func (m *UserExitReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserExitReq.Marshal(b, m, deterministic)
+}
+func (m *UserExitReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserExitReq.Merge(m, src)
+}
+func (m *UserExitReq) XXX_Size() int {
+	return xxx_messageInfo_UserExitReq.Size(m)
+}
+func (m *UserExitReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserExitReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserExitReq proto.InternalMessageInfo
+
+func (m *UserExitReq) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
+type UserKillReq struct {
+	Username             string   `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserKillReq) Reset()         { *m = UserKillReq{} }
+func (m *UserKillReq) String() string { return proto.CompactTextString(m) }
+func (*UserKillReq) ProtoMessage()    {}
+func (*UserKillReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{10}
+}
+
+func (m *UserKillReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserKillReq.Unmarshal(m, b)
+}
+func (m *UserKillReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserKillReq.Marshal(b, m, deterministic)
+}
+func (m *UserKillReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserKillReq.Merge(m, src)
+}
+func (m *UserKillReq) XXX_Size() int {
+	return xxx_messageInfo_UserKillReq.Size(m)
+}
+func (m *UserKillReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserKillReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserKillReq proto.InternalMessageInfo
+
+func (m *UserKillReq) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
+type UserOffTradeSetReq struct {
+	Username             string   `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	OffTrade             bool     `protobuf:"varint,2,opt,name=offTrade,proto3" json:"offTrade,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserOffTradeSetReq) Reset()         { *m = UserOffTradeSetReq{} }
+func (m *UserOffTradeSetReq) String() string { return proto.CompactTextString(m) }
+func (*UserOffTradeSetReq) ProtoMessage()    {}
+func (*UserOffTradeSetReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{11}
+}
+
+func (m *UserOffTradeSetReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserOffTradeSetReq.Unmarshal(m, b)
+}
+func (m *UserOffTradeSetReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserOffTradeSetReq.Marshal(b, m, deterministic)
+}
+func (m *UserOffTradeSetReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserOffTradeSetReq.Merge(m, src)
+}
+func (m *UserOffTradeSetReq) XXX_Size() int {
+	return xxx_messageInfo_UserOffTradeSetReq.Size(m)
+}
+func (m *UserOffTradeSetReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserOffTradeSetReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserOffTradeSetReq proto.InternalMessageInfo
+
+func (m *UserOffTradeSetReq) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
+func (m *UserOffTradeSetReq) GetOffTrade() bool {
+	if m != nil {
+		return m.OffTrade
+	}
+	return false
+}
+
+type UserServerMoveReq struct {
+	Index                int32    `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	Username             string   `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Charname             string   `protobuf:"bytes,3,opt,name=charname,proto3" json:"charname,omitempty"`
+	Password             string   `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
+	SecurityLock         uint32   `protobuf:"varint,5,opt,name=securityLock,proto3" json:"securityLock,omitempty"`
+	SecurityCode         uint32   `protobuf:"varint,6,opt,name=securityCode,proto3" json:"securityCode,omitempty"`
+	ServerCodeSrc        uint32   `protobuf:"varint,7,opt,name=serverCodeSrc,proto3" json:"serverCodeSrc,omitempty"`
+	ServerCodeDst        uint32   `protobuf:"varint,8,opt,name=serverCodeDst,proto3" json:"serverCodeDst,omitempty"`
+	MapNumber            uint32   `protobuf:"varint,9,opt,name=mapNumber,proto3" json:"mapNumber,omitempty"`
+	X                    uint32   `protobuf:"varint,10,opt,name=x,proto3" json:"x,omitempty"`
+	Y                    uint32   `protobuf:"varint,11,opt,name=y,proto3" json:"y,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserServerMoveReq) Reset()         { *m = UserServerMoveReq{} }
+func (m *UserServerMoveReq) String() string { return proto.CompactTextString(m) }
+func (*UserServerMoveReq) ProtoMessage()    {}
+func (*UserServerMoveReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{12}
+}
+
+func (m *UserServerMoveReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserServerMoveReq.Unmarshal(m, b)
+}
+func (m *UserServerMoveReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserServerMoveReq.Marshal(b, m, deterministic)
+}
+func (m *UserServerMoveReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserServerMoveReq.Merge(m, src)
+}
+func (m *UserServerMoveReq) XXX_Size() int {
+	return xxx_messageInfo_UserServerMoveReq.Size(m)
+}
+func (m *UserServerMoveReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserServerMoveReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserServerMoveReq proto.InternalMessageInfo
+
+func (m *UserServerMoveReq) GetIndex() int32 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+func (m *UserServerMoveReq) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
+func (m *UserServerMoveReq) GetCharname() string {
+	if m != nil {
+		return m.Charname
+	}
+	return ""
+}
+
+func (m *UserServerMoveReq) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+func (m *UserServerMoveReq) GetSecurityLock() uint32 {
+	if m != nil {
+		return m.SecurityLock
+	}
+	return 0
+}
+
+func (m *UserServerMoveReq) GetSecurityCode() uint32 {
+	if m != nil {
+		return m.SecurityCode
+	}
+	return 0
+}
+
+func (m *UserServerMoveReq) GetServerCodeSrc() uint32 {
+	if m != nil {
+		return m.ServerCodeSrc
+	}
+	return 0
+}
+
+func (m *UserServerMoveReq) GetServerCodeDst() uint32 {
+	if m != nil {
+		return m.ServerCodeDst
+	}
+	return 0
+}
+
+func (m *UserServerMoveReq) GetMapNumber() uint32 {
+	if m != nil {
+		return m.MapNumber
+	}
+	return 0
+}
+
+func (m *UserServerMoveReq) GetX() uint32 {
+	if m != nil {
+		return m.X
+	}
+	return 0
+}
+
+func (m *UserServerMoveReq) GetY() uint32 {
+	if m != nil {
+		return m.Y
+	}
+	return 0
+}
+
+type UserServerMoveRes struct {
+	Index                int32    `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	Username             string   `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Charname             string   `protobuf:"bytes,3,opt,name=charname,proto3" json:"charname,omitempty"`
+	ServerCodeSrc        uint32   `protobuf:"varint,4,opt,name=serverCodeSrc,proto3" json:"serverCodeSrc,omitempty"`
+	ServerCodeDst        uint32   `protobuf:"varint,5,opt,name=serverCodeDst,proto3" json:"serverCodeDst,omitempty"`
+	MapNumber            uint32   `protobuf:"varint,6,opt,name=mapNumber,proto3" json:"mapNumber,omitempty"`
+	X                    uint32   `protobuf:"varint,7,opt,name=x,proto3" json:"x,omitempty"`
+	Y                    uint32   `protobuf:"varint,8,opt,name=y,proto3" json:"y,omitempty"`
+	Result               uint32   `protobuf:"varint,9,opt,name=result,proto3" json:"result,omitempty"`
+	AuthCode1            int32    `protobuf:"varint,10,opt,name=authCode1,proto3" json:"authCode1,omitempty"`
+	AuthCode2            int32    `protobuf:"varint,11,opt,name=authCode2,proto3" json:"authCode2,omitempty"`
+	AuthCode3            int32    `protobuf:"varint,12,opt,name=authCode3,proto3" json:"authCode3,omitempty"`
+	AuthCode4            int32    `protobuf:"varint,13,opt,name=authCode4,proto3" json:"authCode4,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserServerMoveRes) Reset()         { *m = UserServerMoveRes{} }
+func (m *UserServerMoveRes) String() string { return proto.CompactTextString(m) }
+func (*UserServerMoveRes) ProtoMessage()    {}
+func (*UserServerMoveRes) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{13}
+}
+
+func (m *UserServerMoveRes) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserServerMoveRes.Unmarshal(m, b)
+}
+func (m *UserServerMoveRes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserServerMoveRes.Marshal(b, m, deterministic)
+}
+func (m *UserServerMoveRes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserServerMoveRes.Merge(m, src)
+}
+func (m *UserServerMoveRes) XXX_Size() int {
+	return xxx_messageInfo_UserServerMoveRes.Size(m)
+}
+func (m *UserServerMoveRes) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserServerMoveRes.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserServerMoveRes proto.InternalMessageInfo
+
+func (m *UserServerMoveRes) GetIndex() int32 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+func (m *UserServerMoveRes) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
+func (m *UserServerMoveRes) GetCharname() string {
+	if m != nil {
+		return m.Charname
+	}
+	return ""
+}
+
+func (m *UserServerMoveRes) GetServerCodeSrc() uint32 {
+	if m != nil {
+		return m.ServerCodeSrc
+	}
+	return 0
+}
+
+func (m *UserServerMoveRes) GetServerCodeDst() uint32 {
+	if m != nil {
+		return m.ServerCodeDst
+	}
+	return 0
+}
+
+func (m *UserServerMoveRes) GetMapNumber() uint32 {
+	if m != nil {
+		return m.MapNumber
+	}
+	return 0
+}
+
+func (m *UserServerMoveRes) GetX() uint32 {
+	if m != nil {
+		return m.X
+	}
+	return 0
+}
+
+func (m *UserServerMoveRes) GetY() uint32 {
+	if m != nil {
+		return m.Y
+	}
+	return 0
+}
+
+func (m *UserServerMoveRes) GetResult() uint32 {
+	if m != nil {
+		return m.Result
+	}
+	return 0
+}
+
+func (m *UserServerMoveRes) GetAuthCode1() int32 {
+	if m != nil {
+		return m.AuthCode1
+	}
+	return 0
+}
+
+func (m *UserServerMoveRes) GetAuthCode2() int32 {
+	if m != nil {
+		return m.AuthCode2
+	}
+	return 0
+}
+
+func (m *UserServerMoveRes) GetAuthCode3() int32 {
+	if m != nil {
+		return m.AuthCode3
+	}
+	return 0
+}
+
+func (m *UserServerMoveRes) GetAuthCode4() int32 {
+	if m != nil {
+		return m.AuthCode4
+	}
+	return 0
+}
+
+type UserServerMoveAuthReq struct {
+	Index                int32    `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	Username             string   `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Charname             string   `protobuf:"bytes,3,opt,name=charname,proto3" json:"charname,omitempty"`
+	ServerCode           uint32   `protobuf:"varint,4,opt,name=serverCode,proto3" json:"serverCode,omitempty"`
+	AuthCode1            int32    `protobuf:"varint,5,opt,name=authCode1,proto3" json:"authCode1,omitempty"`
+	AuthCode2            int32    `protobuf:"varint,6,opt,name=authCode2,proto3" json:"authCode2,omitempty"`
+	AuthCode3            int32    `protobuf:"varint,7,opt,name=authCode3,proto3" json:"authCode3,omitempty"`
+	AuthCode4            int32    `protobuf:"varint,8,opt,name=authCode4,proto3" json:"authCode4,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserServerMoveAuthReq) Reset()         { *m = UserServerMoveAuthReq{} }
+func (m *UserServerMoveAuthReq) String() string { return proto.CompactTextString(m) }
+func (*UserServerMoveAuthReq) ProtoMessage()    {}
+func (*UserServerMoveAuthReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{14}
+}
+
+func (m *UserServerMoveAuthReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserServerMoveAuthReq.Unmarshal(m, b)
+}
+func (m *UserServerMoveAuthReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserServerMoveAuthReq.Marshal(b, m, deterministic)
+}
+func (m *UserServerMoveAuthReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserServerMoveAuthReq.Merge(m, src)
+}
+func (m *UserServerMoveAuthReq) XXX_Size() int {
+	return xxx_messageInfo_UserServerMoveAuthReq.Size(m)
+}
+func (m *UserServerMoveAuthReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserServerMoveAuthReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserServerMoveAuthReq proto.InternalMessageInfo
+
+func (m *UserServerMoveAuthReq) GetIndex() int32 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthReq) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
+func (m *UserServerMoveAuthReq) GetCharname() string {
+	if m != nil {
+		return m.Charname
+	}
+	return ""
+}
+
+func (m *UserServerMoveAuthReq) GetServerCode() uint32 {
+	if m != nil {
+		return m.ServerCode
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthReq) GetAuthCode1() int32 {
+	if m != nil {
+		return m.AuthCode1
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthReq) GetAuthCode2() int32 {
+	if m != nil {
+		return m.AuthCode2
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthReq) GetAuthCode3() int32 {
+	if m != nil {
+		return m.AuthCode3
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthReq) GetAuthCode4() int32 {
+	if m != nil {
+		return m.AuthCode4
+	}
+	return 0
+}
+
+type UserServerMoveAuthRes struct {
+	Index                int32    `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	Username             string   `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Charname             string   `protobuf:"bytes,3,opt,name=charname,proto3" json:"charname,omitempty"`
+	Password             string   `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
+	SecurityLock         uint32   `protobuf:"varint,5,opt,name=securityLock,proto3" json:"securityLock,omitempty"`
+	SecurityCode         uint32   `protobuf:"varint,6,opt,name=securityCode,proto3" json:"securityCode,omitempty"`
+	ServerCode           uint32   `protobuf:"varint,7,opt,name=serverCode,proto3" json:"serverCode,omitempty"`
+	MapNumber            uint32   `protobuf:"varint,8,opt,name=mapNumber,proto3" json:"mapNumber,omitempty"`
+	X                    uint32   `protobuf:"varint,9,opt,name=x,proto3" json:"x,omitempty"`
+	Y                    uint32   `protobuf:"varint,10,opt,name=y,proto3" json:"y,omitempty"`
+	Result               int32    `protobuf:"varint,11,opt,name=result,proto3" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UserServerMoveAuthRes) Reset()         { *m = UserServerMoveAuthRes{} }
+func (m *UserServerMoveAuthRes) String() string { return proto.CompactTextString(m) }
+func (*UserServerMoveAuthRes) ProtoMessage()    {}
+func (*UserServerMoveAuthRes) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cc2b35845d6121f3, []int{15}
+}
+
+func (m *UserServerMoveAuthRes) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UserServerMoveAuthRes.Unmarshal(m, b)
+}
+func (m *UserServerMoveAuthRes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UserServerMoveAuthRes.Marshal(b, m, deterministic)
+}
+func (m *UserServerMoveAuthRes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UserServerMoveAuthRes.Merge(m, src)
+}
+func (m *UserServerMoveAuthRes) XXX_Size() int {
+	return xxx_messageInfo_UserServerMoveAuthRes.Size(m)
+}
+func (m *UserServerMoveAuthRes) XXX_DiscardUnknown() {
+	xxx_messageInfo_UserServerMoveAuthRes.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UserServerMoveAuthRes proto.InternalMessageInfo
+
+func (m *UserServerMoveAuthRes) GetIndex() int32 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthRes) GetUsername() string {
+	if m != nil {
+		return m.Username
+	}
+	return ""
+}
+
+func (m *UserServerMoveAuthRes) GetCharname() string {
+	if m != nil {
+		return m.Charname
+	}
+	return ""
+}
+
+func (m *UserServerMoveAuthRes) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+func (m *UserServerMoveAuthRes) GetSecurityLock() uint32 {
+	if m != nil {
+		return m.SecurityLock
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthRes) GetSecurityCode() uint32 {
+	if m != nil {
+		return m.SecurityCode
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthRes) GetServerCode() uint32 {
+	if m != nil {
+		return m.ServerCode
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthRes) GetMapNumber() uint32 {
+	if m != nil {
+		return m.MapNumber
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthRes) GetX() uint32 {
+	if m != nil {
+		return m.X
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthRes) GetY() uint32 {
+	if m != nil {
+		return m.Y
+	}
+	return 0
+}
+
+func (m *UserServerMoveAuthRes) GetResult() int32 {
+	if m != nil {
+		return m.Result
+	}
+	return 0
 }
 
 type VipAddReq struct {
@@ -496,7 +1105,7 @@ func (m *VipAddReq) Reset()         { *m = VipAddReq{} }
 func (m *VipAddReq) String() string { return proto.CompactTextString(m) }
 func (*VipAddReq) ProtoMessage()    {}
 func (*VipAddReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cc2b35845d6121f3, []int{9}
+	return fileDescriptor_cc2b35845d6121f3, []int{16}
 }
 
 func (m *VipAddReq) XXX_Unmarshal(b []byte) error {
@@ -549,7 +1158,7 @@ func (m *VipCheckReq) Reset()         { *m = VipCheckReq{} }
 func (m *VipCheckReq) String() string { return proto.CompactTextString(m) }
 func (*VipCheckReq) ProtoMessage()    {}
 func (*VipCheckReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cc2b35845d6121f3, []int{10}
+	return fileDescriptor_cc2b35845d6121f3, []int{17}
 }
 
 func (m *VipCheckReq) XXX_Unmarshal(b []byte) error {
@@ -591,7 +1200,7 @@ func (m *VipCheckRes) Reset()         { *m = VipCheckRes{} }
 func (m *VipCheckRes) String() string { return proto.CompactTextString(m) }
 func (*VipCheckRes) ProtoMessage()    {}
 func (*VipCheckRes) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cc2b35845d6121f3, []int{11}
+	return fileDescriptor_cc2b35845d6121f3, []int{18}
 }
 
 func (m *VipCheckRes) XXX_Unmarshal(b []byte) error {
@@ -643,13 +1252,20 @@ func (m *VipCheckRes) GetEndDays() int32 {
 func init() {
 	proto.RegisterType((*ServerLoginReq)(nil), "model.serverLoginReq")
 	proto.RegisterType((*ServerLoginRes)(nil), "model.serverLoginRes")
-	proto.RegisterType((*AccountLoginReq)(nil), "model.accountLoginReq")
-	proto.RegisterType((*AccountLoginRes)(nil), "model.accountLoginRes")
-	proto.RegisterType((*AccountKickRes)(nil), "model.accountKickRes")
-	proto.RegisterType((*AccountJoinOtherRes)(nil), "model.accountJoinOtherRes")
-	proto.RegisterType((*AccountLoginFailedReq)(nil), "model.accountLoginFailedReq")
-	proto.RegisterType((*AccountBlockReq)(nil), "model.accountBlockReq")
-	proto.RegisterType((*AccountExitReq)(nil), "model.accountExitReq")
+	proto.RegisterType((*ServerUserCountSetReq)(nil), "model.serverUserCountSetReq")
+	proto.RegisterType((*UserLoginReq)(nil), "model.userLoginReq")
+	proto.RegisterType((*UserLoginRes)(nil), "model.userLoginRes")
+	proto.RegisterType((*UserKickRes)(nil), "model.userKickRes")
+	proto.RegisterType((*UserJoinOtherRes)(nil), "model.userJoinOtherRes")
+	proto.RegisterType((*UserLoginFailedReq)(nil), "model.userLoginFailedReq")
+	proto.RegisterType((*UserBlockReq)(nil), "model.userBlockReq")
+	proto.RegisterType((*UserExitReq)(nil), "model.userExitReq")
+	proto.RegisterType((*UserKillReq)(nil), "model.userKillReq")
+	proto.RegisterType((*UserOffTradeSetReq)(nil), "model.userOffTradeSetReq")
+	proto.RegisterType((*UserServerMoveReq)(nil), "model.userServerMoveReq")
+	proto.RegisterType((*UserServerMoveRes)(nil), "model.userServerMoveRes")
+	proto.RegisterType((*UserServerMoveAuthReq)(nil), "model.userServerMoveAuthReq")
+	proto.RegisterType((*UserServerMoveAuthRes)(nil), "model.userServerMoveAuthRes")
 	proto.RegisterType((*VipAddReq)(nil), "model.vipAddReq")
 	proto.RegisterType((*VipCheckReq)(nil), "model.vipCheckReq")
 	proto.RegisterType((*VipCheckRes)(nil), "model.vipCheckRes")
@@ -658,33 +1274,53 @@ func init() {
 func init() { proto.RegisterFile("game_data.proto", fileDescriptor_cc2b35845d6121f3) }
 
 var fileDescriptor_cc2b35845d6121f3 = []byte{
-	// 434 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x93, 0xdf, 0x6a, 0xdb, 0x30,
-	0x14, 0xc6, 0x71, 0x52, 0xa7, 0xf5, 0x19, 0x69, 0x8a, 0xf7, 0x07, 0x31, 0x76, 0x51, 0x74, 0x95,
-	0xc1, 0x36, 0x18, 0x7d, 0x82, 0x2d, 0xd9, 0x58, 0xb7, 0x41, 0x41, 0x30, 0x06, 0xbb, 0x19, 0xaa,
-	0x75, 0xd6, 0x88, 0xc5, 0x96, 0x2a, 0xc9, 0x59, 0xf3, 0x1c, 0xbb, 0xdd, 0xc3, 0x0e, 0x1d, 0xa7,
-	0x6e, 0x62, 0x48, 0x7c, 0xf7, 0x9d, 0xcf, 0xc7, 0x3a, 0xbf, 0x4f, 0xe2, 0xc0, 0xe4, 0x46, 0x96,
-	0xf8, 0x53, 0xc9, 0x20, 0xdf, 0x58, 0x67, 0x82, 0xc9, 0xd3, 0xd2, 0x28, 0x5c, 0xf2, 0x7f, 0x09,
-	0x9c, 0x7a, 0x74, 0x2b, 0x74, 0x5f, 0xcd, 0x8d, 0xae, 0x04, 0xde, 0xe6, 0x39, 0x1c, 0x85, 0xb5,
-	0x45, 0x96, 0x9c, 0x27, 0xd3, 0x54, 0x90, 0x8e, 0x9e, 0x35, 0x2e, 0xb0, 0x41, 0xe3, 0x45, 0x1d,
-	0xbd, 0x4a, 0x96, 0xc8, 0x86, 0xe7, 0xc9, 0x34, 0x13, 0xa4, 0xa3, 0x57, 0x18, 0x85, 0xec, 0xa8,
-	0xe9, 0x8b, 0x3a, 0x3f, 0x83, 0xe1, 0x4a, 0x5b, 0x96, 0x92, 0x15, 0x65, 0x3e, 0x85, 0x49, 0x29,
-	0xef, 0x3e, 0x7d, 0xbf, 0x9c, 0x7f, 0xf3, 0x38, 0x33, 0x75, 0x15, 0xd8, 0x88, 0xbe, 0x76, 0x6d,
-	0x3e, 0xed, 0xd0, 0xf9, 0xfc, 0x19, 0x8c, 0x1c, 0xfa, 0x7a, 0x19, 0x88, 0x6f, 0x2c, 0x36, 0x15,
-	0xff, 0x9b, 0xc0, 0x44, 0x16, 0x45, 0xfc, 0xab, 0x4d, 0xf2, 0x1c, 0x4e, 0x6a, 0x8f, 0x8e, 0x28,
-	0x13, 0xa2, 0x6c, 0xeb, 0xf8, 0xcd, 0x4a, 0xef, 0xff, 0x18, 0xa7, 0x28, 0x55, 0x26, 0xda, 0x3a,
-	0xce, 0xa8, 0xea, 0xf2, 0x1a, 0x1d, 0x65, 0x1b, 0x8b, 0x4d, 0x95, 0xbf, 0x80, 0xac, 0x94, 0xc5,
-	0x42, 0x57, 0x78, 0x39, 0xa7, 0x88, 0x99, 0x78, 0x30, 0x62, 0x76, 0xa9, 0x94, 0xa3, 0xa0, 0x99,
-	0x20, 0xcd, 0x4d, 0x17, 0x6a, 0x6f, 0x80, 0x1d, 0xd8, 0x41, 0x07, 0x76, 0x1f, 0xd0, 0x19, 0x0c,
-	0x6b, 0xad, 0x08, 0x65, 0x2c, 0xa2, 0xe4, 0x3f, 0xe0, 0x74, 0x33, 0xf0, 0x8b, 0x2e, 0x7e, 0xc7,
-	0x79, 0x87, 0x2e, 0xe1, 0xe1, 0xdc, 0xc1, 0xce, 0xb9, 0x4f, 0x20, 0xfd, 0x65, 0x5c, 0xd1, 0xbc,
-	0xed, 0x89, 0x68, 0x0a, 0xfe, 0x16, 0x1e, 0x6f, 0xce, 0xfe, 0x6c, 0x74, 0x75, 0x15, 0x16, 0xe8,
-	0x7a, 0x06, 0xf0, 0x0b, 0x78, 0xba, 0x9d, 0xff, 0xa3, 0xd4, 0x4b, 0x54, 0x3d, 0x4f, 0xc3, 0x5f,
-	0xb7, 0x97, 0xf6, 0x7e, 0x69, 0x62, 0x88, 0xc3, 0xed, 0xaf, 0xda, 0xc8, 0x1f, 0xee, 0x74, 0xe8,
-	0xeb, 0xbe, 0x82, 0x6c, 0xa5, 0xed, 0x3b, 0xd5, 0x47, 0xd1, 0xae, 0xc1, 0x60, 0x77, 0x0d, 0x94,
-	0x5c, 0x7b, 0xba, 0x96, 0x54, 0x90, 0xe6, 0x2f, 0xe1, 0xd1, 0x4a, 0xdb, 0xd9, 0x02, 0xfb, 0x49,
-	0x6f, 0xb7, 0x5b, 0x0f, 0xbf, 0x0c, 0x83, 0x63, 0x2b, 0xd7, 0xb3, 0xb8, 0x4b, 0x0d, 0xc0, 0x7d,
-	0xd9, 0x72, 0x0d, 0xb7, 0xb8, 0x18, 0x1c, 0x63, 0xa5, 0xe6, 0x11, 0xad, 0xd9, 0xbc, 0xfb, 0xf2,
-	0x7a, 0x44, 0xdb, 0x7e, 0xf1, 0x3f, 0x00, 0x00, 0xff, 0xff, 0xaf, 0xce, 0x53, 0xc3, 0x00, 0x04,
-	0x00, 0x00,
+	// 757 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x56, 0xd1, 0x4e, 0xdb, 0x3c,
+	0x14, 0x56, 0xda, 0xa6, 0x4d, 0x0e, 0xed, 0x0f, 0x7f, 0x04, 0xbf, 0x22, 0x84, 0x7e, 0x21, 0x6b,
+	0x17, 0xdd, 0x2e, 0xd0, 0x06, 0xbc, 0x00, 0xa3, 0x9b, 0xc6, 0x80, 0x21, 0x99, 0x21, 0x2e, 0x27,
+	0x93, 0x18, 0x1a, 0xd1, 0xc6, 0xc1, 0x76, 0xba, 0xf6, 0x2d, 0xf6, 0x00, 0x7b, 0x93, 0x3d, 0xc2,
+	0x1e, 0x68, 0x57, 0x93, 0x26, 0xdb, 0x21, 0x8d, 0x4b, 0x69, 0xb9, 0xe0, 0x66, 0x77, 0xe7, 0x7c,
+	0xe7, 0x24, 0xfe, 0xbe, 0x2f, 0xc7, 0x8e, 0x61, 0xf5, 0x86, 0x0c, 0xe9, 0x97, 0x98, 0x48, 0xb2,
+	0x93, 0x71, 0x26, 0x59, 0xe0, 0x0e, 0x59, 0x4c, 0x07, 0xe8, 0xbb, 0x03, 0xff, 0x08, 0xca, 0x47,
+	0x94, 0x9f, 0xb0, 0x9b, 0x24, 0xc5, 0xf4, 0x2e, 0x08, 0xa0, 0x21, 0x27, 0x19, 0x0d, 0x9d, 0x6d,
+	0xa7, 0xeb, 0x62, 0x1d, 0x2b, 0x2c, 0x63, 0x5c, 0x86, 0x35, 0x83, 0xa9, 0x58, 0x61, 0x29, 0x19,
+	0xd2, 0xb0, 0xbe, 0xed, 0x74, 0x7d, 0xac, 0x63, 0x85, 0x45, 0x2c, 0xa6, 0x61, 0xc3, 0xf4, 0xa9,
+	0x38, 0x58, 0x83, 0xfa, 0x28, 0xc9, 0x42, 0x57, 0x43, 0x2a, 0x0c, 0xba, 0xb0, 0x3a, 0x24, 0xe3,
+	0x0f, 0x97, 0x47, 0xbd, 0x0b, 0x41, 0x0f, 0x59, 0x9e, 0xca, 0xb0, 0xa9, 0xab, 0xb3, 0x30, 0xea,
+	0xce, 0xb0, 0x13, 0xc1, 0x7f, 0xd0, 0xe4, 0x54, 0xe4, 0x03, 0xa9, 0xf9, 0x75, 0x70, 0x91, 0xa1,
+	0x21, 0x6c, 0x98, 0xce, 0x0b, 0x41, 0xb9, 0x7e, 0xf8, 0x9c, 0xca, 0x42, 0x8e, 0xa6, 0xe4, 0x54,
+	0x28, 0x6d, 0x81, 0x5f, 0xb6, 0x15, 0x9a, 0xa6, 0x40, 0x80, 0xa0, 0x5d, 0x26, 0xa7, 0x64, 0xac,
+	0x05, 0xba, 0xd8, 0xc2, 0xd0, 0x37, 0x07, 0xda, 0xb9, 0xa8, 0xb8, 0xb6, 0x09, 0x9e, 0xca, 0xb5,
+	0x23, 0x8e, 0x76, 0xa4, 0xcc, 0x55, 0x2d, 0x23, 0x42, 0x7c, 0x65, 0x3c, 0xd6, 0xab, 0xf9, 0xb8,
+	0xcc, 0x95, 0x9e, 0x34, 0x1f, 0x5e, 0x51, 0xae, 0x97, 0xe9, 0xe0, 0x22, 0x53, 0x14, 0x87, 0x24,
+	0xea, 0x27, 0x29, 0x3d, 0xea, 0x69, 0x3b, 0x7d, 0x3c, 0x05, 0x94, 0x28, 0x12, 0xc7, 0x5c, 0x9b,
+	0xea, 0x63, 0x1d, 0xa3, 0x81, 0xc5, 0xe8, 0x51, 0xa7, 0x2c, 0xa6, 0xb5, 0x19, 0xa6, 0x8f, 0xb1,
+	0x59, 0x83, 0x7a, 0x9e, 0xc4, 0x9a, 0x47, 0x07, 0xab, 0x10, 0x5d, 0xc2, 0x8a, 0x7a, 0xea, 0x38,
+	0x89, 0x6e, 0xd5, 0x62, 0x8b, 0xe4, 0x4f, 0x5f, 0x5a, 0xb3, 0x5e, 0xba, 0x0e, 0xee, 0x35, 0xe3,
+	0x91, 0x99, 0x20, 0x0f, 0x9b, 0x04, 0xed, 0xc0, 0x9a, 0x7a, 0xf2, 0x23, 0x4b, 0xd2, 0x33, 0xd9,
+	0xa7, 0x7c, 0xc9, 0xdb, 0xd1, 0x6b, 0x08, 0x4a, 0xd9, 0xef, 0x49, 0x32, 0xa0, 0xf1, 0x92, 0xcf,
+	0x81, 0x5e, 0x19, 0xa3, 0xde, 0x0e, 0x98, 0xe2, 0xbe, 0xb8, 0xf7, 0xa5, 0x91, 0xf9, 0x6e, 0x9c,
+	0xc8, 0x27, 0xb6, 0x1e, 0x27, 0x83, 0xc1, 0xb2, 0xd6, 0x13, 0xc3, 0xf9, 0xec, 0xfa, 0xfa, 0x33,
+	0x27, 0x31, 0x2d, 0x26, 0x75, 0xc9, 0x08, 0xb1, 0xa2, 0x5b, 0xbb, 0xe8, 0xe1, 0x32, 0x47, 0x3f,
+	0x6b, 0xf0, 0xaf, 0x6a, 0x3c, 0xd7, 0xf3, 0x7f, 0xca, 0x46, 0x54, 0xbd, 0x6d, 0x1d, 0xdc, 0x24,
+	0x8d, 0xe9, 0xb8, 0x18, 0x7c, 0x93, 0x2c, 0xfc, 0xf8, 0x9b, 0xe0, 0x45, 0x7d, 0xc2, 0x2b, 0x9b,
+	0xba, 0xcc, 0xad, 0x11, 0x6e, 0xcc, 0x8c, 0x30, 0x82, 0xb6, 0xa0, 0x51, 0xce, 0x13, 0x39, 0x39,
+	0x61, 0xd1, 0xad, 0x1e, 0xca, 0x0e, 0xb6, 0xb0, 0x6a, 0xcf, 0xa1, 0xda, 0x8d, 0x4d, 0xbb, 0x47,
+	0x61, 0xc1, 0x0b, 0xe8, 0x98, 0x2d, 0xac, 0xb2, 0x73, 0x1e, 0x85, 0x2d, 0xdd, 0x64, 0x83, 0x76,
+	0x57, 0x4f, 0xc8, 0xd0, 0x9b, 0xed, 0xea, 0x09, 0x69, 0xb6, 0x4f, 0xf6, 0xc9, 0x8c, 0x9d, 0xaf,
+	0x3b, 0xa6, 0x40, 0xd0, 0x06, 0x67, 0x1c, 0x82, 0x46, 0x9d, 0xb1, 0xca, 0x26, 0xe1, 0x8a, 0xc9,
+	0x26, 0xe8, 0xd7, 0x1c, 0x37, 0xc5, 0x33, 0xbb, 0xf9, 0x40, 0x69, 0xe3, 0x49, 0x4a, 0xdd, 0xa5,
+	0x4a, 0x9b, 0x73, 0x95, 0xb6, 0x2c, 0xa5, 0x5e, 0xa1, 0xb4, 0x72, 0x40, 0xf8, 0xd6, 0x01, 0xb1,
+	0x05, 0x3e, 0xc9, 0x65, 0x5f, 0x2d, 0xf0, 0x46, 0xbb, 0xe4, 0xe2, 0x29, 0x50, 0xad, 0xee, 0x6a,
+	0xd7, 0x2a, 0xd5, 0xdd, 0x6a, 0x75, 0x2f, 0x6c, 0xdb, 0xd5, 0xbd, 0x6a, 0x75, 0x3f, 0xec, 0xd8,
+	0xd5, 0x7d, 0xf4, 0xdb, 0x81, 0x0d, 0xdb, 0xf9, 0x83, 0x5c, 0xf6, 0x9f, 0x7f, 0x96, 0xff, 0x07,
+	0x98, 0x5a, 0x58, 0x58, 0x5f, 0x41, 0x6c, 0xfd, 0xee, 0x42, 0xfd, 0xcd, 0x85, 0xfa, 0x5b, 0x0b,
+	0xf5, 0x7b, 0xb3, 0xfa, 0x7f, 0xd4, 0xe6, 0xeb, 0x17, 0x7f, 0xe1, 0x5e, 0xb6, 0x3d, 0x6e, 0xcd,
+	0xf3, 0x78, 0x3a, 0xb5, 0xde, 0xdc, 0xa9, 0xf5, 0xad, 0xa9, 0x85, 0x87, 0x53, 0x6b, 0x86, 0xef,
+	0xfe, 0x02, 0x70, 0x06, 0xfe, 0x28, 0xc9, 0x0e, 0xe2, 0x65, 0xc7, 0x7f, 0x79, 0xbf, 0xa9, 0xd9,
+	0xf7, 0x9b, 0x98, 0x4c, 0x44, 0xf1, 0xab, 0xd7, 0xb1, 0x3a, 0xcf, 0x47, 0x49, 0x76, 0xd8, 0xa7,
+	0xcb, 0xff, 0x12, 0x77, 0xd5, 0xd6, 0xc5, 0x3f, 0xc3, 0x10, 0x5a, 0x19, 0x31, 0xbe, 0x19, 0x02,
+	0xf7, 0x69, 0xc9, 0xab, 0x5e, 0xe1, 0x15, 0x42, 0x8b, 0xa6, 0x71, 0x4f, 0x51, 0x33, 0x57, 0xaa,
+	0xfb, 0xf4, 0xaa, 0xa9, 0xaf, 0x71, 0x7b, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0x8d, 0xd3, 0xb9,
+	0x9b, 0xd9, 0x09, 0x00, 0x00,
 }

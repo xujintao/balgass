@@ -18,6 +18,8 @@ type server struct {
 	typ            uint8
 	port           uint16
 	vip            uint8
+	userCount      int
+	userCountMax   int
 	maxMIDUseCount int
 }
 
@@ -56,11 +58,48 @@ func (m *serverManager) ServerLogin(index interface{}, msg *model.ServerLoginReq
 	return nil, fmt.Errorf("%s is off line", sid)
 }
 
-func (m *serverManager) ServerDel(index interface{}) {
+func (m *serverManager) ServerExit(index interface{}) {
+	UserManager.UserDelete(index)
+
 	sid := index.(string)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	delete(m.servers, sid)
+}
+
+func (m *serverManager) ServerCodeValidate(code uint16) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, s := range m.servers {
+		if s.code == code {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *serverManager) ServerUserCountLimit(code uint16) bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	for _, s := range m.servers {
+		if s.code == code {
+			return s.userCount >= s.userCountMax
+		}
+	}
+	return true
+}
+
+func (m *serverManager) ServerUserCountSet(index interface{}, req *model.ServerUserCountSetReq) error {
+	sid := index.(string)
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	server, ok := m.servers[sid]
+	if !ok {
+		panic("server manager")
+	}
+	server.userCount = int(req.UserCount)
+	server.userCountMax = int(req.UserCountMax)
+	return nil
 }
 
 // Send send package to server with index

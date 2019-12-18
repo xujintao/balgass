@@ -59,22 +59,21 @@ func (h *handleData) Exit() {
 var cmdsData = map[int]func(index interface{}, req *network.Request){
 	// join
 	0x00: serverLogin,
-	0x01: accountLogin,
-	0x02: accountLoginFailed,
-	0x04: accountBlock,
-	0x05: accountExit,
+	0x01: userLogin,
+	0x02: userLoginFailed,
+	0x04: userBlock,
+	0x05: userExit,
 	0x06: vipCheck,
+	// 0x30: loveHeartEventReq,
+	// 0x31: loveHeartCreate,
+	0x7A: userServerMove,
+	0x7B: userServerMoveAuth,
+	0x7C: serverUserCountSet,
+	0x80: userOffTradeSet,
 	0xD3: vipAdd,
+	0xFE: userKill,
+	// 0xFF: serverDisconnect, // service.ServerManager.ServerExit(index) instead
 	/*
-		0x30: loveHeartEventReq,
-		0x31: loveHeartCreate,
-		0x7A: mapSvrMoveReq,
-		0x7B: mapSvrAuthReq,
-		0x7C: notifyMaxUserCount,
-		0x80: offTradeSetReq,
-		0xFE: userKill,
-		0xFF: serverDisconnect,
-
 		// data
 		0x00:   loginDataServer,
 		0x01:   charListGet,
@@ -346,21 +345,21 @@ func serverLogin(index interface{}, req *network.Request) {
 
 	// write
 	res := &network.Response{}
-	res.WriteHead(0xc1, 0x00).Write(buf)
+	res.WriteHead(0xC1, 0x00).Write(buf)
 	if err := service.ServerManager.Send(index, res); err != nil {
 		log.Printf("Send failed, %v", err)
 	}
 }
 
-func accountLogin(index interface{}, req *network.Request) {
-	msgReq := &model.AccountLoginReq{}
+func userLogin(index interface{}, req *network.Request) {
+	msgReq := &model.UserLoginReq{}
 	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
 		log.Println(err)
 		return
 	}
 	// validate username and passwd
 
-	msgRes, err := service.AccountManager.AccountLogin(index, msgReq)
+	msgRes, err := service.UserManager.UserLogin(index, msgReq)
 	if err != nil {
 		log.Println(err)
 		return
@@ -373,51 +372,51 @@ func accountLogin(index interface{}, req *network.Request) {
 	}
 
 	res := &network.Response{}
-	res.WriteHead(0xc1, 0x01).Write(buf)
+	res.WriteHead(0xC1, 0x01).Write(buf)
 	if err := service.ServerManager.Send(index, res); err != nil {
 		log.Printf("Send failed, %v", err)
 	}
 }
 
-func accountLoginFailed(index interface{}, req *network.Request) {
-	msgReq := &model.AccountLoginFailedReq{}
+func userLoginFailed(index interface{}, req *network.Request) {
+	msgReq := &model.UserLoginFailedReq{}
 	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
 		log.Println(err)
 		return
 	}
 	// validate username
 
-	err := service.AccountManager.AccountLoginFailed(index, msgReq)
+	err := service.UserManager.UserLoginFailed(index, msgReq)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 }
 
-func accountBlock(index interface{}, req *network.Request) {
-	msgReq := &model.AccountBlockReq{}
+func userBlock(index interface{}, req *network.Request) {
+	msgReq := &model.UserBlockReq{}
 	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
 		log.Println(err)
 		return
 	}
 	// validate username
 
-	err := service.AccountManager.AccountBlock(index, msgReq)
+	err := service.UserManager.UserBlock(index, msgReq)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 }
 
-func accountExit(index interface{}, req *network.Request) {
-	msgReq := &model.AccountExitReq{}
+func userExit(index interface{}, req *network.Request) {
+	msgReq := &model.UserExitReq{}
 	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
 		log.Println(err)
 		return
 	}
 	// validate username
 
-	err := service.AccountManager.AccountExit(index, msgReq)
+	err := service.UserManager.UserExit(index, msgReq)
 	if err != nil {
 		log.Println(err)
 		return
@@ -444,9 +443,90 @@ func vipCheck(index interface{}, req *network.Request) {
 	}
 
 	res := &network.Response{}
-	res.WriteHead(0xc1, 0x01).Write(buf)
+	res.WriteHead(0xC1, 0x06).Write(buf)
 	if err := service.ServerManager.Send(index, res); err != nil {
 		log.Printf("Send failed, %v", err)
+	}
+}
+
+func userServerMove(index interface{}, req *network.Request) {
+	msgReq := &model.UserServerMoveReq{}
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
+
+	msgRes, err := service.UserManager.UserServerMove(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	buf, err := proto.Marshal(msgRes)
+	if err != nil {
+		log.Printf("Marshal failed, %v", err)
+		return
+	}
+
+	res := &network.Response{}
+	res.WriteHead(0xC1, 0x7A).Write(buf)
+	if err := service.ServerManager.Send(index, res); err != nil {
+		log.Printf("Send failed, %v", err)
+	}
+}
+
+func userServerMoveAuth(index interface{}, req *network.Request) {
+	msgReq := &model.UserServerMoveAuthReq{}
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
+
+	msgRes, err := service.UserManager.UserServerMoveAuth(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	buf, err := proto.Marshal(msgRes)
+	if err != nil {
+		log.Printf("Marshal failed, %v", err)
+		return
+	}
+
+	res := &network.Response{}
+	res.WriteHead(0xC1, 0x7B).Write(buf)
+	if err := service.ServerManager.Send(index, res); err != nil {
+		log.Printf("Send failed, %v", err)
+	}
+}
+
+func serverUserCountSet(index interface{}, req *network.Request) {
+	msgReq := &model.ServerUserCountSetReq{}
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
+
+	// service
+	err := service.ServerManager.ServerUserCountSet(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func userOffTradeSet(index interface{}, req *network.Request) {
+	msgReq := &model.UserOffTradeSetReq{}
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
+	// validate username
+	err := service.UserManager.UserOffTradeSet(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
 	}
 }
 
@@ -458,6 +538,21 @@ func vipAdd(index interface{}, req *network.Request) {
 	}
 	// validate username
 	err := service.VIPManager.VIPAdd(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func userKill(index interface{}, req *network.Request) {
+	msgReq := &model.UserKillReq{}
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
+	// validate username
+
+	err := service.UserManager.UserKill(index, msgReq)
 	if err != nil {
 		log.Println(err)
 		return

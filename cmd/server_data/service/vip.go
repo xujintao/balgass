@@ -12,7 +12,7 @@ import (
 type vipManager struct{}
 
 func (v *vipManager) VIPAdd(index interface{}, req *model.VipAddReq) error {
-	stmt := db.Lookup("vip-find-account-update")
+	stmt := db.Lookup("vips-find-user-update")
 	var count1, count2 int
 	if err := db.DBMuOnline.QueryRowx(stmt, req.Username, time.Now()).Scan(&count1, &count2); err != nil {
 		return fmt.Errorf("%s, %v", stmt, err)
@@ -25,19 +25,19 @@ func (v *vipManager) VIPAdd(index interface{}, req *model.VipAddReq) error {
 	switch {
 	case count1 == 0:
 		// insert
-		stmt = db.Lookup("vip-insert")
+		stmt = db.Lookup("vips-insert")
 		if _, err := db.DBMuOnline.NamedExec(stmt, &vip); err != nil {
 			return fmt.Errorf("%s, %v", stmt, err)
 		}
 	case count1 == 1 && count2 == 0:
 		// update
-		stmt = db.Lookup("vip-update-renew")
+		stmt = db.Lookup("vips-update-renew")
 		if _, err := db.DBMuOnline.NamedExec(stmt, &vip); err != nil {
 			return fmt.Errorf("%s, %v", stmt, err)
 		}
 	case count1 == 1 && count2 == 0:
 		// update
-		stmt = db.Lookup("vip-update-upgrade")
+		stmt = db.Lookup("vips-update-upgrade")
 		if _, err := db.DBMuOnline.NamedExec(stmt, &vip); err != nil {
 			return fmt.Errorf("%s, %v", stmt, err)
 		}
@@ -52,7 +52,7 @@ func (v *vipManager) VIPCheck(index interface{}, req *model.VipCheckReq) (*model
 		PayCode:  5,
 	}
 
-	stmt := db.Lookup("vip-find-account")
+	stmt := db.Lookup("vips-find-user")
 	var vip model.VIP
 	if err := db.DBMuOnline.Get(&vip, stmt, req.Username, time.Now()); err != nil {
 		if err == sql.ErrNoRows {

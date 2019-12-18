@@ -2,14 +2,14 @@ package model
 
 import "time"
 
-type Account struct {
+type User struct {
 	ID        int    `db:"memb_guid"`
 	Username  string `db:"memb___id"`
 	Password  string `db:"memb__pwd"`
 	BlockCode int    `db:"bloc_code"`
 }
 
-type AccountLoginHistory struct {
+type UserLoginHistory struct {
 	Username   string    `db:"AccountID"`
 	ServerName string    `db:"ServerName"`
 	IP         string    `db:"IP"`
@@ -18,7 +18,7 @@ type AccountLoginHistory struct {
 	MID        string    `db:"HWID"`
 }
 
-type AccountState struct {
+type UserState struct {
 	Username       string    `db:"memb___id"`
 	State          int       `db:"ConnectStat"`
 	ServerName     string    `db:"ServerName"`

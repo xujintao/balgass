@@ -28,8 +28,7 @@ func (*handleBase) OnClose(v interface{}) {
 	index := v.(string)
 	addr := service.ServerManager.ServerGetAddr(index)
 	log.Printf("[%s] disconnected", addr)
-	service.ServerManager.ServerDel(index)
-
+	service.ServerManager.ServerExit(index)
 }
 
 // Handle *CMDHandle implements network.Handler
