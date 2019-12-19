@@ -18,6 +18,7 @@ import (
 type userServerMoveData struct {
 	serverMoveReq *model.UserServerMoveReq
 	serverMoveRes *model.UserServerMoveRes
+	movetime      int64
 }
 
 type user struct {
@@ -27,7 +28,6 @@ type user struct {
 	addr           string
 	serverIndex    interface{}
 	offTrade       bool
-	tick           int64
 	serverMoveData *userServerMoveData
 }
 
@@ -179,18 +179,21 @@ func (m *userManager) UserLogin(index interface{}, req *model.UserLoginReq) (*mo
 			}
 		}
 
-		// verify move timeout
-		if time.Now().Unix()-u.tick > int64(60*time.Second) {
+		// verify server move timeout
+		if u.serverMoveData != nil {
+			if time.Now().Unix()-u.serverMoveData.movetime < int64(60*time.Second) {
+				// keep server move state until timeout
+				if err := m.userJoinOtherRes(index, u); err != nil {
+					return nil, fmt.Errorf("userJoinOtherRes failed, %v", err)
+				}
+				res.Result = 3
+				return res, nil
+			}
 			if err := m.userKickRes(u, true); err != nil {
 				return nil, fmt.Errorf("userKick failed, %v", err)
 			}
-		} else {
-			if err := m.userJoinOtherRes(index, u); err != nil {
-				return nil, fmt.Errorf("userJoinOtherRes failed, %v", err)
-			}
-			res.Result = 3
-			return res, nil
 		}
+
 		delete(m.users, username)
 	}
 
@@ -411,6 +414,7 @@ func (m *userManager) UserServerMove(index interface{}, req *model.UserServerMov
 	u.serverMoveData = &userServerMoveData{
 		serverMoveReq: req,
 		serverMoveRes: res,
+		movetime:      time.Now().Unix(),
 	}
 
 	res.AuthCode1 = int32(time.Now().Unix() << 32)
