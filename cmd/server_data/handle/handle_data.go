@@ -57,26 +57,10 @@ func (h *handleData) Exit() {
 }
 
 var cmdsData = map[int]func(index interface{}, req *network.Request){
-	// join
-	0x00: serverLogin,
-	0x01: userLogin,
-	0x02: userLoginFailed,
-	0x04: userBlock,
-	0x05: userExit,
-	0x06: vipCheck,
-	// 0x30: loveHeartEventReq,
-	// 0x31: loveHeartCreate,
-	0x7A: userServerMove,
-	0x7B: userServerMoveAuth,
-	0x7C: serverUserCountSet,
-	0x80: userOffTradeSet,
-	0xD3: vipAdd,
-	0xFE: userKill,
-	// 0xFF: serverDisconnect, // service.ServerManager.ServerExit(index) instead
+	// data
+	// 0x00: loginDataServer,
+	0x01: charListGet,
 	/*
-		// data
-		0x00:   loginDataServer,
-		0x01:   charListGet,
 		0x02:   classDefDataReq,
 		0x03:   warehouseSwitchReq,
 		0x04:   charCreateReq,
@@ -556,5 +540,32 @@ func userKill(index interface{}, req *network.Request) {
 	if err != nil {
 		log.Println(err)
 		return
+	}
+}
+
+func charListGet(index interface{}, req *network.Request) {
+	msgReq := &model.CharListGetReq{}
+	if err := proto.Unmarshal(req.Body, msgReq); err != nil {
+		log.Println(err)
+		return
+	}
+	// validate username
+
+	msgRes, err := service.CharManager.CharListGet(index, msgReq)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	buf, err := proto.Marshal(msgRes)
+	if err != nil {
+		log.Printf("Marshal failed, %v", err)
+		return
+	}
+
+	res := &network.Response{}
+	res.WriteHead(0xC2, 0x01).Write(buf)
+	if err := service.ServerManager.Send(index, res); err != nil {
+		log.Printf("Send failed, %v", err)
 	}
 }

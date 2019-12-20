@@ -138,3 +138,31 @@ message vipCheckRes {
     int32 endDays = 4;
 }
 
+message charListGetReq {
+    string username = 1;
+    int32 number = 2;
+    bool unityBattleFieldServer = 3;
+}
+
+message charListGetRes {
+    string username = 1;
+    int32 number = 2;
+    int32 securityCode = 4;
+    int32 enableCharCreate = 5;
+    int32 moveCount = 6;
+    int32 warehouseExtension = 7;
+    message charInfo {
+        int32 index = 1;
+        string name = 2;
+        string battleName = 3;
+        int32 serverCode = 4;
+        int32 level = 5;
+        int32 class = 6;
+        int32 ctlCode = 7;
+        bytes inventory = 8;
+        int32 guildStatus = 9;
+        int32 resets = 10;
+        int32 levelPK = 11;
+    }
+    repeated charInfo chars = 8;
+}

@@ -14,10 +14,15 @@ var index = map[string]string{
 	"user_states-insert":         userStatesInsert,
 	"user_states-update-connect": userStatesUpdateConnect,
 	"user_states-update-disconn": userStatesUpdateDisconn,
+	"user_chars-find-count":      userCharsFindCount,
+	"user_chars-insert":          userCharsInsert,
 	"vips-find-user":             vipsFindUser,
 	"vips-find-user-update":      vipsFindUserUpdate,
 	"vips-update-renew":          vipsUpdateRenew,
 	"vips-update-upgrade":        vipsUpdateUpgrade,
+	"chars-find-chars":           charsFindChars,
+	"guild_members-find-status":  guildMembersFindStatus,
+	"battlecores-find-bfname":    battlecoreFindBFName,
 }
 
 var usersFindUser = `
@@ -108,6 +113,38 @@ SET
 WHERE memb___id = :memb___id
 `
 
+var userCharsFindCount = `
+SELECT
+ count(*)
+FROM AccountCharacter
+WHERE id = @p1
+`
+
+var userCharsInsert = `
+INSERT INTO AccountCharacter (
+ Id
+)
+VALUES (
+ @p1
+)
+`
+
+var userCharsFindchar = `
+SELECT
+ GameID1
+,GameID2
+,GameID3
+,GameID4
+,GameID5
+,MoveCnt
+,WarehouseExpansion
+,Summoner
+,RageFighter
+,SecCode
+FROM AccountCharacter
+WHERE Id = @p1
+`
+
 var vipsFindUser = `
 SELECT
  Date
@@ -140,4 +177,32 @@ SET
 ,Type = :Type
 WHERE AccountID = :AccountID
   AND Type < :Type
+`
+
+var charsFindChars = `
+SELECT
+ Name
+,Class
+,cLevel
+,mLevel
+,CtlCode
+,RESETS
+,Inventory
+FROM Character
+WHERE AccountID = @p1
+`
+
+var guildMembersFindStatus = `
+SELECT
+ G_Status
+FROM GuildMember
+WHERE NAME = @p1
+`
+
+var battlecoreFindBFName = `
+SELECT
+ UBFName
+,ServerCode
+FROM BattleCoreInfo
+WHERE Name = @p1
 `
