@@ -44,8 +44,8 @@ type Task struct {
 	Scheme string   `yaml:"scheme"`
 	Host   string   `yaml:"host"`
 	Note   string   `yaml:"note"`
-	Paths  []string `yaml:"paths"`
 	Hosts  []string `yaml:"hosts"`
+	Paths  []string `yaml:"paths"`
 	Proxy  string   `yaml:"proxy"`
 }
 type config struct {
