@@ -8,13 +8,47 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-func mapINI(file, section string, v interface{}) {
-	log.Printf("Load %s:%s", file, section)
-	cfg, err := ini.Load(file)
+var (
+	// Server server config
+	Server configServer
+
+	// ConnectMember connect memeber config
+	ConnectMember configConnectMember
+
+	// VipSystem vip system config
+	VipSystem configVipSystem
+
+	// Common represents common config
+	Common configCommon
+)
+
+func init() {
+	mapINISection("GameServer.ini", "GameServerInfo", &Server)
+	mapXML("IGC_ConnectMember.xml", &ConnectMember)
+	mapXML("IGC_VipSettings.xml", &VipSystem)
+	mapINI("../../config/common/IGCData/IGC_Common.ini", &Common)
+}
+
+func mapINI(file, v interface{}) {
+	log.Printf("Load %s", file)
+	f, err := ini.Load(file)
 	if err != nil {
-		log.Fatalf("Failed to load %s", file)
+		log.Fatalln(err)
 	}
-	cfg.Section(section).MapTo(v)
+	if err := f.MapTo(v); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func mapINISection(file, section string, v interface{}) {
+	log.Printf("Load %s[%s]", file, section)
+	f, err := ini.Load(file)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if err := f.Section(section).MapTo(v); err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func mapXML(file string, v interface{}) {
@@ -28,24 +62,7 @@ func mapXML(file string, v interface{}) {
 	}
 }
 
-var (
-	// Server server config
-	Server serverConfig
-
-	// ConnectMember connect memeber config
-	ConnectMember connectMemberConfig
-
-	// VipSystem vip system config
-	VipSystem vipSystemConfig
-)
-
-func init() {
-	mapINI("GameServer.ini", "GameServerInfo", &Server)
-	mapXML("IGC_ConnectMember.xml", &ConnectMember)
-	mapXML("IGC_VipSettings.xml", &VipSystem)
-}
-
-type serverConfig struct {
+type configServer struct {
 	Name                string `ini:"ServerName"`
 	Code                int    `ini:"ServerCode"`
 	NonPVP              bool   `ini:"NonPK"`
@@ -68,7 +85,7 @@ type serverConfig struct {
 	MaxObjectItemCount          int `ini:"MapItemCount"`
 }
 
-type connectMemberConfig struct {
+type configConnectMember struct {
 	XMLName  xml.Name `xml:"ConnectMember"`
 	Accounts []struct {
 		Name string `xml:"Name,attr"`
@@ -95,7 +112,7 @@ type chaosBox struct {
 	SocketWeapon string `xml:"SocketWeapon,attr"`
 }
 
-type vipSystemConfig struct {
+type configVipSystem struct {
 	XMLName                xml.Name `xml:"VipSystem"`
 	LevelType              int      `xml:"LevelType,attr"`
 	SendRatesChangeMessage bool     `xml:"SendRatesChangeMessage,attr"`
@@ -131,3 +148,172 @@ type vipSystemConfig struct {
 		} `xml:"Vip"`
 	} `xml:"VipTypes"`
 }
+
+type color []int
+
+type postCMD struct {
+	Enable   bool  `ini:"Enable"`
+	Cost     int   `ini:"Cost"`
+	MinLevel int   `ini:"MinLevel"`
+	Color    color `ini:"Color"`
+	CoolDown int   `ini:"CoolDown"`
+}
+
+type configCommon struct {
+	General struct {
+		MaxLevelNormal                int     `ini:"MaxNormalLevel"`
+		MaxLevelMaster                int     `ini:"MaxMasterLevel"`
+		MasterPointPerLevel           int     `ini:"MasterPointPerLevel"`
+		MinMonsterLevelForMasterExp   int     `ini:"MonsterMinLevelForMLExp"`
+		ZenDropMultiplier             float32 `ini:"ZenDropMultipler"`
+		EnableGuardSpeak              bool    `ini:"GuardSpeak"`
+		GuardSpeakChance              int     `ini:"GuardSpeakChance"`
+		GuardSpeakMsg                 string  `ini:"GuardSpeakMsg"`
+		WelcomeMessage                string  `ini:"WelcomeMessage"`
+		EnableBossMonsterKillNotice   bool    `ini:"BossMonsterKillNotice"`
+		EnableEnterGameMessage        bool    `ini:"EnterGameMessageEnable"`
+		Enable3thQuestMonsterCountMsg bool    `ini:"ThirdQuestMonsterCountMsg"`
+		EnableTrade                   bool    `ini:"TradeBlock"`
+		EnableTradeHarmonyItem        bool    `ini:"CanTradeHarmonyItem"`
+		EnableTradeFullExcItem        bool    `ini:"CanTradeFullExcItem"`
+		EnableUseSocketExcItem        bool    `ini:"CanUseSocketExcItem"`
+		EnableUseAnciHarmonyItem      bool    `ini:"CanUseAnciHarmonyItem"`
+		EnableTrade0SerialItem        bool    `ini:"CanTradeFFFFFFFFSerialItem"`
+		EnableCheckValidItem          bool    `ini:"CheckValidItem"`
+		EnableSellAllItem             bool    `ini:"EnableSellAllItems"`
+		EnablePickLuckyItem           bool    `ini:"AllowToGetLuckyItemFromGround"`
+		EnableSellFullExcItemInPShop  bool    `ini:"CanSellInStoreFullExcItem"`
+		EnableSellFullExcItemToShop   bool    `ini:"CanSellToShopFullExcItem"`
+		EnableEnhanceLuckyItemByJewel bool    `ini:"AllowEnchantLuckyItemByJewels"`
+		LuckyItemDurabilityTime       int     `ini:"LuckyItemDurabilityTime"`
+		EnableEnterEventWithPK        bool    `ini:"CanEnterEventWithPK"`
+		RateSoul                      int     `ini:"UseSoulRate"`
+		RateSoulLucky                 int     `ini:"UseSoulWithLuckRate"`
+		RateLife                      int     `ini:"UseLifeRate"`
+		EnableLifeOption28            bool    `ini:"Is28Option"`
+		EnableSavePrivateChat         bool    `ini:"SavePrivateChat"`
+		EnableAutoParty               bool    `ini:"AutoParty"`
+		EnableReconnectSystem         bool    `ini:"ReconnectSystem"`
+		EnableItem380DropMap          int     `ini:"DropMap380Items"`
+	} `ini:"General"`
+
+	PostCMD       postCMD `ini:"PostCMD"`
+	PostCMDGlobal postCMD `ini:"GlobalPostCMD"`
+
+	ChatColor struct {
+		Info     color `ini:"Info"`
+		Error    color `ini:"Error"`
+		Chat     color `ini:"Chat"`
+		Whisper  color `ini:"Whisper"`
+		Party    color `ini:"Party"`
+		Guild    color `ini:"Guild"`
+		Alliance color `ini:"Alliance"`
+		Gens     color `ini:"Gens"`
+		GMChat   color `ini:"GMChat"`
+	} `ini:"ChatColors"`
+
+	AntiHack struct {
+		EnableAgilityCheck            bool   `ini:"EnableAgilityCheck"`
+		AgilityCheckTime              int    `ini:"AgilityDelayCheckTime"`
+		EnableAntiRefCheck            bool   `ini:"EnableAntiRefCheckTime"`
+		AntiRefCheckTime              int    `ini:"AntiRefCheckTimeMSEC"`
+		EnableHitHackCheck            bool   `ini:"EnableHitHackDetection"`
+		HitHackMaxAgility             int    `ini:"HitHackMaxAgility"`
+		CRCMain                       uint   `ini:"MainExeCRC"`
+		CRCDLL                        uint   `ini:"DLLCRC"`
+		CRCPlayer                     uint   `ini:"PlayerBmdCRC"`
+		CRCSkill                      uint   `ini:"SkillCRC"`
+		CRCItem                       uint   `ini:"ItemCRC"`
+		CRCInfo                       uint   `ini:"InfoCRC"`
+		EnableKickUnmatchedDLLVersion bool   `ini:"DisconnectOnInvalidDLLVersion"`
+		EnableKickAntiHackBreach      bool   `ini:"AntiHackBreachDisconnectUser"`
+		EnableRecvHookProtection      bool   `ini:"RecvHookProtection"`
+		PotionDelayTime               int    `ini:"PotionDelayTime"`
+		PacketLimit                   int    `ini:"PacketLimit"`
+		EnablePacketTimeCheck         bool   `ini:"EnablePacketTimeCheck"`
+		PacketTimeMin                 int    `ini:"PacketTimeMinTimeMsec"`
+		EnableHackDetectMessage       bool   `ini:"EnableHackDetectMessage"`
+		HackDetectMessage             string `ini:"HackDetectMessage"`
+		EnableAutoBanHackUser         bool   `ini:"EnableAutoBanAccountForHackUser"`
+		EnableBlockAttackInSafeZone   bool   `ini:"EnableAttackBlockInSafeZone"`
+	} `ini:"AntiHack"`
+
+	ResetCMD struct {
+		Enable                          bool `ini:"Enable"`
+		MinLevel                        int  `ini:"MinLevel"`
+		Cost                            int  `ini:"Cost"`
+		MaxReset                        int  `ini:"MaxReset"`
+		EnableResetStats                bool `ini:"IsResetStats"`
+		EnableResetMasterLevel          bool `ini:"IsResetMasterLevel"`
+		EnableMoveToCharSelectWindow    bool `ini:"MoveToCharSelectWindow"`
+		EnableSaveOldStatPoint          bool `ini:"SaveOldStatPoint"`
+		EnableRemoveEquipment           bool `ini:"RemoveEquipment"`
+		PointPerReset                   int  `ini:"PointPerReset"`
+		BlockNormalLevelPointAfterReset int  `ini:"BlockLevelUpPointAfterResetCount"`
+		BlockMasterLevelPointAfterReset int  `ini:"BlockMLPointAfterResetCount"`
+	} `ini:"ResetCMD"`
+
+	MUHelper struct {
+		Enable          bool `ini:"Enable"`
+		MinLevel        int  `ini:"MinLevel"`
+		Cost            int  `ini:"Cost"`
+		NeedVIPLevel    int  `ini:"NeedVIPLevel"`
+		AutoDisableTime int  `ini:"AutoDisableTime"`
+	} `ini:"MuBot"`
+
+	Guild struct {
+		EnableCreate            bool `ini:"GuildCreate"`
+		EnableDestroy           bool `ini:"GuildDestroy"`
+		CreateLevel             int  `ini:"GuildCreateLevel"`
+		MaxMember               int  `ini:"MaxGuildMember"`
+		CastleOwnerDestroyLimit bool `ini:"CastleOwnerGuildDestroyLimit"`
+		AllianceGuildMinMember  int  `ini:"AllianceMinGuildMember"`
+		AllianceMaxGuildCount   int  `ini:"AllianceMaxGuilds"`
+	} `ini:"Guilds"`
+
+	GoldenMonster struct {
+		GoldenDragonBoxDropCount      int `ini:"GoldenDragonBoxDropCount"`
+		GreatGoldenDragonBoxDropCount int `ini:"GreatGoldenDragonBoxCount"`
+	} `ini:"GoldenMonster"`
+
+	Acheron struct {
+		SpiritMapDropRate         int `ini:"SpiritMapDropRate"`
+		SpiritMapDropMonsterLevel int `ini:"SpiritMapMonsterDropLevel"`
+	} `ini:"Acheron"`
+
+	EventInventory struct {
+		Enable bool   `ini:"IsEventInventoryOpen"`
+		Date   string `ini:"date"`
+	} `ini:"EventInventory"`
+
+	EggEvent struct {
+		RateMoonRabbit      int `ini:"MoonRabbitSpawnRateFromBook"`
+		RatePouchOfBlessing int `ini:"PouchBlessingSpawnRateFromBook"`
+		RateFireFlameGhost  int `ini:"FireFlameSpawnRateFromBook"`
+		RateGoldGoblin      int `ini:"GoldGoblinSpawnRateFromBook"`
+	} `ini:"EggEvent"`
+
+	CancelItemSale struct {
+		Enable          bool    `ini:"IsCancelItemSale"`
+		PriceMultiplier float32 `ini:"PriceMultipler"`
+		ItemExpireTime  int     `ini:"ItemExpiryTime"`
+	} `ini:"CancelItemSale"`
+
+	SantaVillage struct {
+		SantaClauseMinReset         int `ini:"SantaClauseMinReset"`
+		SantaClause1stPrizeMaxVisit int `ini:"SantaClause1stPrizeMaxVisit"`
+		SantaClause2ndPrizeMaxVisit int `ini:"SantaClause2ndPrizeMaxVisit"`
+	} `ini:"SantaVillage"`
+}
+
+type configChaosBox struct{}
+
+type configItemPrice struct{}
+
+type configPet struct{}
+
+type configOffTrade struct{}
+
+type configCalcCharacter struct{}
+
+type configPK struct{}
