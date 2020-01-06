@@ -20,6 +20,9 @@ var (
 
 	// Common represents common config
 	Common configCommon
+
+	// ChaosBox represents chaosBox mix rate
+	ChaosBox configChaosBox
 )
 
 func init() {
@@ -27,6 +30,7 @@ func init() {
 	mapXML("IGC_ConnectMember.xml", &ConnectMember)
 	mapXML("IGC_VipSettings.xml", &VipSystem)
 	mapINI("../../config/common/IGCData/IGC_Common.ini", &Common)
+	mapXML("../../config/common/IGCData/IGC_ChaosBox.xml", &ChaosBox)
 }
 
 func mapINI(file, v interface{}) {
@@ -55,7 +59,7 @@ func mapXML(file string, v interface{}) {
 	log.Printf("Load %s", file)
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
-		log.Fatalf("Failed to read %s, %v", file, err)
+		log.Fatalln(err)
 	}
 	if err := xml.Unmarshal(buf, v); err != nil {
 		log.Fatalf("Failed to unmarshal %s, %v", file, err)
@@ -101,15 +105,30 @@ type vipBonus struct {
 	MasterExcDropBonus int     `xml:"MasterExcDropBonus,attr"`
 }
 
-type chaosBox struct {
-	Level10      int    `xml:"Level10,attr"`
-	Level11      int    `xml:"Level11,attr"`
-	Level12      int    `xml:"Level12,attr"`
-	Level13      int    `xml:"Level13,attr"`
-	Level14      int    `xml:"Level14,attr"`
-	Level15      int    `xml:"Level15,attr"`
-	AddLuck      int    `xml:"AddLuck,attr"`
-	SocketWeapon string `xml:"SocketWeapon,attr"`
+type rateChaosBoxMix struct {
+	Level10                     int  `xml:"Level10,attr"`
+	Level11                     int  `xml:"Level11,attr"`
+	Level12                     int  `xml:"Level12,attr"`
+	Level13                     int  `xml:"Level13,attr"`
+	Level14                     int  `xml:"Level14,attr"`
+	Level15                     int  `xml:"Level15,attr"`
+	EnableLevel15Notice         bool `xml:"Level15Notice,attr"`
+	AddLuck                     int  `xml:"AddLuck,attr"`
+	SocketWeapon                int  `xml:"SocketWeapon,attr"`
+	SocketWeaponMixRequireMoney int  `xml:"SocketWeaponMixRequireMoney,attr"`
+	Second                      int  `xml:"Second,attr"`
+	Monster                     int  `xml:"Monster,attr"`
+	Third                       int  `xml:"Third,attr"`
+	Cape                        int  `xml:"Cape,attr"`
+	FeatherOfCondor             int  `xml:"FeatherOfCondor,attr"`
+}
+
+type rateCHaosBoxMixs struct {
+	Normal    rateChaosBoxMix `xml:"Normal"`
+	Enhanced  rateChaosBoxMix `xml:"Enhanced"`
+	Socket    rateChaosBoxMix `xml:"Socket"`
+	Pentagram rateChaosBoxMix `xml:"Pentagram"`
+	Wing      rateChaosBoxMix `xml:"Wing"`
 }
 
 type configVipSystem struct {
@@ -122,29 +141,17 @@ type configVipSystem struct {
 	} `xml:"Message"`
 	VipTypes struct {
 		Vip []struct {
-			Type              int      `xml:"Type,attr"`
-			Name              string   `xml:"Name,attr"`
-			MLMonsterMinLevel int      `xml:"ML_MonsterMinLevel,attr"`
-			PointPerReset     int      `xml:"PointPerReset,attr"`
-			NightStartHour    int      `xml:"NightStartHour,attr"`
-			NightStartMinute  int      `xml:"NightStartMinute,attr"`
-			NightEndHour      int      `xml:"NightEndHour,attr"`
-			NightEndMinute    int      `xml:"NightEndMinute,attr"`
-			Day               vipBonus `xml:"Day"`
-			Night             vipBonus `xml:"Night"`
-			ChaosBoxMixRates  struct {
-				Normal    chaosBox `xml:"Normal"`
-				Enhanced  chaosBox `xml:"Enhanced"`
-				Socket    chaosBox `xml:"Socket"`
-				Pentagram chaosBox `xml:"Pentagram"`
-				Wing      struct {
-					Second          int `xml:"Second,attr"`
-					Monster         int `xml:"Monster,attr"`
-					Third           int `xml:"Third,attr"`
-					Cape            int `xml:"Cape,attr"`
-					FeatherOfCondor int `xml:"FeatherOfCondor,attr"`
-				} `xml:"Wing"`
-			} `xml:"ChaosBoxMixRates"`
+			Type              int              `xml:"Type,attr"`
+			Name              string           `xml:"Name,attr"`
+			MLMonsterMinLevel int              `xml:"ML_MonsterMinLevel,attr"`
+			PointPerReset     int              `xml:"PointPerReset,attr"`
+			NightStartHour    int              `xml:"NightStartHour,attr"`
+			NightStartMinute  int              `xml:"NightStartMinute,attr"`
+			NightEndHour      int              `xml:"NightEndHour,attr"`
+			NightEndMinute    int              `xml:"NightEndMinute,attr"`
+			Day               vipBonus         `xml:"Day"`
+			Night             vipBonus         `xml:"Night"`
+			RateChaosBoxMixs  rateCHaosBoxMixs `xml:"ChaosBoxMixRates"`
 		} `xml:"Vip"`
 	} `xml:"VipTypes"`
 }
@@ -306,7 +313,15 @@ type configCommon struct {
 	} `ini:"SantaVillage"`
 }
 
-type configChaosBox struct{}
+type configChaosBox struct {
+	XMLName       xml.Name `xml:"ChaosBox"`
+	CherryBlossom struct {
+		CherryBlossomWhiteNeedItem int `xml:"CherryBlossomWhiteNeedItem,attr"`
+		CherryBlossomRedNeedItem   int `xml:"CherryBlossomRedNeedItem,attr"`
+		CherryBlossomGoldNeedItem  int `xml:"CherryBlossomGoldNeedItem,attr"`
+	} `xml:"CherryBlossom"`
+	RateCHaosBoxMixs rateCHaosBoxMixs `xml:"RateChaosBoxMixs"`
+}
 
 type configItemPrice struct{}
 
