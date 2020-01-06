@@ -23,6 +23,9 @@ var (
 
 	// ChaosBox represents chaosBox mix rate
 	ChaosBox configChaosBox
+
+	// PetRing represents pet and ring
+	PetRing configPetRing
 )
 
 func init() {
@@ -31,6 +34,7 @@ func init() {
 	mapXML("IGC_VipSettings.xml", &VipSystem)
 	mapINI("../../config/common/IGCData/IGC_Common.ini", &Common)
 	mapXML("../../config/common/IGCData/IGC_ChaosBox.xml", &ChaosBox)
+	mapXML("../../config/common/IGCData/IGC_PetSettings.xml", &PetRing)
 }
 
 func mapINI(file, v interface{}) {
@@ -323,12 +327,61 @@ type configChaosBox struct {
 	RateCHaosBoxMixs rateCHaosBoxMixs `xml:"RateChaosBoxMixs"`
 }
 
-type configItemPrice struct{}
+type buff struct {
+	// Attack
+	AddAttackValue        int `xml:"AddAttackValue,attr"`
+	AddMagicAttackValue   int `xml:"AddMagicAttackValue,attr"`
+	AddAttackPercent      int `xml:"AddAttackPercent,attr"`
+	AddMagicAttackPercent int `xml:"AddMagicAttackPercent,attr"`
+	AddAttackSpeed        int `xml:"AddAttackSpeed,attr"`
 
-type configPet struct{}
+	// Defense
+	AddDefenseValue   int `xml:"AddDefenseValue,attr"`
+	AddDefensePercent int `xml:"AddDefensePercent,attr"`
+
+	// Reduce
+	ReduceDamageValue   int `xml:"ReduceDamageValue,attr"`
+	ReduceDamagePercent int `xml:"ReduceDamagePercent,attr"`
+
+	// HP
+	AddHP int `xml:"AddHP,attr"`
+}
+
+type configPetRing struct {
+	Pets struct {
+		Angel       buff `xml:"Angel"`      // (13,0) 小天使/守护天使
+		Imp         buff `xml:"Imp"`        // (13,1) 小恶魔
+		FenrirGold  buff `xml:"FenrirGold"` // (13,37) 狼
+		FenrirRed   buff `xml:"FenrirRed"`
+		FenrirBlue  buff `xml:"FenrirBlue"`
+		FenrirBlack buff `xml:"FenrirBlack"`
+		Demon       buff `xml:"Demon"`       // (13,64) 大恶魔
+		SpiritAngel buff `xml:"SpiritAngel"` // (13,65) 大天使
+		Panda       buff `xml:"Panda"`       // (13,80) 熊猫
+		Unicorn     buff `xml:"Unicorn"`     // (13,106) 兽角
+		Skeleton    buff `xml:"Skeleton"`    // (13,123) 召唤骷髅
+	} `xml:"Pets"`
+	Rings struct {
+		WizardRing            buff `xml:"WizardRing"`            // (13,20)
+		SkeletonRing          buff `xml:"SkeletonRing"`          // (13,39)
+		ChristmasRing         buff `xml:"ChristmasRing"`         // (13,41)
+		PandaRing             buff `xml:"PandaRing"`             // (13,76)
+		PandaBrownRing        buff `xml:"PandaBrownRing"`        // (13,77)
+		PandaPinkRing         buff `xml:"PandaPinkRing"`         // (13,78)
+		LethalWizardRing      buff `xml:"LethalWizardRing"`      // (13,107)
+		RobotKnightRing       buff `xml:"RobotKnightRing"`       // (13,163)
+		MiniRobotRing         buff `xml:"MiniRobotRing"`         // (13,164)
+		MageRing              buff `xml:"MageRing"`              // (13,165)
+		DecorationRing        buff `xml:"DecorationRing"`        // (13,169)
+		DecorationBlessedRing buff `xml:"DecorationBlessedRing"` // (13,170)
+		DarkTransformRing     buff `xml:"DarkTransformRing"`     // (13,268)
+	} `xml:"Rings"`
+}
 
 type configOffTrade struct{}
 
 type configCalcCharacter struct{}
 
 type configPK struct{}
+
+type configItemPrice struct{}
