@@ -71,22 +71,22 @@
 		<PK Level="3"> <!-- Normal -->
 			<LevelRange Start="11" End="150" DeductionRate="3" />
 			<LevelRange Start="151" End="220" DeductionRate="2" />
-			<LevelRange Start="221" End="MAX" DeductionRate="1" />
+			<LevelRange Start="221" End="800" DeductionRate="1" />
 		</PK>
 		<PK Level="4"> <!-- Warning -->
 			<LevelRange Start="11" End="150" DeductionRate="5" />
 			<LevelRange Start="151" End="220" DeductionRate="5" />
-			<LevelRange Start="221" End="MAX" DeductionRate="5" />
+			<LevelRange Start="221" End="800" DeductionRate="5" />
 		</PK>
 		<PK Level="5"> <!-- PK Level 2 -->
 			<LevelRange Start="11" End="150" DeductionRate="10" />
 			<LevelRange Start="151" End="220" DeductionRate="10" />
-			<LevelRange Start="221" End="MAX" DeductionRate="10" />
+			<LevelRange Start="221" End="800" DeductionRate="10" />
 		</PK>
 		<PK Level="6"> <!-- Murdered Level -->
 			<LevelRange Start="11" End="150" DeductionRate="20" />
 			<LevelRange Start="151" End="220" DeductionRate="20" />
-			<LevelRange Start="221" End="MAX" DeductionRate="20" />
+			<LevelRange Start="221" End="800" DeductionRate="20" />
 		</PK>
 	</ExpDeduction>
 </PlayerKillSystem>

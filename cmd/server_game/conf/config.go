@@ -32,6 +32,9 @@ var (
 
 	// CalcChar represents calculate percent config
 	CalcChar configCalcCharacter
+
+	// PK represents PlayerKillSystem config
+	PK configPK
 )
 
 func init() {
@@ -43,6 +46,7 @@ func init() {
 	mapXML("../../config/common/IGCData/IGC_PetSettings.xml", &PetRing)
 	mapXML("../../config/common/IGCData/IGC_OffTrade.xml", &OffTrade)
 	mapXML("../../config/common/IGCData/IGC_CalcCharacter.xml", &CalcChar)
+	mapXML("../../config/common/IGCData/IGC_PlayerKillSystem.xml", &PK)
 }
 
 func mapINI(file, v interface{}) {
@@ -454,6 +458,42 @@ type configCalcCharacter struct {
 	} `xml:"ElementalDamageRate"`
 }
 
-type configPK struct{}
+type PKLevel struct {
+	Level                         int    `xml:"Level,attr"`
+	ReqPoint                      int    `xml:"ReqPoint,attr"`
+	ItemLoseRateOnMonsterKill     int    `xml:"ItemLoseRateOnMonsterKill,attr"`
+	ItemLoseRateOnPlayerKill      int    `xml:"ItemLoseRateOnPlayerKill,attr"`
+	ZenDeductionRateOnMonsterKill int    `xml:"ZenDeductionRateOnMonsterKill,attr"`
+	ZenDeductionRateOnPlayerKill  int    `xml:"ZenDeductionRateOnPlayerKill,attr"`
+	WarpChargeMultiplier          int    `xml:"WarpChargeMultiplier,attr"`
+	CanSummonByDarkLord           bool   `xml:"CanSummonByDarkLord,attr"`
+	Description                   string `xml:"Description,attr"`
+	LevelRange                    []struct {
+		Start         int `xml:"Start,attr"`
+		End           int `xml:"End,attr"`
+		DeductionRate int `xml:"DeductionRate,attr"`
+	} `xml:"LevelRange"`
+}
+
+type configPK struct {
+	DisablePKLevelIncrease bool `xml:"DisablePKLevelIncrease,attr"`
+	DisablePenalty         bool `xml:"DisablePenalty,attr"`
+	PKCanUseshops          bool `xml:"PKCanUseshops,attr"`
+	DropExpensiveItems     bool `xml:"DropExpensiveItems,attr"`
+	MaxItemLevelDrop       int  `xml:"MaxItemLevelDrop,attr"`
+	PointDeductionDivisor  int  `xml:"PointDeductionDivisor,attr"`
+	MurdererPointIncrease  int  `xml:"MurdererPointIncrease,attr"`
+	PKClearCommand         struct {
+		Enable                  bool `xml:"Enable,attr"`
+		Cost                    int  `xml:"Cost,attr"`
+		CostMultiplyByKillCount int  `xml:"CostMultiplyByKillCount,attr"`
+	} `xml:"PKClearCommand"`
+	General struct {
+		PKLevels []PKLevel `xml:"PK"`
+	} `xml:"General"`
+	ExpDeduction struct {
+		PKLevels []PKLevel `xml:"PK"`
+	} `xml:"ExpDeduction"`
+}
 
 type configItemPrice struct{}
