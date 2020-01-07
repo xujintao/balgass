@@ -4,11 +4,16 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"log"
+	"os"
+	"path"
 
 	"gopkg.in/ini.v1"
 )
 
 var (
+	// SeasonX represents protocol compatibility with seasonX
+	SeasonX bool
+
 	// Server server config
 	Server configServer
 
@@ -41,16 +46,26 @@ var (
 )
 
 func init() {
-	mapINISection("GameServer.ini", "GameServerInfo", &Server)
-	mapXML("IGC_ConnectMember.xml", &ConnectMember)
-	mapXML("IGC_VipSettings.xml", &VipSystem)
-	mapINI("../../config/common/IGCData/IGC_Common.ini", &Common)
-	mapXML("../../config/common/IGCData/IGC_ChaosBox.xml", &ChaosBox)
-	mapXML("../../config/common/IGCData/IGC_PetSettings.xml", &PetRing)
-	mapXML("../../config/common/IGCData/IGC_OffTrade.xml", &OffTrade)
-	mapXML("../../config/common/IGCData/IGC_CalcCharacter.xml", &CalcChar)
-	mapXML("../../config/common/IGCData/IGC_PlayerKillSystem.xml", &PK)
-	mapINISection("../../config/common/IGCData/IGC_PriceSettings.ini", "Value", &Price)
+	configPath := os.Getenv("CONFIG_PATH")
+	commonPath := os.Getenv("COMMON_PATH")
+	if configPath == "" {
+		configPath = "."
+		log.Printf("$CONFIG_PATH is %q, use default %q", "", configPath)
+	}
+	if commonPath == "" {
+		commonPath = "../../config/common/IGCData"
+		log.Printf("$COMMON_PATH is %q, use default %q", "", commonPath)
+	}
+	mapINISection(path.Join(configPath, "GameServer.ini"), "GameServerInfo", &Server)
+	mapXML(path.Join(configPath, "IGC_ConnectMember.xml"), &ConnectMember)
+	mapXML(path.Join(configPath, "IGC_VipSettings.xml"), &VipSystem)
+	mapINI(path.Join(commonPath, "IGC_Common.ini"), &Common)
+	mapXML(path.Join(commonPath, "IGC_ChaosBox.xml"), &ChaosBox)
+	mapXML(path.Join(commonPath, "IGC_PetSettings.xml"), &PetRing)
+	mapXML(path.Join(commonPath, "IGC_OffTrade.xml"), &OffTrade)
+	mapXML(path.Join(commonPath, "IGC_CalcCharacter.xml"), &CalcChar)
+	mapXML(path.Join(commonPath, "IGC_PlayerKillSystem.xml"), &PK)
+	mapINISection(path.Join(commonPath, "IGC_PriceSettings.ini"), "Value", &Price)
 }
 
 func mapINI(file, v interface{}) {
@@ -188,6 +203,7 @@ type postCMD struct {
 
 type configCommon struct {
 	General struct {
+		SeasonX                       bool
 		MaxLevelNormal                int     `ini:"MaxNormalLevel"`
 		MaxLevelMaster                int     `ini:"MaxMasterLevel"`
 		MasterPointPerLevel           int     `ini:"MasterPointPerLevel"`
