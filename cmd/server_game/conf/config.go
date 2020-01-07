@@ -43,6 +43,9 @@ var (
 
 	// Price represents item price
 	Price configItemPrice
+
+	// Events represents event config for every server
+	Events configEvents
 )
 
 func init() {
@@ -66,6 +69,7 @@ func init() {
 	mapXML(path.Join(commonPath, "IGC_CalcCharacter.xml"), &CalcChar)
 	mapXML(path.Join(commonPath, "IGC_PlayerKillSystem.xml"), &PK)
 	mapINISection(path.Join(commonPath, "IGC_PriceSettings.ini"), "Value", &Price)
+	mapXML(path.Join(commonPath, "events.xml"), &Events)
 }
 
 func mapINI(file, v interface{}) {
@@ -527,4 +531,67 @@ type configItemPrice struct {
 	LochFeatherPrice     int `ini:"LochFeatherPrice"`
 	JewelOfGuardianPrice int `ini:"JewelOfGuardianPrice"`
 	WereRabbitEggPrice   int `ini:"WereRabbitEggPrice"`
+}
+
+type eventServer struct {
+	Type   int    `xml:"type,attr"`
+	Name   string `xml:"name,attr"`
+	Enable bool   `xml:"enable,attr"`
+}
+
+type configEvents struct {
+	BloodCastle struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"BloodCastle"`
+	DevilSquare struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"DevilSquare"`
+	DevilSquareSurival struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"DevilSquareSurival"`
+	ChaosCastle struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"ChaosCastle"`
+	ChaosCastleSurvival struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"ChaosCastleSurvival"`
+	IllusionTemple struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"IllusionTemple"`
+	CastleSiege struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"CastleSiege"`
+	LorenDeep struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"LorenDeep"`
+	Crywolf struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"Crywolf"`
+	Kanturu struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"Kanturu"`
+	Raklion struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"Raklion"`
+	DoppelGanger struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"DoppelGanger"`
+	ImperialGuardian struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"ImperialGuardian"`
+	RingAttack struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"RingAttack"`
+	ChristmasAttack struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"ChristmasAttack"`
+	ArcaBattle struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"ArcaBattle"`
+	AcheronGuardian struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"AcheronGuardian"`
+	LastManStanding struct {
+		Servers []eventServer `xml:"server"`
+	} `xml:"LastManStanding"`
 }
