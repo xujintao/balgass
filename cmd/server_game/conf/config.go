@@ -26,6 +26,12 @@ var (
 
 	// PetRing represents pet and ring
 	PetRing configPetRing
+
+	// OffTrade represents personal shop works when player is offline
+	OffTrade configOffTrade
+
+	// CalcChar represents calculate percent config
+	CalcChar configCalcCharacter
 )
 
 func init() {
@@ -35,6 +41,8 @@ func init() {
 	mapINI("../../config/common/IGCData/IGC_Common.ini", &Common)
 	mapXML("../../config/common/IGCData/IGC_ChaosBox.xml", &ChaosBox)
 	mapXML("../../config/common/IGCData/IGC_PetSettings.xml", &PetRing)
+	mapXML("../../config/common/IGCData/IGC_OffTrade.xml", &OffTrade)
+	mapXML("../../config/common/IGCData/IGC_CalcCharacter.xml", &CalcChar)
 }
 
 func mapINI(file, v interface{}) {
@@ -378,9 +386,73 @@ type configPetRing struct {
 	} `xml:"Rings"`
 }
 
-type configOffTrade struct{}
+type CoinType int
 
-type configCalcCharacter struct{}
+const (
+	Zen CoinType = iota
+	WCoinS8
+	WcoinS6E3
+	Goblin
+)
+
+type configOffTrade struct {
+	Enable   bool     `xml:"Enable,attr"`
+	CoinType CoinType `xml:"CoinType,attr"`
+	Map      []struct {
+		Number  int  `xml:"Number,attr"`
+		Disable bool `xml:"Disable,attr"`
+	} `xml:"Map"`
+}
+
+type charClass struct {
+	DarkWizard     int `xml:"DarkWizard,attr"`
+	DarkKnight     int `xml:"DarkKnight,attr"`
+	FairyElf       int `xml:"FairyElf,attr"`
+	MagicGladiator int `xml:"MagicGladiator,attr"`
+	DarkLord       int `xml:"DarkLord,attr"`
+	Summoner       int `xml:"Summoner,attr"`
+	Rage           int `xml:"Rage,attr"`
+	GrowLancer     int `xml:"GrowLancer,attr"`
+}
+
+type configCalcCharacter struct {
+	MaxDamageDecreasePercent    int `xml:"MaxDamageDecreasePercent,attr"`
+	MaxDamageReflectPercent     int `xml:"MaxDamageReflectPercent,attr"`
+	DarkLordPetDamageMultiplier struct {
+		DarkHorse float32 `xml:"DarkHorse,attr"`
+		DarkRaven float32 `xml:"DarkRaven,attr"`
+	} `xml:"DarkLordPetDamageMultiplier"`
+	DarkSpiritDamageRate struct {
+		PVE int       `xml:"PVE,attr"`
+		PVP charClass `xml:"PVP"`
+	} `xml:"DarkSpiritDamageRate"`
+	DamageRate struct {
+		PVP struct {
+			DarkWizard     charClass `xml:"DarkWizard"`
+			DarkKnight     charClass `xml:"DarkKnight"`
+			FairyElf       charClass `xml:"FairyElf"`
+			MagicGladiator charClass `xml:"MagicGladiator"`
+			DarkLord       charClass `xml:"DarkLord"`
+			Summoner       charClass `xml:"Summoner"`
+			Rage           charClass `xml:"Rage"`
+			GrowLancer     charClass `xml:"GrowLancer"`
+		} `xml:"PVP"`
+		PVE charClass `xml:"PVE"`
+	} `xml:"DamageRate"`
+	ElementalDamageRate struct {
+		PVP struct {
+			DarkWizard     charClass `xml:"DarkWizard"`
+			DarkKnight     charClass `xml:"DarkKnight"`
+			FairyElf       charClass `xml:"FairyElf"`
+			MagicGladiator charClass `xml:"MagicGladiator"`
+			DarkLord       charClass `xml:"DarkLord"`
+			Summoner       charClass `xml:"Summoner"`
+			Rage           charClass `xml:"Rage"`
+			GrowLancer     charClass `xml:"GrowLancer"`
+		} `xml:"PVP"`
+		PVE charClass `xml:"PVE"`
+	} `xml:"ElementalDamageRate"`
+}
 
 type configPK struct{}
 
