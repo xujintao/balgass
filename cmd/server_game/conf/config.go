@@ -35,6 +35,9 @@ var (
 
 	// PK represents PlayerKillSystem config
 	PK configPK
+
+	// Price represents item price
+	Price configItemPrice
 )
 
 func init() {
@@ -47,6 +50,7 @@ func init() {
 	mapXML("../../config/common/IGCData/IGC_OffTrade.xml", &OffTrade)
 	mapXML("../../config/common/IGCData/IGC_CalcCharacter.xml", &CalcChar)
 	mapXML("../../config/common/IGCData/IGC_PlayerKillSystem.xml", &PK)
+	mapINISection("../../config/common/IGCData/IGC_PriceSettings.ini", "Value", &Price)
 }
 
 func mapINI(file, v interface{}) {
@@ -496,4 +500,15 @@ type configPK struct {
 	} `xml:"ExpDeduction"`
 }
 
-type configItemPrice struct{}
+type configItemPrice struct {
+	ItemSellPriceDivisor int `ini:"ItemSellPriceDivisor"`
+	JewelOfBlessPrice    int `ini:"JewelOfBlessPrice"`
+	JewelOfSoulPrice     int `ini:"JewelOfSoulPrice"`
+	JewelOfChaosPrice    int `ini:"JewelOfChaosPrice"`
+	JewelOfLifePrice     int `ini:"JewelOfLifePrice"`
+	JewelOfCreationPrice int `ini:"JewelOfCreationPrice"`
+	CrestOfMonarchPrice  int `ini:"CrestOfMonarchPrice"`
+	LochFeatherPrice     int `ini:"LochFeatherPrice"`
+	JewelOfGuardianPrice int `ini:"JewelOfGuardianPrice"`
+	WereRabbitEggPrice   int `ini:"WereRabbitEggPrice"`
+}
