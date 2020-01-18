@@ -223,7 +223,7 @@ type Item struct {
 	Durability  int  `db:"item_durability"`
 	Lucky       bool `db:"item_lucky"`
 	Skill       bool `db:"item_skill"`
-	Append      int  `db:"item_append"`
+	Addition    int  `db:"item_addition"`
 	Excel       int  `db:"item_excel"`
 	Set         int  `db:"item_set"`
 	Option380   bool `db:"item_option380"`
@@ -253,7 +253,7 @@ func NewItem(section, index int) *Item {
 // bit0~bit7: itembase index, 0~255
 // ----------------------------------------------
 // field[1]
-// bit0~bit1: append attack/defense
+// bit0~bit1: addition attack/defense
 // bit2: lucky flag
 // bit3~bit6: level, 0~15
 // bit7: skill flag
@@ -266,12 +266,12 @@ func NewItem(section, index int) *Item {
 // ----------------------------------------------
 // field[7]
 // bit0~bit5: excellent option
-// bit6: append attack/defense 16 flag
+// bit6: addition attack/defense 16 flag
 // now field[7].bit6, field[1].bit1 and field[1].bit0 may range as follow:
-// 001: append 4
-// 010: append 8
-// 011: append 12
-// 100: append 16
+// 001: addition 4
+// 010: addition 8
+// 011: addition 12
+// 100: addition 16
 // bit7: extension flag of itembase index , act as the bit8 of field[0]
 // now itembase index is 9 bit and range is 0~511
 // ----------------------------------------------
@@ -279,7 +279,8 @@ func NewItem(section, index int) *Item {
 // set or ancient
 // ----------------------------------------------
 // field[9]
-// bit0~bit2: period
+// bit0: period
+// bit1: period expire
 // bit3: option380 flag
 // bit4~bit7: itembase section, 0~15
 // ----------------------------------------------

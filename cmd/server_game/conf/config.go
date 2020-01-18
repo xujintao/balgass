@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	PathConfig string
 	PathCommon string
 
 	// SeasonX represents protocol compatibility with seasonX
@@ -51,19 +52,19 @@ var (
 )
 
 func init() {
-	pathConfig := os.Getenv("CONFIG_PATH")
+	PathConfig := os.Getenv("CONFIG_PATH")
 	PathCommon = os.Getenv("COMMON_PATH")
-	if pathConfig == "" {
-		pathConfig = "."
-		log.Printf("$CONFIG_PATH is %q, use default %q", "", pathConfig)
+	if PathConfig == "" {
+		PathConfig = "."
+		log.Printf("$CONFIG_PATH is %q, use default %q", "", PathConfig)
 	}
 	if PathCommon == "" {
 		PathCommon = "../../config/common/IGCData"
 		log.Printf("$COMMON_PATH is %q, use default %q", "", PathCommon)
 	}
-	INISection(path.Join(pathConfig, "GameServer.ini"), "GameServerInfo", &Server)
-	XML(path.Join(pathConfig, "IGC_ConnectMember.xml"), &ConnectMember)
-	XML(path.Join(pathConfig, "IGC_VipSettings.xml"), &VipSystem)
+	INISection(path.Join(PathConfig, "GameServer.ini"), "GameServerInfo", &Server)
+	XML(path.Join(PathConfig, "IGC_ConnectMember.xml"), &ConnectMember)
+	XML(path.Join(PathConfig, "IGC_VipSettings.xml"), &VipSystem)
 	INI(path.Join(PathCommon, "IGC_Common.ini"), &Common)
 	XML(path.Join(PathCommon, "IGC_ChaosBox.xml"), &ChaosBox)
 	XML(path.Join(PathCommon, "IGC_PetSettings.xml"), &PetRing)
@@ -74,7 +75,7 @@ func init() {
 	XML(path.Join(PathCommon, "events.xml"), &Events)
 }
 
-func INI(file, v interface{}) {
+func INI(file string, v interface{}) {
 	log.Printf("Load %s", file)
 	f, err := ini.Load(file)
 	if err != nil {
