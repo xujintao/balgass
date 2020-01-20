@@ -68,7 +68,7 @@ type optionExcel struct {
 	} `xml:"OptionDropRate"`
 }
 
-func (o *optionExcel) optionExcelCommonRand(kindA itemKindA) (excel int) {
+func (o *optionExcel) CommonRand(kindA itemKindA) (excel int) {
 	var options [6]int
 	var optionRates [6]int
 	index := 0
@@ -96,6 +96,11 @@ func (o *optionExcel) optionExcelCommonRand(kindA itemKindA) (excel int) {
 	}
 	return
 }
+func (o *optionExcel) CommonEffect(id int) {}
+
+// func (o *optionExcel) WingRand() {}
+
+// func (o *optionExcel) WingEffect(id int) {}
 
 var OptionExcel optionExcel
 
