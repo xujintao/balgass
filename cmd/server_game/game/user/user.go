@@ -164,6 +164,45 @@ type UserData struct {
 	agReduceRate                  uint8
 	muBotEnable                   bool
 	muBotTotalTime                time.Duration
+	muBotPayTime                  time.Duration
+	muBotTick                     time.Time
+	InventoryExpansion            int
+	WarehouseExpansion            int
+	LastAuthTime                  time.Time
+	LastXorKey1                   [4]int
+	LaskXorKey2                   [4]int
+	bot                           bool
+	botIndex                      int
+	skillHellFire2State           int
+	skillHellFire2Count           int
+	skillHellFire2Time            time.Time
+	skillStrengthenHellFire2State int
+	skillStrengthenHellFire2Count int
+	skillStrengthenHellFire2Time  time.Time
+	reqWarehouseOpen              int
+	// set
+	setEffectIncSkillAttack        int
+	setEffectIncExcelDamage        int
+	setEffectIncExcelDamageRate    int
+	setEffectIncCritiDamage        int
+	setEffectIncCritiDamageRate    int
+	setEffectIncAG                 int
+	setEffectIncDamage             int
+	setEffectIncAttackMin          int
+	setEffectIncAttackMax          int
+	setEffectIncAttack             int
+	setEffectIncDefense            int
+	setEffectIncDefenseRate        int
+	setEffectIncMagicAttack        int
+	setEffectIgnoreDefense         int
+	setEffectDoubleDamage          int
+	setEffectTwoHandSwordIncDamage int
+	setEffectIncAttackRate         int
+	setEffectReflectDamage         int
+	setEffectIncShieldDefense      int
+	setEffectDecAG                 int
+	setEffectIncItemDropRate       int
+	fullSet                        bool
 }
 
 type Object struct {
@@ -195,15 +234,15 @@ type Object struct {
 	Name                        string
 	Class                       uint16
 	Level                       uint16
-	Life                        float32
-	MaxLife                     float32
-	ScriptMaxLife               int
-	FillLife                    float32
-	FillLifeMax                 float32
-	Mana                        float32
-	MaxMana                     float32
+	HP                          float32
+	MaxHP                       float32
+	ScriptMaxHP                 int
+	FillHP                      float32
+	FillHPMax                   float32
+	MP                          float32
+	MaxMP                       float32
 	Leadership                  uint16
-	AddLeadership               uint16
+	AddLeadership               int
 	ChatLimitTime               uint16
 	ChatLimitTimeSec            byte
 	FillLifeCount               byte
@@ -211,8 +250,9 @@ type Object struct {
 	AddDexterity                int
 	AddVitality                 int
 	AddEnergy                   int
-	BP                          int
-	MaxBP                       int
+	AG                          int
+	MaxAG                       int
+	AddAG                       int
 	VitalityToLife              float32
 	EnergyToMana                float32
 	PKCount                     int
@@ -384,7 +424,7 @@ type Object struct {
 	HDCount                     uint16
 	ifState                     InterfaceState
 	iterfaceTime                time.Duration
-	Inventory                   *item.Item
+	Inventory                   []item.Item
 	InventoryMap                *uint8
 	InventoryCount              *uint8
 	Transaction                 uint8
@@ -532,10 +572,130 @@ type Object struct {
 	off                         bool
 	offLevel                    bool
 	offLevelTime                int
+	PlayerData                  *UserData
 }
 
-func (o *Object) Reset() {
+func (obj *Object) Reset() {
 
+}
+
+func (obj *Object) addSetEffect(index item.SetEffectType, value int) {
+	switch index {
+	case item.SetEffectIncStrength:
+		obj.AddStrength += value
+	case item.SetEffectIncAgility:
+		obj.AddDexterity += value
+	case item.SetEffectIncEnergy:
+		obj.AddEnergy += value
+	case item.SetEffectIncVitality:
+		obj.AddVitality += value
+	case item.SetEffectIncLeadership:
+		obj.AddLeadership += value
+	case item.SetEffectIncMaxHP:
+		obj.AddLife += value
+	case item.SetEffectIncMaxMP:
+		obj.AddMana += value
+	case item.SetEffectIncMaxAG:
+		obj.AddAG += value
+	case item.SetEffectDoubleDamage:
+		obj.PlayerData.setEffectDoubleDamage += value
+	case item.SetEffectIncShieldDefense:
+		obj.PlayerData.setEffectIncShieldDefense += value
+	case item.SetEffectIncTwoHandSwordDamage:
+		obj.PlayerData.setEffectTwoHandSwordIncDamage += value
+	case item.SetEffectIncAttackMin:
+		obj.PlayerData.setEffectIncAttackMin += value
+	case item.SetEffectIncAttackMax:
+		obj.PlayerData.setEffectIncAttackMax += value
+	case item.SetEffectIncMagicAttack:
+		obj.PlayerData.setEffectIncMagicAttack += value
+	case item.SetEffectIncDamage:
+		obj.PlayerData.setEffectIncDamage += value
+	case item.SetEffectIncAttackRate:
+		obj.PlayerData.setEffectIncAttackRate += value
+	case item.SetEffectIncDefense:
+		obj.PlayerData.setEffectIncDefense += value
+	case item.SetEffectIgnoreDefense:
+		obj.PlayerData.setEffectIgnoreDefense += value
+	case item.SetEffectIncAG:
+		obj.PlayerData.setEffectIncAG += value
+	case item.SetEffectIncCritiDamage:
+		obj.PlayerData.setEffectIncCritiDamage += value
+	case item.SetEffectIncCritiDamageRate:
+		obj.PlayerData.setEffectIncCritiDamageRate += value
+	case item.SetEffectIncExcelDamage:
+		obj.PlayerData.setEffectIncExcelDamage += value
+	case item.SetEffectIncExcelDamageRate:
+		obj.PlayerData.setEffectIncExcelDamageRate += value
+	case item.SetEffectIncSkillAttack:
+		obj.PlayerData.setEffectIncSkillAttack += value
+	}
+}
+
+func (obj *Object) CalcSetItem() {
+	type set struct {
+		index int
+		count int
+	}
+	var sets []set
+
+	sameWeapon := 0
+	sameRing := 0
+	for i, wItem := range obj.Inventory[0:InventoryWearSize] {
+		if wItem.Durability == 0 {
+			continue
+		}
+		tierIndex := wItem.GetSetTierIndex()
+		if tierIndex == 0 {
+			continue
+		}
+		index := item.SetManager.GetSetIndex(wItem.BaseSection, wItem.BaseIndex, tierIndex)
+		if index <= 0 {
+			continue
+		}
+		if i == 0 {
+			sameWeapon = index
+		}
+		if i == 1 && sameWeapon > 0 {
+			continue
+		}
+		if i == 10 {
+			sameRing = index
+		}
+		if i == 11 && sameRing > 0 {
+			continue
+		}
+		ok := false
+		for i := range sets {
+			if sets[i].index == index {
+				sets[i].count++
+				ok = true
+				break
+			}
+		}
+		if !ok {
+			sets = append(sets, set{index, 1})
+		}
+	}
+
+	for _, v := range sets {
+		index := v.index
+		count := v.count
+		if count >= 2 {
+			for i := 0; i < count-1; i++ {
+				setEffect := item.SetManager.GetSet(index, i)
+				obj.addSetEffect(setEffect.Index, setEffect.Value)
+			}
+
+			if count > item.SetManager.GetSetEffectCount(index) {
+				obj.PlayerData.fullSet = true
+				setEffects := item.SetManager.GetSetFull(index)
+				for _, setEffect := range setEffects {
+					obj.addSetEffect(setEffect.Index, setEffect.Value)
+				}
+			}
+		}
+	}
 }
 
 type bill struct {
@@ -545,9 +705,7 @@ type bill struct {
 	endDays [13]uint8
 }
 
-func (*bill) init() {
-
-}
+func (*bill) init() {}
 
 var (
 	mu                        sync.Mutex
