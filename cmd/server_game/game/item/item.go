@@ -247,6 +247,10 @@ func NewItem(section, index int) *Item {
 	}
 }
 
+func (i *Item) GetSetTierIndex() int {
+	return i.Set & 3
+}
+
 // Marshal marshal item struct to [32]byte variable
 // ----------------------------------------------
 // field[0]
