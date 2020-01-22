@@ -8,53 +8,57 @@ import (
 )
 
 const (
-	maxOptionExcelCommon = 20
-	maxOptionExcelWing   = 40
+	maxExcelCommon = 20
+	maxExcelWing   = 40
 )
 
-type OptionExcelCommon int
+type ExcelCommonType int
 
 const (
-	OptionExcelCommonIncMana OptionExcelCommon = iota
-	OptionExcelCommonIncHP
-	OptionExcelCommonIncAttackSpeed
-	OptionExcelCommonIncAttackPercent
-	OptionExcelCommonIncAttackLevel
-	OptionExcelCommonIncExcellentDamage
-	OptionExcelCommonIncZen
-	OptionExcelCommonIncDefenseRate
-	OptionExcelCommonReflectDamage
-	OptionExcelCommonDecDamage
-	OptionExcelCommonIncMaxMana
-	OptionExcelCommonIncMaxHP
+	ExcelCommonIncMPMonsterDie ExcelCommonType = iota
+	ExcelCommonIncHPMonsterDie
+	ExcelCommonIncAttackSpeed
+	ExcelCommonIncAttackPercent
+	ExcelCommonIncAttackLevel
+	ExcelCommonIncExcelDamage
+	ExcelCommonIncZen
+	ExcelCommonIncDefenseRate
+	ExcelCommonReflectDamage
+	ExcelCommonDecDamage
+	ExcelCommonIncMaxMP
+	ExcelCommonIncMaxHP
 )
+
+type ExcelCommon struct {
+	ID         ExcelCommonType `xml:"ID,attr"`
+	Number     int             `xml:"Number,attr"`
+	Value      int             `xml:"Value,attr"`
+	ItemKindA1 itemKindA       `xml:"ItemKindA_1,attr"`
+	ItemKindA2 itemKindA       `xml:"ItemKindA_2,attr"`
+	ItemKindA3 itemKindA       `xml:"ItemKindA_3,attr"`
+	Rate       int             `xml:"Rate,attr"`
+	Name       string          `xml:"Name,attr"`
+}
+
+type ExcelWing struct {
+	ID        int       `xml:"ID,attr"`
+	Number    int       `xml:"Number,attr"`
+	Value     int       `xml:"Value,attr"`
+	ItemKindA itemKindA `xml:"ItemKindA,attr"`
+	ItemKindB itemKindB `xml:"ItemKindB,attr"`
+	Name      string    `xml:"Name,attr"`
+}
 
 // (13,171) ~ (13,176)
 // discard new pendant and ring
-type optionExcelAccessory struct{}
+type ExcelAccessory struct{}
 
-type optionExcel struct {
+type excelManager struct {
 	Common struct {
-		Options []struct {
-			ID         OptionExcelCommon `xml:"ID,attr"`
-			Number     int               `xml:"Number,attr"`
-			Value      int               `xml:"Value,attr"`
-			ItemKindA1 itemKindA         `xml:"ItemKindA_1,attr"`
-			ItemKindA2 itemKindA         `xml:"ItemKindA_2,attr"`
-			ItemKindA3 itemKindA         `xml:"ItemKindA_3,attr"`
-			Rate       int               `xml:"Rate,attr"`
-			Name       string            `xml:"Name,attr"`
-		} `xml:"Option"`
+		Options []*ExcelCommon `xml:"Option"`
 	} `xml:"Common"`
 	Wings struct {
-		Options []struct {
-			ID        int       `xml:"ID,attr"`
-			Number    int       `xml:"Number,attr"`
-			Value     int       `xml:"Value,attr"`
-			ItemKindA itemKindA `xml:"ItemKindA,attr"`
-			ItemKindB itemKindB `xml:"ItemKindB,attr"`
-			Name      string    `xml:"Name,attr"`
-		} `xml:"Option"`
+		Options []*ExcelWing `xml:"Option"`
 	} `xml:"Wings"`
 	OptionDropRate struct {
 		Common struct {
@@ -68,7 +72,7 @@ type optionExcel struct {
 	} `xml:"OptionDropRate"`
 }
 
-func (o *optionExcel) CommonRand(kindA itemKindA) (excel int) {
+func (o *excelManager) CommonRand(kindA itemKindA) (excel int) {
 	var options [6]int
 	var optionRates [6]int
 	index := 0
@@ -96,16 +100,17 @@ func (o *optionExcel) CommonRand(kindA itemKindA) (excel int) {
 	}
 	return
 }
-func (o *optionExcel) CommonEffect(id int) {}
 
-// func (o *optionExcel) WingRand() {}
+func (o *excelManager) CommonEffect(id int) {}
 
-// func (o *optionExcel) WingEffect(id int) {}
+// func (o *excelManager) WingRand() {}
 
-var OptionExcel optionExcel
+// func (o *excelManager) WingEffect(id int) {}
+
+var ExcelManager excelManager
 
 func init() {
-	conf.XML(path.Join(conf.PathCommon, "Items/IGC_ExcellentOptions"), &OptionExcel)
+	conf.XML(path.Join(conf.PathCommon, "Items/IGC_ExcellentOptions"), &ExcelManager)
 }
 
 func dropRate(rates ...int) int {

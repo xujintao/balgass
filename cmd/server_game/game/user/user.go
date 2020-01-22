@@ -118,7 +118,7 @@ type UserData struct {
 	nextExp                       uint
 	masterExperience              uint
 	nextMasterExp                 uint
-	masterLevel                   uint16
+	masterLevel                   int
 	levelUpPoint                  int
 	masterPoint                   int
 	masterPointUsed               int
@@ -203,6 +203,12 @@ type UserData struct {
 	setEffectDecAG                 int
 	setEffectIncItemDropRate       int
 	fullSet                        bool
+	// excel wing
+	excelWingEffectIgnoreDefense int
+	excelWingEffectReboundDamage int
+	excelWingEffectRecoveryHP    int
+	excelWingEffectRecoveryMP    int
+	excelWingEffectDoubleDamage  int
 }
 
 type Object struct {
@@ -233,14 +239,14 @@ type Object struct {
 	AccountID                   string
 	Name                        string
 	Class                       uint16
-	Level                       uint16
+	Level                       int
 	HP                          float32
-	MaxHP                       float32
+	MaxHP                       int
 	ScriptMaxHP                 int
 	FillHP                      float32
 	FillHPMax                   float32
-	MP                          float32
-	MaxMP                       float32
+	MP                          int
+	MaxMP                       int
 	Leadership                  uint16
 	AddLeadership               int
 	ChatLimitTime               uint16
@@ -269,8 +275,8 @@ type Object struct {
 	XDie                        uint16
 	YDie                        uint16
 	MapNumberDie                byte
-	AddLife                     int
-	AddMana                     int
+	AddHP                       int
+	AddMP                       int
 	IShield                     int
 	IShieldMax                  int
 	IAddShield                  int
@@ -278,12 +284,12 @@ type Object struct {
 	IFillShield                 int
 	IFillShieldCount            int
 	ShieldAutoRefillTimer       *time.Timer
-	DamageMinus                 byte   // 伤害减少
-	DamageReflect               byte   // 伤害反射
-	MonsterDieGetMoney          uint16 // 杀怪加钱
-	MonsterDieGetLife           byte   // 杀怪回生
-	MonsterDieGetMana           byte   // 杀怪回蓝
-	AutoHPRecovery              byte   // 自动生命恢复
+	DamageMinus                 int  // 伤害减少
+	DamageReflect               int  // 伤害反射
+	MonsterDieGetMoney          int  // 杀怪加钱
+	MonsterDieGetLife           byte // 杀怪回生
+	MonsterDieGetMana           byte // 杀怪回蓝
+	AutoHPRecovery              byte // 自动生命恢复
 	XStart                      byte
 	YStart                      byte
 	XOld                        uint16
@@ -381,7 +387,7 @@ type Object struct {
 	curseDamageMax              int
 	attackDamageLeft            int
 	attackDamageRight           int
-	attackDamageminLeft         int
+	attackDamageMinLeft         int
 	attackDamageMaxLeft         int
 	attackDamageMinRight        int
 	attackDamageMaxRight        int
@@ -579,6 +585,96 @@ func (obj *Object) Reset() {
 
 }
 
+func (obj *Object) addExcelCommonEffect(opt *item.ExcelCommon, wItem *item.Item, position int) {
+	id := opt.ID
+	value := opt.Value
+	switch id {
+	case item.ExcelCommonIncMPMonsterDie: // 杀怪回蓝
+		obj.MonsterDieGetMana++
+	case item.ExcelCommonIncHPMonsterDie: // 杀怪回红
+		obj.MonsterDieGetLife++
+	case item.ExcelCommonIncAttackSpeed: // 攻速
+		obj.attackSpeed += value
+		obj.magicSpeed += value
+	case item.ExcelCommonIncAttackPercent: // 2%
+		if wItem.BaseSection == 5 || // 法杖
+			wItem.BaseCode == item.Code(13, 12) || // 雷链子
+			wItem.BaseCode == item.Code(13, 25) || // 冰链子
+			wItem.BaseCode == item.Code(13, 27) { // 水链子
+			obj.magicDamageMin += obj.magicDamageMin * value / 100
+			obj.magicDamageMax += obj.magicDamageMax * value / 100
+		} else {
+			if position == 0 || position == 9 {
+				obj.attackDamageMinLeft += obj.attackDamageMinLeft * value / 100
+				obj.attackDamageMaxLeft += obj.attackDamageMaxLeft * value / 100
+			}
+			if position == 1 || position == 9 {
+				obj.attackDamageMinRight += obj.attackDamageMinRight * value / 100
+				obj.attackDamageMaxRight += obj.attackDamageMaxRight * value / 100
+			}
+		}
+	case item.ExcelCommonIncAttackLevel: // =20
+		if wItem.BaseSection == 5 || // 法杖
+			wItem.BaseCode == item.Code(13, 12) || // 雷链子
+			wItem.BaseCode == item.Code(13, 25) || // 冰链子
+			wItem.BaseCode == item.Code(13, 27) { // 水链子
+			obj.magicDamageMin += (obj.Level + obj.PlayerData.masterLevel) / value
+			obj.magicDamageMax += (obj.Level + obj.PlayerData.masterLevel) / value
+		} else {
+			if position == 0 || position == 9 {
+				obj.attackDamageMinLeft += (obj.Level + obj.PlayerData.masterLevel) / value
+				obj.attackDamageMaxLeft += (obj.Level + obj.PlayerData.masterLevel) / value
+			}
+			if position == 1 || position == 9 {
+				obj.attackDamageMinRight += (obj.Level + obj.PlayerData.masterLevel) / value
+				obj.attackDamageMaxRight += (obj.Level + obj.PlayerData.masterLevel) / value
+			}
+		}
+	case item.ExcelCommonIncExcelDamage: // 一击
+		obj.excellentDamage += value
+	case item.ExcelCommonIncZen: // 加钱
+		obj.MonsterDieGetMoney += value
+	case item.ExcelCommonIncDefenseRate: // f10
+		obj.successfulBlocking += obj.successfulBlocking * value / 100
+	case item.ExcelCommonReflectDamage: // 反伤
+		obj.DamageReflect += value
+	case item.ExcelCommonDecDamage: // 减伤
+		obj.DamageMinus += value
+	case item.ExcelCommonIncMaxMP: // 加生
+		obj.AddMP += obj.MaxMP * value / 100
+	case item.ExcelCommonIncMaxHP: // 加魔
+		obj.AddHP += obj.MaxHP * value / 100
+	}
+}
+
+func (obj *Object) addExcelWingEffect(opt *item.ExcelWing, wItem *item.Item) {
+	id := opt.ID
+	value := opt.Value
+	switch id {
+	case 0, 9, 13: // incHP
+		obj.AddHP += value + wItem.Level*5
+	case 1, 10, 14: // incMP
+		obj.AddMP += value + wItem.Level*5
+	case 2, 5, 11, 15, 16, 18, 23: // ingore
+		obj.PlayerData.excelWingEffectIgnoreDefense = value
+	// case 3: // AG ?
+	// 	obj.AddAG += value
+	// case 4: // speed ?
+	// 	obj.attackSpeed += value
+	// 	obj.magicSpeed += value
+	case 6, 19:
+		obj.PlayerData.excelWingEffectReboundDamage = value
+	case 7, 17, 20, 24:
+		obj.PlayerData.excelWingEffectRecoveryHP = value
+	case 8, 21:
+		obj.PlayerData.excelWingEffectRecoveryMP = value
+	case 12:
+		obj.AddLeadership += value + wItem.Level*5
+	case 22:
+		obj.PlayerData.excelWingEffectDoubleDamage = value
+	}
+}
+
 func (obj *Object) addSetEffect(index item.SetEffectType, value int) {
 	switch index {
 	case item.SetEffectIncStrength:
@@ -592,9 +688,9 @@ func (obj *Object) addSetEffect(index item.SetEffectType, value int) {
 	case item.SetEffectIncLeadership:
 		obj.AddLeadership += value
 	case item.SetEffectIncMaxHP:
-		obj.AddLife += value
+		obj.AddHP += value
 	case item.SetEffectIncMaxMP:
-		obj.AddMana += value
+		obj.AddMP += value
 	case item.SetEffectIncMaxAG:
 		obj.AddAG += value
 	case item.SetEffectDoubleDamage:
@@ -629,6 +725,35 @@ func (obj *Object) addSetEffect(index item.SetEffectType, value int) {
 		obj.PlayerData.setEffectIncExcelDamageRate += value
 	case item.SetEffectIncSkillAttack:
 		obj.PlayerData.setEffectIncSkillAttack += value
+	}
+}
+
+func (obj *Object) CalcExcelItem() {
+	for i, wItem := range obj.Inventory[0:InventoryWearSize] {
+		if wItem.Durability == 0 {
+			continue
+		}
+		if wItem.Excel == 0 {
+			continue
+		}
+		if i == 7 {
+			for _, opt := range item.ExcelManager.Wings.Options {
+				if wItem.KindA == opt.ItemKindA && wItem.KindB == opt.ItemKindB {
+					if wItem.Excel&opt.Number == opt.Number {
+						obj.addExcelWingEffect(opt, &wItem)
+					}
+				}
+			}
+		} else {
+			for _, opt := range item.ExcelManager.Common.Options {
+				switch wItem.KindA {
+				case opt.ItemKindA1, opt.ItemKindA2, opt.ItemKindA3:
+					if wItem.Excel&opt.Number == opt.Number {
+						obj.addExcelCommonEffect(opt, &wItem, i)
+					}
+				}
+			}
+		}
 	}
 }
 
