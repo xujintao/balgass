@@ -216,9 +216,10 @@ func init() {
 // Item represents a item
 type Item struct {
 	*ItemBase
-	ID          int  `db:"item_id"`
-	BaseSection int  `db:"item_base_section"` // 0 ~ 15
-	BaseIndex   int  `db:"item_base_index"`   // 0 ~ 511
+	ID          int `db:"item_id"`
+	BaseSection int `db:"item_base_section"` // 0 ~ 15
+	BaseIndex   int `db:"item_base_index"`   // 0 ~ 511
+	BaseCode    int
 	Level       int  `db:"item_level"`
 	Durability  int  `db:"item_durability"`
 	Lucky       bool `db:"item_lucky"`
@@ -237,18 +238,27 @@ type Item struct {
 	SocketSlot5 int `db:"item_socket_slot5"`
 }
 
+func Code(section, index int) int {
+	return section*512 + index
+}
+
 // NewItem construct a item with section and index
 func NewItem(section, index int) *Item {
 	return &Item{
 		ID:          0,
 		BaseSection: section,
 		BaseIndex:   index,
+		BaseCode:    Code(section, index),
 		ItemBase:    ItemBaseTable.GetItemBase(section, index),
 	}
 }
 
 func (i *Item) GetSetTierIndex() int {
 	return i.Set & 3
+}
+
+func (i *Item) GetExcelItem() int {
+	return i.Excel & 0x3F
 }
 
 // Marshal marshal item struct to [32]byte variable
