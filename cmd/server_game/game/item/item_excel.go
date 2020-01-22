@@ -110,7 +110,7 @@ func (o *excelManager) CommonEffect(id int) {}
 var ExcelManager excelManager
 
 func init() {
-	conf.XML(path.Join(conf.PathCommon, "Items/IGC_ExcellentOptions"), &ExcelManager)
+	conf.XML(path.Join(conf.PathCommon, "Items/IGC_ExcellentOptions.xml"), &ExcelManager)
 }
 
 func dropRate(rates ...int) int {

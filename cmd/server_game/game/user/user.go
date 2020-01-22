@@ -146,7 +146,7 @@ type UserData struct {
 	RegisterLMS                   uint8
 	registerLMSRoom               uint8
 	jewelHarmonyEffect            item.JewelHarmonyItemEffect
-	itemOptionExFor380            item.ItemOptionFor380ItemEffect
+	item380Effect                 item.Item380Effect
 	kanturuEntranceByNPC          bool
 	gensInfoLoad                  bool
 	questInfoLoad                 bool
@@ -212,74 +212,75 @@ type UserData struct {
 }
 
 type Object struct {
-	index                       int
-	Connected                   PlayerType
-	LoginMsgSend                bool
-	LoginMsgCount               byte
-	CloseCount                  byte
-	CloseTYpe                   byte
-	EnableCharacterDel          bool
-	conn                        network.ConnWriter
-	UserNumber                  int
-	DBNumber                    int
-	EnableCharacterCreate       bool
-	AutoSaveTime                time.Time
-	ConnectCheckTime            time.Time
-	CheckTick                   uint
-	CheckSpeedHack              bool
-	CheckTick2                  uint
-	CheckTickCount              byte
-	PintTime                    int
-	TimeCount                   byte
-	PKTimer                     *time.Timer
-	CheckSumTableNum            uint16
-	CheckSumTime                uint
-	Type                        ObjectType
-	Live                        byte
-	AccountID                   string
-	Name                        string
-	Class                       uint16
-	Level                       int
-	HP                          float32
-	MaxHP                       int
-	ScriptMaxHP                 int
-	FillHP                      float32
-	FillHPMax                   float32
-	MP                          int
-	MaxMP                       int
-	Leadership                  uint16
-	AddLeadership               int
-	ChatLimitTime               uint16
-	ChatLimitTimeSec            byte
-	FillLifeCount               byte
-	AddStrength                 int
-	AddDexterity                int
-	AddVitality                 int
-	AddEnergy                   int
-	AG                          int
-	MaxAG                       int
-	AddAG                       int
-	VitalityToLife              float32
-	EnergyToMana                float32
-	PKCount                     int
-	PKLevel                     byte
-	PKTime                      int
-	PKTotalCount                int
-	X                           uint16
-	Y                           uint16
-	Dir                         byte
-	MapNumber                   byte
-	XSave                       uint16
-	YSave                       uint16
-	MapNumberSave               byte
-	XDie                        uint16
-	YDie                        uint16
-	MapNumberDie                byte
-	AddHP                       int
-	AddMP                       int
-	IShield                     int
-	IShieldMax                  int
-	IAddShield                  int
+	index                 int
+	Connected             PlayerType
+	LoginMsgSend          bool
+	LoginMsgCount         byte
+	CloseCount            byte
+	CloseTYpe             byte
+	EnableCharacterDel    bool
+	conn                  network.ConnWriter
+	UserNumber            int
+	DBNumber              int
+	EnableCharacterCreate bool
+	AutoSaveTime          time.Time
+	ConnectCheckTime      time.Time
+	CheckTick             uint
+	CheckSpeedHack        bool
+	CheckTick2            uint
+	CheckTickCount        byte
+	PintTime              int
+	TimeCount             byte
+	PKTimer               *time.Timer
+	CheckSumTableNum      uint16
+	CheckSumTime          uint
+	Type                  ObjectType
+	Live                  byte
+	AccountID             string
+	Name                  string
+	Class                 uint16
+	Level                 int
+	HP                    int // HP
+	MaxHP                 int
+	AddHP                 int
+	ScriptMaxHP           int
+	FillHP                int
+	FillHPMax             int
+	MP                    int // MP
+	MaxMP                 int
+	AddMP                 int
+	SD                    int // SD
+	MaxSD                 int
+	AddSD                 int
+	AG                    int // AG
+	MaxAG                 int
+	AddAG                 int
+	Leadership            uint16
+	AddLeadership         int
+	ChatLimitTime         uint16
+	ChatLimitTimeSec      byte
+	FillLifeCount         byte
+	AddStrength           int
+	AddDexterity          int
+	AddVitality           int
+	AddEnergy             int
+	VitalityToLife        float32
+	EnergyToMana          float32
+	PKCount               int
+	PKLevel               byte
+	PKTime                int
+	PKTotalCount          int
+	X                     uint16
+	Y                     uint16
+	Dir                   byte
+	MapNumber             byte
+	XSave                 uint16
+	YSave                 uint16
+	MapNumberSave         byte
+	XDie                  uint16
+	YDie                  uint16
+	MapNumberDie          byte
+
 	IFillShieldMax              int
 	IFillShield                 int
 	IFillShieldCount            int
@@ -640,9 +641,9 @@ func (obj *Object) addExcelCommonEffect(opt *item.ExcelCommon, wItem *item.Item,
 		obj.DamageReflect += value
 	case item.ExcelCommonDecDamage: // 减伤
 		obj.DamageMinus += value
-	case item.ExcelCommonIncMaxMP: // 加生
+	case item.ExcelCommonIncMaxMP: // 加魔
 		obj.AddMP += obj.MaxMP * value / 100
-	case item.ExcelCommonIncMaxHP: // 加魔
+	case item.ExcelCommonIncMaxHP: // 加生
 		obj.AddHP += obj.MaxHP * value / 100
 	}
 }
@@ -821,6 +822,20 @@ func (obj *Object) CalcSetItem() {
 			}
 		}
 	}
+}
+
+func (obj *Object) Calc380Item() {
+	for _, wItem := range obj.Inventory[0:InventoryWearSize] {
+		if wItem.Durability == 0 {
+			continue
+		}
+		if !wItem.Option380 || !item.Item380Manager.Is380Item(wItem.BaseSection, wItem.BaseIndex) {
+			continue
+		}
+		item.Item380Manager.Apply380ItemEffect(wItem.BaseSection, wItem.BaseIndex, &obj.PlayerData.item380Effect)
+	}
+	obj.AddHP += obj.PlayerData.item380Effect.Item380EffectIncMaxHP
+	obj.AddSD += obj.PlayerData.item380Effect.Item380EffectIncMaxSD
 }
 
 type bill struct {

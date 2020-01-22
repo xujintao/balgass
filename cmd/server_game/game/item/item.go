@@ -171,7 +171,7 @@ type ItemBase struct {
 	Transaction        bool      `xml:"Transaction,attr"`
 	PersonalStore      bool      `xml:"PersonalStore,attr"`
 	StoreWarehouse     bool      `xml:"StoreWarehouse,attr"`
-	SellToNPC          bool      `xml:"SellToNPC,attr"`
+	SellToNPC          int       `xml:"SellToNPC,attr"`
 	Repair             bool      `xml:"Repair,attr"`
 	KindA              itemKindA `xml:"KindA,attr"`
 	KindB              itemKindB `xml:"KindB,attr"`
