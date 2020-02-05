@@ -227,7 +227,7 @@ type configCommon struct {
 		EnableTradeHarmonyItem        bool    `ini:"CanTradeHarmonyItem"`
 		EnableTradeFullExcItem        bool    `ini:"CanTradeFullExcItem"`
 		EnableUseSocketExcItem        bool    `ini:"CanUseSocketExcItem"`
-		EnableUseAnciHarmonyItem      bool    `ini:"CanUseAnciHarmonyItem"`
+		EnableUseSetHarmonyItem       bool    `ini:"CanUseAnciHarmonyItem"`
 		EnableTrade0SerialItem        bool    `ini:"CanTradeFFFFFFFFSerialItem"`
 		EnableCheckValidItem          bool    `ini:"CheckValidItem"`
 		EnableSellAllItem             bool    `ini:"EnableSellAllItems"`
