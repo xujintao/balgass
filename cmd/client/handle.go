@@ -1,5 +1,10 @@
 package main
 
+import (
+	"encoding/binary"
+	"log"
+)
+
 type command struct {
 	code     uint8
 	handle   func(buf []uint8)
@@ -8,49 +13,41 @@ type command struct {
 
 // cmd
 func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
-	for _, cmd := range cmds {
-		if code == cmd.code {
-			if cmd.handle != nil {
-				cmd.handle(buf)
-				return
-			}
-			flag := buf[0]
-			var subcode uint8
-			switch flag {
-			case 0xC1:
-				subcode = buf[3]
-			case 0xC2:
-				subcode = buf[4]
-			}
-			for _, subcmd := range cmd.comamnds {
-				if subcode == subcmd.code {
-					subcmd.handle(buf)
-					return
-				}
-			}
-		}
+	if h, ok := cmds[int(code)]; ok {
+		h(buf)
+		return
 	}
+	flag := buf[0]
+	var subcode uint8
+	switch flag {
+	case 0xC1:
+		subcode = buf[3]
+	case 0xC2:
+		subcode = buf[4]
+	}
+	codes := []byte{code, subcode}
+	code16 := binary.BigEndian.Uint16(codes)
+	if h, ok := cmds[int(code16)]; ok {
+		h(buf)
+		return
+	}
+	log.Printf("invalid cmd, code:%02dx, buf: %v", code, buf)
 }
 
 // cmd table
-var cmds = [...]*command{
-	{0x00, f006FA9EBhandle00, nil},
-	{0x01, handle01, nil},
-	{0x02, handle02, nil},
-	{0x0D, f007087BFhandle0D, nil},
-	{0xD7, handleD7position, nil},     // hook D4->D7
-	{0xD9, handleD9normalAttack, nil}, // hook D9->11
-	{0xF1, nil, []*command{
-		{0x00, handleF100versionmatch, nil},
-		{0x04, handleF104, nil},
-	}},
-	{0xF4, nil, []*command{
-		{0x03, handleF403serverInfo, nil},
-		{0x05, handleF405, nil},
-		{0x06, handleF406serverList, nil},
-	}},
-	{0xF6, f006C18B6handleF6, nil},
-	{0xFA, nil, nil},
+var cmds = map[int]func(buf []uint8){
+	0x00:   f006FA9EBhandle00,
+	0x01:   handle01,
+	0x02:   handle02,
+	0x0D:   f007087BFhandle0D,
+	0xD7:   handleD7position,     // hook D4->D7
+	0xD9:   handleD9normalAttack, // hook D9->11
+	0xF100: handleF100versionmatch,
+	0xF104: handleF104,
+	0xF403: handleF403serverInfo,
+	0xF405: handleF405,
+	0xF406: handleF406serverList,
+	0xF6:   f006C18B6handleF6,
 }
 
 func f006FA9EBhandle00(buf []uint8) {
@@ -206,63 +203,50 @@ func f006C18B6handleF6(buf []uint8) {
 
 // hijack cmd
 func handlecmdhook(code uint8, subcode uint8, buf []uint8, len int) {
-	for _, cmd := range cmdhooks {
-		if code == cmd.code {
-			if cmd.handle != nil {
-				cmd.handle(buf)
-				return
-			}
-			for _, subcmd := range cmd.comamnds {
-				if subcode == subcmd.code {
-					subcmd.handle(buf)
-					return
-				}
-			}
-		}
+	if h, ok := cmdhooks[int(code)]; ok {
+		h(buf)
+		return
 	}
+	codes := []byte{code, subcode}
+	code16 := binary.BigEndian.Uint16(codes)
+	if h, ok := cmdhooks[int(code16)]; ok {
+		h(buf)
+		return
+	}
+	log.Printf("invalid cmd, code:%02dx, buf: %v", code, buf)
 }
 
 // hijack cmd table
-var cmdhooks = []*command{
-	{0xF1, nil, []*command{
-		{0x00, joinResultSend, nil},
-	}},
-	{0xF3, nil, []*command{
-		{0x03, charMapJoinResult, nil},
-		{0x04, charRegen, nil},
-		{0x05, levelUpSend, nil},
-		{0x06, levelUpPointAdd, nil},
-		{0x51, masterLevelUpSend, nil},
-	}},
-	{0xBF, nil, []*command{
-		{0x51, ansMuBotRecvUse, nil},
-	}},
-	{0xF4, nil, []*command{
-		{0x03, reconnect, nil},
-	}},
-	{0xCA, friendRoomCreate, nil},
-	{0xD4, AHCheckGetTickHook, nil},
-	{0xFA, nil, []*command{
-		{0x0D, offTradeReq, nil},
-		{0x10, customPost, nil},
-		{0x11, customPost, nil},
-		{0x12, setChatColors, nil},
-		{0x90, IGCStatAdd, nil},
-		{0xA0, enableSiegeSkills, nil},
-		{0xA2, setAgilityFix, nil},
-		{0xA3, setCashItemMoveEnable, nil},
-		{0xA4, luckyItemFix, nil}, // 区分C1和C2
-		{0xA5, disableReconnect, nil},
-		{0xA6, handleExitProcess, nil},
-		{0xA7, disableReconnectSystem, nil},
-		{0xA8, alterPShopVault, nil},
-		{0xB0, dropSellMod, nil},
-		{0xF8, setBattleZoneData, nil},
-	}},
-	{0x11, attackResult, nil},
-	{0x17, diePlayerSend, nil},
-	{0x26, refillSend, nil},
-	{0x27, manaSend, nil},
+var cmdhooks = map[int]func(buf []uint8){
+	0xF100: joinResultSend,
+	0xF303: charMapJoinResult,
+	0xF304: charRegen,
+	0xF305: levelUpSend,
+	0xF306: levelUpPointAdd,
+	0xF351: masterLevelUpSend,
+	0xBF51: ansMuBotRecvUse,
+	0xF403: reconnect,
+	0xCA:   friendRoomCreate,
+	0xD4:   AHCheckGetTickHook,
+	0xFA0D: offTradeReq,
+	0xFA10: customPost,
+	0xFA11: customPost,
+	0xFA12: setChatColors,
+	0xFA90: IGCStatAdd,
+	0xFAA0: enableSiegeSkills,
+	0xFAA2: setAgilityFix,
+	0xFAA3: setCashItemMoveEnable,
+	0xFAA4: luckyItemFix, // 区分C1和C2
+	0xFAA5: disableReconnect,
+	0xFAA6: handleExitProcess,
+	0xFAA7: disableReconnectSystem,
+	0xFAA8: alterPShopVault,
+	0xFAB0: dropSellMod,
+	0xFAF8: setBattleZoneData,
+	0x11:   attackResult,
+	0x17:   diePlayerSend,
+	0x26:   refillSend,
+	0x27:   manaSend,
 }
 
 // hijack cmd handle
