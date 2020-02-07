@@ -167,7 +167,7 @@ func (o *harmonyManager) StrengthenItem(item *Item) (bool, error) {
 		return true, lang.MsgTextStrengthenFailed // strengthen failed
 	}
 	o.addRandEffect(item, itemKind)
-	// persistence
+	// can not find persistence
 	return true, lang.MsgTextStrengthenSuccess
 }
 

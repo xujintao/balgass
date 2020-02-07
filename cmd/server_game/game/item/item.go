@@ -216,28 +216,30 @@ func init() {
 // Item represents a item
 type Item struct {
 	*ItemBase
-	ID            int `db:"item_id"`
-	BaseSection   int `db:"item_base_section"` // 0 ~ 15
-	BaseIndex     int `db:"item_base_index"`   // 0 ~ 511
-	BaseCode      int
-	Level         int               `db:"item_level"`
-	Durability    int               `db:"item_durability"`
-	Lucky         bool              `db:"item_lucky"`
-	Skill         bool              `db:"item_skill"`
-	Addition      int               `db:"item_addition"`
-	Excel         int               `db:"item_excel"`
-	Set           int               `db:"item_set"`
-	Option380     bool              `db:"item_option380"`
-	Period        int               `db:"item_period"`
-	HarmonyEffect harmonyEffectKind `db:"item_harmony_effect"`
-	HarmonyLevel  int               `db:"item_harmony_level"`
-	SocketIndex   int               `db:"item_socket_index"`
-	SocketSlots   [5]int
-	SocketSlot1   int `db:"item_socket_slot1"`
-	SocketSlot2   int `db:"item_socket_slot2"`
-	SocketSlot3   int `db:"item_socket_slot3"`
-	SocketSlot4   int `db:"item_socket_slot4"`
-	SocketSlot5   int `db:"item_socket_slot5"`
+	ID             int `db:"item_id"`
+	BaseSection    int `db:"item_base_section"` // 0 ~ 15
+	BaseIndex      int `db:"item_base_index"`   // 0 ~ 511
+	BaseCode       int
+	Level          int               `db:"item_level"`
+	Durability     int               `db:"item_durability"`
+	Lucky          bool              `db:"item_lucky"`
+	Skill          bool              `db:"item_skill"`
+	Addition       int               `db:"item_addition"`
+	Excel          int               `db:"item_excel"`
+	Set            int               `db:"item_set"`
+	Option380      bool              `db:"item_option380"`
+	Period         int               `db:"item_period"`
+	HarmonyEffect  harmonyEffectKind `db:"item_harmony_effect"`
+	HarmonyLevel   int               `db:"item_harmony_level"`
+	PentagramBonus int               `db:"item_pentagram_bonus"`
+	MuunRank       int               `db:"item_muun_rank"`
+	SocketBonus    int               `db:"item_socket_bonus"`
+	SocketSlots    [5]int
+	SocketSlot1    int `db:"item_socket_slot1"`
+	SocketSlot2    int `db:"item_socket_slot2"`
+	SocketSlot3    int `db:"item_socket_slot3"`
+	SocketSlot4    int `db:"item_socket_slot4"`
+	SocketSlot5    int `db:"item_socket_slot5"`
 }
 
 func Code(section, index int) int {
