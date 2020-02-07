@@ -27,6 +27,7 @@
 
 <WarpSettings>
 	<Warp Index="1"  ServerName="Arena"				  ClientName="Arena"		 MinLevel="50"  MaxLevel="400" ReqMoney="2000"  GateNumber="50" />
+	<Warp Index="44" ServerName="LorenMarket"		  ClientName="LorenMarket"	 MinLevel="1"   MaxLevel="400" ReqMoney="10000" GateNumber="333" />
 	<Warp Index="2"  ServerName="Lorencia"			  ClientName="Lorencia"		 MinLevel="10"  MaxLevel="400" ReqMoney="2000"  GateNumber="17" />
 	<Warp Index="3"  ServerName="Noria"				  ClientName="Noria"		 MinLevel="10"  MaxLevel="400" ReqMoney="2000"  GateNumber="27" />
 	<Warp Index="31" ServerName="Elbeland"			  ClientName="Elveland"		 MinLevel="10"  MaxLevel="400" ReqMoney="2000"  GateNumber="267" />
@@ -63,4 +64,5 @@
 	<Warp Index="34" ServerName="LaColen"			  ClientName="LaCleon"		 MinLevel="280" MaxLevel="400" ReqMoney="15000" GateNumber="287" />
 	<Warp Index="33" ServerName="Swamp_of_Calmness"	  ClientName="PeaceSwamp"	 MinLevel="400" MaxLevel="400" ReqMoney="15000" GateNumber="273" />
 	<Warp Index="42" ServerName="Vulcanus"			  ClientName="Vulcanus"		 MinLevel="30"  MaxLevel="400" ReqMoney="15000" GateNumber="294" />
+	<Warp Index="24" ServerName="LorenDeep"			  ClientName="LorenDeep"	 MinLevel="10"  MaxLevel="400" ReqMoney="0"     GateNumber="104" />
 </WarpSettings>
