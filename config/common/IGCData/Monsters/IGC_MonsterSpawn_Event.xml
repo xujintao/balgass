@@ -103,7 +103,7 @@
 // (3) Pouch of Blessing - Kalima 5
 // (4) Pouch of Blessing - Aida (1 ~ 2)
 // ####################################################################### -->
-	<Spot Enable="1" StartDay="1" EndDay="31" StartHour="0" EndHour="23">
+	<Spot Enable="0" StartDay="1" EndDay="31" StartHour="0" EndHour="23">
 		<Spawn Index="675" MapNumber="4"  Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Pouch of Blessing (1) ~ 10 -->
 		<Spawn Index="675" MapNumber="10" Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Pouch of Blessing (2) ~ 10 -->
 		<Spawn Index="675" MapNumber="28" Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Pouch of Blessing (3) ~ 10 -->
@@ -117,7 +117,7 @@
 // (4) Lunar Rabbit Event - Lost Tower (1 ~ 7)
 // (5) Lunar Rabbit Event - Atlans (1 ~ 3)
 // ####################################################################### -->
-	<Spot Enable="1" StartDay="1" EndDay="31" StartHour="0" EndHour="23">
+	<Spot Enable="0" StartDay="1" EndDay="31" StartHour="0" EndHour="23">
 		<Spawn Index="413" MapNumber="37" Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="50" /> <!-- Lunar Rabbit (1) ~ 50 -->
 		<Spawn Index="413" MapNumber="33" Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="50" /> <!-- Lunar Rabbit (2) ~ 50 -->
 		<Spawn Index="413" MapNumber="8"  Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="50" /> <!-- Lunar Rabbit (3) ~ 50 -->
@@ -148,7 +148,7 @@
 // (3) Fire Flame Ghost Event - Kanturu Ruins
 // (4) Fire Flame Ghost Event - Kalima 7 (Lost)
 // ####################################################################### -->
-	<Spot Enable="1" StartDay="1" EndDay="31" StartHour="0" EndHour="23">
+	<Spot Enable="0" StartDay="1" EndDay="31" StartHour="0" EndHour="23">
 		<Spawn Index="676" MapNumber="57" Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Fire Flame Ghost (1) ~ 10 -->
 		<Spawn Index="676" MapNumber="56" Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Fire Flame Ghost (2) ~ 10 -->
 		<Spawn Index="676" MapNumber="37" Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Fire Flame Ghost (3) ~ 10 -->
@@ -163,7 +163,7 @@
 // (5) Golden Goblin - Karutan 1
 // (6) Golden Goblin - Karutan 2
 // ####################################################################### -->
-	<Spot Enable="1" StartDay="1" EndDay="31" StartHour="0" EndHour="23">
+	<Spot Enable="0" StartDay="1" EndDay="31" StartHour="0" EndHour="23">
 		<Spawn Index="652" MapNumber="37" Distance="30" StartX="1" StartY="1"   EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Golden Goblin (1) ~ 10 -->
 		<Spawn Index="652" MapNumber="33" Distance="30" StartX="1" StartY="1"   EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Golden Goblin (2) ~ 10 -->
 		<Spawn Index="652" MapNumber="8"  Distance="30" StartX="1" StartY="114" EndX="137" EndY="251" Dir="-1" Count="10" /> <!-- Golden Goblin (3) ~ 10 -->
@@ -178,7 +178,7 @@
 // (3) Moon Rabbit - Devias
 // (4) Moon Rabbit - Noria
 // ####################################################################### -->
-	<Spot Enable="1" StartDay="1" EndDay="31" StartHour="0" EndHour="23">
+	<Spot Enable="0" StartDay="1" EndDay="31" StartHour="0" EndHour="23">
 		<Spawn Index="674" MapNumber="0"  Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Moon Rabbit (1) ~ 10 -->
 		<Spawn Index="674" MapNumber="51" Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Moon Rabbit (4) ~ 10 -->
 		<Spawn Index="674" MapNumber="2"  Distance="30" StartX="1" StartY="1" EndX="255" EndY="255" Dir="-1" Count="10" /> <!-- Moon Rabbit (2) ~ 10 -->
