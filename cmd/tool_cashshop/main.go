@@ -1,0 +1,268 @@
+package main
+
+import (
+	"bufio"
+	"encoding/json"
+	"encoding/xml"
+	"io"
+	"log"
+	"os"
+	"path"
+	"strconv"
+	"strings"
+)
+
+var conf config
+
+type config struct {
+	Version   string `json:"version"`
+	Separator string `json:"separator"`
+	Unit      string `json:"unit"`
+}
+
+type Item struct {
+	GUID             int    `xml:"GUID,attr"`
+	Index            int    `xml:"iIndex,attr"`
+	SubIndex         int    `xml:"iSubIndex,attr"`
+	OptionSelect     int    `xml:"OptionSelect,attr"`
+	PackageID        int    `xml:"PackageID,attr"`
+	CoinType         int    `xml:"CoinType,attr"`
+	CoinValue        int    `xml:"CoinValue,attr"`
+	UniqueID1        int    `xml:"UniqueID1,attr"`
+	UniqueID2        int    `xml:"UniqueID2,attr"`
+	ShopCategory     int    `xml:"ShopCategory,attr"`
+	GPRewardValue    int    `xml:"GPRewardValue,attr"`
+	CanBuy           int    `xml:"CanBuy,attr"`
+	CanGift          int    `xml:"CanGift,attr"`
+	RandomItemSelect int    `xml:"RandomItemSelect,attr"`
+	Comment          string `xml:",comment"`
+}
+type CashItemList struct {
+	Items []Item `xml:"Item"`
+}
+
+type Package struct {
+	GUID         int `xml:"GUID,attr"`
+	ID           int `xml:"ID,attr"`
+	ItemSequence int `xml:"ItemSequence,attr"`
+	UniqueID1    int `xml:"UniqueID1,attr"`
+	UniqueID2    int `xml:"UniqueID2,attr"`
+}
+type CashItemPackage struct {
+	Packages []Package `xml:"Package"`
+}
+
+type ItemInfo struct {
+	GUID        int `xml:"GUID,attr"`
+	ID          int `xml:"ID,attr"`
+	Cat         int `xml:"Cat,attr"`
+	Index       int `xml:"Index,attr"`
+	Level       int `xml:"Level,attr"`
+	Durability  int `xml:"Durability,attr"`
+	Skill       int `xml:"Skill,attr"`
+	Luck        int `xml:"Luck,attr"`
+	Option      int `xml:"Option,attr"`
+	Exc         int `xml:"Exc,attr"`
+	Set         int `xml:"Set,attr"`
+	SocketCount int `xml:"SocketCount,attr"`
+	Element     int `xml:"Element,attr"`
+	Type        int `xml:"Type,attr"`
+	Duration    int `xml:"Duration,attr"`
+}
+
+type CashItemInfo struct {
+	Infos []ItemInfo `xml:"Item"`
+}
+
+func newBufioReader(path string) (bufr *bufio.Reader, err error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	bufr = bufio.NewReader(f)
+	return
+}
+
+func mustAtoi(a string) int {
+	i, err := strconv.Atoi(a)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func toXML(v interface{}, path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	enc := xml.NewEncoder(f)
+	enc.Indent("", "    ")
+	return enc.Encode(v)
+}
+
+func convertItemList(itemInfos map[int]ItemInfo) {
+	var cil CashItemList
+	var cip CashItemPackage
+
+	bufr, err := newBufioReader(path.Join(conf.Version, "IBSPackage.txt"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	packageID := 1
+	for {
+		line, err := bufr.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Fatal(err)
+		}
+		values := strings.Split(line, conf.Separator)
+		item := Item{
+			GUID:         len(cil.Items),
+			ShopCategory: mustAtoi(values[0]),
+			Index:        mustAtoi(values[2]),
+			// Comment:      values[3],
+			CoinValue: mustAtoi(values[5]),
+			SubIndex:  mustAtoi(values[25]),
+			CanBuy:    1,
+			CanGift:   1,
+		}
+		switch item.SubIndex {
+		case 0:
+			item.CoinType = 2
+		case 508:
+			item.CoinType = 0
+		}
+
+		if values[23] == "" {
+			// package UniqueID1
+			uniqueID1 := strings.TrimSuffix(values[19], "|")
+			id1s := strings.Split(uniqueID1, "|")
+			// here, need to pre-handle some special id1 as goblin point and assign result to GPRewardValue ?
+			for i, id1 := range id1s {
+				p := Package{
+					ID:           packageID,
+					GUID:         i,
+					ItemSequence: i,
+					UniqueID1:    mustAtoi(id1),
+				}
+				itemInfo, ok := itemInfos[p.UniqueID1]
+				if ok {
+					p.UniqueID2 = itemInfo.ID
+				} else {
+					log.Printf("can not find id(id2) by id(id1):%d", p.UniqueID1)
+				}
+				cip.Packages = append(cip.Packages, p)
+			}
+			item.PackageID = packageID
+			packageID++
+			cil.Items = append(cil.Items, item)
+		} else {
+			uniqueID1 := strings.TrimSuffix(values[19], "|")
+			item.UniqueID1 = mustAtoi(uniqueID1)
+			uniqueID2 := strings.TrimSuffix(values[23], "|")
+			id2s := strings.Split(uniqueID2, "|")
+			for _, id2 := range id2s {
+				item.UniqueID2 = mustAtoi(id2)
+				item.OptionSelect = item.UniqueID2
+				cil.Items = append(cil.Items, item)
+			}
+		}
+	}
+	if err := toXML(&cil, path.Join(conf.Version, "IGC_CashItem_List.xml")); err != nil {
+		log.Fatal(err)
+	}
+	if err := toXML(&cip, path.Join(conf.Version, "IGC_CashItem_Package.xml")); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func code(section, index int) int {
+	return section<<9 + index
+}
+
+func convertItemInfo() (itemInfos map[int]ItemInfo) {
+	var cii CashItemInfo
+	itemInfos = make(map[int]ItemInfo)
+	bufr, err := newBufioReader(path.Join(conf.Version, "IBSProduct.txt"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		line, err := bufr.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Fatal(err)
+		}
+		values := strings.Split(line, conf.Separator)
+		baseCode := mustAtoi(values[13])
+		baseSection := baseCode >> 9
+		baseIndex := baseCode % 512
+		itemInfo := ItemInfo{
+			GUID:  mustAtoi(values[0]),
+			ID:    mustAtoi(values[6]),
+			Cat:   baseSection,
+			Index: baseIndex,
+		}
+		kind := mustAtoi(values[14])
+		switch kind {
+		case 7:
+			itemInfo.Type = 0 // quantity
+		case 2, 10:
+			// type
+			switch code(itemInfo.Cat, itemInfo.Index) {
+			case code(13, 43), code(13, 44), code(13, 45): // 经验印章 神圣印章 贡献印章
+				itemInfo.Type = 1
+			case code(13, 62), code(13, 63): // 大师经验印章 大师神圣印章
+				itemInfo.Type = 1
+			case code(13, 93), code(13, 94): // 大师等级经验印章 大师等级神圣印章
+				itemInfo.Type = 1
+			case code(13, 103), code(13, 104), code(13, 105): // 组队经验值符咒 最大AG提升光环 最大SD提升光环
+				itemInfo.Type = 1
+			case code(13, 128), code(13, 129), code(13, 130), code(13, 132), code(13, 134): // 神鹰雕像 山羊雕像 兽人符文 黄金兽人符文 破旧铁蹄
+				itemInfo.Type = 1
+			case code(14, 72), code(14, 73), code(14, 74), code(14, 75), code(14, 76), code(14, 77): // 加速卷轴 防御卷轴 愤怒卷轴 魔力卷轴 体力卷轴 魔法卷轴
+				itemInfo.Type = 1
+			case code(14, 97), code(14, 98): // 幸运一击卷轴 卓越一击卷轴
+				itemInfo.Type = 1
+			default:
+				itemInfo.Type = 2
+				itemInfo.Durability = 255
+			}
+			// duration
+			duration := mustAtoi(values[3])
+			unit := values[4]
+			if strings.Contains(unit, conf.Unit) {
+				duration /= 60
+			}
+			itemInfo.Duration = duration
+		}
+		cii.Infos = append(cii.Infos, itemInfo)
+		itemInfos[itemInfo.GUID] = itemInfo // used by convertItemList
+	}
+	if err := toXML(&cii, path.Join(conf.Version, "IGC_CashItem_Info.xml")); err != nil {
+		log.Fatal(err)
+	}
+	return
+}
+
+func main() {
+	f, err := os.Open("config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	json.NewDecoder(f).Decode(&conf)
+
+	// IBSProduct.txt -> IGCCashItemInfo.dat
+	itemInfos := convertItemInfo()
+
+	// IBSPackage.txt -> IGCCashItemList.dat & IGCCashItemPackages.dat
+	convertItemList(itemInfos)
+}
