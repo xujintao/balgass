@@ -76,11 +76,6 @@ type CashItemPackage struct {
 	Packages []Package `xml:"Package"`
 }
 
-func writeField(bufw *bufio.Writer, value int) {
-	bufw.WriteString(strconv.Itoa(value))
-	bufw.WriteByte('\t')
-}
-
 func newBufioReader(path string) (bufr *bufio.Reader, err error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -326,6 +321,7 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 			uniqueID2 := strings.TrimSuffix(values[23], "|")
 			id2s := strings.Split(uniqueID2, "|")
 			for _, id2 := range id2s {
+				item.GUID = len(cil.Items)
 				item.UniqueID2 = mustAtoi(id2)
 				item.OptionSelect = item.UniqueID2
 				cil.Items = append(cil.Items, item)
