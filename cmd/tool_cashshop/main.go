@@ -146,15 +146,18 @@ func toDAT(i interface{}, path string) error {
 		for j := 0; j < v.NumField(); j++ {
 			field := v.Field(j)
 			tField := t.Field(j)
+			if tField.Tag.Get("dat") == "-" {
+				continue
+			}
+			if j == v.NumField()-1 && tField.Tag.Get("dat") == "description" {
+				bufw.WriteString("//")
+			}
 			value := ""
 			switch v := field.Interface().(type) {
 			case int:
 				value = strconv.Itoa(v)
 			case string:
 				value = v
-			}
-			if j == v.NumField()-1 && tField.Tag.Get("dat") == "description" {
-				bufw.WriteString("//")
 			}
 			bufw.WriteString(value)
 			if j < v.NumField()-1 {
