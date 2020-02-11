@@ -22,42 +22,43 @@ type config struct {
 	Unit      string `json:"unit"`
 }
 type ItemInfo struct {
-	GUID        int `xml:"GUID,attr"`
-	ID          int `xml:"ID,attr"`
-	Cat         int `xml:"Cat,attr"`
-	Index       int `xml:"Index,attr"`
-	Level       int `xml:"Level,attr"`
-	Durability  int `xml:"Durability,attr"`
-	Skill       int `xml:"Skill,attr"`
-	Luck        int `xml:"Luck,attr"`
-	Option      int `xml:"Option,attr"`
-	Exc         int `xml:"Exc,attr"`
-	Set         int `xml:"Set,attr"`
-	SocketCount int `xml:"SocketCount,attr"`
-	Element     int `xml:"Element,attr"`
-	Type        int `xml:"Type,attr"`
-	Duration    int `xml:"Duration,attr"`
+	GUID        int    `xml:"GUID,attr"`
+	ID          int    `xml:"ID,attr"`
+	Cat         int    `xml:"Cat,attr"`
+	Index       int    `xml:"Index,attr"`
+	Level       int    `xml:"Level,attr"`
+	Durability  int    `xml:"Durability,attr"`
+	Skill       int    `xml:"Skill,attr"`
+	Luck        int    `xml:"Luck,attr"`
+	Option      int    `xml:"Option,attr"`
+	Exc         int    `xml:"Exc,attr"`
+	Set         int    `xml:"Set,attr"`
+	SocketCount int    `xml:"SocketCount,attr"`
+	Element     int    `xml:"Element,attr"`
+	Type        int    `xml:"Type,attr"`
+	Duration    int    `xml:"Duration,attr"`
+	Comment     string `xml:"-"`
 }
 
 type CashItemInfo struct {
 	Infos []ItemInfo `xml:"Item"`
 }
 type Item struct {
-	GUID             int `xml:"GUID,attr"`
-	Index            int `xml:"iIndex,attr"`
-	SubIndex         int `xml:"iSubIndex,attr"`
-	OptionSelect     int `xml:"OptionSelect,attr"`
-	PackageID        int `xml:"PackageID,attr"`
-	CoinType         int `xml:"CoinType,attr"`
-	CoinValue        int `xml:"CoinValue,attr"`
-	UniqueID1        int `xml:"UniqueID1,attr"`
-	UniqueID2        int `xml:"UniqueID2,attr"`
-	ShopCategory     int `xml:"ShopCategory,attr"`
-	GPRewardValue    int `xml:"GPRewardValue,attr"`
-	CanBuy           int `xml:"CanBuy,attr"`
-	CanGift          int `xml:"CanGift,attr"`
-	RandomItemSelect int `xml:"RandomItemSelect,attr"`
-	// Comment          string `xml:",comment"`
+	GUID             int    `xml:"GUID,attr"`
+	Index            int    `xml:"iIndex,attr"`
+	SubIndex         int    `xml:"iSubIndex,attr"`
+	OptionSelect     int    `xml:"OptionSelect,attr"`
+	PackageID        int    `xml:"PackageID,attr"`
+	CoinType         int    `xml:"CoinType,attr"`
+	CoinValue        int    `xml:"CoinValue,attr"`
+	UniqueID1        int    `xml:"UniqueID1,attr"`
+	UniqueID2        int    `xml:"UniqueID2,attr"`
+	ShopCategory     int    `xml:"ShopCategory,attr"`
+	GPRewardValue    int    `xml:"GPRewardValue,attr"`
+	CanBuy           int    `xml:"CanBuy,attr"`
+	CanGift          int    `xml:"CanGift,attr"`
+	RandomItemSelect int    `xml:"RandomItemSelect,attr"`
+	Comment          string `xml:"-"` //`xml:",comment"`
 }
 type CashItemList struct {
 	Items []Item `xml:"Item"`
@@ -104,7 +105,7 @@ func toDAT(i interface{}, path string) error {
 	defer f.Close()
 	bufw := bufio.NewWriter(f)
 
-	// write comment
+	// write head
 	t := reflect.TypeOf(i) // ex: CashItemInfo or *CashItemInfo
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
@@ -118,7 +119,9 @@ func toDAT(i interface{}, path string) error {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		bufw.WriteString(field.Name)
-		bufw.WriteString("  ")
+		if i < t.NumField()-1 {
+			bufw.WriteString("  ")
+		}
 	}
 	bufw.WriteByte('\n')
 
@@ -134,10 +137,24 @@ func toDAT(i interface{}, path string) error {
 	v = v.Field(0) // ex: Infos []ItemInfo
 	for i := 0; i < v.Len(); i++ {
 		v := v.Index(i) // ex: ItemInfo
+		t := v.Type()   // t and tField are used to write comment field, can we use field.Type() instead ?
 		for j := 0; j < v.NumField(); j++ {
 			field := v.Field(j)
-			bufw.WriteString(strconv.Itoa(field.Interface().(int)))
-			bufw.WriteByte('\t')
+			tField := t.Field(j)
+			value := ""
+			switch v := field.Interface().(type) {
+			case int:
+				value = strconv.Itoa(v)
+			case string:
+				value = v
+			}
+			if j == v.NumField()-1 && tField.Name == "Comment" {
+				bufw.WriteString("//")
+			}
+			bufw.WriteString(value)
+			if j < v.NumField()-1 {
+				bufw.WriteByte('\t')
+			}
 		}
 		bufw.WriteByte('\n')
 	}
@@ -186,10 +203,11 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 		baseSection := baseCode >> 9
 		baseIndex := baseCode % 512
 		itemInfo := ItemInfo{
-			GUID:  mustAtoi(values[0]),
-			ID:    mustAtoi(values[6]),
-			Cat:   baseSection,
-			Index: baseIndex,
+			GUID:    mustAtoi(values[0]),
+			ID:      mustAtoi(values[6]),
+			Cat:     baseSection,
+			Index:   baseIndex,
+			Comment: values[1],
 		}
 		kind := mustAtoi(values[14])
 		switch kind {
@@ -257,11 +275,11 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 			GUID:         len(cil.Items),
 			ShopCategory: mustAtoi(values[0]),
 			Index:        mustAtoi(values[2]),
-			// Comment:      values[3],
-			CoinValue: mustAtoi(values[5]),
-			SubIndex:  mustAtoi(values[25]),
-			CanBuy:    1,
-			CanGift:   1,
+			Comment:      values[3],
+			CoinValue:    mustAtoi(values[5]),
+			SubIndex:     mustAtoi(values[25]),
+			CanBuy:       1,
+			CanGift:      1,
 		}
 		switch item.SubIndex {
 		case 0:
