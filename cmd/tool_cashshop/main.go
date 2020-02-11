@@ -22,55 +22,55 @@ type config struct {
 	Unit      string `json:"unit"`
 }
 type ItemInfo struct {
-	GUID        int    `xml:"GUID,attr"`
-	ID          int    `xml:"ID,attr"`
-	Cat         int    `xml:"Cat,attr"`
-	Index       int    `xml:"Index,attr"`
-	Level       int    `xml:"Level,attr"`
-	Durability  int    `xml:"Durability,attr"`
-	Skill       int    `xml:"Skill,attr"`
-	Luck        int    `xml:"Luck,attr"`
-	Option      int    `xml:"Option,attr"`
-	Exc         int    `xml:"Exc,attr"`
-	Set         int    `xml:"Set,attr"`
-	SocketCount int    `xml:"SocketCount,attr"`
-	Element     int    `xml:"Element,attr"`
-	Type        int    `xml:"Type,attr"`
-	Duration    int    `xml:"Duration,attr"`
-	Comment     string `xml:"-"`
+	GUID        int    `xml:"GUID,attr" dat:"guid"`
+	ID          int    `xml:"ID,attr" dat:"id"`
+	Cat         int    `xml:"Cat,attr" dat:"group"`
+	Index       int    `xml:"Index,attr" dat:"index"`
+	Level       int    `xml:"Level,attr" dat:"level"`
+	Durability  int    `xml:"Durability,attr" dat:"durability"`
+	Skill       int    `xml:"Skill,attr" dat:"skill"`
+	Luck        int    `xml:"Luck,attr" dat:"luck"`
+	Option      int    `xml:"Option,attr" dat:"option"`
+	Exc         int    `xml:"Exc,attr" dat:"excel"`
+	Set         int    `xml:"Set,attr" dat:"set"`
+	SocketCount int    `xml:"SocketCount,attr" dat:"socket"`
+	Element     int    `xml:"Element,attr" dat:"-"`
+	Type        int    `xml:"Type,attr" dat:"type"`
+	Duration    int    `xml:"Duration,attr" dat:"period"`
+	Comment     string `xml:"-" dat:"description"`
 }
 
 type CashItemInfo struct {
 	Infos []ItemInfo `xml:"Item"`
 }
 type Item struct {
-	GUID             int    `xml:"GUID,attr"`
-	Index            int    `xml:"iIndex,attr"`
-	SubIndex         int    `xml:"iSubIndex,attr"`
-	OptionSelect     int    `xml:"OptionSelect,attr"`
-	PackageID        int    `xml:"PackageID,attr"`
-	CoinType         int    `xml:"CoinType,attr"`
-	CoinValue        int    `xml:"CoinValue,attr"`
-	UniqueID1        int    `xml:"UniqueID1,attr"`
-	UniqueID2        int    `xml:"UniqueID2,attr"`
-	ShopCategory     int    `xml:"ShopCategory,attr"`
-	GPRewardValue    int    `xml:"GPRewardValue,attr"`
-	CanBuy           int    `xml:"CanBuy,attr"`
-	CanGift          int    `xml:"CanGift,attr"`
-	RandomItemSelect int    `xml:"RandomItemSelect,attr"`
-	Comment          string `xml:"-"` //`xml:",comment"`
+	GUID             int    `xml:"GUID,attr" dat:"guid"`
+	Index            int    `xml:"iIndex,attr" dat:"index"`        // be consist with client
+	SubIndex         int    `xml:"iSubIndex,attr" dat:"sub_index"` // depends on CoinType
+	OptionSelect     int    `xml:"OptionSelect,attr" dat:"option_select"`
+	PackageID        int    `xml:"PackageID,attr" dat:"package_id"`
+	CoinType         int    `xml:"CoinType,attr" dat:"coin_type"`
+	CoinValue        int    `xml:"CoinValue,attr" dat:"coin_value"`
+	UniqueID1        int    `xml:"UniqueID1,attr" dat:"unique_id_1"`
+	UniqueID2        int    `xml:"UniqueID2,attr" dat:"unique_id_2"`
+	ShopCategory     int    `xml:"ShopCategory,attr" dat:"shop_category"`
+	GPRewardValue    int    `xml:"GPRewardValue,attr" dat:"gp_reward_value"`
+	CanBuy           int    `xml:"CanBuy,attr" dat:"can_buy"`
+	CanGift          int    `xml:"CanGift,attr" dat:"can_gift"`
+	RandomItemSelect int    `xml:"RandomItemSelect,attr" dat:"random_item_select"`
+	Comment          string `xml:"-" dat:"description"`
 }
 type CashItemList struct {
 	Items []Item `xml:"Item"`
 }
 
 type Package struct {
-	GUID         int    `xml:"GUID,attr"`
-	ID           int    `xml:"ID,attr"`
-	ItemSequence int    `xml:"ItemSequence,attr"`
-	UniqueID1    int    `xml:"UniqueID1,attr"`
-	UniqueID2    int    `xml:"UniqueID2,attr"`
-	Comment      string `xml:"-"`
+	GUID         int    `xml:"GUID,attr" dat:"guid"`
+	ID           int    `xml:"ID,attr" dat:"id"`
+	ItemSequence int    `xml:"ItemSequence,attr" dat:"item_sequence"`
+	UniqueID1    int    `xml:"UniqueID1,attr" dat:"unique_id_1"`
+	UniqueID2    int    `xml:"UniqueID2,attr" dat:"unique_id_2"`
+	Comment      string `xml:"-" dat:"description"`
 }
 type CashItemPackage struct {
 	Packages []Package `xml:"Package"`
@@ -119,7 +119,11 @@ func toDAT(i interface{}, path string) error {
 	bufw.WriteString("// ")
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		bufw.WriteString(field.Name)
+		tag := field.Tag.Get("dat")
+		if tag == "-" {
+			continue
+		}
+		bufw.WriteString(tag)
 		if i < t.NumField()-1 {
 			bufw.WriteString("  ")
 		}
@@ -149,7 +153,7 @@ func toDAT(i interface{}, path string) error {
 			case string:
 				value = v
 			}
-			if j == v.NumField()-1 && tField.Name == "Comment" {
+			if j == v.NumField()-1 && tField.Tag.Get("dat") == "description" {
 				bufw.WriteString("//")
 			}
 			bufw.WriteString(value)
