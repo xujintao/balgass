@@ -65,11 +65,12 @@ type CashItemList struct {
 }
 
 type Package struct {
-	GUID         int `xml:"GUID,attr"`
-	ID           int `xml:"ID,attr"`
-	ItemSequence int `xml:"ItemSequence,attr"`
-	UniqueID1    int `xml:"UniqueID1,attr"`
-	UniqueID2    int `xml:"UniqueID2,attr"`
+	GUID         int    `xml:"GUID,attr"`
+	ID           int    `xml:"ID,attr"`
+	ItemSequence int    `xml:"ItemSequence,attr"`
+	UniqueID1    int    `xml:"UniqueID1,attr"`
+	UniqueID2    int    `xml:"UniqueID2,attr"`
+	Comment      string `xml:"-"`
 }
 type CashItemPackage struct {
 	Packages []Package `xml:"Package"`
@@ -303,6 +304,7 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 				itemInfo, ok := itemInfos[p.UniqueID1]
 				if ok {
 					p.UniqueID2 = itemInfo.ID
+					p.Comment = itemInfo.Comment
 				} else {
 					log.Printf("can not find id(id2) by id(id1):%d", p.UniqueID1)
 				}
