@@ -76,13 +76,18 @@ type CashItemPackage struct {
 	Packages []Package `xml:"Package"`
 }
 
-func newBufioReader(path string) (bufr *bufio.Reader, err error) {
-	f, err := os.Open(path)
+func newBufioReader(r io.Reader) (*bufio.Reader, error) {
+	bufr := bufio.NewReader(r)
+
+	// detect bom
+	bom, _, err := bufr.ReadRune()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	bufr = bufio.NewReader(f)
-	return
+	if bom != '\uFEFF' {
+		bufr.UnreadRune()
+	}
+	return bufr, err
 }
 
 func mustAtoi(a string) int {
@@ -188,7 +193,13 @@ func code(section, index int) int {
 func convertItemInfo() (itemInfos map[int]ItemInfo) {
 	var cii CashItemInfo
 	itemInfos = make(map[int]ItemInfo)
-	bufr, err := newBufioReader(path.Join(conf.Version, "IBSProduct.txt"))
+
+	f, err := os.Open(path.Join(conf.Version, "IBSProduct.txt"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	bufr, err := newBufioReader(f)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -260,10 +271,16 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 	var cil CashItemList
 	var cip CashItemPackage
 
-	bufr, err := newBufioReader(path.Join(conf.Version, "IBSPackage.txt"))
+	f, err := os.Open(path.Join(conf.Version, "IBSPackage.txt"))
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer f.Close()
+	bufr, err := newBufioReader(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	packageID := 1
 	for {
 		line, err := bufr.ReadString('\n')
