@@ -76,7 +76,7 @@ type CashItemPackage struct {
 	Packages []Package `xml:"Package"`
 }
 
-func newBufioReader(r io.Reader) (*bufio.Reader, error) {
+func newBufioScanner(r io.Reader) *bufio.Scanner {
 	bufr := bufio.NewReader(r)
 
 	// detect bom
@@ -87,7 +87,7 @@ func newBufioReader(r io.Reader) (*bufio.Reader, error) {
 	if bom != '\uFEFF' {
 		bufr.UnreadRune()
 	}
-	return bufr, err
+	return bufio.NewScanner(bufr)
 }
 
 func mustAtoi(a string) int {
@@ -220,13 +220,13 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	bufr, err := newBufioReader(f)
+	scanner := newBufioScanner(f)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for {
-		line, err := bufr.ReadString('\n')
+	for scanner.Scan() {
+		line := scanner.Text()
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -294,27 +294,29 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 // [1]: row category index
 // [2]: Index, equal to IGCCashItemList.dat Index, used to identity items between server and client
 // [3]: Item Name
-// [4]:
-// [5]: Coin Value
-// [6]: Item Description
-// [7]:
-// [8]:
-// [9]:
-// [10]: date begin
-// [11]: date end
-// [12]:
-// [13]:
-// [14]: Coin Type Name1: Cash or Gobblin Point
-// [15]: Coin Type Name2: 游戏点 或者 哥布林点数
-// [16]:
-// [17]:
-// [18]:
-// [19]: Unique ID1
-// [20]: Item Base Code
-// [21]:
-// [22]:
-// [23]: Unique ID2
-// [24]:
+// [4]: ---------------- unknown, always 170
+// [5]: coin value
+// [6]: item description
+// [7]: ---------------- unknown, always empty
+// [8]: ---------------- unknown, always 182
+// [9]: ---------------- unknown, always 185
+// [10]: ---------------- unknown, maybe date begin
+// [11]: ---------------- unknown, maybe date end
+// [12]: ---------------- unknown, always 177
+// [13]: ---------------- unknown, always 1
+// [14]: cash or goblin point
+// [15]: 游戏点 或者 哥布林点数
+// [16]: ---------------- unknown, always 181
+// [17]: ---------------- unknown, always 200
+// [18]: ---------------- unknown, always 0
+// [19]: unique ID1
+// [20]: item base code
+// [21]: ---------------- unknown
+// [22]: ---------------- unknown
+// [23]: unique ID2
+// [24]: coin type, 0: cash, 1: goblin
+// [25]: ---------------- optional, 508: cash, 0: goblin
+// [26]: ---------------- optional, unknown
 func convertItemList(itemInfos map[int]ItemInfo) {
 	var cil CashItemList
 	var cip CashItemPackage
@@ -324,20 +326,14 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	bufr, err := newBufioReader(f)
+	scanner := newBufioScanner(f)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	packageID := 1
-	for {
-		line, err := bufr.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			log.Fatal(err)
-		}
+	for scanner.Scan() {
+		line := scanner.Text()
 		values := strings.Split(line, conf.Separator)
 		item := Item{
 			GUID:         len(cil.Items),
@@ -349,12 +345,11 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 			CanBuy:  1,
 			CanGift: 1,
 		}
-		coinType := values[14]
-		if strings.Contains(coinType, "Cash") ||
-			strings.Contains(coinType, "Coin") {
+		switch mustAtoi(values[24]) {
+		case 0: // cash
 			item.CoinType = 0
 			item.SubIndex = 508
-		} else if strings.Contains(coinType, "Point") {
+		case 1: // goblin
 			item.CoinType = 2
 			item.SubIndex = 0
 		}
