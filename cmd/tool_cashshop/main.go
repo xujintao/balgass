@@ -91,6 +91,9 @@ func newBufioReader(r io.Reader) (*bufio.Reader, error) {
 }
 
 func mustAtoi(a string) int {
+	if a == "" {
+		return 0
+	}
 	i, err := strconv.Atoi(a)
 	if err != nil {
 		panic(err)
@@ -190,6 +193,24 @@ func code(section, index int) int {
 	return section<<9 + index
 }
 
+// IBSProduct.txt
+// [0]: guid
+// [1]: item name
+// [2]: consumption/period/term/number
+// [3]: value
+// [4]: unit
+// [5]: coin value
+// [6]: id
+// [7]:
+// [8]:
+// [9]:
+// [10]:
+// [11]:
+// [12]:
+// [13]: base code
+// [14]: 7: number, 10/2: period
+// [15]:
+// [16]:
 func convertItemInfo() (itemInfos map[int]ItemInfo) {
 	var cii CashItemInfo
 	itemInfos = make(map[int]ItemInfo)
@@ -267,6 +288,33 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 	}
 	return
 }
+
+// IBSPackage.txt
+// [0]: row category, refer to IBSCategory.txt
+// [1]: row category index
+// [2]: Index, equal to IGCCashItemList.dat Index, used to identity items between server and client
+// [3]: Item Name
+// [4]:
+// [5]: Coin Value
+// [6]: Item Description
+// [7]:
+// [8]:
+// [9]:
+// [10]: date begin
+// [11]: date end
+// [12]:
+// [13]:
+// [14]: Coin Type Name1: Cash or Gobblin Point
+// [15]: Coin Type Name2: 游戏点 或者 哥布林点数
+// [16]:
+// [17]:
+// [18]:
+// [19]: Unique ID1
+// [20]: Item Base Code
+// [21]:
+// [22]:
+// [23]: Unique ID2
+// [24]:
 func convertItemList(itemInfos map[int]ItemInfo) {
 	var cil CashItemList
 	var cip CashItemPackage
@@ -297,15 +345,18 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 			Index:        mustAtoi(values[2]),
 			Comment:      values[3],
 			CoinValue:    mustAtoi(values[5]),
-			SubIndex:     mustAtoi(values[25]),
-			CanBuy:       1,
-			CanGift:      1,
+			// SubIndex:     mustAtoi(values[25]),
+			CanBuy:  1,
+			CanGift: 1,
 		}
-		switch item.SubIndex {
-		case 0:
-			item.CoinType = 2
-		case 508:
+		coinType := values[14]
+		if strings.Contains(coinType, "Cash") ||
+			strings.Contains(coinType, "Coin") {
 			item.CoinType = 0
+			item.SubIndex = 508
+		} else if strings.Contains(coinType, "Point") {
+			item.CoinType = 2
+			item.SubIndex = 0
 		}
 
 		if values[23] == "" {
