@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -203,6 +204,21 @@ func split(s string) []string {
 	return strings.Split(s, sep)
 }
 
+func replaceFile(fileName string) {
+	oldFile := path.Join(conf.Version, fileName)
+	newFile := path.Join(conf.Version, "out", fileName)
+	s, err := ioutil.ReadFile(oldFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// remove utf bom header
+	if len(s) > 3 && s[0] == 0xEF && s[1] == 0xBB && s[2] == 0xBF {
+		s = s[3:]
+	}
+	content := strings.ReplaceAll(string(s), "^@", "@")
+	ioutil.WriteFile(newFile, []byte(content), 0666)
+}
+
 // IBSProduct.txt
 // [0]: guid
 // [1]: item name
@@ -280,10 +296,10 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 		cii.Infos = append(cii.Infos, itemInfo)
 		itemInfos[itemInfo.GUID] = itemInfo // used by convertItemList
 	}
-	if err := toXML(&cii, path.Join(conf.Version, "IGC_CashItem_Info.xml")); err != nil {
+	if err := toXML(&cii, path.Join(conf.Version, "out/IGC_CashItem_Info.xml")); err != nil {
 		log.Fatal(err)
 	}
-	if err := toDAT(&cii, path.Join(conf.Version, "IGCCashItemInfo.dat")); err != nil {
+	if err := toDAT(&cii, path.Join(conf.Version, "out/IGCCashItemInfo.dat")); err != nil {
 		log.Fatal(err)
 	}
 	return
@@ -315,8 +331,8 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 // [22]: ---------------- unknown
 // [23]: unique ID2
 // [24]: coin type, 0: cash, 1: goblin
-// [25]: ---------------- optional, 508: cash, 0: goblin
-// [26]: ---------------- optional, unknown
+// [25]: ---------------- optional(necessary for CashShop Editor), 508: cash, 0: goblin
+// [26]: ---------------- optional(necessary for CashShop Editor), unknown
 func convertItemList(itemInfos map[int]ItemInfo) {
 	var cil CashItemList
 	var cip CashItemPackage
@@ -326,6 +342,8 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 		log.Fatal(err)
 	}
 	defer f.Close()
+
+	var bufw *bufio.Writer
 
 	packageID := 1
 	scanner := newBufioScanner(f)
@@ -349,6 +367,20 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 		case 1: // goblin
 			item.CoinType = 2
 			item.SubIndex = 0
+		}
+		if len(values) == 25 {
+			if bufw == nil {
+				IBSPackage2, err := os.Create(path.Join(conf.Version, "out/IBSPackage.txt"))
+				if err != nil {
+					panic(err)
+				}
+				defer IBSPackage2.Close()
+				bufw = bufio.NewWriter(IBSPackage2)
+			}
+			line = strings.Join([]string{line, strconv.Itoa(item.SubIndex), "669"}, "^@")
+			line = strings.ReplaceAll(line, "^@", "@")
+			bufw.WriteString(line)
+			bufw.WriteByte('\n')
 		}
 
 		if values[23] == "" {
@@ -388,16 +420,25 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 			}
 		}
 	}
-	if err := toXML(&cil, path.Join(conf.Version, "IGC_CashItem_List.xml")); err != nil {
+	if bufw != nil {
+		bufw.Flush()
+		// IBSCategory2, err := os.Create(path.Join(conf.Version, "out/IBSCategory.txt"))
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		replaceFile("IBSCategory.txt")
+		replaceFile("IBSProduct.txt")
+	}
+	if err := toXML(&cil, path.Join(conf.Version, "out/IGC_CashItem_List.xml")); err != nil {
 		log.Fatal(err)
 	}
-	if err := toDAT(&cil, path.Join(conf.Version, "IGCCashItemList.dat")); err != nil {
+	if err := toDAT(&cil, path.Join(conf.Version, "out/IGCCashItemList.dat")); err != nil {
 		log.Fatal(err)
 	}
-	if err := toXML(&cip, path.Join(conf.Version, "IGC_CashItem_Package.xml")); err != nil {
+	if err := toXML(&cip, path.Join(conf.Version, "out/IGC_CashItem_Package.xml")); err != nil {
 		log.Fatal(err)
 	}
-	if err := toDAT(&cip, path.Join(conf.Version, "IGCCashItemPackages.dat")); err != nil {
+	if err := toDAT(&cip, path.Join(conf.Version, "out/IGCCashItemPackages.dat")); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -408,6 +449,12 @@ func main() {
 		log.Fatal(err)
 	}
 	json.NewDecoder(f).Decode(&conf)
+
+	// create out directory
+	err = os.MkdirAll(path.Join(conf.Version, "out"), 0777)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// IBSProduct.txt -> IGCCashItemInfo.dat
 	itemInfos := convertItemInfo()
