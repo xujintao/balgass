@@ -17,9 +17,8 @@ import (
 var conf config
 
 type config struct {
-	Version   string `json:"version"`
-	Separator string `json:"separator"`
-	Unit      string `json:"unit"`
+	Version string `json:"version"`
+	Unit    string `json:"unit"`
 }
 type ItemInfo struct {
 	GUID        int    `xml:"GUID,attr" dat:"guid"`
@@ -193,6 +192,17 @@ func code(section, index int) int {
 	return section<<9 + index
 }
 
+func split(s string) []string {
+	sep := ""
+	switch {
+	case strings.Contains(s, "^@"):
+		sep = "^@"
+	case strings.Contains(s, "@"):
+		sep = "@"
+	}
+	return strings.Split(s, sep)
+}
+
 // IBSProduct.txt
 // [0]: guid
 // [1]: item name
@@ -201,16 +211,16 @@ func code(section, index int) int {
 // [4]: unit
 // [5]: coin value
 // [6]: id
-// [7]:
-// [8]:
-// [9]:
-// [10]:
-// [11]:
-// [12]:
+// [7]: ---------------- unknown, always 142
+// [8]: ---------------- unknown, always 145
+// [9]: ---------------- unknown, always 1
+// [10]: ---------------- unknown, always 144
+// [11]: ---------------- unknown, always 673
+// [12]: ---------------- unknown, always 518
 // [13]: base code
 // [14]: 7: number, 10/2: period
-// [15]:
-// [16]:
+// [15]: ---------------- unknown, always 138
+// [16]: ---------------- unknown, always 680
 func convertItemInfo() (itemInfos map[int]ItemInfo) {
 	var cii CashItemInfo
 	itemInfos = make(map[int]ItemInfo)
@@ -221,19 +231,9 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 	}
 	defer f.Close()
 	scanner := newBufioScanner(f)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	for scanner.Scan() {
 		line := scanner.Text()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			log.Fatal(err)
-		}
-		values := strings.Split(line, conf.Separator)
+		values := split(line)
 		baseCode := mustAtoi(values[13])
 		baseSection := baseCode >> 9
 		baseIndex := baseCode % 512
@@ -326,15 +326,12 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 		log.Fatal(err)
 	}
 	defer f.Close()
-	scanner := newBufioScanner(f)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	packageID := 1
+	scanner := newBufioScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
-		values := strings.Split(line, conf.Separator)
+		values := split(line)
 		item := Item{
 			GUID:         len(cil.Items),
 			ShopCategory: mustAtoi(values[0]),
