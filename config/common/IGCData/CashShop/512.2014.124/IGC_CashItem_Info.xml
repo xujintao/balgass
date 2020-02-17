@@ -56,6 +56,7 @@
 //	Socket: Defines a socket count for socket items or slots count for Pentagram items
 //	Element: Defines an element type for Elemental Items: 0: None, 1: Fire, 2: Water, 3: Earth, 4: Wind, 5: Darkness, NOTE: Errtels are not supported
 //	Type:
+//		0: Normal
 //		1: Seal/Scroll
 //		2: Pet/Item with Expiry Date
 //		3: Character Card

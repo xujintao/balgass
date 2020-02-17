@@ -21,6 +21,7 @@ type config struct {
 	Version string `json:"version"`
 	Unit    string `json:"unit"`
 }
+
 type ItemInfo struct {
 	GUID        int    `xml:"GUID,attr" dat:"guid"`
 	ID          int    `xml:"ID,attr" dat:"id"`
@@ -36,7 +37,7 @@ type ItemInfo struct {
 	SocketCount int    `xml:"SocketCount,attr" dat:"socket"`
 	Element     int    `xml:"Element,attr" dat:"-"`
 	Type        int    `xml:"Type,attr" dat:"type"`
-	Duration    int    `xml:"Duration,attr" dat:"period"`
+	Period      int    `xml:"Duration,attr" dat:"period"`
 	Comment     string `xml:"-" dat:"description"`
 }
 
@@ -91,7 +92,7 @@ func newBufioScanner(r io.Reader) *bufio.Scanner {
 }
 
 func mustAtoi(a string) int {
-	if a == "" {
+	if a == "" || a == "test" {
 		return 0
 	}
 	i, err := strconv.Atoi(a)
@@ -263,7 +264,14 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 		kind := mustAtoi(values[14])
 		switch kind {
 		case 7:
-			itemInfo.Type = 0 // quantity
+			switch code(itemInfo.Cat, itemInfo.Index) {
+			case code(13, 97), code(13, 98), code(14, 91), code(14, 169): // 魔剑士角色卡片 圣导师角色卡片 召唤术士角色卡 格斗家角色卡片
+				itemInfo.Type = 3 // character card
+			default:
+				itemInfo.Type = 0 // quantity/number
+			}
+
+			itemInfo.Durability = mustAtoi(values[3])
 		case 2, 10:
 			// type
 			switch code(itemInfo.Cat, itemInfo.Index) {
@@ -285,13 +293,13 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 				itemInfo.Type = 2
 				itemInfo.Durability = 255
 			}
-			// duration
-			duration := mustAtoi(values[3])
+			// period
+			period := mustAtoi(values[3])
 			unit := values[4]
 			if strings.Contains(unit, conf.Unit) {
-				duration /= 60
+				period /= 60
 			}
-			itemInfo.Duration = duration
+			itemInfo.Period = period
 		}
 		cii.Infos = append(cii.Infos, itemInfo)
 		itemInfos[itemInfo.GUID] = itemInfo // used by convertItemList
