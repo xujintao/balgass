@@ -65,7 +65,6 @@
     <LibraryPath>..\..\..\_Library\v140_x64_MT\;..\..\..\_Library\;$(LibraryPath)</LibraryPath>
     <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
     <IncludePath>..\..\..\_Library\_Include\;..\..\..\_Library\_Include\RSA\;..\..\..\_Library\_Include\Mpir\;..\..\..\_Library\_Include\cryptopp\;..\..\..\_Library\_Include\pugixml\;..\..\..\_Library\_Include\Lua\;..\..\..\_Library\_Include\MAPM\;..\..\..\_Library\_Include\VLD\;..\..\..\_Library\_Include\IniParser\;$(ProjectDir);$(IncludePath)</IncludePath>
-    <TargetExt>.exe</TargetExt>
     <EmbedManifest>true</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
