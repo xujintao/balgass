@@ -40,7 +40,7 @@
 #include <time.h>
 #include <Rpc.h>
 #include <regex>
-#include <vld.h>
+//#include <vld.h>
 // Local Header Files
 #include "Lang.h"
 #include "IniReader.h"
