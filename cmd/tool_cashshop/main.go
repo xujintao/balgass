@@ -19,6 +19,7 @@ var conf config
 
 type config struct {
 	Version string `json:"version"`
+	Short   bool   `json:"short"`
 	Unit    string `json:"unit"`
 }
 
@@ -368,15 +369,27 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 			CanBuy:  1,
 			CanGift: 1,
 		}
+
+		// coin type
 		switch mustAtoi(values[24]) {
 		case 0: // cash
 			item.CoinType = 0
-			item.SubIndex = 508
+			if conf.Short {
+				item.SubIndex = 0
+			} else {
+				item.SubIndex = 508
+			}
 		case 1: // goblin
 			item.CoinType = 2
-			item.SubIndex = 0
+			if conf.Short {
+				item.SubIndex = 1
+			} else {
+				item.SubIndex = 0
+			}
 		}
-		if len(values) == 25 {
+
+		// fix IBSPackage.txt
+		if conf.Short {
 			if bufw == nil {
 				IBSPackage2, err := os.Create(path.Join(conf.Version, "out/IBSPackage.txt"))
 				if err != nil {
@@ -385,7 +398,15 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 				defer IBSPackage2.Close()
 				bufw = bufio.NewWriter(IBSPackage2)
 			}
-			line = strings.Join([]string{line, strconv.Itoa(item.SubIndex), "669"}, "^@")
+			suffix1 := ""
+			suffix2 := "669"
+			switch mustAtoi(values[24]) {
+			case 0:
+				suffix1 = "508"
+			case 1:
+				suffix1 = "0"
+			}
+			line = strings.Join([]string{line, suffix1, suffix2}, "^@")
 			line = strings.ReplaceAll(line, "^@", "@")
 			bufw.WriteString(line)
 			bufw.WriteByte('\n')
@@ -428,7 +449,7 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 			}
 		}
 	}
-	if bufw != nil {
+	if conf.Short && bufw != nil {
 		bufw.Flush()
 		// IBSCategory2, err := os.Create(path.Join(conf.Version, "out/IBSCategory.txt"))
 		// if err != nil {
