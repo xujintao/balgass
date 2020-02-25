@@ -444,7 +444,9 @@ func convertItemList(itemInfos map[int]ItemInfo) {
 			for _, id2 := range id2s {
 				item.GUID = len(cil.Items)
 				item.UniqueID2 = mustAtoi(id2)
-				item.OptionSelect = item.UniqueID2
+				if len(id2s) > 1 {
+					item.OptionSelect = item.UniqueID2
+				}
 				cil.Items = append(cil.Items, item)
 			}
 		}
