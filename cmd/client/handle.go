@@ -5,52 +5,30 @@ import (
 	"log"
 )
 
-type command struct {
-	code     uint8
-	handle   func(buf []uint8)
-	comamnds []*command
-}
-
 // cmd
 func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 	if h, ok := cmds[int(code)]; ok {
-		h(buf)
-		return
-	}
-	flag := buf[0]
-	var subcode uint8
-	switch flag {
-	case 0xC1:
-		subcode = buf[3]
-	case 0xC2:
-		subcode = buf[4]
-	}
-	codes := []byte{code, subcode}
-	code16 := binary.BigEndian.Uint16(codes)
-	if h, ok := cmds[int(code16)]; ok {
-		h(buf)
+		h(code, buf, len, enc)
 		return
 	}
 	log.Printf("invalid cmd, code:%02dx, buf: %v", code, buf)
 }
 
 // cmd table
-var cmds = map[int]func(buf []uint8){
-	0x00:   f006FA9EBhandle00,
-	0x01:   handle01,
-	0x02:   handle02,
-	0x0D:   f007087BFhandle0D,
-	0xD7:   handleD7position,     // hook D4->D7
-	0xD9:   handleD9normalAttack, // hook D9->11
-	0xF100: handleF100versionmatch,
-	0xF104: handleF104,
-	0xF403: handleF403serverInfo,
-	0xF405: handleF405,
-	0xF406: handleF406serverList,
-	0xF6:   f006C18B6handleF6,
+var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
+	0x00: f006FA9EBhandle00,
+	0x01: handle01,
+	0x02: handle02,
+	0x0D: f007087BFhandle0D,
+	0xD2: f0075F7D0handleD2,    // cash shop
+	0xD7: handleD7position,     // hook D4->D7
+	0xD9: handleD9normalAttack, // hook D9->11
+	0xF1: handleF1,
+	0xF4: handleF4,
+	0xF6: f006C18B6handleF6,
 }
 
-func f006FA9EBhandle00(buf []uint8) {
+func f006FA9EBhandle00(code uint8, buf []uint8, len int, enc bool) {
 	// SEH
 	f00DE8A70chkstk() // 0x4B34
 	if v012E2340 == 2 {
@@ -69,10 +47,11 @@ func f006FA9EBhandle00(buf []uint8) {
 	}
 	// ...
 }
-func handle01(buf []uint8) {}
-func handle02(buf []uint8) {}
-func f007087BFhandle0D(buf []uint8) {
-	switch buf[3] {
+func handle01(code uint8, buf []uint8, len int, enc bool) {}
+func handle02(code uint8, buf []uint8, len int, enc bool) {}
+func f007087BFhandle0D(code uint8, buf []uint8, len int, enc bool) {
+	subcode := buf[3]
+	switch subcode {
 	case 0:
 	case 1:
 		if v012E2340 == 4 {
@@ -81,52 +60,100 @@ func f007087BFhandle0D(buf []uint8) {
 		}
 	}
 }
-func handleD7position(buf []uint8)     {}
-func handleD9normalAttack(buf []uint8) {}
-func handleF100versionmatch(buf []uint8) {
-	// f006C75A7 被花到 0x0A4E7A49 // version match, buf: 01 2E 87 "10525"
-	func(buf []uint8) {
-		ebp4 := buf
-		ebp10 := buf[4]
-		if ebp10 == 1 {
-			// ebp8 := &v0130F728
-			// ebp8.f004A9123(&ebp8.f4880)
-		}
-		v08C88E0C = int(ebp4[5]<<8 + ebp4[6])
-		v08C88E08 = 2
-		var ebpC uint8
-		if ebpC >= 5 {
-		}
-		for {
-			if v012E4018[ebpC]-ebpC-1 != ebp4[7+ebpC] { // 改为jmp
-				break
-			}
-			ebpC++
-			if ebpC >= 5 {
-				break
-			}
-		}
 
-		// _004A9146
-		func() {}()
+// s9 f00673854
+func f0075F7D0handleD2(code uint8, buf []uint8, len int, enc bool) {
+	// 0x0A5FBCA6 0x0A5D4C5A 0x0A4381F1
+	subcode := buf[3]
+	subcode--
 
-		// _004A9EEB
-		func() {}()
-		v01319E08log.f00B38AE4printf("Version dismatch - Join server.\r\n")
-		// _0051FB61
-		func() {}()
-	}(buf)
+	// 0x00760216 table, s9 0x00674292
+	switch subcode {
+	case 0: // s9 0x00673894
+		// 0x0075F810 0x0075F797 0x0A0C1E4B 0x0075F813
+		// f006C28D9, s9 f0066B85C
+		func(buf []uint8) {
+			// 0x0A6014ED 0x09F8B6AA 0x0A9044AC 0x09FBB3E7 0x0ABE308B
+			// totalCash := *(*float64)(unsafe.Pointer(&buf[5]))
+			// 0x006C28EE f009F0787
+			// 0x006C287C 0x0ABF9A98 0x006C28F5
+			// v09D8D548.f009F1748(totalCash)
+
+			// 0x0A55EA23 0x0A1938CA
+			// cashC := *(*float64)(unsafe.Pointer(&buf[13]))
+			// 0x006C2905 f009F0787
+			// 0x006C2898 0x0A9F59D7 0x006C290C
+			// v09D8D548.f009F175F(cashC)
+
+			// 0x0A5FED76
+			// cashP := *(*float64)(unsafe.Pointer(&buf[21]))
+			// 0x006C291C f009F0787
+			// 0x006C28A3 0x0AF7CA9A 0x006C2923
+			// v09D8D548.f009F1776(cashP)
+
+			// 0x006C28BA 0x0AF76971
+			return
+		}(buf)
+	case 1:
+		// f0075F81E
+	}
 }
-func handleF104(buf []uint8) {}
-func handleF403serverInfo(buf []uint8) {
+func handleD7position(code uint8, buf []uint8, len int, enc bool)     {}
+func handleD9normalAttack(code uint8, buf []uint8, len int, enc bool) {}
+func handleF1(code uint8, buf []uint8, len int, enc bool) {
+	subcode := buf[3]
+	switch subcode {
+	case 0: // version match
+		// f006C75A7 被花到 0x0A4E7A49 // version match, buf: 01 2E 87 "10525"
+		func(buf []uint8) {
+			ebp4 := buf
+			ebp10 := buf[4]
+			if ebp10 == 1 {
+				// ebp8 := &v0130F728
+				// ebp8.f004A9123(&ebp8.f4880)
+			}
+			v08C88E0C = int(ebp4[5]<<8 + ebp4[6])
+			v08C88E08 = 2
+			var ebpC uint8
+			if ebpC >= 5 {
+			}
+			for {
+				if v012E4018[ebpC]-ebpC-1 != ebp4[7+ebpC] { // 改为jmp
+					break
+				}
+				ebpC++
+				if ebpC >= 5 {
+					break
+				}
+			}
+
+			// _004A9146
+			func() {}()
+
+			// _004A9EEB
+			func() {}()
+			v01319E08log.f00B38AE4printf("Version dismatch - Join server.\r\n")
+			// _0051FB61
+			func() {}()
+		}(buf)
+	case 4:
+	}
+}
+
+func handleF4(code uint8, buf []uint8, len int, enc bool) {
+	subcode := buf[3]
+	switch subcode {
+	case 3: // server info
 	// close连接服务器
 	// f006BF89ADial(ip, port) // 拨号游戏服务器
 	// set state
+	case 5:
+	case 6: // server list
+	}
 }
-func handleF405(buf []uint8)           {}
-func handleF406serverList(buf []uint8) {}
-func handleFA(buf []uint8)             {}
-func f006C18B6handleF6(buf []uint8) {
+
+func handleFA(code uint8, buf []uint8, len int, enc bool) {}
+func f006C18B6handleF6(code uint8, buf []uint8, len int, enc bool) {
 	// c1 05 f6 1a 00
 	// 0x0A8FB4BE hook to hide f0A9F6026, jump complicated shell logic, which would send trap message
 	var label1 uint32 = 0x00FF20B1
@@ -283,6 +310,7 @@ func f00735DC7(uk1 int, code int, buf []uint8, len int, enc int) {
 
 }
 
+// s9 f0067084A
 func f0075C3B2(code int, buf []uint8, len int, x int) {
 	f0075C3B2handlecmd(uint8(code), buf, len, func() bool { return x == 1 }())
 }
