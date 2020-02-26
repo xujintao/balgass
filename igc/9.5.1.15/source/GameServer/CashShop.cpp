@@ -511,6 +511,8 @@ void CItemShop::GCCashPoint(LPOBJ lpObj)
 	PHeadSubSetB((LPBYTE)&pMsg, 0xD2, 0x01, sizeof(PMSG_ANS_INGAMESHOP_POINT));
 
 	pMsg.btViewType = 0;
+	pMsg.dwTotalCash = lpObj->m_PlayerData->m_WCoinC; // 1.04R cashC
+	pMsg.dwCash_P = lpObj->m_PlayerData->m_GoblinPoint; // 1.04R goblin point
 	pMsg.GoblinPoint = lpObj->m_PlayerData->m_GoblinPoint;
 	pMsg.dwCash_C = lpObj->m_PlayerData->m_WCoinC;
 
