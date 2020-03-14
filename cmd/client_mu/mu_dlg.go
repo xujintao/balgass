@@ -8,11 +8,7 @@ import (
 // dialogEx base dialog
 type dialogEx struct{}
 
-func f0041C495hook() {
-	// ...
-	// dll.user32.SetWindowLongA(f0041B33B)
-}
-
+// dlgcore.cpp
 func f004158B6mfcAfxDlgProc(hWnd uintptr, msg uint, wParam uint, lParam uint) uintptr {
 	switch msg {
 	case 0x110: // WM_INITDIALOG
@@ -25,15 +21,33 @@ func f004158B6mfcAfxDlgProc(hWnd uintptr, msg uint, wParam uint, lParam uint) ui
 	return 0
 }
 
-// f00416045
+// wincore.cpp
+func f0041B33BmfcAfxWndProc(hWnd uintptr, msg uint, wParam, lParam uint) uintptr {
+	// if msg == WM_QUERYAFXWNDPROC {
+	// 	return 1
+	// }
+	// CWnd* pWnd = CWnd::FromHandlePermanent(hWnd);
+	// if (pWnd == NULL || pWnd->m_hWnd != hWnd)
+	// 	return ::DefWindowProc(hWnd, msg, wParam, lParam)
+	// return AfxCallWndProc(pWnd, hWnd, msg, wParam, lParam) // -> Cwnd::WindowProc -> Cwnd::OnWndMsg
+	return 0
+}
+
+// wincore.cpp
+func f0041C495mfcAfxCbtFilterHook() {
+	// ...
+	// dll.user32.SetWindowLongA(f0041B33BmfcAfxWndProc)
+}
+
+// f00416045, dlgcore.cpp, CDialog::DoModal
 func (d *dialogEx) DoModal() uintptr {
 	// Load(0x00400000, FindResourceA(0x004000000, 0x66, 0x05))
-	// d.f00415BBB()
+	// d.f00415BBBpreModal() // CDialog::PreModal()
 	func() {
-		// f0041C6E8()
+		// f0041C6E8mfcAfxHookWindowCreate(Cwnd* pWnd)
 		func() {
-			// dll.user32.SetWindowsHookExA(5, f0041C495hook, 0, dll.user32.GetCurrentThreadId())
-		}()
+			// dll.user32.SetWindowsHookExA(5, f0041C495mfcAfxCbtFilterHook, 0, dll.user32.GetCurrentThreadId())
+		}() // this
 	}()
 
 	// ...
@@ -349,6 +363,25 @@ func (d *muDlg) f0040AEC0(x uint) {
 	// memcpy(d.name[:], textcode(81)) // "奇迹(MU)"
 	// f00433360memset(d.pathName, 0, 256)
 }
+
+// MESSAGE_MAP
+// const AFX_MSGMAP* theClass::GetMessageMap() const {
+// 	return GetThisMessageMap();
+// }
+// const AFX_MSGMAP* theClass::GetThisMessageMap() {
+// 	static const AFX_MSGMAP_ENTRY _messageEntries[] = {
+// 		// -----------
+// 		{WM_SYSCOMMAND,    0, 0, 0, AfxSIg_vwl, (AFX_PMSG)(AFX_PMSGW)(static_cast<void (AFX_MSG_CALL_ CWnd::*)(UINT, LPARAM)>(&ThisClass::OnSysCommand))},
+// 		{WM_PAINT,         0, 0, 0, AfxSig_vv,  (AFX_PMSG)(AFX_PMSGW)(static_cast<void (AFX_MSG_CALL_ CWnd::*)(void)>(&ThisClass::OnPaint))},
+// 		{WM_QUERYDRAGICON, 0, 0, 0, AfxSig_hv,  (AFX_PMSG)(AFX_PMSGW)(static_cast<HCURSOR (AFX_MSG_CALL_ CWnd::*)(void)>(&ThisClass::OnQueryDragIcon))},
+// 		{WM_COMMAND, (WORD)BN_CLICKED, (WORD)IDOK, (WORD)IDOK, AfxSigCmd_v, static_cast<AFX_PMSG>&CmuDlg::OnBnClickedOk},
+// 		{WM_COMMAND, (WORD)BN_CLICKED, (WORD)IDCANCEL, (WORD)IDCANCEL, AfxSigCmd_v, static_cast<AFX_PMSG>&CmuDlg::OnBnClickedCancel},
+// 		// -----------
+// 		{0, 0, 0, 0, AfxSig_end, (AFX_PMSG)0}
+// 	};
+// 	static const AFX_MSGMAP messageMap = {&TheBaseClass::GetThisMessageMap, &_messageENtries[0]};
+// 	return &messageMap;
+// }
 
 func (d *muDlg) f0040CA40OnInitDialog() {
 	// hUpdate := dll.user32.FindWindowA("#32770", "MU Auto Update")
