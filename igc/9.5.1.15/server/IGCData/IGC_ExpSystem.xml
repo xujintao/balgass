@@ -43,7 +43,7 @@
 -->
 
 <ExpSystem CalcType="0" DebugMode="0">
-	<StaticExp Normal="1000.0" Master="1000.0" Event="0.0" Quest="1.0" />
+	<StaticExp Normal="1.0" Master="1.0" Event="0.0" Quest="1.0" />
 	
 	<DynamicExpRangeList> <!-- First rule match a player requirements will be applied, therefore order of entries matters -->
 		<Range MinReset="0" MaxReset="0" MinLevel="1" MaxLevel="50" NormalExp="1.1" MasterExp="1.0" />
