@@ -36,7 +36,8 @@ void CSProtocolCore(BYTE protoNum, BYTE *aRecv, int aLen, int aIndex, bool Encry
 			}
 			break;
 
-		case 0x05:
+		case 0x05: // 1.05.25
+		case 0x04: // 1.04.44
 			SCSendAutoUpdateData(aIndex, (PMSG_CLIENTVERSION *)aRecv);
 			break;
 	}
@@ -230,7 +231,15 @@ void SCSendAutoUpdateData(int aIndex, PMSG_CLIENTVERSION *aRecv)
 		PMSG_AUTOUPDATE pMsg;
 
 		pMsg.h.c = 0xC1;
-		pMsg.h.headcode = 0x05;
+		if (HeadVersion == 4) {
+			pMsg.h.headcode = 0x04;
+		}
+		else if (HeadVersion == 5) {
+			pMsg.h.headcode = 0x05;
+		}
+		else {
+			pMsg.h.headcode = 0x05;
+		}
 		pMsg.h.size = sizeof(pMsg);
 
 		pMsg.MainVersion = MainVersion;
