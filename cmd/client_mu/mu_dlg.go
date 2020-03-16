@@ -3,10 +3,14 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/xujintao/balgass/win"
 )
 
 // dialogEx base dialog
-type dialogEx struct{}
+type dialogEx struct {
+	m_hWnd win.HWND
+}
 
 // dlgcore.cpp
 func f004158B6mfcAfxDlgProc(hWnd uintptr, msg uint, wParam uint, lParam uint) uintptr {
@@ -29,7 +33,7 @@ func f0041B33BmfcAfxWndProc(hWnd uintptr, msg uint, wParam, lParam uint) uintptr
 	// CWnd* pWnd = CWnd::FromHandlePermanent(hWnd);
 	// if (pWnd == NULL || pWnd->m_hWnd != hWnd)
 	// 	return ::DefWindowProc(hWnd, msg, wParam, lParam)
-	// return AfxCallWndProc(pWnd, hWnd, msg, wParam, lParam) // -> Cwnd::WindowProc -> Cwnd::OnWndMsg
+	// return AfxCallWndProc(pWnd, hWnd, msg, wParam, lParam) // -> CWnd::WindowProc, f00418F37 -> CWnd::OnWndMsg, f0041C89F
 	return 0
 }
 
@@ -44,7 +48,7 @@ func (d *dialogEx) DoModal() uintptr {
 	// Load(0x00400000, FindResourceA(0x004000000, 0x66, 0x05))
 	// d.f00415BBBpreModal() // CDialog::PreModal()
 	func() {
-		// f0041C6E8mfcAfxHookWindowCreate(Cwnd* pWnd)
+		// f0041C6E8mfcAfxHookWindowCreate(CWnd* pWnd)
 		func() {
 			// dll.user32.SetWindowsHookExA(5, f0041C495mfcAfxCbtFilterHook, 0, dll.user32.GetCurrentThreadId())
 		}() // this
@@ -92,7 +96,6 @@ var v00461DF0stack int = 0xC58267AF
 var v0046327C int = 0
 var v00463280IP string
 var v004632B4port uint16
-var v0048F4A0 func()
 
 type t0018FC8C struct {
 	m108 *os.File // 0x00462010
@@ -190,7 +193,7 @@ type block struct {
 func (b *block) f00417837() uint {
 	// v00A6DE08 := v0048F8C8.f0042566A(f0041547C)
 	// if v00A6DE08 == 0 {
-	// 	// 0x00415460
+	// 	// f00415460()
 	// }
 	// if v00A6DE08.f04 != 0 {
 	// 	return 1
@@ -198,7 +201,7 @@ func (b *block) f00417837() uint {
 	var ret uint
 	// ret = v0048F8C4.f00425146(f00417808)
 	// if ret == 0 {
-	// 	// 0x00415460
+	// 	// f00415460()
 	// }
 	return ret // 0x00A6DF18
 }
@@ -245,19 +248,22 @@ type muDlg struct {
 	dialogEx
 	blocks [10]block // 0x00 0x98 0xEC
 	// ...
-	pathName       [256]uint8 // 0x3F96C
-	major          uint8      // 0x3FAFC
-	minor          uint8      // 0x3FAFD
-	patch          uint8      // 0x3FAFE
-	name           [256]uint8 // 0x44928, "奇迹("
-	dir            [260]uint8 // 0x44A28
-	block2         [100]block // 0x44B40 0x44B94 0x44BEC 0x44C60 0x44CD4
-	lParam         uint       // 0x44FE4
-	m44FE8partiSum int        // 0x44FE8
-	m44FEC         struct{}   // 0x44FEC, 0x0018FC74
-	m45004         t0018FC8C  // 0x45004, 0x0018FC8C
-	m45110         struct{}   // 0x45110, 0x0018FD98
-	m45128         t0018FDB0  // 0x45128, 0x0018FDB0
+	pathName [256]uint8 // 0x3F96C
+	major    uint8      // 0x3FAFC
+	minor    uint8      // 0x3FAFD
+	patch    uint8      // 0x3FAFE
+	name     [256]uint8 // 0x44928, "奇迹("
+	dir      [260]uint8 // 0x44A28
+	block2   [100]block // 0x44B40 0x44B94 0x44BEC 0x44C60 0x44CD4
+	// m44E30btnStart      button     // 0x44E30, 0x0018FAB8
+	// m44F18
+	lParam         uint      // 0x44FE4
+	m44FE8partiSum int       // 0x44FE8
+	m44FEC         struct{}  // 0x44FEC, 0x0018FC74
+	m44FF8btns     []*button // m44FF8 0x0018FC80, m44FFC 0x0018FC84
+	m45004         t0018FC8C // 0x45004, 0x0018FC8C
+	m45110         struct{}  // 0x45110, 0x0018FD98
+	m45128         t0018FDB0 // 0x45128, 0x0018FDB0
 }
 
 func (d *muDlg) f0040AEC0(x uint) {
@@ -365,12 +371,30 @@ func (d *muDlg) f0040AEC0(x uint) {
 }
 
 // MESSAGE_MAP
-// const AFX_MSGMAP* theClass::GetMessageMap() const {
+// const AFX_MSGMAP* theClass::GetMessageMap() const { // f28
 // 	return GetThisMessageMap();
 // }
 // const AFX_MSGMAP* theClass::GetThisMessageMap() {
-// 	static const AFX_MSGMAP_ENTRY _messageEntries[] = {
+// 	static const AFX_MSGMAP_ENTRY _messageEntries[] = { // 0x0044E960
 // 		// -----------
+// 		{WM_PAINT, 0, 0, 0, 0x13, 0x0040A0F0},
+// 		{WM_QUERYDRAGICON, 0, 0, 0, 0x28, 0x004062A0},
+// 		{0x19, 0, 0, 0, 0x08, 0x0041B0FB}
+// 		{WM_LBUTTONDOWN, 0, 0, 0, 0x35, 0x0040E560},
+// 		{WM_CLOSE, 0, 0, 0, 0x13, 0x00407B00},
+// 		{WM_COMMAND, BN_CLICKED, 0x7D6, 0x7D6, 0x39, f004064A0}, // 官方网站
+// 		{WM_COMMAND, BN_CLICKED, 0x7D9, 0x7D9, 0x39, f004064E0}, // 游戏论坛
+// 		{WM_COMMAND, BN_CLICKED, 0x7D7, 0x7D7, 0x39, f0040A8E0}, // 退出
+// 		{WM_COMMAND, BN_CLICKED, 0x7D2, 0x7D2, 0x39, f0040A5A0},
+// 		{WM_COMMAND, BN_CLICKED, 0x7D0, 0x7D0, 0x39, f00406520}, // 游戏设置
+// 		{WM_COMMAND, BN_CLICKED, 0x7D1, 0x7D1, 0x39, f004062B0}, // 注册账号
+// 		{WM_COMMAND, BN_CLICKED, 0x1965, 0x1975, 0x3B, f00408AA0active}, // 激活专区
+// 		{WM_COMMAND, BN_CLICKED, 0x7DB, 0x7DB, 0x39, f004062F0}, // 查看用户协议
+// 		{WM_COMMAND, BN_CLICKED, 0x7DC, 0x7DC, 0x39, f0040B270}, // 同意
+// 		{WM_COMMAND, BN_CLICKED, 0, 0, 0x14, f0040A900onTimer}, // 定时器
+// 		{WM_MOVE, 0, 0, 0, 0x17, f00407F30}, //{0x3, 0, 0, 0, 0x17, 0x00407F30},
+// 		{0x7E8, 0, 0, 0, 0x0E, f0040A9A0net}, // User Message, net
+
 // 		{WM_SYSCOMMAND,    0, 0, 0, AfxSIg_vwl, (AFX_PMSG)(AFX_PMSGW)(static_cast<void (AFX_MSG_CALL_ CWnd::*)(UINT, LPARAM)>(&ThisClass::OnSysCommand))},
 // 		{WM_PAINT,         0, 0, 0, AfxSig_vv,  (AFX_PMSG)(AFX_PMSGW)(static_cast<void (AFX_MSG_CALL_ CWnd::*)(void)>(&ThisClass::OnPaint))},
 // 		{WM_QUERYDRAGICON, 0, 0, 0, AfxSig_hv,  (AFX_PMSG)(AFX_PMSGW)(static_cast<HCURSOR (AFX_MSG_CALL_ CWnd::*)(void)>(&ThisClass::OnQueryDragIcon))},
@@ -419,10 +443,10 @@ func (d *muDlg) f0040CA40OnInitDialog() {
 				}
 				// d.m45110.f00409F90('\n')
 				for !d.m45004.f00403FB0EOF() {
-					var partitionRecord [512]uint8 // "1\t小学生\t192.168.0.102\t44405\thttp://www.baidu.com\n"
+					var partitionRecord [512]uint8 // "1\t双喜\t192.168.0.102\t44405\thttp://www.baidu.com\n"
 					d.m45004.f00403FC0fread(f, partitionRecord[:])
 					partiNum := 1
-					partiName := "小学生"
+					partiName := "双喜"
 					partiIP := "192.168.0.102"
 					partiPort := 44405
 					partiSite := "http://www.baidu.com"
@@ -468,4 +492,85 @@ func (d *muDlg) f0040CA40OnInitDialog() {
 			i++
 		}
 	}()
+}
+
+func (d *muDlg) f00408AA0active() {
+	// 拿到按钮索引
+	index := 0
+
+	// 拿到分区
+	parti := d.m45128.partitions[index]
+
+	// disable window
+	// d.m44E30.f004164F0()
+	// d.m44E30.f0041650B()
+	v00463280IP = parti.m7AIP
+	v004632B4port = uint16(parti.mBCPort)
+	// d.f004084B0()
+	func() {
+		// d.f00408410() // disable all active buttons
+		// d.f00406330() // disable ?
+		v004633D0conn.f0040CB70()
+		// f00434570delete("mu.tmp")
+		// f00434A24create("Temp")
+		// dll.user32.SetTimer(d.m_hWnd, 10, 500, 0)
+		// dll.user32.SetTimer(d.m_hWnd, 1, 100, 0)
+	}()
+}
+
+func (d *muDlg) f0040A900onTimer(nIDEvent int) {
+	switch nIDEvent {
+	case 1:
+		// dll.user32.KillTimer(d.m_hWnd, 1)
+		msg := v0046F448.mumsg_GetMsg(0x66) // "连接服务器"
+		// d.f00408D80(msg)
+		func(msg string) {
+			// 渲染界面
+		}(msg)
+		v004633D0conn.f0040CC30socket(d.m_hWnd)
+		v004633D0conn.f0040CD00dial(v00463280IP, v004632B4port, 0x7E8)
+	default:
+	}
+
+	// d.f0041AB1E()
+	func() {
+		// v009CDE08 := v0048F8C8.f0042566A(f0041547C)
+		// if v00A6DE08 == 0 {
+		// 	// f00415460()
+		// }
+		// d.f118(v009CDE08.m5C, v009CDE08.m60, v009CDE08.m64) // d.f00418DDF(), CWnd::DefWindowProc(WM_TIMER, 10, 0)
+	}()
+}
+
+func (d *muDlg) f0040A9A0net(wParam, lParam uint) {
+	switch lParam {
+	case 1: // FD_READ
+		v004633D0conn.f0040D090read()
+		// v004633D0conn.f00402C90write()
+	case 2: // FD_WRITE
+		v004633D0conn.f0040D010write()
+	case 8: // FD_ACCEPT
+	case 16: // FD_CONNECT
+		// dll.ws2_32.WSAAsyncSelect(v004633D0conn.fd, d.m_hWnd, 0x7E8, 0x23)
+	case 32: // FD_CLOSE
+	}
+}
+
+var v0046F448 textManager
+
+type textManager struct {
+	texts [0x8000]*struct {
+		m00  uintptr
+		id   int
+		text string
+		data [10]int
+	}
+}
+
+func (m *textManager) mumsg_GetMsg(id int) string {
+	t := m.texts[id]
+	if t != nil {
+		return t.text
+	}
+	return "msg error"
 }
