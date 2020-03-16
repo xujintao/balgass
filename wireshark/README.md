@@ -26,6 +26,8 @@ route add 192.168.0.100 mask 255.255.255.255 192.168.0.1
 ```
 code:00   response connection result
 
+code:04/05 client version negotiation
+
 code:f406 server list, 第一次请求服务器列表其实是为了得到news，第二次请求服务器列表才会真正解析并渲染
 code:fa00 news title
 code:fa01 news
