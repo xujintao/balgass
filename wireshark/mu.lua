@@ -111,6 +111,9 @@ function do_dissector(tvb, pinfo, tree)
                 subtree:set_text(text) -- save field
                 error(string.format("decrypt failed! %s", err))
             end
+            if pinfo.src_port==56900 then -- client <- server, remove size field
+                table.remove(plaintext, 1)
+            end
             table.insert(plaintext, 1, #plaintext + 2)
             table.insert(plaintext, 1, 0xC1)
             tvb = ByteArray.new(array.toHex(plaintext)):tvb("tvb_aes")
@@ -126,6 +129,9 @@ function do_dissector(tvb, pinfo, tree)
             if string.len(err)~=0 then
                 subtree:set_text(text) -- save field
                 error(string.format("decrypt failed! %s", err))
+            end
+            if pinfo.src_port==56900 then -- client <- server, remove size field
+                table.remove(plaintext, 1)
             end
             table.insert(plaintext, 1, (#plaintext + 3)%256)
             table.insert(plaintext, 1, math.floor((#plaintext + 3)/256))
