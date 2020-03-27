@@ -73,3 +73,7 @@ func (c *conn) f0040D090read() {
 		return 0
 	}(c.bufr[:], size)
 }
+
+func (c *conn) f0040CCE0close() {
+
+}

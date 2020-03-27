@@ -385,7 +385,7 @@ func (d *muDlg) f0040AEC0(x uint) {
 // 		{WM_COMMAND, BN_CLICKED, 0x7D6, 0x7D6, 0x39, f004064A0}, // 官方网站
 // 		{WM_COMMAND, BN_CLICKED, 0x7D9, 0x7D9, 0x39, f004064E0}, // 游戏论坛
 // 		{WM_COMMAND, BN_CLICKED, 0x7D7, 0x7D7, 0x39, f0040A8E0}, // 退出
-// 		{WM_COMMAND, BN_CLICKED, 0x7D2, 0x7D2, 0x39, f0040A5A0},
+// 		{WM_COMMAND, BN_CLICKED, 0x7D2, 0x7D2, 0x39, f0040A5A0start}, // 游戏开始
 // 		{WM_COMMAND, BN_CLICKED, 0x7D0, 0x7D0, 0x39, f00406520}, // 游戏设置
 // 		{WM_COMMAND, BN_CLICKED, 0x7D1, 0x7D1, 0x39, f004062B0}, // 注册账号
 // 		{WM_COMMAND, BN_CLICKED, 0x1965, 0x1975, 0x3B, f00408AA0active}, // 激活专区
@@ -554,6 +554,15 @@ func (d *muDlg) f0040A9A0net(wParam, lParam uint) {
 		// dll.ws2_32.WSAAsyncSelect(v004633D0conn.fd, d.m_hWnd, 0x7E8, 0x23)
 	case 32: // FD_CLOSE
 	}
+}
+
+func (d *muDlg) f0040A5A0start() {
+	// d.f00406380() // ?
+	// d.f004078D0() // clean tmp directory
+	v004633D0conn.f0040CCE0close()
+	// d.f00406550()
+	// 						   hWnd, Op,    FileName, Param,                             Dir, showCmd
+	// dll.shell32.ShellExecute(0, "open", "main.exe", "connect /u192.168.0.102 /p44405", 0, SW_SHOW)
 }
 
 var v0046F448 textManager
