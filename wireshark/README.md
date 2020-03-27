@@ -53,7 +53,7 @@ code:fa15 hit hack 3s
 code:0e   keep alive 20s, begin at f101
 
 code:f315 check character
-code:f303 character map
+code:f303 character info
 code:fa0d file crc
 code:f326 popup
 code:f61a progress quest list
