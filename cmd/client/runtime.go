@@ -41,6 +41,61 @@ func f00DE8010strcat(dst []uint8, src string) {
 	dst = append(dst, src...)
 }
 
+// 大范围清零操作
+func f00DFC986(buf []uint8, size int) {
+	size >>= 7
+	for size != 0 {
+		// 它使用了8次 movdqa xmm指令
+		for i := range buf[:128] {
+			buf[i] = 0
+		}
+		buf = buf[128:]
+		size--
+	}
+}
+
+// setzero， 16字节对齐
+// 某种意义上说，把迭代改为递归也可以有效防止饥饿调度问题
+func f00DFC9DD(buf []uint8, value uint8, size int) uint32 {
+	// 假设eax是0x0018,DF85，然后edx是0x3FF
+	// cdq          ;edx:eax组合成为64位
+	// mov edi,eax
+	// xor edi,edx
+	// sub edi,edx
+	// and edi,F
+	// xor edi,edx
+	// sub edi,edx
+	// test edi,edi ;edi值为5
+
+	// neg edi
+	// add edi,10
+
+	// offset := 16 - uint32(&buf[0])%16
+	// offset := 16 - uint32(unsafe.Pointer(&buf))%16
+	offset := 16 - (*[3]int)(unsafe.Pointer(&buf))[0]%16
+	if offset == 0 {
+		s := size & 0x7F
+		if s != size {
+			// ...
+		}
+		size := size - s
+		f00DFC986(buf, size)
+		if size == 0 {
+			return 0
+		}
+		buf = buf[int(size):]
+		for i := range buf {
+			buf[i] = 0
+		}
+	}
+	for i := range buf[:offset] {
+		buf[i] = 0
+	}
+
+	size -= offset
+	f00DFC9DD(buf[offset:], 0, size)
+	return 0
+}
 func f00DE8100memset(buf []uint8, value uint8, size int) uint32 {
 	if size == 0 {
 		return 0
@@ -354,31 +409,6 @@ func f00DF0787(buf []uint8, format string, x *t16, a ...interface{}) int {
 
 func f00DF0805(buf []uint8, format string, a ...interface{}) {
 	f00DF0787(buf, format, nil, a...)
-}
-
-var v00DF490A [0x5B]uint8
-var v0B2BE8D6 [0x19]uint8
-var v0B2BE90B [0x58]uint8
-
-// shell entry point, 0x00DF490A
-func f00DF490A() {
-	// vp := win.GetProcAddress(win.LoadLibrary("kernel32.dll"), "virtualProtect")
-	// var oldProtect uint32
-	// vp(0x00DF490A, 0x5B, 0x40, &oldProtect) // PAGE_EXECUTE_READWRITE
-	// vp(0x0B2BE8D6, 0x19, 0x40, &oldProtect) // PAGE_EXECUTE_READWRITE
-	// jmp 0x0B2BE8D6
-}
-
-func f0B2BE8D6() {
-	// f00DE7C90memcpy(v00DF490A[:], v0B2BE90B[:], len(v00DF490A))
-	// jmp 0x00DF490A
-}
-
-func f0B2BE90B() {
-	// E8 4A89BDFF ;call 0x006CD259, f006CD259
-	// E9 78FEFFFF ;jmp 0x00DF478C
-	f006CD259()
-	// 0x00DF478C
 }
 
 //
@@ -1373,7 +1403,7 @@ func f006CD259() {
 }
 
 // --------------------------------------------------------------------
-// OEP 0x00DF478C, f00DF478C
+// 0x00DF478C, f00DF478C
 func main() {
 	// check pe
 
@@ -1387,58 +1417,32 @@ func main() {
 	f004D7CE5winMain(0x00400000, 0, []uint8(szcmdLine), 10) // call 0x004D,7CE5
 }
 
-// 大范围清零操作
-func f00DFC986(buf []uint8, size int) {
-	size >>= 7
-	for size != 0 {
-		// 它使用了8次 movdqa xmm指令
-		for i := range buf[:128] {
-			buf[i] = 0
-		}
-		buf = buf[128:]
-		size--
-	}
+// --------------------------------------------------------------------
+var v00DF490A [0x5B]uint8
+var v0B2BE8D6 [0x19]uint8
+var v0B2BE90B [0x58]uint8
+
+// OEP shell logic 0x00DF490A f00DF490A
+func f00DF490A() {
+	// vp := win.GetProcAddress(win.LoadLibrary("kernel32.dll"), "virtualProtect")
+	// var oldProtect uint32
+	// vp(0x00DF490A, 0x5B, 0x40, &oldProtect) // PAGE_EXECUTE_READWRITE
+	// vp(0x0B2BE8D6, 0x19, 0x40, &oldProtect) // PAGE_EXECUTE_READWRITE
+	// jmp 0x0B2BE8D6
 }
 
-// setzero， 16字节对齐
-// 某种意义上说，把迭代改为递归也可以有效防止饥饿调度问题
-func f00DFC9DD(buf []uint8, value uint8, size int) uint32 {
-	// 假设eax是0x0018,DF85，然后edx是0x3FF
-	// cdq          ;edx:eax组合成为64位
-	// mov edi,eax
-	// xor edi,edx
-	// sub edi,edx
-	// and edi,F
-	// xor edi,edx
-	// sub edi,edx
-	// test edi,edi ;edi值为5
+func f0B2BE8D6() {
+	// f00DE7C90memcpy(v00DF490A[:], v0B2BE90B[:], len(v00DF490A))
+	// jmp 0x00DF490A
+}
 
-	// neg edi
-	// add edi,10
-
-	// offset := 16 - uint32(&buf[0])%16
-	// offset := 16 - uint32(unsafe.Pointer(&buf))%16
-	offset := 16 - (*[3]int)(unsafe.Pointer(&buf))[0]%16
-	if offset == 0 {
-		s := size & 0x7F
-		if s != size {
-			// ...
-		}
-		size := size - s
-		f00DFC986(buf, size)
-		if size == 0 {
-			return 0
-		}
-		buf = buf[int(size):]
-		for i := range buf {
-			buf[i] = 0
-		}
-	}
-	for i := range buf[:offset] {
-		buf[i] = 0
-	}
-
-	size -= offset
-	f00DFC9DD(buf[offset:], 0, size)
-	return 0
+func f0B2BE90B() {
+	f006CD259() // E8 4A89BDFF ;call 0x006CD259 f006CD259 壳逻辑 解码
+	// E9 78FEFFFF ;jmp 0x00DF478C f00DF478C, hard hook as E9 6CA04C0A ;jmp 0x0B2BE980 f0B2BE980 to load main.dll
+	// 0x0B2BE980
+	// if false == dll.kernel32.LoadLibrary("main.dll") {
+	// 	dll.kernel32.ExitProcess(0)
+	// 	return
+	// }
+	// 0x00DF478C f00DF478C, main
 }
