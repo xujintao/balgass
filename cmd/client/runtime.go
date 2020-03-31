@@ -188,6 +188,10 @@ func f00DEE871setlocale(category uint32, locale string) {
 
 }
 
+func f00DE909Efopen(fileName, mode string) {
+
+}
+
 func f00DE92E0strstr(haystack []uint8, needle string) []uint8 {
 	return nil
 }
