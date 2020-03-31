@@ -214,6 +214,9 @@ void SetValues()
 	MemSet(0x004DD639, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
 	MemSet(0x006B7B2A, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
 	MemSet(0x006B7C63, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
+	char disableRGonLoadCharacterInfo[6] = { 0xE9, 0xA0, 0x4C, 0xDB, 0xF5, 0x90 };
+	MemCpy(0x0A9503D2, disableRGonLoadCharacterInfo, sizeof(disableRGonLoadCharacterInfo)); // 1.04R, je->jmp, disable GameGuard, search "ResourceGuard"
+	MemAssign(0x00701DF4 + 1, (DWORD)0x0A4F6808); // 1.04R, jump over shell logic: check integrity on load character info
 	MemSet(0x00B38653, 0xC3, 1); // 1.04R, 55->C3, push ebp->ret, disable log encode
 	MemAssign(0x00E1A4AC, (WORD)0x90C3); // 1.04R, 6A 02->C3 90, push 02->ret, fix r6602 floating point support not loaded, search cmd "mov dword ptr ds:[ebx+0xC], esi"
 	//MemSet(0x0ABD696B, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable main.exe version match

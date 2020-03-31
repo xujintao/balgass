@@ -410,6 +410,11 @@ void MemCpy(DWORD Addr, void* mem, int size)
 	VirtualProtect((LPVOID)Addr, size, PAGE_EXECUTE_READWRITE, &OldProtect);
 	memcpy((void*)Addr, mem, size);
 	VirtualProtect((LPVOID)Addr, size, OldProtect, &OldProtect);
+	for (int i = 0; i < size; i++) {
+		if (0 != memcmp((void*)(Addr + i), (void*)(uintptr_t(mem)+i), 1)) {
+			__asm int 3;
+		}
+	}
 }
 
 void MemAssign(DWORD addr, BYTE value)
