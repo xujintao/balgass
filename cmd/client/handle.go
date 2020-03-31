@@ -18,8 +18,8 @@ func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 }
 
 // cmd table
-// key: 0x0075FF6A
-// value: 0x0075FCB2
+// key: 0x0075FF6A, s9 0x00673FE6
+// value: 0x0075FCB2, s9 0x00673D2E
 var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
 	0x00: f006FA9EBhandle00,
 	0x01: handle01,
@@ -201,7 +201,7 @@ var v09D96B40 = [10][2048]uint8{} // "Check Integrity... : data/local/Gameguard.
 var v09D9AB40 = 6
 
 func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
-	// 0x0AC3581C
+	// 0x0AC3581C hook to hide f0ABF8601, jump complicated shell logic: check integrity on load character info
 	var label1 = 0x0A9368DD
 	// push label1
 	// push 0x0AD33DDE
@@ -699,7 +699,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// 0x09FB8F6A 0x0AAB2DEA
 	// label3 ret
 	// label2 0x012DDD4C ret
-	// label1 0x0ABF8601 隐藏函数 处理F303
+	// label1 0x0ABF8601 f0ABF8601 隐藏函数 处理F303, s9 f0A28D090
 	f00DE8A70chkstk() // 0xDB80局部变量
 	// 0x0A049CFF
 	if enc == false {
@@ -718,192 +718,190 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// 0x0AD7EC66 0x00704FFF 0x0A7AAB86 0x0AD33C03
 	// ebp4 = 6
 	rg := false
-	/*
-		// rg := !ebp64.f00B607F0(&ebp402C)
-			func() bool {
-				// 0x0AA30CC3 0x0A4EB1BE
-				// SEH设置
-				// 0x0ABB6271 0x09FB828C
-				// 0x768局部变量
-				ebp760 := ""
-				ebp75C := ""
-				// ebp46C := v012F7B90 ^ ebp
-				// 0x0AD83FBC
-				// ebp758 := ecx
-				if ebp402C.m18 < 16 { // 31
-					// 0x00B6083B 0x0A33B326
-					ebp75C := "" // &ebp402C.m04
-				} else {
-					// 0x0AFDEEC5
-					ebp75C := ebp402C.m04 // "data/local/Gameguard.csr"
-				}
-				// 0x00B60847 0x0A33B482 0x00B60853 0x0A8F96C5 0x00B60862
-				// f00B4AA83
-				// func(fmt, text string) []uint8 {
-				// 	buf := v09D96B40[v09D9AB40%8][:]
-				// 	f00DF0805(buf, fmt, text)
-				// 	v09D9AB40++
-				// 	return buf
-				// }("Check Integrity... : %s", ebp75C)
-				// ebp4C4.f00406FC0(f00B4AA83("Check Integrity... : %s", ebp75C))
-				// 0x09F8EEC5 0x0A9320B0 0x00B60882
-				ebp4 := 0
-				// push 0x8000000A
-				// push 1
-				// push &ebp4C4
-				// ebp64.f00B61710(&ebp4C4, 1, 0x8000000A)
-				// 0x0AD9A333 0x00B60898
-				ebp4 = -1
-				// ebp4C4.f00407AC0(1, 0)
-				// 0x0A901716
-				if ebp402C.m18 < 16 {
-					// 0x00B608B4 0x0A44422D
-					ebp760 := "" // &ebp402C.m04
-				} else {
-					// 0x0A4ED735
-					ebp760 := ebp402C.m04
-				}
-				// 0x00B608C0 0x0A333B7C 0x00B608CC
-				// ebp14 := f00DE909Efopen(ebp760, "rb") // "data/local/Gameguard.csr", "rb"
-				// 0x0A556EA3
-				// if ebp14 == nil {
-				// 	// 0x0AD3E7EC
-				// }
-				// 0x00B60961 0x0A05BAA4 0x00B60969
-				// f00DEFA34fseek(ebp14, 0, SEEK_END)
-				// 0x0A7ABF10 0x00B60975
-				// ebp34size := f00DEFCD4ftell(ebp14)
-				// 0x0B0728F8 0x00B60988
-				// f00DEFA34fseek(ebp14, 0, SEEK_SET)
-				// 0x0A05D721 0x0B600994 0x0A04BE04 0x0AF8F9C2 0x0A561B68 0x00B609AF 0x0A32ADF2
-				// ebp4E4 := f00DE64BCnew(ebp34size)
-				// ebp10 := ebp4E4
-				// ebp4E8 := f00DE64BCnew(ebp34size)
-				// ebp40 := ebp4E8
-				// 0x00B609D4
-				f00DE8FBDfread(ebp10, 1, ebp34size, ebp14)
-				// 0x0A557BE6 0x00B609E0
-				f00DE8C84close(ebp14)
-				// 0x0A83C47B 0x00B609F0 0x00B6097F 0x0A8FF4EB 0x00B609F7
-				f00B62640once().f00B625E0dec(ebp10, ebp34size) // v09D9AB48.f00B625E0(p, size)
-				// 0x0A930885 0x00B60A08 0x00B6099E 0x09E7023F 0x00B60A0F
-				f00B62640once().f00B624A0xor(ebp40, ebp10, ebp34size) // v09D9AB48.f00B624A0xor(pDst, pSrc, size)
-				// 0x00B60A14 0x00B609A3 0x0AF120FB
-				// ebp30.f00B4BF7C() // ebp30 = &v01182470
-				// 0x0A5D4AE5 0x0A849272 0x00B60A2E
-				ebp4 = 2
-				ebp30.f00B4BD0C(ebp40, ebp34size)
-				// 0x00B609B9 0x012DDCD7 0x00B60A36 0x0A9FC2F8
-				// type crcHeader struct {
-				// 	m00magic int // 0x4752, "RG" means resource guard
-				// 	m04num int // 0xBB, 187个待校验文件
-				// }
-				// ebp3C := new(crcHeader)
-				ebp3C := ebp30.f00B4BE05() // ebp3C := ebp30.m04
-				if ebp3C.m00magic != 0x4752 {
-					// 0x0A8FF7C0
-				}
-				// 0x00B60AAA 0x0A43DF37 0x00B60AB4
-				ebp35 := true
-				ebp464.f00B411A4()
-				// 0x0AF84996 0x00B60AC0 0x0AD7BD59
-				ebp4 = 4
-				// type crcFile struct {
-				// 	val  int
-				// 	name string
-				// }
-				// ebp18 := make([]crcFile)
-				// ebp18 := crcFiles
-				ebp18 := ebp30.f00B4BE05()
-				ebp468cnt := 0
-				// 0x00B60AE6 0x0A193CC9
-				for {
-					if ebp468cnt >= ebp3C.m04num {
-						break // 0x00B60D65
-					}
-					// 0x0A050E36 0x00B60B05
-					ebp4A4.f00406FC0(ebp18.name)
-					// 0x0AF96B18 0x00B60B1B 0x0A3315F2 0x00B60B28
-					ebp4 = 5
-					f00406450(&ebp488, ebp758.f00B60750(&ebp4A4))
-					// 0x0A88FAE2
-					ebp4 = 6
-					if ebp470 >= 16 {
-						// 0x09FB807F
-					}
-					// 0x00B60B4B 0x09EB2740 0x00B60B57 0x0AC9D71F 0x00B60B60 0x0A05BB0E
-					ebp768 := &ebp484 // "main.exe"
-					if -1 == f00DF553F(ebp768, 0) {
-						// 0x00B60CB2
-					}
-					// 0x0AA2CE76 0x00B60B89 0x09FDF779
-					ebp4A8 := 0
-					if f00B41CB4(&ebp488, &ebp4A8) == 0 {
-						// 0x0ABF83B4
-					}
-					// 0x00B60B9C 0x0A601D0C
-					if ebp4A8 != ebp18.val {
-						// 0x00B60C20
-					}
-					// 0x0A4E56BB
-					ebp35 = false
-					if ebp48C >= 16 {
-						// 0x0B28495F
-					}
-					// 0x00B60BC4 0x09EB5251 0x00B60BD0 0x09E91315 0x00B60BDC 0x0AD7208D 0x00B60BEB
-					ebp76C := &ebp4A0 // "main.exe"
-					ebp524.f00406FC0(f00B4AA83("%s file is modified.", ebp76C))
-					// 0x0A32DD52 0x00B60C08
-					ebp4 = 7
-					ebp758.f00B61710(&ebp524, 2, 0x8000000A)
-					// 0x0A56E280 0x00B60C1B
-					ebp4 = 6
-					ebp524.f00407AC0(1, 0)
-					// 0x0A9309E1 0x00B60C2D 0x0A324BE0
-					if ebp464.f00B412CE(&ebp488) == 0 {
-						// 0x0A38FD97
-					}
-					// 0x00B60CB0 0x00B60C39 0x0A9FC2E2 0x00B60D29 0x0A55B184 0x0AF87662
-					ebp18 = ebp18[1:]
-					ebp4 = 5
-					// 0x09F8F68A 0x00B60D48
-					f00407AC0(1, 0)
-					// 0x0A05F891 0x00B60D5B
-					ebp4 = 4
-					ebp4A4.f00407AC0(1, 0)
-					// 0x09FCA3F1 0x00B60AD7 0x0AF0EE3B
-					ebp468cnt++
-					// 0x00B60AE6
-				}
-				// 0x00B60D65 0x0B07BEB9 crc finish
-				if ebp35 {
-					// 0x00B60DDF
-				}
-				// 0x0A0593C9 0x00B60D78 0x0A604945
-				f00406FC0("Stop checking integrity.")
-				// 0x09FD43E0 0x00B60D95
-				ebp4 = 10
-				ebp758.f00B61710(&ebp578, 1, 0x8000000A)
-				// 0x09E27085 0x00B60DA8
-				ebp4 = 4
-				ebp578.f00407AC0(1, 0)
-				// 0x09FC245D 0x00B60DC0
-				ebp579 = ebp35
-				ebp4 = 2
-				ebp464.f00B411B8()
-				// 0x0A3328F4 0x00B60DCF
-				ebp4 = -1
-				ebp30.f00B4C04A()
-				// 0x09FD3683
-				return ebp579
-			}()
-	*/
+	// // rg := !ebp64.f00B607F0(&ebp402C) // s9 f00A83580
+	// func() bool {
+	// 	// 0x0AA30CC3 0x0A4EB1BE
+	// 	// SEH设置
+	// 	// 0x0ABB6271 0x09FB828C
+	// 	// 0x768局部变量
+	// 	ebp760 := ""
+	// 	ebp75C := ""
+	// 	// ebp46C := v012F7B90 ^ ebp
+	// 	// 0x0AD83FBC
+	// 	// ebp758 := ecx
+	// 	if ebp402C.m18 < 16 { // 31
+	// 		// 0x00B6083B 0x0A33B326
+	// 		ebp75C := "" // &ebp402C.m04
+	// 	} else {
+	// 		// 0x0AFDEEC5
+	// 		ebp75C := ebp402C.m04 // "data/local/Gameguard.csr"
+	// 	}
+	// 	// 0x00B60847 0x0A33B482 0x00B60853 0x0A8F96C5 0x00B60862
+	// 	// f00B4AA83
+	// 	// func(fmt, text string) []uint8 {
+	// 	// 	buf := v09D96B40[v09D9AB40%8][:]
+	// 	// 	f00DF0805(buf, fmt, text)
+	// 	// 	v09D9AB40++
+	// 	// 	return buf
+	// 	// }("Check Integrity... : %s", ebp75C)
+	// 	// ebp4C4.f00406FC0(f00B4AA83("Check Integrity... : %s", ebp75C))
+	// 	// 0x09F8EEC5 0x0A9320B0 0x00B60882
+	// 	ebp4 := 0
+	// 	// push 0x8000000A
+	// 	// push 1
+	// 	// push &ebp4C4
+	// 	// ebp64.f00B61710(&ebp4C4, 1, 0x8000000A)
+	// 	// 0x0AD9A333 0x00B60898
+	// 	ebp4 = -1
+	// 	// ebp4C4.f00407AC0(1, 0)
+	// 	// 0x0A901716
+	// 	if ebp402C.m18 < 16 {
+	// 		// 0x00B608B4 0x0A44422D
+	// 		ebp760 := "" // &ebp402C.m04
+	// 	} else {
+	// 		// 0x0A4ED735
+	// 		ebp760 := ebp402C.m04
+	// 	}
+	// 	// 0x00B608C0 0x0A333B7C 0x00B608CC
+	// 	// ebp14 := f00DE909Efopen(ebp760, "rb") // "data/local/Gameguard.csr", "rb"
+	// 	// 0x0A556EA3
+	// 	// if ebp14 == nil {
+	// 	// 	// 0x0AD3E7EC
+	// 	// }
+	// 	// 0x00B60961 0x0A05BAA4 0x00B60969
+	// 	// f00DEFA34fseek(ebp14, 0, SEEK_END)
+	// 	// 0x0A7ABF10 0x00B60975
+	// 	// ebp34size := f00DEFCD4ftell(ebp14)
+	// 	// 0x0B0728F8 0x00B60988
+	// 	// f00DEFA34fseek(ebp14, 0, SEEK_SET)
+	// 	// 0x0A05D721 0x0B600994 0x0A04BE04 0x0AF8F9C2 0x0A561B68 0x00B609AF 0x0A32ADF2
+	// 	// ebp4E4 := f00DE64BCnew(ebp34size)
+	// 	// ebp10 := ebp4E4
+	// 	// ebp4E8 := f00DE64BCnew(ebp34size)
+	// 	// ebp40 := ebp4E8
+	// 	// 0x00B609D4
+	// 	f00DE8FBDfread(ebp10, 1, ebp34size, ebp14)
+	// 	// 0x0A557BE6 0x00B609E0
+	// 	f00DE8C84close(ebp14)
+	// 	// 0x0A83C47B 0x00B609F0 0x00B6097F 0x0A8FF4EB 0x00B609F7
+	// 	f00B62640once().f00B625E0dec(ebp10, ebp34size) // v09D9AB48.f00B625E0(p, size)
+	// 	// 0x0A930885 0x00B60A08 0x00B6099E 0x09E7023F 0x00B60A0F
+	// 	f00B62640once().f00B624A0xor(ebp40, ebp10, ebp34size) // v09D9AB48.f00B624A0xor(pDst, pSrc, size)
+	// 	// 0x00B60A14 0x00B609A3 0x0AF120FB
+	// 	// ebp30.f00B4BF7C() // ebp30 = &v01182470
+	// 	// 0x0A5D4AE5 0x0A849272 0x00B60A2E
+	// 	ebp4 = 2
+	// 	ebp30.f00B4BD0C(ebp40, ebp34size)
+	// 	// 0x00B609B9 0x012DDCD7 0x00B60A36 0x0A9FC2F8
+	// 	// type crcHeader struct {
+	// 	// 	m00magic int // 0x4752, "RG" means resource guard
+	// 	// 	m04num int // 0xBB, 187个待校验文件
+	// 	// }
+	// 	// ebp3C := new(crcHeader)
+	// 	ebp3C := ebp30.f00B4BE05() // ebp3C := ebp30.m04
+	// 	if ebp3C.m00magic != 0x4752 {
+	// 		// 0x0A8FF7C0
+	// 	}
+	// 	// 0x00B60AAA 0x0A43DF37 0x00B60AB4
+	// 	ebp35 := true
+	// 	ebp464.f00B411A4()
+	// 	// 0x0AF84996 0x00B60AC0 0x0AD7BD59
+	// 	ebp4 = 4
+	// 	// type crcFile struct {
+	// 	// 	val  int
+	// 	// 	name string
+	// 	// }
+	// 	// ebp18 := make([]crcFile)
+	// 	// ebp18 := crcFiles
+	// 	ebp18 := ebp30.f00B4BE05()
+	// 	ebp468cnt := 0
+	// 	// 0x00B60AE6 0x0A193CC9
+	// 	for {
+	// 		if ebp468cnt >= ebp3C.m04num {
+	// 			break // 0x00B60D65
+	// 		}
+	// 		// 0x0A050E36 0x00B60B05
+	// 		ebp4A4.f00406FC0(ebp18.name)
+	// 		// 0x0AF96B18 0x00B60B1B 0x0A3315F2 0x00B60B28
+	// 		ebp4 = 5
+	// 		f00406450(&ebp488, ebp758.f00B60750(&ebp4A4))
+	// 		// 0x0A88FAE2
+	// 		ebp4 = 6
+	// 		if ebp470 >= 16 {
+	// 			// 0x09FB807F
+	// 		}
+	// 		// 0x00B60B4B 0x09EB2740 0x00B60B57 0x0AC9D71F 0x00B60B60 0x0A05BB0E
+	// 		ebp768 := &ebp484 // "main.exe"
+	// 		if -1 == f00DF553F(ebp768, 0) {
+	// 			// 0x00B60CB2
+	// 		}
+	// 		// 0x0AA2CE76 0x00B60B89 0x09FDF779
+	// 		ebp4A8 := 0
+	// 		if f00B41CB4(&ebp488, &ebp4A8) == 0 {
+	// 			// 0x0ABF83B4
+	// 		}
+	// 		// 0x00B60B9C 0x0A601D0C
+	// 		if ebp4A8 != ebp18.val {
+	// 			// 0x00B60C20
+	// 		}
+	// 		// 0x0A4E56BB
+	// 		ebp35 = false
+	// 		if ebp48C >= 16 {
+	// 			// 0x0B28495F
+	// 		}
+	// 		// 0x00B60BC4 0x09EB5251 0x00B60BD0 0x09E91315 0x00B60BDC 0x0AD7208D 0x00B60BEB
+	// 		ebp76C := &ebp4A0 // "main.exe"
+	// 		ebp524.f00406FC0(f00B4AA83("%s file is modified.", ebp76C))
+	// 		// 0x0A32DD52 0x00B60C08
+	// 		ebp4 = 7
+	// 		ebp758.f00B61710(&ebp524, 2, 0x8000000A)
+	// 		// 0x0A56E280 0x00B60C1B
+	// 		ebp4 = 6
+	// 		ebp524.f00407AC0(1, 0)
+	// 		// 0x0A9309E1 0x00B60C2D 0x0A324BE0
+	// 		if ebp464.f00B412CE(&ebp488) == 0 {
+	// 			// 0x0A38FD97
+	// 		}
+	// 		// 0x00B60CB0 0x00B60C39 0x0A9FC2E2 0x00B60D29 0x0A55B184 0x0AF87662
+	// 		ebp18 = ebp18[1:]
+	// 		ebp4 = 5
+	// 		// 0x09F8F68A 0x00B60D48
+	// 		f00407AC0(1, 0)
+	// 		// 0x0A05F891 0x00B60D5B
+	// 		ebp4 = 4
+	// 		ebp4A4.f00407AC0(1, 0)
+	// 		// 0x09FCA3F1 0x00B60AD7 0x0AF0EE3B
+	// 		ebp468cnt++
+	// 		// 0x00B60AE6
+	// 	}
+	// 	// 0x00B60D65 0x0B07BEB9 crc finish
+	// 	if ebp35 {
+	// 		// 0x00B60DDF
+	// 	}
+	// 	// 0x0A0593C9 0x00B60D78 0x0A604945
+	// 	f00406FC0("Stop checking integrity.")
+	// 	// 0x09FD43E0 0x00B60D95
+	// 	ebp4 = 10
+	// 	ebp758.f00B61710(&ebp578, 1, 0x8000000A)
+	// 	// 0x09E27085 0x00B60DA8
+	// 	ebp4 = 4
+	// 	ebp578.f00407AC0(1, 0)
+	// 	// 0x09FC245D 0x00B60DC0
+	// 	ebp579 = ebp35
+	// 	ebp4 = 2
+	// 	ebp464.f00B411B8()
+	// 	// 0x0A3328F4 0x00B60DCF
+	// 	ebp4 = -1
+	// 	ebp30.f00B4C04A()
+	// 	// 0x09FD3683
+	// 	return ebp579
+	// }()
 	ebp400D := rg
 	// ebp4 = 5
 	// 0x0A888B4A 0x00705020
 	// ebp402C.f00407AC0(1, 0)
 	// 0x0A9503C9
-	if ebp400D {
+	if ebp400D { // hook always false, diabale ResourceGuard
 		// x64dbg查找引用无法跨模块，比如0x0A84D09A位置引用了0x00705035，但却搜不到0x0A84D09A，因为跨模块了
 		// 0x00705035: f006BD5BBclose()
 		// 0x0070503A: jmp 0x09EB027B, ResourceGuard Error, jmp 0x00705044
@@ -923,6 +921,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// f00A49798()
 }
 
+// s9 f00670C47
 func f0075C794handleF3(code uint8, buf []uint8, len int, enc bool) {
 	if buf[0] != 0xC1 {
 		// 0x0075C7B3
@@ -937,7 +936,7 @@ func f0075C794handleF3(code uint8, buf []uint8, len int, enc bool) {
 	case 2:
 		// 0x0075C999
 	case 3: // character info
-		// 0x0075C9A7
+		// 0x0075C9A7, s9 0x00670E5A
 		f00701DF4handleF303(buf, enc)
 	case 4:
 		// 0x0075C9C4
