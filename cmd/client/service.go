@@ -312,12 +312,12 @@ func (s *service3) f0043E9B6() {
 	ebp14BClogin.f0043EDF5writeUint32(win.GetTickCount()) // 写时间戳
 	ebp14C0 := 0
 	for ebp14C0 < 5 {
-		ebp14BClogin.f004397B1writeUint8(v012E4018[ebp14C0] - byte(ebp14C0+1)) // 写版本 VERSION_HOOK1
+		ebp14BClogin.f004397B1writeUint8(v012E4018version[ebp14C0] - byte(ebp14C0+1)) // 写版本 VERSION_HOOK1
 		ebp14C0++
 	}
 	ebp14C0 = 0
 	for ebp14C0 < 16 {
-		ebp14BClogin.f004397B1writeUint8(v012E4020[ebp14C0]) // 写序列号 SERIAL_HOOK1
+		ebp14BClogin.f004397B1writeUint8(v012E4020serial[ebp14C0]) // 写序列号 SERIAL_HOOK1
 		ebp14C0++
 	}
 

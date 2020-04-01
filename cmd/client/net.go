@@ -436,8 +436,6 @@ func (t *conn) f004397E3write(buf []uint8, len int) int {
 
 var v08C88E08 uint32 // 可能是状态
 var v08C88E0C int
-var v012E4018 = "22789"            // 版本怎么会是这个？
-var v012E4020 = "M7B4VM4C5i8BC49b" // serial
 
 type t5 struct{}
 

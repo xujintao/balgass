@@ -124,7 +124,7 @@ func handleF1(code uint8, buf []uint8, len int, enc bool) {
 			if ebpC >= 5 {
 			}
 			for {
-				if v012E4018[ebpC]-ebpC-1 != ebp4[7+ebpC] { // 改为jmp
+				if v012E4018version[ebpC]-ebpC-1 != ebp4[7+ebpC] { // 改为jmp
 					break
 				}
 				ebpC++

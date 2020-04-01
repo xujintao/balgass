@@ -36,7 +36,7 @@
 -->
 
 <MapServer>
- <ServerInfo Version="1.05.25" Serial="PoweredByIGCN800" /> <!-- Version Format: n.nn.nn, Serial format: 16 alphanumerical characters -->
+ <ServerInfo Version="1.04.44" Serial="M7B4VM4C5i8BC49b" /> <!-- Version Format: n.nn.nn, Serial format: 16 alphanumerical characters -->
 	<ServerList>
 		<Server Code="0"  Group="1" Initiation="1" IP="192.168.0.100" Port="56900" Name="Regular" />
 		<Server Code="12" Group="1" Initiation="0" IP="192.168.0.100" Port="56912" Name="Market" />

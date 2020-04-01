@@ -36,8 +36,10 @@ var v012E3F08 struct {
 	height uint32 // 0x258, 600
 	width  uint32 // 0x320, 800
 }
-
+var v012E4018version = [8]uint8{'2', '2', '7', '8', '9', 0, 0, 0}                                               // "22789"
+var v012E4020serial = [16]uint8{'M', '7', 'B', '4', 'V', 'M', '4', 'C', '5', 'i', '8', 'B', 'C', '4', '9', 'b'} // "M7B4VM4C5i8BC49b"
 var v012F7910 [100]uint8
+
 var v01319A38 [8]uint8 // "1.04R+"	// 可执行程序版本号
 var v01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
 var v01319A50ip [16]uint8
