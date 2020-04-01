@@ -277,8 +277,7 @@ void GCManaSend(PMSG_MANASEND *lpMsg)
 			manaDisplay = lpMsg->IGCMana;
 		}
 
-		
-
+		/*
 		DWORD dwExitCode;
 		GetExitCodeThread(hCheckThread, &dwExitCode);
 
@@ -290,8 +289,7 @@ void GCManaSend(PMSG_MANASEND *lpMsg)
 			memcpy((void*)0x009C51496, &trapArray, 6); // Trap :: It will crash main on send packet :D
 			GCSendAntihackBreach(20000);
 		}
-
-		
+		*/
 }
 
 void GCJoinResultSend(PMSG_JOINRESULT *lpMsg)

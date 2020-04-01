@@ -199,16 +199,36 @@ void __declspec(naked) LoginHook3() {
 	}
 }
 
+void rewriteVersion() {
+	char* src = (char*)0x01319A44; // 1.04R, "1.xx.xx"
+	char ver[5] = { 0 };
+	sscanf(src, "%c.%c%c.%c%c", &ver[0], &ver[1], &ver[2], &ver[3], &ver[4]);
+	char* dst = (char*)0x012E4018; // 1.04R
+	for (int i = 0; i < 5; i++) {
+		dst[i] = ver[i] + i + 1;
+	}
+}
+
+void __declspec(naked) RewriteVersion() {
+	rewriteVersion();
+	_asm {
+		push 1;
+		mov eax, 0x00DE852F;
+		call eax;
+		mov eax, 0x004D80F4;
+		jmp eax;
+	}
+}
+
 void SetValues()
 {
 	DWORD OldProtect;
 
 	//ResourceManager.Preloader(); // 1.04R has no glow.bmd
 	//g_Controller.Load(); 1.04R
-	g_ServerInfo->Load(".\\Data\\Local\\ServerInfo.bmd");
+	//g_ServerInfo->Load(".\\Data\\Local\\ServerInfo.bmd");
 
 	//MemSet(0x004D7E2A, 0xEB, 1); // 1.04R, 73->EB, jae->jmp, disable mu.exe, search "mu.exe"
-	MemAssign(0x004D7E2A, (BYTE)0xEB); // MemSet can not work, why?
 	MemSet(0x004D8102, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "config.ini read error"
 	MemSet(0x004D8145, 0xEB, 1); // 1.04R, 75->EB, jne->jmp, disable GameGuard, search "gg init error"
 	MemSet(0x004DD639, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable GameGuard, search "ResourceGuard"
@@ -220,6 +240,7 @@ void SetValues()
 	MemSet(0x00B38653, 0xC3, 1); // 1.04R, 55->C3, push ebp->ret, disable log encode
 	MemAssign(0x00E1A4AC, (WORD)0x90C3); // 1.04R, 6A 02->C3 90, push 02->ret, fix r6602 floating point support not loaded, search cmd "mov dword ptr ds:[ebx+0xC], esi"
 	//MemSet(0x0ABD696B, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable main.exe version match
+	HookManager.MakeJmpHook(0x004D80ED, 7, RewriteVersion); // rewrite version
 	MemSet(0x0AD33703, 0xC3, 1); // 1.04R, 55->C3, push ebp->ret, disable some encode
 	HookThis(0x0043EA4C, 7, (DWORD)&LoginHook1); // 1.04R, extend pwd length, fill pwd buf
 	HookThis(0x0043EAA2, 9, (DWORD)&LoginHook2); // 1.04R, extend pwd length, validate pwd length
@@ -247,26 +268,24 @@ void SetValues()
 	MemAssign(0x0075FF6A + 0x11, *(BYTE*)(0x0075FF6A + 0xD9)); // 1.04R,  normal attack send recv, D9->11, compatible with s9 server
 	MemAssign(0x00A0A5E1 + 1, (DWORD)0x0941B4CA); // 1.04R, jump over complicated shell logic, which would send trap message
 	//MemAssign(0x0A0C438C + 6, (BYTE)0xDF); // 1.04R, be attacked send, 1D->DF, compatible with s9 server
-
+	
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
 	//HookManager.MakeJmpHook(CONNECT_HOOK1, 5, onCsHook);
-	HookManager.MakeCallback(CONNECT_HOOK1, OnConnect, 0, 5, false, false);
-	HookManager.MakeCallback(CONNECT_HOOK2, OnConnect, 0, 5, false, false);
-	MemAssign(VERSION_HOOK1, (DWORD)g_ServerInfo->GetVersion());
-	MemAssign(VERSION_HOOK2, (DWORD)g_ServerInfo->GetVersion());
-	MemAssign(VERSION_HOOK3, (DWORD)g_ServerInfo->GetVersion());
-	MemAssign(SERIAL_HOOK1, (DWORD)g_ServerInfo->GetSerial());
-	MemAssign(SERIAL_HOOK2, (DWORD)g_ServerInfo->GetSerial());
-	MemAssign(CHATSERVER_PORT,(DWORD)g_ServerInfo->GetChatServerPort());
-	HookManager.MakeCallback(GSCONNECT_HOOK1, OnGsConnect, 0, 10, false);
-	HookManager.MakeCallback(GSCONNECT_HOOK2, OnGsConnect, 0, 10, false);
+	//HookManager.MakeCallback(CONNECT_HOOK1, OnConnect, 0, 5, false, false);
+	//HookManager.MakeCallback(CONNECT_HOOK2, OnConnect, 0, 5, false, false);
+	//MemAssign(VERSION_HOOK1, (DWORD)g_ServerInfo->GetVersion());
+	//MemAssign(VERSION_HOOK2, (DWORD)g_ServerInfo->GetVersion());
+	//MemAssign(VERSION_HOOK3, (DWORD)g_ServerInfo->GetVersion());
+	//MemAssign(SERIAL_HOOK1, (DWORD)g_ServerInfo->GetSerial());
+	//MemAssign(SERIAL_HOOK2, (DWORD)g_ServerInfo->GetSerial());
+	//MemAssign(CHATSERVER_PORT,(DWORD)g_ServerInfo->GetChatServerPort());
+	//HookManager.MakeCallback(GSCONNECT_HOOK1, OnGsConnect, 0, 10, false);
+	//HookManager.MakeCallback(GSCONNECT_HOOK2, OnGsConnect, 0, 10, false);
 	MemSet(CTRL_FREEZE_FIX, 0x02, 1);
 	//MemSet(MAPSRV_DELACCID_FIX, 0x90, 5); // nop call to memcpy in mapserver, because buff source is empty, due to no account id from webzen http (remove new login system)
 	//MemSet(MAPSRV_DELACCID_FIX, 0x90, 5); // this may be annotated in 1.04R
 	HookManager.MakeCallback(RENDER_HP_BAR_CALLBACK, RenderLoadingBar, 0, 5, true); // 1.04R
-	
-
 	HookManager.MakeJmpHook(0x004E56C8, 10, HookDCFunc); // 1.04R, reconnect
 	//HookManager.MakeJmpHook(0x004E1B32, PreventSwapBufferHack); //s9
 	//HookManager.MakeJmpHook(0x004E1B1E, PreventSwapBufferHack2); //s9
@@ -307,6 +326,7 @@ void SetValues()
 	// LoadDSEntryLevel(); // private custom !!!
 
 	// Launcher init
+	/*
 	SYSTEMTIME Date;
 	GetLocalTime(&Date);
 	DWORD dwParam = (Date.wDay * Date.wMonth * Date.wYear) ^ 0x12894376 + 0xFFFFFFF;
@@ -374,7 +394,7 @@ void SetValues()
 			ExitProcess(0);
 		}
 	}
-
+	*/
 	// item
 
 	HookManager.MakeJmpHook(TOOLTIP_FIX, 9, ToolTipFix); // 1.04R
@@ -499,7 +519,7 @@ BOOL APIENTRY DllMain (HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReser
 			CMiniDump::Begin();
 			//DWORD OldProtect;
 			//VirtualProtect((LPVOID)0x00401000, 12681214, PAGE_EXECUTE_READ, &OldProtect);
-			CheckMainFunctions();
+			//CheckMainFunctions();
 			// DoHooks();
 			SetHook();
 			SetValues();
