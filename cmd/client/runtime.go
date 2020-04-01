@@ -4,6 +4,8 @@ import (
 	"debug/pe"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"unsafe"
 
 	"github.com/xujintao/balgass/win"
@@ -24,6 +26,14 @@ var v09D9D9FC int
 var v09D9DA08 uint8
 var v09D9DA0C uint32 = 1
 var v09D9DB88 uintptr = 0xBD6A970F
+
+func f00DECBD1atoi(buf []uint8) int {
+	n, err := strconv.Atoi(string(buf))
+	if err != nil {
+		n = 0
+	}
+	return n
+}
 
 func f00DE7C00strlen(str []uint8) {
 
@@ -1406,19 +1416,26 @@ func f006CD259() {
 	}()
 }
 
+var v09DA37AC string
+var v09D9DB10 string
+
 // --------------------------------------------------------------------
 // 0x00DF478C, f00DF478C
 func main() {
+	// ebp4 := 0
+	// var ebp68si struct{}{}
+	// dll.kernel32.GetStartupInfo(&ebp68)
+	// ebp4 = -2
 	// check pe
+	// ...
+	// ebp4 = 1
+	v09DA37AC = "main.exe connect /u192.168.0.102 /p444405" // v09DA37AC = dll.kernel32.GetCommandLine()
+	v09D9DB10 = "ALLUSERSPROFILE=C:\\ProgramData"
 
 	checkupdate()
-
-	var szcmdLine string = os.Args[1]
-	// hInstance
-	// hPrevInstance
-	// szcmdline
-	// SW_SHOWDEFAULT
-	f004D7CE5winMain(0x00400000, 0, []uint8(szcmdLine), 10) // call 0x004D,7CE5
+	szcmdLine := strings.Join(os.Args[1:], " ") // f00D101B9
+	// f004D7CE5winMain(hInstance, hPrevInstance, szcmdline, SW_SHOWDEFAULT)
+	f004D7CE5winMain(0x00400000, 0, szcmdLine, 10)
 }
 
 // --------------------------------------------------------------------

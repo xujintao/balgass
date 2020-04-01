@@ -28,7 +28,7 @@ var v012E2214 = "MUCN"
 var v012E2224 uint32 = 1
 var v012E2228 uint32 = 16
 var v012E222C *os.File
-var v012E2338ip = "192.168.0.100"
+var v012E2338ip = "192.168.0.102"
 var v012E233Cport uint16 = 44405
 var v012E2340 int
 
@@ -266,183 +266,12 @@ func f004D6F82initWindow(hModule win.HMODULE, iCmdShow int) win.HWND {
 	return 0
 }
 
-// 这个函数被花的厉害，难道是核心业务？
-// 追踪只能追踪一个函数
-func f004D7281() bool {
-	// CURRENT_USER
-	// SOFTWARE\\Webzen\\Mu\\Config
-	// 348h个字节的局部变量
-
-	// ebp-338
-	var ebp_338 struct {
-		patch [3]uint8
-	}
-
-	// ebp-334 ~ ebp-330
-	var ebp_334 version
-
-	// ebp-328 ~ ebp-225
-	var fileName [260]uint8
-
-	// ebp-220 ~ ebp-10D
-	var buf [276]uint8
-	buf[0] = v0114D912                 // 0
-	f00DE8100memset(buf[1:], 0, 0x113) // 0x113=275
-
-	// ebp-108 ~ ebp-9
-	var bufDir [256]uint8
-	win.GetCurrentDirectory(0x100, (*uint16)(unsafe.Pointer(&bufDir[0])))
-
-	f00DE8000strcpy(buf[:], bufDir[:])
-
-	// _00DE7C00
-	nameLen := func(bufDir []uint8) uint32 {
-		return uint32(len(bufDir))
-	}(bufDir[:])
-	if bufDir[nameLen-1] == 0x5C {
-		f00DE8010strcat(buf[:], "config.ini")
-	}
-	f00DE8010strcat(buf[:], "\\config.ini") // cat拼凑字符串
-
-	win.GetPrivateProfileStringA("LOGIN", "Version", v0114D913, v01319A44[:], 8, string(buf[:])) // 1.04.44写到全局变量中
-	// ebp_8的底层数组在堆上
-	// var ebp_8 string = GetCommandLine()
-	var ebp_8 string = os.Args[0]
-
-	// f004D52AB
-	bRet := f004D52AB(fileName[:], ebp_8)
-	if bRet {
-		bRet := f004D55C6(fileName[:], &ebp_334)
-		if bRet { // je 0x004D,741B
-			f00DE817Asprintf(v01319A38[:], "%d.%02d", ebp_334.major, ebp_334.minor)
-
-			if ebp_334.patch > 0 { // jle 0x004D,7419
-				*(*uint16)(unsafe.Pointer(&ebp_338)) = v0114DD64
-				ebp_338.patch[2] = 0
-
-				// 我的猜测是从patch=26开始使用字母和+标记标识patch，比如
-				// 27就是A+
-				// 28就是B+
-				// 44就是R+
-				if ebp_334.patch > 0x1A { // jle 0x004D,73EE
-					ebp_338.patch[0] = 'A' - 27 + uint8(ebp_334.patch) // 65-27+44=82='R'
-					ebp_338.patch[1] = '+'
-				}
-				f00DE8010strcat(v01319A38[:], string(ebp_338.patch[:]))
-			}
-		}
-	}
-
-	// _004D7174
-	// 这个函数在搞什么？
-	func(fileName string) bool {
-		// 204个字节的局部变量
-		v01319DB8[0] = 0
-		var ebp_CC uint32 = 0
-
-		var partition struct {
-			num  [64]uint8
-			name [64]uint8
-			ip   [64]uint8
-		}
-		// var ebp_8 uint32
-		var ebp_4 []uint8
-
-		// _00DE909E
-		ebp_4 = func(fileName string, x string) []uint8 {
-			// _00DE8FDA
-			return func(fileName string, x string, y uint32) []uint8 {
-				// 这个函数会注册一个SEH
-				return v012F7910[:]
-			}(fileName, x, 0x40)
-		}(fileName, "rt")
-		if ebp_4 == nil {
-			return false
-		}
-
-		// 不能超过50条记录
-		for ebp_CC < 50 {
-			// f00DECD20
-			nRet := f00DECD20(ebp_4, "%s", partition.num[:])
-			if nRet == -1 {
-				break
-			}
-			nRet = f00DECD20(ebp_4, "%s", partition.name[:])
-			if nRet == -1 {
-				break
-			}
-			nRet = f00DECD20(ebp_4, "%s", partition.ip[:])
-			if nRet == -1 {
-				break
-			}
-
-			// _00DE94F0
-			nRet = func(x []uint8, y []uint8) int32 {
-				return -1
-			}(v01319A50ip[:], partition.name[:])
-			if nRet == 0 {
-				// _00DECBD1
-				nRet := func(x []uint8) uint32 {
-					return 0
-				}(partition.ip[:])
-				if nRet == uint32(v012E233Cport) {
-					f00DE8000strcpy(v01319DB8[:], partition.num[:])
-					// _00DE8C84
-					func() {
-
-					}()
-					return true
-				}
-			}
-			ebp_CC++
-		}
-
-		// _00DE8C84
-		func(x []uint8) {
-			// 清零
-		}(ebp_4)
-
-		return false
-	}("partition.inf")
-
-	// 接下来还有一段处理，我没看
-
-	return true
-}
-
-func f004D755F(haystack []uint8, y int, buf []uint8) []uint8 {
-	return nil
-}
-
-// 该函数被花掉了
-func f004D7A1F(haystack []uint8, ip []uint8, z *uint32) uint16 {
-	// x=0x0B37,3D25，存放的是[0,0,0,'K']
-
-	// ebp-100
-	var buf [256]uint8
-	buf[0] = 0
-	f00DE8100memset(buf[1:], 0, 0xFF)
-
-	// _004472C9
-	sRet := func(haystack []uint8, needle string) []uint8 {
-		return f00DE92E0strstr(haystack, needle)
-	}(haystack, "battle")
-	if len(sRet) == 0 {
-		sRet = f004D755F(haystack, 0x79, buf[:])
-		if len(sRet) == 0 {
-			sRet = f004D755F(haystack, 0x75, buf[:])
-			if len(sRet) == 0 {
-				return 0
-			}
-		}
-	}
-
-	// ...
-	return 1000
+func f004D755F(haystack []uint8, y int, buf []uint8) bool {
+	return false
 }
 
 // f004D7CE5winMain, WinMain
-func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uint8, iCmdShow int) {
+func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine string, iCmdShow int) {
 	// ----------------------winmain反调式-------------------
 	// 0x0A05E61B
 	var label1 uint32 = 0x009DCA19
@@ -454,12 +283,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 	var label3 uint32 = 0x0A0518C4
 	// push label3
 	// 0x0A8485E3
-	// pushfd
-	// push ebx
-	// push edi
-	// push esi
-	// push edx
-	// push ecx
+	// push fd ebx edi esi edx ecx
 
 	// 0x09EBC742
 	var label4 uint32 = 0x0AD2B081
@@ -470,9 +294,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 	// 0x0AD91CED, f0AD91CED
 	func() {
 		// 0xFC局部变量
-		// push ebx
-		// push esi
-		// push edi
+		// push ebx esi edi
 		var ebp8 uint32
 		var ebp10 uint32
 		var ebp14 uint32
@@ -813,49 +635,46 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 	// 0x0A9FB977 0x0AA0931B
 	// label3(0x0B10933D)
 	// label2(0x0A8FE9A6)
-	// label1(0x0AD56E8A)
+	// label1(0x0AD56E8A) f0AD56E8A 隐藏函数
 
 	// push ebp
 	// ebp = esp
 	// eax = 0x1B60
 	// 0x004D7CED
-	// -------------------------肉区---------------------------------
 	// 1B60h，近两页也就是8k字节的局部变量
-
-	// _004D7CE5， 设置一下栈
-
 	// ebp-4 和 ebp-8是什么？
 	// var ebp_4 uint32 = 0x004D7CF2 // 一个函数指针
-	var ebp_8 uint32 = 0x0A
+	var ebp8port uint16 = 10
 
 	// ebpC := win.CreateMutex
 	var ebpC win.HANDLE
 
-	// if _00DE7C00() < 1 { // jae -> jmp
-	// 启动mu.exe然后退出
-	// }
-
+	// 0x004D7E1E
+	if len(szCmdLine) < 1 { // f00DE7C00strlen(szCmdLine)
+		// 启动mu.exe然后退出
+	}
+	// 0x004D7E99
 	// vc编译器把先定义的变量地址在高位置？
-	var ebp_230 struct {
+	var ebp230 struct {
 		data [248]uint8
 	}
-	var ebp_238_ver [8]uint8
-	copy(ebp_238_ver[:], "unknown")
-	f00DE8100memset(ebp_230.data[:], 0, 0xF8)
+	var ebp238ver [8]uint8
+	copy(ebp238ver[:], "unknown")
+	f00DE8100memset(ebp230.data[:], 0, 0xF8)
 
 	// var cmd string = GetCommandLine()
-	ebp_23C_cmd := os.Args[0]
+	ebp23Ccmd := os.Args[0]
 
-	var ebp_244_ver version // ebp-244 ~ ebp-23E，这里会有清零操作，应该是程序员自己清的
-	var ebp_350_fileName [260]uint8
-	if f004D52AB(ebp_350_fileName[:], ebp_23C_cmd) {
-		if f004D55C6(ebp_350_fileName[:], &ebp_244_ver) {
-			f00DE817Asprintf(ebp_238_ver[:], "%d.%02d", ebp_244_ver.major, ebp_244_ver.minor)
-			if ebp_244_ver.patch > 0 {
-				var ebp_4DC [2]uint8
-				ebp_4DC[0] = uint8('a' + ebp_244_ver.patch - 1) // 0x8C，这里是有问题的，超过ASCII编码范围了
-				ebp_4DC[1] = 0                                  // 我猜测作者是想表达R
-				f00DE8010strcat(ebp_238_ver[:], string(ebp_4DC[:]))
+	var ebp244ver version // ebp-244 ~ ebp-23E，这里会有清零操作，应该是程序员自己清的
+	var ebp350fileName [260]uint8
+	if f004D52AB(ebp350fileName[:], ebp23Ccmd) {
+		if f004D55C6(ebp350fileName[:], &ebp244ver) {
+			f00DE817Asprintf(ebp238ver[:], "%d.%02d", ebp244ver.major, ebp244ver.minor)
+			if ebp244ver.patch > 0 {
+				var ebp4DC [2]uint8
+				ebp4DC[0] = uint8('a' + ebp244ver.patch - 1) // 0x8C，这里是有问题的，超过ASCII编码范围了
+				ebp4DC[1] = 0                                // 我猜测作者是想表达R
+				f00DE8010strcat(ebp238ver[:], string(ebp4DC[:]))
 			}
 		}
 	}
@@ -865,8 +684,8 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 	v01319E08log.f00B38D19cut()
 
 	v01319E08log.f00B38AE4printf("Mu online %s (%s) executed. (%d.%d.%d.%d)\r\n",
-		ebp_238_ver[:], v01319DFC,
-		ebp_244_ver.major, ebp_244_ver.minor, ebp_244_ver.patch, ebp_244_ver.fourth)
+		ebp238ver[:], v01319DFC,
+		ebp244ver.major, ebp244ver.minor, ebp244ver.patch, ebp244ver.fourth)
 
 	v01319E08log.f00B38D49(1)
 
@@ -874,15 +693,47 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 
 	// direct-x information
 
+	// 0x004D803B
 	// 这里重新设置ip地址和端口失败了，为什么？
 	// 从命令行中提取指定的ip地址和端口，因为没有通过mu.exe启动，所有没有命令行
-	var port uint16 = f004D7A1F(szCmdLine, v01319A50ip[:], &ebp_8)
-	if port > 0 {
-		v012E2338ip = string(v01319A50ip[:])
-		v012E233Cport = port
+	f004D7A1F := func(haystack []uint8, ip []uint8, port *uint16) bool { // ([]uint8(szCmdLine), v01319A50ip[:], &ebp8)
+		// x=0x0B37,3D25，存放的是[0,0,0,'K']
+		// 0x0A4411D8 0x004D7A3D
+		// 10C局部变量
+		var ebp100buf [256]uint8
+		ebp100buf[0] = 0
+		f00DE8100memset(ebp100buf[1:], 0, 0xFF)
+		// 0x012E0FF0 0x004D7A4D
+		sRet := func(haystack []uint8, needle string) []uint8 { // f004472C9
+			return f00DE92E0strstr(haystack, needle)
+		}(haystack, "battle")
+		// 0x0AF8FB96
+		if len(sRet) != 0 {
+			// 0x0A9F95D7 0x004D7A5A
+		}
+		// 0x004D7A66 0x0A601B5B 0x004D7A72 0x0A916BE0
+		if f004D755F(haystack, 0x79, ebp100buf[:]) { // 解析第一个参数
+			// 0x0A848F36
+		}
+		// 0x004D7BC3 0x0A7AC798 0x004D7BCF 0x0A38F870
+		if !f004D755F(haystack, 0x75, ebp100buf[:]) { // 解析第二个参数
+			// 0x0A12F49A
+		}
+		// 0x004D7BDF 0x0ABB5DC7 0x004D7BE9
+		f00DE8000strcpy(ip, ebp100buf[:])
+		// 0x0A7AE561 0x004D7BFC 0x09FC6DA2
+		if !f004D755F(haystack, 0x70, ebp100buf[:]) { // 解析第三个参数
+			// 0x09E91BB9
+		}
+		// 0x004D7C0C 0x09E90EF9 0x004D7C13 0x0B284D06
+		*port = uint16(f00DECBD1atoi(ebp100buf[:]))
+		return true
 	}
-
-	// open main.exe
+	if f004D7A1F([]uint8(szCmdLine), v01319A50ip[:], &ebp8port) {
+		v012E2338ip = string(v01319A50ip[:])
+		v012E233Cport = ebp8port
+	}
+	// 0x004D8067 // open main.exe
 	if !f004D5368() {
 		f004D9F88()
 		return
@@ -892,10 +743,148 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 	v08C8D050enc.f00B62CF0init("Data/Enc1.dat")
 	v08C8D098dec.f00B62D30init("Data/Dec2.dat")
 
-	// read config.ini
+	// 0x004D80A8 read config.ini
 	v01319E08log.f00B38AE4printf("> To read config.ini.\r\n")
-	bRet := f004D7281()
-	if !bRet {
+	// 这个函数被花的厉害，难道是核心业务？
+	// 追踪只能追踪一个函数
+	f004D7281 := func() bool {
+		// CURRENT_USER
+		// SOFTWARE\\Webzen\\Mu\\Config
+		// 348h个字节的局部变量
+
+		// ebp-338
+		var ebp_338 struct {
+			patch [3]uint8
+		}
+
+		// ebp-334 ~ ebp-330
+		var ebp_334 version
+
+		// ebp-328 ~ ebp-225
+		var fileName [260]uint8
+
+		// ebp-220 ~ ebp-10D
+		var buf [276]uint8
+		buf[0] = v0114D912                 // 0
+		f00DE8100memset(buf[1:], 0, 0x113) // 0x113=275
+
+		// ebp-108 ~ ebp-9
+		var bufDir [256]uint8
+		win.GetCurrentDirectory(0x100, (*uint16)(unsafe.Pointer(&bufDir[0])))
+
+		f00DE8000strcpy(buf[:], bufDir[:])
+
+		// _00DE7C00
+		nameLen := func(bufDir []uint8) uint32 {
+			return uint32(len(bufDir))
+		}(bufDir[:])
+		if bufDir[nameLen-1] == 0x5C {
+			f00DE8010strcat(buf[:], "config.ini")
+		}
+		f00DE8010strcat(buf[:], "\\config.ini") // cat拼凑字符串
+
+		win.GetPrivateProfileStringA("LOGIN", "Version", v0114D913, v01319A44[:], 8, string(buf[:])) // 1.04.44写到全局变量中
+		// ebp_8的底层数组在堆上
+		// var ebp_8 string = GetCommandLine()
+		var ebp_8 string = os.Args[0]
+
+		// f004D52AB
+		bRet := f004D52AB(fileName[:], ebp_8)
+		if bRet {
+			bRet := f004D55C6(fileName[:], &ebp_334)
+			if bRet { // je 0x004D,741B
+				f00DE817Asprintf(v01319A38[:], "%d.%02d", ebp_334.major, ebp_334.minor)
+
+				if ebp_334.patch > 0 { // jle 0x004D,7419
+					*(*uint16)(unsafe.Pointer(&ebp_338)) = v0114DD64
+					ebp_338.patch[2] = 0
+
+					// 我的猜测是从patch=26开始使用字母和+标记标识patch，比如
+					// 27就是A+
+					// 28就是B+
+					// 44就是R+
+					if ebp_334.patch > 0x1A { // jle 0x004D,73EE
+						ebp_338.patch[0] = 'A' - 27 + uint8(ebp_334.patch) // 65-27+44=82='R'
+						ebp_338.patch[1] = '+'
+					}
+					f00DE8010strcat(v01319A38[:], string(ebp_338.patch[:]))
+				}
+			}
+		}
+
+		// _004D7174
+		// 这个函数在搞什么？
+		func(fileName string) bool {
+			// 204个字节的局部变量
+			v01319DB8[0] = 0
+			var ebp_CC uint32 = 0
+
+			var partition struct {
+				num  [64]uint8
+				name [64]uint8
+				ip   [64]uint8
+			}
+			// var ebp_8 uint32
+			var ebp_4 []uint8
+
+			// _00DE909E
+			ebp_4 = func(fileName string, x string) []uint8 {
+				// _00DE8FDA
+				return func(fileName string, x string, y uint32) []uint8 {
+					// 这个函数会注册一个SEH
+					return v012F7910[:]
+				}(fileName, x, 0x40)
+			}(fileName, "rt")
+			if ebp_4 == nil {
+				return false
+			}
+
+			// 不能超过50条记录
+			for ebp_CC < 50 {
+				// f00DECD20
+				nRet := f00DECD20(ebp_4, "%s", partition.num[:])
+				if nRet == -1 {
+					break
+				}
+				nRet = f00DECD20(ebp_4, "%s", partition.name[:])
+				if nRet == -1 {
+					break
+				}
+				nRet = f00DECD20(ebp_4, "%s", partition.ip[:])
+				if nRet == -1 {
+					break
+				}
+
+				// _00DE94F0
+				nRet = func(x []uint8, y []uint8) int32 {
+					return -1
+				}(v01319A50ip[:], partition.name[:])
+				if nRet == 0 {
+					// _00DECBD1
+					nRet := func(x []uint8) uint32 {
+						return 0
+					}(partition.ip[:])
+					if nRet == uint32(v012E233Cport) {
+						f00DE8000strcpy(v01319DB8[:], partition.num[:])
+						// _00DE8C84
+						func() {
+
+						}()
+						return true
+					}
+				}
+				ebp_CC++
+			}
+			// _00DE8C84
+			func(x []uint8) {
+				// 清零
+			}(ebp_4)
+			return false
+		}("partition.inf")
+		// 接下来还有一段处理，我没看
+		return true
+	}
+	if !f004D7281() {
 		v01319E08log.f00B38AE4printf("config.ini read error\r\n")
 		f004D9F88()
 		return
@@ -903,17 +892,17 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 
 	// gg init
 	// ebp_1A38也可能是个实例指针变量，值是0x0D9F,EA10
-	var ebp_1A38 *uint32 = (*uint32)(f00DE852F(1))
-	var ebp_1B0C *t1319D68
-	if ebp_1A38 == nil { // if true，disable GameGurad
-		ebp_1B0C = nil
+	var ebp1A38 *uint32 = (*uint32)(f00DE852F(1))
+	var ebp1B0C *t1319D68
+	if ebp1A38 != nil { // 0x004D8102 hook always nil，disable GameGurad
+		// ebp1B0C = ebp1A38.f004D936A(v012E2214)
 	} else {
-		// ebp_1B0C = _004D936A(v012E2214)
+		ebp1B0C = nil
 	}
 
-	v01319D68 = ebp_1B0C
+	v01319D68 = ebp1B0C
 	bRet = f00B4C1B8()
-	if !bRet { // if false, disable GameGurad
+	if !bRet { // 0x004D8145 hook always true, disable GameGurad
 		// gg init error
 		// f004D51C8()
 		// f004D9335()
@@ -976,7 +965,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 
 	// ...
 
-	var ebp_595 uint8 // ImmIsUIMessage返回值
+	var ebp595 uint8 // ImmIsUIMessage返回值
 
 	// ebp-28
 	var msg win.MSG
@@ -990,7 +979,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine []uin
 			// win.ImmIsUIMessage()
 			if msg.Message == 0x100 || // WM_KEYFIRST, WM_KEYDOWN
 				msg.Message == 0x101 || // WM_KEYUP
-				ebp_595 != 0 ||
+				ebp595 != 0 ||
 				msg.Message == 0x201 || // WM_LBUTTONDOWN
 				msg.Message == 0x202 { // WM_LBUTTONUP
 				// f00A49798(msg.HWnd, msg.Message, msg.WParam, msg.LParam, 1)
