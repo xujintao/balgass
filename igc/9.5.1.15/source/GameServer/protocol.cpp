@@ -291,10 +291,11 @@ void GameProtocol::ProtocolCore(BYTE protoNum, unsigned char * aRecv, int aLen, 
 				this->CGLiveClient((PMSG_CLIENTTIME *)aRecv, aIndex);
 				break;
 			case 0xD4: // s9
-			case 0xD7: // 1.04R
+			case 0xD7: // 1.04R, positionSet
 				this->PMoveProc((PMSG_MOVE *)aRecv, aIndex);
 				break;
-			case 0x15:
+			case 0x15: // s9
+			case 0xDA: // 1.04R, positionGet
 				this->RecvPositionSetProc((PMSG_POSISTION_SET *)aRecv, aIndex);
 				break;
 			case 0x11: // s9

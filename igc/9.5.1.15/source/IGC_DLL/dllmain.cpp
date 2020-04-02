@@ -250,8 +250,10 @@ void SetValues()
 	MemAssign(0x005B5D6C + 1, (DWORD)0x09A1DB88); // 1.04R, handleState5, disable anti-temper with backup code
 	MemAssign(0x004E0E03 + 1, (DWORD)0x0A36BF12); // 1.04R, handleState5, disable anti-temper with backup code
 	MemAssign(0x006C18B6 + 1, (DWORD)0x0A33476B); // 1.04R, handleF6, jump over complicated shell logic, which would send trap message
-	//MemAssign(0x005B0252 + 6, (BYTE)0xD4); // 1.04R, position send, D7->D4, compatible with s9 server
-	MemAssign(0x0075FF6A + 0xD4, *(BYTE*)(0x0075FF6A + 0xD7)); // 1.04R, position recv, D7->D4, compatible with s9 server
+	//MemAssign(0x005B0252 + 6, (BYTE)0xD4); // 1.04R, position set, D7->D4, compatible with s9 server
+	MemAssign(0x0075FF6A + 0xD4, *(BYTE*)(0x0075FF6A + 0xD7)); // 1.04R, position set, D7->D4, compatible with s9 server
+	//MemAssign(0x00A16091 + 1, (BYTE)0x15); // 1.04R, position set, DA->15, compatible with s9 server
+	MemAssign(0x0075FF6A + 0x15, *(BYTE*)(0x0075FF6A + 0xDA)); // 1.04R, position get, DA->15, compatible with s9 server
 	DWORD inlineAddr[] = {
 		0x004E70D9, 0x005ABA01, 0x0A8FB8B9, 0x09FC2882, 0x005CEB05, 0x005D0607, 0x005D1B5C, 0x005D38B5,
 		0x005D4974, 0x0060594F, 0x0060C8E1, 0x006144CF, 0x00615B39, 0x006171A3, 0x006185CB, 0x00619761,
