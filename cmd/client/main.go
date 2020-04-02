@@ -40,8 +40,8 @@ var v012E4018version = [8]uint8{'2', '2', '7', '8', '9', 0, 0, 0}               
 var v012E4020serial = [16]uint8{'M', '7', 'B', '4', 'V', 'M', '4', 'C', '5', 'i', '8', 'B', 'C', '4', '9', 'b'} // "M7B4VM4C5i8BC49b"
 var v012F7910 [100]uint8
 
-var v01319A38 [8]uint8 // "1.04R+"	// 可执行程序版本号
-var v01319A44 [8]uint8 // "1.04.44" // 配置文件版本号
+var v01319A38version [8]uint8 // "1.04R+"	// 可执行程序版本号
+var v01319A44version [8]uint8 // "1.04.44" // 配置文件版本号
 var v01319A50ip [16]uint8
 
 var v01319D1CwndProc uintptr
@@ -651,7 +651,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	// ebpC := win.CreateMutex
 	var ebpC win.HANDLE
 
-	// 0x004D7E1E
+	// 0x004D7E1E start mu.exe
 	if len(szCmdLine) < 1 { // f00DE7C00strlen(szCmdLine)
 		// 启动mu.exe然后退出
 	}
@@ -785,7 +785,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		}
 		f00DE8010strcat(buf[:], "\\config.ini") // cat拼凑字符串
 
-		win.GetPrivateProfileStringA("LOGIN", "Version", v0114D913, v01319A44[:], 8, string(buf[:])) // 1.04.44写到全局变量中
+		win.GetPrivateProfileStringA("LOGIN", "Version", v0114D913, v01319A44version[:], 8, string(buf[:])) // 1.04.44写到全局变量中
 		// ebp_8的底层数组在堆上
 		// var ebp_8 string = GetCommandLine()
 		var ebp_8 string = os.Args[0]
@@ -795,7 +795,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		if bRet {
 			bRet := f004D55C6(fileName[:], &ebp_334)
 			if bRet { // je 0x004D,741B
-				f00DE817Asprintf(v01319A38[:], "%d.%02d", ebp_334.major, ebp_334.minor)
+				f00DE817Asprintf(v01319A38version[:], "%d.%02d", ebp_334.major, ebp_334.minor)
 
 				if ebp_334.patch > 0 { // jle 0x004D,7419
 					*(*uint16)(unsafe.Pointer(&ebp_338)) = v0114DD64
@@ -809,7 +809,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 						ebp_338.patch[0] = 'A' - 27 + uint8(ebp_334.patch) // 65-27+44=82='R'
 						ebp_338.patch[1] = '+'
 					}
-					f00DE8010strcat(v01319A38[:], string(ebp_338.patch[:]))
+					f00DE8010strcat(v01319A38version[:], string(ebp_338.patch[:]))
 				}
 			}
 		}
@@ -891,6 +891,8 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		f004D9F88()
 		return
 	}
+
+	// hook: v012E4018version = v01319A44version
 
 	// gg init
 	// ebp_1A38也可能是个实例指针变量，值是0x0D9F,EA10
