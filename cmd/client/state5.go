@@ -59,7 +59,7 @@ func f00611C16() {
 	switch c {
 	case 1:
 		// 0x0061385D
-	case 2:
+	case 2: // code:30, talk
 		// 0x00618C52
 		// v012E3140 = 12
 		ebp69D8 := v01308D04objectManager.f00A38D5BgetObject(v012E31B0) // 0x12DABC9C
@@ -146,7 +146,7 @@ func f00611C16() {
 			ebp1896C.f004393EAsend(true, false)
 			// 0x00629345
 		}
-	case 3:
+	case 3: // code:D9, attack
 		// 0x00611C9B, s9 0x005A539E
 		// ...
 		ebp20 := v01308D04objectManager.f00A38D5BgetObject(v012E3200) // 0x12DC9B08
@@ -169,8 +169,31 @@ func f00611C16() {
 		ebp14A4.f004393EAsend(false, false)
 	case 4:
 		// 0x0062C00B
-	case 5:
+	case 5: // code:DA, position get
 		// 0x0061362F
+		// ...
+		// 0x00613847
+		// f00A0A4BE()
+		func() {
+			// 0x00A0A547
+			// f00A0A4E1()
+			func() {
+				// 0x00A0B3C5
+				// f00A15E91(), s9 f00936DF7
+				func() {
+					// 0x00A16082
+					var ebp14A4 pb
+					ebp14A4.f00439178init()
+					// ebp4 := 0
+					ebp14A4.f0043922CwritePrefix(0xC1, 0xDA) // positionGet DA, s9 0x15
+					ebp14A4.f004397B1writeUint8(ebp12)       // 0x23
+					ebp14A4.f004397B1writeUint8(ebp11)       // 0x2E
+					ebp14A4.f004393EAsend(false, false)
+					// ebp4 := -1
+					ebp14A4.f004391CF()
+				}()
+			}()
+		}()
 	case 6:
 		// 0x006314F8
 	}
