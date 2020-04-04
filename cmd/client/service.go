@@ -7,6 +7,69 @@ import (
 	"github.com/xujintao/balgass/win"
 )
 
+// 很重要
+var v08610600 t08610600
+
+type t08610600 struct{}
+
+func (t *t08610600) f006B8574(x, y uint32) bool {
+	return false
+}
+
+func (t *t08610600) f006B851Ddec(buf []uint8, size uint32) {
+	ebpCi := uint32(0)
+	ebp8 := buf
+	ebp4key := [3]uint8{0xFC, 0xCF, 0xAB}
+	for {
+		if ebpCi >= size {
+			break
+		}
+		ebp8[ebpCi] = ebp8[ebpCi] ^ ebp4key[ebpCi%3]
+		// ...
+		ebpCi++
+	}
+}
+
+func (t *t08610600) f006B83FD(fileName *stdstring, x uint32) {
+	// 0x28局部变量
+	// ebp28 := t
+	ebp4file := f00DE909Efopen(string(fileName.f004073E0cstr()), "rb") // v012F7910 为什么返回一个全部变量的地址？
+	if ebp4file == nil {
+		return
+	}
+	var ebpCheader [8]uint8
+	f00DE8FBDfread(ebpCheader[:], 6, 1, ebp4file)
+	if binary.LittleEndian.Uint16(ebpCheader[:]) != 0x5447 { // leadcode: "GT"
+		return
+	}
+	ebpAsize := binary.LittleEndian.Uint32(ebpCheader[2:]) // 0x10C5
+	ebp10index := uint32(0)
+	var ebp1C [8]uint8
+	for {
+		if ebp10index >= ebpAsize {
+			break
+		}
+		f00DE8FBDfread(ebp1C[:], 8, 1, ebp4file)
+		record := struct {
+			index uint32  // ebp1C
+			size  uint32  // ebp18
+			buf   []uint8 // ebp14
+		}{}
+		record.index = binary.LittleEndian.Uint32(ebp1C[:]) // 0
+		record.size = binary.LittleEndian.Uint32(ebp1C[4:]) // 4
+		record.buf = f00DE64BCnew(uint(record.size + 1))
+		f00DE8FBDfread(record.buf, 1, uint(record.size), ebp4file) // 37 01 67 19
+		if t.f006B8574(record.index, x) == true || record.index < 0x270F {
+			t.f006B851Ddec(record.buf, record.size)
+			record.buf[record.size] = 0
+			// t.f006B8D79(record.index, record.buf)
+		}
+		f00DE7BEAdelete(record.buf)
+		ebp10index++
+	}
+	f00DE8C84close(ebp4file)
+}
+
 type point struct {
 	x int
 	y int
@@ -325,9 +388,9 @@ func (s *service3) f0043E9B6() {
 	ebp14BClogin.f004393EAsend(true, false)
 
 	// var ebp4 int
-	// ebp14E0.f00406FC0(v08610600.f00436DA8(0x1D8))
+	// ebp14E0.f00406FC0stdstring(v08610600.f00436DA8(0x1D8))
 	// ebp4 = 1
-	// ebp14FC.f00406FC0(&v0114A327)
+	// ebp14FC.f00406FC0stdstring(&v0114A327)
 	// ebp4 = 2
 	// f00A49798(&ebp14FC, &ebp14E0, 3, 0).f0043EE21().f00A9FB38()
 	// ebp4 = 1
@@ -335,9 +398,9 @@ func (s *service3) f0043E9B6() {
 	// ebp4 = 0
 	// ebp14E0.f00407B10()
 
-	// ebp1518.f00406FC0(v08610600.f00436DA8(0x1D9))
+	// ebp1518.f00406FC0stdstring(v08610600.f00436DA8(0x1D9))
 	// ebp4 = 3
-	// ebp1534.f00406FC0(&v0114A33E)
+	// ebp1534.f00406FC0stdstring(&v0114A33E)
 	// f00A49798(&ebp1534, &ebp1518, 3, 0).f0043EE21().f00A9FB38()
 	// ebp4 = 3
 	// ebp1534.f00407B10()
@@ -449,18 +512,18 @@ func (s *service4) do13(unk float64) {
 				ebp292CserverInfo.f004393EAsend(false, false)
 
 				// var ebp4 int
-				// ebp2948.f00406FC0(v08610600.f00436DA8(0x1D6))
+				// ebp2948.f00406FC0stdstring(v08610600.f00436DA8(0x1D6))
 				// ebp4 = 2
-				// ebp2964.f00406FC0(&v0114A5FF)
+				// ebp2964.f00406FC0stdstring(&v0114A5FF)
 				// ebp4 = 3
 				// f00A49798(&ebp2964, &ebp2948, 3, 0).f0043EE21().f00A9FB38()
 				// ebp4 = 2
 				// ebp2964.f00407B10()
 				// ebp4 = 1
 				// ebp2948.f00407B10()
-				// ebp2980.f00406FC0(v08610600.f00436DA8(0x1D7))
+				// ebp2980.f00406FC0stdstring(v08610600.f00436DA8(0x1D7))
 				// ebp4 = 4
-				// ebp299C.f00406FC0(&v0114A600)
+				// ebp299C.f00406FC0stdstring(&v0114A600)
 				// ebp4 = 5
 				// f00A49798(&ebp299C, &ebp2980, 3, 0).f0043EE21().f00A9FB38()
 				// ebp4 = 4
@@ -700,36 +763,38 @@ func (t *list) f004452A7getFirstNodeValue() interface{} {
 	return ebp4.head.value
 }
 
-type t4002 struct {
-	f04 [10]uint8
-	f18 int
+type stdstring struct {
+	m04data []uint8
+	m14len  int
+	m18cap  int
 }
 
-func (t *t4002) f00406EB0(buf []uint8, len int) {
-	if t.f18 < 16 {
-		// if buf < t.f04[:] {
-
-		// }
-	}
-	if t.f18 < 16 {
-		// t.f04[]
-	}
+func (t *stdstring) f00406A20init() {
+	t.m04data = nil
+	t.m14len = 0
+	t.m18cap = 15
 }
 
-func (t *t4002) f00406F90(buf []uint8) {
-	len := 0
-	for _, v := range buf {
-		if v == 0 {
-			break
-		}
-		len++
-	}
-
-	t.f00406EB0(buf, len)
+func (t *stdstring) f00406EB0(buf []uint8, len int) {
+	// s长度小于16就放在栈上(m04~m13)，否则存在堆上
+	t.m04data = buf
+	t.m14len = len
+	t.m18cap = 0x1F
 }
 
-func (t *t4002) f0043D7E2(buf []uint8) {
-	t.f00406F90(buf)
+func (t *stdstring) f0043D7E2stdstring(s string) {
+	t.f00406EB0([]uint8(s), len(s))
+}
+
+func (t *stdstring) f00406FC0stdstring(buf []uint8) {
+	t.f00406EB0(buf, len(buf))
+}
+func (t *stdstring) f004073E0cstr() []uint8 {
+	return t.m04data
+}
+
+func (t *stdstring) f00407B10free() {
+	f00DE7538free(nil)
 }
 
 // serviceManager
@@ -771,10 +836,10 @@ type serviceManager struct {
 	f9FD4activeServices list // v013196FC
 	f9FE0               bool // v01319708
 	f9FE1               bool
-	f9FE4               int  // v0131970C
-	f9FE8               bool // v01319710
+	f9FE4               *stdstring // v0131970C
+	f9FE8               bool       // v01319710
 	f9FE9               bool
-	f9FEC               *t4002 // v01319714
+	f9FEC               *stdstring // v01319714
 }
 
 var v01319730 uint32 // sync.Once
@@ -837,7 +902,7 @@ func (t *serviceManager) f004A91CE() {
 }
 func (t *serviceManager) f004A9B5B(unk float64) {
 	ebp30 := t
-	if ebp30.f9FE4 == 0 { // 0, 2
+	if ebp30.f9FE4 == nil { // 0, 2
 		return
 	}
 	if ebp30.f9FD4activeServices.f004AA077isNumZero() == true {
@@ -888,7 +953,7 @@ func (t *serviceManager) f004A9B5B(unk float64) {
 	}
 
 	if len(ebp8) > 0 {
-		// f00DE7BEA(ebp8) // delete?
+		// f00DE7BEAdelete(ebp8)
 		ebp8 = ebp8[:0]
 	}
 	ebp30.f004A91CE()
@@ -915,10 +980,10 @@ func (t *serviceManager) f004A9F3B(buf []uint8) {
 	if len(buf) == 0 {
 		return
 	}
-	if t.f9FE4 == 4 {
+	if t.f9FE4.m14len == 4 {
 		// t.f9DD8.f00445A2A(buf)
 	} else {
-		t.f9FEC.f0043D7E2(buf)
+		t.f9FEC.f0043D7E2stdstring(string(buf))
 	}
 }
 
@@ -961,6 +1026,51 @@ func (t *t4003) f00448D8BgetX() int { return t.m0Cx }
 func (t *t4003) f00448191getY() int { return t.m10y }
 
 func f004DD578handleState1(hDC win.HDC) {
+	// ...
+	// f006B4C78(hdC)
+	func() {
+		// ...
+		// f006B7DDC() // load Data/local/...
+		func() {
+			// 0xA0局部变量
+			ebp4 := -1
+			var ebp74fileName [100]uint8
+			f006B8367iocopy := func(fileName string, buf []uint8, b bool) bool {
+				// 0x3C局部变量
+				ebp4 := -1
+				if fileName == "" || buf == nil {
+					return false
+				}
+				var ebp44 stdstring
+				ebp44.f00406A20init()
+				ebp4 = 0
+				var ebp28 stdstring
+				ebp28.f00406A20init()
+				ebp4 = 1
+				ebp44.f0043D7E2stdstring(fileName)
+				f00DE8000strcpy(buf, ebp44.f004073E0cstr())
+				ebp45ret := true
+				ebp4 = 0
+				ebp28.f00407B10free()
+				ebp4 = -1
+				ebp44.f00407B10free()
+				println(ebp4)
+				return ebp45ret
+			}
+			// "Data/Local/Text.bmd"
+			f006B8367iocopy("Data/Local/Text.bmd", ebp74fileName[:], true)
+			var ebp90 stdstring
+			ebp90.f00406FC0stdstring(ebp74fileName[:])
+			ebp4 = 0
+			v08610600.f006B83FD(&ebp90, 0x80000010)
+			ebp4 = -1
+			ebp90.f00407B10free()
+			// "Data/Macro.txt"
+			// ...
+			println(ebp4)
+		}()
+		// ...
+	}()
 	// ...
 	v01319E08log.f00B38AE4printf("> Loading ok.\r\n")
 	// f004DAACA(v01319D6ChWnd)

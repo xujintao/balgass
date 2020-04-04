@@ -744,7 +744,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// 	// 	v09D9AB40++
 	// 	// 	return buf
 	// 	// }("Check Integrity... : %s", ebp75C)
-	// 	// ebp4C4.f00406FC0(f00B4AA83("Check Integrity... : %s", ebp75C))
+	// 	// ebp4C4.f00406FC0stdstring(f00B4AA83("Check Integrity... : %s", ebp75C))
 	// 	// 0x09F8EEC5 0x0A9320B0 0x00B60882
 	// 	ebp4 := 0
 	// 	// push 0x8000000A
@@ -821,7 +821,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// 			break // 0x00B60D65
 	// 		}
 	// 		// 0x0A050E36 0x00B60B05
-	// 		ebp4A4.f00406FC0(ebp18.name)
+	// 		ebp4A4.f00406FC0stdstring(ebp18.name)
 	// 		// 0x0AF96B18 0x00B60B1B 0x0A3315F2 0x00B60B28
 	// 		ebp4 = 5
 	// 		f00406450(&ebp488, ebp758.f00B60750(&ebp4A4))
@@ -851,7 +851,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// 		}
 	// 		// 0x00B60BC4 0x09EB5251 0x00B60BD0 0x09E91315 0x00B60BDC 0x0AD7208D 0x00B60BEB
 	// 		ebp76C := &ebp4A0 // "main.exe"
-	// 		ebp524.f00406FC0(f00B4AA83("%s file is modified.", ebp76C))
+	// 		ebp524.f00406FC0stdstring(f00B4AA83("%s file is modified.", ebp76C))
 	// 		// 0x0A32DD52 0x00B60C08
 	// 		ebp4 = 7
 	// 		ebp758.f00B61710(&ebp524, 2, 0x8000000A)
@@ -879,7 +879,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// 		// 0x00B60DDF
 	// 	}
 	// 	// 0x0A0593C9 0x00B60D78 0x0A604945
-	// 	f00406FC0("Stop checking integrity.")
+	// 	f00406FC0stdstring("Stop checking integrity.")
 	// 	// 0x09FD43E0 0x00B60D95
 	// 	ebp4 = 10
 	// 	ebp758.f00B61710(&ebp578, 1, 0x8000000A)

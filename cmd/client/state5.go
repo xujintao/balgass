@@ -186,8 +186,8 @@ func f00611C16() {
 					ebp14A4.f00439178init()
 					// ebp4 := 0
 					ebp14A4.f0043922CwritePrefix(0xC1, 0xDA) // positionGet DA, s9 0x15
-					ebp14A4.f004397B1writeUint8(ebp12)       // 0x23
-					ebp14A4.f004397B1writeUint8(ebp11)       // 0x2E
+					// ebp14A4.f004397B1writeUint8(ebp12)       // 0x23
+					// ebp14A4.f004397B1writeUint8(ebp11)       // 0x2E
 					ebp14A4.f004393EAsend(false, false)
 					// ebp4 := -1
 					ebp14A4.f004391CF()
@@ -379,7 +379,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 	if ebp30 == 0x4E {
 		// 0x09FC6B67 // 0x007E51E5
 		// ebp51 := x6
-		// ebp2990.f00406FC0(&v0114ECB0)
+		// ebp2990.f00406FC0stdstring(&v0114ECB0)
 		ebp4 = 0
 		// v0805BBACself.m38name
 	}
@@ -389,9 +389,9 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 		if ebp28 != 0xEB {
 			// 0x09E27707, s9 0x0AA33867
 			// 0x007E7293 0x0A5D51ED 0x007E72AE 0x0AD57EA6 0x0AD57EA6 0x09FB45A3 0x007E72C5 0x0A05ED3A 0x09FBE557
-			// ebp29CC.f00406FC0(&v0114ECB0)
+			// ebp29CC.f00406FC0stdstring(&v0114ECB0)
 			ebp4 = 4
-			// ebp29E8.f00406FC0(v0805BBACself.m38name[:])
+			// ebp29E8.f00406FC0stdstring(v0805BBACself.m38name[:])
 			ebp4 = 5
 			var ebp29AD bool // ebp29AD := f004CE0BD(&ebp29E8, &ebp29CC)
 			// 0x09FE37E6 0x0A55B22D 0x0A889689

@@ -38,7 +38,7 @@ var v012E3F08 struct {
 }
 var v012E4018version = [8]uint8{'2', '2', '7', '8', '9', 0, 0, 0}                                               // "22789"
 var v012E4020serial = [16]uint8{'M', '7', 'B', '4', 'V', 'M', '4', 'C', '5', 'i', '8', 'B', 'C', '4', '9', 'b'} // "M7B4VM4C5i8BC49b"
-var v012F7910 [100]uint8
+var v012F7910 os.File
 
 var v01319A38version [8]uint8 // "1.04R+"	// 可执行程序版本号
 var v01319A44version [8]uint8 // "1.04.44" // 配置文件版本号
@@ -814,45 +814,33 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 			}
 		}
 
-		// _004D7174
-		// 这个函数在搞什么？
+		// f004D7174 这个函数在搞什么？
 		func(fileName string) bool {
 			// 204个字节的局部变量
 			v01319DB8[0] = 0
-			var ebp_CC uint32 = 0
+			var ebpCC uint32 = 0
 
 			var partition struct {
 				num  [64]uint8
 				name [64]uint8
 				ip   [64]uint8
 			}
-			// var ebp_8 uint32
-			var ebp_4 []uint8
-
-			// _00DE909E
-			ebp_4 = func(fileName string, x string) []uint8 {
-				// _00DE8FDA
-				return func(fileName string, x string, y uint32) []uint8 {
-					// 这个函数会注册一个SEH
-					return v012F7910[:]
-				}(fileName, x, 0x40)
-			}(fileName, "rt")
-			if ebp_4 == nil {
+			ebp4 := f00DE909Efopen(fileName, "rt")
+			if ebp4 == nil {
 				return false
 			}
-
 			// 不能超过50条记录
-			for ebp_CC < 50 {
+			for ebpCC < 50 {
 				// f00DECD20
-				nRet := f00DECD20(ebp_4, "%s", partition.num[:])
+				nRet := f00DECD20(ebp4, "%s", partition.num[:])
 				if nRet == -1 {
 					break
 				}
-				nRet = f00DECD20(ebp_4, "%s", partition.name[:])
+				nRet = f00DECD20(ebp4, "%s", partition.name[:])
 				if nRet == -1 {
 					break
 				}
-				nRet = f00DECD20(ebp_4, "%s", partition.ip[:])
+				nRet = f00DECD20(ebp4, "%s", partition.ip[:])
 				if nRet == -1 {
 					break
 				}
@@ -875,12 +863,9 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 						return true
 					}
 				}
-				ebp_CC++
+				ebpCC++
 			}
-			// _00DE8C84
-			func(x []uint8) {
-				// 清零
-			}(ebp_4)
+			f00DE8C84close(ebp4)
 			return false
 		}("partition.inf")
 		// 接下来还有一段处理，我没看
@@ -905,7 +890,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	}
 
 	v01319D68 = ebp1B0C
-	bRet = f00B4C1B8()
+	bRet := f00B4C1B8()
 	if !bRet { // 0x004D8145 hook always true, disable GameGurad
 		// gg init error
 		// f004D51C8()

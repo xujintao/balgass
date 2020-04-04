@@ -35,6 +35,10 @@ func f00DECBD1atoi(buf []uint8) int {
 	return n
 }
 
+func f00DE7538free(p unsafe.Pointer) {
+
+}
+
 func f00DE7C00strlen(str []uint8) {
 
 }
@@ -198,15 +202,35 @@ func f00DEE871setlocale(category uint32, locale string) {
 
 }
 
-func f00DE909Efopen(fileName, mode string) {
+func f00DE64BCnew(n uint) []uint8 {
+	return make([]uint8, n)
+}
 
+func f00DE7BEAdelete(buf []uint8) {
+	buf = buf[:0]
+}
+
+func f00DE909Efopen(fileName, mode string) *os.File {
+	f, err := os.Open(fileName)
+	if err != nil {
+		return nil
+	}
+	return f
+}
+
+func f00DE8C84close(f *os.File) {
+	f.Close()
+}
+
+func f00DE8FBDfread(buf []uint8, size uint, num uint, f *os.File) {
+	f.Read(buf[:size*num])
 }
 
 func f00DE92E0strstr(haystack []uint8, needle string) []uint8 {
 	return nil
 }
 
-func f00DECD20(x []uint8, strfmt string, y []uint8) int32 {
+func f00DECD20(f *os.File, strfmt string, y []uint8) int32 {
 	return -1
 }
 
@@ -644,6 +668,10 @@ func f0A05D00Fmemcpy(dstAddr unsafe.Pointer, srcAddr unsafe.Pointer, size uint32
 
 	// 0x0A8FBAC6
 	return index
+}
+
+func f00DE8857memcpy_s(dst unsafe.Pointer, dstSize int, src unsafe.Pointer, size int) int {
+	return 0
 }
 
 func f0AAB88A1getValue(imageBase uintptr, crcDatas []block, valuep unsafe.Pointer, step uint32, lenp *uint32) []block {
