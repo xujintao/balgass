@@ -7,10 +7,67 @@ import (
 	"github.com/xujintao/balgass/win"
 )
 
+type t17 struct {
+	m00 uintptr
+	m04 uintptr
+}
+
+func (t *t17) f0043700F(x *treeNode, y *t08610600) {
+
+}
+
+func (t *t17) f0043702B(x *t17) bool {
+	return false
+}
+
+type treeNode struct {
+	p1    *treeNode
+	p2    *treeNode
+	p3    *treeNode
+	index interface{}
+	value interface{} // stdstring
+	m2D   bool
+}
+
+type t19 struct {
+	m00 uintptr
+	m04 uintptr
+	m08 bool
+}
+
+func (t *t19) f004A753B(x *t17, y *bool) *t19 {
+	t.m00 = x.m00
+	t.m04 = x.m04
+	t.m08 = *y
+	return t
+}
+
+type text3 struct {
+	m00index uint32
+	m04      *stdstring
+}
+
+func (t *text3) f004A6078text3(pindex *uint32, s *stdstring) *text3 {
+	// ebp4 := t
+	t.m00index = *pindex
+	t.m04.f004079A0stdstring(s)
+	func() {
+
+	}()
+	return t
+}
+
+func (t *text3) f004A584Efree() {
+	t.m04.f00407B10free()
+}
+
 // 很重要
 var v08610600 t08610600
 
-type t08610600 struct{}
+type t08610600 struct {
+	m18     *treeNode
+	m1Csize int
+}
 
 func (t *t08610600) f006B8574(x, y uint32) bool {
 	return false
@@ -28,6 +85,112 @@ func (t *t08610600) f006B851Ddec(buf []uint8, size uint32) {
 		// ...
 		ebpCi++
 	}
+}
+
+func (t *t08610600) f00436FA1() **treeNode {
+	// f0043712E(t.m18)
+	return func(tree *treeNode) **treeNode {
+		return &tree.p2
+	}(t.m18)
+}
+
+func (t *t08610600) f00436F1E(pindex *uint32, t1 *t08610600) *treeNode {
+	// ebpC := t
+	// ebp8 := t.f00436FA1()
+	ebp4 := t.m18
+	// f00437123(ebp8)
+	// if *func(p *treeNode) *bool {
+	// 	return &p.m2D
+	// }(ebp8) == true {
+	// 	return ebp4
+	// }
+	return ebp4
+}
+
+func (t *t08610600) f00436FB6(x *t17) *t17 {
+	return x
+}
+
+func (t *t08610600) f004A793A(x *t17) *t17 {
+	return x
+}
+
+func (t *t08610600) f004A6371(list1 *t17, num int, list2 *treeNode, v *text3) *t17 {
+	return nil
+}
+
+func (t *t08610600) f006B8D79(index uint32, buf []uint8) bool {
+	// 0x64局部变量
+	// ebp68 := t
+	var ebp14 t17
+	// t.f00436E48(ebp14[:], &index)
+	func(x *t17, pindex *uint32) *t17 {
+		// 0x24局部变量
+		// ebp20 := t
+
+		var ebp8 t17 // 0x0ED26630, 0x0ED1FF00
+		// t.f00436EEA(&ebp8, pindex)
+		func(x *t17, pindex *uint32) *t17 {
+			// x.f0043700F(t.f00436F1E(pindex, t)) // f0043700F有两个参数
+			return x
+		}(&ebp8, pindex)
+
+		var ebp14 t17 // 0x0ED26630, 0x0ED1FF00
+		ebp8.f0043702B(t.f00436FB6(&ebp14))
+
+		var ebp1C t17 // 0x0ED26630, 0x0ED1FF00
+		ebp24 := t.f00436FB6(&ebp1C)
+		ebpC := ebp24
+		x.m00 = ebpC.m00
+		x.m04 = ebpC.m04
+		return x
+	}(&ebp14, &index)
+
+	var ebp1C t17 // 0x0ED26630, 0x0ED1FF00
+	if ebp14.f0043702B(t.f00436FB6(&ebp1C)) == false {
+		return false
+	}
+
+	var ebp58 stdstring
+	ebp58.f00406FC0stdstring(buf)
+	ebp4 := 0
+	var ebp3C text3
+	ebp6C := ebp3C.f004A6078text3(&index, &ebp58) // 构造text3对象
+	ebp70 := ebp6C
+	ebp4 = 1
+	var ebp64 t19
+	// t.f004A60D1(&ebp64, ebp70) // append text3对象
+	func(x *t19, v *text3) *t19 {
+		// 4C局部变量
+		// ebp48 := t
+		ebpC := *t.f00436FA1()
+		ebp8 := t.m18
+		ebp1 := true
+		for {
+			// f00437123
+			if ebpC.m2D {
+				break
+			}
+		}
+		var ebp14 t17
+		ebp14.f0043700F(ebp8, t)
+		if ebp1 {
+			var ebp28 t17
+			if ebp14.f0043702B(t.f004A793A(&ebp28)) {
+				ebp29 := true
+				var ebp34 t17
+				x.f004A753B(t.f004A6371(&ebp34, 1, ebp8, v), &ebp29)
+				return x
+			}
+		}
+		return nil
+	}(&ebp64, ebp70)
+	ebp4 = 0
+	ebp3C.f004A584Efree()
+	ebp4 = -1
+	ebp58.f00407B10free()
+	println(ebp4)
+	return true
 }
 
 func (t *t08610600) f006B83FD(fileName *stdstring, x uint32) {
@@ -62,7 +225,7 @@ func (t *t08610600) f006B83FD(fileName *stdstring, x uint32) {
 		if t.f006B8574(record.index, x) == true || record.index < 0x270F {
 			t.f006B851Ddec(record.buf, record.size)
 			record.buf[record.size] = 0
-			// t.f006B8D79(record.index, record.buf)
+			t.f006B8D79(record.index, record.buf) // store
 		}
 		f00DE7BEAdelete(record.buf)
 		ebp10index++
@@ -789,6 +952,11 @@ func (t *stdstring) f0043D7E2stdstring(s string) {
 func (t *stdstring) f00406FC0stdstring(buf []uint8) {
 	t.f00406EB0(buf, len(buf))
 }
+
+func (t *stdstring) f004079A0stdstring(s *stdstring) {
+
+}
+
 func (t *stdstring) f004073E0cstr() []uint8 {
 	return t.m04data
 }
