@@ -8,7 +8,7 @@ import (
 )
 
 type t17 struct {
-	m00 uintptr
+	m00 *treeNode
 	m04 uintptr
 }
 
@@ -29,8 +29,17 @@ type treeNode struct {
 	m2D   bool
 }
 
+func (t *treeNode) f00436FD5validate(x *t17) bool {
+	// t.f0043702B(x)
+	return false
+}
+
+func (t *treeNode) f004370B2getValue() interface{} {
+	return t.value
+}
+
 type t19 struct {
-	m00 uintptr
+	m00 *treeNode
 	m04 uintptr
 	m08 bool
 }
@@ -43,11 +52,11 @@ func (t *t19) f004A753B(x *t17, y *bool) *t19 {
 }
 
 type text3 struct {
-	m00index uint32
+	m00index uint
 	m04      *stdstring
 }
 
-func (t *text3) f004A6078text3(pindex *uint32, s *stdstring) *text3 {
+func (t *text3) f004A6078text3(pindex *uint, s *stdstring) *text3 {
 	// ebp4 := t
 	t.m00index = *pindex
 	t.m04.f004079A0stdstring(s)
@@ -65,16 +74,18 @@ func (t *text3) f004A584Efree() {
 var v08610600 t08610600
 
 type t08610600 struct {
-	m18     *treeNode
+	// 可能是个结构
+	m18root *treeNode
 	m1Csize int
+	m20     stdstring
 }
 
-func (t *t08610600) f006B8574(x, y uint32) bool {
+func (t *t08610600) f006B8574(x uint, y uint32) bool {
 	return false
 }
 
-func (t *t08610600) f006B851Ddec(buf []uint8, size uint32) {
-	ebpCi := uint32(0)
+func (t *t08610600) f006B851Ddec(buf []uint8, size uint) {
+	ebpCi := uint(0)
 	ebp8 := buf
 	ebp4key := [3]uint8{0xFC, 0xCF, 0xAB}
 	for {
@@ -88,16 +99,16 @@ func (t *t08610600) f006B851Ddec(buf []uint8, size uint32) {
 }
 
 func (t *t08610600) f00436FA1() **treeNode {
-	// f0043712E(t.m18)
+	// f0043712E(t.m18root)
 	return func(tree *treeNode) **treeNode {
 		return &tree.p2
-	}(t.m18)
+	}(t.m18root)
 }
 
 func (t *t08610600) f00436F1E(pindex *uint32, t1 *t08610600) *treeNode {
 	// ebpC := t
 	// ebp8 := t.f00436FA1()
-	ebp4 := t.m18
+	ebp4 := t.m18root
 	// f00437123(ebp8)
 	// if *func(p *treeNode) *bool {
 	// 	return &p.m2D
@@ -119,32 +130,57 @@ func (t *t08610600) f004A6371(list1 *t17, num int, list2 *treeNode, v *text3) *t
 	return nil
 }
 
-func (t *t08610600) f006B8D79(index uint32, buf []uint8) bool {
+func (t *t08610600) f00436E48(x *t17, pindex *uint) *t17 {
+	// 0x24局部变量
+	// ebp20 := t
+
+	var ebp8 t17 // 0x0ED26630, 0x0ED1FF00
+	// t.f00436EEA(&ebp8, pindex)
+	func(x *t17, pindex *uint) *t17 {
+		// x.f0043700F(t.f00436F1E(pindex, t)) // f0043700F有两个参数
+		return x
+	}(&ebp8, pindex)
+
+	var ebp14 t17 // 0x0ED26630, 0x0ED1FF00
+	ebp8.f0043702B(t.f00436FB6(&ebp14))
+
+	var ebp1C t17 // 0x0ED26630, 0x0ED1FF00
+	ebp24 := t.f00436FB6(&ebp1C)
+	ebpC := ebp24
+	x.m00 = ebpC.m00
+	x.m04 = ebpC.m04
+	return x
+}
+
+func (t *t08610600) f00436DF1findstdstring(index uint) *stdstring {
+	// 1C局部变量
+	// ebp1C := t
+	var ebp10 t17
+	p := t.f00436E48(&ebp10, &index)
+
+	var ebp18 t17
+	if p.m00.f00436FD5validate((t.f00436FB6(&ebp18))) {
+		v := p.m00.f004370B2getValue().(stdstring)
+		return &v
+	}
+	return &t.m20
+}
+
+func (t *t08610600) f00436DA8findcstr(index uint) []uint8 {
+	// t.f00436DBE(index)
+	return func(index uint) []uint8 {
+		// t.f00436DD4(index)
+		return func(index uint) []uint8 {
+			return t.f00436DF1findstdstring(index).f004073E0cstr()
+		}(index)
+	}(index)
+}
+
+func (t *t08610600) f006B8D79assign(index uint, buf []uint8) bool {
 	// 0x64局部变量
 	// ebp68 := t
 	var ebp14 t17
-	// t.f00436E48(ebp14[:], &index)
-	func(x *t17, pindex *uint32) *t17 {
-		// 0x24局部变量
-		// ebp20 := t
-
-		var ebp8 t17 // 0x0ED26630, 0x0ED1FF00
-		// t.f00436EEA(&ebp8, pindex)
-		func(x *t17, pindex *uint32) *t17 {
-			// x.f0043700F(t.f00436F1E(pindex, t)) // f0043700F有两个参数
-			return x
-		}(&ebp8, pindex)
-
-		var ebp14 t17 // 0x0ED26630, 0x0ED1FF00
-		ebp8.f0043702B(t.f00436FB6(&ebp14))
-
-		var ebp1C t17 // 0x0ED26630, 0x0ED1FF00
-		ebp24 := t.f00436FB6(&ebp1C)
-		ebpC := ebp24
-		x.m00 = ebpC.m00
-		x.m04 = ebpC.m04
-		return x
-	}(&ebp14, &index)
+	t.f00436E48(&ebp14, &index)
 
 	var ebp1C t17 // 0x0ED26630, 0x0ED1FF00
 	if ebp14.f0043702B(t.f00436FB6(&ebp1C)) == false {
@@ -164,7 +200,7 @@ func (t *t08610600) f006B8D79(index uint32, buf []uint8) bool {
 		// 4C局部变量
 		// ebp48 := t
 		ebpC := *t.f00436FA1()
-		ebp8 := t.m18
+		ebp8 := t.m18root
 		ebp1 := true
 		for {
 			// f00437123
@@ -214,18 +250,18 @@ func (t *t08610600) f006B83FD(fileName *stdstring, x uint32) {
 		}
 		f00DE8FBDfread(ebp1C[:], 8, 1, ebp4file)
 		record := struct {
-			index uint32  // ebp1C
-			size  uint32  // ebp18
+			index uint    // ebp1C
+			size  uint    // ebp18
 			buf   []uint8 // ebp14
 		}{}
-		record.index = binary.LittleEndian.Uint32(ebp1C[:]) // 0
-		record.size = binary.LittleEndian.Uint32(ebp1C[4:]) // 4
+		record.index = uint(binary.LittleEndian.Uint32(ebp1C[:])) // 0
+		record.size = uint(binary.LittleEndian.Uint32(ebp1C[4:])) // 4
 		record.buf = f00DE64BCnew(uint(record.size + 1))
 		f00DE8FBDfread(record.buf, 1, uint(record.size), ebp4file) // 37 01 67 19
 		if t.f006B8574(record.index, x) == true || record.index < 0x270F {
 			t.f006B851Ddec(record.buf, record.size)
 			record.buf[record.size] = 0
-			t.f006B8D79(record.index, record.buf) // store
+			t.f006B8D79assign(record.index, record.buf) // store
 		}
 		f00DE7BEAdelete(record.buf)
 		ebp10index++
@@ -411,6 +447,8 @@ func (b *window) f004AA027() bool         { return b.m0D }
 // exit
 type service1 struct {
 	window
+	m3D4 uint
+	m3D8 uint
 }
 
 // do4->f0043F608
@@ -423,6 +461,25 @@ func (s *service1) do12()            {}
 
 // do13->f0043F640 may exit
 func (s *service1) do13(unk float64) {}
+
+func (s *service1) f0043FBCC(x, y uint) { // 渲染文本字符串
+	// A4局部变量
+	// ebpA0 := s
+	// ebpC := f004A7D34getServiceManager()
+	// ebp8 := 0
+	// ebp94 := 0
+	// ebp4 := 2
+	s.m3D4 = x
+	s.m3D8 = 3
+	switch x {
+	case 0x36:
+		// 0x0044034D
+		// ebpC.f004A9123(&ebpC.m92D8) // ebpC.f004A9123(&ebpC.s???)
+		// ebpC.m92D8.f0043752C(&ebpC.m9DC8)
+		v08610600.f00436DA8findcstr(0x6B4) // 1716
+	}
+
+}
 
 // service2 v01314300
 type service2 struct {
@@ -1000,12 +1057,15 @@ type serviceManager struct {
 	// v01318270
 	// v01318350
 
+	// m92D8 v01318A00
+	m9DC8 uint8
+
 	// ... // 100个service
 	f9FD4activeServices list // v013196FC
 	f9FE0               bool // v01319708
 	f9FE1               bool
-	f9FE4               *stdstring // v0131970C
-	f9FE8               bool       // v01319710
+	m9FE4               uint // v0131970C
+	f9FE8               bool // v01319710
 	f9FE9               bool
 	f9FEC               *stdstring // v01319714
 }
@@ -1070,7 +1130,7 @@ func (t *serviceManager) f004A91CE() {
 }
 func (t *serviceManager) f004A9B5B(unk float64) {
 	ebp30 := t
-	if ebp30.f9FE4 == nil { // 0, 2
+	if ebp30.m9FE4 == 0 { // 0, 2
 		return
 	}
 	if ebp30.f9FD4activeServices.f004AA077isNumZero() == true {
@@ -1144,11 +1204,20 @@ func (t *serviceManager) f004A9B5B(unk float64) {
 	}
 }
 
+func (t *serviceManager) f004A9EEB(x, y uint) {
+	switch t.m9FE4 {
+	case 0, 1, 3, 5:
+		return
+	default:
+		t.s001.f0043FBCC(x, y)
+	}
+}
+
 func (t *serviceManager) f004A9F3B(buf []uint8) {
 	if len(buf) == 0 {
 		return
 	}
-	if t.f9FE4.m14len == 4 {
+	if t.m9FE4 == 4 {
 		// t.f9DD8.f00445A2A(buf)
 	} else {
 		t.f9FEC.f0043D7E2stdstring(string(buf))
@@ -1773,7 +1842,7 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 	}{}
 	// GetLocalTime(&ebp64)
 	f00DE817Asprintf(v08C88AB8[:], "Screen(%02d_%02d-%02d_%02d)-%04d.jpg", systime.wMonth, systime.wDay, systime.wHour, systime.wMinute, v08C88C74)
-	// ebp220 := v08610600.f00436DF1(0x1CB)
+	// ebp220 := v08610600.f00436DF1findstdstring(0x1CB)
 	// var ebp410 uint32
 	// if ebp220.m18 >= 0x10 {
 	// 	ebp410 = ebp220.m04

@@ -146,6 +146,11 @@ func handleF1(code uint8, buf []uint8, len int, enc bool) {
 	}
 }
 
+func f006C798BhandleF301(buf []uint8) {
+	//
+	f004A7D34getServiceManager().f004A9EEB(1, 2)
+}
+
 var v09FD6693 = [...]uint{
 	0x7C847811,
 	0x9A04CD68,
@@ -932,12 +937,13 @@ func f0075C794handleF3(code uint8, buf []uint8, len int, enc bool) {
 	case 0: // character list
 		// 0x0075C97D
 	case 1:
-		// 0x0075C98B
+		// 0x0075C98B 0x0075C90D 0x09FBC920 0x0075C98E
+		f006C798BhandleF301(buf) // character create
 	case 2:
 		// 0x0075C999
 	case 3: // character info
 		// 0x0075C9A7, s9 0x00670E5A
-		f00701DF4handleF303(buf, enc)
+		f00701DF4handleF303(buf, enc) // character info
 	case 4:
 		// 0x0075C9C4
 	case 5:
