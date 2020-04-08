@@ -46,30 +46,16 @@ void CProhibitedSymbols::LoadSymbolFile(LPSTR szFile)
 	return;
 }
 
-bool CProhibitedSymbols::Validate(char* string, int len, BYTE Type)
+bool CProhibitedSymbols::Validate(char* str, int len, BYTE Type)
 {
-
-	DWORD dwNum = MultiByteToWideChar(CP_UTF8, 0, string, -1, NULL, 0);
-	char *psText;
-	wchar_t *pwText;
-	std::wstring wstr;
-	if (!dwNum)
-	{
-
-	}
-	else
-	{
-		
-		pwText = new wchar_t[dwNum];
-		MultiByteToWideChar(CP_UTF8, 0, string, -1, pwText, dwNum);
-
-		dwNum = WideCharToMultiByte(CP_UTF8, 0, pwText, -1, NULL, 0, NULL, NULL);
-
-		wstr = pwText;
-		delete[] pwText;
-
-	}
-	
+	// str use gb2312, so we use codepage:936
+	DWORD dwNum = MultiByteToWideChar(936, 0, str, strlen(str), NULL, 0);
+	if (dwNum == 0) return false;
+	wchar_t* pwText = new wchar_t[dwNum + 1];
+	memset(pwText, 0, sizeof(wchar_t)*(dwNum+1));
+	MultiByteToWideChar(936, 0, str, strlen(str), pwText, dwNum);
+	std::wstring wstr = pwText;
+	delete[] pwText;
 
 	if (this->m_nMode == 0)
 	{
@@ -77,29 +63,21 @@ bool CProhibitedSymbols::Validate(char* string, int len, BYTE Type)
 		{
 			std::map<wchar_t, _PROSYM_STRUCT>::iterator it = this->m_ProhibitedSymbols.find(wstr.at(i)); // this is a problem right? yes xd
 			if (it != this->m_ProhibitedSymbols.end() && it->second.system[Type] == 1)
-			{
 				return false;
-			}
 		}
-
 		return true;
 	}
 	else
 	{
-		dwNum = MultiByteToWideChar(CP_UTF8, 0, this->m_sRegEx[Type].Regex, -1, NULL, 0);
-		wchar_t *pwRegex;
-		pwRegex = new wchar_t[dwNum];
-		MultiByteToWideChar(CP_UTF8, 0, this->m_sRegEx[Type].Regex, -1, pwRegex, dwNum);
+		char* exp = this->m_sRegEx[Type].Regex;
+		dwNum = MultiByteToWideChar(CP_UTF8, 0, exp, strlen(exp), NULL, 0);
+		if (dwNum == 0) return false;
+		wchar_t* pwRegex = new wchar_t[dwNum + 1];
+		memset(pwRegex, 0, sizeof(wchar_t)*(dwNum + 1));
+		MultiByteToWideChar(CP_UTF8, 0, exp, strlen(exp), pwRegex, dwNum);
 		std::wregex r(pwRegex);
 		bool match = std::regex_match(wstr.c_str(), r);
 		delete[] pwRegex;
-		if (match)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return match;
 	}
 }
