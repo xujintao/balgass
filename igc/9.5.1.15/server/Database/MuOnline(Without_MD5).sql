@@ -10426,13 +10426,13 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[AccountCharacter](
 	[Number] [int] IDENTITY(1,1) NOT NULL,
-	[Id] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[GameID1] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[GameID2] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[GameID3] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[GameID4] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[GameID5] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[GameIDC] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[Id] [varchar](10) NOT NULL,
+	[GameID1] [varchar](10) NULL,
+	[GameID2] [varchar](10) NULL,
+	[GameID3] [varchar](10) NULL,
+	[GameID4] [varchar](10) NULL,
+	[GameID5] [varchar](10) NULL,
+	[GameIDC] [varchar](10) NULL,
 	[MoveCnt] [tinyint] NULL,
 	[Summoner] [tinyint] NOT NULL,
 	[WarehouseExpansion] [tinyint] NOT NULL,
@@ -10455,7 +10455,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[C_Monster_KillCount](
-	[name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[name] [varchar](10) NOT NULL,
 	[MonsterId] [int] NOT NULL,
 	[count] [int] NOT NULL
 ) ON [PRIMARY]
@@ -10471,8 +10471,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[C_PlayerKiller_Info](
-	[Victim] [varchar](20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Killer] [varchar](20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Victim] [varchar](20) NOT NULL,
+	[Killer] [varchar](20) NOT NULL,
 	[KillDate] [datetime] NOT NULL
 ) ON [PRIMARY]
 
@@ -10487,8 +10487,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[Character](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[cLevel] [int] NULL,
 	[LevelUpPoint] [int] NULL,
 	[Class] [tinyint] NULL,
@@ -10520,7 +10520,7 @@ CREATE TABLE [dbo].[Character](
 	[RESETS] [int] NOT NULL,
 	[Inventory] [varbinary](7584) NULL,
 	[Married] [int] NULL,
-	[MarryName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[MarryName] [varchar](10) NULL,
 	[MuBotData] [varbinary](257) NULL,
 	[mLevel] [int] NOT NULL,
 	[mlPoint] [int] NOT NULL,
@@ -10545,12 +10545,12 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[ConnectionHistory](
 	[ID] [int] IDENTITY(1,1) NOT NULL,
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[ServerName] [varchar](40) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[IP] [varchar](16) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[AccountID] [varchar](10) NULL,
+	[ServerName] [varchar](40) NULL,
+	[IP] [varchar](16) NULL,
 	[Date] [datetime] NULL,
-	[State] [varchar](12) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[HWID] [varchar](100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[State] [varchar](12) NULL,
+	[HWID] [varchar](100) NULL,
  CONSTRAINT [PK__Connecti__3214EC27FA8B4F22] PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
@@ -10623,12 +10623,12 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[Guild](
-	[G_Name] [varchar](8) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[G_Name] [varchar](8) NOT NULL,
 	[G_Mark] [varbinary](32) NULL,
 	[G_Score] [int] NOT NULL,
-	[G_Master] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[G_Master] [varchar](10) NULL,
 	[G_Count] [int] NULL,
-	[G_Notice] [varchar](60) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[G_Notice] [varchar](60) NULL,
 	[Number] [int] IDENTITY(1,1) NOT NULL,
 	[G_Type] [int] NOT NULL,
 	[G_Rival] [int] NOT NULL,
@@ -10653,8 +10653,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[GuildMember](
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[G_Name] [varchar](8) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Name] [varchar](10) NOT NULL,
+	[G_Name] [varchar](8) NOT NULL,
 	[G_Level] [tinyint] NULL,
 	[G_Status] [tinyint] NOT NULL,
  CONSTRAINT [PK_GuildMember] PRIMARY KEY CLUSTERED 
@@ -10674,8 +10674,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_ARCA_BATTLE_GUILD_JOIN_INFO](
-	[G_Name] [varchar](8) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[G_Master] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[G_Name] [varchar](8) NOT NULL,
+	[G_Master] [varchar](10) NOT NULL,
 	[Number] [int] NOT NULL,
 	[JoinDate] [smalldatetime] NULL,
 	[GroupNum] [tinyint] NOT NULL
@@ -10694,8 +10694,8 @@ GO
 CREATE TABLE [dbo].[IGC_ARCA_BATTLE_GUILDMARK_REG](
 	[Index] [int] IDENTITY(1,1) NOT NULL,
 	[G_Number] [int] NOT NULL,
-	[G_Name] [varchar](8) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[G_Master] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[G_Name] [varchar](8) NOT NULL,
+	[G_Master] [varchar](10) NOT NULL,
 	[RegDate] [smalldatetime] NULL,
 	[GuildRegRank] [int] NULL,
 	[MarkCnt] [bigint] NOT NULL
@@ -10712,9 +10712,9 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_ARCA_BATTLE_MEMBER_JOIN_INFO](
-	[G_Name] [varchar](8) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[G_Name] [varchar](8) NULL,
 	[Number] [int] NOT NULL,
-	[CharName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[CharName] [varchar](10) NOT NULL,
 	[JoinDate] [smalldatetime] NULL
 ) ON [PRIMARY]
 
@@ -10739,7 +10739,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_ARCA_BATTLE_WIN_GUILD_INFO](
-	[G_Name] [varchar](8) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[G_Name] [varchar](8) NOT NULL,
 	[G_Number] [int] NOT NULL,
 	[WinDate] [smalldatetime] NOT NULL,
 	[OuccupyObelisk] [tinyint] NOT NULL,
@@ -10758,8 +10758,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_CancelItemSale](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[ItemNumber] [tinyint] NOT NULL,
 	[ItemCount] [int] NOT NULL,
 	[SellDate] [bigint] NOT NULL,
@@ -10793,7 +10793,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[IGC_FriendChat_BannedCharacters](
-	[Name] [nvarchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Name] [nvarchar](10) NOT NULL,
  CONSTRAINT [PK_IGC_FriendChat_BannedCharacters] PRIMARY KEY CLUSTERED 
 (
 	[Name] ASC
@@ -10807,7 +10807,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[IGC_FriendChat_BannedIPs](
-	[IP] [nvarchar](15) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[IP] [nvarchar](15) NOT NULL,
  CONSTRAINT [PK_IGC_FriendChat_BannedIPs] PRIMARY KEY CLUSTERED 
 (
 	[IP] ASC
@@ -10821,9 +10821,9 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[IGC_FriendChat_MessageLog](
-	[Name] [nvarchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[FriendName] [nvarchar](2800) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[Text] [nvarchar](135) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Name] [nvarchar](10) NOT NULL,
+	[FriendName] [nvarchar](2800) NULL,
+	[Text] [nvarchar](135) NOT NULL,
 	[Date] [smalldatetime] NOT NULL,
 	[ID] [bigint] IDENTITY(1,1) NOT NULL,
 PRIMARY KEY CLUSTERED 
@@ -10841,7 +10841,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_Gens](
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[Influence] [tinyint] NOT NULL,
 	[Rank] [int] NOT NULL,
 	[Points] [int] NOT NULL,
@@ -10865,8 +10865,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_GensAbuse](
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[KillName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Name] [varchar](10) NOT NULL,
+	[KillName] [varchar](10) NOT NULL,
 	[KillCount] [smallint] NULL
 ) ON [PRIMARY]
 
@@ -10881,8 +10881,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_GremoryCase](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[AccountID] [varchar](10) NOT NULL,
+	[Name] [varchar](10) NULL,
 	[StorageType] [tinyint] NOT NULL,
 	[RewardSource] [smallint] NOT NULL,
 	[AuthCode] [int] NOT NULL,
@@ -10915,13 +10915,13 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_GuildMatching](
 	[identNo] [bigint] IDENTITY(1,1) NOT NULL,
-	[GuildName] [varchar](8) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[GuildName] [varchar](8) NOT NULL,
 	[GuildNum] [int] NULL,
-	[GuildMasterName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[GuildMasterName] [varchar](10) NOT NULL,
 	[GuildMasterLevel] [smallint] NULL,
 	[GuildMasterClass] [tinyint] NULL,
 	[GuildMemberCnt] [smallint] NULL,
-	[Memo] [varchar](40) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Memo] [varchar](40) NOT NULL,
 	[InterestType] [tinyint] NULL,
 	[LevelRange] [tinyint] NULL,
 	[ClassType] [tinyint] NULL,
@@ -10940,8 +10940,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_MachineID_Banned](
-	[HWID] [varchar](100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Note] [varchar](200) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[HWID] [varchar](100) NOT NULL,
+	[Note] [varchar](200) NULL,
  CONSTRAINT [PK_IGC_MachineID_Banned] PRIMARY KEY CLUSTERED 
 (
 	[HWID] ASC
@@ -10960,8 +10960,8 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_PartyMatching](
 	[IdentNo] [bigint] IDENTITY(1,1) NOT NULL,
-	[PartyLeaderName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[Title] [varchar](40) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[PartyLeaderName] [varchar](10) NULL,
+	[Title] [varchar](40) NULL,
 	[MinLevel] [smallint] NULL,
 	[MaxLevel] [smallint] NULL,
 	[HuntingGround] [smallint] NULL,
@@ -10969,7 +10969,7 @@ CREATE TABLE [dbo].[IGC_PartyMatching](
 	[CurMemberCount] [tinyint] NULL,
 	[AcceptType] [tinyint] NULL,
 	[UsePassWord] [tinyint] NULL,
-	[PassWord] [varchar](4) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[PassWord] [varchar](4) NULL,
 	[WantedClassDetailInfo1] [tinyint] NULL,
 	[WantedClassDetailInfo2] [tinyint] NULL,
 	[WantedClassDetailInfo3] [tinyint] NULL,
@@ -11000,7 +11000,7 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_PeriodBuffInfo](
 	[id] [int] IDENTITY(1,1) NOT NULL,
-	[CharacterName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[CharacterName] [varchar](10) NOT NULL,
 	[BuffIndex] [smallint] NOT NULL,
 	[EffectType1] [smallint] NOT NULL,
 	[EffectType2] [smallint] NULL,
@@ -11025,7 +11025,7 @@ GO
 CREATE TABLE [dbo].[IGC_PeriodItemInfo](
 	[id] [int] IDENTITY(1,1) NOT NULL,
 	[UserGUID] [int] NOT NULL,
-	[CharacterName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[CharacterName] [varchar](10) NOT NULL,
 	[ItemType] [smallint] NOT NULL,
 	[ItemCode] [smallint] NOT NULL,
 	[EffectCategory] [smallint] NOT NULL,
@@ -11058,9 +11058,9 @@ GO
 CREATE TABLE [dbo].[IGC_WaitGuildMatching](
 	[identNo] [bigint] IDENTITY(1,1) NOT NULL,
 	[GuildNumber] [int] NOT NULL,
-	[GuildName] [varchar](8) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[GuildMasterName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[ApplicantName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[GuildName] [varchar](8) NOT NULL,
+	[GuildMasterName] [varchar](10) NOT NULL,
+	[ApplicantName] [varchar](10) NOT NULL,
 	[ApplicantClass] [tinyint] NULL,
 	[ApplicantLevel] [smallint] NULL,
 	[State] [tinyint] NULL,
@@ -11079,8 +11079,8 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[IGC_WaitPartyMatching](
 	[IdentNo] [bigint] IDENTITY(1,1) NOT NULL,
-	[LeaderName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[MemberName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[LeaderName] [varchar](10) NULL,
+	[MemberName] [varchar](10) NULL,
 	[Class] [tinyint] NULL,
 	[MemberLevel] [smallint] NULL,
 	[MemberDBNumber] [int] NULL,
@@ -11102,7 +11102,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[MEMB_CREDITS](
-	[memb___id] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[memb___id] [varchar](10) NOT NULL,
 	[credits] [int] NOT NULL,
 	[used] [int] NULL,
  CONSTRAINT [PK_MEMB_CREDITS] PRIMARY KEY CLUSTERED 
@@ -11123,31 +11123,31 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[MEMB_INFO](
 	[memb_guid] [int] IDENTITY(1,1) NOT NULL,
-	[memb___id] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[memb__pwd] [varchar](20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[memb_name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[sno__numb] [char](13) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[post_code] [char](6) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[addr_info] [varchar](50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[addr_deta] [varchar](50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[tel__numb] [varchar](20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[phon_numb] [varchar](15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[mail_addr] [varchar](50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[fpas_ques] [varchar](50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[fpas_answ] [varchar](50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[job__code] [char](2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[memb___id] [varchar](10) NOT NULL,
+	[memb__pwd] [varchar](20) NOT NULL,
+	[memb_name] [varchar](10) NOT NULL,
+	[sno__numb] [char](13) NOT NULL,
+	[post_code] [char](6) NULL,
+	[addr_info] [varchar](50) NULL,
+	[addr_deta] [varchar](50) NULL,
+	[tel__numb] [varchar](20) NULL,
+	[phon_numb] [varchar](15) NULL,
+	[mail_addr] [varchar](50) NULL,
+	[fpas_ques] [varchar](50) NULL,
+	[fpas_answ] [varchar](50) NULL,
+	[job__code] [char](2) NULL,
 	[appl_days] [datetime] NULL,
 	[modi_days] [datetime] NULL,
 	[out__days] [datetime] NULL,
 	[true_days] [datetime] NULL,
-	[mail_chek] [char](1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[bloc_code] [char](1) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[ctl1_code] [char](1) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[mail_chek] [char](1) NULL,
+	[bloc_code] [char](1) NOT NULL,
+	[ctl1_code] [char](1) NOT NULL,
 	[cspoints] [int] NULL,
 	[VipType] [int] NULL,
 	[VipStart] [datetime] NULL,
 	[VipDays] [datetime] NULL,
-	[JoinDate] [varchar](23) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+	[JoinDate] [varchar](23) NULL
 ) ON [PRIMARY]
 
 GO
@@ -11161,10 +11161,10 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[MEMB_STAT](
-	[memb___id] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[memb___id] [varchar](10) NOT NULL,
 	[ConnectStat] [tinyint] NULL,
-	[ServerName] [varchar](20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[IP] [varchar](15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[ServerName] [varchar](20) NULL,
+	[IP] [varchar](15) NULL,
 	[ConnectTM] [smalldatetime] NULL,
 	[DisConnectTM] [smalldatetime] NULL,
  CONSTRAINT [PK_MEMB_STAT] PRIMARY KEY CLUSTERED 
@@ -11184,7 +11184,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[Mu_DBID](
-	[DESC] [varchar](20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[DESC] [varchar](20) NOT NULL,
 	[Version] [int] NOT NULL
 ) ON [PRIMARY]
 
@@ -11205,7 +11205,7 @@ CREATE TABLE [dbo].[MuCastle_DATA](
 	[SIEGE_GUILDLIST_SETTED] [bit] NOT NULL,
 	[SIEGE_ENDED] [bit] NOT NULL,
 	[CASTLE_OCCUPY] [bit] NOT NULL,
-	[OWNER_GUILD] [varchar](8) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[OWNER_GUILD] [varchar](8) NOT NULL,
 	[MONEY] [money] NOT NULL,
 	[TAX_RATE_CHAOS] [int] NOT NULL,
 	[TAX_RATE_STORE] [int] NOT NULL,
@@ -11260,7 +11260,7 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[MuCastle_REG_SIEGE](
 	[MAP_SVR_GROUP] [int] NOT NULL,
-	[REG_SIEGE_GUILD] [varchar](8) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[REG_SIEGE_GUILD] [varchar](8) NOT NULL,
 	[REG_MARKS] [int] NOT NULL,
 	[IS_GIVEUP] [tinyint] NOT NULL,
 	[SEQ_NUM] [int] NOT NULL
@@ -11278,7 +11278,7 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[MuCastle_SIEGE_GUILDLIST](
 	[MAP_SVR_GROUP] [int] NOT NULL,
-	[GUILD_NAME] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[GUILD_NAME] [varchar](10) NOT NULL,
 	[GUILD_ID] [int] NOT NULL,
 	[GUILD_INVOLVED] [bit] NOT NULL,
 	[GUILD_SCORE] [int] NOT NULL
@@ -11313,7 +11313,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[OptionData](
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[SkillKey] [binary](20) NULL,
 	[GameOption] [tinyint] NULL,
 	[Qkey] [tinyint] NULL,
@@ -11340,8 +11340,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[PetWarehouse](
-	[AccountID] [varchar](12) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Name] [varchar](12) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](12) NOT NULL,
+	[Name] [varchar](12) NOT NULL,
 	[Items] [varbinary](1984) NULL,
 	[DbVersion] [tinyint] NULL,
 	[SubEquip] [tinyint] NULL,
@@ -11363,7 +11363,7 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_CGuid](
 	[GUID] [int] IDENTITY(1,1) NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Name] [varchar](10) NOT NULL,
  CONSTRAINT [PK_T_CGuid] PRIMARY KEY CLUSTERED 
 (
 	[GUID] ASC
@@ -11381,7 +11381,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_CurCharName](
-	[Name] [char](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Name] [char](10) NOT NULL,
 	[cDate] [smalldatetime] NOT NULL
 ) ON [PRIMARY]
 
@@ -11396,8 +11396,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_Event_Inventory](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[Inventory] [varbinary](1024) NULL,
  CONSTRAINT [CL_PK_T_Event_Inventory] PRIMARY KEY CLUSTERED 
 (
@@ -11418,7 +11418,7 @@ GO
 CREATE TABLE [dbo].[T_FriendList](
 	[GUID] [int] NOT NULL,
 	[FriendGuid] [int] NULL,
-	[FriendName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[FriendName] [varchar](10) NULL,
 	[Del] [tinyint] NULL
 ) ON [PRIMARY]
 
@@ -11435,9 +11435,9 @@ GO
 CREATE TABLE [dbo].[T_FriendMail](
 	[MemoIndex] [int] NOT NULL,
 	[GUID] [int] NOT NULL,
-	[FriendName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[FriendName] [varchar](10) NULL,
 	[wDate] [smalldatetime] NOT NULL,
-	[Subject] [varchar](50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[Subject] [varchar](50) NULL,
 	[bRead] [bit] NOT NULL,
 	[Memo] [varbinary](1000) NULL,
 	[Photo] [binary](18) NULL,
@@ -11462,7 +11462,7 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_FriendMain](
 	[GUID] [int] NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[FriendCount] [tinyint] NULL,
 	[MemoCount] [int] NULL,
 	[MemoTotal] [int] NULL,
@@ -11483,7 +11483,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_GMSystem](
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[AuthorityMask] [int] NOT NULL,
 	[Expiry] [smalldatetime] NULL,
  CONSTRAINT [PK_T_GMSystem] PRIMARY KEY CLUSTERED 
@@ -11503,15 +11503,15 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_InGameShop_Items](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
 	[UniqueCode] [int] IDENTITY(1,1) NOT NULL,
 	[AuthCode] [int] NOT NULL,
 	[UniqueID1] [int] NOT NULL,
 	[UniqueID2] [int] NOT NULL,
 	[UniqueID3] [int] NOT NULL,
 	[InventoryType] [int] NOT NULL,
-	[GiftName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-	[Message] [varchar](200) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[GiftName] [varchar](10) NULL,
+	[Message] [varchar](200) NULL,
 	[UsedItem] [int] NOT NULL
 ) ON [PRIMARY]
 
@@ -11526,7 +11526,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_InGameShop_Point](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
 	[WCoinP] [float] NOT NULL,
 	[WCoinC] [float] NOT NULL,
 	[GoblinPoint] [float] NOT NULL,
@@ -11549,7 +11549,7 @@ GO
 CREATE TABLE [dbo].[T_LUCKY_ITEM_INFO](
 	[nIndex] [int] IDENTITY(1,1) NOT NULL,
 	[UserGuid] [int] NOT NULL,
-	[CharName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[CharName] [varchar](10) NOT NULL,
 	[ItemCode] [int] NOT NULL,
 	[ItemSerial] [bigint] NOT NULL,
 	[DurabilitySmall] [smallint] NOT NULL,
@@ -11572,7 +11572,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_MineSystem](
-	[CharacterName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[CharacterName] [varchar](10) NOT NULL,
 	[TwinkleType] [int] NOT NULL,
 	[CurrentStage] [int] NOT NULL,
  CONSTRAINT [PK_T_MineSystem] PRIMARY KEY CLUSTERED 
@@ -11592,11 +11592,11 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_MU2003_EVENT](
-	[AccountID] [varchar](50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](50) NOT NULL,
 	[EventChips] [smallint] NOT NULL,
 	[MuttoIndex] [int] NOT NULL,
 	[MuttoNumber] [int] NOT NULL,
-	[Check_Code] [char](1) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[Check_Code] [char](1) NOT NULL,
  CONSTRAINT [PK_T_MU2003_EVENT_1] PRIMARY KEY CLUSTERED 
 (
 	[AccountID] ASC
@@ -11614,8 +11614,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_MuRummy](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[mSequence] [int] NULL,
 	[mNumber] [int] NULL,
 	[mColor] [int] NULL,
@@ -11634,8 +11634,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_MuRummyInfo](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[mTotalScore] [int] NULL
 ) ON [PRIMARY]
 
@@ -11651,8 +11651,8 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_MuRummyLog](
 	[mDate] [datetime] NOT NULL,
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[mScore] [int] NOT NULL
 ) ON [PRIMARY]
 
@@ -11668,8 +11668,8 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_PentagramInfo](
 	[UserGuid] [int] NOT NULL,
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[AccountID] [varchar](10) NOT NULL,
+	[Name] [varchar](10) NULL,
 	[JewelPos] [tinyint] NOT NULL,
 	[JewelIndex] [smallint] NOT NULL,
 	[ItemType] [smallint] NOT NULL,
@@ -11716,8 +11716,8 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_PSHOP_ITEMVALUE_INFO](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-	[Name] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
+	[Name] [varchar](10) NOT NULL,
 	[ItemInvenNum] [int] NOT NULL,
 	[ItemSerial] [bigint] NOT NULL,
 	[Money] [int] NOT NULL,
@@ -11743,7 +11743,7 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_QUEST_EXP_INFO](
 	[nINDEX] [int] IDENTITY(1,1) NOT NULL,
-	[CHAR_NAME] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[CHAR_NAME] [varchar](10) NOT NULL,
 	[EPISODE] [smallint] NOT NULL,
 	[QUEST_SWITCH] [smallint] NOT NULL,
 	[ASK_INDEX] [varbinary](5) NOT NULL,
@@ -11772,7 +11772,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[T_VIPList](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
 	[Date] [smalldatetime] NULL,
 	[Type] [tinyint] NULL,
  CONSTRAINT [PK_T_VIPList] PRIMARY KEY CLUSTERED 
@@ -11794,7 +11794,7 @@ GO
 CREATE TABLE [dbo].[T_WaitFriend](
 	[GUID] [int] NOT NULL,
 	[FriendGuid] [int] NOT NULL,
-	[FriendName] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL
+	[FriendName] [varchar](10) NOT NULL
 ) ON [PRIMARY]
 
 GO
@@ -11808,7 +11808,7 @@ GO
 SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[warehouse](
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
 	[Items] [varbinary](7680) NULL,
 	[Money] [int] NULL,
 	[EndUseDate] [smalldatetime] NULL,
@@ -11833,7 +11833,7 @@ SET ANSI_PADDING ON
 GO
 CREATE TABLE [dbo].[ZenEvent](
 	[Guid] [int] IDENTITY(1,1) NOT NULL,
-	[AccountID] [varchar](10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+	[AccountID] [varchar](10) NOT NULL,
 	[Zen] [int] NULL,
  CONSTRAINT [PK_ZenEvent] PRIMARY KEY CLUSTERED 
 (
