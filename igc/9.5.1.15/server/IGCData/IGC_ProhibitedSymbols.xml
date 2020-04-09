@@ -70,7 +70,7 @@
 	</Symbols>
 	<Regex> <!-- Regex works in ALLOW mode -->
 		<Type System="0" Regex="^[\w\d\s\S]+$" /> <!-- In-Game Chat -->
-		<Type System="1" Regex="^[A-Za-z0-9]+$" /> <!-- Character Name -->
-		<Type System="2" Regex="^[A-Za-z0-9]+$" /> <!-- Guild Names -->
+		<Type System="1" Regex="^[A-Za-z0-9\u4E00-\u9FA5]+$" /> <!-- Character Name -->
+		<Type System="2" Regex="^[A-Za-z0-9\u4E00-\u9FA5]+$" /> <!-- Guild Names -->
 	</Regex>
 </ProhibitedSymbols>
