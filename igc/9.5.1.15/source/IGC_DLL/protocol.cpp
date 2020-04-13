@@ -21,6 +21,7 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 {
 	switch(ProtoNum)
 	{
+		/*
 		case 0xF1:
 			{
 				PMSG_DEFAULT2 * lpMsg2 = (PMSG_DEFAULT2 *)aRecv;
@@ -32,6 +33,7 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 				}
 			}
 			break;
+		*/
 		case 0xF3:
 			{
 				PMSG_DEFAULT2 * lpMsg2 = (PMSG_DEFAULT2 *)aRecv;
@@ -66,6 +68,7 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 			}
 		}
 		break;
+		/*
 		case 0xF4:
 			{
 				// for reconnect must disable 0xF4 protocol or client crash
@@ -87,6 +90,7 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 				}
 			}
 			break;
+		*/
 		case 0xCA:
 			GCFriendRoomCreate((PMSG_FRIEND_ROOMCREATE_RESULT*)aRecv);
 			break;

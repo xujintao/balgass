@@ -99,7 +99,7 @@ void SetHook()
 	//AlterPShopDisplayCurrency()
 	HookThis(ALTER_PSHOP_DISPLAY_HOOK, 7, (DWORD)&AlterPShopDisplayCurrency); // 1.04R
 	//g_Camera->Init();
-	MemAssign(MU_WND_PROC_HOOK, FPTR(WndProc));
+	//MemAssign(MU_WND_PROC_HOOK, FPTR(WndProc));
 
 	// HD Resolution
 	//HookManager.MakeJmpHook(RESOLUTION_HOOK, MuLoadResolutionAsm);
@@ -287,19 +287,21 @@ void SetValues()
 	MemSet(CTRL_FREEZE_FIX, 0x02, 1);
 	//MemSet(MAPSRV_DELACCID_FIX, 0x90, 5); // nop call to memcpy in mapserver, because buff source is empty, due to no account id from webzen http (remove new login system)
 	//MemSet(MAPSRV_DELACCID_FIX, 0x90, 5); // this may be annotated in 1.04R
-	HookManager.MakeCallback(RENDER_HP_BAR_CALLBACK, RenderLoadingBar, 0, 5, true); // 1.04R
-	HookManager.MakeJmpHook(0x004E56C8, 10, HookDCFunc); // 1.04R, reconnect
 	//HookManager.MakeJmpHook(0x004E1B32, PreventSwapBufferHack); //s9
 	//HookManager.MakeJmpHook(0x004E1B1E, PreventSwapBufferHack2); //s9
 	//PreventSwapBufferHack2
 	//009C6990   68 E0C60401      PUSH main.0104C6E0                       ; ASCII "> Menu - Exit game. "
 	//009EDC9B   68 00D80901      PUSH main.0109D800                       ; ASCII "> Menu - Exit game. "
 
-
+	// reconnect
+	/*
+	HookManager.MakeCallback(RENDER_HP_BAR_CALLBACK, RenderLoadingBar, 0, 5, true); // 1.04R
+	HookManager.MakeJmpHook(0x004E56C8, 10, HookDCFunc); // 1.04R, reconnect
 	HookManager.MakeJmpHook(0x00ACD10F, 5, HookExitFunc); // 1.04R
 	HookManager.MakeJmpHook(0x0043F7EA, 5, HookExitCharSelectFunc); // 1.04R
+	*/
 	ResourceManager.LoadGraphics();
-
+	
 	// HookManager.MakeJmpHook(SETGLOW_EX, 6, OnSetGlowEx); // 1.04R has no glow.bmd
 
 	MemSet(0x00A29AC3, 0x90, 2); // 1.04R, Exc socket item FIX

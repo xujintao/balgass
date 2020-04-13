@@ -141,13 +141,13 @@ void SendPacket(BYTE* buff, int len, int enc, int unk1)
 		memcpy(bCharacter, buff, buff[1]);
 		CEncDec::EncXor32(&bCharacter[3], 3, buff[1] - 3);
 	}
-
+	/*
 	if(buff[2] == 0xB1 && buff[3] == 0x01)
 	{
 		if (g_ReconnectProcess >= 2 && g_ReconnectProcess != 6)
 			return;
 	}
-
+	*/
 	if (buff[2] == 0xF1 && buff[3] == 0x01) // ban by hwid
 	{
 		BYTE NewIDPass[200];
