@@ -232,7 +232,7 @@ func (t *t08610600) f006B8D79assign(index uint, buf []uint8) bool {
 func (t *t08610600) f006B83FD(fileName *stdstring, x uint32) {
 	// 0x28局部变量
 	// ebp28 := t
-	ebp4file := f00DE909Efopen(string(fileName.f004073E0cstr()), "rb") // v012F7910 为什么返回一个全部变量的地址？
+	ebp4file := f00DE909Efopen(string(fileName.f004073E0cstr()), "rb") // v012F7910 为什么返回一个全局变量的地址？
 	if ebp4file == nil {
 		return
 	}
@@ -328,7 +328,7 @@ type window struct {
 	servicer
 	m04x      int
 	m08y      int
-	m0Cactive bool
+	m0Cshow bool
 	m0D       bool
 	m0E       bool
 	m10       int
@@ -343,7 +343,7 @@ type window struct {
 }
 
 func (b *window) f004CCA35(x int) bool {
-	if b.m0Cactive == false {
+	if b.m0Cshow == false {
 		return false
 	}
 	ebp18 := f0043BF3FgetT4003()
@@ -375,7 +375,7 @@ func (b *window) f004CCA35(x int) bool {
 // do4 虽然每个service实现了do4，但是实现细节是一样的
 // 所以由window实现供各个service调用就行
 func (b *window) do4(x int) bool {
-	if b.m0Cactive == false {
+	if b.m0Cshow == false {
 		return false
 	}
 	if x == 2 {
@@ -396,7 +396,7 @@ func (b *window) f004CCB8A(x bool) {
 }
 
 func (b *window) f004CCC07(unk float64) {
-	if b.m0Cactive == false {
+	if b.m0Cshow == false {
 		return
 	}
 	ebp4 := f0043BF3FgetT4003()
@@ -439,7 +439,7 @@ func (b *window) f004CCC07(unk float64) {
 	b.do12()
 	b.do13(unk)
 }
-func (b *window) f004AA018isActive() bool { return b.m0Cactive }
+func (b *window) f004AA018isActive() bool { return b.m0Cshow }
 func (b *window) f004AA068() int          { return b.m10 }
 func (b *window) f004AA027() bool         { return b.m0D }
 
@@ -516,8 +516,8 @@ func (s *service3) do5(x bool) {
 		if s.m14 != nil {
 			// s.m14.f0043672D(x)
 		}
-		s.m0Cactive = x
-		if s.m0Cactive == false {
+		s.m0Cshow = x
+		if s.m0Cshow == false {
 			s.m0D = false
 		}
 	}(x)
@@ -983,45 +983,6 @@ func (t *list) f004452A7getFirstNodeValue() interface{} {
 	return ebp4.head.value
 }
 
-type stdstring struct {
-	m04data []uint8
-	m14len  int
-	m18cap  int
-}
-
-func (t *stdstring) f00406A20init() {
-	t.m04data = nil
-	t.m14len = 0
-	t.m18cap = 15
-}
-
-func (t *stdstring) f00406EB0(buf []uint8, len int) {
-	// s长度小于16就放在栈上(m04~m13)，否则存在堆上
-	t.m04data = buf
-	t.m14len = len
-	t.m18cap = 0x1F
-}
-
-func (t *stdstring) f0043D7E2stdstring(s string) {
-	t.f00406EB0([]uint8(s), len(s))
-}
-
-func (t *stdstring) f00406FC0stdstring(buf []uint8) {
-	t.f00406EB0(buf, len(buf))
-}
-
-func (t *stdstring) f004079A0stdstring(s *stdstring) {
-
-}
-
-func (t *stdstring) f004073E0cstr() []uint8 {
-	return t.m04data
-}
-
-func (t *stdstring) f00407B10free() {
-	f00DE7538free(nil)
-}
-
 // serviceManager
 var v0130F728 serviceManager
 
@@ -1035,11 +996,11 @@ type serviceManager struct {
 	s6 service6 // v0130FF40
 	// v0130FFC8 v01310268
 
-	s5 service5 // v01310598, 激活频率高
+	s5 service5 // offset:0xE70, v01310598
 	// v013105D8
 	// v013106B8
 
-	s4 service4 // v01310798
+	s4 service4 // offset:0x1070, v01310798
 	// v013107D8 v013108B8 v01310998 ... 64个
 
 	s3 service3 // v01313FA8
@@ -1304,6 +1265,9 @@ func f004DD578handleState1(hDC win.HDC) {
 			ebp90.f00407B10free()
 			// "Data/Macro.txt"
 			// ...
+			// 0x006B81F8
+			f00AF7DC3getServerListManager().f00AF7F07load() // v09D965B0.f00AF7F07()
+
 			println(ebp4)
 		}()
 		// ...
@@ -1329,7 +1293,7 @@ func f004E1E1EhandleState2() {
 		}()
 	}
 	ebp1498 := &f004A7D34getServiceManager().s2
-	ebp1499 := ebp1498.m0Cactive
+	ebp1499 := ebp1498.m0Cshow
 	if ebp1499 == false {
 		// f00657C13() f00670FFE() f0051B219() f0084EBF9() f00576F03() f0084B501() f0086BA70()
 		// f00884C77() f0051CFAA() v0131A294.f009D8054() v0131A2A0.f00B2136D() f004DB0B1()

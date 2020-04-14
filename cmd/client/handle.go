@@ -30,7 +30,7 @@ var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
 	0xD9: handleD9normalAttack, // hook D9->11
 	0xF1: handleF1,
 	0xF3: f0075C794handleF3, // character
-	0xF4: handleF4,
+	0xF4: f0075CB02handleF4,
 	0xF6: f006C18B6handleF6,
 }
 
@@ -983,7 +983,7 @@ func f0075C794handleF3(code uint8, buf []uint8, len int, enc bool) {
 	}
 }
 
-func handleF4(code uint8, buf []uint8, len int, enc bool) {
+func f0075CB02handleF4(code uint8, buf []uint8, len int, enc bool) {
 	subcode := buf[3]
 	switch subcode {
 	case 3: // server info
@@ -992,6 +992,69 @@ func handleF4(code uint8, buf []uint8, len int, enc bool) {
 	// set state
 	case 5:
 	case 6: // server list
+		// f006BFA3E(buf)
+		func(buf []uint8) {
+			// 0x0A1B0A0B
+			// push 0x00591FC5 // lable1 <- 0x09FC87EB
+			// push 0x0AFD9E19
+			// ret
+
+			// 0x0AFD9E19
+			// push 0x006A7909 // label2
+			// push 0x0A9361E5
+			// ret
+
+			// 0x0A9361E5
+			// push 0x00964365 // label3
+			// push 0x0A43B202
+			// ret
+
+			// 0x0A43B202
+			// push ecx edx edi ebx esi fd
+			// 0x0ABE3CDB
+			// push 0x09FD8750
+			// push 0x09FD8029
+			// ret
+
+			// 0x09FD8029 f09FD8029
+			func() {
+				// ...
+			}()
+			// ...
+			// 0x09FC87EB 0x0AF82CE7
+			// 0x1C局部变量
+			// 0x0A38DDEF 0x0A5FEB08 0x0A0420C3 0x0AFD7498
+			ebp10buf := buf
+			ebp4 := 5 // sizeof(frameHead)
+			// f00AF7DC3getServerListManager().f00AF7E20()
+			count := int(binary.BigEndian.Uint16(buf[ebp4:]))
+			ebp4 += 2
+			f00AF7DC3getServerListManager().f00AF883FsetCount(count)
+			ebp14 := 0
+			for {
+				// 0x006BFAAD
+				if ebp14 >= f00AF7DC3getServerListManager().f00AF8853getCount() {
+					break // 0x006BFAED
+				}
+				ebp18server := buf[ebp4:]
+				code := int(binary.LittleEndian.Uint16(ebp18server[:]))
+				percent := int(ebp18server[2])
+				f00AF7DC3getServerListManager().f00AF81FF(code, percent)
+				ebp4 += 4
+				ebp14++
+			}
+			// 0x006BFAED
+			ebp8 := f004A7D34getServiceManager()
+			ebp19 := ebp8.s2.window.m0Cshow
+			if ebp19 {
+				// 0x006BFB39
+			}
+			// 0x0A441368
+			ebp8.f004A9123(ebp8.s4)
+			// ebp8.s4.f00446625()
+			ebp8.f004A9123(ebp8.s5)
+			v01319E08log.f00B38AE4printf("Success Receive Server List.\r\n")
+		}(buf)
 	}
 }
 

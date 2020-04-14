@@ -1,5 +1,10 @@
 package main
 
+import (
+	"encoding/binary"
+	"sync"
+)
+
 var v0131A240 uint32
 var v0131A26C bool
 var v0131A26D bool
@@ -167,3 +172,150 @@ var v0AD93A0D = [...]uint32{0x078202AD}
 
 var v0AD574B8 uint32 = 8
 var v0A0519E0label1 uint32 = 0x09E2729C
+
+type stdstring struct {
+	m04data []uint8
+	m14len  int
+	m18cap  int
+}
+
+func (t *stdstring) f00406A20init() {
+	t.m04data = nil
+	t.m14len = 0
+	t.m18cap = 15
+}
+
+func (t *stdstring) f00406EB0(buf []uint8, len int) {
+	// s长度小于16就放在栈上(m04~m13)，否则存在堆上
+	t.m04data = buf
+	t.m14len = len
+	t.m18cap = 0x1F
+}
+
+func (t *stdstring) f0043D7E2stdstring(s string) {
+	t.f00406EB0([]uint8(s), len(s))
+}
+
+func (t *stdstring) f00406FC0stdstring(buf []uint8) {
+	t.f00406EB0(buf, len(buf))
+}
+
+func (t *stdstring) f004079A0stdstring(s *stdstring) {
+
+}
+
+func (t *stdstring) f004073E0cstr() []uint8 {
+	return t.m04data
+}
+
+func (t *stdstring) f00407B10free() {
+	f00DE7538free(nil)
+}
+
+// load serverlist.bmd
+var v09D965B0serverListManager serverListManager
+var v09D96728 sync.Once
+
+func f00AF7DC3getServerListManager() *serverListManager {
+	v09D96728.Do(func() {
+		v09D965B0serverListManager.f00AF7CC6()
+	})
+	return &v09D965B0serverListManager
+}
+
+type server struct { // 0x54
+	// head
+	m00 [32]uint8 // "电信1区"
+	m20 uint8     // 0
+	m21 uint8     // 1,2
+	m22 bool      // 0
+	m23 [20]uint8 // ?
+	// body
+	m38 stdstring
+}
+
+func (s *server) f00AF88D8server() {
+
+}
+
+func (s *server) f00AF8903server(s1 *server) {}
+
+type serverListManager struct {
+	m2Ccount int
+
+	// 结构
+	m13C *treeNode
+	size int
+}
+
+// 构造函数
+func (t *serverListManager) f00AF7CC6() {}
+
+func (t *serverListManager) f00AF7EB6dec(buf []uint8, size uint) {
+
+}
+
+func (t *serverListManager) f00AF7F07load() {
+	// 0x66C局部变量
+	// ebp670 := t
+	ebp54 := f00DE909Efopen("Data/Local/ServerList.bmd", "rb")
+	var ebp10 uint = 0x3B // 59
+	var ebp4AC server
+	ebp4AC.f00AF88D8server()
+
+	// unmarshal
+	var ebp50head [60]uint8  // head 59字节
+	var ebp454body [10]uint8 // body
+	for {
+		if f00DE8FBDfread(ebp50head[:], ebp10, 1, ebp54) == 0 {
+			break
+		}
+		t.f00AF7EB6dec(ebp50head[:], ebp10)
+		size := uint(binary.LittleEndian.Uint16(ebp50head[58:]))
+
+		f00DE8FBDfread(ebp454body[:], size, 1, ebp54)
+		t.f00AF7EB6dec(ebp454body[:], size)
+
+		x := binary.LittleEndian.Uint16(ebp50head[:])
+		if x >= 500 {
+
+		}
+		f00DE9370strncpy(ebp4AC.m00[:], ebp50head[2:], 32)
+		ebp4AC.m20 = ebp50head[34]
+		ebp4AC.m21 = ebp50head[35]
+		if ebp50head[36] != 0 {
+			ebp4AC.m22 = true
+		} else {
+			ebp4AC.m22 = false
+		}
+		ebp14 := 0
+		for {
+			if ebp14 >= 20 {
+				break
+			}
+			ebp4AC.m23[ebp14] = ebp50head[37+ebp14]
+			ebp14++
+		}
+		ebp4AC.m38.f0043D7E2stdstring(string(ebp454body[:]))
+
+		var tmp server
+		tmp.f00AF8903server(&ebp4AC)
+		// f00AFC1D3(&ebp660, binary.LittleEndian.Uint32(ebp50[:]))
+		// ebp604.f00AFC22B(ebp678)
+		// t.m13C.f00AF8D6E(&ebp66C, &ebp604)
+		// ebp604.f00AF897B()
+		// ebp660.f00AF8967()
+	}
+}
+
+func (t *serverListManager) f00AF883FsetCount(count int) {
+	t.m2Ccount = count
+}
+
+func (t *serverListManager) f00AF8853getCount() int {
+	return t.m2Ccount
+}
+
+func (t *serverListManager) f00AF81FF(code, percent int) {
+	
+}

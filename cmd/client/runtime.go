@@ -51,6 +51,10 @@ func f00DE8000strcpy(dst []uint8, src []uint8) {
 	copy(dst, src)
 }
 
+func f00DE9370strncpy(dst []uint8, src []uint8, size int) {
+	copy(dst, src[:size])
+}
+
 func f00DE8010strcat(dst []uint8, src string) {
 	dst = append(dst, src...)
 }
@@ -222,8 +226,12 @@ func f00DE8C84close(f *os.File) {
 	f.Close()
 }
 
-func f00DE8FBDfread(buf []uint8, size uint, num uint, f *os.File) {
-	f.Read(buf[:size*num])
+func f00DE8FBDfread(buf []uint8, size uint, num uint, f *os.File) uint {
+	n, err := f.Read(buf[:size*num])
+	if err != nil {
+		return 0
+	}
+	return uint(n)
 }
 
 func f00DE92E0strstr(haystack []uint8, needle string) []uint8 {
