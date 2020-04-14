@@ -950,7 +950,7 @@ func (t *list) f004457B6findNode(val interface{}, n *node) *node {
 func (t *list) f00445416appendNode(val interface{}) *node {
 	// ebp4 := t.f0044585BnewNode(t.tail, nil)
 	ebp4 := func(n1, n2 *node) *node {
-		ebp8 := (*node)(f00DE852F(12))
+		ebp8 := (*node)(f00DE852Fnew(12))
 		ebp4 := ebp8
 		ebp4.prev = n1
 		ebp4.next = n2

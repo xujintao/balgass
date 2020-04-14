@@ -317,5 +317,17 @@ func (t *serverListManager) f00AF8853getCount() int {
 }
 
 func (t *serverListManager) f00AF81FF(code, percent int) {
-	
+	// 0x58局部变量
+	// ebp5C := t
+	// t.m04.f00AF89F1(&ebp18)
+	// ebp19 := false
+	// ebp18.f00AF8CCF(t.m04.f00AF8A14(&ebp24))
+	// ebp34 := f00DE852Fnew()
+	// 	ebp60 := ebp34.f00AF6EB3()
+	// 	ebp30 := ebp60
+	// 	ebp10 := ebp30
+	// 	t.f00AF8387(code/20, ebp10)
+	// 	t.m04.f00AF8A42(ebp50, ebp44.f00AF8F97(ebp10, ebp10.m04))
+	// 	t.f00AF846C(ebp10, code, percent)
+	// 	t.m04.f00AF89F1(&ebp58)
 }

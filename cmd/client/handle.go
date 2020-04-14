@@ -1023,8 +1023,7 @@ func f0075CB02handleF4(code uint8, buf []uint8, len int, enc bool) {
 			// ...
 			// 0x09FC87EB 0x0AF82CE7
 			// 0x1C局部变量
-			// 0x0A38DDEF 0x0A5FEB08 0x0A0420C3 0x0AFD7498
-			ebp10buf := buf
+			// ebp10buf := buf
 			ebp4 := 5 // sizeof(frameHead)
 			// f00AF7DC3getServerListManager().f00AF7E20()
 			count := int(binary.BigEndian.Uint16(buf[ebp4:]))
@@ -1039,20 +1038,20 @@ func f0075CB02handleF4(code uint8, buf []uint8, len int, enc bool) {
 				ebp18server := buf[ebp4:]
 				code := int(binary.LittleEndian.Uint16(ebp18server[:]))
 				percent := int(ebp18server[2])
-				f00AF7DC3getServerListManager().f00AF81FF(code, percent)
+				f00AF7DC3getServerListManager().f00AF81FF(code, percent) // so, what about the server.type field?
 				ebp4 += 4
 				ebp14++
 			}
 			// 0x006BFAED
 			ebp8 := f004A7D34getServiceManager()
 			ebp19 := ebp8.s2.window.m0Cshow
-			if ebp19 {
-				// 0x006BFB39
+			if ebp19 == false {
+				// 0x0A441368 呈现
+				ebp8.f004A9123(ebp8.s4)
+				// ebp8.s4.f00446625()
+				ebp8.f004A9123(ebp8.s5)
 			}
-			// 0x0A441368
-			ebp8.f004A9123(ebp8.s4)
-			// ebp8.s4.f00446625()
-			ebp8.f004A9123(ebp8.s5)
+			// 0x006BFB39 0x09FC6DF2
 			v01319E08log.f00B38AE4printf("Success Receive Server List.\r\n")
 		}(buf)
 	}

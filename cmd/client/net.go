@@ -220,7 +220,7 @@ func (t *t3001) f006BDDF5() {
 
 func (t *t3001) f006BDF76(buf []uint8, len int) {
 	// 带SEH了
-	var ebp18 *t3002 = (*t3002)(f00DE852F(2004)) // 可能是new
+	var ebp18 *t3002 = (*t3002)(f00DE852Fnew(2004)) // 可能是new
 	var ebp20 *t3002
 	if ebp18 == nil {
 		ebp20 = nil

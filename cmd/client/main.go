@@ -881,7 +881,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 
 	// gg init
 	// ebp_1A38也可能是个实例指针变量，值是0x0D9F,EA10
-	var ebp1A38 *uint32 = (*uint32)(f00DE852F(1))
+	var ebp1A38 *uint32 = (*uint32)(f00DE852Fnew(1))
 	var ebp1B0C *t1319D68
 	if ebp1A38 != nil { // 0x004D8102 hook always nil，disable GameGurad
 		// ebp1B0C = ebp1A38.f004D936A(v012E2214)

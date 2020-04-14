@@ -138,7 +138,7 @@ func f00DE817Asprintf(buf []uint8, strfmt string, a ...interface{}) int {
 	return len(str)
 }
 
-func f00DE852F(x uint32) unsafe.Pointer {
+func f00DE852Fnew(x uint32) unsafe.Pointer {
 
 	// var ebp_C uint32
 	for {
