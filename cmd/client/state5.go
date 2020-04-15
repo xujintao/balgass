@@ -6,39 +6,6 @@ import (
 )
 
 var v012E3EC8 int
-var v0805BBACself = &object{}
-
-// object sizeof=0x6BC
-type object struct {
-	m8      uint32
-	m24     bool
-	m2B     uint8
-	m38name [32]uint8
-	m5Eid   uint16
-	m166    uint16
-	m410    struct {
-		m04 bool
-		m0E bool
-		m28 uint8
-	}
-	m438 uint8
-}
-
-// objectManager
-var v012E31B0 int = 0
-var v012E3200 int = 5
-var v01308D04objectManager = &objectManager{}
-
-type objectManager struct {
-	m08objects []object
-}
-
-func (t *objectManager) f00A38D5BgetObject(index int) *object {
-	if index < 0 || index >= 0x190 {
-		return nil
-	}
-	return &t.m08objects[index]
-}
 
 // s9 f005A774E
 func f005B0120() {
@@ -67,7 +34,7 @@ func f00611C16() {
 			v012E31B0 = -1
 			return
 		}
-		ebp69DC := v086105ECcharacter.m10C        // 0x190
+		ebp69DC := v086105ECobject.m10C           // 0x190
 		if ebp69D8.m166 == 0xEE && ebp69DC < 10 { // 0xF0
 			// ...
 			return
@@ -292,7 +259,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 	// ebp2C := 5
 	ebp4 := 0
 	ebp34 := 0
-	ebp28 := v086105ECcharacter.m178[x1]
+	ebp28 := v086105ECobject.m178[x1]
 	var ebp30 int // ebp30 := f0090E94C(ebp28).f0090EA51().f008F6A00()
 	ebpD := 0
 	if v012E3EC8 == 0x1E {
@@ -423,6 +390,11 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 func f004DF0D5handleState5() {
 	// 很复杂
 	// ...
+	// 0x004E0A71
+	// f00A49798().f00A4DC94(v012E2340state)
+	// ...
+	//...
+	// 0x004E0B99
 	// f005B5D6C
 	func() {
 		// 0x0A3343F6 hook to hide f09FD38F9, disable anti-temper with backup code
@@ -523,6 +495,7 @@ func f004DF0D5handleState5() {
 		// f09FD38F9 隐藏函数
 	}()
 	// ...
+	// 0x004E0DA2
 	// f00632F90, s9 f005AE611
 	func() {
 		// 很复杂

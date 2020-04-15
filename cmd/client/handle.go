@@ -21,23 +21,25 @@ func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 // key: 0x0075FF6A, s9 0x00673FE6
 // value: 0x0075FCB2, s9 0x00673D2E
 var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
-	0x00: f006FA9EBhandle00,
-	0x01: handle01,
-	0x02: handle02,
-	0x0D: f007087BFhandle0D,
-	0xD2: f0075F7D0handleD2,    // cash shop
-	0xD7: handleD7position,     // hook D4->D7
-	0xD9: handleD9normalAttack, // hook D9->11
-	0xF1: handleF1,
-	0xF3: f0075C794handleF3, // character
-	0xF4: f0075CB02handleF4,
-	0xF6: f006C18B6handleF6,
+	0x00: f006FA9EBhandle00,     // server_connect is prepared
+	0x0D: f007087BFhandle0D,     // handle notice message
+	0x1D: handle1DBeAttacked,    // hook, hash[DF]=hash[1D]
+	0x26: f0075CE21handle26hpsd, // hp and sd
+	0x27: f0075CE2Fhandle27mpag, // mp and ag
+	0xD2: f0075F7D0handleD2,     // cash shop
+	0xD7: handleD7positionSet,   // hook, hash[D4]=hash[D7]
+	0xD9: handleD9normalAttack,  // hook, hash[11]=hash[D9]
+	0xDA: handleDApositionGet,   // hook, hash[15]=hash[DA]
+	0xF1: handleF1,              // server_game is prepared and response with server's version, and the login logic also use code F1
+	0xF3: f0075C794handleF3,     // character
+	0xF4: f0075CB02handleF4,     // server list and server info
+	0xF6: f006C18B6handleF6,     // quest list
 }
 
 func f006FA9EBhandle00(code uint8, buf []uint8, len int, enc bool) {
 	// SEH
 	f00DE8A70chkstk() // 0x4B34
-	if v012E2340 == 2 {
+	if v012E2340state == 2 {
 		// 请求服务器列表
 		v01319E08log.f00B38AE4printf("Send Request Server List.\r\n")
 		// 0x006FAA2B 压缩
@@ -53,18 +55,81 @@ func f006FA9EBhandle00(code uint8, buf []uint8, len int, enc bool) {
 	}
 	// ...
 }
-func handle01(code uint8, buf []uint8, len int, enc bool) {}
-func handle02(code uint8, buf []uint8, len int, enc bool) {}
+
 func f007087BFhandle0D(code uint8, buf []uint8, len int, enc bool) {
 	subcode := buf[3]
 	switch subcode {
 	case 0:
 	case 1:
-		if v012E2340 == 4 {
-			ebp14 := f004A7D34getServiceManager()
+		if v012E2340state == 4 {
+			ebp14 := f004A7D34getWindowManager()
 			ebp14.f004A9F3B(buf[13:]) // "you are logged in as Free Player"
 		}
 	}
+}
+
+func f0059D4F6bit4(x uint8) bool {
+	// return f0059D1AF(x)
+	return func() bool {
+		if x>>4&1 > 0 { // bit4
+			return true
+		}
+		return false
+	}()
+}
+
+func handle1DBeAttacked(code uint8, buf []uint8, len int, enc bool) {}
+
+// hp and sd
+func f0075CE21handle26hpsd(code uint8, buf []uint8, len int, enc bool) {
+	// f006CF07C(buf)
+	func(buf []uint8) {
+		// 0x28局部变量
+		ebp4 := buf
+		ebp20subcode := ebp4[3]
+		switch ebp20subcode {
+		case 0xFD:
+			// v08C88F98 = 0
+			return
+		case 0xFE: // max
+			if f0059D4F6bit4(v0805BBACself.m13) {
+				v08C88E58hpMax = binary.BigEndian.Uint16(ebp4[4:])
+				v08C88E5CsdMax = binary.BigEndian.Uint16(ebp4[7:])
+			} else {
+				v086105ECobject.m126hpMax = binary.BigEndian.Uint16(ebp4[4:]) // the difference between v086105ECobject and v0805BBACself
+				v086105ECobject.m12CsdMax = binary.BigEndian.Uint16(ebp4[7:])
+			}
+			return
+		case 0xFF: // current
+			v086105ECobject.m122hp = binary.BigEndian.Uint16(ebp4[4:])
+			v086105ECobject.m12Asd = binary.BigEndian.Uint16(ebp4[7:])
+			return
+		}
+	}(buf)
+}
+
+// mp and ag
+func f0075CE2Fhandle27mpag(code uint8, buf []uint8, len int, enc bool) {
+	// f006C0559(buf)
+	func(buf []uint8) {
+		ebp4 := buf
+		ebp8subcode := ebp4[3]
+		switch ebp8subcode {
+		case 0xFE: // max
+			if f0059D4F6bit4(v0805BBACself.m13) {
+				v08C88E5AmpMax = binary.BigEndian.Uint16(ebp4[4:])
+				v08C88E5EsdMax = binary.BigEndian.Uint16(ebp4[6:])
+			} else {
+				v086105ECobject.m128mpMax = binary.BigEndian.Uint16(ebp4[4:])
+				v086105ECobject.m142agMax = binary.BigEndian.Uint16(ebp4[6:])
+			}
+			return
+		case 0xFF: // current
+			v086105ECobject.m124mp = binary.BigEndian.Uint16(ebp4[4:])
+			v086105ECobject.m140ag = binary.BigEndian.Uint16(ebp4[6:])
+			return
+		}
+	}(buf)
 }
 
 // s9 f00673854
@@ -104,8 +169,9 @@ func f0075F7D0handleD2(code uint8, buf []uint8, len int, enc bool) {
 		// f0075F81E
 	}
 }
-func handleD7position(code uint8, buf []uint8, len int, enc bool)     {}
+func handleD7positionSet(code uint8, buf []uint8, len int, enc bool)  {}
 func handleD9normalAttack(code uint8, buf []uint8, len int, enc bool) {}
+func handleDApositionGet(code uint8, buf []uint8, len int, enc bool)  {}
 func handleF1(code uint8, buf []uint8, len int, enc bool) {
 	subcode := buf[3]
 	switch subcode {
@@ -148,7 +214,7 @@ func handleF1(code uint8, buf []uint8, len int, enc bool) {
 
 func f006C798BhandleF301(buf []uint8) {
 	//
-	f004A7D34getServiceManager().f004A9EEB(1, 2)
+	f004A7D34getWindowManager().f004A9EEB(1, 2)
 }
 
 var v09FD6693 = [...]uint{
@@ -1043,7 +1109,7 @@ func f0075CB02handleF4(code uint8, buf []uint8, len int, enc bool) {
 				ebp14++
 			}
 			// 0x006BFAED
-			ebp8 := f004A7D34getServiceManager()
+			ebp8 := f004A7D34getWindowManager()
 			ebp19 := ebp8.s2.window.m0Cshow
 			if ebp19 == false {
 				// 0x0A441368 呈现

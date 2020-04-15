@@ -55,8 +55,16 @@ func f00DE9370strncpy(dst []uint8, src []uint8, size int) {
 	copy(dst, src[:size])
 }
 
+func f00DF30EFstrcpysafe(dst []uint8, size int, src string) {
+	copy(dst[:size], src[:])
+}
+
 func f00DE8010strcat(dst []uint8, src string) {
 	dst = append(dst, src...)
+}
+
+func f00DECB2Estrcatsafe(dst []uint8, size int, src string) {
+	dst = append(dst[:size], src...)
 }
 
 // 大范围清零操作

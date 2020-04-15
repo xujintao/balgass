@@ -99,7 +99,6 @@ var v0A9F69B2blocks = [...]block{
 }
 var v09FE37F3imageBase uintptr = 0x00400000
 
-// f004DF0D5handleState5
 var v0ABD75F3 uint32 = 0xE55020DE
 var v0A3268A5 uint32 = 0xC01C390C
 
@@ -330,4 +329,330 @@ func (t *serverListManager) f00AF81FF(code, percent int) {
 	// 	t.m04.f00AF8A42(ebp50, ebp44.f00AF8F97(ebp10, ebp10.m04))
 	// 	t.f00AF846C(ebp10, code, percent)
 	// 	t.m04.f00AF89F1(&ebp58)
+}
+
+// objectManager
+var v08C88E58hpMax uint16
+var v08C88E5AmpMax uint16
+var v08C88E5CsdMax uint16
+var v08C88E5EsdMax uint16
+var v086105ECobject = &object{}
+var v0805BBACself = &object{}
+
+// object sizeof=0x6BC
+type object struct {
+	m8        uint32
+	m13       uint8
+	m24       bool
+	m2B       uint8
+	m38name   [32]uint8
+	m5Eid     uint16
+	m10C      uint16
+	m122hp    uint16 // hp
+	m124mp    uint16 // mp
+	m126hpMax uint16 // max hp
+	m128mpMax uint16 // max mp
+	m12Asd    uint16 // sd
+	m12CsdMax uint16 // max sd
+	m140ag    uint16 // ag
+	m142agMax uint16 // max ag
+	m154      uint16
+	m160      uint16
+	m166      uint16
+	m178      [100]uint8
+	m410      struct {
+		m04 bool
+		m0E bool
+		m28 uint8
+	}
+	m438 uint8
+}
+
+var v012E31B0 int = 0
+var v012E3200 int = 5
+var v01308D04objectManager = &objectManager{}
+
+type objectManager struct {
+	m08objects []object
+}
+
+func (t *objectManager) f00A38D5BgetObject(index int) *object {
+	if index < 0 || index >= 0x190 {
+		return nil
+	}
+	return &t.m08objects[index]
+}
+
+// draw
+var v09D96438 *t09D96438
+
+func f00A49798get() *t09D96438 {
+	if v09D96438 == nil {
+		// ebp14 := f00DE852Fnew(0x228)
+		var ebp18 *t09D96438
+		ebp14 := &t09D96438{}
+		if ebp14 != nil {
+			ebp18 = ebp14.f00A49808construct()
+		} else {
+			ebp18 = nil
+		}
+		v09D96438 = ebp18
+	}
+	return v09D96438
+}
+
+type baser interface {
+	do4() bool
+	do6()
+	do7() bool
+}
+
+type mainFrame struct {
+	m30   uintptr
+	m2844 []uint8
+}
+
+func (t *mainFrame) f00BB1E00(buf []uint8, format string, param ...interface{}) {
+	if t.m30 == 0 {
+		return
+	}
+	var ebp4 struct{}
+	ebp4.f00C33740(t.m2844, 1, 0x1B, 0)
+	var ebp2C struct{}
+	f00DF75E5(&ebp2C, 0, 0)
+}
+
+type base struct {
+	baser
+	m08 struct {
+		m00 *mainFrame
+	}
+	m34 int
+	m44 struct{}
+	m4B bool
+}
+
+func (t *base) f00A3A41F() bool {
+	return false
+}
+
+func (t *base) f00A3A4C1() bool {
+	b := t.m4B
+	t.m4B = false
+	return b
+}
+
+func (t *base) f00A4977A() int {
+	return t.m34
+}
+
+type dash struct {
+	base
+	m88hp    uint16
+	m8ChpMax uint16
+	m90      bool
+	m94mp    uint16
+	m98mpMax uint16
+	m9Csd    uint16
+	mA0sdMax uint16
+	mA4ag    uint16
+	mA8agMax uint16
+	mB6      bool
+	m332     bool
+}
+
+// f00AA9458
+func (t *dash) do4() bool {
+	return false
+}
+
+func (t *dash) f00AAA14Ehpmp() {
+	var ebp8hpMax uint16
+	var ebpCmpMax uint16
+	var ebp14hp uint16
+	var ebp10mp uint16
+	if f0059D4F6bit4(v0805BBACself.m13) {
+		var ebp1C, ebp20 uint16
+		ebp8hpMax = v08C88E58hpMax
+		if v086105ECobject.m122hp >= 0 {
+			ebp1C = v086105ECobject.m122hp
+		} else {
+			ebp1C = 0
+		}
+		ebp14hp = ebp1C
+		ebpCmpMax = v08C88E5AmpMax
+		if v086105ECobject.m124mp >= 0 {
+			ebp20 = v086105ECobject.m124mp
+		} else {
+			ebp20 = 0
+		}
+		ebp10mp = ebp20
+	} else {
+		var ebp24, ebp28 uint16
+		ebp8hpMax = v086105ECobject.m126hpMax // 0x1B6
+		if v086105ECobject.m122hp >= 0 {
+			ebp24 = v086105ECobject.m122hp
+		} else {
+			ebp24 = 0
+		}
+		ebp14hp = ebp24                       // 0x144
+		ebpCmpMax = v086105ECobject.m128mpMax // 0x67
+		if v086105ECobject.m124mp >= 0 {
+			ebp28 = v086105ECobject.m124mp
+		} else {
+			ebp28 = 0
+		}
+		ebp10mp = ebp28 // 0x6B
+	}
+	// if ebp8hpMax > 0 && ebp14hp > 0 {
+	// 	ebp1 = v0805BBACself.m60C.f004CEC95(0x37, ebp8hpMax, ebp14hp)
+	// }
+	// ebp1 := v0805BBACself.m60C.f004CEC95(0x37, ebp8hpMax, ebp14hp)
+	ebp1 := false
+	if t.m90 != ebp1 {
+		t.m90 = ebp1
+		// f00A3A4F2(t, "SetChangeIntoxication", "%d", t.m90)
+	}
+	if t.m88hp != ebp14hp || t.m8ChpMax != ebp8hpMax {
+		t.m88hp = ebp14hp
+		t.m8ChpMax = ebp8hpMax
+		// f00A3A4F2(t, "SetHP", "%d %d", ebp14hp, ebp8hpMax)
+	}
+	if t.m94mp != ebp10mp || t.m98mpMax != ebpCmpMax {
+		t.m94mp = ebp10mp
+		t.m98mpMax = ebpCmpMax
+		f00A3A4F2(&t.base, "SetMP", "%d %d", ebp10mp, ebpCmpMax)
+	}
+}
+
+func (t *dash) f00AAA387sd() {
+	var ebp8sdMax uint16
+	var ebp4sd uint16
+	if f0059D4F6bit4(v0805BBACself.m13) {
+		var ebp10, ebp12 uint16
+		if v08C88E5CsdMax >= 1 {
+			ebp10 = v08C88E5CsdMax
+		} else {
+			ebp10 = 1
+		}
+		ebp8sdMax = ebp10
+		if ebp8sdMax >= v086105ECobject.m12Asd {
+			ebp12 = v086105ECobject.m12Asd
+		} else {
+			ebp12 = ebp8sdMax
+		}
+		ebp4sd = ebp12
+	} else {
+		var ebp18, ebp1A uint16
+		if v086105ECobject.m12CsdMax >= 1 {
+			ebp18 = v086105ECobject.m12CsdMax
+		} else {
+			ebp18 = 1
+		}
+		ebp8sdMax = ebp18 // 0x541
+		if ebp8sdMax >= v086105ECobject.m12Asd {
+			ebp1A = v086105ECobject.m12Asd
+		} else {
+			ebp1A = ebp8sdMax
+		}
+		ebp4sd = ebp1A // 0x541
+	}
+	if t.m9Csd != ebp4sd || t.mA0sdMax != ebp8sdMax {
+		t.m9Csd = ebp4sd
+		t.mA0sdMax = ebp8sdMax
+		// f00A3A4F2(t, "SetSD", "%d %d", ebp4sd, ebp8sdMax)
+	}
+}
+
+// f00AA94C1
+func (t *dash) do6() bool {
+	// if v01353C08.f00537917() == false && t.mB6 == false {
+	// 	t.mB6 = true
+	// 	f00A3A4F2(t, "SetQuestAlarm", "%d", t.mB6)
+	// } else if v01353C08.f00537917() == true && t.mB6 == true {
+	// 	t.mB6 = false
+	// 	f00A3A4F2(t, "SetQuestAlarm", "%d", t.mB6)
+	// }
+	t.f00AAA14Ehpmp() // hp mp
+	t.f00AAA387sd()   // sd
+	// t.f00AAA4C9ag() // ag
+	// t.f00AAA60Bexp() // exp
+	// t.f00AAAA77()
+	// t.f00AAAAAD()
+	// if t.m332 == false {
+	// 	t.m332 = true
+	// 	t.f00AAB4D1(0, 0, 0, 0)
+	// }
+	return true
+}
+
+// f00AA95BA
+func (t *dash) do7() bool {
+	return false
+}
+
+func f00A3A4F2(b *base, name string, format string, param ...interface{}) {
+	// 0x408局部变量
+	ebp4 := param
+	var ebp408 [1024]uint8
+	f00DF30EFstrcpysafe(ebp408[:], 1024, "_root.")
+	f00DECB2Estrcatsafe(ebp408[:], 1024, "g_mcMainFrame") // b.m44.f00A3AF9E()
+	f00DECB2Estrcatsafe(ebp408[:], 1024, ".")
+	f00DECB2Estrcatsafe(ebp408[:], 1024, name) // "SetSD"
+	if b.m08.m00 != nil {                      // if b.m08.f00A3BAB6() != nil {
+		b.m08.m00.f00BB1E00(ebp408[:], format, ebp4...) // b.m08.f00A3AF08().f00BB1E00(ebp408[:], format, ebp4)
+	}
+}
+
+// main window
+type windowManager struct {
+	m04 uintptr
+}
+
+func (t *windowManager) f00A47461fresh() {
+	// 0x24局部变量
+	ebp1 := false
+	// t.m04.f00A483A4(&ebpC)
+	for {
+		// if false == ebpC.f00A486CA(t.m04.f00A483CB(&ebp20)) {
+		// 	return
+		// }
+		var ebp10 *base // ebp10 := *ebpC.f00A4863A()
+		if ebp10 == nil {
+			return
+		}
+		if ebp10.do4() {
+			ebp10.do6()
+		}
+		if ebp1 == false { // if ebp1 == false && v01319D6ChWnd == dll.user32.GetActiveWindow() && v01319D6ChWnd == dll.user32.GetFocus() {
+			ebp1 = ebp10.do7()
+		}
+		if ebp10.f00A4977A() == 5 && ebp10.f00A3A41F() == true {
+			ebp1 = true
+		}
+		if ebp10.f00A3A4C1() {
+			// t.f00A47B22(ebp10)
+			break
+		}
+		// ebpC.f00A4864B(&ebp18, 0)
+	}
+}
+
+// size:0x228
+type t09D96438 struct {
+	m70 *windowManager
+	m80 uintptr
+}
+
+func (t *t09D96438) f00A49808construct() *t09D96438 {
+	return nil
+}
+
+func (t *t09D96438) f00A4DC94(state int) {
+	if t.m80 != 0 {
+		// t.m80.f008E27CF()
+	}
+	if t.m70 != nil {
+		t.m70.f00A47461fresh()
+	}
 }

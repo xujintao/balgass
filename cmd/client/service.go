@@ -328,7 +328,7 @@ type window struct {
 	servicer
 	m04x      int
 	m08y      int
-	m0Cshow bool
+	m0Cshow   bool
 	m0D       bool
 	m0E       bool
 	m10       int
@@ -465,7 +465,7 @@ func (s *service1) do13(unk float64) {}
 func (s *service1) f0043FBCC(x, y uint) { // 渲染文本字符串
 	// A4局部变量
 	// ebpA0 := s
-	// ebpC := f004A7D34getServiceManager()
+	// ebpC := f004A7D34getWindowManager()
 	// ebp8 := 0
 	// ebp94 := 0
 	// ebp4 := 2
@@ -544,7 +544,7 @@ func (s *service3) f0043ED78() {
 		v08C88E08 = 0
 		f006BF89ADial(v012E2338ip, int(v012E233Cport))
 	}()
-	f004A7D34getServiceManager().f004A9146LRU(s)
+	f004A7D34getWindowManager().f004A9146LRU(s)
 }
 
 // s9: 006E855E
@@ -555,7 +555,7 @@ func (s *service3) f0043E9B6() {
 	if v08C88E08 == 0 {
 		return
 	}
-	f004A7D34getServiceManager().f004A9146LRU(s)
+	f004A7D34getWindowManager().f004A9146LRU(s)
 
 	var ebp18, ebp24 [11]uint8 // username, pwd
 	f00DE8100memset(ebp18[:], 0, 11)
@@ -649,7 +649,7 @@ func (s *service3) do13(unk float64) {
 	if f0043BF3FgetT4003().f0043913E(27) {
 		// f007DAFE0(25, 0, 0)
 		s.f0043ED78() // 关闭当前连接并重新拨号
-		f004A7D34getServiceManager().f00439161(false)
+		f004A7D34getWindowManager().f00439161(false)
 	}
 }
 
@@ -712,7 +712,7 @@ func (s *service4) do13(unk float64) {
 			// }
 			// if ebp14.m10 < 0x64 {
 			{
-				f004A7D34getServiceManager().f004A9146LRU(s)
+				f004A7D34getWindowManager().f004A9146LRU(s)
 				// if f004472C9(&ebp14.m15, v0114A5F8) {
 				// 	f0043A2DF(true).f004472DB()
 				// } else {
@@ -768,7 +768,7 @@ func (s *service4) do13(unk float64) {
 				break
 			}
 			// if ebp14.m10 < 0x80 {
-			// 	f004A7D34getServiceManager().f004A9EEB(0x63, 0)
+			// 	f004A7D34getWindowManager().f004A9EEB(0x63, 0)
 			// }
 		}
 		ebp10++
@@ -808,7 +808,7 @@ func (s *service5) do13(unk float64) {
 		return
 	}
 	if s.s1.f0043912C() {
-		ebp10 := f004A7D34getServiceManager()
+		ebp10 := f004A7D34getWindowManager()
 		ebp10.f004A9123(&ebp10.s7)
 		ebp10.f00439161(true)
 	}
@@ -823,7 +823,7 @@ func (s *service5) do13(unk float64) {
 		ebp149C.f00439298writeBuf(ebp15[:], 1, false)
 		ebp149C.f004393EAsend(false, false)
 		ebp149C.f004391CF()
-		ebp14 := f004A7D34getServiceManager()
+		ebp14 := f004A7D34getWindowManager()
 		ebp14.f004A9123(&ebp14.s2)
 		// f004D4F77(v012E239C, 0) // main_theme.mp3
 		// f004D4FB9(v012E234C, 0) // mutheme.mp3
@@ -1033,7 +1033,7 @@ type serviceManager struct {
 
 var v01319730 uint32 // sync.Once
 
-func f004A7D34getServiceManager() *serviceManager {
+func f004A7D34getWindowManager() *serviceManager {
 	if v01319730&1 == 0 {
 		v01319730 |= 1
 		v0130F728.f004A7A82()
@@ -1275,7 +1275,7 @@ func f004DD578handleState1(hDC win.HDC) {
 	// ...
 	v01319E08log.f00B38AE4printf("> Loading ok.\r\n")
 	// f004DAACA(v01319D6ChWnd)
-	v012E2340 = 2
+	v012E2340state = 2
 }
 
 func f004E1E1EhandleState2() {
@@ -1292,7 +1292,7 @@ func f004E1E1EhandleState2() {
 			// ...
 		}()
 	}
-	ebp1498 := &f004A7D34getServiceManager().s2
+	ebp1498 := &f004A7D34getWindowManager().s2
 	ebp1499 := ebp1498.m0Cshow
 	if ebp1499 == false {
 		// f00657C13() f00670FFE() f0051B219() f0084EBF9() f00576F03() f0084B501() f0086BA70()
@@ -1306,7 +1306,7 @@ func f004E1E1EhandleState2() {
 		// ebp14A1 = f008AEFAD(0x1B)
 	}
 	if ebp14A1 {
-		// ebp10 := f004A7D34getServiceManager()
+		// ebp10 := f004A7D34getWindowManager()
 		// if !ebp10.f14 && !ebp10.f488C && !ebp10.f41C && !ebp10.f824 && !ebp10.f4BE4 && ebp10.fE7C && ebp10.f107C && ebp10.f9FE9 {
 		// 	// f007DAFE0(0x19, 0, 0)
 		// 	// ebp10.f410
@@ -1318,7 +1318,7 @@ func f004E1E1EhandleState2() {
 	}
 	v01319E08log.f00B38AE4printf("> Request Character list\r\n")
 	// f004E9975(0, 0, 0).f004E99D2()
-	v012E2340 = 4
+	v012E2340state = 4
 	v08C88E08 = 0x32
 	// 0x004E2050 压缩
 	var reqCharList pb // [c1 04 f3 00]
@@ -1746,7 +1746,7 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 	ebp178 := v0131A270 // 0, 0x28, 0x44
 	for ebp178 >= 0x28 {
 		// f008AF00D().f008AF06A() // v09D24B80.f008AF06A()
-		if v012E2340 == 2 || v012E2340 == 4 {
+		if v012E2340state == 2 || v012E2340state == 4 {
 			// v01319D8C.f00A08B5D()
 			var ebp184, ebp408 float64
 			if v0114EC40-ebp184 == 0x41 {
@@ -1757,10 +1757,10 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 			ebp184 = ebp408 // 0x4069 << 20
 			// v01319D8C.f00A08BF0()
 			// f0043BF3FgetT4003().f0043C06B() // v01308D18.f0043C06B()
-			f004A7D34getServiceManager().f004A9B5B(ebp184)
+			f004A7D34getWindowManager().f004A9B5B(ebp184)
 		}
 		// v01308ED4 = 0
-		ebp40C := v012E2340
+		ebp40C := v012E2340state
 		switch ebp40C {
 		case 2:
 			f004E1E1EhandleState2()
@@ -1817,7 +1817,7 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 	// f00DE817Asprintf(ebp174[:], ebp410, v08C88AB8[:])
 	// ...
 	// 0x004E5529
-	switch v012E2340 {
+	switch v012E2340state {
 	case 2:
 		f004E46B3handleState2(hDC)
 	case 4:
@@ -1832,7 +1832,7 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 
 func f004DB77ChandleState3(hDC win.HDC) {
 	// SEH
-	// ebp10 := f004A7D34getServiceManager()
+	// ebp10 := f004A7D34getWindowManager()
 	if v0131A26D == false {
 		// v086A3B94 = f0098967F
 		v0131A26D = true
@@ -1852,7 +1852,7 @@ func f004DB77ChandleState3(hDC win.HDC) {
 	// 	// ebp10.9FC8()
 	// 	ebp10.f9FC8 = 0
 	// }
-	v012E2340 = 5
+	v012E2340state = 5
 	ebp14 := 0
 	for ebp14 < 4 {
 		// f0089DB5A(ebp14+0x798D, 0)
@@ -1867,7 +1867,7 @@ func f004E6233handleState(hDC win.HDC) {
 	f00DE8A70chkstk() //0x4734
 	// st0 = v0638C6C4 // st0~st7,浮点寄存器,80bit
 	// f00DE7C90memcpy()
-	ebp4738 := v012E2340
+	ebp4738 := v012E2340state
 	switch ebp4738 {
 	case 1:
 		f004DD578handleState1(hDC)
@@ -1878,13 +1878,7 @@ func f004E6233handleState(hDC win.HDC) {
 	}
 
 	// 0x004E62F0
-	// f00A49798(v012E2340).f00A4E1BF()
-	func(state int) {
-		// if v09D96438 == nil{
-		// ...
-		// }
-		// return v09D96438
-	}(v012E2340)
+	// f00A49798().f00A4E1BF(v012E2340state)
 
 	if v01319D9C <= 0x1F {
 		return

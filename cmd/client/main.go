@@ -30,7 +30,12 @@ var v012E2228 uint32 = 16
 var v012E222C *os.File
 var v012E2338ip = "192.168.0.102"
 var v012E233Cport uint16 = 44405
-var v012E2340 int
+
+// 1: loading
+// 2: server select
+// 4: character select
+// 5: game
+var v012E2340state int
 
 var v012E3F08 struct {
 	height uint32 // 0x258, 600
@@ -1119,14 +1124,6 @@ var v08C88F78username [11]uint8 // username
 var v08C88F84 uint32
 var v08C88F88 uint32
 
-var v086105ECcharacter = &struct {
-	name [100]uint8
-	m10C uint16
-	m154 uint16 // 0
-	m160 uint16 // 0
-	m178 [14]uint16
-}{}
-
 func f004D8FF5() {
 	// SEH
 	f00DE8A70chkstk() // 0x1488
@@ -1139,11 +1136,11 @@ func f004D8FF5() {
 	alive.f00439178init()
 	alive.f0043922CwritePrefix(0xC1, 0x0E) // 写前缀
 	ebp10 := win.GetTickCount()
-	alive.f0043974FwriteZero(1)                         // 写0
-	alive.f0043EDF5writeUint32(ebp10)                   // 写time
-	alive.f004C65EFwriteUint16(v086105ECcharacter.m154) // 什么
-	alive.f004C65EFwriteUint16(v086105ECcharacter.m160) // 什么
-	alive.f004393EAsend(true, false)                    // 发送心跳报文
+	alive.f0043974FwriteZero(1)                      // 写0
+	alive.f0043EDF5writeUint32(ebp10)                // 写time
+	alive.f004C65EFwriteUint16(v086105ECobject.m154) // 什么
+	alive.f004C65EFwriteUint16(v086105ECobject.m160) // 什么
+	alive.f004393EAsend(true, false)                 // 发送心跳报文
 	if v08C88F62 == 0 {
 		v08C88F62 = 1
 		v08C88F84 = ebp10
