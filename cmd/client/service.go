@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"sync"
 	"unsafe"
 
 	"github.com/xujintao/balgass/win"
@@ -612,7 +613,7 @@ func (s *service3) f0043E9B6() {
 	// ebp4 = 1
 	// ebp14FC.f00406FC0stdstring(&v0114A327)
 	// ebp4 = 2
-	// f00A49798(&ebp14FC, &ebp14E0, 3, 0).f0043EE21().f00A9FB38()
+	// f00A49798get(&ebp14FC, &ebp14E0, 3, 0).f0043EE21().f00A9FB38()
 	// ebp4 = 1
 	// ebp14FC.f00407B10()
 	// ebp4 = 0
@@ -621,7 +622,7 @@ func (s *service3) f0043E9B6() {
 	// ebp1518.f00406FC0stdstring(v08610600.f00436DA8(0x1D9))
 	// ebp4 = 3
 	// ebp1534.f00406FC0stdstring(&v0114A33E)
-	// f00A49798(&ebp1534, &ebp1518, 3, 0).f0043EE21().f00A9FB38()
+	// f00A49798get(&ebp1534, &ebp1518, 3, 0).f0043EE21().f00A9FB38()
 	// ebp4 = 3
 	// ebp1534.f00407B10()
 	// ebp4 = 0
@@ -736,7 +737,7 @@ func (s *service4) do13(unk float64) {
 				// ebp4 = 2
 				// ebp2964.f00406FC0stdstring(&v0114A5FF)
 				// ebp4 = 3
-				// f00A49798(&ebp2964, &ebp2948, 3, 0).f0043EE21().f00A9FB38()
+				// f00A49798get(&ebp2964, &ebp2948, 3, 0).f0043EE21().f00A9FB38()
 				// ebp4 = 2
 				// ebp2964.f00407B10()
 				// ebp4 = 1
@@ -745,7 +746,7 @@ func (s *service4) do13(unk float64) {
 				// ebp4 = 4
 				// ebp299C.f00406FC0stdstring(&v0114A600)
 				// ebp4 = 5
-				// f00A49798(&ebp299C, &ebp2980, 3, 0).f0043EE21().f00A9FB38()
+				// f00A49798get(&ebp299C, &ebp2980, 3, 0).f0043EE21().f00A9FB38()
 				// ebp4 = 4
 				// ebp299C.f00407B10()
 				// ebp4 = 1
@@ -1185,27 +1186,47 @@ func (t *serviceManager) f004A9F3B(buf []uint8) {
 	}
 }
 
-var v01308D18 t4003
-var v01308D80 uint32 // sync.Once
-
-type t4003 struct {
-	m0Cx int
-	m10y int
-	m1C  bool
-	m1E  bool
-	m31  bool
-}
-
 func f0043BF3FgetT4003() *t4003 {
-	if v01308D80&1 != 0 {
-		return &v01308D18
-	}
-	v01308D80 |= 1
-	v01308D18.f0043BF18init()
-	// f00DE8BF6(&v01148111)
+	v01308D80once.Do(func() {
+		v01308D18.f0043BF18init()
+		// f00DE8BF6(f01148111)
+	})
 	return &v01308D18
 }
-func (t *t4003) f0043BF18init() {}
+
+var v01308D18 t4003
+var v01308D80once sync.Once
+
+type t4003 struct {
+	m08hWnd            win.HWND
+	m0Cpoint           point
+	m1C                bool
+	m1D                bool
+	m1E                bool
+	m21                bool
+	m25                bool
+	m28width           int
+	m2Cheight          int
+	m30                bool
+	m31                bool
+	m34pointClient     point
+	m40doubleClickTime float64
+	m48                float64
+	m50                float64
+	m58                float64
+	m60                bool
+	m61                bool
+	m62                bool
+}
+
+func (t *t4003) f0043BF18init() {
+	// 虚表初始化？
+}
+
+// f00439105
+func (t *t4003) do1() {
+
+}
 func (t *t4003) f0043913E(x uint32) bool {
 	if t.m31 == false {
 		// f008AEFAD(x)
@@ -1216,12 +1237,27 @@ func (t *t4003) f0043913E(x uint32) bool {
 func (t *t4003) f00436696() bool { return t.m1C }
 func (t *t4003) f004366A5() bool { return t.m1E }
 func (t *t4003) f0043BE81getPoint(p *point) *point {
-	p.x = t.m0Cx
-	p.y = t.m10y
+	*p = t.m0Cpoint
 	return p
 }
-func (t *t4003) f00448D8BgetX() int { return t.m0Cx }
-func (t *t4003) f00448191getY() int { return t.m10y }
+func (t *t4003) f0043BF9C(hWnd win.HWND, width, height int) bool {
+	// ebp4 := t
+	if hWnd == 0 {
+		return false
+	}
+	t.m08hWnd = hWnd
+	t.m28width = width
+	t.m2Cheight = height
+	// dll.user32.GetCursorPos(&t.m0Cpoint) // Retrieves the position of the mouse cursor, in screen coordinates.
+	// dll.user32.ScreenToClient(hWnd, &t.m0Cpoint) // converts the screen coordinates of a specified point on the screen to client-area coordinates.
+	t.m34pointClient = t.m0Cpoint
+	t.m30 = false
+	var ebpC uint // ebpC := dll.user32.GetDoubleClickTime()
+	t.m40doubleClickTime = float64(ebpC)
+	return true
+}
+func (t *t4003) f00448D8BgetX() int { return t.m0Cpoint.x }
+func (t *t4003) f00448191getY() int { return t.m0Cpoint.y }
 
 func f004DD578handleState1(hDC win.HDC) {
 	// ...
@@ -1878,7 +1914,7 @@ func f004E6233handleState(hDC win.HDC) {
 	}
 
 	// 0x004E62F0
-	// f00A49798().f00A4E1BF(v012E2340state)
+	// f00A49798get().f00A4E1BF(v012E2340state)
 
 	if v01319D9C <= 0x1F {
 		return

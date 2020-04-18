@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/binary"
 	"sync"
+
+	"github.com/xujintao/balgass/win"
 )
 
 var v0131A240 uint32
@@ -212,16 +214,6 @@ func (t *stdstring) f00407B10free() {
 }
 
 // load serverlist.bmd
-var v09D965B0serverListManager serverListManager
-var v09D96728 sync.Once
-
-func f00AF7DC3getServerListManager() *serverListManager {
-	v09D96728.Do(func() {
-		v09D965B0serverListManager.f00AF7CC6()
-	})
-	return &v09D965B0serverListManager
-}
-
 type server struct { // 0x54
 	// head
 	m00 [32]uint8 // "电信1区"
@@ -233,11 +225,18 @@ type server struct { // 0x54
 	m38 stdstring
 }
 
-func (s *server) f00AF88D8server() {
+func (s *server) f00AF88D8server()           {}
+func (s *server) f00AF8903server(s1 *server) {}
 
+func f00AF7DC3getServerListManager() *serverListManager {
+	v09D96728.Do(func() {
+		v09D965B0serverListManager.f00AF7CC6()
+	})
+	return &v09D965B0serverListManager
 }
 
-func (s *server) f00AF8903server(s1 *server) {}
+var v09D965B0serverListManager serverListManager
+var v09D96728 sync.Once
 
 type serverListManager struct {
 	m2Ccount int
@@ -384,22 +383,6 @@ func (t *objectManager) f00A38D5BgetObject(index int) *object {
 }
 
 // draw
-var v09D96438 *t09D96438
-
-func f00A49798get() *t09D96438 {
-	if v09D96438 == nil {
-		// ebp14 := f00DE852Fnew(0x228)
-		var ebp18 *t09D96438
-		ebp14 := &t09D96438{}
-		if ebp14 != nil {
-			ebp18 = ebp14.f00A49808construct()
-		} else {
-			ebp18 = nil
-		}
-		v09D96438 = ebp18
-	}
-	return v09D96438
-}
 
 type baser interface {
 	do4() bool
@@ -416,10 +399,11 @@ func (t *mainFrame) f00BB1E00(buf []uint8, format string, param ...interface{}) 
 	if t.m30 == 0 {
 		return
 	}
-	var ebp4 struct{}
-	ebp4.f00C33740(t.m2844, 1, 0x1B, 0)
-	var ebp2C struct{}
-	f00DF75E5(&ebp2C, 0, 0)
+	// var ebp4 struct{}
+	// ebp4.f00C33740(t.m2844, 1, 0x1B, 0)
+	// var ebp2C struct{}
+	// f00DF75E5(&ebp2C, 0, 0)
+	// f00DF75E5(&ebp28, 0x10000, 0x30000)
 }
 
 type base struct {
@@ -605,11 +589,11 @@ func f00A3A4F2(b *base, name string, format string, param ...interface{}) {
 }
 
 // main window
-type windowManager struct {
+type windowManager2 struct {
 	m04 uintptr
 }
 
-func (t *windowManager) f00A47461fresh() {
+func (t *windowManager2) f00A47461fresh() {
 	// 0x24局部变量
 	ebp1 := false
 	// t.m04.f00A483A4(&ebpC)
@@ -638,14 +622,130 @@ func (t *windowManager) f00A47461fresh() {
 	}
 }
 
-// size:0x228
+//
+func f00A49798get() *t09D96438 {
+	if v09D96438 == nil {
+		// ebp14 := f00DE852Fnew(0x228)
+		var ebp18 *t09D96438
+		ebp14 := &t09D96438{}
+		if ebp14 != nil {
+			ebp18 = ebp14.f00A49808construct()
+		} else {
+			ebp18 = nil
+		}
+		v09D96438 = ebp18
+	}
+	return v09D96438
+}
+
+var v09D96438 *t09D96438
+
+// size:0x228 虚表:v01174338
 type t09D96438 struct {
-	m70 *windowManager
-	m80 uintptr
+	m00         uintptr
+	m08         windowManager1
+	m18         struct{}
+	m1C         struct{}
+	m20         struct{}
+	m24         struct{}
+	m2C         struct{}
+	m28         int
+	m30         struct{}
+	m34         int
+	m38         struct{}
+	m58         struct{}
+	m68hwndNext win.HWND
+	m70         *windowManager2
+	m80         uintptr
+	m20Cwidth   int
+	m210height  int
 }
 
 func (t *t09D96438) f00A49808construct() *t09D96438 {
+	// 0x34局部变量
+	// ebp34 := t
+	// 构造子窗口1
+	// ebp18 := f00A3BA10newobject(0x10) // 0x0EB41EB0
+	// if ebp18 == nil {
+	// 	ebp38 = nil
+	// } else {
+	// 	ebp38 = ebp18.f00BBBA00construct()
+	// }
+	// equal
+	ebp18 := new(window01187D5C) // 0x0EB41EB0
+	ebp18.f00BBBA00construct()
+	ebp38 := ebp18
+	ebp14 := ebp38
+	ebp10 := ebp14 // ebp10.f00A50545(ebp14)
+
+	// // 构造子窗口2
+	// ebp24 := f00A3BA10newobject(0x0C) // 0x0EB41ED0
+	// if ebp24 == nil {
+	// 	ebp3C = nil
+	// } else {
+	// 	ebp3C = ebp24.f00A50053()
+	// }
+	// equal
+	ebp24 := new(window0117437C) // 0x0EB41ED0
+	ebp24.f00A50053construct()
+	ebp3C := ebp24
+	ebp20 := ebp3C
+	ebp1C := ebp20 // ebp1C.f00A50576(ebp20)
+
+	// // 构造子窗口3
+	// ebp30 := f00A3BA10newobject(0x0C) // 0x0EB41EE0
+	// if ebp30 == nil {
+	// 	ebp40 = nil
+	// } else {
+	// 	ebp40 = ebp30.f00A50036()
+	// }
+	// equal
+	ebp30 := new(window01174368) // 0x0EB41EE0
+	ebp30.f00A50036construct()
+	ebp40 := ebp30
+	ebp2C := ebp40
+	ebp28 := ebp2C // ebp28.f00A504E3(ebp2C)
+
+	// register
+	println(ebp10, ebp1C, ebp28) // t.m08.f00BB0D20construct(ebp28, ebp1C, ebp10)
+	// ebp28.f00A504F9()
+	// ebp1C.f00A5058C()
+	// ebp10.f00A5055B()
+	// t.m18 = 0 // t.m18.f00A4FCF7(0)
+	// t.m1C = 0 // t.m1C.f00A4FCF7(0)
+	// t.m20 = 0 // t.m20.f00A4FC2C(0)
+	// t.m24 = 0 // t.m24.f00A4FC78(0)
+	// t.m28 = 0
+	// t.m2C = 0 // t.m2C.f00A4FDC2()
+	// t.m30 = 0 // t.m30.f00BAC850()
+	// t.m34 = 0
+	// t.m38 = 0 // t.m38.f00BAC850()
+	// t.m58.f00AECCBC()
 	return nil
+}
+
+type window00A4FAD6 struct {
+}
+
+func (t *t09D96438) f00A49E40(hWnd win.HWND, width, height int) {
+	// ebp7C := t
+	t.m20Cwidth = width
+	t.m210height = height
+	t.m68hwndNext = 0 // dll.user32.SetClipboardViewer(hWnd) // Adds the specified window to the chain of clipboard viewers.
+
+	// 构造窗口
+	// ebp30 := f00A3BA10newobject(0x20) // 0x0EB42090
+	// if ebp30 == nil {
+	// 	ebp80 = nil
+	// } else {
+	// 	ebp80 = ebp30.f00A4FAD6()
+	// }
+	// equal
+	ebp30 := new(window01174340)
+	ebp80 := ebp30
+	ebp2C := ebp80
+	ebp28 := ebp2C // ebp28.f00A50514()
+	t.m08.do3(0x18, ebp28)
 }
 
 func (t *t09D96438) f00A4DC94(state int) {
@@ -655,4 +755,72 @@ func (t *t09D96438) f00A4DC94(state int) {
 	if t.m70 != nil {
 		t.m70.f00A47461fresh()
 	}
+}
+
+//
+func f004D9460get() *t01319F18 {
+	v01319F24once.Do(func() {
+		v01319F18.f004D9693construct()
+	})
+	ebp18 := &v01319F18 // ebp18 := f00405BF0(8, v01319F18)
+	var ebp1C *t01319F18
+	if ebp18 != nil {
+		ebp1C = ebp18.f004D9D74vtab()
+	} else {
+		ebp1C = nil
+	}
+	ebp14 := ebp1C
+	ebp10 := ebp14
+	ebp10.m04 = &v01319F18
+	v01319F18.m08 = true // v01319F20 = true
+	return ebp10
+}
+
+var v01319F18 t01319F18
+var v01319F24once sync.Once
+
+type t01319F18 struct {
+	m00 uintptr // 虚表指针: &v0114E1D4
+	m04 *t01319F18
+	m08 bool
+}
+
+func (t *t01319F18) f004D9693construct() {
+	t.m08 = false
+}
+
+func (t *t01319F18) f004D9D74vtab() *t01319F18 {
+	// t.f004DA0F4()
+	func() {
+		// t.f004DA118()
+		func() {
+			// t.f004DA135()
+			func() {
+				// t.m00 = &v0114E20C 基对象虚表
+			}()
+			// t.m00 = &v0114E1F0 基对象虚表
+		}()
+		// t.m00 = &v0114E21C 基对象虚表
+		t.m04 = nil
+	}()
+	// t.m00 = &v0114E1D4 虚表
+	return nil
+}
+
+// f00BAB280
+func (t *t01319F18) do2(param uintptr) bool {
+	// if v09D9D5E8 == nil {
+	// 	v09D9BD40.f00BFA8B0()
+	// }
+	// f00BAAC30(param)
+	if func(param uintptr) uintptr {
+		// f00BFA710("Global", 0)
+		func() {
+			// 初始化 v09D9BD74mm: 0x0EB40B84
+		}()
+		return 0x0EB40B84
+	}(param) != 0 {
+		return true
+	}
+	return false
 }

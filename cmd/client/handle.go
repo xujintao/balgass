@@ -271,6 +271,7 @@ var v0AF836B5label3 = 6
 var v09D96B40 = [10][2048]uint8{} // "Check Integrity... : data/local/Gameguard.csr"
 var v09D9AB40 = 6
 
+// character info
 func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// 0x0AC3581C hook to hide f0ABF8601, jump complicated shell logic: check integrity on load character info
 	var label1 = 0x0A9368DD
@@ -989,7 +990,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	}
 	// 0x00705077
 	// ...
-	// f00A49798()
+	// f00A49798get()
 }
 
 // s9 f00670C47

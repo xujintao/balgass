@@ -159,6 +159,8 @@ func (t *packetEncrypt) f00B98D90(unk1 *t12, connp **conn) {
 	*unk1 = *t.f00
 }
 
+var v086A3C28 int
+
 // hook到 igc.dll了
 func f00760292parse(conn *conn, unk1, unk2 int) {
 	// SEH
