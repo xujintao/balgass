@@ -288,7 +288,7 @@ func (t *pb) f0043921B() {
 }
 
 // s9 f004391BA
-func (t *pb) f0043922CwritePrefix(flag uint8, code uint8) {
+func (t *pb) f0043922CwriteHead(flag uint8, code uint8) {
 	t.f0043921B()
 
 	// 写flag

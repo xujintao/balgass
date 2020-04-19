@@ -8,6 +8,7 @@ import (
 )
 
 var v0131A240 uint32
+var v0131A250 uint32
 var v0131A26C bool
 var v0131A26D bool
 var v0131A270 int
@@ -623,11 +624,11 @@ func (t *windowManager2) f00A47461fresh() {
 }
 
 //
-func f00A49798get() *t09D96438 {
+func f00A49798game() *game {
 	if v09D96438 == nil {
-		// ebp14 := f00DE852Fnew(0x228)
-		var ebp18 *t09D96438
-		ebp14 := &t09D96438{}
+		// ebp14 := f00DE852Fnew(0x228) // 0x0DDBB9F0
+		var ebp18 *game
+		ebp14 := &game{}
 		if ebp14 != nil {
 			ebp18 = ebp14.f00A49808construct()
 		} else {
@@ -638,10 +639,10 @@ func f00A49798get() *t09D96438 {
 	return v09D96438
 }
 
-var v09D96438 *t09D96438
+var v09D96438 *game
 
 // size:0x228 虚表:v01174338
-type t09D96438 struct {
+type game struct {
 	m00         uintptr
 	m08         windowManager1
 	m18         struct{}
@@ -655,13 +656,116 @@ type t09D96438 struct {
 	m38         struct{}
 	m58         struct{}
 	m68hwndNext win.HWND
+	m6Cstate    int
 	m70         *windowManager2
+	m74         uintptr // state2
+	m78         uintptr // state4
+	m7C         uintptr // state5
 	m80         uintptr
-	m20Cwidth   int
-	m210height  int
+	m84         uintptr
+
+	m88  uintptr // Caution
+	m8C  uintptr // MainFrame
+	m90  uintptr // characterFrame
+	m94  uintptr // inventoryFrame
+	m98  uintptr // ExtensionBagFrame
+	m9C  uintptr // PrivateStoreFrame
+	mA0  uintptr // MixInventoryFrame
+	mA4  uintptr // MixSel
+	mA8  uintptr // MixGoblinSel
+	mAC  uintptr // MixStone
+	mB0  uintptr // MixInventoryFrame
+	mB4  uintptr // GensRanking
+	mB8  uintptr // GuildCreateFrame
+	mBC  uintptr // GuildInfoFrame
+	mC0  uintptr // GuildPosition
+	mC4  uintptr // infoPopup
+	mC8  uintptr // PetInfoPopup
+	mCC  uintptr
+	mD0  uintptr // QuickCommand
+	mD4  uintptr // duel
+	mD8  uintptr // duelwatch
+	mDC  uintptr // trade
+	mE0  uintptr // purchaseinven
+	mE4  uintptr // goldarcher
+	mE8  uintptr
+	mEC  uintptr // npcdialogue
+	mF0  uintptr // NpcShop
+	mF4  uintptr // PetInfo
+	mF8  uintptr // Pentagram
+	mFC  uintptr // ArkaResultInfo
+	m100 uintptr // StorageInven
+	m104 uintptr // StorageInven
+	m108 uintptr // NpcJobChangeQuest
+	m10C uintptr // NpcQuestProgress
+	m110 uintptr // NpcGateKeeper
+	m114 uintptr // SystemMenu
+	m118 uintptr // Option
+	m11C uintptr // SelectMenu
+	m120 uintptr // MyQuestInfo
+	m124 uintptr // ChatWindow
+	m128 uintptr // MoveCommand
+	m12C uintptr // HelpWindow
+	m130 uintptr // EventMapHelper
+	m134 uintptr // Trainer 驯兽师
+	m138 uintptr // MapName
+	m13C uintptr // Notice
+	m140 uintptr // HeroPosition
+	m144 uintptr // EnterBloodCastle
+	m148 uintptr // EnterEmpireGuardian
+	m14C uintptr // CommandWindow
+	m150 uintptr // ArkaBattleRegister
+	m154 uintptr // ArkaBattleProgress
+	m158 uintptr // ArkaBattleNotice
+	m15C uintptr // MonsterInfo
+	m160 uintptr // PlayerInfo
+	m164 uintptr // BuffFrame
+	m168 uintptr // EquipDurabilityInfo
+	m16C uintptr // MacroMain
+	m170 uintptr // MacroSub
+	m174 uintptr // Alarm
+	m178 uintptr // MatchingSelect
+	m17C uintptr // MatchingGuild
+	m180 uintptr // MatchingParty
+	m184 uintptr // PartyFrame
+	m188 uintptr // ItemInfo
+	m18C uintptr // StrongestMatchMenu
+	m190 uintptr // StrongestMatchRank
+	m194 uintptr // StrongestMatchResult
+	m198 uintptr // SearchPrivateStore
+	m19C uintptr // MiniGameRummy
+	m1A0 uintptr // EventInventoryFrame
+	m1A4 uintptr // EventInfo
+	m1A8 uintptr // CursedTempleMatchMenu
+	m1AC uintptr // CursedTempleResult
+	m1B0 uintptr // CursedTempleScore
+	m1B4 uintptr // CursedTempleInfo
+	m1B8 uintptr // ListOfMatches
+	m1BC uintptr // EventMapProgressInfo
+	m1C0 uintptr // EventMapRoundCount
+	m1C4 uintptr // ProgressFrame
+	m1C8 uintptr // Navimap
+	m1CC uintptr // PetInventoryFrame
+	m1D0 uintptr // MuunExchange
+	m1D4 uintptr // OrdealSquareEnterMenu
+	m1D8 uintptr // OrdealSquareScore
+	m1DC uintptr // OrdealSquareResult
+	m1E0 uintptr // EventMapTutorial
+	m1E4 uintptr // EventInfo
+	m1E8 uintptr // BattleField_BigDialog
+	m1EC uintptr // RideButton
+	m1F0 uintptr // MonsterCompensation
+	m1F4 uintptr // ImageNotice
+	m1F8 uintptr // GremoryCase 活动奖励背包
+	m1FC uintptr // RebuyList
+	m200 uintptr // PetFrame
+	m204 uintptr // do5 ebp7C
+
+	m20Cwidth  int
+	m210height int
 }
 
-func (t *t09D96438) f00A49808construct() *t09D96438 {
+func (t *game) f00A49808construct() *game {
 	// 0x34局部变量
 	// ebp34 := t
 	// 构造子窗口1
@@ -724,10 +828,7 @@ func (t *t09D96438) f00A49808construct() *t09D96438 {
 	return nil
 }
 
-type window00A4FAD6 struct {
-}
-
-func (t *t09D96438) f00A49E40(hWnd win.HWND, width, height int) {
+func (t *game) f00A49E40init(hWnd win.HWND, width, height int) {
 	// ebp7C := t
 	t.m20Cwidth = width
 	t.m210height = height
@@ -746,9 +847,93 @@ func (t *t09D96438) f00A49E40(hWnd win.HWND, width, height int) {
 	ebp2C := ebp80
 	ebp28 := ebp2C // ebp28.f00A50514()
 	t.m08.do3(0x18, ebp28)
+	// ...
 }
 
-func (t *t09D96438) f00A4DC94(state int) {
+func (t *game) f00A4E46D() {
+
+}
+
+func (t *game) f00A4A521() {
+	// 0x610局部变量
+	// ebp494 := t
+	ebp14 := f00DE852Fnew(0x34)
+	if ebp14 != nil {
+		ebp498 = ebp14.f008E20BBconstruct()
+	} else {
+		ebp498 = nil
+	}
+	ebp10 := ebp498
+	t.m80 = ebp10
+	ebp1C := f00DE852Fnew(0x40)
+	if ebp1C != nil {
+		ebp49C = ebp1C.f00A3BBB9construct()
+	} else {
+		ebp49C = nil
+	}
+	ebp18 := ebp49C
+	t.m84 = ebp18
+	t.m70 = nil
+
+	// Caution
+	ebp24 := f00DE852Fnew(0xA4)
+	if ebp24 != nil {
+		ebp4A0 = ebp24.f00A99F11construct()
+	} else {
+		ebp4A0 = nil
+	}
+	ebp20 := ebp24
+	t.m88 = ebp20
+	f00BADDD0("Caution", 0, 9)
+	// t.f00A4E46D(t.m88, 5)
+
+	// GuildPosition
+	ebp30 := f00DE852Fnew(0x78)
+	if ebp30 != nil {
+		ebp4A4 = ebp30.f00A77610construct()
+	} else {
+		ebp4A4 = nil
+	}
+	ebp2C := ebp4A4
+	t.mC0 = ebp2C
+	f00BADDD0("GuildPosition", 0, 9)
+	// t.f00A4E46D(t.mC0, 5)
+
+}
+
+func (t *game) f00A4E1BFchangeState(state int) bool {
+	// ebp10 := t
+	if t.m6Cstate == state {
+		return false
+	}
+	t.m6Cstate = state
+	ebp14 := t.m6Cstate
+	switch ebp14 {
+	case 2:
+		// t.m70 = t.m74
+		// ebp4hIMC := dll.imm32.ImmGetContext(v01319D6ChWnd)
+		// dll.imm32.ImmSetConversionStatus(ebp4hIMC, 0, 0)
+		// dll.imm32.ImmReleaseContext(v01319D6ChWnd, ebp4hIMC)
+	case 4:
+		// t.m70 = t.m78
+		// ebp8hIMC := dll.imm32.ImmGetContext(v01319D6ChWnd)
+		// dll.imm32.ImmSetConversionStatus(ebp8hIMC, 1, 0)
+		// dll.imm32.ImmReleaseContext(v01319D6ChWnd, ebp8hIMC)
+	case 5:
+		// t.m70 = t.m7C
+		// ebpChIMC := dll.imm32.ImmGetContext(v01319D6ChWnd)
+		// dll.imm32.ImmSetConversionStatus(ebpChIMC, 1, 0) // IME_CMODE_NATIVE, IME_CMODE_ALPHANUMERIC
+		// dll.imm32.ImmReleaseContext(v01319D6ChWnd, ebpChIMC)
+	}
+	if t.m70 == nil {
+		return true
+	}
+	// t.m70.f00A47353()
+	// t.m70.f00A47C55()
+	return true
+}
+
+func (t *game) f00A4DC94(state int) {
 	if t.m80 != 0 {
 		// t.m80.f008E27CF()
 	}

@@ -580,8 +580,8 @@ func (s *service3) f0043E9B6() {
 	// 构造登录报文
 	var ebp14BClogin pb
 	ebp14BClogin.f00439178init()
-	ebp14BClogin.f0043922CwritePrefix(0xC1, 0xF1) // 前缀
-	ebp14BClogin.f004397B1writeUint8(1)           // 可能是subcode
+	ebp14BClogin.f0043922CwriteHead(0xC1, 0xF1) // 前缀
+	ebp14BClogin.f004397B1writeUint8(1)         // 可能是subcode
 
 	var ebp30, ebp3C [11]uint8
 	f00DE8100memset(ebp30[:], 0, 11)
@@ -613,7 +613,7 @@ func (s *service3) f0043E9B6() {
 	// ebp4 = 1
 	// ebp14FC.f00406FC0stdstring(&v0114A327)
 	// ebp4 = 2
-	// f00A49798get(&ebp14FC, &ebp14E0, 3, 0).f0043EE21().f00A9FB38()
+	// f00A49798game().f0043EE21().f00A9FB38(&ebp14FC, &ebp14E0, 3, 0)
 	// ebp4 = 1
 	// ebp14FC.f00407B10()
 	// ebp4 = 0
@@ -622,7 +622,7 @@ func (s *service3) f0043E9B6() {
 	// ebp1518.f00406FC0stdstring(v08610600.f00436DA8(0x1D9))
 	// ebp4 = 3
 	// ebp1534.f00406FC0stdstring(&v0114A33E)
-	// f00A49798get(&ebp1534, &ebp1518, 3, 0).f0043EE21().f00A9FB38()
+	// f00A49798game().f0043EE21().f00A9FB38(&ebp1534, &ebp1518, 3, 0)
 	// ebp4 = 3
 	// ebp1534.f00407B10()
 	// ebp4 = 0
@@ -691,7 +691,7 @@ func (s *service4) do13(unk float64) {
 			// 请求服务器列表
 			var ebp149C pb
 			ebp149C.f00439178init()
-			ebp149C.f0043922CwritePrefix(0xC1, 0xF4)
+			ebp149C.f0043922CwriteHead(0xC1, 0xF4)
 			var ebp15 [1]uint8
 			ebp15[0] = 6
 			ebp149C.f00439298writeBuf(ebp15[:], 1, false)
@@ -722,7 +722,7 @@ func (s *service4) do13(unk float64) {
 				// 请求服务器信息
 				var ebp292CserverInfo pb
 				ebp292CserverInfo.f00439178init()
-				ebp292CserverInfo.f0043922CwritePrefix(0xC1, 0xF4) // header
+				ebp292CserverInfo.f0043922CwriteHead(0xC1, 0xF4) // header
 				var ebp14A9 [1]uint8
 				ebp14A9[0] = 3
 				ebp292CserverInfo.f00439298writeBuf(ebp14A9[:], 1, false) // subcode
@@ -737,7 +737,7 @@ func (s *service4) do13(unk float64) {
 				// ebp4 = 2
 				// ebp2964.f00406FC0stdstring(&v0114A5FF)
 				// ebp4 = 3
-				// f00A49798get(&ebp2964, &ebp2948, 3, 0).f0043EE21().f00A9FB38()
+				// f00A49798game().f0043EE21().f00A9FB38(&ebp2964, &ebp2948, 3, 0)
 				// ebp4 = 2
 				// ebp2964.f00407B10()
 				// ebp4 = 1
@@ -746,7 +746,7 @@ func (s *service4) do13(unk float64) {
 				// ebp4 = 4
 				// ebp299C.f00406FC0stdstring(&v0114A600)
 				// ebp4 = 5
-				// f00A49798get(&ebp299C, &ebp2980, 3, 0).f0043EE21().f00A9FB38()
+				// f00A49798game().f0043EE21().f00A9FB38(&ebp299C, &ebp2980, 3, 0)
 				// ebp4 = 4
 				// ebp299C.f00407B10()
 				// ebp4 = 1
@@ -818,7 +818,7 @@ func (s *service5) do13(unk float64) {
 		var ebp149C pb
 		ebp149C.f00439178init()
 		// ebp4 := 0
-		ebp149C.f0043922CwritePrefix(0xC1, 0xF4)
+		ebp149C.f0043922CwriteHead(0xC1, 0xF4)
 		var ebp15 [1]uint8
 		ebp15[0] = 6
 		ebp149C.f00439298writeBuf(ebp15[:], 1, false)
@@ -1260,9 +1260,55 @@ func (t *t4003) f00448D8BgetX() int { return t.m0Cpoint.x }
 func (t *t4003) f00448191getY() int { return t.m0Cpoint.y }
 
 func f004DD578handleState1(hDC win.HDC) {
+	// if ebp198.f00407AC0() == true { // 0x004DD639 gameguard 3, hook hook always false, disable GameGuard
+	if false {
+		v01319E08log.f00B38AE4printf("> ResourceGuard Error!!\r\n")
+		win.SendMessage(v01319D6ChWnd, 2, 0, 0)
+	}
+	// load Interface/...
 	// ...
+	// 0x004DD963
 	// f006B4C78(hdC)
 	func() {
+		// load NPC/...
+		// ...
+		// 0x006B7AAE
+		// ebp170.f004DBD5C()
+		// ebp64.f00B60770(&ebp170)
+		var ebp164 [200]uint8
+		f00DE817Asprintf(ebp164[:], "data/local/Gameguard.csr")
+		var ebp190tmpstr stdstring
+		ebp190tmpstr.f00406FC0stdstring(ebp164[:])
+		// var ebp171 bool
+		// if ebp64.f00B607F0(&ebp190tmpstr) == 0 {
+		// 	ebp171 = true
+		// } else {
+		// 	ebp171 = false
+		// }
+		ebp190tmpstr.f00407B10free()
+		// if ebp171 == true { // 0x006B7B2A gameguard 4, hook always false, disable GameGuard
+		if false {
+			v01319E08log.f00B38AE4printf("> ResourceGuard Error!!\r\n")
+			win.SendMessage(v01319D6ChWnd, 2, 0, 0)
+		}
+		// ...
+		// 0x006B7C18
+		var ebp1B0tmpstr stdstring
+		ebp1B0tmpstr.f00406FC0stdstring(ebp164[:])
+		// var ebp191 bool
+		// if ebp64.f00B607F0(&ebp190tmpstr) == 0 {
+		// 	ebp191 = true
+		// } else {
+		// 	ebp191 = false
+		// }
+		ebp1B0tmpstr.f00407B10free()
+		// if ebp191 == true { // 0x006B7C63 gameguard 5, hook always false, disable GameGuard
+		if false {
+			v01319E08log.f00B38AE4printf("> ResourceGuard Error!!\r\n")
+			win.SendMessage(v01319D6ChWnd, 2, 0, 0)
+		}
+		// 0x006B7C88
+		f00A49798game().f00A4A521()
 		// ...
 		// f006B7DDC() // load Data/local/...
 		func() {
@@ -1309,9 +1355,11 @@ func f004DD578handleState1(hDC win.HDC) {
 		// ...
 	}()
 	// ...
+	// 0x004DDA33
 	v01319E08log.f00B38AE4printf("> Loading ok.\r\n")
 	// f004DAACA(v01319D6ChWnd)
 	v012E2340state = 2
+	v0131A250 = win.GetTickCount()
 }
 
 func f004E1E1EhandleState2() {
@@ -1906,22 +1954,25 @@ func f004E6233handleState(hDC win.HDC) {
 	ebp4738 := v012E2340state
 	switch ebp4738 {
 	case 1:
-		f004DD578handleState1(hDC)
+		f004DD578handleState1(hDC) // 会阻塞当前主线程，那么这段时间怎么保证响应消息循环？
 	case 2, 4, 5:
 		f004E4F1ChandleState245(hDC)
 	case 3:
 		f004DB77ChandleState3(hDC)
 	}
-
 	// 0x004E62F0
-	// f00A49798get().f00A4E1BF(v012E2340state)
-
-	if v01319D9C <= 0x1F {
+	f00A49798game().f00A4E1BFchangeState(v012E2340state)
+	// 0x004E6306
+	if v01319D9C <= 31 {
 		return
 	}
-	// var codef103 pb
-	// codef103.f00439178init()
-	// // 构造报文
-	// codef103.f0043968Frandom()
-	// v08C88FB4decrypt
+	var inhack pb
+	inhack.f00439178init()
+	// inline send
+	inhack.f0043922CwriteHead(0xC1, 0xF1)
+	inhack.f004397B1writeUint8(3) // subcode
+	inhack.f004397B1writeUint8(1) // flag
+	inhack.f004397B1writeUint8(0) // subflag
+	inhack.f004393EAsend(true, false)
+	inhack.f004391CF()
 }

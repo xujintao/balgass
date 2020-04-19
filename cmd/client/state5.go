@@ -14,7 +14,7 @@ func f005B0120() {
 	func() {
 		var ebp2918 pb
 		ebp2918.f00439178init()
-		ebp2918.f0043922CwritePrefix(0xC1, 0xD7) // send position, hook D7->D4
+		ebp2918.f0043922CwriteHead(0xC1, 0xD7) // send position, hook D7->D4
 		// ...
 	}()
 	// ...
@@ -46,9 +46,9 @@ func f00611C16() {
 			ebp69D8.m166 == 0x242 ||
 			ebp69D8.m166 == 0x2AE ||
 			ebp69D8.m166 == 0x2AF {
-			// f00A49798get().mF0.f00A700C1(1)
+			// f00A49798game().mF0.f00A700C1(1)
 		} else {
-			// f00A49798get().mF0.f00A700C1(0)
+			// f00A49798game().mF0.f00A700C1(0)
 		}
 		// if f0090E94C().f0090D682(4) {
 		// 	f0090E94C().f0090DC7E(4)
@@ -106,7 +106,7 @@ func f00611C16() {
 			var ebp1896C pb // 0x0014F870
 			ebp1896C.f00439178init()
 			// ebp4 := 51
-			ebp1896C.f0043922CwritePrefix(0xC1, 0x30) // talk
+			ebp1896C.f0043922CwriteHead(0xC1, 0x30) // talk
 			var ids [2]uint8
 			binary.BigEndian.PutUint16(ids[:], ebp69D8.m5Eid) // bigendian 0x0001
 			ebp1896C.f00439298writeBuf(ids[:], 2, true)
@@ -127,7 +127,7 @@ func f00611C16() {
 		var ebp14A4 pb // 0x00166D38
 		ebp14A4.f00439178init()
 		// ebp4 := 2
-		ebp14A4.f0043922CwritePrefix(0xC1, 0xD9) // normal attack, hook D9->11
+		ebp14A4.f0043922CwriteHead(0xC1, 0xD9) // normal attack, hook D9->11
 		var ids [2]uint8
 		binary.BigEndian.PutUint16(ids[:], ebp20.m5Eid) // bigendian 0x166F
 		ebp14A4.f00439298writeBuf(ids[:], 2, true)
@@ -152,7 +152,7 @@ func f00611C16() {
 					var ebp14A4 pb
 					ebp14A4.f00439178init()
 					// ebp4 := 0
-					ebp14A4.f0043922CwritePrefix(0xC1, 0xDA) // positionGet DA, s9 0x15
+					ebp14A4.f0043922CwriteHead(0xC1, 0xDA) // positionGet DA, s9 0x15
 					// ebp14A4.f004397B1writeUint8(ebp12)       // 0x23
 					// ebp14A4.f004397B1writeUint8(ebp11)       // 0x2E
 					ebp14A4.f004393EAsend(false, false)
@@ -376,7 +376,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 			ebp2964.f00439178init()
 			// 0x0A0C438C
 			ebp4 = 6
-			ebp2964.f0043922CwritePrefix(0xC1, 0x1D)
+			ebp2964.f0043922CwriteHead(0xC1, 0x1D)
 			println(ebp4)
 		}
 	}
@@ -391,7 +391,7 @@ func f004DF0D5handleState5() {
 	// 很复杂
 	// ...
 	// 0x004E0A71
-	// f00A49798get().f00A4DC94(v012E2340state)
+	f00A49798game().f00A4DC94(v012E2340state)
 	// ...
 	//...
 	// 0x004E0B99

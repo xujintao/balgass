@@ -57,7 +57,7 @@ var v01319D70hModule win.HMODULE
 var v01319D74hDC win.HDC     // hDC, 0x1401,11A6
 var v01319D78hGLRC win.HGLRC // hGLRC, OpenGL rendering context, 0x0001,0000
 var v01319D90 int
-var v01319D95 uint8
+var v01319D95 bool
 var v01319D98 int
 var v01319D9C int
 var v01319DA0 int
@@ -130,11 +130,40 @@ func f004D55C6(fileName []uint8, ver *version) bool {
 
 // old callback
 func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
-	switch message {
+	ebp29B4message := message
+	switch ebp29B4message {
 	case win.WM_CREATE: // 1
+	case win.WM_ACTIVATE: // 6, wparam:1, lparam:0
+		// 0x004D6620
+		active := uint(wParam) & 0xFFFF // WA_ACTIVE:1, WA_CLICKACTIVE:2, WA_INACTIVE:0
+		if active == 0 {                // WA_INACTIVE
+			// 0x004D6633
+			if v012E2224 == 0 {
+				v01319D95 = false
+			}
+			if v012E2224 == 1 {
+				// v08C88BC0 = 0
+				// v08C88BC1 = 0
+				// v08C88BC2 = 0
+				// v08C88BC3 = 0
+				// v08C88BC4 = 0
+				// v08C88BC5 = 0
+				// v08C88BC6 = 0
+				// v08C88A99 = 0
+				// v08C88A9A = 0
+				// v08C88A9B = 0
+				// v08C88BBC = 0
+			}
+			// 0x004D6692 0x004D669F 0x004D6BD7
+		} else {
+			// 0x004D6694 0x004D6698
+			// 防窗口非激活作弊
+			v01319D95 = true
+			// 0x004D6BD7
+		}
 	case win.WM_TIMER: // 0x113
 		switch wParam {
-		case 1000:
+		case 1000: // 0x3E8
 			// f00B4C239
 			func() {
 				if v01319D68 == nil {
@@ -149,11 +178,10 @@ func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 				if v08C88F64 == 0 {
 					return
 				}
-
 				// 构造心跳报文
 				var alive pb
 				alive.f00439178init()
-				alive.f0043922CwritePrefix(0xC1, 0x0E) // 写前缀
+				alive.f0043922CwriteHead(0xC1, 0x0E) // 写前缀
 				ebp10 := win.GetTickCount()
 				alive.f0043974FwriteZero(1)                      // 写0
 				alive.f0043EDF5writeUint32(ebp10)                // 写time
@@ -166,6 +194,7 @@ func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 				}
 				alive.f004391CF()
 			}()
+			// 0x004D6823 0x004D6BD7
 		}
 	case win.WM_USER: // 0x400
 		switch lParam {
@@ -176,22 +205,22 @@ func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 		case 20:
 		}
 	default:
-		// v08C88BC0 = 0
-		// if v08C88BC5 == 1 && (v01319DA8 != v08C88C80 || v01319DAC != v08C88C80) {
-		// 	v08C88BC5 = 0
-		// }
-		return win.DefWindowProc(hWnd, message, wParam, lParam) // 原始是NtdllDefWindowProc，这是什么？
 	}
-	return 0
+	// 0x004D6BD7
+	// v08C88BC0 = 0
+	// if v08C88BC5 == 1 && (v01319DA8 != v08C88C80 || v01319DAC != v08C88C80) {
+	// 	v08C88BC5 = 0
+	// }
+	return win.DefWindowProc(hWnd, message, wParam, lParam) // 原始是NtdllDefWindowProc，这是什么？
 }
 
 // new callback
 func f004D6C2BwndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) int {
 	switch message {
 	case win.WM_CHAR: // 0x102
-		// f00A49798get(wParam, lParam)
+		// f00A49798game().f00A4DF93(wParam, lParam)
 	default:
-		win.CallWindowProc(v01319D1CwndProc, hWnd, message, wParam, lParam)
+		win.CallWindowProc(v01319D1CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98wndProc
 	}
 	return 0
 }
@@ -458,7 +487,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 					// push fs[0]
 					// fs[0]=esp
 					// push 0
-					// int1 ;单步直接stepover了，没有进入SEH异常处理，而Run是ok的报0x80000004, EXCEPTION_SINGLE_STEP
+					// int1 ;频发，单步直接stepover了，没有进入SEH异常处理，而Run是ok的报0x80000004, EXCEPTION_SINGLE_STEP
 					// pop ebp30
 					// pop fs[0]
 					// esp+=4
@@ -718,7 +747,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	// check whether auto update window is working
 	var ebp2C win.HWND // ebp2C := dll.user32.FindWindow("#32770", "MU Auto Update")
 	if ebp2C != 0 {
-		// dll.user32.SendMessage(ebp2C, 0x10, 0, 0)
+		win.SendMessage(ebp2C, 0x10, 0, 0)
 	}
 	// if f004D77ED() == false {
 	// 	ebp1A24 := 0
@@ -945,27 +974,24 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		// 接下来还有一段处理，我没看
 		return true
 	}
-	if !f004D7281() {
+	if f004D7281() == true {
 		v01319E08log.f00B38AE4printf("config.ini read error\r\n")
+		ebp1A30 := 0
 		f004D9F88()
-		return 0
+		return ebp1A30 // 0x004D8FE2
 	}
 
-	// hook: v012E4018version = v01319A44version
-
-	// gg init
-	// ebp_1A38也可能是个实例指针变量，值是0x0D9F,EA10
-	var ebp1A38 *uint32 = (*uint32)(f00DE852Fnew(1))
+	// 0x004D80ED gg init
+	var ebp1A38 *uint32 = (*uint32)(f00DE852Fnew(1)) // hook: v012E4018version = v01319A44version
 	var ebp1B0C *t1319D68
-	if ebp1A38 != nil { // 0x004D8102 hook always nil，disable GameGurad
-		// ebp1B0C = ebp1A38.f004D936A(v012E2214)
+	if ebp1A38 != nil { // 0x004D8102 gameguard 1, hook always nil，disable GameGurad
+		// ebp1B0C = ebp1A38.f004D936A(v012E2214) // &"MUCN"
 	} else {
 		ebp1B0C = nil
 	}
-
 	v01319D68 = ebp1B0C
-	bRet := f00B4C1B8()
-	if !bRet { // 0x004D8145 hook always true, disable GameGurad
+	// if f00B4C1B8() == true { // 0x004D8145 gameguard 2, hook always true, disable GameGurad
+	if false {
 		// gg init error
 		// f004D51C8()
 		// f004D9335()
@@ -989,8 +1015,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	v01319E08log.f00B38AE4printf("> Start window success.\r\n")
 
 	// opengl init
-	bRet = f004D6D64() // 设置hWnd资源
-	if !bRet {
+	if f004D6D64() == false {
 		// 失败处理
 		return 0
 	}
@@ -1019,54 +1044,57 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	f00DEE871setlocale(0, v01319E00)                                                // LC_ALL
 	f0043BF3FgetT4003().f0043BF9C(v01319D6ChWnd, v012E3F08.width, v012E3F08.height) // 800*600
 	// f0090E94C().f0090B256()
-	f00A49798get().f00A49E40(v01319D6ChWnd, v012E3F08.height, v012E3F08.width) // r6602 floating point support not loaded
-	// if f00B0E9BF().f00B0EE6C() {
-	// 	v01319D67 = true
-	// } else {
-	// 	v01319D67 = false
-	// }
-	// if dll.wzaudio.wzAudioCreate(v01319D6ChWnd) {
-	// 	dll.user32.MessageBox(v01319D6ChWnd, "No audio devices in this system", 0, 0)
-	// 	v01319E08log.f00B38AE4printf("> wzAudio Create Fail.\r\n")
-	// 	v01319E08log.f00B38D19cut()
-	// } else {
-	// 	dll.wzaudio.wzAudioOption(0, 1)
-	// }
-	// if f00B0E9BF().f00B0EE7E() && f007DA2B1(v01319D6ChWnd) < 0 {
-	// 	dll.user32.MessageBox(v01319D6ChWnd, "Direct Sound Init Fail")
-	// 	v01319E08log.f00B38AE4printf("> DirectSound Init Fail.\r\n")
-	// 	v01319E08log.f00B38D19cut()
-	// 	f007DA4B7(0)
-	// }
+	f00A49798game().f00A49E40init(v01319D6ChWnd, v012E3F08.height, v012E3F08.width) // r6602 floating point support not loaded
+	/*
+		if f00B0E9BF().f00B0EE6C() {
+			v01319D67 = true
+		} else {
+			v01319D67 = false
+		}
+		if dll.wzaudio.wzAudioCreate(v01319D6ChWnd) {
+			dll.user32.MessageBox(v01319D6ChWnd, "No audio devices in this system", 0, 0)
+			v01319E08log.f00B38AE4printf("> wzAudio Create Fail.\r\n")
+			v01319E08log.f00B38D19cut()
+		} else {
+			dll.wzaudio.wzAudioOption(0, 1)
+		}
+		if f00B0E9BF().f00B0EE7E() && f007DA2B1(v01319D6ChWnd) < 0 {
+			dll.user32.MessageBox(v01319D6ChWnd, "Direct Sound Init Fail")
+			v01319E08log.f00B38AE4printf("> DirectSound Init Fail.\r\n")
+			v01319E08log.f00B38D19cut()
+			f007DA4B7(0)
+		}
+	*/
 	// ...
-	var ebp595 uint8 // ImmIsUIMessage返回值
-
 	// ebp28
 	var ebp28msg win.MSG
+	// 0x004D8CB9
 	// 消息循环
 	for {
-		if ebp28msg.Message == win.WM_CLOSE ||
-			ebp28msg.Message == win.WM_QUIT {
-			break
+		if ebp28msg.Message == win.WM_CLOSE || ebp28msg.Message == win.WM_QUIT {
+			break // 0x004D8F6C
 		}
 		if win.PeekMessage(&ebp28msg, 0, 0, 0, 0) {
-			// win.ImmIsUIMessage()
+			// 0x004D8CE7
+			// Checks for messages intended for the IME window and sends those messages to the window.
+			// Returns a nonzero value if the message is processed by the IME window, or 0 otherwise.
+			// ebp595 := bool(dll.imm32.ImmIsUIMessage(0, ebp28msg.Message, ebp28msg.WParam, ebp28msg.LParam)) // 输入法
 			if ebp28msg.Message == 0x100 || // WM_KEYFIRST, WM_KEYDOWN
 				ebp28msg.Message == 0x101 || // WM_KEYUP
-				ebp595 != 0 ||
+				// ebp595 == true ||
 				ebp28msg.Message == 0x201 || // WM_LBUTTONDOWN
 				ebp28msg.Message == 0x202 { // WM_LBUTTONUP
-				// f00A49798get(ebp28msg.HWnd, ebp28msg.Message, ebp28msg.WParam, ebp28msg.LParam, 1)
-				// f00A4DFB7()
+				// f00A49798game().f00A4DFB7(ebp28msg.HWnd, ebp28msg.Message, ebp28msg.WParam, ebp28msg.LParam, 1)
 			}
-
 			if 0 == win.GetMessage(&ebp28msg, 0, 0, 0) { // WM_QUIT返回0，出错返回-1
-				break
+				break // 0x004D8F6C
 			}
 			win.TranslateMessage(&ebp28msg)
 			win.DispatchMessage(&ebp28msg) // 到WndProc
 		} else {
-			if v012E2224 == 0 {
+			// 0x004D8D80
+			if v012E2224 == 0 { // 0 means hack?
+				// 0x004D8D91 0x004D8D95
 				v01319D9C++
 				if v01319D9C > 30 {
 					v01319D98++
@@ -1074,14 +1102,15 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 						v01319D9C = 0
 						v01319D98 = 0
 						if v01319DB4 == 0 {
-							var packet pb
-							packet.f00439178init()
-							packet.f0043922CwritePrefix(0xC1, 0xF1)
-							packet.f004397B1writeUint8(3)
-							packet.f004397B1writeUint8(1)
-							packet.f004397B1writeUint8(0)
-							packet.f004393EAsend(true, false)
-							packet.f004391CF()
+							// 发消息
+							var inhack pb
+							inhack.f00439178init()
+							inhack.f0043922CwriteHead(0xC1, 0xF1)
+							inhack.f004397B1writeUint8(3) // subcode
+							inhack.f004397B1writeUint8(1) // flag
+							inhack.f004397B1writeUint8(0) // subflag
+							inhack.f004393EAsend(true, false)
+							inhack.f004391CF()
 							v01319DB4 = 1
 						}
 						win.SetTimer(v01319D6ChWnd, 1001, 1000, 0)
@@ -1095,7 +1124,8 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 					}
 				}
 			}
-			if v012E2224 == 1 || v01319D95 != 0 {
+			// 0x004D8E7F 0x004D8E83
+			if v012E2224 == 1 || v01319D95 == true {
 				f004E6233handleState(v01319D74hDC) // 状态机 重要
 			} else if v012E2224 == 0 {
 				win.SetForegroundWindow(v01319D6ChWnd)
@@ -1112,10 +1142,11 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 				}
 			}
 		}
+		// 0x004D8F4B
 		f00760292parse(&v08C88FF0conn, 0, 0) // 从连接中获取报文并解析
 		// v01319D2C.f004B9492()
 	}
-
+	// 0x004D8F6C
 	// 退出消息循环
 	// f00535963()
 	if v01319D68 != nil {
@@ -1128,7 +1159,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	return int(ebp28msg.WParam) // return ebp20
 }
 
-func _f00A49E40() {
+func _f00A49E40init() {
 	// _00A4F3F2
 	func() {
 		// _00AECB6C

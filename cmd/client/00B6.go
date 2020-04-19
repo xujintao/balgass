@@ -203,10 +203,6 @@ func (p *t1000) f00B38EF4(hWnd win.HWND) {
 	// <IME information>\r\n
 }
 
-func f00B4C1B8() bool {
-	return false
-}
-
 func f00B4C1FF(hWnd win.HWND) {
 	if v01319D68 != nil {
 		// ...

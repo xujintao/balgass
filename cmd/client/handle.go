@@ -990,7 +990,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	}
 	// 0x00705077
 	// ...
-	// f00A49798get()
+	// f00A49798game()
 }
 
 // s9 f00670C47
@@ -1161,7 +1161,7 @@ func f006C18B6handleF6(code uint8, buf []uint8, len int, enc bool) {
 		func(unk uint32) {
 			var ebp148Ctrap pb
 			ebp148Ctrap.f00439178init()
-			ebp148Ctrap.f0043922CwritePrefix(0xC1, 0xF3)
+			ebp148Ctrap.f0043922CwriteHead(0xC1, 0xF3)
 			ebp148Ctrap.f004397B1writeUint8(0x31)
 			// big endian
 			ebp148Ctrap.f004397B1writeUint8(uint8(unk >> 24))
