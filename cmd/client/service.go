@@ -1269,7 +1269,7 @@ func f004DD578handleState1(hDC win.HDC) {
 	// ...
 	// 0x004DD963
 	// f006B4C78(hdC)
-	func() {
+	func(hDC win.HDC) {
 		// load NPC/...
 		// ...
 		// 0x006B7AAE
@@ -1308,7 +1308,7 @@ func f004DD578handleState1(hDC win.HDC) {
 			win.SendMessage(v01319D6ChWnd, 2, 0, 0)
 		}
 		// 0x006B7C88
-		f00A49798game().f00A4A521()
+		f00A49798game().f00A4A521init2()
 		// ...
 		// f006B7DDC() // load Data/local/...
 		func() {
@@ -1353,7 +1353,7 @@ func f004DD578handleState1(hDC win.HDC) {
 			println(ebp4)
 		}()
 		// ...
-	}()
+	}(hDC)
 	// ...
 	// 0x004DDA33
 	v01319E08log.f00B38AE4printf("> Loading ok.\r\n")

@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/binary"
 	"sync"
+	"sync/atomic"
+	"unsafe"
 
 	"github.com/xujintao/balgass/win"
 )
@@ -214,6 +216,55 @@ func (t *stdstring) f00407B10free() {
 	f00DE7538free(nil)
 }
 
+var v012F4D80empty uintptr = 0x80000000
+var v012F4D84cnt uint32
+
+// shared_ptr
+type xstring struct {
+	m00size int
+	m04     uint32
+	m08name [256]uint8
+}
+
+func (t *xstring) f00A3AF9Ecstr() string {
+	// t.f00A3AF6C()
+	return func() string {
+		return string(t.m08name[:])
+	}()
+}
+
+func f00BAC850xstring() *xstring {
+	atomic.AddUint32(&v012F4D84cnt, 1)
+	return (*xstring)(unsafe.Pointer(&v012F4D80empty))
+}
+
+// c++ functor
+func f00BADDD0xstring(s string) *xstring {
+	l := len(s)
+	// f00BAC8C0(v09D9BD74mm, l, 0, s, l)
+	return func(mm *mm, l1 int, x int, s string, l2 int) *xstring {
+		var w *xstring
+		if l1 == 0 {
+			atomic.AddUint32(&v012F4D84cnt, 1)
+			w = (*xstring)(unsafe.Pointer(v012F4D80empty))
+		} else {
+			// mm.do11malloc(uint(l1)+0xC, 0) // 0x13, 0
+			w = new(xstring)
+			w.m08name[8+l1] = 0
+			w.m04 = 1
+			w.m00size = l1
+		}
+		f00DE7C90memcpy(w.m08name[:], []byte(s), l2)
+		return w
+	}(v09D9BD74mm, l, 0, s, l)
+}
+
+func f00BADF50(s **xstring) *xstring {
+	// 判断*s是否4字节对齐
+	atomic.AddUint32(&(*s).m04, 1)
+	return *s
+}
+
 // load serverlist.bmd
 type server struct { // 0x54
 	// head
@@ -383,14 +434,6 @@ func (t *objectManager) f00A38D5BgetObject(index int) *object {
 	return &t.m08objects[index]
 }
 
-// draw
-
-type baser interface {
-	do4() bool
-	do6()
-	do7() bool
-}
-
 type mainFrame struct {
 	m30   uintptr
 	m2844 []uint8
@@ -407,223 +450,7 @@ func (t *mainFrame) f00BB1E00(buf []uint8, format string, param ...interface{}) 
 	// f00DF75E5(&ebp28, 0x10000, 0x30000)
 }
 
-type base struct {
-	baser
-	m08 struct {
-		m00 *mainFrame
-	}
-	m34 int
-	m44 struct{}
-	m4B bool
-}
-
-func (t *base) f00A3A41F() bool {
-	return false
-}
-
-func (t *base) f00A3A4C1() bool {
-	b := t.m4B
-	t.m4B = false
-	return b
-}
-
-func (t *base) f00A4977A() int {
-	return t.m34
-}
-
-type dash struct {
-	base
-	m88hp    uint16
-	m8ChpMax uint16
-	m90      bool
-	m94mp    uint16
-	m98mpMax uint16
-	m9Csd    uint16
-	mA0sdMax uint16
-	mA4ag    uint16
-	mA8agMax uint16
-	mB6      bool
-	m332     bool
-}
-
-// f00AA9458
-func (t *dash) do4() bool {
-	return false
-}
-
-func (t *dash) f00AAA14Ehpmp() {
-	var ebp8hpMax uint16
-	var ebpCmpMax uint16
-	var ebp14hp uint16
-	var ebp10mp uint16
-	if f0059D4F6bit4(v0805BBACself.m13) {
-		var ebp1C, ebp20 uint16
-		ebp8hpMax = v08C88E58hpMax
-		if v086105ECobject.m122hp >= 0 {
-			ebp1C = v086105ECobject.m122hp
-		} else {
-			ebp1C = 0
-		}
-		ebp14hp = ebp1C
-		ebpCmpMax = v08C88E5AmpMax
-		if v086105ECobject.m124mp >= 0 {
-			ebp20 = v086105ECobject.m124mp
-		} else {
-			ebp20 = 0
-		}
-		ebp10mp = ebp20
-	} else {
-		var ebp24, ebp28 uint16
-		ebp8hpMax = v086105ECobject.m126hpMax // 0x1B6
-		if v086105ECobject.m122hp >= 0 {
-			ebp24 = v086105ECobject.m122hp
-		} else {
-			ebp24 = 0
-		}
-		ebp14hp = ebp24                       // 0x144
-		ebpCmpMax = v086105ECobject.m128mpMax // 0x67
-		if v086105ECobject.m124mp >= 0 {
-			ebp28 = v086105ECobject.m124mp
-		} else {
-			ebp28 = 0
-		}
-		ebp10mp = ebp28 // 0x6B
-	}
-	// if ebp8hpMax > 0 && ebp14hp > 0 {
-	// 	ebp1 = v0805BBACself.m60C.f004CEC95(0x37, ebp8hpMax, ebp14hp)
-	// }
-	// ebp1 := v0805BBACself.m60C.f004CEC95(0x37, ebp8hpMax, ebp14hp)
-	ebp1 := false
-	if t.m90 != ebp1 {
-		t.m90 = ebp1
-		// f00A3A4F2(t, "SetChangeIntoxication", "%d", t.m90)
-	}
-	if t.m88hp != ebp14hp || t.m8ChpMax != ebp8hpMax {
-		t.m88hp = ebp14hp
-		t.m8ChpMax = ebp8hpMax
-		// f00A3A4F2(t, "SetHP", "%d %d", ebp14hp, ebp8hpMax)
-	}
-	if t.m94mp != ebp10mp || t.m98mpMax != ebpCmpMax {
-		t.m94mp = ebp10mp
-		t.m98mpMax = ebpCmpMax
-		f00A3A4F2(&t.base, "SetMP", "%d %d", ebp10mp, ebpCmpMax)
-	}
-}
-
-func (t *dash) f00AAA387sd() {
-	var ebp8sdMax uint16
-	var ebp4sd uint16
-	if f0059D4F6bit4(v0805BBACself.m13) {
-		var ebp10, ebp12 uint16
-		if v08C88E5CsdMax >= 1 {
-			ebp10 = v08C88E5CsdMax
-		} else {
-			ebp10 = 1
-		}
-		ebp8sdMax = ebp10
-		if ebp8sdMax >= v086105ECobject.m12Asd {
-			ebp12 = v086105ECobject.m12Asd
-		} else {
-			ebp12 = ebp8sdMax
-		}
-		ebp4sd = ebp12
-	} else {
-		var ebp18, ebp1A uint16
-		if v086105ECobject.m12CsdMax >= 1 {
-			ebp18 = v086105ECobject.m12CsdMax
-		} else {
-			ebp18 = 1
-		}
-		ebp8sdMax = ebp18 // 0x541
-		if ebp8sdMax >= v086105ECobject.m12Asd {
-			ebp1A = v086105ECobject.m12Asd
-		} else {
-			ebp1A = ebp8sdMax
-		}
-		ebp4sd = ebp1A // 0x541
-	}
-	if t.m9Csd != ebp4sd || t.mA0sdMax != ebp8sdMax {
-		t.m9Csd = ebp4sd
-		t.mA0sdMax = ebp8sdMax
-		// f00A3A4F2(t, "SetSD", "%d %d", ebp4sd, ebp8sdMax)
-	}
-}
-
-// f00AA94C1
-func (t *dash) do6() bool {
-	// if v01353C08.f00537917() == false && t.mB6 == false {
-	// 	t.mB6 = true
-	// 	f00A3A4F2(t, "SetQuestAlarm", "%d", t.mB6)
-	// } else if v01353C08.f00537917() == true && t.mB6 == true {
-	// 	t.mB6 = false
-	// 	f00A3A4F2(t, "SetQuestAlarm", "%d", t.mB6)
-	// }
-	t.f00AAA14Ehpmp() // hp mp
-	t.f00AAA387sd()   // sd
-	// t.f00AAA4C9ag() // ag
-	// t.f00AAA60Bexp() // exp
-	// t.f00AAAA77()
-	// t.f00AAAAAD()
-	// if t.m332 == false {
-	// 	t.m332 = true
-	// 	t.f00AAB4D1(0, 0, 0, 0)
-	// }
-	return true
-}
-
-// f00AA95BA
-func (t *dash) do7() bool {
-	return false
-}
-
-func f00A3A4F2(b *base, name string, format string, param ...interface{}) {
-	// 0x408局部变量
-	ebp4 := param
-	var ebp408 [1024]uint8
-	f00DF30EFstrcpysafe(ebp408[:], 1024, "_root.")
-	f00DECB2Estrcatsafe(ebp408[:], 1024, "g_mcMainFrame") // b.m44.f00A3AF9E()
-	f00DECB2Estrcatsafe(ebp408[:], 1024, ".")
-	f00DECB2Estrcatsafe(ebp408[:], 1024, name) // "SetSD"
-	if b.m08.m00 != nil {                      // if b.m08.f00A3BAB6() != nil {
-		b.m08.m00.f00BB1E00(ebp408[:], format, ebp4...) // b.m08.f00A3AF08().f00BB1E00(ebp408[:], format, ebp4)
-	}
-}
-
-// main window
-type windowManager2 struct {
-	m04 uintptr
-}
-
-func (t *windowManager2) f00A47461fresh() {
-	// 0x24局部变量
-	ebp1 := false
-	// t.m04.f00A483A4(&ebpC)
-	for {
-		// if false == ebpC.f00A486CA(t.m04.f00A483CB(&ebp20)) {
-		// 	return
-		// }
-		var ebp10 *base // ebp10 := *ebpC.f00A4863A()
-		if ebp10 == nil {
-			return
-		}
-		if ebp10.do4() {
-			ebp10.do6()
-		}
-		if ebp1 == false { // if ebp1 == false && v01319D6ChWnd == dll.user32.GetActiveWindow() && v01319D6ChWnd == dll.user32.GetFocus() {
-			ebp1 = ebp10.do7()
-		}
-		if ebp10.f00A4977A() == 5 && ebp10.f00A3A41F() == true {
-			ebp1 = true
-		}
-		if ebp10.f00A3A4C1() {
-			// t.f00A47B22(ebp10)
-			break
-		}
-		// ebpC.f00A4864B(&ebp18, 0)
-	}
-}
-
-//
+// game
 func f00A49798game() *game {
 	if v09D96438 == nil {
 		// ebp14 := f00DE852Fnew(0x228) // 0x0DDBB9F0
@@ -643,7 +470,7 @@ var v09D96438 *game
 
 // size:0x228 虚表:v01174338
 type game struct {
-	m00         uintptr
+	m00vtabptr  []uintptr
 	m08         windowManager1
 	m18         struct{}
 	m1C         struct{}
@@ -651,115 +478,116 @@ type game struct {
 	m24         struct{}
 	m2C         struct{}
 	m28         int
-	m30         struct{}
+	m30         *xstring // Taiwan
 	m34         int
 	m38         struct{}
 	m58         struct{}
 	m68hwndNext win.HWND
-	m6Cstate    int
-	m70         *windowManager2
-	m74         uintptr // state2
-	m78         uintptr // state4
-	m7C         uintptr // state5
-	m80         uintptr
-	m84         uintptr
 
-	m88  uintptr // Caution
-	m8C  uintptr // MainFrame
-	m90  uintptr // characterFrame
-	m94  uintptr // inventoryFrame
-	m98  uintptr // ExtensionBagFrame
-	m9C  uintptr // PrivateStoreFrame
-	mA0  uintptr // MixInventoryFrame
-	mA4  uintptr // MixSel
-	mA8  uintptr // MixGoblinSel
-	mAC  uintptr // MixStone
-	mB0  uintptr // MixInventoryFrame
-	mB4  uintptr // GensRanking
-	mB8  uintptr // GuildCreateFrame
-	mBC  uintptr // GuildInfoFrame
-	mC0  uintptr // GuildPosition
-	mC4  uintptr // infoPopup
-	mC8  uintptr // PetInfoPopup
-	mCC  uintptr
-	mD0  uintptr // QuickCommand
-	mD4  uintptr // duel
-	mD8  uintptr // duelwatch
-	mDC  uintptr // trade
-	mE0  uintptr // purchaseinven
-	mE4  uintptr // goldarcher
-	mE8  uintptr
-	mEC  uintptr // npcdialogue
-	mF0  uintptr // NpcShop
-	mF4  uintptr // PetInfo
-	mF8  uintptr // Pentagram
-	mFC  uintptr // ArkaResultInfo
-	m100 uintptr // StorageInven
-	m104 uintptr // StorageInven
-	m108 uintptr // NpcJobChangeQuest
-	m10C uintptr // NpcQuestProgress
-	m110 uintptr // NpcGateKeeper
-	m114 uintptr // SystemMenu
-	m118 uintptr // Option
-	m11C uintptr // SelectMenu
-	m120 uintptr // MyQuestInfo
-	m124 uintptr // ChatWindow
-	m128 uintptr // MoveCommand
-	m12C uintptr // HelpWindow
-	m130 uintptr // EventMapHelper
-	m134 uintptr // Trainer 驯兽师
-	m138 uintptr // MapName
-	m13C uintptr // Notice
-	m140 uintptr // HeroPosition
-	m144 uintptr // EnterBloodCastle
-	m148 uintptr // EnterEmpireGuardian
-	m14C uintptr // CommandWindow
-	m150 uintptr // ArkaBattleRegister
-	m154 uintptr // ArkaBattleProgress
-	m158 uintptr // ArkaBattleNotice
-	m15C uintptr // MonsterInfo
-	m160 uintptr // PlayerInfo
-	m164 uintptr // BuffFrame
-	m168 uintptr // EquipDurabilityInfo
-	m16C uintptr // MacroMain
-	m170 uintptr // MacroSub
-	m174 uintptr // Alarm
-	m178 uintptr // MatchingSelect
-	m17C uintptr // MatchingGuild
-	m180 uintptr // MatchingParty
-	m184 uintptr // PartyFrame
-	m188 uintptr // ItemInfo
-	m18C uintptr // StrongestMatchMenu
-	m190 uintptr // StrongestMatchRank
-	m194 uintptr // StrongestMatchResult
-	m198 uintptr // SearchPrivateStore
-	m19C uintptr // MiniGameRummy
-	m1A0 uintptr // EventInventoryFrame
-	m1A4 uintptr // EventInfo
-	m1A8 uintptr // CursedTempleMatchMenu
-	m1AC uintptr // CursedTempleResult
-	m1B0 uintptr // CursedTempleScore
-	m1B4 uintptr // CursedTempleInfo
-	m1B8 uintptr // ListOfMatches
-	m1BC uintptr // EventMapProgressInfo
-	m1C0 uintptr // EventMapRoundCount
-	m1C4 uintptr // ProgressFrame
-	m1C8 uintptr // Navimap
-	m1CC uintptr // PetInventoryFrame
-	m1D0 uintptr // MuunExchange
-	m1D4 uintptr // OrdealSquareEnterMenu
-	m1D8 uintptr // OrdealSquareScore
-	m1DC uintptr // OrdealSquareResult
-	m1E0 uintptr // EventMapTutorial
-	m1E4 uintptr // EventInfo
-	m1E8 uintptr // BattleField_BigDialog
-	m1EC uintptr // RideButton
-	m1F0 uintptr // MonsterCompensation
-	m1F4 uintptr // ImageNotice
-	m1F8 uintptr // GremoryCase 活动奖励背包
-	m1FC uintptr // RebuyList
-	m200 uintptr // PetFrame
-	m204 uintptr // do5 ebp7C
+	m6Cstate int
+	m70      *windowManager01173C54
+	m74      uintptr                // state2
+	m78      uintptr                // state4
+	m7C      *windowManager01173C54 // state5
+
+	m80            *windowgame0116A864
+	m84infoTooltip *windowgameInfoTooltip
+	m88caution     *windowgameCaution   // Caution
+	m8CmainFrame   *windowgameMainFrame // MainFrame
+	m90            uintptr              // characterFrame
+	m94            uintptr              // inventoryFrame
+	m98            uintptr              // ExtensionBagFrame
+	m9C            uintptr              // PrivateStoreFrame
+	mA0            uintptr              // MixInventoryFrame
+	mA4            uintptr              // MixSel
+	mA8            uintptr              // MixGoblinSel
+	mAC            uintptr              // MixStone
+	mB0            uintptr              // MixInventoryFrame
+	mB4            uintptr              // GensRanking
+	mB8            uintptr              // GuildCreateFrame
+	mBC            uintptr              // GuildInfoFrame
+	mC0            uintptr              // GuildPosition
+	mC4            uintptr              // infoPopup
+	mC8            uintptr              // PetInfoPopup
+	mCC            uintptr
+	mD0            uintptr // QuickCommand
+	mD4            uintptr // duel
+	mD8            uintptr // duelwatch
+	mDC            uintptr // trade
+	mE0            uintptr // purchaseinven
+	mE4            uintptr // goldarcher
+	mE8            uintptr
+	mEC            uintptr // npcdialogue
+	mF0            uintptr // NpcShop
+	mF4            uintptr // PetInfo
+	mF8            uintptr // Pentagram
+	mFC            uintptr // ArkaResultInfo
+	m100           uintptr // StorageInven
+	m104           uintptr // StorageInven
+	m108           uintptr // NpcJobChangeQuest
+	m10C           uintptr // NpcQuestProgress
+	m110           uintptr // NpcGateKeeper
+	m114           uintptr // SystemMenu
+	m118           uintptr // Option
+	m11C           uintptr // SelectMenu
+	m120           uintptr // MyQuestInfo
+	m124           uintptr // ChatWindow
+	m128           uintptr // MoveCommand
+	m12C           uintptr // HelpWindow
+	m130           uintptr // EventMapHelper
+	m134           uintptr // Trainer 驯兽师
+	m138           uintptr // MapName
+	m13C           uintptr // Notice
+	m140           uintptr // HeroPosition
+	m144           uintptr // EnterBloodCastle
+	m148           uintptr // EnterEmpireGuardian
+	m14C           uintptr // CommandWindow
+	m150           uintptr // ArkaBattleRegister
+	m154           uintptr // ArkaBattleProgress
+	m158           uintptr // ArkaBattleNotice
+	m15C           uintptr // MonsterInfo
+	m160           uintptr // PlayerInfo
+	m164           uintptr // BuffFrame
+	m168           uintptr // EquipDurabilityInfo
+	m16C           uintptr // MacroMain
+	m170           uintptr // MacroSub
+	m174           uintptr // Alarm
+	m178           uintptr // MatchingSelect
+	m17C           uintptr // MatchingGuild
+	m180           uintptr // MatchingParty
+	m184           uintptr // PartyFrame
+	m188           uintptr // ItemInfo
+	m18C           uintptr // StrongestMatchMenu
+	m190           uintptr // StrongestMatchRank
+	m194           uintptr // StrongestMatchResult
+	m198           uintptr // SearchPrivateStore
+	m19C           uintptr // MiniGameRummy
+	m1A0           uintptr // EventInventoryFrame
+	m1A4           uintptr // EventInfo
+	m1A8           uintptr // CursedTempleMatchMenu
+	m1AC           uintptr // CursedTempleResult
+	m1B0           uintptr // CursedTempleScore
+	m1B4           uintptr // CursedTempleInfo
+	m1B8           uintptr // ListOfMatches
+	m1BC           uintptr // EventMapProgressInfo
+	m1C0           uintptr // EventMapRoundCount
+	m1C4           uintptr // ProgressFrame
+	m1C8           uintptr // Navimap
+	m1CC           uintptr // PetInventoryFrame
+	m1D0           uintptr // MuunExchange
+	m1D4           uintptr // OrdealSquareEnterMenu
+	m1D8           uintptr // OrdealSquareScore
+	m1DC           uintptr // OrdealSquareResult
+	m1E0           uintptr // EventMapTutorial
+	m1E4           uintptr // EventInfo
+	m1E8           uintptr // BattleField_BigDialog
+	m1EC           uintptr // RideButton
+	m1F0           uintptr // MonsterCompensation
+	m1F4           uintptr // ImageNotice
+	m1F8           uintptr // GremoryCase 活动奖励背包
+	m1FC           uintptr // RebuyList
+	m200           uintptr // PetFrame
+	m204           uintptr // do5 ebp7C
 
 	m20Cwidth  int
 	m210height int
@@ -780,7 +608,7 @@ func (t *game) f00A49808construct() *game {
 	ebp18.f00BBBA00construct()
 	ebp38 := ebp18
 	ebp14 := ebp38
-	ebp10 := ebp14 // ebp10.f00A50545(ebp14)
+	ebp10 := i011737C4(ebp14) // ebp10.f00A50545(ebp14)
 
 	// // 构造子窗口2
 	// ebp24 := f00A3BA10newobject(0x0C) // 0x0EB41ED0
@@ -794,7 +622,7 @@ func (t *game) f00A49808construct() *game {
 	ebp24.f00A50053construct()
 	ebp3C := ebp24
 	ebp20 := ebp3C
-	ebp1C := ebp20 // ebp1C.f00A50576(ebp20)
+	ebp1C := i011737C4(ebp20) // ebp1C.f00A50576(ebp20)
 
 	// // 构造子窗口3
 	// ebp30 := f00A3BA10newobject(0x0C) // 0x0EB41EE0
@@ -808,10 +636,10 @@ func (t *game) f00A49808construct() *game {
 	ebp30.f00A50036construct()
 	ebp40 := ebp30
 	ebp2C := ebp40
-	ebp28 := ebp2C // ebp28.f00A504E3(ebp2C)
+	ebp28 := i011737C4(ebp2C) // ebp28.f00A504E3(ebp2C)
 
 	// register
-	println(ebp10, ebp1C, ebp28) // t.m08.f00BB0D20construct(ebp28, ebp1C, ebp10)
+	t.m08.f00BB0D20construct(ebp28, ebp1C, ebp10)
 	// ebp28.f00A504F9()
 	// ebp1C.f00A5058C()
 	// ebp10.f00A5055B()
@@ -828,7 +656,7 @@ func (t *game) f00A49808construct() *game {
 	return nil
 }
 
-func (t *game) f00A49E40init(hWnd win.HWND, width, height int) {
+func (t *game) f00A49E40init1(hWnd win.HWND, width, height int) {
 	// ebp7C := t
 	t.m20Cwidth = width
 	t.m210height = height
@@ -850,55 +678,95 @@ func (t *game) f00A49E40init(hWnd win.HWND, width, height int) {
 	// ...
 }
 
-func (t *game) f00A4E46D() {
-
+func (t *game) f00A4E46DLoadResource(w iwindowgame0117373C, x int, name *xstring, y bool, z int) bool {
+	// 0x1C局部变量
+	// ebp20 := t
+	if t.m7C == nil {
+		ebp14 := new(windowManager01173C54)
+		ebp14.f00A472A7construct()
+		ebp24 := ebp14
+		ebp10 := ebp24
+		t.m7C = ebp10
+	}
+	// ebp25 := t.f00A4E520()
+	ebp25 := func(wm *windowManager01173C54, w iwindowgame0117373C, x int, name *xstring, y bool, z int) bool {
+		// 0x48局部变量
+		// ebp3C := t
+		ebp1D := false
+		if w == nil || wm == nil {
+			ebp1E := ebp1D
+			// name.f00A3AF16()
+			return ebp1E
+		}
+		// ebp14dir := f00BADDD0xstring("./Data/Interface/GFx/")
+		// ebp40 := t.f00A4F04E(&ebp18, f00BADF50(&ebp14dir), name.f00A3AF9Ecstr()) // ./Data/Interface/GFx/xxx
+		// 								 &t.m08  5  "Caution.ozg"      "Taiwan"           5       0     0  0
+		var ebp45 bool // ebp45 := w.do2(&t.m08, x, ebp14dir.f00BAE060(), f00BADF50(&t.m30), ebp10, ebp1C, 0, 0)
+		if ebp45 == true {
+			// w.do3()
+			if z != 9 {
+				// f00A3A4F2(w, "SetAlign", "%d", z)
+			}
+			if y == true {
+				w.f00A3A717(true)
+			}
+			wm.f00A47FAB(w)
+		} else {
+			// dll.user32.MessageBox(0, name.f00A3AF9Ecstr(), "Load Fail!!", 0)
+			if w != nil {
+				ebp34 := w
+				ebp30 := ebp34
+				ebp30.do1(true)
+			}
+		}
+		ebp35 := ebp1D
+		// ebp18.f00A3AF16()
+		// ebp14dir.f00A3AF16()
+		// name.f00A3AF16()
+		return ebp35
+	}(t.m7C, w, x, f00BADF50(&name), y, z)
+	ebp15 := ebp25
+	// name.f00A3AF16()
+	return ebp15
 }
 
-func (t *game) f00A4A521() {
+func (t *game) f00A4A521init2() {
 	// 0x610局部变量
 	// ebp494 := t
-	ebp14 := f00DE852Fnew(0x34)
-	if ebp14 != nil {
-		ebp498 = ebp14.f008E20BBconstruct()
-	} else {
-		ebp498 = nil
-	}
+
+	// t.m80
+	ebp14 := new(windowgame0116A864)
+	ebp14.f008E20BBconstruct()
+	ebp498 := ebp14
 	ebp10 := ebp498
 	t.m80 = ebp10
-	ebp1C := f00DE852Fnew(0x40)
-	if ebp1C != nil {
-		ebp49C = ebp1C.f00A3BBB9construct()
-	} else {
-		ebp49C = nil
-	}
+
+	// infoTooltip
+	ebp1C := new(windowgameInfoTooltip)
+	ebp1C.f00A3BBB9construct()
+	ebp49C := ebp1C
 	ebp18 := ebp49C
-	t.m84 = ebp18
+	t.m84infoTooltip = ebp18
+
+	// t.m70
 	t.m70 = nil
 
 	// Caution
-	ebp24 := f00DE852Fnew(0xA4)
-	if ebp24 != nil {
-		ebp4A0 = ebp24.f00A99F11construct()
-	} else {
-		ebp4A0 = nil
-	}
-	ebp20 := ebp24
-	t.m88 = ebp20
-	f00BADDD0("Caution", 0, 9)
-	// t.f00A4E46D(t.m88, 5)
+	ebp24 := new(windowgameCaution)
+	ebp24.f00A99F11construct()
+	ebp4A0 := ebp24
+	ebp20 := ebp4A0
+	t.m88caution = ebp20
+	t.f00A4E46DLoadResource(t.m88caution, 5, f00BADDD0xstring("Caution"), false, 9)
 
-	// GuildPosition
-	ebp30 := f00DE852Fnew(0x78)
-	if ebp30 != nil {
-		ebp4A4 = ebp30.f00A77610construct()
-	} else {
-		ebp4A4 = nil
-	}
-	ebp2C := ebp4A4
-	t.mC0 = ebp2C
-	f00BADDD0("GuildPosition", 0, 9)
-	// t.f00A4E46D(t.mC0, 5)
-
+	// MainFrame
+	ebp3F4 := new(windowgameMainFrame)
+	ebp3F4.f00AA9021construct()
+	ebp5E8 := ebp3F4
+	ebp3F0 := ebp5E8
+	t.m8CmainFrame = ebp3F0
+	t.f00A4E46DLoadResource(t.m8CmainFrame, 1, f00BADDD0xstring("MainFrame"), true, 2)
+	// ...
 }
 
 func (t *game) f00A4E1BFchangeState(state int) bool {
@@ -933,9 +801,9 @@ func (t *game) f00A4E1BFchangeState(state int) bool {
 	return true
 }
 
-func (t *game) f00A4DC94(state int) {
-	if t.m80 != 0 {
-		// t.m80.f008E27CF()
+func (t *game) f00A4DC94fresh(state int) {
+	if t.m80 != nil {
+		// t.m80.f008E27CFfresh()
 	}
 	if t.m70 != nil {
 		t.m70.f00A47461fresh()

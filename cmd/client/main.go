@@ -330,371 +330,371 @@ func f004D755F(haystack []uint8, y int, buf []uint8) bool {
 
 // f004D7CE5winMain, WinMain
 func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine string, iCmdShow int) int {
-	// ----------------------winmain反调式-------------------
-	// 0x0A05E61B
-	var label1 uint32 = 0x009DCA19
-	// push label1
-	// 0x0ABDA0EA
-	var label2 uint32 = 0x0A3349B0
-	// push label2
-	// 0x0A4420A9
-	var label3 uint32 = 0x0A0518C4
-	// push label3
-	// 0x0A8485E3
-	// push fd ebx edi esi edx ecx
-
-	// 0x09EBC742
-	var label4 uint32 = 0x0AD2B081
-	// push label4
-	// push 0x0AD91CED
-	// ret
-
-	// 0x0AD91CED, f0AD91CED
 	func() {
-		// 0xFC局部变量
-		// push ebx esi edi
-		var ebp8 uint32
-		var ebp10 uint32
-		var ebp14 uint32
-		//var ebp18 uint32
-		var ebp20 uint32
-		var ebp24 uint32
-		//var ebp28 uint32
-		var ebp30 uint32
-		var ebp34 uint32
-		var ebp38 uint32
-		var ebp40 uint32
-		var ebp44 uint32
+		// 0x0A05E61B
+		var label1 uint32 = 0x009DCA19
+		// push label1
+		// 0x0ABDA0EA
+		var label2 uint32 = 0x0A3349B0
+		// push label2
+		// 0x0A4420A9
+		var label3 uint32 = 0x0A0518C4
+		// push label3
+		// 0x0A8485E3
+		// push fd ebx edi esi edx ecx
 
-		label1 = v0A56E4E2label1 // [ebp+v0A7483B4*4+8] = v0A56E4E2label1
-		if v0A74573D == 0 {      // 0x3F
-			// 0x0AA09510
-			ebp34 = 8
-			ebp14 = 0xFF
-			// 0x0A7AC650 0x0A83CE6F
-		} else if v0A74573D > 0xFF { // 0x09FC6431 0x0AC37855 没必要再判断v0A74573D==0
-			// 0x0A9F5A38 0x0A6B0AEB ...
-		} else {
-			// 0x0A9F5A3E 0x0AA2F062 0x0A32AFCE
-			ebp14 = v0A74573D
-			ebp44 = v0A74573D
-			for {
-				// 0x0A058220 0x0AAB85DB 0x0AF77F6A 0x0AD80BB2 0x0A391FF8 0x0AD3B8F3 0x0A3927B1 0x09EBC1FB
-				if ebp44 <= 0 { // 迭代结束, ebp44=0, ebp34=6
-					// 0x0AF814F7
-					break // 0x0A83CE6F
-				}
-				// 0x0A442AC6 0x0AF7F68B 0x0A84320A 0x0A8902CD 0x0B071558 0x0AD98514 0x0ABF87EB
-				if ebp44&1 != 0 {
-					// 0x09E91EC8
-					ebp34++ // 1,2,3,4,5,6
-				}
-				// 0x09FDAD42 0x0AC3847E
-				ebp44 >>= 1 // 31,15,7,3,1,0
-				// 0x0A058220
-			}
-		}
-		// 0x0A83CE6F 0x0A38F2A7 0x0AF11D82 0x0A565A51
-		if ebp34 == 0 {
-			// 0x0A8FA42A 0x0A6B0AEB
-		}
-		// 0x0A84D90D
-		ebp38 = 0
-		// 0x0A32AF58
-		v0A38DB63 = v0AF77CE1 ^ v0B1090BA
-		// 0x0A38DB63
-		// rdtsc
-		var tscLeax uint32 = 0x5274DC2C
-		//var tscHedx uint32 = 0x00010865
-		// 0x0A32F0F4 0x0AF8EBF1
-		ebp20 = tscLeax | (ebp20 >> 16) // 0x5274DE7C
-		// 0x0A56E64F 0x0ABE0B07
-		ebp20 %= 0x1F // 构造一个[1,30]之间的随机数, 30
-		ebp8 = 1
-		for {
-			// 0x0A9FBE5C 0x0AD83B40 0x09E240E7 0x09FE52D1 0x09FCAF92 0x0B10FA31 0x09E03B4A
-			if ebp8&ebp14 != 0 { // 1&0x3F
-				// 0x0AD98F0D, 计算ebp8
-				ebp40 = ebp20 % ebp34 // 30%6
-				for {
-					// 0x0AD75B27
-					if ebp40 <= 0 {
-						break // 0x0ABB3DF5
-					}
-					// 0x0AF82F72
-					ebp8 <<= 1 // 2,4,8,16,32
-					// 0x0A3A7943
-					if ebp8&ebp14 == 0 { // 2&0x3F, 不超过6次
-						// 0x0A049688
-					}
-					// 0x0AC39B0A 0x09E8EB25
-					ebp40-- // 4,3,2,1,0
-				} // for loop 0x0AD75B27
-
-				// 0x0ABB3DF5 0x0A742C83 0x0A3360C0 0x0A90096C 0x0A4DF380 0x0A8892C0
-				if ebp8&1 != 0 { // 情形1
-					// 0x0ABFA5B3 0x0AA0932E
-					// push eax
-					// pushf
-					// eax = [esp]
-					// ebp10 = 0x00010202
-					// popf
-					// 0x0AA3115D
-					// pop eax
-					// 0x0A55B75A 0x09E0403A 0x0A3A90E4 0x09E28B74 0x0AA2C54F 0x0AD3151D 0x0A39070B
-					if ebp10&0x100 != 0 { // TF位(单步跟踪)
-						// 0x0A12E17A 0x0A6B0AEB
-					}
-					// 0x0A7ADFFA 0x0AF872E5
-					label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5A
-					// 0x0A4DE5C1
-					ebp38++
-					// 0x0AF81189
-					ebp8 &= ^uint32(1) // 清零
-					// 0x0A4E80E3
-				}
-				// 0x0A4E80E3 0x0A4DDA43 0x0A05AA37 0x09FD9C5C 0x09E30794 0x0A4DDA22 0x09F8E057
-				// 0x0A7441CB 0x0A84A77E
-				if ebp8&2 != 0 { // 情形2
-					// 0x0A742EF1 0x0A445521
-					// pushad
-					// push 0x0AFD709D
-					// push fs[0]
-					// fs[0] = esp
-					// push 0
-					// push 0
-					// int3 ; 报0x80000003, EXCEPTION_BREAKPOINT
-					// pop ebp30
-					// pop ebp18
-					// pop fs[0]
-					// esp+=4
-					// popad
-
-					if ebp30 == 0 {
-						// 0x0A5D66DF 0x0A6B0AEB
-					}
-					// 0x0A5625C2
-					label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5Alabel2
-					ebp38++
-					ebp8 &= ^uint32(2) // 清零
-				}
-				// 0x0AD31978
-				if ebp8&4 != 0 { // 情形3
-					// 0x0AFDC124
-					ebp30 = 1
-					// pushad
-					// push 0x0AF94419 ;SEH
-					// push fs[0]
-					// fs[0]=esp
-					// push 0
-					// int1 ;频发，单步直接stepover了，没有进入SEH异常处理，而Run是ok的报0x80000004, EXCEPTION_SINGLE_STEP
-					// pop ebp30
-					// pop fs[0]
-					// esp+=4
-					// popad
-
-					if ebp30 == 0 {
-						// 0x09F84AFD 0x0A6B0AEB
-					}
-					// 0x0AA30C97
-					label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5Alabel2
-					ebp38++
-					ebp8 &= ^uint32(4) // 清零
-				}
-				// 0x0A92FBD9
-				if ebp8&8 != 0 { // 情形4
-					// 0x09E2BB81 0x0ABFA7E5 0x0A847A61 0x0A7AD6B6 0x0A904AEE 0x0A4E7E87 0x09E25911
-					ebp30 = 1
-					// pushad
-					// push 0x0A32BD69 ;SEH
-					// push fs[0]
-					// fs[0]=esp
-					// push 0
-					// push 0
-					// int 1 ;指令是CD 01，报0xC0000005, EXCEPTION_ACCESS_VIOLATION
-					// pop ebp30
-					// pop ebp18
-					// pop fs[0]
-					// esp+=4
-					// popad
-
-					// 0x0A327A81 0x0A05C5B5 0x09FC28CA 0x0B10F776 0x0ABB564B
-					if ebp30 == 0 {
-						// 0x09F8768E 0x0A6B0AEB
-					}
-					// 0x09FC1A2B
-					label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5Alabel2
-					ebp38++
-					ebp8 &= ^uint32(8) // 清零
-				}
-				// 0x0A9353C2 0x0AF8FAB1 0x0B074337 0x0AD9201D 0x0A895B6A 0x09FD5603 0x0ABB3AC2
-				// 0x0ABD65F8 0x0AAB22A0
-				if ebp8&0x10 != 0 { // 情形5
-					// 0x0AFD7373 0x0A892E27
-					type ntTIB struct {
-						SEH                  uintptr
-						StackBase            uintptr
-						StackLimit           uintptr
-						SubSystemTIB         uintptr
-						FiberData            uintptr // or Version
-						ArbitraryUserPointer uintptr
-						Self                 *ntTIB
-					}
-					type ntPEB struct {
-						InheritedAddressSpace    uint8
-						ReadImageFileExecOptions uint8
-						BeingDebugger            uint8
-						// ...
-					}
-					type ntTEB struct {
-						tib ntTIB
-						// ...
-						peb *ntPEB // ProcessEnvironmentBlock
-					}
-					// push eax
-					tebp := (*ntTEB)(unsafe.Pointer(&ntTIB{}))
-					debuger := tebp.peb.BeingDebugger // IsDebuggerPresent
-					// 0x0A844844
-					if debuger != 0 {
-						// 0x0A6B0AEB
-					}
-					// 0x0AA0DDAE
-					label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5Alabel2
-					ebp38++
-					ebp8 &= ^uint32(0x10) // 清零
-				}
-				// 0x0A444B3D 0x09E2F73A 0x0AD813DC 0x0AF899B3 0x0A05DA3A
-				if ebp8&0x20 != 0 { // 情形6
-					var ebp70Name [28]uint8
-					// 0x09E6AFDD，加载ntdll.dll--------------------------------------
-					ebp4C := 0
-					ebp74 := ebp70Name[:]
-					for {
-						// 0x0AD80EA0 0x09E9120A 0x0ABFAB5E 0x0AD8044B
-						ebp74[0] = v09FBF62E[ebp4C] ^ v09F8D538[ebp4C]
-						ebp4C++
-						// 0x0A5D39E1 0x0AD91C0D
-						if ebp74[0] == 0 {
-							break // 0x09E6F520，此时ebp70Name="ntdll.dll"
-						}
-						ebp74 = ebp74[1:]
-					}
-					// 0x09E6F520 0x0AF79937
-					// push ebp70Name[:]
-					// push 0x09FB452D
-					// push &LoadLibraryA
-					// ret
-					var ebp28 uint32
-					// ebp28 = win.LoadLibraryA(string(ebp70Name[:]))
-					// 0x09FB452D
-					if ebp28 == 0 {
-						// 0x0A44B037 0x0A6B0AEB
-					}
-
-					// 0x09EB89D9，得到NtQueryInformationProcess函数------------------
-					ebp4C = 0
-					ebp78 := ebp70Name[:]
-					for {
-						// 0x0A4E3C47
-						ebp78[0] = v0AD72DB9[ebp4C] ^ v0A55FF3A[ebp4C]
-						ebp4C++
-						if ebp78[0] == 0 {
-							break // 0x0A847E6C
-						}
-						ebp78 = ebp78[1:]
-					}
-					// 0x0A847E6C
-					// push ebp70Name[:]
-					// push ebp28
-					// push 0x0A8FEA70
-					// push &GetProcAddress ;0x0A8FEA70
-					// ret
-					var ebp1CNtQueryInformationProcess uint32
-					// ebp1C = win.GetProcAddress(ebp28, ebp70Name[:])
-					// 0x0A8FEA70
-					if ebp1CNtQueryInformationProcess == 0 {
-						// 0x0AD2DAF1
-						// win.FreeLibrary(ebp28)
-						// 0x0A4E108E 0x0A6B0AEB
-					}
-
-					// 0x0ABD793E，使用NtQueryInformationProcess函数检测ProcessDebugPort------
-					ebp7C := ebp70Name[:]
-					// 0x0AF78158
-					for {
-						// 0x09F8EA54 0x0A04D754 0x0A5D2F76 0x0A0C414C 0x09FB9026 0x0A848CF2 0x0AD311C1
-						if ebp7C[0] == 0 {
-							break // 0x0A9038FE
-						}
-						// 0x0AB4D2EB 0x0A562C24
-						ebp7C[0] = 0
-						ebp7C = ebp7C[1:]
-					}
-					// 0x0A9038FE 0x0A56FA61 0x0A745C77
-					ebp54ProcInfo := 0
-					// ebp48RetLen := 0
-					// ebp50ProcInfoClass := 7 // ProcessDebugPort
-					// ebp1CNtQueryInformationProcess(win.GetCurrentProcess(), ebp50ProcInfoClass, &ebp54ProcInfo, 4, &ebp48RetLen)
-					// 0x0A9FF9C9
-					// win.FreeLibrary(ebp28)
-					// 0x0AD31229
-					if ebp54ProcInfo != 0 {
-						// 0x0A3A8E2B 0x0A6B0AEB
-					}
-					// 0x0AD8099B 0x0AF86233 0x0A0C3BDF
-					label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5Alabel2
-					ebp38++
-					ebp8 &= ^uint32(20) // 清零
-				}
-				// 0x0A887F5B
-				if ebp8&0x40 != 0 {
-					// 0x09FC67DB
-				}
-				// 0x0A05A2B7
-				if ebp8&0x80 != 0 {
-					// 0x0A889EB6
-				}
-				// 0x0A56391F，判等
-				if ebp8 != 0 {
-					// 0x0B07BF42 0x0A6B0AEB
-				}
-				// 0x0AD83D30
-				if ebp38 != 1 {
-					// 0x0A9331C5 0x0A6B0AEB
-				}
-				// 0x0AF77BA8
-				v0A325B9F = v09FBB49C
-				label3 = v0A557660label3 // [ebp+v0AA0D71B*4+8] = v0A557660label3
-				break                    // 0x09FBBB94
-			}
-			// 0x0A4E4AF6
-			ebp8 <<= 1
-		} // for loop 0x0A9FBE5C
-
-		// 0x0A6B0AEB 异常进入0x004D7CED姿势不对，会异常退出
-		ebp24 = v0A88E351
-		label4 = 0x0AD91CED - v09E2318F + ebp24 // 0x004D7CED
-
-		// 0x09FBBB94
-		// pop edi
-		// pop esi
-		// pop ebx
-		// leave
+		// 0x09EBC742
+		var label4 uint32 = 0x0AD2B081
+		// push label4
+		// push 0x0AD91CED
 		// ret
+
+		// 0x0AD91CED, f0AD91CED
+		func() {
+			// 0xFC局部变量
+			// push ebx esi edi
+			var ebp8 uint32
+			var ebp10 uint32
+			var ebp14 uint32
+			//var ebp18 uint32
+			var ebp20 uint32
+			var ebp24 uint32
+			//var ebp28 uint32
+			var ebp30 uint32
+			var ebp34 uint32
+			var ebp38 uint32
+			var ebp40 uint32
+			var ebp44 uint32
+
+			label1 = v0A56E4E2label1 // [ebp+v0A7483B4*4+8] = v0A56E4E2label1
+			if v0A74573D == 0 {      // 0x3F
+				// 0x0AA09510
+				ebp34 = 8
+				ebp14 = 0xFF
+				// 0x0A7AC650 0x0A83CE6F
+			} else if v0A74573D > 0xFF { // 0x09FC6431 0x0AC37855 没必要再判断v0A74573D==0
+				// 0x0A9F5A38 0x0A6B0AEB ...
+			} else {
+				// 0x0A9F5A3E 0x0AA2F062 0x0A32AFCE
+				ebp14 = v0A74573D
+				ebp44 = v0A74573D
+				for {
+					// 0x0A058220 0x0AAB85DB 0x0AF77F6A 0x0AD80BB2 0x0A391FF8 0x0AD3B8F3 0x0A3927B1 0x09EBC1FB
+					if ebp44 <= 0 { // 迭代结束, ebp44=0, ebp34=6
+						// 0x0AF814F7
+						break // 0x0A83CE6F
+					}
+					// 0x0A442AC6 0x0AF7F68B 0x0A84320A 0x0A8902CD 0x0B071558 0x0AD98514 0x0ABF87EB
+					if ebp44&1 != 0 {
+						// 0x09E91EC8
+						ebp34++ // 1,2,3,4,5,6
+					}
+					// 0x09FDAD42 0x0AC3847E
+					ebp44 >>= 1 // 31,15,7,3,1,0
+					// 0x0A058220
+				}
+			}
+			// 0x0A83CE6F 0x0A38F2A7 0x0AF11D82 0x0A565A51
+			if ebp34 == 0 {
+				// 0x0A8FA42A 0x0A6B0AEB
+			}
+			// 0x0A84D90D
+			ebp38 = 0
+			// 0x0A32AF58
+			v0A38DB63 = v0AF77CE1 ^ v0B1090BA
+			// 0x0A38DB63
+			// rdtsc
+			var tscLeax uint32 = 0x5274DC2C
+			//var tscHedx uint32 = 0x00010865
+			// 0x0A32F0F4 0x0AF8EBF1
+			ebp20 = tscLeax | (ebp20 >> 16) // 0x5274DE7C
+			// 0x0A56E64F 0x0ABE0B07
+			ebp20 %= 0x1F // 构造一个[1,30]之间的随机数, 30
+			ebp8 = 1
+			for {
+				// 0x0A9FBE5C 0x0AD83B40 0x09E240E7 0x09FE52D1 0x09FCAF92 0x0B10FA31 0x09E03B4A
+				if ebp8&ebp14 != 0 { // 1&0x3F
+					// 0x0AD98F0D, 计算ebp8
+					ebp40 = ebp20 % ebp34 // 30%6
+					for {
+						// 0x0AD75B27
+						if ebp40 <= 0 {
+							break // 0x0ABB3DF5
+						}
+						// 0x0AF82F72
+						ebp8 <<= 1 // 2,4,8,16,32
+						// 0x0A3A7943
+						if ebp8&ebp14 == 0 { // 2&0x3F, 不超过6次
+							// 0x0A049688
+						}
+						// 0x0AC39B0A 0x09E8EB25
+						ebp40-- // 4,3,2,1,0
+					} // for loop 0x0AD75B27
+
+					// 0x0ABB3DF5 0x0A742C83 0x0A3360C0 0x0A90096C 0x0A4DF380 0x0A8892C0
+					if ebp8&1 != 0 { // 情形1
+						// 0x0ABFA5B3 0x0AA0932E
+						// push eax
+						// pushf
+						// eax = [esp]
+						// ebp10 = 0x00010202
+						// popf
+						// 0x0AA3115D
+						// pop eax
+						// 0x0A55B75A 0x09E0403A 0x0A3A90E4 0x09E28B74 0x0AA2C54F 0x0AD3151D 0x0A39070B
+						if ebp10&0x100 != 0 { // TF位(单步跟踪)
+							// 0x0A12E17A 0x0A6B0AEB
+						}
+						// 0x0A7ADFFA 0x0AF872E5
+						label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5A
+						// 0x0A4DE5C1
+						ebp38++
+						// 0x0AF81189
+						ebp8 &= ^uint32(1) // 清零
+						// 0x0A4E80E3
+					}
+					// 0x0A4E80E3 0x0A4DDA43 0x0A05AA37 0x09FD9C5C 0x09E30794 0x0A4DDA22 0x09F8E057
+					// 0x0A7441CB 0x0A84A77E
+					if ebp8&2 != 0 { // 情形2
+						// 0x0A742EF1 0x0A445521
+						// pushad
+						// push 0x0AFD709D
+						// push fs[0]
+						// fs[0] = esp
+						// push 0
+						// push 0
+						// int3 ; 报0x80000003, EXCEPTION_BREAKPOINT
+						// pop ebp30
+						// pop ebp18
+						// pop fs[0]
+						// esp+=4
+						// popad
+
+						if ebp30 == 0 {
+							// 0x0A5D66DF 0x0A6B0AEB
+						}
+						// 0x0A5625C2
+						label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5Alabel2
+						ebp38++
+						ebp8 &= ^uint32(2) // 清零
+					}
+					// 0x0AD31978
+					if ebp8&4 != 0 { // 情形3
+						// 0x0AFDC124
+						ebp30 = 1
+						// pushad
+						// push 0x0AF94419 ;SEH
+						// push fs[0]
+						// fs[0]=esp
+						// push 0
+						// int1 ;频发，单步直接stepover了，没有进入SEH异常处理，而Run是ok的报0x80000004, EXCEPTION_SINGLE_STEP
+						// pop ebp30
+						// pop fs[0]
+						// esp+=4
+						// popad
+
+						if ebp30 == 0 {
+							// 0x09F84AFD 0x0A6B0AEB
+						}
+						// 0x0AA30C97
+						label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5Alabel2
+						ebp38++
+						ebp8 &= ^uint32(4) // 清零
+					}
+					// 0x0A92FBD9
+					if ebp8&8 != 0 { // 情形4
+						// 0x09E2BB81 0x0ABFA7E5 0x0A847A61 0x0A7AD6B6 0x0A904AEE 0x0A4E7E87 0x09E25911
+						ebp30 = 1
+						// pushad
+						// push 0x0A32BD69 ;SEH
+						// push fs[0]
+						// fs[0]=esp
+						// push 0
+						// push 0
+						// int 1 ;指令是CD 01，报0xC0000005, EXCEPTION_ACCESS_VIOLATION
+						// pop ebp30
+						// pop ebp18
+						// pop fs[0]
+						// esp+=4
+						// popad
+
+						// 0x0A327A81 0x0A05C5B5 0x09FC28CA 0x0B10F776 0x0ABB564B
+						if ebp30 == 0 {
+							// 0x09F8768E 0x0A6B0AEB
+						}
+						// 0x09FC1A2B
+						label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5Alabel2
+						ebp38++
+						ebp8 &= ^uint32(8) // 清零
+					}
+					// 0x0A9353C2 0x0AF8FAB1 0x0B074337 0x0AD9201D 0x0A895B6A 0x09FD5603 0x0ABB3AC2
+					// 0x0ABD65F8 0x0AAB22A0
+					if ebp8&0x10 != 0 { // 情形5
+						// 0x0AFD7373 0x0A892E27
+						type ntTIB struct {
+							SEH                  uintptr
+							StackBase            uintptr
+							StackLimit           uintptr
+							SubSystemTIB         uintptr
+							FiberData            uintptr // or Version
+							ArbitraryUserPointer uintptr
+							Self                 *ntTIB
+						}
+						type ntPEB struct {
+							InheritedAddressSpace    uint8
+							ReadImageFileExecOptions uint8
+							BeingDebugger            uint8
+							// ...
+						}
+						type ntTEB struct {
+							tib ntTIB
+							// ...
+							peb *ntPEB // ProcessEnvironmentBlock
+						}
+						// push eax
+						tebp := (*ntTEB)(unsafe.Pointer(&ntTIB{}))
+						debuger := tebp.peb.BeingDebugger // IsDebuggerPresent
+						// 0x0A844844
+						if debuger != 0 {
+							// 0x0A6B0AEB
+						}
+						// 0x0AA0DDAE
+						label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5Alabel2
+						ebp38++
+						ebp8 &= ^uint32(0x10) // 清零
+					}
+					// 0x0A444B3D 0x09E2F73A 0x0AD813DC 0x0AF899B3 0x0A05DA3A
+					if ebp8&0x20 != 0 { // 情形6
+						var ebp70Name [28]uint8
+						// 0x09E6AFDD，加载ntdll.dll--------------------------------------
+						ebp4C := 0
+						ebp74 := ebp70Name[:]
+						for {
+							// 0x0AD80EA0 0x09E9120A 0x0ABFAB5E 0x0AD8044B
+							ebp74[0] = v09FBF62E[ebp4C] ^ v09F8D538[ebp4C]
+							ebp4C++
+							// 0x0A5D39E1 0x0AD91C0D
+							if ebp74[0] == 0 {
+								break // 0x09E6F520，此时ebp70Name="ntdll.dll"
+							}
+							ebp74 = ebp74[1:]
+						}
+						// 0x09E6F520 0x0AF79937
+						// push ebp70Name[:]
+						// push 0x09FB452D
+						// push &LoadLibraryA
+						// ret
+						var ebp28 uint32
+						// ebp28 = win.LoadLibraryA(string(ebp70Name[:]))
+						// 0x09FB452D
+						if ebp28 == 0 {
+							// 0x0A44B037 0x0A6B0AEB
+						}
+
+						// 0x09EB89D9，得到NtQueryInformationProcess函数------------------
+						ebp4C = 0
+						ebp78 := ebp70Name[:]
+						for {
+							// 0x0A4E3C47
+							ebp78[0] = v0AD72DB9[ebp4C] ^ v0A55FF3A[ebp4C]
+							ebp4C++
+							if ebp78[0] == 0 {
+								break // 0x0A847E6C
+							}
+							ebp78 = ebp78[1:]
+						}
+						// 0x0A847E6C
+						// push ebp70Name[:]
+						// push ebp28
+						// push 0x0A8FEA70
+						// push &GetProcAddress ;0x0A8FEA70
+						// ret
+						var ebp1CNtQueryInformationProcess uint32
+						// ebp1C = win.GetProcAddress(ebp28, ebp70Name[:])
+						// 0x0A8FEA70
+						if ebp1CNtQueryInformationProcess == 0 {
+							// 0x0AD2DAF1
+							// win.FreeLibrary(ebp28)
+							// 0x0A4E108E 0x0A6B0AEB
+						}
+
+						// 0x0ABD793E，使用NtQueryInformationProcess函数检测ProcessDebugPort------
+						ebp7C := ebp70Name[:]
+						// 0x0AF78158
+						for {
+							// 0x09F8EA54 0x0A04D754 0x0A5D2F76 0x0A0C414C 0x09FB9026 0x0A848CF2 0x0AD311C1
+							if ebp7C[0] == 0 {
+								break // 0x0A9038FE
+							}
+							// 0x0AB4D2EB 0x0A562C24
+							ebp7C[0] = 0
+							ebp7C = ebp7C[1:]
+						}
+						// 0x0A9038FE 0x0A56FA61 0x0A745C77
+						ebp54ProcInfo := 0
+						// ebp48RetLen := 0
+						// ebp50ProcInfoClass := 7 // ProcessDebugPort
+						// ebp1CNtQueryInformationProcess(win.GetCurrentProcess(), ebp50ProcInfoClass, &ebp54ProcInfo, 4, &ebp48RetLen)
+						// 0x0A9FF9C9
+						// win.FreeLibrary(ebp28)
+						// 0x0AD31229
+						if ebp54ProcInfo != 0 {
+							// 0x0A3A8E2B 0x0A6B0AEB
+						}
+						// 0x0AD8099B 0x0AF86233 0x0A0C3BDF
+						label2 = v09FC0B5Alabel2 // [ebp+v0ABF8B07*4+8]=v09FC0B5Alabel2
+						ebp38++
+						ebp8 &= ^uint32(20) // 清零
+					}
+					// 0x0A887F5B
+					if ebp8&0x40 != 0 {
+						// 0x09FC67DB
+					}
+					// 0x0A05A2B7
+					if ebp8&0x80 != 0 {
+						// 0x0A889EB6
+					}
+					// 0x0A56391F，判等
+					if ebp8 != 0 {
+						// 0x0B07BF42 0x0A6B0AEB
+					}
+					// 0x0AD83D30
+					if ebp38 != 1 {
+						// 0x0A9331C5 0x0A6B0AEB
+					}
+					// 0x0AF77BA8
+					v0A325B9F = v09FBB49C
+					label3 = v0A557660label3 // [ebp+v0AA0D71B*4+8] = v0A557660label3
+					break                    // 0x09FBBB94
+				}
+				// 0x0A4E4AF6
+				ebp8 <<= 1
+			} // for loop 0x0A9FBE5C
+
+			// 0x0A6B0AEB 异常进入0x004D7CED姿势不对，会异常退出
+			ebp24 = v0A88E351
+			label4 = 0x0AD91CED - v09E2318F + ebp24 // 0x004D7CED
+
+			// 0x09FBBB94
+			// pop edi
+			// pop esi
+			// pop ebx
+			// leave
+			// ret
+		}()
+
+		// 0x0AD2B081 0x09FC860D 0x0AB4CCE0 0x0AF7D9C1 0x09DEB0D9 0x0A5FFBD4
+		// pop ecx
+		// pop edx
+		// pop esi
+		// pop edi
+		// pop ebx
+		// popfd
+		// 0x0A9FB977 0x0AA0931B
+		// label3(0x0B10933D)
+		// label2(0x0A8FE9A6)
+		// label1(0x0AD56E8A) f0AD56E8A 隐藏函数
 	}()
-
-	// 0x0AD2B081 0x09FC860D 0x0AB4CCE0 0x0AF7D9C1 0x09DEB0D9 0x0A5FFBD4
-	// pop ecx
-	// pop edx
-	// pop esi
-	// pop edi
-	// pop ebx
-	// popfd
-	// 0x0A9FB977 0x0AA0931B
-	// label3(0x0B10933D)
-	// label2(0x0A8FE9A6)
-	// label1(0x0AD56E8A) f0AD56E8A 隐藏函数
-
 	// 0x0AD56E8A
 	// 0x1B60局部变量 近两页也就是8k字节的局部变量
 	// 0x004D7CED
@@ -1044,7 +1044,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	f00DEE871setlocale(0, v01319E00)                                                // LC_ALL
 	f0043BF3FgetT4003().f0043BF9C(v01319D6ChWnd, v012E3F08.width, v012E3F08.height) // 800*600
 	// f0090E94C().f0090B256()
-	f00A49798game().f00A49E40init(v01319D6ChWnd, v012E3F08.height, v012E3F08.width) // r6602 floating point support not loaded
+	f00A49798game().f00A49E40init1(v01319D6ChWnd, v012E3F08.height, v012E3F08.width) // r6602 floating point support not loaded
 	/*
 		if f00B0E9BF().f00B0EE6C() {
 			v01319D67 = true
@@ -1159,7 +1159,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	return int(ebp28msg.WParam) // return ebp20
 }
 
-func _f00A49E40init() {
+func _f00A49E40init1() {
 	// _00A4F3F2
 	func() {
 		// _00AECB6C
