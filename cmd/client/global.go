@@ -216,22 +216,9 @@ func (t *stdstring) f00407B10free() {
 	f00DE7538free(nil)
 }
 
+// ----------------------xstring----------------------------------
 var v012F4D80empty uintptr = 0x80000000
 var v012F4D84cnt uint32
-
-// shared_ptr
-type xstring struct {
-	m00size int
-	m04     uint32
-	m08name [256]uint8
-}
-
-func (t *xstring) f00A3AF9Ecstr() string {
-	// t.f00A3AF6C()
-	return func() string {
-		return string(t.m08name[:])
-	}()
-}
 
 func f00BAC850xstring() *xstring {
 	atomic.AddUint32(&v012F4D84cnt, 1)
@@ -251,7 +238,7 @@ func f00BADDD0xstring(s string) *xstring {
 			// mm.do11malloc(uint(l1)+0xC, 0) // 0x13, 0
 			w = new(xstring)
 			w.m08name[8+l1] = 0
-			w.m04 = 1
+			w.m04cnt = 1
 			w.m00size = l1
 		}
 		f00DE7C90memcpy(w.m08name[:], []byte(s), l2)
@@ -259,10 +246,43 @@ func f00BADDD0xstring(s string) *xstring {
 	}(v09D9BD74mm, l, 0, s, l)
 }
 
-func f00BADF50(s **xstring) *xstring {
-	// 判断*s是否4字节对齐
-	atomic.AddUint32(&(*s).m04, 1)
-	return *s
+// shared_ptr
+type xstring struct {
+	m00size int
+	m04cnt  int32
+	m08name [256]uint8
+}
+
+func (t *xstring) f00BACD30xstring(s string) {
+
+}
+
+func (t *xstring) f00BADF50assign(s *xstring) *xstring {
+	atomic.AddInt32(&s.m04cnt, 1)
+	return s
+}
+
+func (t *xstring) destruct() {
+	atomic.AddInt32(&t.m04cnt, -1)
+	if t.m04cnt == 0 {
+		// delete
+	}
+}
+
+func (t *xstring) f00A3AF6C() string {
+	return string(t.m08name[:])
+}
+
+func (t *xstring) f00A3AF8Acstr() string {
+	return t.f00A3AF6C()
+}
+
+func (t *xstring) f00A3AF9Ecstr() string {
+	return t.f00A3AF6C()
+}
+
+func (t *xstring) f00BAE060cat(sub *xstring) *xstring {
+	return nil
 }
 
 // load serverlist.bmd
@@ -678,7 +698,7 @@ func (t *game) f00A49E40init1(hWnd win.HWND, width, height int) {
 	// ...
 }
 
-func (t *game) f00A4E46DLoadResource(w iwindowgame0117373C, x int, name *xstring, y bool, z int) bool {
+func (t *game) f00A4E46DLoadResource(w iwindowgame0117373C, x int, name *xstring, y bool, align int) bool {
 	// 0x1C局部变量
 	// ebp20 := t
 	if t.m7C == nil {
@@ -689,23 +709,27 @@ func (t *game) f00A4E46DLoadResource(w iwindowgame0117373C, x int, name *xstring
 		t.m7C = ebp10
 	}
 	// ebp25 := t.f00A4E520()
-	ebp25 := func(wm *windowManager01173C54, w iwindowgame0117373C, x int, name *xstring, y bool, z int) bool {
+	ebp25 := func(wm *windowManager01173C54, w iwindowgame0117373C, x int, name *xstring, y bool, align int) bool {
 		// 0x48局部变量
 		// ebp3C := t
 		ebp1D := false
 		if w == nil || wm == nil {
 			ebp1E := ebp1D
-			// name.f00A3AF16()
+			// name.f00A3AF16free()
 			return ebp1E
 		}
-		// ebp14dir := f00BADDD0xstring("./Data/Interface/GFx/")
-		// ebp40 := t.f00A4F04E(&ebp18, f00BADF50(&ebp14dir), name.f00A3AF9Ecstr()) // ./Data/Interface/GFx/xxx
-		// 								 &t.m08  5  "Caution.ozg"      "Taiwan"           5       0     0  0
-		var ebp45 bool // ebp45 := w.do2(&t.m08, x, ebp14dir.f00BAE060(), f00BADF50(&t.m30), ebp10, ebp1C, 0, 0)
+		ebp14dir := f00BADDD0xstring("./Data/Interface/GFx/")
+		var ebp18name *xstring
+		ebp10 := 5
+		ebp1C := 0
+		// ebp40 := t.f00A4F04E(&ebp18name, ebp14dir, name.f00A3AF9Ecstr()) // ./Data/Interface/GFx/xxx
+		// 			   &t.m08  5  "...dir/Caution.ozg"              "Taiwan"           5       0     0  0
+		// 			   &t.m08  1  "...dir/MainFrame.ozg"            "Taiwan"           5       0     0  0
+		ebp45 := w.do2(&t.m08, x, ebp14dir.f00BAE060cat(ebp18name), t.m30, ebp10, ebp1C, 0, 0)
 		if ebp45 == true {
 			// w.do3()
-			if z != 9 {
-				// f00A3A4F2(w, "SetAlign", "%d", z)
+			if align != 9 {
+				f00A3A4F2(w, "SetAlign", "%d", align)
 			}
 			if y == true {
 				w.f00A3A717(true)
@@ -720,13 +744,13 @@ func (t *game) f00A4E46DLoadResource(w iwindowgame0117373C, x int, name *xstring
 			}
 		}
 		ebp35 := ebp1D
-		// ebp18.f00A3AF16()
-		// ebp14dir.f00A3AF16()
-		// name.f00A3AF16()
+		// ebp18name.f00A3AF16free()
+		// ebp14dir.f00A3AF16free()
+		// name.f00A3AF16free()
 		return ebp35
-	}(t.m7C, w, x, f00BADF50(&name), y, z)
+	}(t.m7C, w, x, name, y, align)
 	ebp15 := ebp25
-	// name.f00A3AF16()
+	// name.f00A3AF16free()
 	return ebp15
 }
 

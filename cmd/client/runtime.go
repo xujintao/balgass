@@ -3,6 +3,7 @@ package main
 import (
 	"debug/pe"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -222,6 +223,11 @@ func f00DE7BEAdelete(buf []uint8) {
 	buf = buf[:0]
 }
 
+// ------------------------libc.file------------------------------
+func f00DF6F11fopen(f **os.File, filename []rune, mode []rune) {
+	// *f = f00DF6E34(filename, mode, 0x80)
+}
+
 func f00DE909Efopen(fileName, mode string) *os.File {
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -242,7 +248,24 @@ func f00DE8FBDfread(buf []uint8, size uint, num uint, f *os.File) uint {
 	return uint(n)
 }
 
-func f00DE92E0strstr(haystack []uint8, needle string) []uint8 {
+// ftell: Get current position in stream
+func f00DEFCD4ftell(f *os.File) int64 {
+	pos, err := f.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return -1
+	}
+	return pos
+}
+
+func f00DEFA34fseek(f *os.File, offset int, whence int) int {
+	pos, err := f.Seek(int64(offset), whence)
+	if err != nil {
+		return -1
+	}
+	return int(pos)
+}
+
+func f00DE92E0strstr(haystack string, needle string) []uint8 {
 	return nil
 }
 

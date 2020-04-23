@@ -324,7 +324,7 @@ func f004D6F82initWindow(hModule win.HMODULE, iCmdShow int) win.HWND {
 	return ebp4
 }
 
-func f004D755F(haystack []uint8, y int, buf []uint8) bool {
+func f004D755F(haystack string, y int, buf []uint8) bool {
 	return false
 }
 
@@ -463,7 +463,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 						// fs[0] = esp
 						// push 0
 						// push 0
-						// int3 ; 报0x80000003, EXCEPTION_BREAKPOINT
+						// int3 ; 频繁，报0x80000003, EXCEPTION_BREAKPOINT
 						// pop ebp30
 						// pop ebp18
 						// pop fs[0]
@@ -800,7 +800,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 
 	// 0x004D803B
 	// 从命令行中提取指定的ip地址和端口，因为没有通过mu.exe启动，所有没有命令行
-	f004D7A1F := func(haystack []uint8, ip []uint8, port *uint16) bool { // ([]uint8(szCmdLine), v01319A50ip[:], &ebp8)
+	f004D7A1F := func(haystack string, ip []uint8, port *uint16) bool { // ([]uint8(szCmdLine), v01319A50ip[:], &ebp8)
 		// x=0x0B37,3D25，存放的是[0,0,0,'K']
 		// 0x0A4411D8 0x004D7A3D
 		// 10C局部变量
@@ -808,7 +808,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		ebp100buf[0] = 0
 		f00DE8100memset(ebp100buf[1:], 0, 0xFF)
 		// 0x012E0FF0 0x004D7A4D
-		sRet := func(haystack []uint8, needle string) []uint8 { // f004472C9
+		sRet := func(haystack string, needle string) []uint8 { // f004472C9
 			return f00DE92E0strstr(haystack, needle)
 		}(haystack, "battle")
 		// 0x0AF8FB96
@@ -834,7 +834,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		return true
 	}
 	var ebp8port uint16 = 10
-	if f004D7A1F([]uint8(szCmdLine), v01319A50ip[:], &ebp8port) {
+	if f004D7A1F(szCmdLine, v01319A50ip[:], &ebp8port) {
 		v012E2338ip = string(v01319A50ip[:])
 		v012E233Cport = ebp8port
 	}

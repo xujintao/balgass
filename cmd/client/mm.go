@@ -9,9 +9,13 @@ func (t *t21) f00D06BF0(size uint, y *int) uintptr {
 }
 
 type t20 struct {
-	m00 *t01319F18
-	m08 int // 0x10
-	m0C t21
+	m00     *t01319F18
+	m08flag int // 0x10
+	m0C     t21
+}
+
+func (t *t20) f00BFB280(size uint, flag int, y *int) uintptr {
+	return 0
 }
 
 func (t *t20) f00BFAFC0(size uint, y *int) uintptr {
@@ -21,8 +25,8 @@ func (t *t20) f00BFAFC0(size uint, y *int) uintptr {
 }
 
 func (t *t20) f00BFB480(size uint, y *int) uintptr {
-	if t.m08 > 0x10 {
-		// return t.f00BFB280(size, t.m08, y)
+	if t.m08flag > 0x10 {
+		return t.f00BFB280(size, t.m08flag, y)
 	}
 	if size <= 0x200 {
 		size = (size + 0xF) & ^uint(0xF) // 16 byte align
@@ -40,9 +44,20 @@ type mm struct {
 	m68      *t20
 }
 
+// f00BAB010 会对缓存清零
+func (t *mm) do10malloc(size uint, flag, unk int) uintptr {
+	var ebpC int
+	if t.m64 {
+		defer t.m4Cmutex.Unlock()
+		t.m4Cmutex.Lock()
+		return t.m68.f00BFB280(size, flag, &ebpC)
+	}
+	return t.m68.f00BFB280(size, flag, &ebpC)
+}
+
 // f00BAAFB0
-func (t *mm) do11malloc(size uint, x int) uintptr {
-	ebpC := 0
+func (t *mm) do11malloc(size uint, unk int) uintptr {
+	var ebpC int
 	if t.m64 {
 		defer t.m4Cmutex.Unlock()
 		t.m4Cmutex.Lock()
@@ -52,7 +67,7 @@ func (t *mm) do11malloc(size uint, x int) uintptr {
 }
 
 func f00A3BA10newobject(size uint) uintptr {
-	// return f00A3BA24(id)
+	// return f00A3BA24new(size)
 	return func(size uint) uintptr {
 		return v09D9BD74mm.do11malloc(size, 0)
 	}(size)
