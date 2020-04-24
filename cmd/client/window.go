@@ -47,13 +47,13 @@ type window011927E8 struct {
 	t011737C4base
 }
 
-type window01187D5C struct {
+type t01187D5C struct {
 	t011737C4base
 	m08 int
 	m0C *window011927E8
 }
 
-func (t *window01187D5C) f00BBBA00construct() {
+func (t *t01187D5C) f00BBBA00construct() {
 	// inline
 	t.t011737C4base.f00A3BB4Cconstruct()
 	t.m08 = 0x1D
@@ -69,30 +69,30 @@ func (t *window01187D5C) f00BBBA00construct() {
 	}()
 }
 
-type window011737BC struct {
+type t011737BC struct {
 	t011737C4base
 }
 
-func (t *window011737BC) f00A3BB2Fconstruct() {
+func (t *t011737BC) f00A3BB2Fconstruct() {
 	t.t011737C4base.f00A3BB4Cconstruct()
 	// t.m00vtabptr = &v011737BC
 }
 
-type window011737B4 struct {
-	window011737BC
+type t011737B4 struct {
+	t011737BC
 }
 
-func (t *window011737B4) f00A3BAEBconstruct() {
-	t.window011737BC.f00A3BB2Fconstruct()
+func (t *t011737B4) f00A3BAEBconstruct() {
+	t.t011737BC.f00A3BB2Fconstruct()
 	// t.m00vtabptr = &v011737B4
 }
 
 type window011737AC struct {
-	window011737B4
+	t011737B4
 }
 
 func (t *window011737AC) f00A3BA4Dconstruct() {
-	t.window011737B4.f00A3BAEBconstruct()
+	t.t011737B4.f00A3BAEBconstruct()
 	// t.m00vtabptr = &v011737AC
 }
 
@@ -116,11 +116,11 @@ func (t *window0117438C) f00A50070construct() {
 	// t.m00vtabptr = &v0117438C
 }
 
-type window0117437C struct {
+type t0117437C struct {
 	window0117438C
 }
 
-func (t *window0117437C) f00A50053construct() {
+func (t *t0117437C) f00A50053construct() {
 	t.window0117438C.f00A50070construct()
 	// t.m00vtabptr = &v0117437C
 }
@@ -208,7 +208,7 @@ type window0118CC24 struct {
 type window0118CBD0 struct {
 	// window0118CA24
 }
-type window0118CBD8 struct {
+type t0118CBD8 struct {
 	t011737C4base
 	m08 int
 	window0118CBD0
@@ -278,6 +278,7 @@ type ifile interface {
 	do6getFileOffset() int64
 	do7getSize() int
 	do11read(buf []uint8, size int) int
+	do19close() bool
 }
 
 // size:0x20 stdcall且无ebp帧栈
@@ -287,7 +288,7 @@ type t01189700file struct {
 	m0Cvalid  bool
 	m10fd     *os.File
 	m14mode   int
-	m18       int
+	m18err    int
 	m1Cwhence int
 }
 
@@ -300,7 +301,7 @@ func (t *t01189700file) f00BEED40open() {
 	if t.m0Cvalid == false {
 
 	}
-	t.m18 = 0
+	t.m18err = 0
 	t.m1Cwhence = io.SeekStart
 }
 
@@ -333,7 +334,7 @@ func (t *t01189700file) do7getSize() int {
 	if l < 0 {
 		return -1
 	}
-	defer t.do15fseek(l, io.SeekStart)
+	defer t.do15seek(l, io.SeekStart)
 	return int(t.do5ftell())
 }
 
@@ -347,14 +348,25 @@ func (t *t01189700file) do11read(buf []uint8, size int) int {
 	if n >= uint(size) {
 		return int(n)
 	}
-	// f00DF7693()
+	f00DF7693errno()
 	return 0
 }
 
 // f00BEF290
-func (t *t01189700file) do15fseek(offset int, whence int) int {
+func (t *t01189700file) do15seek(offset int, whence int) int {
 	f00DEFA34fseek(t.m10fd, 0, whence)
 	return int(t.do5ftell())
+}
+
+// f00BEF3E0
+func (t *t01189700file) do19close() bool {
+	if f00DE8C84close(t.m10fd) != 0 {
+		t.m18err = f00DF7693errno()
+	}
+	t.m0Cvalid = false
+	t.m10fd = nil
+	t.m18err = 0
+	return true
 }
 
 type t0118C870 struct {
@@ -371,7 +383,7 @@ type t01195FE0filebuf struct {
 	t0118C870
 	m08ifile  ifile
 	m0Cbuf    []uint8 // size:0x1FF8 不到8k
-	m10       int
+	m10whence int
 	m14r      int
 	m18w      int
 	m20offset int64
@@ -385,7 +397,7 @@ func (t *t01195FE0filebuf) f00D02B60construct(f ifile) {
 	t.m08ifile = f
 	// t.m00vtabptr = v01195FE0[:]
 	t.m0Cbuf = make([]uint8, 0x1FF8) // t.m0Cbuf = v09D9BD74mm.do10malloc(0x1FF8,0x20,0) 且置零
-	t.m10 = 0
+	t.m10whence = io.SeekStart
 	t.m20offset = f.do6getFileOffset()
 	t.m14r = 0
 	t.m18w = 0
@@ -404,19 +416,20 @@ func (t *t01195FE0filebuf) do7getSize() int {
 	return t.m08ifile.do7getSize()
 }
 
+func (t *t01195FE0filebuf) f00D023D0() {
+	if t.m10whence == io.SeekCurrent {
+		// ...
+	} else if t.m10whence == io.SeekEnd {
+		// ...
+	}
+	return
+}
+
 // f00D029A0
 func (t *t01195FE0filebuf) do11read(buf []uint8, size int) int {
-	if t.m10 != 1 {
-		// t.f00D023D0()
-		func() {
-			if t.m10 == 1 {
-				// ...
-			} else if t.m10 == 2 {
-				// ...
-			}
-			return
-		}()
-		t.m10 = 1
+	if t.m10whence != io.SeekCurrent {
+		t.f00D023D0()
+		t.m10whence = io.SeekCurrent
 		t.m14r = 0
 		t.m18w = 0
 	}
@@ -463,6 +476,27 @@ func (t *t01195FE0filebuf) do11read(buf []uint8, size int) int {
 	return 0
 }
 
+// 0x00D02810
+func (t *t01195FE0filebuf) do19close() bool {
+	switch t.m10whence {
+	case io.SeekCurrent:
+		t.m10whence = io.SeekStart
+	case io.SeekEnd:
+		t.f00D023D0()
+	}
+	return t.m08ifile.do19close()
+}
+
+// size:0x08
+type t0118C8C0fileempty struct {
+	t011737C4base
+}
+
+func (t *t0118C8C0fileempty) construct() {
+	t.t011737C4base.f00A3BB4Cconstruct()
+	// t.m00vtabptr = v0118C8C0[:]
+}
+
 // size:0xC stdcall有ebp帧栈，应该是业务代码
 type t0118C910fileio struct {
 	t011737C4base
@@ -477,6 +511,7 @@ func (t *t0118C910fileio) f00BEFF80construct(path *xstring, mode, y int) {
 	// 构造file
 	// t.f00BEFE50(path, mode, y)
 	func() bool {
+		// fd
 		// f00BEF630(path, mode, y)
 		t.m08ifile = func() ifile {
 			f := new(t01189700file)
@@ -488,11 +523,11 @@ func (t *t0118C910fileio) f00BEFF80construct(path *xstring, mode, y int) {
 			f.f00BEED40open()
 			return f
 		}()
-
 		if t.m08ifile.do3valid() == false {
 			// ...
 			return false
 		}
+		// bufio.Reader
 		w := new(t01195FE0filebuf)
 		w.f00D02B60construct(t.m08ifile)
 
@@ -521,21 +556,246 @@ func (t *t0118C910fileio) do11read(buf []uint8, size int) int {
 	return t.m08ifile.do11read(buf, size)
 }
 
-type window0117EDD0gfxFileOpener struct{}
+// f00BEFF20
+func (t *t0118C910fileio) do19close() bool {
+	if t.do3valid() == false {
+		return false
+	}
+	t.m08ifile.do19close()
+	e := new(t0118C8C0fileempty) // v09D9BD74mm.do11malloc(0x8, 0)
+	// inline
+	e.construct()
+	// t.m08ifile = e
+	return true
+}
 
-func (t *window0117EDD0gfxFileOpener) f00BEFFC0open(file string, mode, y int) ifile {
+type t0117EE84 struct {
+	t011737B4
+}
+
+func (t *t0117EE84) f00AEC019construct() {
+	t.t011737B4.f00A3BAEBconstruct()
+}
+
+type t0117EE34 struct {
+	t0117EE84
+}
+
+func (t *t0117EE34) f00AEBD83construct() {
+	t.t0117EE84.f00AEC019construct()
+}
+
+// size:0x1C stdcall带ebp帧栈
+type t0117EDE4 struct {
+	t0117EE34
+	m08ozg    *xstring
+	m0Cbuf    []uint8
+	m10size   int
+	m14offset int
+	m18valid  bool
+}
+
+func (t *t0117EDE4) f00AEBCF0construct(ozg string, buf []uint8, size int) {
+	t.t0117EE34.f00AEBD83construct()
+	t.m08ozg.f00BADDD0xstring(ozg)
+	t.m0Cbuf = buf
+	t.m10size = size
+	t.m14offset = 0
+	t.m18valid = true
+}
+
+// f00AEBE00
+func (t *t0117EDE4) do9() bool {
+	return false
+}
+
+// f00AEBF25
+func (t *t0117EDE4) do15seek(offset int, whence int) int {
+	switch whence {
+	case io.SeekStart:
+		t.m14offset = offset
+	case io.SeekCurrent:
+		t.m14offset += offset
+	case io.SeekEnd:
+		t.m14offset = t.m10size - offset
+	}
+	return t.m14offset
+}
+
+func (t *t0117EDE4) f00AEBCD8seek() {
+	t.do15seek(0, io.SeekStart)
+}
+
+func (t *t0117EDE4) f00AEB3BBdestruct() {
+
+}
+
+type listNode struct {
+	p1    *listNode
+	p2    *listNode
+	value interface{}
+}
+type list2 struct {
+	unk  uintptr
+	head *listNode
+	size int
+}
+
+func (t *list2) f00AEBBC2listMaxSize() int {
+	return 0x3FFFFFFF
+}
+
+// stdcall带ebp帧栈
+type t22 struct {
+	m00     *t23
+	m04head *listNode
+}
+
+func (t *t22) f00AEB64B(x *listNode, y *gfxcss) *t22 {
+	// t.f00AEBA3B(x, y)
+	func(x *listNode, y *gfxcss) {
+		// t.f00AEBA88()
+		func() {
+			// t.f00AEBA9C
+			func() {
+				// t.f0042DBD0()
+				func() {
+					t.m00 = nil
+				}()
+			}()
+		}()
+		t.m04head = x
+		if y == nil {
+			f00DE84C8()
+		}
+		// t.f0042DBE0(y)
+		func(x *gfxcss) {
+			t.m00 = x.m00
+		}(y)
+	}(x, y)
+	return t
+}
+
+func (t *t22) f00AEBA79() *listNode {
+	return t.m04head
+}
+
+type t23 struct{}
+
+func f00AEB9F8newnode(num int) *listNode {
+	// f00AEBBFA(size, 0)
+	return func(num, zero int) *listNode {
+		if num > 0 {
+			if ^uint(0)/uint(num) < 12 {
+				// ebpC.f00407570(0)
+				// f00DE84E3(&ebpC, v012DA28C)
+			}
+		}
+		return new(listNode) // return f00DE852Fnew(num * 12)
+	}(num, 0)
+}
+
+func f00AEBA0Fnodeassign(nodepdst **listNode, nodepsrc **listNode) {
+	// f00AEBC40(x, root)
+	func(nodepdst **listNode, nodepsrc **listNode) {
+		if nodepdst == nil {
+			return
+		}
+		*nodepdst = *nodepsrc
+	}(nodepdst, nodepsrc)
+}
+
+func f00AEBAF9nodevalue(dst *interface{}, src *interface{}) {
+	*dst = *src
+}
+
+func f00AEB425getp1(node *listNode) **listNode {
+	return &node.p1
+}
+func f00AEB763getp2(node *listNode) **listNode {
+	return &node.p2
+}
+func f00AEB76Egetvalue(node *listNode) *interface{} {
+	return &node.value
+}
+
+// stdcall带ebp帧栈
+type gfxcss struct {
+	m00     *t23
+	m08     *t01187D5C
+	m0C     *t0117437C
+	m10list list2 // m14head *listNode
+}
+
+func (t *gfxcss) f00AEB31Fappend(buf []uint8) {
+	var ebp10 t22
+	// t.f00AEB300(&ebp10)
+	func(x *t22) {
+		x.f00AEB64B(t.m10list.head, t)
+	}(&ebp10)
+
+	// t.f00AEB42Dappend(ebp10, buf)
+	func(x t22, buf []uint8) {
+		ebp8head := x.f00AEBA79()
+		// ebp4 := t.f00AEB805nodeappend(ebp8head, *f00AEB763getp2(ebp8head), buf)
+		ebp4node := func(node *listNode, p2 *listNode, buf []uint8) *listNode {
+			// ebp1C := t
+			ebp18node := f00AEB9F8newnode(1)
+			ebp14 := 0
+			// ebp20nodep := f00AEB425getp1(ebp18node)
+			// f00AEBA0Fnodeassign(ebp20nodep, &node)
+			ebp18node.p1 = node
+			ebp14++
+			// ebp24nodep := f00AEB763getp2(ebp18node)
+			// f00AEBA0Fnodeassign(ebp24nodep, &p2)
+			ebp18node.p2 = p2
+			ebp14++
+			// ebp28valuep := f00AEB76Egetvalue(ebp18node)
+			// f00AEBAF9nodevalue(ebp28, buf)
+			ebp18node.value = buf
+			return ebp18node
+		}(ebp8head, ebp8head.p2, buf)
+
+		// t.f00AEB91ClistSizeInc(1)
+		func(delta int) {
+			// 0x48局部变量
+			// ebp54 := t
+			// t.f00AEBAB0listMaxSize()
+			if func() int { return t.m10list.f00AEBBC2listMaxSize() }()-t.m10list.size < delta {
+				// list<T> too long
+			}
+			t.m10list.size += delta
+		}(1)
+
+		// ebp4node被指向
+		*f00AEB763getp2(ebp8head) = ebp4node
+		*f00AEB425getp1(*f00AEB763getp2(ebp4node)) = ebp4node
+	}(ebp10, buf)
+}
+
+type t0117EDD0gfxFileOpener struct {
+	m0C gfxcss
+}
+
+func (t *t0117EDD0gfxFileOpener) f00BEFFC0open(file string, mode, y int) ifile {
 	w := new(t0118C910fileio) // v09D9BD74.do11malloc(0x0C, 0)
-	ebp4 := f00BADDD0xstring(file)
+	var ebp4 *xstring
+	ebp4.f00BADDD0xstring(file)
 	w.f00BEFF80construct(ebp4, mode, y)
 	ebp4.destruct()
 	return w
 }
 
+func f00658C4Ddec(dst []uint8, src []uint8, size int) int {
+	return 0
+}
+
 // f00AEAD21 stdcall且有ebp帧栈，业务代码
-func (t *window0117EDD0gfxFileOpener) do2(file string, mode, y int) {
+func (t *t0117EDD0gfxFileOpener) do2load(file string, mode, y int) *t0117EDE4 {
 	// 0xA0局部变量
 	// ebp6C := t
-	ebp28 := f00BADDD0xstring(file)
+	var ebp28 *xstring
+	ebp28.f00BADDD0xstring(file)
 	// f009235EC(ebp28.f00A3AF9Ecstr(), ".dds")
 	if f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".dds") != nil {
 		// ...
@@ -549,45 +809,64 @@ func (t *window0117EDD0gfxFileOpener) do2(file string, mode, y int) {
 		// ...
 	}
 	// 0x00AEB01F
-	ebp1C := t.f00BEFFC0open(ebp28.f00A3AF9Ecstr(), mode, y) // ebp1C.f00AEC036assign(f)
-	if ebp1C.do3valid() == false {
+	ebp1Cfile := t.f00BEFFC0open(ebp28.f00A3AF9Ecstr(), mode, y) // ebp1Cfile.f00AEC036assign(f)
+	if ebp1Cfile.do3valid() == false {
 		// ...
-		return
+		return nil
 	}
-	ebp10 := make([]uint8, ebp1C.do7getSize()) // ebp10 := f00A3BA24new(ebp1C.do7getSize())
-	ebp20 := ebp1C.do7getSize()
-	ebp1C.do11read(ebp10, ebp20)
-	// f00658C4D(0, ebp10, ebp20)
-	func() {
-
-	}()
+	ebp10bufsrc := make([]uint8, ebp1Cfile.do7getSize()) // ebp10 := f00A3BA24malloc(ebp1Cfile.do7getSize())
+	ebp20size := ebp1Cfile.do7getSize()
+	ebp1Cfile.do11read(ebp10bufsrc, ebp20size)
+	// decode
+	ebp24size := f00658C4Ddec(nil, ebp10bufsrc, ebp20size) // 2A2DF->2A2BD
+	ebp14bufdst := make([]uint8, ebp24size)                // ebp14 := f00A3BA24malloc(ebp24size)
+	f00658C4Ddec(ebp14bufdst, ebp10bufsrc, ebp20size)
+	// unmarshal
+	ebp64 := new(t0117EDE4) // f00A3BA10newobject(0x1C)
+	ebp64.f00AEBCF0construct(ebp28.f00A3AF9Ecstr(), ebp14bufdst, ebp24size)
+	ebpA8 := ebp64
+	ebp60 := ebpA8
+	ebp18 := ebp60 // ebp18.f00AEB397assign(ebp60)
+	ebp18.f00AEBCD8seek()
+	ebp1Cfile.do19close()
+	// ebp1Cfile.f00BAE460() // 引用计数-1，析构函数里面再做一次-1然后释放内存
+	// f00A3AF52(ebp10bufsrc) // free
+	t.m0C.f00AEB31Fappend(ebp14bufdst)
+	// ebp18.f00AEB3BBdestruct()
+	// ebp1Cfile.f00A504C8destruct()
+	// ebp28.f00A3AF16destruct()
+	return ebp18
 }
 
 // f00BF00C0
-func (t *window0117EDD0gfxFileOpener) do4(file string, i i011737C4, x, y int) {
-	t.do2(file, x, y)
-
+func (t *t0117EDD0gfxFileOpener) do4load(file string, i i011737C4, mode, unk int) *t0117EDE4 {
+	f := t.do2load(file, mode, unk)
+	if f != nil && f.do9() == false {
+		return f
+	}
+	// ...
+	return nil
 }
 
-type window0118CE40 struct {
-	m08gfxFileOpener *window0117EDD0gfxFileOpener
+type t0118CE40 struct {
+	m08gfxFileOpener *t0117EDD0gfxFileOpener
 }
 
 // size:0x54 0x0E9A25C0
-type window01196128gfxLoader struct {
+type t01196128gfxLoader struct {
 	t011737C4base
-	m08 *window0118CE40
-	m0C *window0118CBD8
+	m08 *t0118CE40
+	m0C *t0118CBD8
 }
 
-func (t *window01196128gfxLoader) f00D05DA0construct() {}
+func (t *t01196128gfxLoader) f00D05DA0construct() {}
 
-func (t *window01196128gfxLoader) f00D03CA0load(file string, x int) bool {
+func (t *t01196128gfxLoader) f00D03CA0load(file string, unk int) bool {
 	if t.m08.m08gfxFileOpener == nil {
 		// t.m0C.f00BB0310(t, "GFxLoader failed to open %s, GFxFileOpener not installed\n", file)
 		return false
 	}
-	t.m08.m08gfxFileOpener.do4(file, t.m0C, 0x21, 0x1B6)
+	t.m08.m08gfxFileOpener.do4load(file, t.m0C, 0x21, 0x1B6)
 	return true
 }
 
@@ -629,7 +908,7 @@ func (t *window0118CB68) f00BF5350construct(x *window01187A80, y *int) {
 	}
 	{
 		// v09D9BD74mm.do11malloc(0x10, 0)
-		w := new(window0118CBD8)
+		w := new(t0118CBD8)
 		// inline构造虚表
 		// t.m14.window0118CC10.do3(4, w)
 		w.f00BAE460()
@@ -668,9 +947,9 @@ func (t *window0118CB68) f00BF5350construct(x *window01187A80, y *int) {
 // "./Data/Interface/GFx/MainFrame.ozg", x, 0, 0x80
 func (t *window0118CB68) f00BF55E0(ozg string, x *attr, y int, z int) bool {
 	// 0x2B8局部变量
-	w := new(window01196128gfxLoader)
+	w := new(t01196128gfxLoader)
 	w.f00D05DA0construct()
-	f00BADDD0xstring(ozg)
+	// f00BADDD0xstring(ozg)
 	// ...
 	// 0x00BF5796
 	w.f00D03CA0load(ozg, 0)

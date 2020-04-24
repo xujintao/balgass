@@ -28,6 +28,16 @@ var v09D9DA08 uint8
 var v09D9DA0C uint32 = 1
 var v09D9DB88 uintptr = 0xBD6A970F
 
+// libc cdecl无ebp帧栈
+
+func f00DE84C8() {
+
+}
+
+func f00DF7693errno() int {
+	return 0
+}
+
 func f00DECBD1atoi(buf []uint8) int {
 	n, err := strconv.Atoi(string(buf))
 	if err != nil {
@@ -147,62 +157,8 @@ func f00DE817Asprintf(buf []uint8, strfmt string, a ...interface{}) int {
 	return len(str)
 }
 
-func f00DE852Fnew(x uint32) unsafe.Pointer {
-
-	// var ebp_C uint32
-	for {
-		// _00DF0F2F
-		entry := func(x uint32) string {
-			return ":\r"
-		}(x)
-		if len(entry) != 0 {
-			return nil
-		}
-
-		// // _00DFB084
-		// bRet = func(x uint32) bool {
-		// 	return false
-		// }(x)
-		// if !bRet {
-		// 	if v09D9DA08&1 == 0 {
-		// 		v09D9DA08 |= 1
-
-		// 		// _00415D00
-		// 		func() {
-
-		// 			// _00DE85F8
-		// 			func() {
-
-		// 			}()
-		// 		}()
-
-		// 		// _00DE8BF6
-		// 		func(fval func()) {
-		// 			// _00DE8BBA
-		// 			nRet := func(fval func()) uint32 {
-		// 				return 1
-		// 			}(fval)
-		// 		}(f01148F33)
-
-		// 		// _004075D0
-		// 		func(x *uint32) {
-		// 			// 能使用到ebp_C
-		// 			// _00DE8615
-		// 			func(x *uint32) {
-
-		// 			}(x)
-		// 			ebp_C = _01149E44
-		// 		}(&v09D9D9FC)
-
-		// 		// _00DE84E3
-		// 		// func() {
-
-		// 		// }(&v012DA28C)
-
-		// 		// int3
-		// 	}
-		// }
-	}
+func f00DE852Fnew(x int) unsafe.Pointer {
+	return nil
 }
 
 // 拿着eax做栈分配，这个骚套路是什么API？目的是什么？
@@ -236,8 +192,12 @@ func f00DE909Efopen(fileName, mode string) *os.File {
 	return f
 }
 
-func f00DE8C84close(f *os.File) {
-	f.Close()
+func f00DE8C84close(f *os.File) int {
+	err := f.Close()
+	if err != nil {
+		return -1
+	}
+	return 0
 }
 
 func f00DE8FBDfread(buf []uint8, size uint, num uint, f *os.File) uint {

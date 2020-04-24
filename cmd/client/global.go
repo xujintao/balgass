@@ -225,11 +225,17 @@ func f00BAC850xstring() *xstring {
 	return (*xstring)(unsafe.Pointer(&v012F4D80empty))
 }
 
-// c++ functor
-func f00BADDD0xstring(s string) *xstring {
+// shared_ptr
+type xstring struct {
+	m00size int
+	m04cnt  int32
+	m08name [256]uint8
+}
+
+func (t *xstring) f00BADDD0xstring(s string) {
 	l := len(s)
 	// f00BAC8C0(v09D9BD74mm, l, 0, s, l)
-	return func(mm *mm, l1 int, x int, s string, l2 int) *xstring {
+	t = func(mm *mm, l1 int, x int, s string, l2 int) *xstring {
 		var w *xstring
 		if l1 == 0 {
 			atomic.AddUint32(&v012F4D84cnt, 1)
@@ -244,13 +250,6 @@ func f00BADDD0xstring(s string) *xstring {
 		f00DE7C90memcpy(w.m08name[:], []byte(s), l2)
 		return w
 	}(v09D9BD74mm, l, 0, s, l)
-}
-
-// shared_ptr
-type xstring struct {
-	m00size int
-	m04cnt  int32
-	m08name [256]uint8
 }
 
 func (t *xstring) f00BACD30xstring(s string) {
@@ -529,85 +528,85 @@ type game struct {
 	mC0            uintptr              // GuildPosition
 	mC4            uintptr              // infoPopup
 	mC8            uintptr              // PetInfoPopup
-	mCC            uintptr
-	mD0            uintptr // QuickCommand
-	mD4            uintptr // duel
-	mD8            uintptr // duelwatch
-	mDC            uintptr // trade
-	mE0            uintptr // purchaseinven
-	mE4            uintptr // goldarcher
-	mE8            uintptr
-	mEC            uintptr // npcdialogue
-	mF0            uintptr // NpcShop
-	mF4            uintptr // PetInfo
-	mF8            uintptr // Pentagram
-	mFC            uintptr // ArkaResultInfo
-	m100           uintptr // StorageInven
-	m104           uintptr // StorageInven
-	m108           uintptr // NpcJobChangeQuest
-	m10C           uintptr // NpcQuestProgress
-	m110           uintptr // NpcGateKeeper
-	m114           uintptr // SystemMenu
-	m118           uintptr // Option
-	m11C           uintptr // SelectMenu
-	m120           uintptr // MyQuestInfo
-	m124           uintptr // ChatWindow
-	m128           uintptr // MoveCommand
-	m12C           uintptr // HelpWindow
-	m130           uintptr // EventMapHelper
-	m134           uintptr // Trainer 驯兽师
-	m138           uintptr // MapName
-	m13C           uintptr // Notice
-	m140           uintptr // HeroPosition
-	m144           uintptr // EnterBloodCastle
-	m148           uintptr // EnterEmpireGuardian
-	m14C           uintptr // CommandWindow
-	m150           uintptr // ArkaBattleRegister
-	m154           uintptr // ArkaBattleProgress
-	m158           uintptr // ArkaBattleNotice
-	m15C           uintptr // MonsterInfo
-	m160           uintptr // PlayerInfo
-	m164           uintptr // BuffFrame
-	m168           uintptr // EquipDurabilityInfo
-	m16C           uintptr // MacroMain
-	m170           uintptr // MacroSub
-	m174           uintptr // Alarm
-	m178           uintptr // MatchingSelect
-	m17C           uintptr // MatchingGuild
-	m180           uintptr // MatchingParty
-	m184           uintptr // PartyFrame
-	m188           uintptr // ItemInfo
-	m18C           uintptr // StrongestMatchMenu
-	m190           uintptr // StrongestMatchRank
-	m194           uintptr // StrongestMatchResult
-	m198           uintptr // SearchPrivateStore
-	m19C           uintptr // MiniGameRummy
-	m1A0           uintptr // EventInventoryFrame
-	m1A4           uintptr // EventInfo
-	m1A8           uintptr // CursedTempleMatchMenu
-	m1AC           uintptr // CursedTempleResult
-	m1B0           uintptr // CursedTempleScore
-	m1B4           uintptr // CursedTempleInfo
-	m1B8           uintptr // ListOfMatches
-	m1BC           uintptr // EventMapProgressInfo
-	m1C0           uintptr // EventMapRoundCount
-	m1C4           uintptr // ProgressFrame
-	m1C8           uintptr // Navimap
-	m1CC           uintptr // PetInventoryFrame
-	m1D0           uintptr // MuunExchange
-	m1D4           uintptr // OrdealSquareEnterMenu
-	m1D8           uintptr // OrdealSquareScore
-	m1DC           uintptr // OrdealSquareResult
-	m1E0           uintptr // EventMapTutorial
-	m1E4           uintptr // EventInfo
-	m1E8           uintptr // BattleField_BigDialog
-	m1EC           uintptr // RideButton
-	m1F0           uintptr // MonsterCompensation
-	m1F4           uintptr // ImageNotice
-	m1F8           uintptr // GremoryCase 活动奖励背包
-	m1FC           uintptr // RebuyList
-	m200           uintptr // PetFrame
-	m204           uintptr // do5 ebp7C
+	mCC            uintptr              // ?
+	mD0            uintptr              // QuickCommand
+	mD4            uintptr              // duel
+	mD8            uintptr              // duelwatch
+	mDC            uintptr              // trade
+	mE0            uintptr              // purchaseinven
+	mE4            uintptr              // goldarcher
+	mE8            uintptr              // ?
+	mEC            uintptr              // npcdialogue
+	mF0            uintptr              // NpcShop
+	mF4            uintptr              // PetInfo
+	mF8            uintptr              // Pentagram
+	mFC            uintptr              // ArkaResultInfo
+	m100           uintptr              // StorageInven
+	m104           uintptr              // StorageInven
+	m108           uintptr              // NpcJobChangeQuest
+	m10C           uintptr              // NpcQuestProgress
+	m110           uintptr              // NpcGateKeeper
+	m114           uintptr              // SystemMenu
+	m118           uintptr              // Option
+	m11C           uintptr              // SelectMenu
+	m120           uintptr              // MyQuestInfo
+	m124           uintptr              // ChatWindow
+	m128           uintptr              // MoveCommand
+	m12C           uintptr              // HelpWindow
+	m130           uintptr              // EventMapHelper
+	m134           uintptr              // Trainer 驯兽师
+	m138           uintptr              // MapName
+	m13C           uintptr              // Notice
+	m140           uintptr              // HeroPosition
+	m144           uintptr              // EnterBloodCastle
+	m148           uintptr              // EnterEmpireGuardian
+	m14C           uintptr              // CommandWindow
+	m150           uintptr              // ArkaBattleRegister
+	m154           uintptr              // ArkaBattleProgress
+	m158           uintptr              // ArkaBattleNotice
+	m15C           uintptr              // MonsterInfo
+	m160           uintptr              // PlayerInfo
+	m164           uintptr              // BuffFrame
+	m168           uintptr              // EquipDurabilityInfo
+	m16C           uintptr              // MacroMain
+	m170           uintptr              // MacroSub
+	m174           uintptr              // Alarm
+	m178           uintptr              // MatchingSelect
+	m17C           uintptr              // MatchingGuild
+	m180           uintptr              // MatchingParty
+	m184           uintptr              // PartyFrame
+	m188           uintptr              // ItemInfo
+	m18C           uintptr              // StrongestMatchMenu
+	m190           uintptr              // StrongestMatchRank
+	m194           uintptr              // StrongestMatchResult
+	m198           uintptr              // SearchPrivateStore
+	m19C           uintptr              // MiniGameRummy
+	m1A0           uintptr              // EventInventoryFrame
+	m1A4           uintptr              // EventInfo
+	m1A8           uintptr              // CursedTempleMatchMenu
+	m1AC           uintptr              // CursedTempleResult
+	m1B0           uintptr              // CursedTempleScore
+	m1B4           uintptr              // CursedTempleInfo
+	m1B8           uintptr              // ListOfMatches
+	m1BC           uintptr              // EventMapProgressInfo
+	m1C0           uintptr              // EventMapRoundCount
+	m1C4           uintptr              // ProgressFrame
+	m1C8           uintptr              // Navimap
+	m1CC           uintptr              // PetInventoryFrame
+	m1D0           uintptr              // MuunExchange
+	m1D4           uintptr              // OrdealSquareEnterMenu
+	m1D8           uintptr              // OrdealSquareScore
+	m1DC           uintptr              // OrdealSquareResult
+	m1E0           uintptr              // EventMapTutorial
+	m1E4           uintptr              // EventInfo
+	m1E8           uintptr              // BattleField_BigDialog
+	m1EC           uintptr              // RideButton
+	m1F0           uintptr              // MonsterCompensation
+	m1F4           uintptr              // ImageNotice
+	m1F8           uintptr              // GremoryCase 活动奖励背包
+	m1FC           uintptr              // RebuyList
+	m200           uintptr              // PetFrame
+	m204           uintptr              // do5 ebp7C
 
 	m20Cwidth  int
 	m210height int
@@ -624,7 +623,7 @@ func (t *game) f00A49808construct() *game {
 	// 	ebp38 = ebp18.f00BBBA00construct()
 	// }
 	// equal
-	ebp18 := new(window01187D5C) // 0x0EB41EB0
+	ebp18 := new(t01187D5C) // 0x0EB41EB0
 	ebp18.f00BBBA00construct()
 	ebp38 := ebp18
 	ebp14 := ebp38
@@ -638,7 +637,7 @@ func (t *game) f00A49808construct() *game {
 	// 	ebp3C = ebp24.f00A50053()
 	// }
 	// equal
-	ebp24 := new(window0117437C) // 0x0EB41ED0
+	ebp24 := new(t0117437C) // 0x0EB41ED0
 	ebp24.f00A50053construct()
 	ebp3C := ebp24
 	ebp20 := ebp3C
@@ -718,7 +717,8 @@ func (t *game) f00A4E46DLoadResource(w iwindowgame0117373C, x int, name *xstring
 			// name.f00A3AF16free()
 			return ebp1E
 		}
-		ebp14dir := f00BADDD0xstring("./Data/Interface/GFx/")
+		var ebp14dir *xstring
+		ebp14dir.f00BADDD0xstring("./Data/Interface/GFx/")
 		var ebp18name *xstring
 		ebp10 := 5
 		ebp1C := 0
@@ -781,7 +781,9 @@ func (t *game) f00A4A521init2() {
 	ebp4A0 := ebp24
 	ebp20 := ebp4A0
 	t.m88caution = ebp20
-	t.f00A4E46DLoadResource(t.m88caution, 5, f00BADDD0xstring("Caution"), false, 9)
+	var tmpName *xstring
+	tmpName.f00BADDD0xstring("Caution")
+	t.f00A4E46DLoadResource(t.m88caution, 5, tmpName, false, 9)
 
 	// MainFrame
 	ebp3F4 := new(windowgameMainFrame)
@@ -789,7 +791,8 @@ func (t *game) f00A4A521init2() {
 	ebp5E8 := ebp3F4
 	ebp3F0 := ebp5E8
 	t.m8CmainFrame = ebp3F0
-	t.f00A4E46DLoadResource(t.m8CmainFrame, 1, f00BADDD0xstring("MainFrame"), true, 2)
+	tmpName.f00BADDD0xstring("MainFrame")
+	t.f00A4E46DLoadResource(t.m8CmainFrame, 1, tmpName, true, 2)
 	// ...
 }
 

@@ -56,7 +56,7 @@ func (t *mm) do10malloc(size uint, flag, unk int) uintptr {
 }
 
 // f00BAAFB0
-func (t *mm) do11malloc(size uint, unk int) uintptr {
+func (t *mm) do11malloc(size uint, needzero int) uintptr {
 	var ebpC int
 	if t.m64 {
 		defer t.m4Cmutex.Unlock()
@@ -66,9 +66,14 @@ func (t *mm) do11malloc(size uint, unk int) uintptr {
 	return t.m68.f00BFB480(size, &ebpC)
 }
 
+func f00A3BA24malloc(size uint) uintptr {
+	return v09D9BD74mm.do11malloc(size, 0)
+}
+
+func f00A3AF52free(p uintptr) {
+	// v09D9BD74mm.do13free(p)
+}
+
 func f00A3BA10newobject(size uint) uintptr {
-	// return f00A3BA24new(size)
-	return func(size uint) uintptr {
-		return v09D9BD74mm.do11malloc(size, 0)
-	}(size)
+	return f00A3BA24malloc(size)
 }
