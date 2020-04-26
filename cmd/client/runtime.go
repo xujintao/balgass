@@ -50,8 +50,8 @@ func f00DE7538free(p unsafe.Pointer) {
 
 }
 
-func f00DE7C00strlen(str []uint8) {
-
+func f00DE7C00strlen(str []uint8) int {
+	return 0
 }
 
 func f00DE7C90memcpy(dst, src []uint8, len int) {

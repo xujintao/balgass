@@ -146,13 +146,13 @@ func (t *window01174368) f00A50036construct() {
 
 type window01187A98 struct {
 	t011737C4base
-	m08 *window01187A80
+	m08 *t01187A80
 	// m0C spintex // 占用0x18字节
 	m24 int
 	m28 uintptr
 }
 
-func (t *window01187A98) f00BB44B0construct(parent *window01187A80) {
+func (t *window01187A98) f00BB44B0construct(parent *t01187A80) {
 	// inline
 	t.t011737C4base.f00A3BB4Cconstruct()
 	// t.m00vtabptr = v01187A98[:]
@@ -164,14 +164,14 @@ func (t *window01187A98) f00BB44B0construct(parent *window01187A80) {
 	// t.m28 = v09D9BD74.do5("_ResourceLib_Images". &ebp20)
 }
 
-type window01187A80 struct {
+type t01187A80 struct {
 	t011737C4base
 	m08 *window01187A98
 	m0C int
 	m10 bool
 }
 
-func (t *window01187A80) f00BB4930construct(x bool) {
+func (t *t01187A80) f00BB4930construct(x bool) {
 	// inline
 	t.t011737C4base.f00A3BB4Cconstruct()
 	// t.m00vtabptr = v01187A80[:]
@@ -786,28 +786,61 @@ func (t *t0117EDD0gfxFileOpener) f00BEFFC0open(file string, mode, y int) ifile {
 	return w
 }
 
-func f00658C4Ddec(dst []uint8, src []uint8, size int) int {
-	return 0
-}
-
 // f00AEAD21 stdcall且有ebp帧栈，业务代码
 func (t *t0117EDD0gfxFileOpener) do2load(file string, mode, y int) *t0117EDE4 {
 	// 0xA0局部变量
 	// ebp6C := t
 	var ebp28 *xstring
 	ebp28.f00BADDD0xstring(file)
-	// f009235EC(ebp28.f00A3AF9Ecstr(), ".dds")
-	if f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".dds") != nil {
-		// ...
+	switch {
+	case f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".dds") != nil: // f009235EC(ebp28.f00A3AF9Ecstr(), ".dds")
+		// var ebp44 *xstring
+		// ebp70 := ebp28.f00BAE080(ebp44, 0, ebp28.f00BAC0B0()-4)
+		// ebp74 := ebp70
+		// ebp28.f00BACE40(ebp74)
+		// ebp44.f00A3AF16destruct()
+		// ebp28.f00A4FF11("ozd")
+	case f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".gfx") != nil:
+		// var ebp44 *xstring
+		// ebp70 := ebp28.f00BAE080(ebp44, 0, ebp28.f00BAC0B0()-4)
+		// ebp74 := ebp70
+		// ebp28.f00BACE40(ebp74)
+		// ebp44.f00A3AF16destruct()
+		// ebp28.f00A4FF11(".ozg")
+	case f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".ozp") != nil:
+		ebp38file := t.f00BEFFC0open(ebp28.f00A3AF9Ecstr(), mode, y) // ebp38file := f00AEC036assign(f)
+		if ebp38file.do3valid() == false {
+			ebp38file.f00BAE460()
+			// ebp28.f00A3AF16destruct()
+			return nil
+		}
+		ebp2Cbuf := make([]uint8, ebp38file.do7getSize()) // ebp2Cbuf := f00A3BA24malloc(ebp38file.do7getSize())
+		ebp3Csize := ebp38file.do7getSize()
+		ebp38file.do11read(ebp2Cbuf, ebp3Csize)
+
+		// c++搞个切片好难
+		ebp40size := ebp3Csize - 4
+		ebp30buf := make([]uint8, ebp40size) // ebp30buf := f00A3BA24malloc(ebp40size)
+		f00DE7C90memcpy(ebp30buf, ebp2Cbuf, ebp40size)
+
+		// unmarshal
+		ebp54 := new(t0117EDE4) // f00A3BA10newobject(0x1C)
+		ebp54.f00AEBCF0construct(ebp28.f00A3AF9Ecstr(), ebp30buf, ebp40size)
+		ebp90 := ebp54
+		ebp50 := ebp90
+		ebp34 := ebp50 // ebp34.f00AEB397assign(ebp50)
+		ebp34.f00AEBCD8seek()
+
+		ebp38file.do19close()
+		ebp38file.f00BAE460()
+		// f00A3AF52free(ebp2Cbuf)
+		t.m0C.f00AEB31Fappend(ebp30buf)
+		ebp34.f00BAE460()
+		ebp38file.f00BAE460()
+		// ebp28.f00A3AF16destruct()
+		return ebp34
 	}
-	// 0x00AEADBA
-	if f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".gfx") != nil {
-		// ...
-	}
-	// 0x00AEAE23
-	if f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".ozp") != nil {
-		// ...
-	}
+
 	// 0x00AEB01F
 	ebp1Cfile := t.f00BEFFC0open(ebp28.f00A3AF9Ecstr(), mode, y) // ebp1Cfile.f00AEC036assign(f)
 	if ebp1Cfile.do3valid() == false {
@@ -829,7 +862,7 @@ func (t *t0117EDD0gfxFileOpener) do2load(file string, mode, y int) *t0117EDE4 {
 	ebp18 := ebp60 // ebp18.f00AEB397assign(ebp60)
 	ebp18.f00AEBCD8seek()
 	ebp1Cfile.do19close()
-	// ebp1Cfile.f00BAE460() // 引用计数-1，析构函数里面再做一次-1然后释放内存
+	ebp1Cfile.f00BAE460() // 引用计数-1，析构函数里面再做一次-1然后释放内存
 	// f00A3AF52(ebp10bufsrc) // free
 	t.m0C.f00AEB31Fappend(ebp14bufdst)
 	// ebp18.f00AEB3BBdestruct()
@@ -861,16 +894,15 @@ type t01196128gfxLoader struct {
 
 func (t *t01196128gfxLoader) f00D05DA0construct() {}
 
-func (t *t01196128gfxLoader) f00D03CA0load(file string, unk int) bool {
+func (t *t01196128gfxLoader) f00D03CA0load(file string, unk int) *t0117EDE4 {
 	if t.m08.m08gfxFileOpener == nil {
 		// t.m0C.f00BB0310(t, "GFxLoader failed to open %s, GFxFileOpener not installed\n", file)
-		return false
+		return nil
 	}
-	t.m08.m08gfxFileOpener.do4load(file, t.m0C, 0x21, 0x1B6)
-	return true
+	return t.m08.m08gfxFileOpener.do4load(file, t.m0C, 0x21, 0x1B6)
 }
 
-type window0118CB68 struct {
+type t0118CB68 struct {
 	t011737C4base
 	window0118CB54
 	window0118CB4C
@@ -884,7 +916,7 @@ type window0118CB68 struct {
 	m3C uint8
 }
 
-func (t *window0118CB68) f00BF5350construct(x *window01187A80, y *int) {
+func (t *t0118CB68) f00BF5350construct(x *t01187A80, y *int) {
 	// 构造虚表指针
 	// t.m24.f00BFA480(0)
 	// t.m3C = uint8(y & 0xFF)
@@ -945,14 +977,17 @@ func (t *window0118CB68) f00BF5350construct(x *window01187A80, y *int) {
 }
 
 // "./Data/Interface/GFx/MainFrame.ozg", x, 0, 0x80
-func (t *window0118CB68) f00BF55E0(ozg string, x *attr, y int, z int) bool {
+func (t *t0118CB68) f00BF55E0(ozg string, x *attr, y int, z int) bool {
 	// 0x2B8局部变量
 	w := new(t01196128gfxLoader)
 	w.f00D05DA0construct()
 	// f00BADDD0xstring(ozg)
 	// ...
 	// 0x00BF5796
-	w.f00D03CA0load(ozg, 0)
+	if w.f00D03CA0load(ozg, 0) != nil {
+
+	}
+
 	return false
 }
 
@@ -984,11 +1019,11 @@ func (t *window01174340) f00A4FAD6construct() {
 	// t.m00vtabptr = v01174340[:]
 }
 
-// 非stdcall调用约定
+// stdcall无ebp帧栈
 type windowManager1 struct {
 	m00vtabptr []uintptr
-	m04        *window0118CB68
-	m08        *window01187A80
+	m04        *t0118CB68
+	m08        *t01187A80
 	m0C        int
 }
 
@@ -999,14 +1034,14 @@ func (t *windowManager1) do3(x int, window interface{}) {
 func (t *windowManager1) f00BB0920(x int, ws ...i011737C4) {
 	{
 		// v09D9BD74mm.do11malloc(0x14, 0)
-		w := new(window01187A80)
+		w := new(t01187A80)
 		w.f00BB4930construct(false)
 		t.m08 = w
 		t.m0C = x
 	}
 	{
 		// v09D9BD74mm.do11malloc(0x40, 0)
-		w := new(window0118CB68)
+		w := new(t0118CB68)
 		w.f00BF5350construct(t.m08, &x)
 		t.m04 = w
 	}

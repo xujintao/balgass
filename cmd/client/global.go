@@ -723,8 +723,8 @@ func (t *game) f00A4E46DLoadResource(w iwindowgame0117373C, x int, name *xstring
 		ebp10 := 5
 		ebp1C := 0
 		// ebp40 := t.f00A4F04E(&ebp18name, ebp14dir, name.f00A3AF9Ecstr()) // ./Data/Interface/GFx/xxx
-		// 			   &t.m08  5  "...dir/Caution.ozg"              "Taiwan"           5       0     0  0
-		// 			   &t.m08  1  "...dir/MainFrame.ozg"            "Taiwan"           5       0     0  0
+		// 			   &t.m08  5  "...dir/Caution.ozg"              "Taiwan"  5    0     0  0
+		// 			   &t.m08  1  "...dir/MainFrame.ozg"            "Taiwan"  5    0     0  0
 		ebp45 := w.do2(&t.m08, x, ebp14dir.f00BAE060cat(ebp18name), t.m30, ebp10, ebp1C, 0, 0)
 		if ebp45 == true {
 			// w.do3()
