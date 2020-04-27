@@ -217,7 +217,7 @@ func (t *stdstring) f00407B10free() {
 }
 
 // ----------------------xstring----------------------------------
-var v012F4D80empty uintptr = 0x80000000
+var v012F4D80empty emptystring = 0x80000000
 var v012F4D84cnt uint32
 
 func f00BAC850xstring() *xstring {
@@ -225,35 +225,52 @@ func f00BAC850xstring() *xstring {
 	return (*xstring)(unsafe.Pointer(&v012F4D80empty))
 }
 
-// shared_ptr
+// type xstring interface {
+// 	f00A3AF8Acstr() string
+// 	f00A3AF9Ecstr() string
+// 	f00BAC0B0len()
+// }
+
+type emptystring uintptr
+
 type xstring struct {
 	m00size int
 	m04cnt  int32
-	m08name [256]uint8
+	m08data [256]uint8
+}
+
+func f00BAC8C0xstring(mm *mm, l1 int, unk int, data []uint8, l2 int) *xstring {
+	var w *xstring
+	if l1 == 0 {
+		atomic.AddUint32(&v012F4D84cnt, 1)
+		w = (*xstring)(unsafe.Pointer(v012F4D80empty))
+	} else {
+		// mm.do11malloc(uint(l1)+0xC, 0) // 0x13, 0
+		w = new(xstring)
+		w.m08data[8+l1] = 0
+		w.m04cnt = 1
+		w.m00size = l1
+	}
+	f00DE7C90memcpy(w.m08data[:], data, l2)
+	return w
 }
 
 func (t *xstring) f00BADDD0xstring(s string) {
 	l := len(s)
-	// f00BAC8C0(v09D9BD74mm, l, 0, s, l)
-	t = func(mm *mm, l1 int, x int, s string, l2 int) *xstring {
-		var w *xstring
-		if l1 == 0 {
-			atomic.AddUint32(&v012F4D84cnt, 1)
-			w = (*xstring)(unsafe.Pointer(v012F4D80empty))
-		} else {
-			// mm.do11malloc(uint(l1)+0xC, 0) // 0x13, 0
-			w = new(xstring)
-			w.m08name[8+l1] = 0
-			w.m04cnt = 1
-			w.m00size = l1
-		}
-		f00DE7C90memcpy(w.m08name[:], []byte(s), l2)
-		return w
-	}(v09D9BD74mm, l, 0, s, l)
+	t = f00BAC8C0xstring(v09D9BD74mm, l, 0, []uint8(s), l)
 }
 
 func (t *xstring) f00BACD30xstring(s string) {
 
+}
+
+func (t *xstring) f00BAE080xstring(s *xstring, offset int, l int) *xstring {
+	if offset >= t.m00size || offset >= l {
+		// s = &v012F4D80empty
+		// return s
+	}
+	s = f00BAC8C0xstring(v09D9BD74mm, l, 0, t.m08data[offset:], l)
+	return s
 }
 
 func (t *xstring) f00BADF50assign(s *xstring) *xstring {
@@ -261,15 +278,12 @@ func (t *xstring) f00BADF50assign(s *xstring) *xstring {
 	return s
 }
 
-func (t *xstring) destruct() {
-	atomic.AddInt32(&t.m04cnt, -1)
-	if t.m04cnt == 0 {
-		// delete
-	}
+func (t *xstring) f00BACE40assign(s *xstring) {
+
 }
 
 func (t *xstring) f00A3AF6C() string {
-	return string(t.m08name[:])
+	return string(t.m08data[:])
 }
 
 func (t *xstring) f00A3AF8Acstr() string {
@@ -280,8 +294,51 @@ func (t *xstring) f00A3AF9Ecstr() string {
 	return t.f00A3AF6C()
 }
 
+func f00BF0C80(data []uint8, l int) int {
+	cnt := 0
+	if l == -1 {
+		return cnt
+	}
+	if l == 0 {
+		return cnt
+	}
+	for {
+		if data[0] == 0 { // f00BF0630(data)
+			return cnt
+		}
+		data = data[1:]
+		cnt++
+	}
+}
+
+func (t *xstring) f00BAC0B0len() int {
+	if t.m00size < 0 {
+		return ^(1 << 31) & t.m00size
+	}
+	size := f00BF0C80(t.m08data[:], t.m00size)
+	if t.m00size == size {
+		t.m00size |= 1 << 31
+	}
+	return size
+}
+
 func (t *xstring) f00BAE060cat(sub *xstring) *xstring {
 	return nil
+}
+
+func (t *xstring) f00A4FF11cat(s string) {
+
+}
+
+func (t *xstring) f00A3AF16destruct() {
+
+}
+
+func (t *xstring) destruct() {
+	atomic.AddInt32(&t.m04cnt, -1)
+	if t.m04cnt == 0 {
+		// delete
+	}
 }
 
 // load serverlist.bmd
@@ -714,7 +771,7 @@ func (t *game) f00A4E46DLoadResource(w iwindowgame0117373C, x int, name *xstring
 		ebp1D := false
 		if w == nil || wm == nil {
 			ebp1E := ebp1D
-			// name.f00A3AF16free()
+			// name.f00A3AF16destruct()
 			return ebp1E
 		}
 		var ebp14dir *xstring
@@ -744,13 +801,13 @@ func (t *game) f00A4E46DLoadResource(w iwindowgame0117373C, x int, name *xstring
 			}
 		}
 		ebp35 := ebp1D
-		// ebp18name.f00A3AF16free()
-		// ebp14dir.f00A3AF16free()
-		// name.f00A3AF16free()
+		// ebp18name.f00A3AF16destruct()
+		// ebp14dir.f00A3AF16destruct()
+		// name.f00A3AF16destruct()
 		return ebp35
 	}(t.m7C, w, x, name, y, align)
 	ebp15 := ebp25
-	// name.f00A3AF16free()
+	// name.f00A3AF16destruct()
 	return ebp15
 }
 

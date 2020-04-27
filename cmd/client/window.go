@@ -794,12 +794,12 @@ func (t *t0117EDD0gfxFileOpener) do2load(file string, mode, y int) *t0117EDE4 {
 	ebp28.f00BADDD0xstring(file)
 	switch {
 	case f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".dds") != nil: // f009235EC(ebp28.f00A3AF9Ecstr(), ".dds")
-		// var ebp44 *xstring
-		// ebp70 := ebp28.f00BAE080(ebp44, 0, ebp28.f00BAC0B0()-4)
-		// ebp74 := ebp70
-		// ebp28.f00BACE40(ebp74)
-		// ebp44.f00A3AF16destruct()
-		// ebp28.f00A4FF11("ozd")
+		var ebp44 *xstring
+		ebp70 := ebp28.f00BAE080xstring(ebp44, 0, ebp28.f00BAC0B0len()-4)
+		ebp74 := ebp70
+		ebp28.f00BACE40assign(ebp74)
+		ebp44.f00A3AF16destruct()
+		ebp28.f00A4FF11cat("ozd")
 	case f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".gfx") != nil:
 		// var ebp44 *xstring
 		// ebp70 := ebp28.f00BAE080(ebp44, 0, ebp28.f00BAC0B0()-4)
