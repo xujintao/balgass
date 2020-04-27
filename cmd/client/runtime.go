@@ -38,6 +38,12 @@ func f00DF7693errno() int {
 	return 0
 }
 
+// libc.stdlib--------------------------------
+// atof atoi strtod strtol strtoul
+// calloc malloc free
+// abort atexit exit getenv system
+// bsearch qsort abs div abls ldiv rand srand
+// mblen mbstowcs mbtowc wcstombs wctomb
 func f00DECBD1atoi(buf []uint8) int {
 	n, err := strconv.Atoi(string(buf))
 	if err != nil {
@@ -46,16 +52,36 @@ func f00DECBD1atoi(buf []uint8) int {
 	return n
 }
 
-func f00DE7538free(p unsafe.Pointer) {
+func f00DE7538free(p unsafe.Pointer) {}
 
+func f00DE84E3abort() {}
+
+// 猜测
+func f00DE8AADrand() int { return 0 }
+
+func f00DE852Fnew(x int) unsafe.Pointer {
+	return nil
+}
+func f00DE64BCnew(n uint) []uint8 {
+	return make([]uint8, n)
+}
+func f00DE7BEAdelete(buf []uint8) {
+	buf = buf[:0]
 }
 
+// libc.string
+// memchr memcmp memcpy memmove memset
+// strcat strncat strcmp strncmp strcoll
+// strcpy strncpy strcspn strerror strlen
+// strpbrk strrchr strspn strstr strtok strxfrm
+func f00DE8857memcpy_s(dst unsafe.Pointer, dstSize int, src unsafe.Pointer, size int) int {
+	return 0
+}
 func f00DE7C00strlen(str []uint8) int {
 	return 0
 }
 
 func f00DE7C90memcpy(dst, src []uint8, len int) {
-
 }
 
 func f00DE8000strcpy(dst []uint8, src []uint8) {
@@ -157,29 +183,21 @@ func f00DE817Asprintf(buf []uint8, strfmt string, a ...interface{}) int {
 	return len(str)
 }
 
-func f00DE852Fnew(x int) unsafe.Pointer {
-	return nil
-}
-
 // 拿着eax做栈分配，这个骚套路是什么API？目的是什么？
 func f00DE8A70chkstk() {}
-
-// 猜测
-func f00DE8AADrand() int { return 0 }
 
 func f00DEE871setlocale(category uint32, locale string) {
 
 }
 
-func f00DE64BCnew(n uint) []uint8 {
-	return make([]uint8, n)
-}
-
-func f00DE7BEAdelete(buf []uint8) {
-	buf = buf[:0]
-}
-
-// ------------------------libc.file------------------------------
+// libc.io------------------------------
+// fclose clearerr feof ferror fflush fgetpos
+// fopen fread freopen fseek fsetpos ftell fwrite
+// remove rename rewind setbuf setvbuf tmpfile tmpnam
+// fprintf printf sprintf vfprintf vprintf vsprintf
+// fscanf scanf sscanf fgetc fgets fputc fputs
+// getc getchar gets putc putchar puts ungetc
+// perror snprintf
 func f00DF6F11fopen(f **os.File, filename []rune, mode []rune) {
 	// *f = f00DF6E34(filename, mode, 0x80)
 }
@@ -667,10 +685,6 @@ func f0A05D00Fmemcpy(dstAddr unsafe.Pointer, srcAddr unsafe.Pointer, size uint32
 
 	// 0x0A8FBAC6
 	return index
-}
-
-func f00DE8857memcpy_s(dst unsafe.Pointer, dstSize int, src unsafe.Pointer, size int) int {
-	return 0
 }
 
 func f0AAB88A1getValue(imageBase uintptr, crcDatas []block, valuep unsafe.Pointer, step uint32, lenp *uint32) []block {

@@ -29,12 +29,33 @@ func (t *t01186D2C) f00BA03C0construct() {
 	t.m04.construct()
 }
 
-// f00401890
-func (t *t01186D2C) do7(buf []uint8, l int, x interface{}) {
-	// f00401A10()
-	func() {
+// f00BA04D0
+func (t *t01186D2C) do5(len int) int {
+	if len >= 255 {
+		return 255
+	}
+	return len
+}
 
+// f00415000
+func (t *t01186D2C) do6IsValidKeyLength(len int) bool {
+	return len == t.do5(len)
+}
+
+// f00401890
+func (t *t01186D2C) do7SetKey(key []uint8, len int, x interface{}) {
+	// t.f00401A10ThrowIfInvalidKeyLength(len)
+	func() {
+		if t.do6IsValidKeyLength(len) == false {
+			// f004968E0InvalidKeyLength(t.do14GetAlgorithm().do3AlgorithmName(), len)
+			// f00DE84E3abort()
+		}
 	}()
+	t.do15UncheckedSetKey(key, len, x)
+}
+
+func (t *t01186D2C) do15UncheckedSetKey(key []uint8, len int, x interface{}) {
+
 }
 
 type t01186D70 struct {
@@ -62,29 +83,29 @@ func (t *t01186D9C) f00BA0750construct() {
 	t.m04.construct()
 }
 
-func (t *t01186D9C) do7(buf []uint8, l int, x interface{}) {
+func (t *t01186D9C) do7SetKey(buf []uint8, len int, x interface{}) {
 
 }
 
 // size:0x4C
-type t01186EBC struct {
-	m00vtabptr []uintptr
-	m08        t01186D2C
-	m28        t01186D9C
+type t01186EBCrc5 struct {
+	m00vtabptr   []uintptr
+	m08encryptor t01186D2C
+	m28decryptor t01186D9C
 }
 
-func (t *t01186EBC) f00BA0C80construct() {
+func (t *t01186EBCrc5) f00BA0C80construct() {
 	// t.m00vtabptr = v01186EBC[:]
-	t.m08.f00BA03C0construct()
-	t.m28.f00BA0750construct()
+	t.m08encryptor.f00BA03C0construct()
+	t.m28decryptor.f00BA0750construct()
 }
 
 var v0130714C int
 
 // f00BA0CE0
-func (t *t01186EBC) do2(buf []uint8, l int) {
-	t.m08.do7(buf, 0x10, &v0130714C)
-	t.m28.do7(buf, 0x10, &v0130714C)
+func (t *t01186EBCrc5) do2(key []uint8, len int) {
+	t.m08encryptor.do7SetKey(key, 0x10, &v0130714C)
+	t.m28decryptor.do7SetKey(key, 0x10, &v0130714C)
 }
 
 // ------------------------------------------------------------
@@ -100,24 +121,24 @@ func (t *bmdCipher) f00B99D70destruct() {
 
 }
 
-func (t *bmdCipher) f00BA1120expandKey(flag int, key []uint8, l int) {
+func (t *bmdCipher) f00BA1120expandKey(alg int, key []uint8, l int) {
 	var bc blockCipher
 	if t.m00bc != nil {
 		// ...
 		t.m00bc = nil
 	}
-	switch flag & 7 {
-	case 0: // ecb
-	case 1: // cbc
-	case 2: // cfb
-	case 3: // ctr
-		c := new(t01186EBC) // f00DE852Fnew(t01186EBC)
+	switch alg & 7 {
+	case 0: // TEA block cipher
+	case 1: // 3-Way block cipher
+	case 2: // CAST-128 block cipher
+	case 3: // RC5 block cipher
+		c := new(t01186EBCrc5) // f00DE852Fnew(t01186EBCrc5)
 		c.f00BA0C80construct()
 		bc = c
-	case 4: // ofb
-	case 5:
-	case 6:
-	case 7:
+	case 4: // RC6 block cipher
+	case 5: // MARS block cipher
+	case 6: // IDEA block cipher
+	case 7: // GOST block cipher
 	}
 	t.m00bc = bc
 	bc.do2(key, l)
@@ -135,6 +156,7 @@ func (t *bmdCipher) f00B99DC0dec(dst []uint8, src []uint8, len int) {
 
 }
 
+// ------------------------------------------------------
 func f00658A9Cenc(dst []uint8, src []uint8, size int) int {
 	// 0x68局部变量
 	if dst == nil {
@@ -187,8 +209,8 @@ func f00658C4Ddec(dst []uint8, src []uint8, size int) int {
 	if dst == nil {
 		return size - 0x22
 	}
-	ebp70mod1 := src[0] // 8
-	ebp6Fmod2 := src[1] // 3
+	ebp70mode1 := src[0] // 8
+	ebp6Fmode2 := src[1] // 3
 
 	// 强化解密
 	var ebp48key [33]uint8
@@ -196,7 +218,7 @@ func f00658C4Ddec(dst []uint8, src []uint8, size int) int {
 	ebp48key[32] = 0
 	var ebp20 bmdCipher
 	ebp20.f00B99D60construct()
-	ebp20.f00BA1120expandKey(int(ebp6Fmod2), ebp48key[:], f00DE7C00strlen(ebp48key[:]))
+	ebp20.f00BA1120expandKey(int(ebp6Fmode2), ebp48key[:], f00DE7C00strlen(ebp48key[:]))
 	ebp24 := ebp20.f00B99E20(1024)
 	ebp10size := size - 0x22
 	if ebp10size > ebp24*4 {
@@ -219,7 +241,7 @@ func f00658C4Ddec(dst []uint8, src []uint8, size int) int {
 	f00DE7C90memcpy(dst, src[34:], ebp10size)
 	var ebp18 bmdCipher
 	ebp18.f00B99D60construct()
-	ebp18.f00BA1120expandKey(int(ebp70mod1), ebp6Ekey[:], 32)
+	ebp18.f00BA1120expandKey(int(ebp70mode1), ebp6Ekey[:], 32)
 	ebp18.f00B99DC0dec(dst, dst, ebp18.f00B99E20(ebp10size))
 	ebp18.f00B99D70destruct()
 	ebp20.f00B99D70destruct()

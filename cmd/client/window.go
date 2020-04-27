@@ -688,7 +688,7 @@ func f00AEB9F8newnode(num int) *listNode {
 		if num > 0 {
 			if ^uint(0)/uint(num) < 12 {
 				// ebpC.f00407570(0)
-				// f00DE84E3(&ebpC, v012DA28C)
+				// f00DE84E3abort(&ebpC, v012DA28C)
 			}
 		}
 		return new(listNode) // return f00DE852Fnew(num * 12)
