@@ -37,9 +37,7 @@
     <ClInclude Include="..\src\DockingFeature\GoToLineDlg.h">
       <Filter>DockingFeature</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\bmd_cipher\bmdCipher.hpp">
-      <Filter>bmd_cipher</Filter>
-    </ClInclude>
+    <ClInclude Include="..\src\bmdCipher.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\main.rc" />
@@ -50,9 +48,6 @@
   <ItemGroup>
     <Filter Include="DockingFeature">
       <UniqueIdentifier>{918a7507-7b86-413d-945a-0ef6e75157d1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="bmd_cipher">
-      <UniqueIdentifier>{e3e588ad-d267-461c-a92e-f8c7b8f0531a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -7,7 +7,8 @@
 #include "mars.h" // 5
 #include "idea.h" // 6
 #include "gost.h" // 7
-#pragma comment(lib, "../src/cryptopp/x64/Output/Release/cryptopp.lib")
+
+#pragma comment(lib, "cryptlib.lib")
 
 class blockCipherInterface {
 public:
@@ -66,9 +67,15 @@ private:
 };
 
 size_t bmdenc(unsigned char* out, const unsigned char* in, size_t len) {
-
+	if (out == nullptr) {
+		return len + 34;
+	}
+	return len;
 }
 
 size_t bmddec(unsigned char* out, const unsigned char* in, size_t len) {
-
+	if (out == nullptr) {
+		return len - 34;
+	}
+	return len;
 }

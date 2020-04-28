@@ -23,10 +23,10 @@
 // The plugin data that Notepad++ needs
 //
 FuncItem funcItem[] = {
-	// namefunc cmdID init2Check shortKey
+	// name func cmdID init2Check shortKey
 	{ TEXT("Hello Notepad++"),		hello,		0,	false,	NULL },
 	{ TEXT("Hello (with dialog)"),	helloDlg,	0,	false,	NULL },
-	{ TEXT("bmd/ozd/ozg decode"),	handleDec,		0,	false,	NULL },
+	{ TEXT("bmd/ozd/ozg decode"),	handleDec,	0,	false,	NULL },
 };
 
 int funcItemLen() {
@@ -85,5 +85,5 @@ void helloDlg()
 
 void handleDec() {
 	// Use current scintilla
-
+	bmdenc(nullptr, nullptr, 0);
 }
