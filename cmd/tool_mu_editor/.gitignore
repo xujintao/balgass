@@ -12,3 +12,4 @@ vs.proj/NppPluginTemplate.lib
 vs.proj/NppPluginTemplate.vcxproj.user
 *.aps
 *.zip
+src/cryptopp

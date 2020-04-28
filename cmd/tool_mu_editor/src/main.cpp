@@ -17,7 +17,7 @@
 
 #include "PluginDefinition.h"
 
-extern FuncItem funcItem[nbFunc];
+extern FuncItem funcItem[];
 extern NppData nppData;
 
 
@@ -57,7 +57,7 @@ extern "C" __declspec(dllexport) const TCHAR * getName()
 
 extern "C" __declspec(dllexport) FuncItem * getFuncsArray(int *nbF)
 {
-	*nbF = nbFunc;
+	*nbF = funcItemLen();
 	return funcItem;
 }
 
