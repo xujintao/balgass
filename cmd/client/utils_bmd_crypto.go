@@ -1,9 +1,5 @@
 package main
 
-type blockCipher interface {
-	do2(key []uint8, l int)
-}
-
 type t01186D00 struct {
 	m00vtabptr []uintptr
 }
@@ -87,6 +83,13 @@ func (t *t01186D9C) do7SetKey(buf []uint8, len int, x interface{}) {
 
 }
 
+type blockCipher interface {
+	do2setkey(key []uint8, l int)
+	do3encrypt(src []uint8, len int, dst []uint8) int
+	do4decrypt(src []uint8, len int, dst []uint8) int
+	do5blocksize() int
+}
+
 // size:0x4C
 type t01186EBCrc5 struct {
 	m00vtabptr   []uintptr
@@ -103,9 +106,45 @@ func (t *t01186EBCrc5) f00BA0C80construct() {
 var v0130714C int
 
 // f00BA0CE0
-func (t *t01186EBCrc5) do2(key []uint8, len int) {
-	t.m08encryptor.do7SetKey(key, 0x10, &v0130714C)
-	t.m28decryptor.do7SetKey(key, 0x10, &v0130714C)
+func (t *t01186EBCrc5) do2setkey(key []uint8, len int) {
+	// t.m08encryptor.do7SetKey(key, t.KEYLENGTH, &v0130714C)
+	// t.m28decryptor.do7SetKey(key, t.KEYLENGTH, &v0130714C)
+}
+
+// f00BA0D40
+func (t *t01186EBCrc5) do3encrypt(src []uint8, len int, dst []uint8) int {
+	if dst == nil || len <= 0 {
+		return len
+	}
+	len /= 8
+	for len > 0 {
+		// t.m08encryptor.do3ProcessAndXorBlock(src, nil, dst)
+		src = src[8:]
+		dst = dst[8:]
+		len--
+	}
+	return len
+}
+
+// f00BA0D90
+func (t *t01186EBCrc5) do4decrypt(src []uint8, len int, dst []uint8) int {
+	if dst == nil || len <= 0 {
+		return len
+	}
+	len /= 8
+	for len > 0 {
+		// t.m28decryptor.do3ProcessAndXorBlock(src, nil, dst)
+		src = src[8:]
+		dst = dst[8:]
+		len--
+	}
+	return len
+}
+
+// f00BA0D30
+func (t *t01186EBCrc5) do5blocksize() int {
+	return 0
+	// return t.BLOCKSIZE
 }
 
 // ------------------------------------------------------------
@@ -121,39 +160,48 @@ func (t *bmdCipher) f00B99D70destruct() {
 
 }
 
-func (t *bmdCipher) f00BA1120expandKey(alg int, key []uint8, l int) {
+func (t *bmdCipher) f00BA1120setkey(alg int, key []uint8, l int) {
 	var bc blockCipher
 	if t.m00bc != nil {
 		// ...
 		t.m00bc = nil
 	}
 	switch alg & 7 {
-	case 0: // TEA block cipher
-	case 1: // 3-Way block cipher
-	case 2: // CAST-128 block cipher
-	case 3: // RC5 block cipher
+	case 0: // TEA block cipher, 16, 8
+	case 1: // 3-Way block cipher, 12, 12
+	case 2: // CAST-128 block cipher, 16, 8
+	case 3: // RC5 block cipher, 16, 8
 		c := new(t01186EBCrc5) // f00DE852Fnew(t01186EBCrc5)
 		c.f00BA0C80construct()
 		bc = c
-	case 4: // RC6 block cipher
-	case 5: // MARS block cipher
-	case 6: // IDEA block cipher
-	case 7: // GOST block cipher
+	case 4: // RC6 block cipher, 16, 16
+	case 5: // MARS block cipher, 16, 16
+	case 6: // IDEA block cipher, 16, 8
+	case 7: // GOST block cipher, 32, 8
 	}
 	t.m00bc = bc
-	bc.do2(key, l)
+	bc.do2setkey(key, l)
 }
 
-func (t *bmdCipher) f00B99E20(size int) int {
-	return 0
+func (t *bmdCipher) f00B99E20align(size int) int {
+	if size <= 0 {
+		return 0
+	}
+	return size - size%t.m00bc.do5blocksize() // 1024 - 1024%8
 }
 
-func (t *bmdCipher) f00B99D90enc(dst []uint8, src []uint8, len int) {
-
+func (t *bmdCipher) f00B99D90enc(dst []uint8, src []uint8, len int) int {
+	if t.m00bc == nil {
+		return -1
+	}
+	return t.m00bc.do3encrypt(src, len, dst)
 }
 
-func (t *bmdCipher) f00B99DC0dec(dst []uint8, src []uint8, len int) {
-
+func (t *bmdCipher) f00B99DC0dec(dst []uint8, src []uint8, len int) int {
+	if t.m00bc == nil {
+		return -1
+	}
+	return t.m00bc.do4decrypt(src, len, dst)
 }
 
 // ------------------------------------------------------
@@ -172,9 +220,9 @@ func f00658A9Cenc(dst []uint8, src []uint8, size int) int {
 	// 使用key1加密
 	var ebp14 bmdCipher
 	ebp14.f00B99D60construct()
-	ebp14.f00BA1120expandKey(int(ebp6C[0]), ebp6C[2:34], 32)
-	ebp14.f00B99D90enc(dst[34:], dst[34:], ebp14.f00B99E20(size))
-	ebp14.f00B99E20(size)
+	ebp14.f00BA1120setkey(int(ebp6C[0]), ebp6C[2:34], 32)
+	ebp14.f00B99D90enc(dst[34:], dst[34:], ebp14.f00B99E20align(size))
+	ebp14.f00B99E20align(size)
 
 	// 使用key2强化加密
 	var ebp44key [33]uint8
@@ -182,8 +230,8 @@ func f00658A9Cenc(dst []uint8, src []uint8, size int) int {
 	ebp44key[32] = 0
 	var ebp1C bmdCipher
 	ebp1C.f00B99D60construct()
-	ebp1C.f00BA1120expandKey(int(ebp6C[1]), ebp44key[:], f00DE7C00strlen(ebp44key[:]))
-	ebp20 := ebp1C.f00B99E20(1024)
+	ebp1C.f00BA1120setkey(int(ebp6C[1]), ebp44key[:], f00DE7C00strlen(ebp44key[:]))
+	ebp20 := ebp1C.f00B99E20align(1024)
 	if size > ebp20 {
 		// 使用key2对头部的1024字节加密
 		ebp48 := dst[2:]
@@ -218,8 +266,8 @@ func f00658C4Ddec(dst []uint8, src []uint8, size int) int {
 	ebp48key[32] = 0
 	var ebp20 bmdCipher
 	ebp20.f00B99D60construct()
-	ebp20.f00BA1120expandKey(int(ebp6Fmode2), ebp48key[:], f00DE7C00strlen(ebp48key[:]))
-	ebp24 := ebp20.f00B99E20(1024)
+	ebp20.f00BA1120setkey(int(ebp6Fmode2), ebp48key[:], f00DE7C00strlen(ebp48key[:]))
+	ebp24 := ebp20.f00B99E20align(1024)
 	ebp10size := size - 0x22
 	if ebp10size > ebp24*4 {
 		// 使用key2对中间的1024字节解密
@@ -241,8 +289,8 @@ func f00658C4Ddec(dst []uint8, src []uint8, size int) int {
 	f00DE7C90memcpy(dst, src[34:], ebp10size)
 	var ebp18 bmdCipher
 	ebp18.f00B99D60construct()
-	ebp18.f00BA1120expandKey(int(ebp70mode1), ebp6Ekey[:], 32)
-	ebp18.f00B99DC0dec(dst, dst, ebp18.f00B99E20(ebp10size))
+	ebp18.f00BA1120setkey(int(ebp70mode1), ebp6Ekey[:], 32)
+	ebp18.f00B99DC0dec(dst, dst, ebp18.f00B99E20align(ebp10size))
 	ebp18.f00B99D70destruct()
 	ebp20.f00B99D70destruct()
 	return size
