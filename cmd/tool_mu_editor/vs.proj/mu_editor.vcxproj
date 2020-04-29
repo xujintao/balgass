@@ -100,13 +100,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\</OutDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);..\src\cryptopp;..\src\bmd_cipher</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);..\src\cryptopp</IncludePath>
     <LibraryPath>..\src\cryptopp\Win32\Output\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin64\</OutDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\src\cryptopp;..\src\bmd_cipher</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\src\cryptopp</IncludePath>
     <LibraryPath>..\src\cryptopp\x64\Output\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
