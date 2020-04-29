@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\bmdCipher.hpp">
+    <ClInclude Include="..\src\bmd_cipher.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

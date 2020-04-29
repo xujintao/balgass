@@ -1,6 +1,6 @@
 #include <string.h>
 #include <stdio.h>
-#include "bmdCipher.hpp"
+#include "bmd_cipher.hpp"
 
 size_t hex2bytes(unsigned char* dst, const char* src) {
 	if (src == nullptr) {
@@ -53,7 +53,7 @@ size_t bytes2hex(char* dst, const unsigned char* src, size_t len) {
 			if (b >= 0 && b <= 9)
 				dst[(i<<1) + j] = b + '0';
 			else if (b >= 10 && b <= 15) {
-				dst[(i << 1) + j] = b + 'A';
+				dst[(i << 1) + j] = b + 'A' - 10;
 			}
 		}
 	}
@@ -67,12 +67,9 @@ struct text {
 
 text texts[] = {
 	{
-		"12AFab",
-		""
-	},
-	{
-		"",
-		""
+		"1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF",
+		"0705CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+		"374330E14051FD49374330E14051FD49374330E14051FD49374330E14051FD49"
 	}
 };
 
@@ -104,9 +101,10 @@ void main() {
 			cipher[lenCipher << 1] = 0;
 			bytes2hex(cipher, streamCipher, lenCipher);
 			if (strcmp(cipher, v.cipher) != 0) {
-				printf("bmdenc failed, invalid plain stream: %s\r\n", v.plain);
+				printf("bmdenc failed, got[%s] expect[%s]\r\n", cipher, v.cipher);
 				return;
 			}
+			printf("encrypt %s success\r\n", v.plain);
 		}
 		__finally {
 			if (streamPlain != nullptr) {

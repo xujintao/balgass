@@ -37,7 +37,7 @@
     <ClInclude Include="..\src\DockingFeature\GoToLineDlg.h">
       <Filter>DockingFeature</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\bmdCipher.hpp" />
+    <ClInclude Include="..\src\bmd_cipher.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\main.rc" />

@@ -161,7 +161,7 @@
     <ClCompile Include="..\src\test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\bmdCipher.hpp" />
+    <ClInclude Include="..\src\bmd_cipher.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -17,7 +17,7 @@
 
 #include "PluginDefinition.h"
 #include "menuCmdID.h"
-#include "bmdCipher.hpp"
+#include "bmd_cipher.hpp"
 
 //
 // The plugin data that Notepad++ needs
