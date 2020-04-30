@@ -32,8 +32,7 @@ public:
 		if (out == nullptr || len == 0) {
 			return len;
 		}
-		len /= I::BLOCKSIZE;
-		for (;len > 0;len--) {
+		for (int i = len / I::BLOCKSIZE; i > 0;i--){
 			enc.ProcessAndXorBlock(in, nullptr, out);
 			in += I::BLOCKSIZE;
 			out += I::BLOCKSIZE;
@@ -44,8 +43,7 @@ public:
 		if (out == nullptr || len == 0) {
 			return len;
 		}
-		len /= I::BLOCKSIZE;
-		for (;len > 0;len--) {
+		for (int i = len / I::BLOCKSIZE; i > 0;i--) {
 			dec.ProcessAndXorBlock(in, nullptr, out);
 			in += I::BLOCKSIZE;
 			out += I::BLOCKSIZE;
@@ -107,26 +105,39 @@ private:
 
 char* key = "webzen#@!01webzen#@!01webzen#@!0";
 
-size_t bmdenc(unsigned char* out, const unsigned char* in, size_t len) {
+size_t bmdenc(unsigned char* out, const unsigned char* in, size_t len, bool random = true) {
 	if (in==nullptr || len==0) {
 		return 0;
 	}
 	if (out == nullptr) {
 		return len + 34;
 	}
-	srand(time(nullptr));
-	int alg1 = rand() % 11;
-	int alg2 = rand() % 7;
+	int alg1 = in[0], alg2 = in[1];
+	unsigned char key1[32] = {
+		0x01,0x23,0x45,0x67,0x89,0xAB,0xCD,0xEF,
+		0x01,0x23,0x45,0x67,0x89,0xAB,0xCD,0xEF,
+		0x01,0x23,0x45,0x67,0x89,0xAB,0xCD,0xEF,
+		0x01,0x23,0x45,0x67,0x89,0xAB,0xCD,0xEF,
+	};
+	if (random == true) {
+		srand(time(nullptr));
+		alg1 = rand() % 11;
+		alg2 = rand() % 7;
+		for (int i = 0;i < sizeof(key1);i++) {
+			key1[i] = rand() % 256;
+		}
+	}
 	out[0] = (unsigned char)(alg1);
 	out[1] = (unsigned char)(alg2);
 	out = out + 2;
-	unsigned char key1[32]; // never zero init
 	memcpy(out, key1, 32);
 
 	// encrypt with key1
 	bmdCipher bc1;
 	bc1.setKey(alg1, key1, 32);
-	bc1.encrypt(out+32, in, bc1.align(len));
+	size_t lenAlign = bc1.align(len);
+	bc1.encrypt(out+32, in, lenAlign);
+	memcpy(out + 32 + lenAlign, in + lenAlign, len - lenAlign); // handle unaligned part at tail
 
 	// encrypt with key2
 	bmdCipher bc2;
@@ -182,9 +193,10 @@ size_t bmddec(unsigned char* out, const unsigned char* in, size_t len) {
 	// decrypt with key1
 	bmdCipher bc1;
 	bc1.setKey(alg1, tmp, 32);
-	tmp = tmp + 32;
 	len -= 32;
-	bc1.decrypt(out, tmp, len);
+	size_t lenAlign = bc1.align(len);
+	bc1.decrypt(out, tmp + 32, lenAlign);
+	memcpy(out + lenAlign, tmp + 32 + lenAlign, len - lenAlign); // handle unaligned part at tail
 	delete[]tmp;
 	return len;
 }
