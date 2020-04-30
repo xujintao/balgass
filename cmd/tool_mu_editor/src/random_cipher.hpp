@@ -1,4 +1,5 @@
 #pragma once
+#include "config.h"
 #include "tea.h"  // 0
 #include "3way.h" // 1
 #include "cast.h" // 2
@@ -8,7 +9,7 @@
 #include "idea.h" // 6
 #include "gost.h" // 7
 
-#pragma comment(lib, "cryptlib.lib")
+NAMESPACE_BEGIN(RandomCipher)
 
 class blockCipherInterface {
 public:
@@ -20,6 +21,9 @@ public:
 
 template <class I, class E, class D>
 class blockCipher : public blockCipherInterface {
+private:
+	E enc;
+	D dec;
 public:
 	void setKey(const unsigned char* key, size_t len) {
 		enc.SetKey(key, I::DEFAULT_KEYLENGTH);
@@ -50,18 +54,17 @@ public:
 		}
 		return len;
 	}
-private:
-	E enc;
-	D dec;
 };
 
-class bmdCipher
+class randomCipher
 {
+private:
+	blockCipherInterface* bc;
 public:
-	bmdCipher() {
+	randomCipher() {
 		bc = nullptr;
 	}
-	~bmdCipher() {
+	~randomCipher() {
 		if (bc != nullptr) {
 			delete bc;
 		}
@@ -98,14 +101,11 @@ public:
 		}
 		return bc->decrypt(in, len, out);
 	}
-
-private:
-	blockCipherInterface* bc;
 };
 
 char* key = "webzen#@!01webzen#@!01webzen#@!0";
 
-size_t bmdenc(unsigned char* out, const unsigned char* in, size_t len, bool random = true) {
+size_t encrypt(unsigned char* out, const unsigned char* in, size_t len, bool random = true) {
 	if (in==nullptr || len==0) {
 		return 0;
 	}
@@ -133,14 +133,14 @@ size_t bmdenc(unsigned char* out, const unsigned char* in, size_t len, bool rand
 	memcpy(out, key1, 32);
 
 	// encrypt with key1
-	bmdCipher bc1;
+	randomCipher bc1;
 	bc1.setKey(alg1, key1, 32);
 	size_t lenAlign = bc1.align(len);
 	bc1.encrypt(out+32, in, lenAlign);
 	memcpy(out + 32 + lenAlign, in + lenAlign, len - lenAlign); // handle unaligned part at tail
 
 	// encrypt with key2
-	bmdCipher bc2;
+	randomCipher bc2;
 	bc2.setKey(alg2, (const unsigned char*)key, 32);
 	size_t len1024 = bc2.align(1024);
 	if (len > len1024) {
@@ -158,7 +158,7 @@ size_t bmdenc(unsigned char* out, const unsigned char* in, size_t len, bool rand
 	return len+34;
 }
 
-size_t bmddec(unsigned char* out, const unsigned char* in, size_t len) {
+size_t decrypt(unsigned char* out, const unsigned char* in, size_t len) {
 	if (in==nullptr || len<=34) {
 		return 0;
 	}
@@ -173,7 +173,7 @@ size_t bmddec(unsigned char* out, const unsigned char* in, size_t len) {
 	memcpy(tmp, in, len);
 
 	// decrypt with key2
-	bmdCipher bc2;
+	randomCipher bc2;
 	bc2.setKey(alg2, (const unsigned char*)key, 32);
 	size_t len1024 = bc2.align(1024);
 	size_t lenOrigin = len - 32;
@@ -191,7 +191,7 @@ size_t bmddec(unsigned char* out, const unsigned char* in, size_t len) {
 	}
 
 	// decrypt with key1
-	bmdCipher bc1;
+	randomCipher bc1;
 	bc1.setKey(alg1, tmp, 32);
 	len -= 32;
 	size_t lenAlign = bc1.align(len);
@@ -200,3 +200,5 @@ size_t bmddec(unsigned char* out, const unsigned char* in, size_t len) {
 	delete[]tmp;
 	return len;
 }
+
+NAMESPACE_END

@@ -66,6 +66,8 @@ void commandMenuCleanUp();
 //
 void hello();
 void helloDlg();
-void handleDec();
+void ozg2gfx();
+void gfx2ozg();
+void about();
 
 #endif //PLUGINDEFINITION_H

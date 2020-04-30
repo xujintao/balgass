@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-#include "bmd_cipher.hpp"
+#include "random_cipher.hpp"
 
 size_t hex2bytes(unsigned char* dst, const char* src) {
 	if (src == nullptr) {
@@ -118,8 +118,8 @@ text texts[] = {
 	}
 };
 
-bool test_bmdenc() {
-	printf("test bmdenc begin\r\n");
+bool test_random_encrypt() {
+	printf("test test_random_encrypt begin\r\n");
 	for (auto v : texts) {
 		unsigned char* streamPlain = nullptr;
 		unsigned char* streamCipher = nullptr;
@@ -135,13 +135,13 @@ bool test_bmdenc() {
 			streamPlain = new unsigned char[lenPlain];
 			hex2bytes(streamPlain, v.plain);
 
-			size_t lenCipher = bmdenc(nullptr, streamPlain, lenPlain, false);
+			size_t lenCipher = RandomCipher::encrypt(nullptr, streamPlain, lenPlain, false);
 			if (lenCipher == 0) {
 				printf("failed [%s].bmdenc, invalid plain stream: %s\r\n", v.name, v.plain);
 				return false;
 			}
 			streamCipher = new unsigned char[lenCipher];
-			bmdenc(streamCipher, streamPlain, lenPlain, false);
+			RandomCipher::encrypt(streamCipher, streamPlain, lenPlain, false);
 
 			cipher = new char[(lenCipher << 1) + 1];
 			cipher[lenCipher << 1] = 0;
@@ -167,12 +167,12 @@ bool test_bmdenc() {
 			}
 		}
 	}
-	printf("test bmdenc ok\r\n\r\n");
+	printf("test test_random_encrypt ok\r\n\r\n");
 	return true;
 }
 
-bool test_bmddec() {
-	printf("test bmddec begin\r\n");
+bool test_random_decrypt() {
+	printf("test test_random_decrypt begin\r\n");
 	for (auto v : texts) {
 		unsigned char* streamPlain = nullptr;
 		unsigned char* streamCipher = nullptr;
@@ -188,13 +188,13 @@ bool test_bmddec() {
 			streamCipher = new unsigned char[lenCipher];
 			hex2bytes(streamCipher, v.cipher);
 
-			size_t lenPlain = bmddec(nullptr, streamCipher, lenCipher);
+			size_t lenPlain = RandomCipher::decrypt(nullptr, streamCipher, lenCipher);
 			if (lenPlain == 0) {
 				printf("failed [%s].bmddec, invalid plain stream: %s\r\n", v.name, v.plain);
 				return false;
 			}
 			streamPlain = new unsigned char[lenPlain];
-			bmddec(streamPlain, streamCipher, lenCipher);
+			RandomCipher::decrypt(streamPlain, streamCipher, lenCipher);
 
 			plain = new char[(lenPlain << 1) + 1];
 			plain[lenPlain << 1] = 0;
@@ -220,11 +220,11 @@ bool test_bmddec() {
 			}
 		}
 	}
-	printf("test bmddec ok\r\n\r\n");
+	printf("test test_random_decrypt ok\r\n\r\n");
 	return true;
 }
 
 void main() {
-	assert(test_bmdenc() == true);
-	assert(test_bmddec() == true);
+	assert(test_random_encrypt() == true);
+	assert(test_random_decrypt() == true);
 }

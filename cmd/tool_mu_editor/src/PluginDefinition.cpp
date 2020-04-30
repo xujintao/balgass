@@ -17,7 +17,9 @@
 
 #include "PluginDefinition.h"
 #include "menuCmdID.h"
-#include "bmd_cipher.hpp"
+#include "random_cipher.hpp"
+
+#define VERSION "1.0"
 
 //
 // The plugin data that Notepad++ needs
@@ -26,7 +28,11 @@ FuncItem funcItem[] = {
 	// name func cmdID init2Check shortKey
 	{ TEXT("Hello Notepad++"),		hello,		0,	false,	NULL },
 	{ TEXT("Hello (with dialog)"),	helloDlg,	0,	false,	NULL },
-	{ TEXT("bmd/ozd/ozg decode"),	handleDec,	0,	false,	NULL },
+	{ TEXT("---"),					nullptr,	0,	false,	NULL },
+	{ TEXT("ozg -> gfx"),			ozg2gfx,	0,	false,	NULL },
+	{ TEXT("gfx -> ozg"),			gfx2ozg,	0,	false,	NULL },
+	{ TEXT("---"),					nullptr,	0,	false,	NULL },
+	{ TEXT("about"),				about,		0,	false,	NULL },
 };
 
 int funcItemLen() {
@@ -83,7 +89,44 @@ void helloDlg()
     ::MessageBox(NULL, TEXT("Hello, Notepad++!"), TEXT("Notepad++ Plugin Template"), MB_OK);
 }
 
-void handleDec() {
-	// Use current scintilla
-	bmdenc(nullptr, nullptr, 0);
+void ozg2gfx() {
+	// Get the current scintilla
+	int which = -1;
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+	if (which == -1)
+		return;
+	HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+	
+	// get current text
+	int lenCipher = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
+	unsigned char* bufCipher = new unsigned char[lenCipher+1];
+	::SendMessage(curScintilla, SCI_GETTEXT, lenCipher+1, (LPARAM)bufCipher);
+
+	// decrypt
+	size_t lenPlain = RandomCipher::decrypt(nullptr, bufCipher, lenCipher);
+	unsigned char* bufPlain = new unsigned char[lenPlain+1];
+	RandomCipher::decrypt(bufPlain, bufCipher, lenCipher);
+	bufPlain[lenPlain] = 0;
+
+	// marshal
+
+	// Scintilla control has no Unicode mode, so we use (char *) here
+	::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)bufPlain);
+	::SendMessage(curScintilla, SCI_SETSAVEPOINT, 0, 0);
+	delete[]bufCipher;
+	delete[]bufPlain;
+}
+
+void gfx2ozg() {}
+
+#ifdef _UNICODE
+	#define tstring std::wstring
+#else
+	#define tstring std::string
+#endif
+
+void about() {
+	tstring text = TEXT("version: ");
+	text += TEXT(VERSION);
+	::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
 }
