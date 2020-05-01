@@ -21,6 +21,12 @@
 
 #define VERSION "1.0"
 
+#ifdef _UNICODE
+#define tstring std::wstring
+#else
+#define tstring std::string
+#endif
+
 //
 // The plugin data that Notepad++ needs
 //
@@ -90,40 +96,126 @@ void helloDlg()
 }
 
 void ozg2gfx() {
-	// Get the current scintilla
-	int which = -1;
-	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
-	if (which == -1)
-		return;
-	HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
-	
-	// get current text
-	int lenCipher = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
-	unsigned char* bufCipher = new unsigned char[lenCipher+1];
-	::SendMessage(curScintilla, SCI_GETTEXT, lenCipher+1, (LPARAM)bufCipher);
+	unsigned char* bufPlain = nullptr;
+	unsigned char* bufCipher = nullptr;
+	tstring text;
+	[&] {
+		__try {
+			// validate ozg extension
+			TCHAR fileName[MAX_PATH] = { 0 };
+			::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)fileName);
+			TCHAR* ext = wcsrchr(fileName, TEXT('.'));
+			if (ext == nullptr || wcscmp(ext+1, TEXT("ozg")) != 0) {
+				text += TEXT("[");
+				text += fileName;
+				text += TEXT("]");
+				text += TEXT(" is not a [*.ozg]");
+				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
+				return;
+			}
 
-	// decrypt
-	size_t lenPlain = RandomCipher::decrypt(nullptr, bufCipher, lenCipher);
-	unsigned char* bufPlain = new unsigned char[lenPlain+1];
-	RandomCipher::decrypt(bufPlain, bufCipher, lenCipher);
-	bufPlain[lenPlain] = 0;
+			// Get the current scintilla
+			int which = -1;
+			::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+			if (which == -1)
+				return;
+			HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
 
-	// marshal
+			// get current text
+			int lenCipher = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
+			bufCipher = new unsigned char[lenCipher + 1];
+			::SendMessage(curScintilla, SCI_GETTEXT, lenCipher + 1, (LPARAM)bufCipher);
 
-	// Scintilla control has no Unicode mode, so we use (char *) here
-	::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)bufPlain);
-	::SendMessage(curScintilla, SCI_SETSAVEPOINT, 0, 0);
-	delete[]bufCipher;
-	delete[]bufPlain;
+			// decrypt
+			size_t lenPlain = RandomCipher::decrypt(nullptr, bufCipher, lenCipher);
+			// validate cipher length
+			if (lenPlain == 0) {
+				text += TEXT("convert failed [");
+				text += fileName;
+				text += TEXT("] is not a valid [*.ozg]");
+				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
+				return;
+			}
+			bufPlain = new unsigned char[lenPlain];
+			RandomCipher::decrypt(bufPlain, bufCipher, lenCipher);
+
+#if 0
+			// marshal
+
+			// Scintilla control has no Unicode mode, so we use (char *) here
+			::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)bufPlain);
+
+			TCHAR path[MAX_PATH] = { 0 };
+			::SendMessage(curScintilla, NPPM_GETCURRENTDIRECTORY, MAX_PATH, (LPARAM)path);
+#endif
+			::SendMessage(curScintilla, SCI_REPLACETARGET, lenPlain, (LPARAM)bufPlain);
+		}
+		__finally {
+			if (bufPlain != nullptr) {
+				delete[]bufPlain;
+			}
+			if (bufCipher != nullptr) {
+				delete[]bufCipher;
+			}
+		}
+	}();
 }
 
-void gfx2ozg() {}
+void gfx2ozg() {
+	unsigned char* bufPlain = nullptr;
+	unsigned char* bufCipher = nullptr;
+	tstring text;
+	[&] {
+		__try {
+			// get file name
+			TCHAR fileName[MAX_PATH] = { 0 };
+			::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)fileName);
 
-#ifdef _UNICODE
-	#define tstring std::wstring
-#else
-	#define tstring std::string
+			// Get the current scintilla
+			int which = -1;
+			::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+			if (which == -1)
+				return;
+			HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+
+			// get current text
+			int lenPlain = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
+			if (lenPlain == 0) {
+				text += TEXT("convert failed [");
+				text += fileName;
+				text += TEXT("] is empty");
+				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
+				return;
+			}
+			bufPlain = new unsigned char[lenPlain + 1];
+			::SendMessage(curScintilla, SCI_GETTEXT, lenPlain + 1, (LPARAM)bufPlain);
+
+			// encrypt
+			size_t lenCipher = RandomCipher::encrypt(nullptr, bufPlain, lenPlain);
+			bufCipher = new unsigned char[lenCipher];
+			RandomCipher::encrypt(bufCipher, bufPlain, lenPlain);
+
+#if 0
+			// marshal
+
+			// Scintilla control has no Unicode mode, so we use (char *) here
+			::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)bufPlain);
+
+			TCHAR path[MAX_PATH] = { 0 };
+			::SendMessage(curScintilla, NPPM_GETCURRENTDIRECTORY, MAX_PATH, (LPARAM)path);
 #endif
+			::SendMessage(curScintilla, SCI_REPLACETARGET, lenCipher, (LPARAM)bufCipher);
+		}
+		__finally {
+			if (bufPlain != nullptr) {
+				delete[]bufPlain;
+			}
+			if (bufCipher != nullptr) {
+				delete[]bufCipher;
+			}
+		}
+	}();
+}
 
 void about() {
 	tstring text = TEXT("version: ");
