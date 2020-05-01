@@ -99,18 +99,19 @@ void ozg2gfx() {
 	unsigned char* bufPlain = nullptr;
 	unsigned char* bufCipher = nullptr;
 	tstring text;
+	FILE* f = nullptr;
 	[&] {
 		__try {
-			// validate ozg extension
+			// validate file extension
 			TCHAR fileName[MAX_PATH] = { 0 };
 			::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)fileName);
 			TCHAR* ext = wcsrchr(fileName, TEXT('.'));
-			if (ext == nullptr || wcscmp(ext+1, TEXT("ozg")) != 0) {
-				text += TEXT("[");
+			if (ext == nullptr || wcscmp(ext, TEXT(".ozg")) != 0) {
+				text = TEXT("[");
 				text += fileName;
 				text += TEXT("]");
 				text += TEXT(" is not a [*.ozg]");
-				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
+				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK|MB_ICONWARNING);
 				return;
 			}
 
@@ -130,25 +131,47 @@ void ozg2gfx() {
 			size_t lenPlain = RandomCipher::decrypt(nullptr, bufCipher, lenCipher);
 			// validate cipher length
 			if (lenPlain == 0) {
-				text += TEXT("convert failed [");
+				text = TEXT("convert failed\r\n[");
 				text += fileName;
 				text += TEXT("] is not a valid [*.ozg]");
-				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
+				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK|MB_ICONWARNING);
 				return;
 			}
 			bufPlain = new unsigned char[lenPlain];
 			RandomCipher::decrypt(bufPlain, bufCipher, lenCipher);
 
+			// marshal(not yet support current)
+
+			// write
+			::SendMessageW(nppData._nppHandle, NPPM_MENUCOMMAND, 0, IDM_FILE_NEW);
+			which = -1;
+			::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+			if (which == -1)
+				return;
+			curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+			::SendMessage(curScintilla, SCI_ADDTEXT, lenPlain, (LPARAM)bufPlain);
 #if 0
-			// marshal
-
-			// Scintilla control has no Unicode mode, so we use (char *) here
-			::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)bufPlain);
-
-			TCHAR path[MAX_PATH] = { 0 };
-			::SendMessage(curScintilla, NPPM_GETCURRENTDIRECTORY, MAX_PATH, (LPARAM)path);
+			// write bytes to a file
+			TCHAR filePath[MAX_PATH] = { 0 };
+			::SendMessage(nppData._nppHandle, NPPM_GETFULLCURRENTPATH, MAX_PATH, (LPARAM)filePath);
+			*wcsrchr(filePath, TEXT('.')) = 0;
+			wcscat(filePath, TEXT(".gfx"));
+			f = _wfopen(filePath, TEXT("wb"));
+			if (f == nullptr || fwrite(bufPlain, 1, lenPlain, f) != lenPlain) {
+				text = TEXT("write file to [");
+				text += filePath;
+				text += TEXT("] failed \r\nerror number [");
+				TCHAR err[6] = { 0 };
+				text += _itow(GetLastError(), err, 10);
+				text += TEXT("]");
+				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK | MB_ICONWARNING);
+				return;
+			}
+			text = TEXT("convert success\r\nthe gfx result has written to [");
+			text += filePath;
+			text += TEXT("]");
+			::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
 #endif
-			::SendMessage(curScintilla, SCI_REPLACETARGET, lenPlain, (LPARAM)bufPlain);
 		}
 		__finally {
 			if (bufPlain != nullptr) {
@@ -156,6 +179,9 @@ void ozg2gfx() {
 			}
 			if (bufCipher != nullptr) {
 				delete[]bufCipher;
+			}
+			if (f != nullptr) {
+				fclose(f);
 			}
 		}
 	}();
@@ -165,11 +191,21 @@ void gfx2ozg() {
 	unsigned char* bufPlain = nullptr;
 	unsigned char* bufCipher = nullptr;
 	tstring text;
+	FILE* f = nullptr;
 	[&] {
 		__try {
-			// get file name
+			// validate file extension
 			TCHAR fileName[MAX_PATH] = { 0 };
 			::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)fileName);
+			TCHAR* ext = wcsrchr(fileName, TEXT('.'));
+			if (ext == nullptr || wcscmp(ext, TEXT(".gfx")) != 0) {
+				text = TEXT("[");
+				text += fileName;
+				text += TEXT("]");
+				text += TEXT(" is not a [*.gfx]");
+				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK | MB_ICONWARNING);
+				return;
+			}
 
 			// Get the current scintilla
 			int which = -1;
@@ -181,7 +217,7 @@ void gfx2ozg() {
 			// get current text
 			int lenPlain = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
 			if (lenPlain == 0) {
-				text += TEXT("convert failed [");
+				text = TEXT("convert failed\r\n[");
 				text += fileName;
 				text += TEXT("] is empty");
 				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
@@ -195,16 +231,38 @@ void gfx2ozg() {
 			bufCipher = new unsigned char[lenCipher];
 			RandomCipher::encrypt(bufCipher, bufPlain, lenPlain);
 
-#if 0
 			// marshal
 
-			// Scintilla control has no Unicode mode, so we use (char *) here
-			::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)bufPlain);
-
-			TCHAR path[MAX_PATH] = { 0 };
-			::SendMessage(curScintilla, NPPM_GETCURRENTDIRECTORY, MAX_PATH, (LPARAM)path);
+			// write
+			::SendMessageW(nppData._nppHandle, NPPM_MENUCOMMAND, 0, IDM_FILE_NEW);
+			which = -1;
+			::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+			if (which == -1)
+				return;
+			curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+			::SendMessage(curScintilla, SCI_ADDTEXT, lenCipher, (LPARAM)bufCipher);
+#if 0
+			// write bytes to a file
+			TCHAR filePath[MAX_PATH] = { 0 };
+			::SendMessage(nppData._nppHandle, NPPM_GETFULLCURRENTPATH, MAX_PATH, (LPARAM)filePath);
+			*wcsrchr(filePath, TEXT('.')) = 0;
+			wcscat(filePath, TEXT(".ozg"));
+			f = _wfopen(filePath, TEXT("wb"));
+			if (f == nullptr || fwrite(bufCipher, 1, lenCipher, f) != lenCipher) {
+				text = TEXT("write file to [");
+				text += filePath;
+				text += TEXT("] failed \r\nerror number [");
+				TCHAR err[6] = { 0 };
+				text += _itow(GetLastError(), err, 10);
+				text += TEXT("]");
+				::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK | MB_ICONWARNING);
+				return;
+			}
+			text = TEXT("convert success the ozg result has written to [");
+			text += filePath;
+			text += TEXT("]");
+			::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
 #endif
-			::SendMessage(curScintilla, SCI_REPLACETARGET, lenCipher, (LPARAM)bufCipher);
 		}
 		__finally {
 			if (bufPlain != nullptr) {
@@ -212,6 +270,9 @@ void gfx2ozg() {
 			}
 			if (bufCipher != nullptr) {
 				delete[]bufCipher;
+			}
+			if (f != nullptr) {
+				fclose(f);
 			}
 		}
 	}();
