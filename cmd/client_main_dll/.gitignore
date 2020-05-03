@@ -1,0 +1,12 @@
+*.aps
+*.zip
+
+bin/
+bin64/
+
+vs.proj/*
+!vs.proj/*.sln
+!vs.proj/*.vcxproj
+!vs.proj/*.filters
+
+src/cryptopp
