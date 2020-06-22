@@ -352,33 +352,85 @@ MigrationBackup/
 .ionide/
 
 # custom
-9.5.1.15/client
-9.5.1.15/client104R
+9.5.1.15/*
 
+# keep server and source directory
+!9.5.1.15/client104R
+!9.5.1.15/server
+!9.5.1.15/source
+
+# keep client104R
+9.5.1.15/client104R/*
+!9.5.1.15/client104R/load_dll.1337
+!9.5.1.15/client104R/main.bat
+
+# keep server
 9.5.1.15/server/*
 
+# keep common config
 !9.5.1.15/server/IGCData
 !9.5.1.15/server/Data
 
+# keep database
 !9.5.1.15/server/Database
 9.5.1.15/server/Database/*
 !9.5.1.15/server/Database/*.sql
 
+# keep server-data config
 !9.5.1.15/server/1. DataServer
 9.5.1.15/server/1. DataServer/*
 !9.5.1.15/server/1. DataServer/*.ini
 !9.5.1.15/server/1. DataServer/*.xml
 
+# keep server-data-battle config
+!9.5.1.15/server/1. DataServer_BattleCore
+9.5.1.15/server/1. DataServer_BattleCore/*
+!9.5.1.15/server/1. DataServer_BattleCore/*.ini
+!9.5.1.15/server/1. DataServer_BattleCore/*.xml
+
+# keep server-connect config
 !9.5.1.15/server/2. ConnectServer
 9.5.1.15/server/2. ConnectServer/*
 !9.5.1.15/server/2. ConnectServer/*.ini
 !9.5.1.15/server/2. ConnectServer/*.xml
 
+# keep server-game config
 !9.5.1.15/server/3. GameServer_Regular
 9.5.1.15/server/3. GameServer_Regular/*
 !9.5.1.15/server/3. GameServer_Regular/*.ini
 !9.5.1.15/server/3. GameServer_Regular/*.xml
 
+# keep server-game-line2 config
+!9.5.1.15/server/3. GameServer_Regular_line2
+9.5.1.15/server/3. GameServer_Regular_line2/*
+!9.5.1.15/server/3. GameServer_Regular_line2/*.ini
+!9.5.1.15/server/3. GameServer_Regular_line2/*.xml
+
+# keep server-game-arca config
+!9.5.1.15/server/4. GameServer_Arca
+9.5.1.15/server/4. GameServer_Arca/*
+!9.5.1.15/server/4. GameServer_Arca/*.ini
+!9.5.1.15/server/4. GameServer_Arca/*.xml
+
+# keep server-game-siege config
+!9.5.1.15/server/5. GameServer_Siege
+9.5.1.15/server/5. GameServer_Siege/*
+!9.5.1.15/server/5. GameServer_Siege/*.ini
+!9.5.1.15/server/5. GameServer_Siege/*.xml
+
+# keep server-game-market config
+!9.5.1.15/server/6. GameServer_Market
+9.5.1.15/server/6. GameServer_Market/*
+!9.5.1.15/server/6. GameServer_Market/*.ini
+!9.5.1.15/server/6. GameServer_Market/*.xml
+
+# keep server-game-battle config
+!9.5.1.15/server/9. GameServer_BattleCore
+9.5.1.15/server/9. GameServer_BattleCore/*
+!9.5.1.15/server/9. GameServer_BattleCore/*.ini
+!9.5.1.15/server/9. GameServer_BattleCore/*.xml
+
+# keep editor
 !9.5.1.15/server/Editor
 9.5.1.15/server/Editor/*
 !9.5.1.15/server/Editor/IGC.EssentialTools
@@ -387,5 +439,3 @@ MigrationBackup/
 9.5.1.15/server/Editor/IGC.EssentialTools/Data/*
 !9.5.1.15/server/Editor/IGC.EssentialTools/Data/IGC_ItemSetOption.xml
 !9.5.1.15/server/Editor/IGC.EssentialTools/Data/ItemListInfo.txt
-
-_Library
