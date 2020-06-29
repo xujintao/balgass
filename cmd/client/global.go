@@ -502,7 +502,7 @@ var v01308D04objectManager = &objectManager{}
 var v01308D08 battleCoreSpec
 var v01308D10 sync.Once
 
-func f0043A2DFgetBattleCoreSpec() uintptr {
+func f0043A2DFgetBattleCoreSpec() *battleCoreSpec {
 	v01308D10.Do(func() {
 		return &v01308D08
 	})
