@@ -499,6 +499,24 @@ var v012E31B0 int = 0
 var v012E3200 int = 5
 var v01308D04objectManager = &objectManager{}
 
+var v01308D08 battleCoreSpec
+var v01308D10 sync.Once
+
+func f0043A2DFgetBattleCoreSpec() uintptr {
+	v01308D10.Do(func() {
+		return &v01308D08
+	})
+}
+
+type battleCoreSpec struct {
+	m00       uintptr // &v0114D394
+	m04Enable bool
+}
+
+func (b *battleCoreSpec) f0043A33Cenable() bool {
+	return b.m04Enable
+}
+
 type objectManager struct {
 	m08objects []object
 }

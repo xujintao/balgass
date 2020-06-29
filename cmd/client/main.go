@@ -727,23 +727,23 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	// f00B43232(f004D7C24, 0)
 	// create mutex
 	var ebpC win.HANDLE
-	// if f0043A2DFget().f0043A33C() {
-	// 	ebpC = dll.kernel32.CreateMutex(0, 1, "MuBattleCore")
-	// 	if dll.kernel32.GetLastError() == 183 { // ERROR_ALREADY_EXISTS
-	// 		dll.kernel32.CloseHandle(ebpC)
-	// 		ebp1A1C := 0
-	// 		ebp1.f004D9F88()
-	// 		return ebp1A1C
-	// 	}
-	// } else if v012E2224 == 1 {
-	// 	ebpC = dll.kernel32.CreateMutex(0, 1, "MuOnline")
-	// 	if dll.kernel32.GetLastError() == 183 {
-	// 		dll.kernel32.CloseHandle(ebpC)
-	// 		ebp1A20 := 0
-	// 		ebp1.f004D9F88()
-	// 		return ebp1A20
-	// 	}
-	// }
+	if f0043A2DFgetBattleCoreSpec().f0043A33Cenable() {
+		// ebpC = dll.kernel32.CreateMutex(0, 1, "MuBattleCore")
+		// if dll.kernel32.GetLastError() == 183 { // ERROR_ALREADY_EXISTS
+		// 	dll.kernel32.CloseHandle(ebpC)
+		// 	ebp1A1C := 0
+		// 	ebp1.f004D9F88()
+		// 	return ebp1A1C
+		// }
+	} else if v012E2224 == 1 {
+		// ebpC = dll.kernel32.CreateMutex(0, 1, "MuOnline")
+		// if dll.kernel32.GetLastError() == 183 {
+		// 	dll.kernel32.CloseHandle(ebpC)
+		// 	ebp1A20 := 0
+		// 	ebp1.f004D9F88()
+		// 	return ebp1A20
+		// }
+	}
 	// check whether auto update window is working
 	var ebp2C win.HWND // ebp2C := dll.user32.FindWindow("#32770", "MU Auto Update")
 	if ebp2C != 0 {
