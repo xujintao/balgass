@@ -352,6 +352,7 @@ MigrationBackup/
 .ionide/
 
 # custom
+_Library
 9.5.1.15/*
 
 # keep server and source directory
