@@ -787,31 +787,31 @@ func (t *t0117EDD0gfxFileOpener) f00BEFFC0open(file string, mode, y int) ifile {
 }
 
 // f00AEAD21 stdcall且有ebp帧栈，业务代码
-func (t *t0117EDD0gfxFileOpener) do2load(file string, mode, y int) *t0117EDE4 {
+func (t *t0117EDD0gfxFileOpener) do2load(path string, mode, y int) *t0117EDE4 {
 	// 0xA0局部变量
 	// ebp6C := t
-	var ebp28 *xstring
-	ebp28.f00BADDD0xstring(file)
+	var ebp28path *xstring
+	ebp28path.f00BADDD0xstring(path)
 	switch {
-	case f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".dds") != nil: // f009235EC(ebp28.f00A3AF9Ecstr(), ".dds")
+	case f00DE92E0strstr(ebp28path.f00A3AF9Ecstr(), ".dds") != nil: // f009235EC(ebp28path.f00A3AF9Ecstr(), ".dds")
 		var ebp44 *xstring
-		ebp70 := ebp28.f00BAE080xstring(ebp44, 0, ebp28.f00BAC0B0len()-4)
+		ebp70 := ebp28path.f00BAE080xstring(ebp44, 0, ebp28path.f00BAC0B0len()-4)
 		ebp74 := ebp70
-		ebp28.f00BACE40assign(ebp74)
+		ebp28path.f00BACE40assign(ebp74)
 		ebp44.f00A3AF16destruct()
-		ebp28.f00A4FF11cat("ozd")
-	case f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".gfx") != nil:
+		ebp28path.f00A4FF11cat("ozd")
+	case f00DE92E0strstr(ebp28path.f00A3AF9Ecstr(), ".gfx") != nil:
 		// var ebp44 *xstring
-		// ebp70 := ebp28.f00BAE080(ebp44, 0, ebp28.f00BAC0B0()-4)
+		// ebp70 := ebp28path.f00BAE080(ebp44, 0, ebp28path.f00BAC0B0()-4)
 		// ebp74 := ebp70
-		// ebp28.f00BACE40(ebp74)
+		// ebp28path.f00BACE40(ebp74)
 		// ebp44.f00A3AF16destruct()
-		// ebp28.f00A4FF11(".ozg")
-	case f00DE92E0strstr(ebp28.f00A3AF9Ecstr(), ".ozp") != nil:
-		ebp38file := t.f00BEFFC0open(ebp28.f00A3AF9Ecstr(), mode, y) // ebp38file := f00AEC036assign(f)
+		// ebp28path.f00A4FF11(".ozg")
+	case f00DE92E0strstr(ebp28path.f00A3AF9Ecstr(), ".ozp") != nil:
+		ebp38file := t.f00BEFFC0open(ebp28path.f00A3AF9Ecstr(), mode, y) // ebp38file := f00AEC036assign(f)
 		if ebp38file.do3valid() == false {
 			ebp38file.f00BAE460()
-			// ebp28.f00A3AF16destruct()
+			// ebp28path.f00A3AF16destruct()
 			return nil
 		}
 		ebp2Cbuf := make([]uint8, ebp38file.do7getSize()) // ebp2Cbuf := f00A3BA24malloc(ebp38file.do7getSize())
@@ -825,7 +825,7 @@ func (t *t0117EDD0gfxFileOpener) do2load(file string, mode, y int) *t0117EDE4 {
 
 		// unmarshal
 		ebp54 := new(t0117EDE4) // f00A3BA10newobject(0x1C)
-		ebp54.f00AEBCF0construct(ebp28.f00A3AF9Ecstr(), ebp30buf, ebp40size)
+		ebp54.f00AEBCF0construct(ebp28path.f00A3AF9Ecstr(), ebp30buf, ebp40size)
 		ebp90 := ebp54
 		ebp50 := ebp90
 		ebp34 := ebp50 // ebp34.f00AEB397assign(ebp50)
@@ -837,12 +837,12 @@ func (t *t0117EDD0gfxFileOpener) do2load(file string, mode, y int) *t0117EDE4 {
 		t.m0C.f00AEB31Fappend(ebp30buf)
 		ebp34.f00BAE460()
 		ebp38file.f00BAE460()
-		// ebp28.f00A3AF16destruct()
+		// ebp28path.f00A3AF16destruct()
 		return ebp34
 	}
 
 	// 0x00AEB01F
-	ebp1Cfile := t.f00BEFFC0open(ebp28.f00A3AF9Ecstr(), mode, y) // ebp1Cfile.f00AEC036assign(f)
+	ebp1Cfile := t.f00BEFFC0open(ebp28path.f00A3AF9Ecstr(), mode, y) // ebp1Cfile.f00AEC036assign(f)
 	if ebp1Cfile.do3valid() == false {
 		// ...
 		return nil
@@ -856,7 +856,7 @@ func (t *t0117EDD0gfxFileOpener) do2load(file string, mode, y int) *t0117EDE4 {
 	f00658C4Ddec(ebp14bufdst, ebp10bufsrc, ebp20size)
 	// unmarshal
 	ebp64 := new(t0117EDE4) // f00A3BA10newobject(0x1C)
-	ebp64.f00AEBCF0construct(ebp28.f00A3AF9Ecstr(), ebp14bufdst, ebp24size)
+	ebp64.f00AEBCF0construct(ebp28path.f00A3AF9Ecstr(), ebp14bufdst, ebp24size)
 	ebpA8 := ebp64
 	ebp60 := ebpA8
 	ebp18 := ebp60 // ebp18.f00AEB397assign(ebp60)
@@ -864,10 +864,10 @@ func (t *t0117EDD0gfxFileOpener) do2load(file string, mode, y int) *t0117EDE4 {
 	ebp1Cfile.do19close()
 	ebp1Cfile.f00BAE460() // 引用计数-1，析构函数里面再做一次-1然后释放内存
 	// f00A3AF52(ebp10bufsrc) // free
-	t.m0C.f00AEB31Fappend(ebp14bufdst)
+	t.m0C.f00AEB31Fappend(ebp14bufdst) // 意义？
 	// ebp18.f00AEB3BBdestruct()
 	// ebp1Cfile.f00A504C8destruct()
-	// ebp28.f00A3AF16destruct()
+	// ebp28path.f00A3AF16destruct()
 	return ebp18
 }
 
@@ -977,14 +977,14 @@ func (t *t0118CB68) f00BF5350construct(x *t01187A80, y *int) {
 }
 
 // "./Data/Interface/GFx/MainFrame.ozg", x, 0, 0x80
-func (t *t0118CB68) f00BF55E0(ozg string, x *attr, y int, z int) bool {
+func (t *t0118CB68) f00BF55E0(path string, x *attr, y int, z int) bool {
 	// 0x2B8局部变量
-	w := new(t01196128gfxLoader)
-	w.f00D05DA0construct()
-	// f00BADDD0xstring(ozg)
+	gfx := new(t01196128gfxLoader)
+	gfx.f00D05DA0construct()
+	// f00BADDD0xstring(path)
 	// ...
 	// 0x00BF5796
-	if w.f00D03CA0load(ozg, 0) != nil {
+	if gfx.f00D03CA0load(path, 0) != nil {
 
 	}
 
