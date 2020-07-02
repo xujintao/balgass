@@ -59,10 +59,10 @@ void __declspec(naked) onCsHook()
 		jmp edx;
 	}
 }
-HMODULE WINAPI LoadLibraryMine(LPCTSTR dllName)
-{
+// HMODULE WINAPI LoadLibraryMine(LPCTSTR dllName)
+// {
 
-}
+// }
 
 
 
