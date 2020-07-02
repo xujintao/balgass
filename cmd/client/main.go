@@ -89,15 +89,15 @@ func f0043B750xor(buf []uint8, len int) {
 	}
 }
 
-func f004D52AB(fileName []uint8, cmd string) bool {
+func f004D52ABtruncateCmd(cmdshort []string, cmd []string) bool {
 	// 从命令行字符串中提取出应用程序名，也就是main.exe，存到fileName数组中
 	return true
 }
 
 func f004D5368() bool {
-	var fileName [260]uint8 // ebp-110
-	cmd := os.Args[0]       // ebp-4
-	f004D52AB(fileName[:], cmd)
+	var ebp110cmd []string // ebp-110
+	cmd := os.Args         // ebp-4
+	f004D52ABtruncateCmd(ebp110cmd, cmd)
 
 	// dwDesiredAccess = 1<<31, GENERIC_READ
 	// dwShareMode = 3, FILE_SHARE_READ | FILE_SHARE_WRITE
@@ -106,7 +106,7 @@ func f004D5368() bool {
 	// dwFlagsAndAttributes = 0x80, FILE_ATTRIBUTE_NORMAL
 	// dwFileTemplate = 0, When opening an existing file, CreateFile ignores this parameter
 	// hFile := CreateFile(fileName[:], 1<<31, 3, 0, 3, 0x80, 0)
-	file, err := os.Open(string(fileName[:]))
+	file, err := os.Open(ebp110cmd[0])
 	if err != nil {
 		return false
 	}
@@ -114,7 +114,7 @@ func f004D5368() bool {
 	return true
 }
 
-func f004D55C6(fileName []uint8, ver *version) bool {
+func f004D55C6queryVersion(fileName string, ver *version) bool {
 	// 获取可执行文件版本
 	// GetFileVersionInfoSize()
 	// GetFileVersionInfo()
@@ -725,7 +725,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		}()
 	}()
 	// f00B43232(f004D7C24, 0)
-	// create mutex
+	// 0x004D7D2D check named mutex
 	var ebpC win.HANDLE
 	if f0043A2DFgetBattleCoreSpec().f0043A33Cenable() {
 		// ebpC = dll.kernel32.CreateMutex(0, 1, "MuBattleCore")
@@ -744,54 +744,51 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		// 	return ebp1A20
 		// }
 	}
-	// check whether auto update window is working
+	// 0x004D7DD3: check whether auto update window is working
 	var ebp2C win.HWND // ebp2C := dll.user32.FindWindow("#32770", "MU Auto Update")
 	if ebp2C != 0 {
 		win.SendMessage(ebp2C, 0x10, 0, 0)
 	}
-	// if f004D77ED() == false {
+	// if f004D77E0() == false {
 	// 	ebp1A24 := 0
 	// 	ebp1.f004D9F88()
 	// 	return ebp1A24
 	// }
-	// 0x004D7E1E start mu.exe
+	// 0x004D7E1E: check command parameter number, or start mu.exe
 	if len(szCmdLine) < 1 { // f00DE7C00strlen(szCmdLine)
 		// launch mu.exe and exit
 	}
-	// 0x004D7E99
-	// vc编译器把先定义的变量地址在高位置？
-	var ebp230 struct {
-		data [248]uint8
-	}
+	// 0x004D7E99: output version to log
+	// var ebp244 struct {
+	// 	versem version    // ebp244
+	// 	cmd    string     // ebp23C
+	// 	ver    [8]uint8   // ebp238
+	// 	data   [248]uint8 // ebp230
+	// }
+	var ebp230data [248]uint8
 	var ebp238ver [8]uint8
 	copy(ebp238ver[:], "unknown")
-	f00DE8100memset(ebp230.data[:], 0, 0xF8)
-
-	// var cmd string = GetCommandLine()
-	ebp23Ccmd := os.Args[0]
-
+	f00DE8100memset(ebp230data[:], 0, 0xF8)
+	// 命令行和环境变量参数已经在进程地址空间了，kernel32.GetCommandLine系统调用只是返回地址
+	ebp23Ccmd := os.Args
 	var ebp244ver version // ebp-244 ~ ebp-23E，这里会有清零操作，应该是程序员自己清的
-	var ebp350fileName [260]uint8
-	if f004D52AB(ebp350fileName[:], ebp23Ccmd) {
-		if f004D55C6(ebp350fileName[:], &ebp244ver) {
-			f00DE817Asprintf(ebp238ver[:], "%d.%02d", ebp244ver.major, ebp244ver.minor)
-			if ebp244ver.patch > 0 {
-				var ebp4DC [2]uint8
-				ebp4DC[0] = uint8('a' + ebp244ver.patch - 1) // 0x8C，这里是有问题的，超过ASCII编码范围了
-				ebp4DC[1] = 0                                // 我猜测作者是想表达R
-				f00DE8010strcat(ebp238ver[:], string(ebp4DC[:]))
-			}
+	var ebp350cmd []string
+	if f004D52ABtruncateCmd(ebp350cmd, ebp23Ccmd) && f004D55C6queryVersion(ebp350cmd[0], &ebp244ver) {
+		f00DE817Asprintf(ebp238ver[:], "%d.%02d", ebp244ver.major, ebp244ver.minor)
+		if ebp244ver.patch > 0 {
+			var ebp4DC [2]uint8
+			ebp4DC[0] = uint8('a' + ebp244ver.patch - 1) // 0x8C，这里是有问题的，超过ASCII编码范围了 需要MemAssign(0x004D7F64+3, byte(0xC5))
+			ebp4DC[1] = 0                                // 我猜测作者是想表达R
+			f00DE8010strcat(ebp238ver[:], string(ebp4DC[:]))
 		}
 	}
-
 	v01319E08log.f00B38AE4printf("\r\n")
 	v01319E08log.f00B38D31begin()
 	v01319E08log.f00B38D19cut()
-
 	v01319E08log.f00B38AE4printf("Mu online %s (%s) executed. (%d.%d.%d.%d)\r\n",
-		ebp238ver[:], v01319DFC,
+		ebp238ver[:], // version
+		v01319DFC,    // local
 		ebp244ver.major, ebp244ver.minor, ebp244ver.patch, ebp244ver.fourth)
-
 	v01319E08log.f00B38D49(1)
 
 	// system information
@@ -857,16 +854,11 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		// SOFTWARE\\Webzen\\Mu\\Config
 		// 348h个字节的局部变量
 
-		// ebp-338
-		var ebp_338 struct {
+		var ebp338 struct {
 			patch [3]uint8
 		}
-
-		// ebp-334 ~ ebp-330
-		var ebp_334 version
-
-		// ebp-328 ~ ebp-225
-		var fileName [260]uint8
+		var ebp334 version
+		var ebp328cmd []string
 
 		// ebp-220 ~ ebp-10D
 		var buf [276]uint8
@@ -876,44 +868,34 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		// ebp-108 ~ ebp-9
 		var bufDir [256]uint8
 		win.GetCurrentDirectory(0x100, (*uint16)(unsafe.Pointer(&bufDir[0])))
-
 		f00DE8000strcpy(buf[:], bufDir[:])
-
-		// _00DE7C00
-		nameLen := func(bufDir []uint8) uint32 {
-			return uint32(len(bufDir))
-		}(bufDir[:])
+		nameLen := f00DE7C00strlen(bufDir[:])
 		if bufDir[nameLen-1] == 0x5C {
 			f00DE8010strcat(buf[:], "config.ini")
 		}
 		f00DE8010strcat(buf[:], "\\config.ini") // cat拼凑字符串
 
 		win.GetPrivateProfileStringA("LOGIN", "Version", v0114D913, v01319A44version[:], 8, string(buf[:])) // 1.04.44写到全局变量中
-		// ebp_8的底层数组在堆上
-		// var ebp_8 string = GetCommandLine()
-		var ebp_8 string = os.Args[0]
+		// ebp8的底层数组在堆上
+		ebp8cmd := os.Args // GetCommandLine()
 
-		// f004D52AB
-		bRet := f004D52AB(fileName[:], ebp_8)
-		if bRet {
-			bRet := f004D55C6(fileName[:], &ebp_334)
-			if bRet { // je 0x004D,741B
-				f00DE817Asprintf(v01319A38version[:], "%d.%02d", ebp_334.major, ebp_334.minor)
+		// 0x004D7348
+		if f004D52ABtruncateCmd(ebp328cmd, ebp8cmd) && f004D55C6queryVersion(ebp328cmd[0], &ebp334) {
+			// 0x09FF7399
+			f00DE817Asprintf(v01319A38version[:], "%d.%02d", ebp334.major, ebp334.minor)
+			if ebp334.patch > 0 { // jle 0x004D,7419
+				*(*uint16)(unsafe.Pointer(&ebp338)) = v0114DD64
+				ebp338.patch[2] = 0
 
-				if ebp_334.patch > 0 { // jle 0x004D,7419
-					*(*uint16)(unsafe.Pointer(&ebp_338)) = v0114DD64
-					ebp_338.patch[2] = 0
-
-					// 我的猜测是从patch=26开始使用字母和+标记标识patch，比如
-					// 27就是A+
-					// 28就是B+
-					// 44就是R+
-					if ebp_334.patch > 0x1A { // jle 0x004D,73EE
-						ebp_338.patch[0] = 'A' - 27 + uint8(ebp_334.patch) // 65-27+44=82='R'
-						ebp_338.patch[1] = '+'
-					}
-					f00DE8010strcat(v01319A38version[:], string(ebp_338.patch[:]))
+				// 我的猜测是从patch=26开始使用字母和+标记标识patch，比如
+				// 27就是A+
+				// 28就是B+
+				// 44就是R+
+				if ebp334.patch > 0x1A { // jle 0x004D,73EE
+					ebp338.patch[0] = 'A' - 27 + uint8(ebp334.patch) // 65-27+44=82='R'
+					ebp338.patch[1] = '+'
 				}
+				f00DE8010strcat(v01319A38version[:], string(ebp338.patch[:]))
 			}
 		}
 

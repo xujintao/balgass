@@ -504,8 +504,9 @@ var v01308D10 sync.Once
 
 func f0043A2DFgetBattleCoreSpec() *battleCoreSpec {
 	v01308D10.Do(func() {
-		return &v01308D08
+
 	})
+	return &v01308D08
 }
 
 type battleCoreSpec struct {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"debug/pe"
-	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -26,7 +25,6 @@ var v012F8558 *uint32 // [v012F8558]=0x0D921A80
 var v09D9D9FC int
 var v09D9DA08 uint8
 var v09D9DA0C uint32 = 1
-var v09D9DB88 uintptr = 0xBD6A970F
 
 // libc cdecl无ebp帧栈
 
@@ -177,10 +175,28 @@ func f00DE8100memset(buf []uint8, value uint8, size int) uint32 {
 	return 0
 }
 
-func f00DE817Asprintf(buf []uint8, strfmt string, a ...interface{}) int {
-	str := fmt.Sprint(strfmt, a)
-	buf = []uint8(str) // 从堆上复制到data段
-	return len(str)
+func f00DE817Asprintf(buf []uint8, fmt string, a ...interface{}) int {
+	// equal
+	// str := fmt.Sprint(strfmt, a)
+	// buf = []uint8(str) // 从堆上复制到data段
+	// return len(str)
+
+	if fmt == "" || len(buf) == 0 {
+		return 0
+	}
+	// ebp20
+	i := info{
+		m00: buf,       // ebp20
+		m04: 0x7FFFFFF, // ebp1C
+		m08: buf,       // ebp18
+		m0C: 0x42,      // ebp14
+	}
+	n := f00DFCCB0vsprintf(&i, fmt, nil, a)
+	if n < 0 {
+		// ...
+	}
+	i.m00[0] = 0
+	return n
 }
 
 // 拿着eax做栈分配，这个骚套路是什么API？目的是什么？
@@ -293,29 +309,27 @@ type t16 struct {
 }
 
 // f00DECDA2
-func f00DECDA2(prevt16p *t16, t16p *t16) {
+func f00DECDA2(t16p *t16, prevt16p *t16) {
 	t16p.f0Ch[0] = 0
 	if prevt16p == nil {
-		// _00DFC3E9
-		v := func() unsafe.Pointer {
-			// _00DFC370
-			v := func() unsafe.Pointer {
+		// f00DFC3E9()
+		v := func() interface{} {
+			// f00DFC370
+			v := func() interface{} {
+				const v012F7DBC int = 4 // -1
 				errno := win.GetLastError()
-				// _00DFC1FB
-				cb := func() func(uint32) unsafe.Pointer {
-					const v012F7DC0 uint32 = 25
-					// v := unsafe.Pointer(win.TlsGetValue(v012F7DC0))
-					var v interface{}
+				// f00DFC1FB()
+				flsGetValue := func() func(int) interface{} {
+					const v012F7DC0 int = 25 // -1
+					var v interface{}        // v := kernel32.TlsGetValue(v012F7DC0)
 					if v == nil {
-						// _00DFC160
-						func(x uintptr) {
-							// ...
-						}(v09D9DB88)
+						v2 := f00DFC160flsDec(v09D9DB88flsGetValue)
+						// v = kernel32.TlsSetValue(v012F7DC0, v2)
+						v = v2
 					}
-					return v.(func(uint32) unsafe.Pointer) // kernel32.FlsGetValue，这里unsafe.Pointer值能转换成函数类型吗？
+					return v.(func(int) interface{}) // kernel32.FlsGetValue
 				}()
-				const v012F7DBC uint32 = 4
-				v := cb(v012F7DBC) // FlsGetValue
+				v := flsGetValue(v012F7DBC)
 				if v == nil {
 					// ...
 				}
@@ -323,11 +337,11 @@ func f00DECDA2(prevt16p *t16, t16p *t16) {
 				return v
 			}()
 			if v == nil {
-				// ...
+				// f00DF0407(0x10)
 			}
 			return v
 		}()
-		tlsv := (*tlsvalue)(v)
+		tlsv := v.(*tlsvalue)
 		t16p.f08h = tlsv      // [0x0D92,07D0]=01BC
 		t16p.f00h = tlsv.f6Ch // [0x0D92,083C]=0x012F,8660
 		t16p.f04h = tlsv.f68h // [0x0D92,0838]=0x0D92,1A80
@@ -349,121 +363,104 @@ func f00DECDA2(prevt16p *t16, t16p *t16) {
 	return
 }
 
+// n := func(bufp *[]uint8, fmt string, locale int, a []interface{}) int {
 // 好复杂的函数
-func f00DFCCB0(infop *info, format string, t16p *t16, a ...interface{}) int {
+func f00DFCCB0vsprintf(infop *info, format string, t16p *t16, a []interface{}) int {
 	// 278h字节的局部变量
+	// 功能就是copy(buf, fmt.Sprintf(format, a...))
 
-	// 功能就是 format = fmt.Sprintf(format, a...)
-	// 再copy(buf, format)
+	var ebp25C t16 // 0x0018,DCB8
+	ebp24C := infop
+	// ebp224 := a
+	// ebp4 = v012F7B90 ^ ebp
 
-	var ebp_25c t16 // 0x0018,DCB8
-	// ebp-25c
-	// ebp-258
-	// ebp-254
-	// ebp-250
-
-	var ebp_24c *info = infop
-	// ebp-248
-	// ebp-240
-	// ebp-238
-	// ebp-234
-	// ebp-230
-	// var ebp_224 *conf = c
-	// ebp-218
-	// ebp-210
-
-	// var stack uintptr = v012F7B90 ^ 0x0018DF14 // ebp-4 这个是什么意思？
-
-	f00DECDA2(t16p, &ebp_25c)
-
-	if infop == nil || len(format) == 0 {
+	f00DECDA2(&ebp25C, t16p) // ebp25C.f00DECDA2(t16p)
+	if infop == nil {
 		// ...
 	}
-	if infop.f0Ch == 40 {
+	if infop.m0C == 40 {
 		// ...
 	}
 
-	var ebp_23C string = format[1:] // 拿掉 '>' 字符
+	var ebp23C string = format[1:] // 拿掉 '>' 字符
 	// ...
 
-	var ebp_228 uint32 // 0x0018,DCEC
+	var ebp228 uint32 // 0x0018DCEC
 
-	// var ebp_211 uint8 = ebp_23C[0] // c语言风格
-	for len(ebp_23C) != 0 {
-		ebp_23C = ebp_23C[1:]
-
-		if ebp_228 < 0 { // jl(jump less) 有符号跳转
+	// var ebp211 uint8 = ebp23C[0] // c语言风格
+	for len(ebp23C) != 0 {
+		ebp23C = ebp23C[1:]
+		if ebp228 < 0 { // jl(jump less) 有符号跳转
 			break
 		}
 
-		// _00E036C2
+		// f00E036C2()
 		nRet := func(c uint8) uint32 {
-			var ebp_10 t16
-			f00DECDA2(&ebp_25c, &ebp_10)
-			nRet := uint32(ebp_10.f00h.fC8h.f7Ch & 8000)
-			if ebp_10.f0Ch[0]&0xFF != 0 {
+			var ebp10 t16
+			f00DECDA2(&ebp25C, &ebp10)
+			nRet := uint32(ebp10.f00h.fC8h.f7Ch & 8000)
+			if ebp10.f0Ch[0]&0xFF != 0 {
 				// ...
 			}
 			return nRet
-		}(ebp_23C[0])
+		}(ebp23C[0])
 		if nRet != 0 {
 			// ...
 		}
 
-		// _00DFCBD0
+		// f00DFCBD0()
 		func() {
-			// 初始ecx为ebp_24C, esi=&ebp_228
-			if ebp_24c.f0Ch == 0x40 || len(ebp_24c.f08h) != 0 {
-				ebp_24c.f04h--
-				if ebp_24c.f04h >= 0 {
-					ebp_24c.f00h[0] = ebp_23C[0]
-					ebp_24c.f00h = ebp_24c.f00h[1:]
+			// 初始ecx为ebp24C, esi=&ebp228
+			if ebp24C.m0C == 0x40 || len(ebp24C.m08) != 0 {
+				ebp24C.m04--
+				if ebp24C.m04 >= 0 {
+					ebp24C.m00[0] = ebp23C[0]
+					ebp24C.m00 = ebp24C.m00[1:]
 				} else {
-					// _00DFCA6C
+					// f00DFCA6C
 				}
-				if ebp_23C[0] == ^uint8(0) {
-					ebp_228 |= uint32(ebp_23C[0])
+				if ebp23C[0] == ^uint8(0) {
+					ebp228 |= uint32(ebp23C[0])
 					return
 				}
 			}
-			ebp_228++
+			ebp228++
 			return
 		}()
 	}
-	return int(ebp_228)
+	return int(ebp228)
 }
 
 type info struct {
-	f00h []uint8
-	f04h uint32
-	f08h []uint8
-	f0Ch uint32
-}
-
-func f00DF0787(buf []uint8, format string, x *t16, a ...interface{}) int {
-	// 如果接下来会用到ebx，那么先把ebx压栈
-
-	// c里面判断字符串指针变量是否为空
-	// 等效为go里面判断string类型变量长度是否为0
-	// 或者切片长度是否为0
-	if len(format) == 0 || len(buf) == 0 {
-		// ...
-		return -1 // ?
-	}
-
-	i := info{
-		f00h: buf,       // ebp-20
-		f04h: 0x7FFFFFF, // ebp-1C
-		f08h: buf,       // ebp-18
-		f0Ch: 0x42,
-	}
-	cnt := f00DFCCB0(&i, format, x, a...) // 其实就是把logconf字符串copy到buf切片
-	// i.f00h = append(i.f00h,0) // golang不需要追加0
-	return cnt
+	m00 []uint8
+	m04 int
+	m08 []uint8
+	m0C int
 }
 
 func f00DF0805(buf []uint8, format string, a ...interface{}) {
-	f00DF0787(buf, format, nil, a...)
+	// f00DF0787
+	func(buf []uint8, format string, x *t16, a ...interface{}) int {
+		// 如果接下来会用到ebx，那么先把ebx压栈
+
+		// c里面判断字符串指针变量是否为空
+		// 等效为go里面判断string类型变量长度是否为0
+		// 或者切片长度是否为0
+		if len(format) == 0 || len(buf) == 0 {
+			// ...
+			return -1 // ?
+		}
+
+		i := info{
+			m00: buf,       // ebp20
+			m04: 0x7FFFFFF, // ebp1C
+			m08: buf,       // ebp18
+			m0C: 0x42,
+		}
+		cnt := f00DFCCB0vsprintf(&i, format, x, a) // 其实就是把logconf字符串copy到buf切片
+		// i.f00h = append(i.f00h,0) // golang不需要追加0
+		return cnt
+	}(buf, format, nil, a...)
 }
 
 //
@@ -1461,13 +1458,22 @@ var v09DA37AC string
 var v09D9DB10 string
 
 // --------------------------------------------------------------------
-// 0x00DF478C, f00DF478C
+// 0x00DF478C, f00DF478C, runtime_main
 func main() {
 	// ebp4 := 0
 	// var ebp68si struct{}{}
 	// dll.kernel32.GetStartupInfo(&ebp68)
 	// ebp4 = -2
 	// check pe
+	// ...
+	// 0x00DF47FA: f00DFF074heapInit()
+	func(safe bool) {
+		// flag := !safe
+		// v09D9DEB8heap1 = kernel32.HeapCreate(flag, 4096, 0)
+		// v09DA37A0heapNum = 1
+	}(true)
+	// 0x00DF480C:
+	f00DFC5ACflsInit()
 	// ...
 	// ebp4 = 1
 	v09DA37AC = "main.exe connect /u192.168.0.102 /p444405" // v09DA37AC = dll.kernel32.GetCommandLine()
@@ -1484,7 +1490,7 @@ var v00DF490A [0x5B]uint8
 var v0B2BE8D6 [0x19]uint8
 var v0B2BE90B [0x58]uint8
 
-// OEP shell logic 0x00DF490A f00DF490A
+// OEP.shell logic 0x00DF490A f00DF490A
 func f00DF490A() {
 	// vp := win.GetProcAddress(win.LoadLibrary("kernel32.dll"), "virtualProtect")
 	// var oldProtect uint32
@@ -1493,18 +1499,26 @@ func f00DF490A() {
 	// jmp 0x0B2BE8D6
 }
 
+// OEP.shell copy
 func f0B2BE8D6() {
 	// f00DE7C90memcpy(v00DF490A[:], v0B2BE90B[:], len(v00DF490A))
 	// jmp 0x00DF490A
 }
 
+// OEP.real logic
 func f0B2BE90B() {
 	f006CD259() // E8 4A89BDFF ;call 0x006CD259 f006CD259 壳逻辑 解码
-	// E9 78FEFFFF ;jmp 0x00DF478C f00DF478C, hard hook as E9 6CA04C0A ;jmp 0x0B2BE980 f0B2BE980 to load main.dll
+	// jmp 0x00DF478C ;f00DF478C, hard hook as E9 6CA04C0A/jmp 0x0B2BE980 f0B2BE980 to load main.dll
 	// 0x0B2BE980
-	// if false == dll.kernel32.LoadLibrary("main.dll") {
+	// if false == kernel32.LoadLibrary("main.dll") {
+	// 	code := kernel32.GetLastError()
+	// 	func(code int) {
+	// 		var buf [32]uint8
+	// 		heapInit(true)
+	// 		flsInit()
+	// 		sprintf(buf[:], "getlasterror %d", code)
+	// 	}(code)
 	// 	dll.kernel32.ExitProcess(0)
-	// 	return
 	// }
-	// 0x00DF478C f00DF478C, main
+	// jmp 0x00DF478C ;f00DF478C, main/runtime_main
 }
