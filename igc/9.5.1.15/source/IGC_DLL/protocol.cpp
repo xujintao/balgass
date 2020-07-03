@@ -445,7 +445,8 @@ void CGSendFilesCrc()
 	DataSend(&msg, sizeof(PMSG_SEND_CRC));
 }
 
-inline void GCSendAntihackBreach(DWORD dwErrorCode)
+//inline void GCSendAntihackBreach(DWORD dwErrorCode)
+void GCSendAntihackBreach(DWORD dwErrorCode)
 {
 	
 	PMSG_ANTIHACK_BREACH pMsg;

@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Microsoft documentation for VCXPROJ file format is located at -->
+  <!-- the following URL. The documentation leaves a lot to be desired. -->
+  <!-- https://msdn.microsoft.com/en-us/library/2208a1f2.aspx -->
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -10,139 +13,111 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <!-- Microsoft documentation clearly shows the Global property group -->
+  <!-- preceeds the import of Cpp.Default.props and Cpp.props -->
+  <!-- https://msdn.microsoft.com/en-us/library/2208a1f2.aspx -->
   <PropertyGroup Label="Globals">
     <ProjectGuid>{45CD87AE-7548-4BD0-8A07-9505898EA455}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>IGCEX702</RootNamespace>
     <ProjectName>IGC.Client.DLL</ProjectName>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
+  <!-- Use DefaultPlatformToolset after Microsoft.Cpp.Default.props -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140_xp</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+  <PropertyGroup Label="PlatformToolset">
     <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <TargetName>IGC</TargetName>
-    <IncludePath>..\..\..\_Library\_Include\rsa\;..\..\..\_Library\_Include\cryptopp\;..\..\..\_Library\_Include\Mpir\;..\..\..\_Library\_Include\;$(ProjectDir);$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\_Library\v140_xp-Win32_MD\;..\..\..\_Library\;$(LibraryPath);</LibraryPath>
+  <!-- End of Visual Studio boilerplate -->
+  <!-- All Configurations -->
+  <PropertyGroup Label="All Configurations">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <TargetName>igc</TargetName>
+    <TargetExt>.dll</TargetExt>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
     <OutDir>..\..\client</OutDir>
     <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
-    <ExecutablePath>$(VCInstallDir)bin;$(WindowsSdkDir)bin\NETFX 4.0 Tools;$(WindowsSdkDir)bin;$(VSInstallDir)Common7\Tools\bin;$(VSInstallDir)Common7\tools;$(VSInstallDir)Common7\ide;$(ProgramFiles)\HTML Help Workshop;$(FrameworkSDKDir)\bin;$(MSBuildToolsPath32);$(VSInstallDir);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
-    <ReferencePath>$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
-    <SourcePath>$(VCInstallDir)atlmfc\src\mfc;$(VCInstallDir)atlmfc\src\mfcm;$(VCInstallDir)atlmfc\src\atl;$(VCInstallDir)crt\src</SourcePath>
-    <ExcludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;$(MSBuildToolsPath32);$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib;</ExcludePath>
+    <IncludePath>..\..\..\_Library\_Include\cryptopp\;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\..\_Library\v140_xp-Win32_MT\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\_Library\_Include\rsa\;..\..\..\_Library\_Include\cryptopp\;..\..\..\_Library\_Include\Mpir\;..\..\..\_Library\_Include\;$(ProjectDir);$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\_Library\v140_xp-Win32_MD\;..\..\..\_Library\;$(LibraryPath);</LibraryPath>
-    <TargetName>IGC</TargetName>
-    <OutDir>..\..\client</OutDir>
-    <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
-    <EmbedManifest>true</EmbedManifest>
-    <LibraryWPath>$(WindowsSDK_MetadataPath);</LibraryWPath>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <!-- All Configurations -->
+  <ItemDefinitionGroup Label="All Configurations">
     <ClCompile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <ErrorReporting>None</ErrorReporting>
+      <WarningLevel>Level4</WarningLevel>
+      <DisableSpecificWarnings>4231; 4251; 4275; 4355; 4505</DisableSpecificWarnings>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <!-- <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile> -->
+      <AdditionalOptions>$(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <ErrorReporting>NoErrorReport</ErrorReporting>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <!-- <ProgramDatabaseFile>$(OutDir)\main.pdb</ProgramDatabaseFile> -->
+      <!-- <BaseAddress>0x42900000</BaseAddress> -->
+      <!-- <RandomizedBaseAddress>false</RandomizedBaseAddress> -->
+      <!-- <PreventDllBinding>true</PreventDllBinding> -->
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <!-- <ImportLibrary>$(TargetDir)\cryptopp.lib</ImportLibrary> -->
+    </Link>
+  </ItemDefinitionGroup>
+  <!-- Debug Configurations -->
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'" Label="Debug Configuration">
+    <ClCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;IGCEX803_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <SDLCheck>false</SDLCheck>
-      <MultiProcessorCompilation>false</MultiProcessorCompilation>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>$(ProjectDir)$(Configuration)\$(TargetName).pch</PrecompiledHeaderOutputFile>
-      <AssemblerOutput>All</AssemblerOutput>
-      <AssemblerListingLocation>$(ProjectDir)$(Configuration)\</AssemblerListingLocation>
-      <ObjectFileName>$(ProjectDir)$(Configuration)\</ObjectFileName>
-      <ProgramDataBaseFileName>$(OutDir)\$(TargetName).pdb</ProgramDataBaseFileName>
-      <BrowseInformation>true</BrowseInformation>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <LinkStatus>true</LinkStatus>
-      <ProgramDatabaseFile>$(OutDir)\$(TargetName).pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>$(OutDir)\$(TargetName).map</MapFileName>
-      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
-      <MapExports>true</MapExports>
-    </Link>
-    <ResourceCompile>
-      <Culture>0x0009</Culture>
-    </ResourceCompile>
-    <Bscmake>
-      <OutputFile>$(ProjectDir)$(Configuration)\$(TargetName).bsc</OutputFile>
-    </Bscmake>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>TurnOffAllWarnings</WarningLevel>
-      <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>Disabled</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <!-- <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile> -->
+  </ItemDefinitionGroup>
+  <!-- Release Configurations -->
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'" Label="Release Configuration">
+    <ClCompile>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;IGCS9_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <SDLCheck>false</SDLCheck>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeaderOutputFile>$(ProjectDir)$(Configuration)\$(TargetName).pch</PrecompiledHeaderOutputFile>
-      <AssemblerOutput>All</AssemblerOutput>
-      <AssemblerListingLocation>$(ProjectDir)$(Configuration)\</AssemblerListingLocation>
-      <ObjectFileName>$(ProjectDir)$(Configuration)\</ObjectFileName>
-      <ProgramDataBaseFileName>$(OutDir)\$(TargetName).pdb</ProgramDataBaseFileName>
-      <BrowseInformation>true</BrowseInformation>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <OmitFramePointers>true</OmitFramePointers>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <!-- <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile> -->
+    <Link>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <!-- X86 Configurations -->
+  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'" Label="X86 Configuration">
+    <ClCompile>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <LinkStatus>false</LinkStatus>
-      <ProgramDatabaseFile>$(OutDir)\$(TargetName).pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>$(OutDir)\$(TargetName).map</MapFileName>
-      <SubSystem>Windows</SubSystem>
-      <UACUIAccess>false</UACUIAccess>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>libc.lib; libcmt.lib; libcd.lib; libcmtd.lib; msvcrtd.lib</IgnoreSpecificDefaultLibraries>
-      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
-      <IgnoreAllDefaultLibraries>
-      </IgnoreAllDefaultLibraries>
-      <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
-      <MapExports>true</MapExports>
+      <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
     </Link>
-    <ResourceCompile />
-    <Bscmake>
-      <OutputFile>$(ProjectDir)$(Configuration)\$(TargetName).bsc</OutputFile>
-    </Bscmake>
   </ItemDefinitionGroup>
+  <!-- Header Files -->
   <ItemGroup>
     <ClInclude Include="AntiHack.h" />
     <ClInclude Include="Camera.h" />
@@ -182,6 +157,7 @@
     <ClInclude Include="Text.h" />
     <ClInclude Include="WndHook.h" />
   </ItemGroup>
+  <!-- Source Files -->
   <ItemGroup>
     <ClCompile Include="AntiHack.cpp" />
     <ClCompile Include="Camera.cpp" />
@@ -192,14 +168,7 @@
     <ClCompile Include="CustomWings.cpp" />
     <ClCompile Include="DamageExtension.cpp" />
     <ClCompile Include="DataSendProtocolCore.cpp" />
-    <ClCompile Include="dllmain.cpp">
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </PrecompiledHeader>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EncDec.cpp" />
     <ClCompile Include="EventEntryLevel.cpp" />
     <ClCompile Include="Exception.cpp" />
@@ -220,19 +189,17 @@
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="ServerInfo.cpp" />
     <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="WndHook.cpp" />
   </ItemGroup>
+  <!-- Back to Visual Studio boilerplate -->
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="Research\Research.txt" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>

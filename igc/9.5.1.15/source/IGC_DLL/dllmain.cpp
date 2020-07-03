@@ -62,10 +62,10 @@ void __declspec(naked) onCsHook()
 	}
 
 }
-HMODULE WINAPI LoadLibraryMine(LPCTSTR dllName)
-{
+//HMODULE WINAPI LoadLibraryMine(LPCTSTR dllName)
+//{
 
-}
+//}
 
 
 

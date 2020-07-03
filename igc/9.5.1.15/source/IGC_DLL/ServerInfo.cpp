@@ -159,10 +159,12 @@ DWORD CServerInfo::GetPassCrc()
 	return m_PasswordCrc;
 }
 
+/*
 CPrivateRsaKey* CServerInfo::GetPassKey()
 {
 	return m_PassKey;
 }
+*/
 
 bool CServerInfo::GetXShop()
 {

@@ -279,11 +279,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Research\Research.txt">
-      <Filter>General</Filter>
-    </Text>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="Resource.rc">
       <Filter>General</Filter>
     </ResourceCompile>
