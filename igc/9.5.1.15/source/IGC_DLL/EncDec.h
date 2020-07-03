@@ -1,13 +1,14 @@
 #ifndef ENCDEC_H
 #define ENCDEC_H
 
-
+/*
 #include <SRSA.h>
 extern CPrivateRsaKey* g_RsaDec;
 extern CPublicRsaKey* g_RsaEnc;
 
 extern CPublicRsaKey* g_ClientEnc;
 extern CPrivateRsaKey* g_ServerDec;
+*/
 
 static unsigned char bBuxCode[3] = { 0xFC, 0xCF, 0xAB };	// Xox Key for some interesthing things :)
 class CEncDec {

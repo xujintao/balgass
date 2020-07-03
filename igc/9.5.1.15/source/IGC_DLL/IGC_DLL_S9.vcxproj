@@ -46,8 +46,8 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <OutDir>..\..\client104R</OutDir>
     <IntDir>$(ProjectDir)$(Configuration)\</IntDir>
-    <IncludePath>..\..\..\_Library\_Include\rsa\;..\..\..\_Library\_Include\cryptopp\;..\..\..\_Library\_Include\Mpir\;..\..\..\_Library\_Include\;$(ProjectDir);$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\_Library\v140_xp-Win32_MD\;..\..\..\_Library\;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\..\_Library\_Include\cryptopp\;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\..\_Library\v140_xp-Win32_MD\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <!-- All Configurations -->
   <ItemDefinitionGroup Label="All Configurations">

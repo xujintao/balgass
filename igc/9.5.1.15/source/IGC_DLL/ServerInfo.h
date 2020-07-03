@@ -2,7 +2,7 @@
 #define SERVER_BMD_H
 
 #include "ResourceLoader.h"
-#include <SRSA.h>
+//#include <SRSA.h>
 
 #pragma pack(push, 1)
 
@@ -30,7 +30,7 @@ class CServerInfo : public CResourceLoader{
 	int m_PasswordSize;
 	BYTE* m_Password;
 	DWORD m_PasswordCrc;
-	CPrivateRsaKey* m_PassKey;
+	//CPrivateRsaKey* m_PassKey;
 	bool m_AllowMulti;
 	bool m_AllowXShop;
 	bool m_UseLauncher;
@@ -50,7 +50,7 @@ public:
 	BYTE* GetVersion();
 	bool GetMulti();
 	DWORD GetPassCrc();
-	CPrivateRsaKey* GetPassKey();
+	//CPrivateRsaKey* GetPassKey();
 	bool GetXShop();
 	bool GetLauncher();
 	bool GetPatcher();

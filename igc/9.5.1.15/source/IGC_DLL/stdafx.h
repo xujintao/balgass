@@ -22,23 +22,38 @@
 #include <WindowsX.h>
 #include <ShellAPI.h>
 #include <tlhelp32.h>
-#include <mpir.h>
-#include <gmp.h>
-#include <WinSock2.h>
-#include <GLee.h>
-#include <Psapi.h>
 #include <tchar.h>
 #include <wingdi.h>
 #include <map>
+
+// socket
+#include <WinSock2.h>
 #pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "mpir.lib")
-#pragma comment(lib, "cryptlib.lib")
-#include <gl\GL.h>
-#include <gl\GLU.h>
-#pragma comment(lib, "Opengl32.lib")
-#pragma comment(lib, "glu32.lib")
-#pragma comment(lib, "Glee.lib")
+
+// psapi: The process status API
+#include <Psapi.h>
 #pragma comment(lib, "psapi.lib")
+
+// cryptopp
+#pragma comment(lib, "cryptlib.lib")
+
+// opengl
+#include <gl\GL.h>
+#pragma comment(lib, "Opengl32.lib")
+
+// glu: The OpenGL Utility (GLU) library
+//#include <gl\GLU.h>
+//#pragma comment(lib, "glu32.lib")
+
+// GLee: OpenGL Easy Extension library)
+//#include <GLee.h>
+//#pragma comment(lib, "Glee.lib")
+
+// mpir: Multiple Precision Integers and Rationals
+//#include <gmp.h>
+//#include <mpir.h>
+//#pragma comment(lib, "mpir.lib")
+
 //#include "SecureEngineSDK.h"
 //#pragma comment(lib, "SecureEngineSDK32.lib")		// wait
 // TODO: reference additional headers your program requires here

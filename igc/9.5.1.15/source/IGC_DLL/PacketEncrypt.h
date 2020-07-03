@@ -2,7 +2,7 @@
 #define PACKETENCRYPT_H
 
 #include <rijndael.h>
-#include <rsa.h>
+//#include <rsa.h>
 
 class CPacketEncrypt
 {
