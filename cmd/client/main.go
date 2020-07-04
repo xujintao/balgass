@@ -25,6 +25,7 @@ const (
 var v012E10F4 [3]uint8 // FC CF AB
 var v012E2210 uint32 = 1
 var v012E2214 = "MUCN"
+var v012E2220 uint32 = 900
 var v012E2224 uint32 = 1
 var v012E2228 uint32 = 16
 var v012E222C *os.File
@@ -49,6 +50,7 @@ var v01319A38version [8]uint8 // "1.04R+"	// 可执行程序版本号
 var v01319A44version [8]uint8 // "1.04.44" // 配置文件版本号
 var v01319A50ip [16]uint8
 
+var v01319D18 []uint8
 var v01319D1CwndProc uintptr
 var v01319D65 uint32
 var v01319D68 *t1319D68
@@ -1047,11 +1049,99 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 			f007DA4B7(0)
 		}
 	*/
-	// ...
-	// ebp28
+	// 0x004D84F9:
+	// user32.SetTimer(v01319D6ChWnd, 1000, 20*1000, nil)
+
+	// 0x004D8511: v01319B88 init
+	f00DE8A9Bsrand(int64(f00DEE9E1time(nil))) // f004D8FE7time
+	for ebp58C := 0; ebp58C < 100; ebp58C++ {
+		v01319B88[ebp58C] = f00DE8AADrand() % 360
+	}
+	// 0x004D855B: array size <= 100
+	ebp1A54 := f00DE64BCnew(uint(f00DE8AADrand()%100) + 1)
+	v01319D18 = ebp1A54
+	// 0x004D857F: array size = 7k
+	ebp1A58 := f00DE64BCnew(7 * 1024)
+	v086105E0 = ebp1A58
+	// 0x004D859B: array size = 91*800
+	ebp1A5C := f00DE64BCnew(72800)
+	v086105E4 = ebp1A5C
+	// 0x004D85B7: v01319D44
+	// 0x004D85FF: v086105E8
+	// 0x004D864A: zero init v086105E0, v086105E4, v086105E8
+	// 0x004D8689:
+	v086105ECobject = &v086105E8.m04obj
+	// f005A3337()
+	// 0x004D86A1:
+	if v012E2210 == 1 {
+		// new v01319D20win10
+		var ebp1B20 *t0114E1AC
+		ebp1A74 := &t0114E1AC{} // f00DE852Fnew(0x300)
+		if ebp1A74 != nil {
+			ebp1B20 = ebp1A74.f004D9AFCconstruct()
+		}
+		ebp1A70 := ebp1B20
+		v01319D20win10 = ebp1A70
+
+		// v01319D24
+		// v01319D28
+	}
+	// 0x004D878F: v01319D2C
+	// 0x004D87DA: v01319D30
+	// 0x004D8822: v01319D34
+	// 0x004D886A: v01319D38
+	// 0x004D88B5: v01319D3C
+	// 0x004D8906: v01319D40
+	// 0x004D894E: v01319D48
+	// 0x004D8996: v01319D4C
+	// 0x004D89DE: v01319D50
+	// 0x004D8A26: v01319D54
+	// 0x004D8A6E: v01319D8C
+	// 0x004D8AB6: v01319D58
+	// 0x004D8AFE: v01319D5C
+	// 0x004D8B46:
+	// v013199F4.f004D9395(f00AFEE9F(&ebp1AF4))
+	// ebp1AF4.f004CE748()
+	// v09D8D0AC.f004D9503(f0093AF95(&ebp1AFC))
+	// ebp1AFC.f004D9381()
+	f004A7D34getWindowManager().f004A89FFconstruct()
+	// 0x004D8B98:
+	if v012E2210 == 1 {
+		// 0x004D8BA5: win10非法内存访问
+		v01319D20win10.do2(v01319D6ChWnd)
+		/*
+			v01319D24.do12(v01319D6ChWnd, 0xC8, 0x14, 0x32, 0)
+			v01319D28.do12(v01319D6ChWnd, 0x8C, 0X14, 0x9, 1)
+			v01319D24.do2(3)
+			v01319D28.do2(3)
+
+			// 0x004D8C21: imm
+			v01308EF8 = 0
+			ebp590ctx := imm32.ImmGetContext()
+			imm32.ImmSetConversionStatus(ebp590ctx, 0, 0)
+			imm32.ImmReleaseContext(v01319D6ChWnd, ebp590ctx)
+			// f00451FB9()
+			func() {
+				ebp8ctx := imm32.ImmGetContext(v01319D6ChWnd)
+				imm32.ImmGetConversionStatus(ebp8ctx, &v01308EE8, &v01308EEC)
+				imm32.ImmSetConversionStatus(ebp8ctx, 0, 0)
+				imm32.ImmReleaseContext(v01319D6ChWnd, ebp8ctx)
+			}()
+			v01308EF8 = 1
+		*/
+	}
+	// 0x004D8C68: SystemparametersInfo
+	if v012E2224 == 0 {
+		/*
+			user32.SystemParametersInfo(0x61, 1, &ebp594, 0)
+			user32.SystemParametersInfo(0x0E, 0, &v012E2220, 0)
+			user32.SystemParametersInfo(0x0F, 0x4650, nil, 0)
+		*/
+	}
+	// 0x004D8CA6:
+	// f0053594C(v01319D70hModule, v01319D6ChWnd)
+	// 0x004D8CB9: 消息循环
 	var ebp28msg win.MSG
-	// 0x004D8CB9
-	// 消息循环
 	for {
 		if ebp28msg.Message == win.WM_CLOSE || ebp28msg.Message == win.WM_QUIT {
 			break // 0x004D8F6C

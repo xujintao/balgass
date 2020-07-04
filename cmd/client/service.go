@@ -985,7 +985,17 @@ func (t *list) f004452A7getFirstNodeValue() interface{} {
 }
 
 // serviceManager
+func f004A7D34getWindowManager() *serviceManager {
+	if v01319730once&1 == 0 {
+		v01319730once |= 1
+		v0130F728.f004A7A82()
+		// f00DE8BF6(0x0114817A)
+	}
+	return &v0130F728
+}
+
 var v0130F728 serviceManager
+var v01319730once uint32 // sync.Once
 
 type serviceManager struct {
 	s001 service1 // v0130F730
@@ -1024,24 +1034,21 @@ type serviceManager struct {
 
 	// ... // 100个service
 	f9FD4activeServices list // v013196FC
-	f9FE0               bool // v01319708
-	f9FE1               bool
+	m9FE0               bool // v01319708
+	m9FE1               bool
 	m9FE4               uint // v0131970C
-	f9FE8               bool // v01319710
-	f9FE9               bool
-	f9FEC               *stdstring // v01319714
+	m9FE8               bool // v01319710
+	m9FE9               bool
+	m9FEC               *stdstring // v01319714
 }
 
-var v01319730 uint32 // sync.Once
-
-func f004A7D34getWindowManager() *serviceManager {
-	if v01319730&1 == 0 {
-		v01319730 |= 1
-		v0130F728.f004A7A82()
-		// f00DE8BF6(0x0114817A)
-	}
-	return &v0130F728
+func (t *serviceManager) f004A89FFconstruct() {
+	t.m9FE0 = false
+	t.m9FE1 = false
+	t.m9FE4 = 0
+	t.m9FE8 = false
 }
+
 func (t *serviceManager) f004A7A82() {}
 func (t *serviceManager) f004A9083(s interface{}) interface{} {
 	ebp4 := t.f9FD4activeServices.f004452A7getFirstNodeValue()
@@ -1057,7 +1064,7 @@ func (t *serviceManager) f004A9083(s interface{}) interface{} {
 		if t.f9FD4activeServices.f004455FBdeleteNode(t.f9FD4activeServices.f004457B6findNode(s, nil)) == false {
 			return nil
 		}
-		t.f9FE8 = true
+		t.m9FE8 = true
 		// t.f9FD4activeServices.f004453C6(s)
 	}
 	return ebp4
@@ -1075,10 +1082,10 @@ func (t *serviceManager) f004A9146LRU(s interface{}) {
 	t.f9FD4activeServices.f00445416appendNode(s)
 	s = t.f9FD4activeServices.f004452A7getFirstNodeValue()
 	if s.(windower).f004AA018isActive() {
-		t.f9FE8 = true
+		t.m9FE8 = true
 	}
 }
-func (t *serviceManager) f00439161(x bool) { t.f9FE9 = x }
+func (t *serviceManager) f00439161(x bool) { t.m9FE9 = x }
 func (t *serviceManager) f004A91CE() {
 	ebp98 := t
 	ebp8 := ebp98.f9FD4activeServices.f004409AAgetList()
@@ -1098,11 +1105,11 @@ func (t *serviceManager) f004A9B5B(unk float64) {
 	if ebp30.f9FD4activeServices.f004AA077isNumZero() == true {
 		return
 	}
-	if ebp30.f9FE8 { // 0, 1
+	if ebp30.m9FE8 { // 0, 1
 		ebp18 := ebp30.f9FD4activeServices.f004452A7getFirstNodeValue()
 		if ebp18.(windower).f004AA018isActive() {
 			ebp18.(servicer).do6(true)
-			ebp30.f9FE8 = false
+			ebp30.m9FE8 = false
 		}
 	}
 
@@ -1110,12 +1117,12 @@ func (t *serviceManager) f004A9B5B(unk float64) {
 	if ebp10.f0043913E(0x1B) {   // always be false
 		// ...
 	}
-	ebp30.f9FE0 = false
+	ebp30.m9FE0 = false
 	if ebp10.f00436696() {
 		// ...
 	}
 	if ebp10.f004366A5() {
-		ebp30.f9FE1 = false
+		ebp30.m9FE1 = false
 	}
 	ebp14 := ebp30.f9FD4activeServices.f004AA009getNodeNum() // 9
 	ebp8 := make([]interface{}, 9)                           // 0x37000C68 new?
@@ -1153,14 +1160,14 @@ func (t *serviceManager) f004A9B5B(unk float64) {
 		ebp34 := ebpC.(windower).f004AA068()
 		switch ebp34 {
 		case 1, 2, 3, 4:
-			ebp30.f9FE0 = true
+			ebp30.m9FE0 = true
 		}
 
-		if ebp30.f9FE0 {
+		if ebp30.m9FE0 {
 			break
 		}
 		if ebpC.(servicer).do4(0) == true {
-			ebp30.f9FE0 = true
+			ebp30.m9FE0 = true
 			break
 		}
 	}
@@ -1182,7 +1189,7 @@ func (t *serviceManager) f004A9F3B(buf []uint8) {
 	if t.m9FE4 == 4 {
 		// t.f9DD8.f00445A2A(buf)
 	} else {
-		t.f9FEC.f0043D7E2stdstring(string(buf))
+		t.m9FEC.f0043D7E2stdstring(string(buf))
 	}
 }
 
@@ -1391,7 +1398,7 @@ func f004E1E1EhandleState2() {
 	}
 	if ebp14A1 {
 		// ebp10 := f004A7D34getWindowManager()
-		// if !ebp10.f14 && !ebp10.f488C && !ebp10.f41C && !ebp10.f824 && !ebp10.f4BE4 && ebp10.fE7C && ebp10.f107C && ebp10.f9FE9 {
+		// if !ebp10.f14 && !ebp10.f488C && !ebp10.f41C && !ebp10.f824 && !ebp10.f4BE4 && ebp10.fE7C && ebp10.f107C && ebp10.m9FE9 {
 		// 	// f007DAFE0(0x19, 0, 0)
 		// 	// ebp10.f410
 		// 	ebp10.f004A9123(ebp10.f410)

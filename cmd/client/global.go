@@ -463,7 +463,14 @@ var v08C88E58hpMax uint16
 var v08C88E5AmpMax uint16
 var v08C88E5CsdMax uint16
 var v08C88E5EsdMax uint16
-var v086105ECobject = &object{}
+var v086105E0 []uint8 // 7k
+var v086105E4 []uint8 // 91*800
+// sizeof=0x1C30
+var v086105E8 *struct {
+	m00    uintptr
+	m04obj object
+}
+var v086105ECobject *object
 var v0805BBACself = &object{}
 
 // object sizeof=0x6BC
@@ -979,4 +986,53 @@ func (t *t01319F18) do2(param uintptr) bool {
 		return true
 	}
 	return false
+}
+
+// --------------------------------------------------------------
+var v01319B88 = [100]int{}
+
+// --------------------------------------------------------------
+var v01319D20win10 t01319D20win10
+
+// t01319D20win10 interface
+type t01319D20win10 interface {
+	do2(win.HWND)
+}
+
+// t0114E1C0 base
+type t0114E1C0 struct {
+	m00vtabptr []uintptr
+	// m004 t0114AE34
+	// m0E4 t0114AE34
+	// m2D0
+	// m2F0
+	// m2F8
+}
+
+func (t *t0114E1C0) f004D9B19construct() *t0114E1C0 {
+	// t.m00vtabptr = v0114E1C0[:]
+
+	return t
+}
+
+// f0045515C
+func (t *t0114E1C0) do2(hWnd win.HWND) {
+	// 回调f00D86830
+	func() {
+		// 0x00D86943:
+		// eax = [esi+4] // eax = esi.m04, eax = 0x0F720D00 esi=0x0F720EF4
+		// ecx = [eax+4] // ecx = eax.m04, ecx=0
+		// edx = ecx.m08 // 非法内存访问
+	}()
+}
+
+// t0114E1AC derive
+type t0114E1AC struct {
+	t0114E1C0
+}
+
+func (t *t0114E1AC) f004D9AFCconstruct() *t0114E1AC {
+	t.t0114E1C0.f004D9B19construct()
+	// t.m00vtabptr = v0114E1AC[:]
+	return t
 }

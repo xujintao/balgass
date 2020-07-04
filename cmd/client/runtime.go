@@ -3,9 +3,11 @@ package main
 import (
 	"debug/pe"
 	"io"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 	"unsafe"
 
 	"github.com/xujintao/balgass/win"
@@ -54,8 +56,13 @@ func f00DE7538free(p unsafe.Pointer) {}
 
 func f00DE84E3abort() {}
 
-// 猜测
-func f00DE8AADrand() int { return 0 }
+func f00DE8A9Bsrand(seed int64) {
+	rand.Seed(seed)
+}
+
+func f00DE8AADrand() int {
+	return rand.Int()
+}
 
 func f00DE852Fnew(x int) unsafe.Pointer {
 	return nil
@@ -461,6 +468,15 @@ func f00DF0805(buf []uint8, format string, a ...interface{}) {
 		// i.f00h = append(i.f00h,0) // golang不需要追加0
 		return cnt
 	}(buf, format, nil, a...)
+}
+
+// libc.time
+func f00DEE9E1time(t *time.Duration) time.Duration {
+	if t == nil {
+		return time.Duration(time.Now().Unix())
+	}
+	*t = time.Duration(time.Now().Unix())
+	return *t
 }
 
 //
