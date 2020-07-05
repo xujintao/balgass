@@ -36,7 +36,7 @@ var v012E233Cport uint16 = 44405
 // 2: server select
 // 4: character select
 // 5: game
-var v012E2340state int
+var v012E2340state = 1
 
 var v012E3F08 struct {
 	width  int // 0x320, 800
@@ -163,6 +163,8 @@ func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 			v01319D95 = true
 			// 0x004D6BD7
 		}
+	case win.WM_KILLFOCUS: // 8
+
 	case win.WM_TIMER: // 0x113
 		switch wParam {
 		case 1000: // 0x3E8
@@ -217,14 +219,12 @@ func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 }
 
 // new callback
-func f004D6C2BwndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) int {
+func f004D6C2BwndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
 	switch message {
-	case win.WM_CHAR: // 0x102
+	case 0x102: // win.WM_CHAR
 		// f00A49798game().f00A4DF93(wParam, lParam)
-	default:
-		win.CallWindowProc(v01319D1CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98wndProc
 	}
-	return 0
+	return win.CallWindowProc(v01319D1CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98wndProc
 }
 
 func f004D6D64() bool {
@@ -289,7 +289,7 @@ func f004D6F82initWindow(hModule win.HMODULE, iCmdShow int) win.HWND {
 	// ...
 
 	// 140字节局部变量
-	ebp34 := win.WNDCLASSEX{
+	ebp34wndClass := win.WNDCLASSEX{
 		CbSize:        0x30, // ebp-34
 		Style:         0x2B, // CS_OWNDC | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW
 		LpfnWndProc:   syscall.NewCallback(f004D5F98wndProc),
@@ -303,27 +303,27 @@ func f004D6F82initWindow(hModule win.HMODULE, iCmdShow int) win.HWND {
 		LpszClassName: &ebp78[0],  // "MU"
 		HIconSm:       0x141F0439, // ebp-8
 	}
-	win.RegisterClassEx(&ebp34)
+	win.RegisterClassEx(&ebp34wndClass)
 
 	// ...
 
 	// CreateWindow会发大概3条消息给WndProc
-	ebp4 := win.CreateWindowEx(
-		0,
-		&ebp78[0],  // "MU"
-		&ebp78[0],  // "MU"
-		0x02CA0000, // WS_CLIPCHILDREN | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU
-		0x118,
-		0x46,
-		0x326,
-		0x274,
-		0,
-		0,
-		0x00400000,
+	ebp4hWnd := win.CreateWindowEx(
+		0,          // ExStyle
+		&ebp78[0],  // ClassName, "MU"
+		&ebp78[0],  // WindowName, "MU"
+		0x02CA0000, // Style, WS_CLIPCHILDREN | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU
+		0x118,      // x
+		0x46,       // y
+		0x326,      // width
+		0x274,      // height
+		0,          // parent window
+		0,          // menu
+		0x00400000, // Instance
 		nil,
 	)
-	v01319D1CwndProc = win.SetWindowLongPtr(ebp4, win.GWL_WNDPROC, syscall.NewCallback(f004D6C2BwndProc))
-	return ebp4
+	v01319D1CwndProc = win.SetWindowLongPtr(ebp4hWnd, win.GWL_WNDPROC, syscall.NewCallback(f004D6C2BwndProc))
+	return ebp4hWnd
 }
 
 func f004D755F(haystack string, y int, buf []uint8) bool {
@@ -1071,20 +1071,35 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	// 0x004D864A: zero init v086105E0, v086105E4, v086105E8
 	// 0x004D8689:
 	v086105ECobject = &v086105E8.m04obj
-	// f005A3337()
+	// v086105E8.m00.f005A3337()
 	// 0x004D86A1:
 	if v012E2210 == 1 {
-		// new v01319D20win10
-		var ebp1B20 *t0114E1AC
-		ebp1A74 := &t0114E1AC{} // f00DE852Fnew(0x300)
+		// 0x004D86AE: new v01319D20
+		var ebp1B20 *t0114E1ACwindow
+		ebp1A74 := &t0114E1ACwindow{} // f00DE852Fnew(0x300)
 		if ebp1A74 != nil {
 			ebp1B20 = ebp1A74.f004D9AFCconstruct()
 		}
 		ebp1A70 := ebp1B20
-		v01319D20win10 = ebp1A70
+		v01319D20 = ebp1A70
 
-		// v01319D24
-		// v01319D28
+		// 0x004D86F9: new v01319D24
+		var ebp1B24 *t0114AE34edit
+		ebp1A7C := &t0114AE34edit{}
+		if ebp1A7C != nil {
+			ebp1B24 = ebp1A7C.f004521F5construct()
+		}
+		ebp1A78 := ebp1B24
+		v01319D24 = ebp1A78
+
+		// 0x004D8744: v01319D28
+		var ebp1B28 *t0114AE34edit
+		ebp1A84 := &t0114AE34edit{}
+		if ebp1A84 != nil {
+			ebp1B28 = ebp1A84.f004521F5construct()
+		}
+		ebp1A80 := ebp1B28
+		v01319D28 = ebp1A80
 	}
 	// 0x004D878F: v01319D2C
 	// 0x004D87DA: v01319D30
@@ -1108,13 +1123,12 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	// 0x004D8B98:
 	if v012E2210 == 1 {
 		// 0x004D8BA5: win10非法内存访问
-		v01319D20win10.do2(v01319D6ChWnd)
+		v01319D20.do2(v01319D6ChWnd)
+		v01319D24.do12initWindow(v01319D6ChWnd, 200, 20, 50, false)
+		v01319D28.do12initWindow(v01319D6ChWnd, 140, 20, 9, true)
+		v01319D24.do2(3)
+		v01319D28.do2(3)
 		/*
-			v01319D24.do12(v01319D6ChWnd, 0xC8, 0x14, 0x32, 0)
-			v01319D28.do12(v01319D6ChWnd, 0x8C, 0X14, 0x9, 1)
-			v01319D24.do2(3)
-			v01319D28.do2(3)
-
 			// 0x004D8C21: imm
 			v01308EF8 = 0
 			ebp590ctx := imm32.ImmGetContext()

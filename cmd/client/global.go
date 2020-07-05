@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"unsafe"
 
 	"github.com/xujintao/balgass/win"
@@ -992,18 +993,247 @@ func (t *t01319F18) do2(param uintptr) bool {
 var v01319B88 = [100]int{}
 
 // --------------------------------------------------------------
-var v01319D20win10 t01319D20win10
+var v01319D20 iwindow
+var v01319D24 iedit
+var v01319D28 iedit
 
-// t01319D20win10 interface
-type t01319D20win10 interface {
+// iwindow interface
+type iwindow interface {
 	do2(win.HWND)
+	do12initWindow(hWnd win.HWND, width, height int, charNum uint, passwd bool)
 }
 
-// t0114E1C0 base
+// iedit interface
+type iedit interface {
+	do2(int)
+	do12initWindow(hWnd win.HWND, width, height int, charNum uint, passwd bool)
+}
+
+// 有虚表的类型尽量使用虚表命名，否则使用构造函数命名
+type t0048D468 struct {
+	m10 int
+	m14 int
+	m18 int
+	m1C int
+}
+
+func (t *t0048D468) f0048D468construct() {
+	// f004973DE()
+	// f004972E4()
+	t.m10 = 0
+	t.m14 = 0
+	t.m18 = 0
+	t.m1C = 0
+}
+
+type t0114AFAC struct {
+	m00vtabptr []uintptr
+	m04        t0048D468
+}
+
+func (t *t0114AFAC) f0045D2C3construct() {
+	// t.m00vtabptr = v0114AFAC[:]
+	t.m04.f0048D468construct()
+}
+
+// sizeof=0x6C
+type t0114A7F0 struct {
+	t0114AFAC
+	m30 int
+	m34 int
+	m3C int // 5
+	m40 int
+	// ...
+	m68 int
+}
+
+func (t *t0114A7F0) f004499B2construct() {
+	t.t0114AFAC.f0045D2C3construct()
+	// t.m00vtabptr = v0114A7F0[:]
+	// f0044987E()
+	// f00449A57()
+	t.f00449A7A(0, 0)
+	// f00449A97()
+	// f00449AB4()
+	// f00449ADA()
+}
+
+func (t *t0114A7F0) f00449A7A(p1, p2 int) {}
+
+func (t *t0114A7F0) f004397CF(p1 int) {}
+
+func (t *t0114A7F0) f0045D373() int {
+	return t.m30
+}
+
+func (t *t0114A7F0) f0045D391(p1 int) int {
+	return t.m3C & p1
+}
+
+// sizeof=0xE0
+type t0114AE34edit struct {
+	t0114A7F0
+	m6CwndProc    uintptr
+	m70           int
+	m74hWndParent win.HWND
+	m78hWnd       win.HWND
+	m7C           int
+	m80           int
+	m84           int
+	m8C           int
+	m90           int
+	mA0           int
+	mACx          int
+	mB0y          int
+	mB4vscroll    int
+	mDC           bool
+}
+
+func f0045D29F(p1, p2, p3, p4 uint8) int { return 0 }
+
+func (t *t0114AE34edit) f004521F5construct() *t0114AE34edit {
+	t.t0114A7F0.f004499B2construct()
+	// t.m00vtabptr = v0114AE34[:]
+	t.m6CwndProc = 0
+	t.m74hWndParent = 0
+	t.m78hWnd = 0 // 在地址空间的pe seciton里面
+	t.m7C = 0
+	t.m80 = 0
+	t.m84 = 0
+	t.m8C = f0045D29F(0xFF, 0xFF, 0xFF, 0xFF)
+	// ...
+	return t
+}
+
+// f00452D78
+func (t *t0114AE34edit) do2(p1 int) {
+
+}
+
+// f004529B4
+func (t *t0114AE34edit) do3initDC(width, height int) {
+
+}
+
+func f008AEFAD(p1 int) bool {
+	return true //f008AF00Dget().f008AF156(p1)
+}
+
+// f004524CC
+func f004524CCwndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
+	ebp4window := (*t0114AE34edit)(unsafe.Pointer(win.GetWindowLongPtr(hWnd, win.GWL_USERDATA)))
+	if ebp4window == nil {
+		return 0
+	}
+	if f008AEFAD(0x25) || f008AEFAD(0x26) || f008AEFAD(0x27) || f008AEFAD(0x28) {
+		ebp4window.m70 = 0
+	}
+	switch message {
+	case 0x102: // win.WM_CHAR
+		// 0x00452541:
+		ebp4window.m70 = 0
+		ebp10 := int(wParam)
+		switch ebp10 {
+		case 0x9:
+		case 0xD:
+		case 0x1B:
+		}
+	case 0x10F, 0x282: // WM_IME_COMPOSITION, WM_IME_NOTIFY
+		// 0x0045277C:
+	default:
+		// 0x004527C4:
+		// if f005A4BC5(0x74) {
+		// 	f008D6008().f004BF36C(1)
+		// }
+	}
+	return win.CallWindowProc(ebp4window.m6CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98wndProc
+}
+
+// f00452C00
+func (t *t0114AE34edit) do12initWindow(hWnd win.HWND, width, height int, charNum uint, passwd bool) {
+	t.m74hWndParent = hWnd
+	var ebp4style uint32
+	if passwd {
+		ebp4style |= 0x20 // ES_PASSWORD/0x20
+		t.mA0 = 1
+	}
+	if t.mB4vscroll == 1 {
+		ebp4style |= 0x200044 // WS_VSCROLL/0x200000 | ES_AUTOVSCROLL/0x40 | SS_BLACKRECT/0x4
+	} else {
+		ebp4style |= 0x80 // ES_AUTOHSCROLL/0x80
+	}
+	// 0x00452C56: x
+	// v01308EC4width = t.m40
+	// t.mACx = f00DE76C0(v01308EC4width)
+	// 0x00452C81: y
+	// v01308EC8height = t.m44
+	// t.mB0y = f00DE76C0(v01308EC8height)
+
+	// 0x00452CD9: CreateWindow
+	t.m78hWnd = win.CreateWindowEx(
+		0,                               // ExStyle
+		nil,                             // ClassName, "edit"，没有注册 syscall.UTF16FromString(v0114A710)
+		nil,                             // WindowName
+		ebp4style|0x50000000,            // Style
+		int32(t.mACx),                   // x
+		int32(t.mB0y),                   // y
+		0,                               //f00DE76C0(width/v01308EC4width),   // width
+		0,                               //f00DE76C0(height/v01308EC8height), // height
+		t.m74hWndParent,                 // parent window
+		win.HMENU(1),                    // menu
+		win.HINSTANCE(v01319D70hModule), // Instance
+		nil,
+	)
+	t.do3initDC(width, height)
+	if t.m78hWnd != 0 {
+		t.do16sendMessage(charNum)
+		t.m6CwndProc = win.SetWindowLongPtr(t.m78hWnd, win.GWL_WNDPROC, syscall.NewCallback(f004524CCwndProc))
+		win.SetWindowLongPtr(t.m78hWnd, win.GWL_USERDATA, uintptr(unsafe.Pointer(t)))
+		win.ShowWindow(t.m78hWnd, win.SW_HIDE) // WM_SHOWWINDOW/0x18, WM_WINDOWPOSCHANGING/0x46, WM_WINDOWPOSCHANGED/0x47
+	}
+	t.mDC = true
+}
+
+// f00452DBE
+func (t *t0114AE34edit) do13setFocus(sel bool) {
+	if t.m78hWnd == 0 {
+		return
+	}
+	if v012E2210 == 1 &&
+		// user32.GetFocus() == v01319D6ChWnd &&
+		t.f0045D391(2) == 0 &&
+		t.f0045D391(1) == 0 {
+		win.SetFocus(t.m78hWnd) // 回调有问题
+		// 回调f00D86830
+		func() {
+			// 0x00D86943:
+			// eax = [esi+4] // eax = esi.m04, eax = 0x0F720D00 esi=0x0F720EF4
+			// ecx = [eax+4] // ecx = eax.m04, ecx=0
+			// edx = ecx.m08 // 非法内存访问
+		}()
+		// f0045203A()
+	} else {
+		win.SetFocus(t.m78hWnd)
+	}
+	// v01308EDC = t.f0045D373()
+	if sel {
+		// If the start is 0 and the end is -1, all the text in the edit control is selected.
+		win.PostMessage(t.m78hWnd, 0xB1 /*EM_SETSEL*/, 0, ^uintptr(0)) // 0, -1
+	} else {
+		// If the start is -1, any current selection is deselected.
+		win.PostMessage(t.m78hWnd, 0xB1 /*EM_SETSEL*/, ^uintptr(0), ^uintptr(0)) // -1, -2
+	}
+}
+
+// f00452993
+func (t *t0114AE34edit) do16sendMessage(charNum uint) {
+	win.SendMessage(t.m78hWnd, 0xC5, uintptr(charNum), 0) // EM_LIMITTEXT/0xC5
+}
+
 type t0114E1C0 struct {
 	m00vtabptr []uintptr
-	// m004 t0114AE34
-	// m0E4 t0114AE34
+	m004user   t0114AE34edit
+	m0E4passwd t0114AE34edit
 	// m2D0
 	// m2F0
 	// m2F8
@@ -1015,24 +1245,40 @@ func (t *t0114E1C0) f004D9B19construct() *t0114E1C0 {
 	return t
 }
 
-// f0045515C
-func (t *t0114E1C0) do2(hWnd win.HWND) {
-	// 回调f00D86830
-	func() {
-		// 0x00D86943:
-		// eax = [esi+4] // eax = esi.m04, eax = 0x0F720D00 esi=0x0F720EF4
-		// ecx = [eax+4] // ecx = eax.m04, ecx=0
-		// edx = ecx.m08 // 非法内存访问
-	}()
-}
+// f00454632
+func (t *t0114E1C0) do2(hWnd win.HWND) {}
 
-// t0114E1AC derive
-type t0114E1AC struct {
+// sizeof=0x300
+type t0114E1ACwindow struct {
 	t0114E1C0
 }
 
-func (t *t0114E1AC) f004D9AFCconstruct() *t0114E1AC {
+func (t *t0114E1ACwindow) f004D9AFCconstruct() *t0114E1ACwindow {
 	t.t0114E1C0.f004D9B19construct()
 	// t.m00vtabptr = v0114E1AC[:]
 	return t
+}
+
+// f0045515C
+func (t *t0114E1ACwindow) do2(hWnd win.HWND) {
+	// 0x00455163: init user edit
+	t.m004user.do12initWindow(hWnd, 100, 14, 10, false)
+	t.m004user.f00449A7A(0x126, 0x12C)
+	// t.m004user.do17(0xFF, 0xFF, 0xE6, 0xD2)
+	// t.m004user.do18(0x0, 0x2D, 0x2D, 0x2D)
+	// t.m004user.f004397CF(5)
+	t.m004user.do13setFocus(false)
+
+	// 0x004551EA: init passwd edit
+	t.m0E4passwd.do12initWindow(hWnd, 100, 14, 10, false) // false?
+	t.m0E4passwd.f00449A7A(0x15E, 0x126)
+	// t.m0E4passwd.do17(0xFF, 0xFF, 0xE6, 0xD2)
+	// t.m0E4passwd.do18(0x0, 0x2D, 0x2D, 0x2D)
+	// t.m0E4passwd.f004397CF(5)
+	win.SetFocus(v01319D6ChWnd)
+}
+
+// f00BAB280
+func (t *t0114E1ACwindow) do12initWindow(hWnd win.HWND, width, height int, charNum uint, passwd bool) {
+
 }
