@@ -53,7 +53,7 @@ var v01319A50ip [16]uint8
 var v01319D18 []uint8
 var v01319D1CwndProc uintptr
 var v01319D65 uint32
-var v01319D68 *t1319D68
+var v01319D68gg *t1319D68
 var v01319D6ChWnd win.HWND
 var v01319D70hModule win.HMODULE
 var v01319D74hDC win.HDC     // hDC, 0x1401,11A6
@@ -130,12 +130,11 @@ func f004D55C6queryVersion(fileName string, ver *version) bool {
 	return true
 }
 
-// old callback
-func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
+func f004D5F98mainWndProcOrigin(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
 	ebp29B4message := message
 	switch ebp29B4message {
-	case win.WM_CREATE: // 1
-	case win.WM_ACTIVATE: // 6, wparam:1, lparam:0
+	case 0x1: //win.WM_CREATE
+	case 0x6: //win.WM_ACTIVATE, wparam:1, lparam:0
 		// 0x004D6620
 		active := uint(wParam) & 0xFFFF // WA_ACTIVE:1, WA_CLICKACTIVE:2, WA_INACTIVE:0
 		if active == 0 {                // WA_INACTIVE
@@ -163,17 +162,15 @@ func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 			v01319D95 = true
 			// 0x004D6BD7
 		}
-	case win.WM_KILLFOCUS: // 8
-
-	case win.WM_TIMER: // 0x113
+	case 0x113: // win.WM_TIMER
 		switch wParam {
 		case 1000: // 0x3E8
 			// f00B4C239
 			func() {
-				if v01319D68 == nil {
+				if v01319D68gg == nil {
 					return
 				}
-				v01319D68.f00B4CC0D()
+				v01319D68gg.f00B4CC0D()
 				// ...
 			}()
 			// f004D8FF5() // 发送心跳0E
@@ -200,7 +197,7 @@ func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 			}()
 			// 0x004D6823 0x004D6BD7
 		}
-	case win.WM_USER: // 0x400
+	case 0x400: // win.WM_USER
 		switch lParam {
 		case 1:
 			v08C88FF0conn.f006BDA03read()
@@ -208,9 +205,9 @@ func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 			v08C88FF0conn.f006BD945write()
 		case 20:
 		}
-	default:
+	default: // win.WM_KILLFOCUS/8
 	}
-	// 0x004D6BD7
+	// 0x004D6BD7:
 	// v08C88BC0 = 0
 	// if v08C88BC5 == 1 && (v01319DA8 != v08C88C80 || v01319DAC != v08C88C80) {
 	// 	v08C88BC5 = 0
@@ -218,16 +215,61 @@ func f004D5F98wndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 	return win.DefWindowProc(hWnd, message, wParam, lParam) // 原始是NtdllDefWindowProc，这是什么？
 }
 
-// new callback
-func f004D6C2BwndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
+func f004D6C2BmainWndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
 	switch message {
 	case 0x102: // win.WM_CHAR
 		// f00A49798game().f00A4DF93(wParam, lParam)
 	}
-	return win.CallWindowProc(v01319D1CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98wndProc
+	return win.CallWindowProc(v01319D1CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98mainWndProcOrigin
 }
 
-func f004D6D64() bool {
+func f004D6F82initWindow(hModule win.HMODULE, iCmdShow int) win.HWND {
+
+	// 这里windows那边使用的是数组，编译器会使用movsw和movsb来给字符数组赋值
+	// var ebp_78 string = "MU"
+	ebp78, _ := syscall.UTF16FromString("MU")
+
+	// ...
+
+	// 140字节局部变量
+	ebp34wndClass := win.WNDCLASSEX{
+		CbSize:        0x30, // ebp-34
+		Style:         0x2B, // CS_OWNDC | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW
+		LpfnWndProc:   syscall.NewCallback(f004D5F98mainWndProcOrigin),
+		CbClsExtra:    0,
+		CbWndExtra:    0,
+		HInstance:     win.GetModuleHandle(nil),
+		HIcon:         win.LoadIcon(0, nil),              // IDI_APPLICATION)
+		HCursor:       win.LoadCursor(0, nil),            // IDC_ARROW
+		HbrBackground: win.HBRUSH(win.GetStockObject(4)), // WHITE_BRUSH
+		LpszMenuName:  nil,
+		LpszClassName: &ebp78[0],  // "MU"
+		HIconSm:       0x141F0439, // ebp-8
+	}
+	win.RegisterClassEx(&ebp34wndClass)
+
+	// ...
+
+	// CreateWindow会发大概3条消息给WndProc
+	ebp4hWnd := win.CreateWindowEx(
+		0,          // ExStyle
+		&ebp78[0],  // ClassName, "MU"
+		&ebp78[0],  // WindowName, "MU"
+		0x02CA0000, // Style, WS_CLIPCHILDREN | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU
+		0x118,      // x
+		0x46,       // y
+		0x326,      // width
+		0x274,      // height
+		0,          // parent window
+		0,          // menu
+		0x00400000, // Instance
+		nil,
+	)
+	v01319D1CwndProc = win.SetWindowLongPtr(ebp4hWnd, win.GWL_WNDPROC, syscall.NewCallback(f004D6C2BmainWndProc))
+	return ebp4hWnd
+}
+
+func f004D6D64glInit() bool {
 	// 40+4个字节局部变量
 
 	pixelfd := win.PIXELFORMATDESCRIPTOR{} // 已经清零了
@@ -278,52 +320,6 @@ func f004D6D64() bool {
 	// dll.user32.SetFocus(v01319D6ChWnd)
 
 	return true
-}
-
-func f004D6F82initWindow(hModule win.HMODULE, iCmdShow int) win.HWND {
-
-	// 这里windows那边使用的是数组，编译器会使用movsw和movsb来给字符数组赋值
-	// var ebp_78 string = "MU"
-	ebp78, _ := syscall.UTF16FromString("MU")
-
-	// ...
-
-	// 140字节局部变量
-	ebp34wndClass := win.WNDCLASSEX{
-		CbSize:        0x30, // ebp-34
-		Style:         0x2B, // CS_OWNDC | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW
-		LpfnWndProc:   syscall.NewCallback(f004D5F98wndProc),
-		CbClsExtra:    0,
-		CbWndExtra:    0,
-		HInstance:     win.GetModuleHandle(nil),
-		HIcon:         win.LoadIcon(0, nil),              // IDI_APPLICATION)
-		HCursor:       win.LoadCursor(0, nil),            // IDC_ARROW
-		HbrBackground: win.HBRUSH(win.GetStockObject(4)), // WHITE_BRUSH
-		LpszMenuName:  nil,
-		LpszClassName: &ebp78[0],  // "MU"
-		HIconSm:       0x141F0439, // ebp-8
-	}
-	win.RegisterClassEx(&ebp34wndClass)
-
-	// ...
-
-	// CreateWindow会发大概3条消息给WndProc
-	ebp4hWnd := win.CreateWindowEx(
-		0,          // ExStyle
-		&ebp78[0],  // ClassName, "MU"
-		&ebp78[0],  // WindowName, "MU"
-		0x02CA0000, // Style, WS_CLIPCHILDREN | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU
-		0x118,      // x
-		0x46,       // y
-		0x326,      // width
-		0x274,      // height
-		0,          // parent window
-		0,          // menu
-		0x00400000, // Instance
-		nil,
-	)
-	v01319D1CwndProc = win.SetWindowLongPtr(ebp4hWnd, win.GWL_WNDPROC, syscall.NewCallback(f004D6C2BwndProc))
-	return ebp4hWnd
 }
 
 func f004D755F(haystack string, y int, buf []uint8) bool {
@@ -697,12 +693,13 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		// label2(0x0A8FE9A6)
 		// label1(0x0AD56E8A) f0AD56E8A 隐藏函数
 	}()
-	// 0x0AD56E8A
+	// 0x0AD56E8A: winMain logic
 	// 0x1B60局部变量 近两页也就是8k字节的局部变量
-	// 0x004D7CED
+	// 0x004D7CED:
 	f00DE8A70chkstk()
 	// f00DE8100memset(ebp28msg[:], 0, 0x1C)
-	func() { // ebp1.f004D9EBB(f004D9460get())
+	// ebp1.f004D9EBB(f004D9460get())
+	func() {
 		func() { // f004D9ED4()
 			func() { // f004D9EEB()
 				// var ebp20 struct {
@@ -727,7 +724,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		}()
 	}()
 	// f00B43232(f004D7C24, 0)
-	// 0x004D7D2D check named mutex
+	// 0x004D7D2D: check named mutex
 	var ebpC win.HANDLE
 	if f0043A2DFgetBattleCoreSpec().f0043A33Cenable() {
 		// ebpC = dll.kernel32.CreateMutex(0, 1, "MuBattleCore")
@@ -797,8 +794,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 
 	// direct-x information
 
-	// 0x004D803B
-	// 从命令行中提取指定的ip地址和端口，因为没有通过mu.exe启动，所有没有命令行
+	// 0x004D803B: 从命令行中提取指定的ip地址和端口，因为没有通过mu.exe启动，所有没有命令行
 	f004D7A1F := func(haystack string, ip []uint8, port *uint16) bool { // ([]uint8(szCmdLine), v01319A50ip[:], &ebp8)
 		// x=0x0B37,3D25，存放的是[0,0,0,'K']
 		// 0x0A4411D8 0x004D7A3D
@@ -837,18 +833,19 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		v012E2338ip = string(v01319A50ip[:])
 		v012E233Cport = ebp8port
 	}
-	// 0x004D8067 // open main.exe
+
+	// 0x004D8067: open main.exe
 	if !f004D5368() {
 		f004D9F88()
 		ebp1A2C := 0
 		return ebp1A2C
 	}
 
-	// enc and dec init
+	// 0x004D808A: enc and dec init
 	v08C8D050enc.f00B62CF0init("Data/Enc1.dat")
 	v08C8D098dec.f00B62D30init("Data/Dec2.dat")
 
-	// 0x004D80A8 read config.ini
+	// 0x004D80A8: read config.ini
 	v01319E08log.f00B38AE4printf("> To read config.ini.\r\n")
 	// 追踪只能追踪一个函数
 	f004D7281 := func() bool {
@@ -965,7 +962,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		return ebp1A30 // 0x004D8FE2
 	}
 
-	// 0x004D80ED gg init
+	// 0x004D80ED: gg init
 	var ebp1A38 *uint32 = (*uint32)(f00DE852Fnew(1)) // hook: v012E4018version = v01319A44version
 	var ebp1B0C *t1319D68
 	if ebp1A38 != nil { // 0x004D8102 gameguard 1, hook always nil，disable GameGurad
@@ -973,9 +970,8 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	} else {
 		ebp1B0C = nil
 	}
-	v01319D68 = ebp1B0C
-	// if f00B4C1B8() == true { // 0x004D8145 gameguard 2, hook always true, disable GameGurad
-	if false {
+	v01319D68gg = ebp1B0C
+	if false { // if f00B4C1B8() == true { // 0x004D8145 gameguard 2, hook always true, disable GameGurad
 		// gg init error
 		// f004D51C8()
 		// f004D9335()
@@ -986,46 +982,48 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	v01319E08log.f00B38D19cut()
 
 	if v012E2210 == 1 {
-		// ShowCursor(0)
+		// user32.ShowCursor(0)
 	}
 	if v012E2224 == 0 {
-		// DisplaySetting
+		// user32.DisplaySetting
 	}
 
-	// window init
+	// 0x004D828B: window init
 	v01319E08log.f00B38AE4printf("> Screen size = %d x %d.\r\n", v012E3F08.height, v012E3F08.width)
 	v01319D70hModule = hModule
 	v01319D6ChWnd = f004D6F82initWindow(hModule, iCmdShow) // 创建hWnd
 	v01319E08log.f00B38AE4printf("> Start window success.\r\n")
 
-	// opengl init
-	if f004D6D64() == false {
-		// 失败处理
+	// 0x004D82D4: opengl init
+	if f004D6D64glInit() == false {
+		// ...
 		return 0
 	}
 	v01319E08log.f00B38AE4printf("> OpenGL init success.\r\n")
 	v01319E08log.f00B38D19cut()
-
-	// opengl information
-	v01319E08log.f00B38E3C()
+	v01319E08log.f00B38E3C() // opengl information
 	v01319E08log.f00B38D19cut()
 
-	// sound card information
-	v01319E08log.f00B3902D() // 自带cut
+	// 0x004D8375: sound card information
+	v01319E08log.f00B3902D()                          // 自带cut
+	win.ShowWindow(v01319D6ChWnd, win.SW_SHOWDEFAULT) // SW_SHOWDEFAULT 发很多消息给WndProc
+	win.UpdateWindow(v01319D6ChWnd)                   // 发很多消息给WndProc
 
-	// dll.user32.ShowWindow(v01319D6ChWnd, 10) // SW_SHOWDEFAULT 发很多消息给WndProc
-	// dll.user32.UpdateWindow(v01319D6ChWnd) // 发很多消息给WndProc
-
-	f00B4C1FF(v01319D6ChWnd)
+	// 0x004D839A: gg connect
+	func(hWnd win.HWND) { // f00B4C1FF
+		if v01319D68gg != nil {
+			// ...
+		}
+	}(v01319D6ChWnd)
 	v01319E08log.f00B38AE4printf("> gg connect window Handle.\r\n")
 	v01319E08log.f00B38D19cut()
 
-	// ime information
+	// 0x004D83C1: ime information
 	v01319E08log.f00B38EF4(v01319D6ChWnd)
 	v01319E08log.f00B38D19cut()
 
-	// 0x004D83E3
-	f00DEE871setlocale(0, v01319E00)                                                // LC_ALL
+	// 0x004D83E3:
+	f00DEE871setlocale(0 /*LC_ALL*/, v01319E00)
 	f0043BF3FgetT4003().f0043BF9C(v01319D6ChWnd, v012E3F08.width, v012E3F08.height) // 800*600
 	// f0090E94C().f0090B256()
 	f00A49798game().f00A49E40init1(v01319D6ChWnd, v012E3F08.height, v012E3F08.width) // r6602 floating point support not loaded
@@ -1126,8 +1124,8 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		v01319D20.do2(v01319D6ChWnd)
 		v01319D24.do12initWindow(v01319D6ChWnd, 200, 20, 50, false)
 		v01319D28.do12initWindow(v01319D6ChWnd, 140, 20, 9, true)
-		v01319D24.do2(3)
-		v01319D28.do2(3)
+		v01319D24.do2showWindow(3) // hide
+		v01319D28.do2showWindow(3) // hide
 		/*
 			// 0x004D8C21: imm
 			v01308EF8 = 0
@@ -1235,9 +1233,9 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 	// 0x004D8F6C
 	// 退出消息循环
 	// f00535963()
-	if v01319D68 != nil {
-		//v01319D68.f004D9335(1) // 释放
-		v01319D68 = nil
+	if v01319D68gg != nil {
+		//v01319D68gg.f004D9335(1) // 释放
+		v01319D68gg = nil
 	}
 	win.CloseHandle(ebpC)
 	//f004D56B2()

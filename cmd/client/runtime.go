@@ -1497,8 +1497,12 @@ func main() {
 
 	checkupdate()
 	szcmdLine := strings.Join(os.Args[1:], " ") // f00D101B9
+
+	// 0x00DF486D: log init
+	// f00DF053ElogInit()
+
 	// f004D7CE5winMain(hInstance, hPrevInstance, szcmdline, SW_SHOWDEFAULT)
-	f004D7CE5winMain(0x00400000, 0, szcmdLine, 10)
+	f004D7CE5winMain(0x00400000, 0, szcmdLine, 10 /*win.SW_SHOWDEFAULT*/)
 }
 
 // --------------------------------------------------------------------

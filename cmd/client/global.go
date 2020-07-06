@@ -1005,7 +1005,7 @@ type iwindow interface {
 
 // iedit interface
 type iedit interface {
-	do2(int)
+	do2showWindow(int)
 	do12initWindow(hWnd win.HWND, width, height int, charNum uint, passwd bool)
 }
 
@@ -1039,10 +1039,11 @@ func (t *t0114AFAC) f0045D2C3construct() {
 // sizeof=0x6C
 type t0114A7F0 struct {
 	t0114AFAC
-	m30 int
-	m34 int
-	m3C int // 5
-	m40 int
+	m30     int
+	m34     int
+	m38show int
+	m3C     int // 5
+	m40     int
 	// ...
 	m68 int
 }
@@ -1106,8 +1107,16 @@ func (t *t0114AE34edit) f004521F5construct() *t0114AE34edit {
 }
 
 // f00452D78
-func (t *t0114AE34edit) do2(p1 int) {
-
+func (t *t0114AE34edit) do2showWindow(flag int) {
+	if t.m78hWnd == 0 {
+		return
+	}
+	t.m38show = flag
+	if t.m38show == 3 {
+		win.ShowWindow(t.m78hWnd, 0 /*win.SW_HIDE*/)
+	} else {
+		win.ShowWindow(t.m78hWnd, 5 /*win.SW_SHOW*/)
+	}
 }
 
 // f004529B4
@@ -1120,7 +1129,7 @@ func f008AEFAD(p1 int) bool {
 }
 
 // f004524CC
-func f004524CCwndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
+func f004524CCeditWndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
 	ebp4window := (*t0114AE34edit)(unsafe.Pointer(win.GetWindowLongPtr(hWnd, win.GWL_USERDATA)))
 	if ebp4window == nil {
 		return 0
@@ -1146,7 +1155,7 @@ func f004524CCwndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uin
 		// 	f008D6008().f004BF36C(1)
 		// }
 	}
-	return win.CallWindowProc(ebp4window.m6CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98wndProc
+	return win.CallWindowProc(ebp4window.m6CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98mainWndProcOrigin
 }
 
 // f00452C00
@@ -1172,7 +1181,7 @@ func (t *t0114AE34edit) do12initWindow(hWnd win.HWND, width, height int, charNum
 	// 0x00452CD9: CreateWindow
 	t.m78hWnd = win.CreateWindowEx(
 		0,                               // ExStyle
-		nil,                             // ClassName, "edit"，没有注册 syscall.UTF16FromString(v0114A710)
+		nil,                             // ClassName, "edit"预定义窗口类, syscall.UTF16FromString(v0114A710)
 		nil,                             // WindowName
 		ebp4style|0x50000000,            // Style
 		int32(t.mACx),                   // x
@@ -1184,10 +1193,14 @@ func (t *t0114AE34edit) do12initWindow(hWnd win.HWND, width, height int, charNum
 		win.HINSTANCE(v01319D70hModule), // Instance
 		nil,
 	)
+
+	// 0x00452D0A:
 	t.do3initDC(width, height)
+
+	// 0x00452D1B:
 	if t.m78hWnd != 0 {
 		t.do16sendMessage(charNum)
-		t.m6CwndProc = win.SetWindowLongPtr(t.m78hWnd, win.GWL_WNDPROC, syscall.NewCallback(f004524CCwndProc))
+		t.m6CwndProc = win.SetWindowLongPtr(t.m78hWnd, win.GWL_WNDPROC, syscall.NewCallback(f004524CCeditWndProc))
 		win.SetWindowLongPtr(t.m78hWnd, win.GWL_USERDATA, uintptr(unsafe.Pointer(t)))
 		win.ShowWindow(t.m78hWnd, win.SW_HIDE) // WM_SHOWWINDOW/0x18, WM_WINDOWPOSCHANGING/0x46, WM_WINDOWPOSCHANGED/0x47
 	}
@@ -1202,18 +1215,34 @@ func (t *t0114AE34edit) do13setFocus(sel bool) {
 	if v012E2210 == 1 &&
 		// user32.GetFocus() == v01319D6ChWnd &&
 		t.f0045D391(2) == 0 &&
-		t.f0045D391(1) == 0 {
-		win.SetFocus(t.m78hWnd) // 回调有问题
-		// 回调f00D86830
+		t.f0045D391(1) == 0 { // win10 return 1
+		win.SetFocus(t.m78hWnd)
+		// f0045203A()
+	} else {
+		// This function sends a WM_KILLFOCUS message to the window that loses the keyboard focus
+		// and a WM_SETFOCUS message to the window that receives the keyboard focus.
+		// It also activates either the window that receives the focus
+		// or the parent of the window that receives the focus.
+		win.SetFocus(t.m78hWnd)
+		// win7
+		// mainWndProc.WM_KILLFOCUS/8, hEdit, 0
+		// mainWndProc.WM_IME_SETCONTEXT/0x281, 0, 0xC000000F
+		// editWndProc.WM_IME_SETCONTEXT/0x281, 1, 0xC000000F
+		// editWndProc.WM_SETFOCUS/7, hMainWnd, 0
+		// editWndProc.WM_IME_NOTIFY/0x282, A, 0
+		// editWndProc.WM_IME_NOTIFY/0x282, F, ?
+		// editWndProc.WM_IME_NOTIFY/0x282, B, 0
+		// mainWndProc.WM_COMMAND/0x111, 1, hEdit
+
+		// win10
+		// mainWndProc.WM_KILLFOCUS/8
+		// 然后就没有消息了，不知道从哪里进入的回调f00D86830，然后该回调产生了非法内存访问
 		func() {
 			// 0x00D86943:
 			// eax = [esi+4] // eax = esi.m04, eax = 0x0F720D00 esi=0x0F720EF4
 			// ecx = [eax+4] // ecx = eax.m04, ecx=0
 			// edx = ecx.m08 // 非法内存访问
 		}()
-		// f0045203A()
-	} else {
-		win.SetFocus(t.m78hWnd)
 	}
 	// v01308EDC = t.f0045D373()
 	if sel {

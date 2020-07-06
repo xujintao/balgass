@@ -57,5 +57,4 @@ func f00DFC5ACflsInit() {
 	v09D9DB90flsFree = f00DFC0E5flsEnc(v09D9DB90flsFree)
 
 	// v012F7DBCfls = f00DFC160flsDec(v09D9DB84flsAlloc).(f00DFC403)
-
 }

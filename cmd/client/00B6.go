@@ -203,12 +203,6 @@ func (p *t1000) f00B38EF4(hWnd win.HWND) {
 	// <IME information>\r\n
 }
 
-func f00B4C1FF(hWnd win.HWND) {
-	if v01319D68 != nil {
-		// ...
-	}
-}
-
 type t1319D68 struct{}
 
 func (t *t1319D68) f00B4CC0D() {
