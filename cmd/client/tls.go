@@ -39,7 +39,7 @@ func f00DFC160flsDec(fls uintptr) uintptr {
 	return fls
 }
 
-func f00DFC5ACflsInit() {
+func f00DFC5ACflsInit() bool {
 	// fls初始化
 	// v09D9DB84flsAlloc = kernel32.GetProcAddress(kernel32.GetModuleHanlde("kernel32.dll"), "FlsAlloc")
 	// v09D9DB88flsGetValue = kernel32.GetProcAddress(kernel32.GetModuleHanlde("kernel32.dll"), "FlsGetValue")
@@ -57,4 +57,5 @@ func f00DFC5ACflsInit() {
 	v09D9DB90flsFree = f00DFC0E5flsEnc(v09D9DB90flsFree)
 
 	// v012F7DBCfls = f00DFC160flsDec(v09D9DB84flsAlloc).(f00DFC403)
+	return true
 }

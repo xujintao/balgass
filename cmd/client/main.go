@@ -55,7 +55,7 @@ var v01319D1CwndProc uintptr
 var v01319D65 uint32
 var v01319D68gg *t1319D68
 var v01319D6ChWnd win.HWND
-var v01319D70hModule win.HMODULE
+var v01319D70hInstance win.HINSTANCE
 var v01319D74hDC win.HDC     // hDC, 0x1401,11A6
 var v01319D78hGLRC win.HGLRC // hGLRC, OpenGL rendering context, 0x0001,0000
 var v01319D90 int
@@ -223,7 +223,7 @@ func f004D6C2BmainWndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr)
 	return win.CallWindowProc(v01319D1CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98mainWndProcOrigin
 }
 
-func f004D6F82initWindow(hModule win.HMODULE, iCmdShow int) win.HWND {
+func f004D6F82initWindow(hInstance win.HINSTANCE, iCmdShow int) win.HWND {
 
 	// 这里windows那边使用的是数组，编译器会使用movsw和movsb来给字符数组赋值
 	// var ebp_78 string = "MU"
@@ -244,7 +244,7 @@ func f004D6F82initWindow(hModule win.HMODULE, iCmdShow int) win.HWND {
 		HbrBackground: win.HBRUSH(win.GetStockObject(4)), // WHITE_BRUSH
 		LpszMenuName:  nil,
 		LpszClassName: &ebp78[0],  // "MU"
-		HIconSm:       0x141F0439, // ebp-8
+		HIconSm:       0x141F0439, // ebp8
 	}
 	win.RegisterClassEx(&ebp34wndClass)
 
@@ -262,7 +262,7 @@ func f004D6F82initWindow(hModule win.HMODULE, iCmdShow int) win.HWND {
 		0x274,      // height
 		0,          // parent window
 		0,          // menu
-		0x00400000, // Instance
+		hInstance,  // Instance
 		nil,
 	)
 	v01319D1CwndProc = win.SetWindowLongPtr(ebp4hWnd, win.GWL_WNDPROC, syscall.NewCallback(f004D6C2BmainWndProc))
@@ -327,7 +327,7 @@ func f004D755F(haystack string, y int, buf []uint8) bool {
 }
 
 // f004D7CE5winMain, WinMain
-func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine string, iCmdShow int) int {
+func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCmdLine string, iCmdShow int) int {
 	func() {
 		// 0x0A05E61B
 		var label1 uint32 = 0x009DCA19
@@ -990,8 +990,8 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 
 	// 0x004D828B: window init
 	v01319E08log.f00B38AE4printf("> Screen size = %d x %d.\r\n", v012E3F08.height, v012E3F08.width)
-	v01319D70hModule = hModule
-	v01319D6ChWnd = f004D6F82initWindow(hModule, iCmdShow) // 创建hWnd
+	v01319D70hInstance = hInstance
+	v01319D6ChWnd = f004D6F82initWindow(hInstance, iCmdShow) // 创建hWnd
 	v01319E08log.f00B38AE4printf("> Start window success.\r\n")
 
 	// 0x004D82D4: opengl init
@@ -1151,7 +1151,7 @@ func f004D7CE5winMain(hModule win.HMODULE, hPrevInstance uint32, szCmdLine strin
 		*/
 	}
 	// 0x004D8CA6:
-	// f0053594C(v01319D70hModule, v01319D6ChWnd)
+	// f0053594C(v01319D70hInstance, v01319D6ChWnd)
 	// 0x004D8CB9: 消息循环
 	var ebp28msg win.MSG
 	for {

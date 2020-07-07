@@ -799,7 +799,8 @@ func f0AAB88A1getValue(imageBase uintptr, crcDatas []block, valuep unsafe.Pointe
 }
 
 // 壳逻辑
-func f006CD259() {
+func f006CD259securityInitCookie() {
+	// shell logic
 	// ---------------------section ERWC--------------------
 	// push eax
 	// push ecx
@@ -1470,39 +1471,98 @@ func f006CD259() {
 	}()
 }
 
-var v09DA37AC string
-var v09D9DB10 string
+var v09D9DB10env []string
+var v09D9E18CfileName string
+var v09DA37A0heapNum int
+var v09DA37ACcmdline string
 
 // --------------------------------------------------------------------
 // 0x00DF478C, f00DF478C, runtime_main
 func main() {
+	// f00DFD850(&v012AC0A8, 0x58)
 	// ebp4 := 0
-	// var ebp68si struct{}{}
+
+	// 0x00DF479D: startup info
+	var ebp68si struct {
+		// DWORD  cb;
+		// DWORD  cb;
+		// LPSTR  lpReserved;
+		// LPSTR  lpDesktop;
+		// LPSTR  lpTitle;
+		// DWORD  dwX;
+		// DWORD  dwY;
+		// DWORD  dwXSize;
+		// DWORD  dwYSize;
+		// DWORD  dwXCountChars;
+		// DWORD  dwYCountChars;
+		// DWORD  dwFillAttribute;
+		dwFlags     int   // DWORD  dwFlags;
+		wShowWindow int16 // WORD   wShowWindow;
+		// WORD   cbReserved2;
+		// LPBYTE lpReserved2;
+		// HANDLE hStdInput;
+		// HANDLE hStdOutput;
+		// HANDLE hStdError;
+	}
+
 	// dll.kernel32.GetStartupInfo(&ebp68)
 	// ebp4 = -2
-	// check pe
+
+	// 0x00DF47AD: check pe
 	// ...
-	// 0x00DF47FA: f00DFF074heapInit()
-	func(safe bool) {
+
+	// 0x00DF47FA: heap init
+	f00DFF074heapInit := func(safe bool) int {
 		// flag := !safe
 		// v09D9DEB8heap1 = kernel32.HeapCreate(flag, 4096, 0)
-		// v09DA37A0heapNum = 1
-	}(true)
-	// 0x00DF480C:
-	f00DFC5ACflsInit()
-	// ...
-	// ebp4 = 1
-	v09DA37AC = "main.exe connect /u192.168.0.102 /p444405" // v09DA37AC = dll.kernel32.GetCommandLine()
-	v09D9DB10 = "ALLUSERSPROFILE=C:\\ProgramData"
+		v09DA37A0heapNum = 1
+		return v09DA37A0heapNum
+	}
+	if f00DFF074heapInit(true) == 0 {
+		// f00DF471C(0x1C)
+	}
 
-	checkupdate()
-	szcmdLine := strings.Join(os.Args[1:], " ") // f00D101B9
+	// 0x00DF480C: fls init
+	if f00DFC5ACflsInit() == false {
+		// f00DF471C(0x10)
+	}
+
+	// 0x00DF481D:
+	// f00E0A38C()
+	// ebp4 = 1
+	// if f00E00A78() < 0 {
+	// 	f00DF0407(0x1B)
+	// }
+
+	// 0x00DF4836: command line
+	// v09DA37ACcmdline = dll.kernel32.GetCommandLine()
+	v09DA37ACcmdline = `"\\path\\main.exe" connect /u192.168.0.102 /p444405`
+
+	// 0x00DF4841: environment varible
+	v09D9DB10env = []string(nil) // f00E1055AgetEnv()
+
+	// 0x00DF484B:
+	// if f00E1049F() < 0 {
+	// 	f00DF0407(0x8)
+	// }
+
+	// 0x00DF485C:
+	// if f00E10218() < 0 {
+	// 	f00DF0407(0x9)
+	// }
 
 	// 0x00DF486D: log init
-	// f00DF053ElogInit()
+	// if err := f00DF053ElogInit(); err != 0 {
+	// 	f00DF0407(err)
+	// }
 
-	// f004D7CE5winMain(hInstance, hPrevInstance, szcmdline, SW_SHOWDEFAULT)
-	f004D7CE5winMain(0x00400000, 0, szcmdLine, 10 /*win.SW_SHOWDEFAULT*/)
+	// 0x00DF487F:
+	szcmdLine := strings.Join(os.Args[1:], " ") // f00E101B9
+	show := 10                                  /*win.SW_SHOWDEFAULT*/
+	if ebp68si.dwFlags&1 /*STARTF_USESHOWWINDOW*/ != 0 {
+		show = int(ebp68si.wShowWindow)
+	}
+	f004D7CE5winMain(0x00400000, 0, szcmdLine, show)
 }
 
 // --------------------------------------------------------------------
@@ -1510,26 +1570,26 @@ var v00DF490A [0x5B]uint8
 var v0B2BE8D6 [0x19]uint8
 var v0B2BE90B [0x58]uint8
 
-// OEP.shell logic 0x00DF490A f00DF490A
-func f00DF490A() {
+// OEP.shell logic
+func f00DF490AwinMainCRTStartup() {
 	// vp := win.GetProcAddress(win.LoadLibrary("kernel32.dll"), "virtualProtect")
 	// var oldProtect uint32
 	// vp(0x00DF490A, 0x5B, 0x40, &oldProtect) // PAGE_EXECUTE_READWRITE
 	// vp(0x0B2BE8D6, 0x19, 0x40, &oldProtect) // PAGE_EXECUTE_READWRITE
-	// jmp 0x0B2BE8D6
+	// jmp f0B2BE8D6copy
 }
 
 // OEP.shell copy
-func f0B2BE8D6() {
+func f0B2BE8D6copy() {
 	// f00DE7C90memcpy(v00DF490A[:], v0B2BE90B[:], len(v00DF490A))
-	// jmp 0x00DF490A
+	// jmp f00DF490AwinMainCRTStartup
 }
 
 // OEP.real logic
-func f0B2BE90B() {
-	f006CD259() // E8 4A89BDFF ;call 0x006CD259 f006CD259 壳逻辑 解码
-	// jmp 0x00DF478C ;f00DF478C, hard hook as E9 6CA04C0A/jmp 0x0B2BE980 f0B2BE980 to load main.dll
-	// 0x0B2BE980
+func f0B2BE90BwinMainCRTStartup() {
+	f006CD259securityInitCookie()
+	// jmp f00DF478C ;0x00DF478C, hard hook as E9 6CA04C0A/jmp 0x0B2BE980 to load main.dll
+	// 0x0B2BE980: f0B2BE980
 	// if false == kernel32.LoadLibrary("main.dll") {
 	// 	code := kernel32.GetLastError()
 	// 	func(code int) {
@@ -1540,5 +1600,21 @@ func f0B2BE90B() {
 	// 	}(code)
 	// 	dll.kernel32.ExitProcess(0)
 	// }
-	// jmp 0x00DF478C ;f00DF478C, main/runtime_main
+	// jmp f00DF478C ;main/runtime_main
+}
+
+// os创建主线程并执行一段逻辑再跳转到sysep
+func oslogic() {
+	func() {
+		func() {
+			func() {
+				func() {
+					func() {
+						// ntdll system entrypoint
+					}()
+				}()
+			}()
+		}()
+		f00DF490AwinMainCRTStartup()
+	}()
 }

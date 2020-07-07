@@ -1180,17 +1180,17 @@ func (t *t0114AE34edit) do12initWindow(hWnd win.HWND, width, height int, charNum
 
 	// 0x00452CD9: CreateWindow
 	t.m78hWnd = win.CreateWindowEx(
-		0,                               // ExStyle
-		nil,                             // ClassName, "edit"预定义窗口类, syscall.UTF16FromString(v0114A710)
-		nil,                             // WindowName
-		ebp4style|0x50000000,            // Style
-		int32(t.mACx),                   // x
-		int32(t.mB0y),                   // y
-		0,                               //f00DE76C0(width/v01308EC4width),   // width
-		0,                               //f00DE76C0(height/v01308EC8height), // height
-		t.m74hWndParent,                 // parent window
-		win.HMENU(1),                    // menu
-		win.HINSTANCE(v01319D70hModule), // Instance
+		0,                    // ExStyle
+		nil,                  // ClassName, "edit"预定义窗口类, syscall.UTF16FromString(v0114A710)
+		nil,                  // WindowName
+		ebp4style|0x50000000, // Style WS_VISIBLE/0x10000000 | WS_CHILD/0x40000000
+		int32(t.mACx),        // x
+		int32(t.mB0y),        // y
+		0,                    //f00DE76C0(width/v01308EC4width),   // width
+		0,                    //f00DE76C0(height/v01308EC8height), // height
+		t.m74hWndParent,      // parent window
+		win.HMENU(1),         // menu
+		v01319D70hInstance,   // Instance
 		nil,
 	)
 
@@ -1226,13 +1226,13 @@ func (t *t0114AE34edit) do13setFocus(sel bool) {
 		win.SetFocus(t.m78hWnd)
 		// win7
 		// mainWndProc.WM_KILLFOCUS/8, hEdit, 0
-		// mainWndProc.WM_IME_SETCONTEXT/0x281, 0, 0xC000000F
-		// editWndProc.WM_IME_SETCONTEXT/0x281, 1, 0xC000000F
+		// mainWndProc.WM_IME_SETCONTEXT/0x281, 0, ISC_SHOWUIALL/0xC000000F
+		// editWndProc.WM_IME_SETCONTEXT/0x281, 1, ISC_SHOWUIALL/0xC000000F
 		// editWndProc.WM_SETFOCUS/7, hMainWnd, 0
 		// editWndProc.WM_IME_NOTIFY/0x282, A, 0
 		// editWndProc.WM_IME_NOTIFY/0x282, F, ?
 		// editWndProc.WM_IME_NOTIFY/0x282, B, 0
-		// mainWndProc.WM_COMMAND/0x111, 1, hEdit
+		// mainWndProc.WM_COMMAND/0x111, 0x10000001, hEdit
 
 		// win10
 		// mainWndProc.WM_KILLFOCUS/8
