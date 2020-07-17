@@ -1477,7 +1477,7 @@ var v09DA37A0heapNum int
 var v09DA37ACcmdline string
 
 // --------------------------------------------------------------------
-// 0x00DF478C, f00DF478C, runtime_main
+// 0x00DF478C, f00DF478C, runtime_main, __winMainCRTStartup
 func main() {
 	// f00DFD850(&v012AC0A8, 0x58)
 	// ebp4 := 0
@@ -1585,9 +1585,9 @@ func f0B2BE8D6copy() {
 	// jmp f00DF490AwinMainCRTStartup
 }
 
-// OEP.real logic
+// OEP.real logic, __winMainCRTStartup
 func f0B2BE90BwinMainCRTStartup() {
-	f006CD259securityInitCookie()
+	f006CD259securityInitCookie() // -GS选项提供
 	// jmp f00DF478C ;0x00DF478C, hard hook as E9 6CA04C0A/jmp 0x0B2BE980 to load main.dll
 	// 0x0B2BE980: f0B2BE980
 	// if false == kernel32.LoadLibrary("main.dll") {

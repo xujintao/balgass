@@ -1129,7 +1129,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		/*
 			// 0x004D8C21: imm
 			v01308EF8 = 0
-			ebp590ctx := imm32.ImmGetContext()
+			ebp590ctx := imm32.ImmGetContext(v01319D6ChWnd)
 			imm32.ImmSetConversionStatus(ebp590ctx, 0, 0)
 			imm32.ImmReleaseContext(v01319D6ChWnd, ebp590ctx)
 			// f00451FB9()

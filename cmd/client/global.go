@@ -1237,12 +1237,7 @@ func (t *t0114AE34edit) do13setFocus(sel bool) {
 		// win10
 		// mainWndProc.WM_KILLFOCUS/8
 		// 然后就没有消息了，不知道从哪里进入的回调f00D86830，然后该回调产生了非法内存访问
-		func() {
-			// 0x00D86943:
-			// eax = [esi+4] // eax = esi.m04, eax = 0x0F720D00 esi=0x0F720EF4
-			// ecx = [eax+4] // ecx = eax.m04, ecx=0
-			// edx = ecx.m08 // 非法内存访问
-		}()
+		// 而client_vc在win7和win10上是一致的
 	}
 	// v01308EDC = t.f0045D373()
 	if sel {
