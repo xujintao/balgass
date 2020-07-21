@@ -250,7 +250,7 @@ func f004D6F82initWindow(hInstance win.HINSTANCE, iCmdShow int) win.HWND {
 
 	// ...
 
-	// CreateWindow会发大概3条消息给WndProc
+	// CreateWindow会发大概3条消息给WndProc且create IME window
 	ebp4hWnd := win.CreateWindowEx(
 		0,          // ExStyle
 		&ebp78[0],  // ClassName, "MU"
@@ -315,10 +315,14 @@ func f004D6D64glInit() bool {
 		return false
 	}
 
-	// dll.user32.ShowWindow(v01319D6ChWnd, 5) // SW_SHOW
-	// dll.user32.SetForegroundWindow(v01319D6ChWnd)
-	// dll.user32.SetFocus(v01319D6ChWnd)
-
+	win.ShowWindow(v01319D6ChWnd, 5 /*SW_SHOW*/) // also create "MSCTFIME UI" window
+	// SetForegroundWindow: Brings the thread that created the specified window
+	// into the foreground and activates the window.
+	// Keyboard input is directed to the window, and various visual cues are changed for the user.
+	// The system assigns a slightly higher priority to the thread that
+	// created the foreground window than it does to other threads.
+	win.SetForegroundWindow(v01319D6ChWnd)
+	win.SetFocus(v01319D6ChWnd)
 	return true
 }
 
@@ -1005,9 +1009,9 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 	v01319E08log.f00B38D19cut()
 
 	// 0x004D8375: sound card information
-	v01319E08log.f00B3902D()                          // 自带cut
-	win.ShowWindow(v01319D6ChWnd, win.SW_SHOWDEFAULT) // SW_SHOWDEFAULT 发很多消息给WndProc
-	win.UpdateWindow(v01319D6ChWnd)                   // 发很多消息给WndProc
+	v01319E08log.f00B3902D()                             // 自带cut
+	win.ShowWindow(v01319D6ChWnd, 10 /*SW_SHOWDEFAULT*/) // SW_SHOWDEFAULT 发很多消息给WndProc
+	win.UpdateWindow(v01319D6ChWnd)                      // 发很多消息给WndProc
 
 	// 0x004D839A: gg connect
 	func(hWnd win.HWND) { // f00B4C1FF
@@ -1033,12 +1037,12 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		} else {
 			v01319D67 = false
 		}
-		if dll.wzaudio.wzAudioCreate(v01319D6ChWnd) {
+		if dll.wzAudio.wzAudioCreate(v01319D6ChWnd) {
 			dll.user32.MessageBox(v01319D6ChWnd, "No audio devices in this system", 0, 0)
 			v01319E08log.f00B38AE4printf("> wzAudio Create Fail.\r\n")
 			v01319E08log.f00B38D19cut()
 		} else {
-			dll.wzaudio.wzAudioOption(0, 1)
+			dll.wzAudio.wzAudioOption(0, 1)
 		}
 		if f00B0E9BF().f00B0EE7E() && f007DA2B1(v01319D6ChWnd) < 0 {
 			dll.user32.MessageBox(v01319D6ChWnd, "Direct Sound Init Fail")

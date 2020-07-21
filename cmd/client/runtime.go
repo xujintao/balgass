@@ -327,11 +327,11 @@ func f00DECDA2(t16p *t16, prevt16p *t16) {
 				errno := win.GetLastError()
 				// f00DFC1FB()
 				flsGetValue := func() func(int) interface{} {
-					const v012F7DC0 int = 25 // -1
-					var v interface{}        // v := kernel32.TlsGetValue(v012F7DC0)
+					const v012F7DC0tls int = 25 // -1
+					var v interface{}           // v := kernel32.TlsGetValue(v012F7DC0tls)
 					if v == nil {
 						v2 := f00DFC160flsDec(v09D9DB88flsGetValue)
-						// v = kernel32.TlsSetValue(v012F7DC0, v2)
+						// v = kernel32.TlsSetValue(v012F7DC0tls, v2)
 						v = v2
 					}
 					return v.(func(int) interface{}) // kernel32.FlsGetValue

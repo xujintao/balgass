@@ -67,9 +67,9 @@ func f68E8F770wndProcGL(hWnd win.HWND, msg uint32, wParam uintptr, lParam uintpt
 }
 
 // ntdll.f776B8370wndProcIME
-// user32.f77161D10wndProcIME
+// user32.f77161D10wndProcIME, win10和win7实现有点不一样
 func f77161D10wndProcIME(hWnd win.HWND, msg uint32, wParam uintptr, lParam uintptr) uintptr {
-	// user32.f77163305tls(hWnd)
+	// user32.f77163305getWnd(hWnd)
 	eax, edx := func(hWnd win.HWND) (uintptr, uintptr) { return 0x0BFCA540 /*[fs.m18.mF70+0x800+0x48]*/, 0 }(hWnd)
 	if eax|edx == 0 {
 		return 0
@@ -87,12 +87,10 @@ func f77161D10wndProcIME(hWnd win.HWND, msg uint32, wParam uintptr, lParam uintp
 		// ...
 		switch msg {
 		case 0x287:
-			// user32.f771610FC
-			return func(pWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uintptr {
-				// ...
+			func(pWnd uintptr, msg uint32, wParam uintptr, lParam uintptr) uintptr {
 				switch wParam {
-				case 0x18:
-					// win10.user32.f76480C2C() win7.user32.f76BFD9DB()
+				case 0x17: // ImmSetContext(win.HWND(lParam), 1)
+				case 0x18: // ImmSetContext(win.HWND(lParam), 0)
 					func(hWnd win.HWND, flag uintptr) {
 						// if user32.IsWindow(hWnd) == false {
 						// 	return
@@ -103,14 +101,13 @@ func f77161D10wndProcIME(hWnd win.HWND, msg uint32, wParam uintptr, lParam uintp
 							// ...
 							// msctf.CtfImeAssociateFocus(immCtx, flag, hWnd)
 							func() {
-								// tls33 := kernel32.TlsGetValue(0x33)
-								// msctf.f7503F4D0.win10(tls33, immCtx, flag, hWnd, 0, 0) // ecx = tls33.m00
+								// tls33 := kernel32.TlsGetValue(0x33) // win7是tls6 win10是tls33
+								// win10.msctf.f7503F4D0(tls33, immCtx, flag, hWnd, 0, 0) // ecx = tls33.m00
 								func() {
 									if flag == 0 {
-										// win10.0x7503F650:
-										// msctf.f75042DB0.win10(tls33, hWnd, immCtx, tls33.m08, 0, 0, 0) // ecx = tls33.m00
+										// win10.msctf.f75042DB0(tls33, hWnd, immCtx, tls33.m08, 0, 0, 0) // ecx = tls33.m00
 										func() {
-											// 很复杂
+											// win10内联了很复杂
 											// ...
 											// msctf.f7503F820.win10(0, 1) // before GetFocus，正确的逻辑是跳过这一步
 											func() {
@@ -160,7 +157,6 @@ func f77161D10wndProcIME(hWnd win.HWND, msg uint32, wParam uintptr, lParam uintp
 						// imm32.ImmReleaseContext(hWnd, immCtx)
 					}(win.HWND(lParam), 0)
 				}
-				// ...
 				return 0
 			}(pWnd /*pWnd.m128*/, 0x287, wParam, lParam)
 		}
@@ -187,25 +183,36 @@ type message struct {
 }
 
 // user32
-func f7716E0A0handle(msg *message) {
+func handleMsg(msg *message) {
 	// msg.m18handle(msg.m00pWnd, msg.m04unk2, msg.m08msg, msg.m0CwParam, msg.m10lParam, msg.m14cb)
-	// 8/WM_KILLFOCUS, hWndEdit, 0
-	// msg: f776B83A0handle(0x0C0749F0, 0, 0x008, hWndEdit, 0, vboxgl.f685B28D0) // empty, client_vc has none
-	// msg: f776B8430handle(0x0C0749F0, 0, 0x008, hWndEdit, 0, f68E8F770wndProcGL)
-	// msg: f776B83D0handle(0x0C0749F0, 0, 0x008, hWndEdit, 0, apphelp.f6E423910) // empty
+	/*
+		8/WM_KILLFOCUS, hWndEdit, 0
+		msg: f776B83A0handle(pWndMain, 0, 8, hWndEdit, 0, vboxgl.f685B28D0) // empty, client_vc has none
+		msg: f776B8430handle(pWndMain, 0, 8, hWndEdit, 0, f68E8F770wndProcGL)
+		msg: f776B83D0handle(pWndMain, 0, 8, hWndEdit, 0, apphelp.f6E423910) // empty
 
-	// 287/WM_IME_SYSTEM, 0x18/*WM_IME_SETCONTEXT*/, hWndMain
-	// msg: f776B83A0handle(0x0C06BD40, 0, 0x287, 0x18, hWndMain, vboxgl.f685B28D0) // empty, client_vc has none
-	// msg: f776B8430handle(0x0C06BD40, 0, 0x287, 0x18, hWndMain, f776B8370wndProcIME)
+		287/WM_IME_SYSTEM, 0x18, hWndMain
+		msg: f776B83A0handle(pWndIME, 0, 0x287, 0x18, hWndMain, vboxgl.f685B28D0) // empty, client_vc has none
+		msg: f776B8430handle(pWndIME, 0, 0x287, 0x18, hWndMain, f776B8370wndProcIME) // problem
+
+		287/WM_IME_SYSTEM, 0x17, hWndEdit
+		msg: f776B83A0handle(pWndIME, 0, 0x287, 0x17, hWndEdit, vboxgl.f685B28D0) // empty, client_vc has none
+		msg: f776B8430handle(pWndIME, 0, 0x287, 0x17, hWndEdit, f776B8370wndProcIME)
+
+		7/WM_SETFOCUS, hWndEdit, 0
+		msg: f776B83A0handle(pWndEdit, 0, 7, hWndMain, 0, vboxgl.f685B28D0) // empty, client_vc has none
+		msg: f776B8430handle(pWndEdit, 0, 7, hWndMain, 0, f004524CCeditWndProc)
+		msg: f776B83D0handle(pWndEdit, 0, 7, hWndMain, 0, apphelp.f6E423910) // empty
+	*/
 
 	// var ebp18 [6]int
-	// user32.NtCallbackReturn(&ebp18, 0x16, 0) // return to f7716E0A0handle with a new msg
+	// user32.NtCallbackReturn(&ebp18, 0x16, 0) // return to handleMsg with a new msg
 }
 
 // ntdll
 func kiUserCallbackDispatcher(index int, msg *message) {
 	// seh
-	// fs.m30peb.m2CkernelCallbackTable[index](msg) // user32.f7716E0A0handle
+	// fs.m30peb.m2CkernelCallbackTable[index](msg) // user32.handleMsg
 	// ntdll.NtCallbackReturn()
 	// ntdll.RtlRaiseStatus()
 }

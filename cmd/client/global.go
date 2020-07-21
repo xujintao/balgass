@@ -1202,7 +1202,7 @@ func (t *t0114AE34edit) do12initWindow(hWnd win.HWND, width, height int, charNum
 		t.do16sendMessage(charNum)
 		t.m6CwndProc = win.SetWindowLongPtr(t.m78hWnd, win.GWL_WNDPROC, syscall.NewCallback(f004524CCeditWndProc))
 		win.SetWindowLongPtr(t.m78hWnd, win.GWL_USERDATA, uintptr(unsafe.Pointer(t)))
-		win.ShowWindow(t.m78hWnd, win.SW_HIDE) // WM_SHOWWINDOW/0x18, WM_WINDOWPOSCHANGING/0x46, WM_WINDOWPOSCHANGED/0x47
+		win.ShowWindow(t.m78hWnd, 0 /*SW_HIDE*/) // WM_SHOWWINDOW/0x18, WM_WINDOWPOSCHANGING/0x46, WM_WINDOWPOSCHANGED/0x47
 	}
 	t.mDC = true
 }
@@ -1251,7 +1251,7 @@ func (t *t0114AE34edit) do13setFocus(sel bool) {
 
 // f00452993
 func (t *t0114AE34edit) do16sendMessage(charNum uint) {
-	win.SendMessage(t.m78hWnd, 0xC5, uintptr(charNum), 0) // EM_LIMITTEXT/0xC5
+	win.SendMessage(t.m78hWnd, 0xC5 /*EM_LIMITTEXT*/, uintptr(charNum), 0)
 }
 
 type t0114E1C0 struct {
