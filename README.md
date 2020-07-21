@@ -16,4 +16,4 @@ The Platform Update for Windows 7 enables improved features and performance on W
 
 #### windows运行环境for client
 1，禁止更新: 配置windows虚机时cable connected先不勾选，等进了windows系统禁用了自动更新再在右下角点击vd的网络图标连接上网  
-2，虚机安装增强工具时勾选3D加速，如果虚机是windows7那么需要手动安装3D加速补丁[KB2670838](https://support.microsoft.com/en-us/help/2670838/platform-update-for-windows-7-sp1-and-windows-server-2008-r2-sp1)
+2，虚机安装增强工具时勾选3D加速，如果虚机是windows7那么需要手动安装3D加速补丁[KB2670838](https://support.microsoft.com/en-us/help/2670838/platform-update-for-windows-7-sp1-and-windows-server-2008-r2-sp1)并且开启Aero主题
