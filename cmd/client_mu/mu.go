@@ -1,6 +1,8 @@
 package main
 
-import "sync"
+import (
+	"sync"
+)
 
 // winThread gui thread
 type winThread interface {
@@ -35,13 +37,13 @@ type muApp struct {
 	winApp
 }
 
-// f50
+// f00405AB0
 func (app *muApp) InitInstance() bool {
 	// CreateMutexA(NULL, TRUE, "MU AutoUpdate")
 	// v0046F448.LoadWTF("message.wtf")
 	// if 0 == f00403EE0().f00403C20() { // v00453224.f00403C20()
-	// f0041E6D3("设备未初始化 请安装最新的图形驱动程序", 10, 0) // EUC-KR  --> translate.google.com
-	// return
+	// 	f0041E6D3("设备未初始化 请安装最新的图形驱动程序", 10, 0) // EUC-KR  --> translate.google.com
+	// 	return
 	// }
 
 	// 注册表
@@ -51,12 +53,15 @@ func (app *muApp) InitInstance() bool {
 	// }{}
 	// f00433360memset(dd.buf[:], 0, 0x1A8)
 	// EnumDisplayDevicesA(0, 0, &dd, 0)
+	// ...
 	// if 0 != f00433461memcmp(f00401870once().f004017F0(), dd.displayDeviceName[:], 0x80) {
-	// 	// not equal
+	// 	// 0x00405BCD:
+	// 	f0041E6D3("分辨率已重置。请按“选项设置”按钮以指定新的分辨率。", 10, 0) // https://r12a.github.io/app-encodings/
 	// }
-	// if ERROR_ALREADY_EXISTS == GetLastError() {
-	// 	return
-	// }
+
+	if ERROR_ALREADY_EXISTS == win.GetLastError() {
+		return
+	}
 
 	// f004223A2mfcAfxEnableControlContainer()
 	if app.cmdLine != "" {
