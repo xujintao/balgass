@@ -432,11 +432,11 @@ _Library
 !9.5.1.15/server/9. GameServer_BattleCore/*.xml
 
 # keep editor
-!9.5.1.15/server/Editor
-9.5.1.15/server/Editor/*
-!9.5.1.15/server/Editor/IGC.EssentialTools
-9.5.1.15/server/Editor/IGC.EssentialTools/*
-!9.5.1.15/server/Editor/IGC.EssentialTools/Data
-9.5.1.15/server/Editor/IGC.EssentialTools/Data/*
-!9.5.1.15/server/Editor/IGC.EssentialTools/Data/IGC_ItemSetOption.xml
-!9.5.1.15/server/Editor/IGC.EssentialTools/Data/ItemListInfo.txt
+!9.5.1.15/server/Tools
+9.5.1.15/server/Tools/*
+!9.5.1.15/server/Tools/IGC.EssentialTools
+9.5.1.15/server/Tools/IGC.EssentialTools/*
+!9.5.1.15/server/Tools/IGC.EssentialTools/Data
+9.5.1.15/server/Tools/IGC.EssentialTools/Data/*
+!9.5.1.15/server/Tools/IGC.EssentialTools/Data/IGC_ItemSetOption.xml
+!9.5.1.15/server/Tools/IGC.EssentialTools/Data/ItemListInfo.txt
