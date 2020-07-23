@@ -180,3 +180,40 @@ conditional tracing: net log: {mem;3@dword(ebp+8)}
 // push esi
 // word(dword(ebp+c))==0bc3 || word(dword(ebp+c))==13c3
 ```
+
+## GFX edit
+```as3
+// scripts/__Packages/MainFrame
+class MainFrame extends Common.Base.MUComponent
+{
+    // line 10:
+    function onLoadUI()
+    {
+        // line 45:
+        this.tfSD = this.mcMainFrame.tfSD;
+        this.SetSD(0,0); // this.tfSD._visible = false;
+        this.tfAG = this.mcMainFrame.tfAG;
+        this.SetAG(0,0); // this.tfAG._visible = false;
+    }
+
+    // line 113:
+    function onAddEvent()
+    {
+        // line 132:
+        // this.btnClearSD.addEventListener("rollOver",this,"onOverSD");
+        // this.btnClearSD.addEventListener("rollOut",this,"onOutSD");
+        // this.btnClearAG.addEventListener("rollOver",this,"onOverAG");
+        // this.btnClearAG.addEventListener("rollOut",this,"onOutAG");
+    }
+}
+```
+
+```
+http://forum.ragezone.com/f82/convert-ozp-files-png-1074563/
+https://forum.xentax.com/viewtopic.php?t=12157
+http://forum.ragezone.com/f508/development-decrypt-files-ozd-ozg-1124869/
+http://forum.ragezone.com/f197/release-igcn-season-9-5-a-1125721/index58.html
+https://en.wikipedia.org/wiki/Scaleform_GFx
+https://gtamods.com/wiki/.gfx
+https://github.com/jindrapetrik/jpexs-decompile
+```
