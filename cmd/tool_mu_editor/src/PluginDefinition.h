@@ -64,10 +64,8 @@ void commandMenuCleanUp();
 //
 // Your plugin command functions
 //
-void hello();
-void helloDlg();
-void ozg2gfx();
-void gfx2ozg();
+void dec();
+void enc();
 void about();
 
 #endif //PLUGINDEFINITION_H

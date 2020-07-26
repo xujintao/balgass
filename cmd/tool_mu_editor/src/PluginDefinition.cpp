@@ -24,11 +24,8 @@
 //
 FuncItem funcItem[] = {
 	// name func cmdID init2Check shortKey
-	{ TEXT("Hello Notepad++"),		hello,		0,	false,	NULL },
-	{ TEXT("Hello (with dialog)"),	helloDlg,	0,	false,	NULL },
-	{ TEXT("---"),					nullptr,	0,	false,	NULL },
-	{ TEXT("ozg -> gfx"),			ozg2gfx,	0,	false,	NULL },
-	{ TEXT("gfx -> ozg"),			gfx2ozg,	0,	false,	NULL },
+	{ TEXT("ozg/ozd -> gfx/dds"),	dec,		0,	false,	NULL },
+	{ TEXT("gfx/dds -> ozg/ozd"),	enc,		0,	false,	NULL },
 	{ TEXT("---"),					nullptr,	0,	false,	NULL },
 	{ TEXT("about"),				about,		0,	false,	NULL },
 };
@@ -65,38 +62,16 @@ void commandMenuCleanUp(){}
 //----------------------------------------------//
 //-- STEP 4. DEFINE YOUR ASSOCIATED FUNCTIONS --//
 //----------------------------------------------//
-void hello()
-{
-    // Open a new document
-    ::SendMessageW(nppData._nppHandle, NPPM_MENUCOMMAND, 0, IDM_FILE_NEW);
-
-    // Get the current scintilla
-    int which = -1;
-    ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
-    if (which == -1)
-        return;
-    HWND curScintilla = (which == 0)?nppData._scintillaMainHandle:nppData._scintillaSecondHandle;
-
-    // Say hello now :
-    // Scintilla control has no Unicode mode, so we use (char *) here
-    ::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)"Hello, Notepad++!");
-}
-
-void helloDlg()
-{
-    ::MessageBox(NULL, TEXT("Hello, Notepad++!"), TEXT("Notepad++ Plugin Template"), MB_OK);
-}
-
-void ozg2gfx() {
+void dec() {
 	// validate file extension
 	TCHAR fileName[MAX_PATH] = { 0 };
 	::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)fileName);
 	TCHAR* ext = wcsrchr(fileName, TEXT('.'));
-	if (ext == nullptr || wcscmp(ext, TEXT(".ozg")) != 0) {
+	if (ext == nullptr || (wcscmp(ext, TEXT(".ozg")) != 0 && wcscmp(ext, TEXT(".ozd")) != 0)) {
 		tstring text = TEXT("[");
 		text += fileName;
 		text += TEXT("]");
-		text += TEXT(" is not a [*.ozg]");
+		text += TEXT(" is not a [*.ozg/ozd]");
 		::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK|MB_ICONWARNING);
 		return;
 	}
@@ -119,7 +94,7 @@ void ozg2gfx() {
 	if (lenPlain == 0) {
 		tstring text = TEXT("convert failed\r\n[");
 		text += fileName;
-		text += TEXT("] is not a valid [*.ozg]");
+		text += TEXT("] is not a valid [*.ozg/ozd]");
 		::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK|MB_ICONWARNING);
 		return;
 	}
@@ -160,16 +135,16 @@ void ozg2gfx() {
 #endif
 }
 
-void gfx2ozg() {
+void enc() {
 	// validate file extension
 	TCHAR fileName[MAX_PATH] = { 0 };
 	::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)fileName);
 	TCHAR* ext = wcsrchr(fileName, TEXT('.'));
-	if (ext == nullptr || wcscmp(ext, TEXT(".gfx")) != 0) {
+	if (ext == nullptr || (wcscmp(ext, TEXT(".gfx")) != 0 && wcscmp(ext, TEXT(".dds"))) != 0) {
 		tstring text = TEXT("[");
 		text += fileName;
 		text += TEXT("]");
-		text += TEXT(" is not a [*.gfx]");
+		text += TEXT(" is not a [*.gfx/dds]");
 		::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK | MB_ICONWARNING);
 		return;
 	}
@@ -235,5 +210,7 @@ void gfx2ozg() {
 void about() {
 	tstring text = TEXT("version: ");
 	text += TEXT(VERSION);
+	text += TEXT("\r\n");
+	text += TEXT("github.com/xujintao");
 	::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
 }
