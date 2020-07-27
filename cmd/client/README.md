@@ -182,6 +182,7 @@ conditional tracing: net log: {mem;3@dword(ebp+8)}
 ```
 
 ## GFX edit
+#### show sd/ag
 ```as3
 // scripts/__Packages/MainFrame
 class MainFrame extends Common.Base.MUComponent
@@ -207,7 +208,14 @@ class MainFrame extends Common.Base.MUComponent
     }
 }
 ```
+#### sd/ag position tweak
+```
+// sprites
+DefineSprite(209).PlaceObject3(206).matrix.translateY = 570 // 600
+DefineSprite(209).PlaceObject3(204).matrix.translateY = 570 // 600
+```
 
+#### reference
 ```
 http://forum.ragezone.com/f82/convert-ozp-files-png-1074563/
 https://forum.xentax.com/viewtopic.php?t=12157
@@ -215,5 +223,6 @@ http://forum.ragezone.com/f508/development-decrypt-files-ozd-ozg-1124869/
 http://forum.ragezone.com/f197/release-igcn-season-9-5-a-1125721/index58.html
 https://en.wikipedia.org/wiki/Scaleform_GFx
 https://gtamods.com/wiki/.gfx
-https://github.com/jindrapetrik/jpexs-decompile
+https://github.com/jindrapetrik/jpexs-decompiler
+https://www.adobe.com/content/dam/acom/en/devnet/pdf/swf-file-format-spec.pdf
 ```
