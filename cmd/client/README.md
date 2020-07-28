@@ -182,7 +182,7 @@ conditional tracing: net log: {mem;3@dword(ebp+8)}
 ```
 
 ## GFX edit
-#### show sd/ag
+#### MainFrame: show sd/ag and position tweak
 ```as3
 // scripts/__Packages/MainFrame
 class MainFrame extends Common.Base.MUComponent
@@ -207,12 +207,87 @@ class MainFrame extends Common.Base.MUComponent
         // this.btnClearAG.addEventListener("rollOut",this,"onOutAG");
     }
 }
-```
-#### sd/ag position tweak
-```
-// sprites
+
+// tweak
 DefineSprite(209).PlaceObject3(206).matrix.translateY = 570 // 600
 DefineSprite(209).PlaceObject3(204).matrix.translateY = 570 // 600
+```
+
+#### PartyFrame: show party hp/mp value and name position tweak
+```
+// hp
+DefineEditText(72).bounds.Ymax = 240 // 80
+DefineEditText(72).hasText = true // false
+DefineEditText(72).fontHeight = 200 // 20
+DefineEditText(72).textColor = [216,216,216,255] // [171,171,171,255]
+DefineEditText(72).align = 2 // 0
+DefineSprite(74).PlaceObject2(72).Depth = 3 // 1
+DefineSprite(74).PlaceObject2(72).matrix.nTranslateBits = 8 // 7
+DefineSprite(74).PlaceObject2(72).matrix.translateX = -100 // 40
+DefineSprite(74).PlaceObject2(72).matrix.translateY = -100 // 40
+DefineSprite(74).PlaceObject2(72).placeFlagHasName = true // false
+DefineSprite(74).PlaceObject2(72).name = tfHP
+
+// mp
+DefineEditText(69).bounds.Ymax = 240 // 80
+DefineEditText(69).fontHeight = 200 // 20
+DefineEditText(69).textColor = [224,224,224,255] // [171,171,171,255]
+DefineEditText(69).align = 2 // 0
+DefineSprite(71).PlaceObject2(69).Depth = 3 // 1
+DefineSprite(71).PlaceObject2(69).matrix.nTranslateBits = 8 // 7
+DefineSprite(71).PlaceObject2(69).matrix.translateX = -100 // 40
+DefineSprite(71).PlaceObject2(69).matrix.translateY = -100 // 40
+DefineSprite(71).PlaceObject2(69).placeFlagHasName = true // false
+DefineSprite(71).PlaceObject2(69).name = tfMP
+
+// scripts/__Packages/PartyFrame
+class PartyFrame extends Common.Base.MUComponent
+{
+    function ClearPartyInfo(iIndex)
+    {
+        this.amcPartyMember[iIndex]._visible = false;
+        this.atfChannel[iIndex].text = "";
+        this.atfName[iIndex].text = "";
+        this.abtnLeave[iIndex]._visible = false;
+        this.amcCrown[iIndex].gotoAndStop(Common.Global.MUDefines.MATCHING_PARTY_NORMAL_MEMBER_FRAME);
+        this.amcStateLayer[iIndex].gotoAndStop(1);
+        this.apbHPBar[iIndex].minimum = 0;
+        this.apbHPBar[iIndex].maximum = 0;
+        this.apbHPBar[iIndex].position = 0;
+        this.apbHPBar[iIndex].tfHP.text = ""; // add
+        this.apbMpBar[iIndex].minimum = 0;
+        this.apbMpBar[iIndex].maximum = 0;
+        this.apbMpBar[iIndex].position = 0;
+        this.apbMpBar[iIndex].tfMP.text = ""; // add
+        this.RemoveAllBuff(iIndex);
+    }
+    function SetPartyHp(iIndex, iHpMax, iHpPos)
+    {
+        this.apbHPBar[iIndex].minimum = 0;
+        this.apbHPBar[iIndex].maximum = iHpMax;
+        this.apbHPBar[iIndex].position = iHpPos;
+        this.apbHPBar[iIndex].tfHP.text = String(iHpPos) + " / " + String(iHpMax); // add
+    }
+    function SetPartyMp(iIndex, iMpMax, iMpPos)
+    {
+        this.apbMpBar[iIndex].minimum = 0;
+        this.apbMpBar[iIndex].maximum = iMpMax;
+        this.apbMpBar[iIndex].position = iMpPos;
+        this.apbMpBar[iIndex].tfMP.text = String(iMpPos) + " / " + String(iMpMax); // add
+    }
+}
+
+// tweak
+DefineEditText(63).bounds.Ymax = 320 // 280
+DefineEditText(64).bounds.Ymax = 320 // 280
+DefineSprite(89).frame1.PlaceObject2(65).matrix.translateY = 60 // 90
+```
+
+#### PetFrame: name position tweak
+```
+DefineEditText(20).bounds.Ymax = 320 // 280
+DefineEditText(21).bounds.Ymax = 320 // 280
+DefineSprite(27).frame1.PlaceObject2(22).matrix.translateY = 60 // 90
 ```
 
 #### reference
