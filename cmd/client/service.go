@@ -1315,7 +1315,7 @@ func f004DD578handleState1(hDC win.HDC) {
 			win.SendMessage(v01319D6ChWnd, 2, 0, 0)
 		}
 		// 0x006B7C88
-		f00A49798game().f00A4A521init2()
+		f00A49798game().f00A4A521loadResource()
 		// ...
 		// f006B7DDC() // load Data/local/...
 		func() {

@@ -97,6 +97,10 @@ func f00DE9370strncpy(dst []uint8, src []uint8, size int) {
 	copy(dst, src[:size])
 }
 
+func f00DE94F0strcmp(str1 []uint8, str2 []uint8) int {
+	return 0
+}
+
 func f00DF30EFstrcpysafe(dst []uint8, size int, src string) {
 	copy(dst[:size], src[:])
 }

@@ -5,7 +5,7 @@ import (
 	"unsafe"
 )
 
-var v012E3EC8 int
+var v012E3EC8mapNumber int
 
 // s9 f005A774E
 func f005B0120() {
@@ -99,9 +99,9 @@ func f00611C16() {
 		// 	... inline
 		// }
 		// ebp59538 := f0098C3F9()
-		if v012E3EC8 >= 0x62 && v012E3EC8 <= 0x63 {
+		if v012E3EC8mapNumber >= 0x62 && v012E3EC8mapNumber <= 0x63 {
 			// ... inline
-		} else if v012E3EC8 < 0x2D || v012E3EC8 > 0x32 {
+		} else if v012E3EC8mapNumber < 0x2D || v012E3EC8mapNumber > 0x32 {
 			// 0x00628420 inline send
 			var ebp1896C pb // 0x0014F870
 			ebp1896C.f00439178init()
@@ -262,7 +262,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 	ebp28 := v086105ECobject.m178[x1]
 	var ebp30 int // ebp30 := f0090E94C(ebp28).f0090EA51().f008F6A00()
 	ebpD := 0
-	if v012E3EC8 == 0x1E {
+	if v012E3EC8mapNumber == 0x1E {
 		// 0x007E5035
 	}
 	// 0x007E5076 0x09EB65A0

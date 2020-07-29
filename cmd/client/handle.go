@@ -21,19 +21,21 @@ func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 // key: 0x0075FF6A, s9 0x00673FE6
 // value: 0x0075FCB2, s9 0x00673D2E
 var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
-	0x00: f006FA9EBhandle00,     // server_connect is prepared
-	0x0D: f007087BFhandle0D,     // handle notice message
-	0x1D: handle1DBeAttacked,    // hook, hash[DF]=hash[1D]
-	0x26: f0075CE21handle26hpsd, // hp and sd
-	0x27: f0075CE2Fhandle27mpag, // mp and ag
-	0xD2: f0075F7D0handleD2,     // cash shop
-	0xD7: handleD7positionSet,   // hook, hash[D4]=hash[D7]
-	0xD9: handleD9normalAttack,  // hook, hash[11]=hash[D9]
-	0xDA: handleDApositionGet,   // hook, hash[15]=hash[DA]
-	0xF1: handleF1,              // server_game is prepared and response with server's version, and the login logic also use code F1
-	0xF3: f0075C794handleF3,     // character
-	0xF4: f0075CB02handleF4,     // server list and server info
-	0xF6: f006C18B6handleF6,     // quest list
+	0x00: f006FA9EBhandle00,        // server_connect is prepared
+	0x0D: f007087BFhandle0D,        // handle notice message
+	0x1D: handle1DBeAttacked,       // hook, hash[DF]=hash[1D]
+	0x26: f0075CE21handle26hpsd,    // hp and sd
+	0x27: f0075CE2Fhandle27mpag,    // mp and ag
+	0x42: f0075D021handlePartyInfo, // party info, 客户端主动请求以及队伍成员信息变化推送
+	0x44: f0075D03DhandlePartyHPMP, // party member HP/MP, 队伍成员HP/MP数据变化了服务器才会推送而不是定时发送
+	0xD2: f0075F7D0handleD2,        // cash shop
+	0xD7: handleD7positionSet,      // hook, hash[D4]=hash[D7]
+	0xD9: handleD9normalAttack,     // hook, hash[11]=hash[D9]
+	0xDA: handleDApositionGet,      // hook, hash[15]=hash[DA]
+	0xF1: handleF1,                 // server_game is prepared and response with server's version, and the login logic also use code F1
+	0xF3: f0075C794handleF3,        // character
+	0xF4: f0075CB02handleF4,        // server list and server info
+	0xF6: f006C18B6handleF6,        // quest list
 }
 
 func f006FA9EBhandle00(code uint8, buf []uint8, len int, enc bool) {
@@ -128,6 +130,71 @@ func f0075CE2Fhandle27mpag(code uint8, buf []uint8, len int, enc bool) {
 			v086105ECobject.m124mp = binary.BigEndian.Uint16(ebp4[4:])
 			v086105ECobject.m140ag = binary.BigEndian.Uint16(ebp4[6:])
 			return
+		}
+	}(buf)
+}
+
+// party info
+func f0075D021handlePartyInfo(code uint8, buf []uint8, len int, enc bool) {
+	// f006D4442
+	func(buf []uint8) {
+		var party msgPartyInfo
+		// ebp149CplayerInfo := f00A49798game().m160playerInfo
+		// ebp149CplayerInfo.f00A9396B()
+
+		ebp14A4partyFrame := f00A49798game().m184partyFrame
+		ebp14A4partyFrame.f00A82218setPartyInfo(int(party.memberSize), party.members)
+
+		// ebp14ACnaviMap := f00A49798game().m1C8naviMap
+		// ebp14ACnaviMap.f00A3A41F()
+
+		// request party member position info C1:E7
+	}(buf)
+}
+
+// party member HP
+func f0075D03DhandlePartyHPMP(code uint8, buf []uint8, len int, enc bool) {
+	// f006D5608(buf)
+	func(buf []uint8) {
+		var party struct {
+			memberSize uint8
+			members    []struct {
+				HPPercent int8
+				MPPercent int8
+				Name      [11]uint8
+			}
+		}
+
+		var ebp1Cname [11]uint8
+		for i := 0; i < int(party.memberSize); i++ {
+			ebp10member := party.members[i]
+			f00DE8100memset(ebp1Cname[:], 0, 11)
+			f00DE9370strncpy(ebp1Cname[:], ebp10member.Name[:], 10)
+			ebp24partyFrame := f00A49798game().m184partyFrame
+			if ebp24partyFrame.f00A83122validateName(ebp1Cname[:]) == false {
+				v01319E08log.f00B38AE4printf("Party Member is Missing!! / index : %d \r\n", i)
+				continue
+			}
+			var ebp34MP int8
+			var ebp30MP int8 // ebp30MP = ebp10member.MPPercent<0 ? 0 : ebp10member.MPPercent
+			if ebp30MP <= 100 {
+				var ebp38MP int8 // ebp38MP = ebp10member.MPPercent<0 ? 0 : ebp10member.MPPercent
+				ebp34MP = ebp38MP
+			} else {
+				ebp34MP = 100
+			}
+
+			var ebp40HP int8
+			var ebp3CHP int8 // ebp3CHP = ebp10member.HPPercent<0 ? 0 : ebp10member.HPPercent
+			if ebp3CHP <= 100 {
+				var ebp44HP int8 // ebp44HP = ebp10member.HPPercent<0 ? 0 : ebp10member.HPPercent
+				ebp40HP = ebp44HP
+			} else {
+				ebp40HP = 100
+			}
+
+			ebp2CpartyFrame := f00A49798game().m184partyFrame
+			ebp2CpartyFrame.f00A82A72setPartyHPMPPercent(ebp1Cname[:], ebp40HP, 100, ebp34MP, 100)
 		}
 	}(buf)
 }
@@ -1179,7 +1246,7 @@ func f006C18B6handleF6(code uint8, buf []uint8, len int, enc bool) {
 			// 	if ebp1490 == v08C88CAC {
 			// 		break
 			// 	}
-			// 	ebp1494 := f004373C5(ebp1490).f00A38D5BgetObject()
+			// 	ebp1494 := f004373C5getObjectManager()f00A38D5BgetObject(ebp1490)
 			// 	if ebp1494.m5E {
 			// 		break
 			// 	}

@@ -1263,7 +1263,7 @@ type barer interface {
 	do2(wm *windowManager1, x int, ozgfile *xstring, lang *xstring, unk1, unk2, unk3, unk4 int) bool
 	do3()
 	do4() bool
-	do6() bool
+	do6fresh() bool
 	do7() bool
 	do16()
 }
@@ -1342,12 +1342,12 @@ func (t *windowgameCaution) f00A99F11construct() {
 	// t.m00vtabptr = v01179074[:]
 }
 
-func (t *windowgameCaution) do1(x bool) {}
-func (t *windowgameCaution) do3()       {}
-func (t *windowgameCaution) do4() bool  { return false }
-func (t *windowgameCaution) do6() bool  { return false }
-func (t *windowgameCaution) do7() bool  { return false }
-func (t *windowgameCaution) do16()      {}
+func (t *windowgameCaution) do1(x bool)     {}
+func (t *windowgameCaution) do3()           {}
+func (t *windowgameCaution) do4() bool      { return false }
+func (t *windowgameCaution) do6fresh() bool { return false }
+func (t *windowgameCaution) do7() bool      { return false }
+func (t *windowgameCaution) do16()          {}
 
 type windowgame0117A544 struct {
 	windowgame0117373C
@@ -1391,6 +1391,7 @@ type windowgameMainFrame struct {
 
 func (t *windowgameMainFrame) f00AA9021construct() {
 	t.windowgame0117373C.f00A392A6construct()
+	// t.m00vtabptr = v0117A544[:]
 	// t.mBC.f00938EFD()
 	// t.mD4.f00A3AFFF()
 	// t.mDC.f00A3AFFF()
@@ -1515,7 +1516,7 @@ func (t *windowgameMainFrame) f00AAA387sd() {
 }
 
 // f00AA94C1
-func (t *windowgameMainFrame) do6() bool {
+func (t *windowgameMainFrame) do6fresh() bool {
 	// if v01353C08.f00537917() == false && t.mB6 == false {
 	// 	t.mB6 = true
 	// 	f00A3A4F2(t, "SetQuestAlarm", "%d", t.mB6)
@@ -1541,16 +1542,251 @@ func (t *windowgameMainFrame) do7() bool {
 	return false
 }
 
-func (t *windowgameMainFrame) do16() {
-
-}
-
 // GuildPosition size:0x78
 type windowgameGuildPosition struct {
 }
 
-// ...
+// PartyFrame size:0x560
+type windowgamePartyFrame struct {
+	windowgame0117A544
+	m74memberSize int
+	m78members    [5]struct {
+		name      [11]uint8 // m78
+		index     int       // m84
+		number    uint8     // m88
+		mapNumber uint8     // m89
+		x         uint8     // m8A
+		y         uint8     // m8B
+		HP        int       // m8C
+		HPMax     int       // m90
+		MP        int       // m94
+		MPMax     int       // m98
+		HPPercent int8      // m9C
+		MPPercent int8      // m9D
+		obj       *object   // mA0
+		channel   int       // mA4
+		// mA8
+		state int8 // mA9
+		unk   bool // mAA
+		// mAC
+	}
+}
 
+func (t *windowgamePartyFrame) f00A81B51construct() {
+	t.windowgame0117373C.f00A392A6construct()
+	// t.m00vtabptr = v01177ABC[:]
+	// ...
+}
+
+type msgPartyMember struct {
+	name          [10]uint8
+	number        uint8
+	mapNumber     uint8
+	x             uint8
+	y             uint8
+	HP            int
+	HPMax         int
+	serverChannel int
+	MP            int
+	MPMax         int
+}
+
+type msgPartyInfo struct {
+	result     uint8
+	memberSize uint8
+	members    []msgPartyMember
+}
+
+func (t *windowgamePartyFrame) f00A83171matchIndexByName(index int, name []uint8) bool {
+	if index < 0 || index >= t.m74memberSize {
+		return false
+	}
+	if f00DE94F0strcmp(t.m78members[index].name[:], name) == 0 {
+		return true
+	}
+	return false
+}
+
+func (t *windowgamePartyFrame) f00A83122validateName(name []uint8) bool {
+	if t.m74memberSize <= 0 {
+		return false
+	}
+	// 迭代所有组员
+	for i := 0; i < t.m74memberSize; i++ {
+		if t.f00A83171matchIndexByName(i, name) == true {
+			break
+		}
+	}
+	return true
+}
+
+func (t *windowgamePartyFrame) f00A828ABsetPartyHPPercent(index int, hpPos, hpMax int8) bool {
+	if index < 0 || index >= t.m74memberSize {
+		return false
+	}
+	if t.m78members[index].HPPercent == hpPos {
+		return false
+	}
+	t.m78members[index].HPPercent = hpPos
+	f00A3A4F2(t, "SetPartyHP", "%d, %d, %d", index, hpMax, hpPos)
+	return true
+}
+
+func (t *windowgamePartyFrame) f00A8291FsetPartyMPPercent(index int, hpPos, hpMax int8) bool {
+	if index < 0 || index >= t.m74memberSize {
+		return false
+	}
+	if t.m78members[index].HPPercent == hpPos {
+		return false
+	}
+	t.m78members[index].HPPercent = hpPos
+	f00A3A4F2(t, "SetPartyMP", "%d, %d, %d", index, hpMax, hpPos)
+	return true
+}
+
+func (t *windowgamePartyFrame) f00A82A72setPartyHPMPPercent(name []uint8, HP int8, HPMax int8, MP int8, MPMax int8) bool {
+	if name == nil {
+		return false
+	}
+	// 迭代所有组员
+	for i := 0; i < t.m74memberSize; i++ {
+		if t.f00A83171matchIndexByName(i, name) == true {
+			t.f00A828ABsetPartyHPPercent(i, HP, HPMax)
+			t.f00A8291FsetPartyMPPercent(i, MP, MPMax)
+		}
+	}
+	return false
+}
+
+func (t *windowgamePartyFrame) f00A82993setPartyState(index int, state int8) bool {
+	if index < 0 || index >= t.m74memberSize {
+		return false
+	}
+	if t.m78members[index].state == state {
+		return false
+	}
+	t.m78members[index].state = state
+	f00A3A4F2(t, "SetPartyState", "%d %d", index, state)
+	return true
+}
+
+func (t *windowgamePartyFrame) f00A82218setPartyInfo(size int, members []msgPartyMember) {
+	// ebp164 := t
+	t.m74memberSize = 0
+	// t.f00A8207FclearPartyInfoAll()
+	f00A3A4F2(t, "ClearPartyInfoAll", "")
+	if size > 0 && members != nil {
+		t.m74memberSize = size
+		for i := 0; i < size; i++ {
+			f00DE8100memset(t.m78members[i].name[:], 0, 11)
+			// f00550B58(t.m78members[i].name[:], 11, members[i].name[:])
+			t.m78members[i].index = i
+			t.m78members[i].number = members[i].number
+			t.m78members[i].mapNumber = members[i].mapNumber
+			t.m78members[i].x = members[i].x
+			t.m78members[i].y = members[i].y
+			t.m78members[i].HP = members[i].HP
+			t.m78members[i].HPMax = members[i].HPMax
+			t.m78members[i].channel = members[i].serverChannel
+			t.m78members[i].MP = members[i].MP
+			t.m78members[i].MPMax = members[i].MPMax
+			// t.m78members[i].obj = f004373C5getObjectManager().f00A38E0A(f00594982(t.m78members[i].name[:]))
+			// 0x00A82437: 渲染组队框体
+			if t.m78members[i].channel == 0 {
+				t.f00A82993setPartyState(i, 4)
+			} else if i == 0 { // 渲染队长组队框体
+				// 0x00A82468:
+				var ebp155same bool
+				for _, m := range members[1:] {
+					if t.m78members[0].channel == m.serverChannel {
+						ebp155same = true
+						break
+					}
+				}
+				if ebp155same {
+					t.f00A82993setPartyState(0, 4)
+				}
+			} else { // 渲染成员组队框体
+				// 0x00A824D7:
+				if t.m78members[0].channel != t.m78members[i].channel {
+					t.f00A82993setPartyState(i, 4)
+				}
+			}
+			// 0x00A82507: channel字符串
+			var ebp134channel stdstring
+			ebp134channel.f00406A20init()
+			var ebp114 [255]uint8
+			f00DE8100memset(ebp114[1:], 0, 254)
+			ebp168channel := t.m78members[i].channel
+			switch ebp168channel {
+			case 0:
+			case 0xC8:
+				// 0x00A82580:
+			case 0xC9:
+				// 0x00A825A0:
+			case 0xCA:
+				// 0x00A825C0:
+			default:
+				// 0x00A825E0:
+				// f00DE91AA(t.m78members[i].channel, ebp114[:], 10)
+				// f00A3B454s2ws(&ebp134channel, ebp114[:]) // multi-byte stream to wide-byte stream
+			}
+			// 0x00A82619: 角色名
+			var ebp150name stdstring
+			ebp150name.f00406A20init()
+			// f00A3B454s2ws(&ebp150name, t.m78members[i].name[:])
+
+			// 离开队伍按钮
+			var ebp115btnVisible bool
+			if /*t.f00A831B3(v0805BBACself.m38name[:]) &&*/ t.f00A83171matchIndexByName(i, v0805BBACself.m38name[:]) {
+				ebp115btnVisible = true
+			}
+			// 队长
+			var crown bool
+			if i == 0 {
+				crown = true
+			}
+			f00A3A4F2(t, "SetPartyInfo", "%d %s %s %b %b", i, ebp134channel.f004073E0cstr(), ebp150name.f004073E0cstr(), crown, ebp115btnVisible)
+
+			// naviMap
+			if t.f00A83171matchIndexByName(i, v0805BBACself.m38name[:]) == true {
+				continue
+			}
+			if int(t.m78members[i].mapNumber) != v012E3EC8mapNumber {
+
+				continue
+			}
+			t.m78members[i].unk = true
+			// f00A49798game().m1C8naviMap.f00AE3733enableNavi(t.m78members[i].index, "icon_party-", t.m78members[i].x, t.m78members[i].y, 0, t.m78members[i].name[:], 0)
+		}
+		// 0x00A827F8: disable navi
+		for i := t.m74memberSize; i < 5; i++ {
+			// f00A49798game().m1C8naviMap.f00AE39F5disableNavi(i, "icon_party-")
+			t.m78members[i].unk = false
+		}
+	}
+	// 0x00A82856:
+	// if f00A49798game().f006C5EC1() == 0 {
+	// 	return
+	// }
+	// f00DE76C0(t.f00A3A2E8(f00DE76C0(t.f00A3A383(0))))
+	// f00A49798game().f006C5EC1().f00A87AC4()
+	// t.f00A82993setPartyState()
+}
+
+func (t *windowgamePartyFrame) do1(x bool) {}
+func (t *windowgamePartyFrame) do3()       {}
+func (t *windowgamePartyFrame) do4() bool  { return false }
+
+// f00A81DA1
+func (t *windowgamePartyFrame) do6fresh() bool {
+	// t.f00A82993setPartyState()
+	return false
+}
+func (t *windowgamePartyFrame) do7() bool { return false }
+func (t *windowgamePartyFrame) do16()     {}
+
+// -------------------------------------------------------------
 // size:0x28
 type windowManager01173C54 struct {
 	m00vtabptr []uintptr
@@ -1584,7 +1820,7 @@ func (t *windowManager01173C54) f00A47461fresh() {
 			return
 		}
 		if ebp10.do4() {
-			ebp10.do6()
+			ebp10.do6fresh()
 		}
 		if ebp1 == false { // if ebp1 == false && v01319D6ChWnd == dll.user32.GetActiveWindow() && v01319D6ChWnd == dll.user32.GetFocus() {
 			ebp1 = ebp10.do7()
