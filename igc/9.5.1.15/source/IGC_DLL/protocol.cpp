@@ -178,6 +178,9 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 		case 0x27:
 			GCManaSend((PMSG_MANASEND*)aRecv);
 			break;
+		case 0x44:
+			handlePartyHPMP((PMSG_PARTY_COUNT*)aRecv);
+			break;
 	}
 	return true;
 }
@@ -640,4 +643,81 @@ void GCSetChatColors(PMSG_SET_CHAT_COLOR * lpMsg)
 	MemCpy(0x00AA0E3D + 3, lpMsg->btAllianceMsg, sizeof(lpMsg->btAllianceMsg)); // 1.04R
 	MemCpy(0x00AA0E4C + 3, lpMsg->btGMChatMsg, sizeof(lpMsg->btGMChatMsg)); // 1.04R
 	MemCpy(0x00AA0E5B + 3, lpMsg->btGensMsg, sizeof(lpMsg->btGensMsg)); // 1.04R
+}
+
+
+void handlePartyHPMP(PMSG_PARTY_COUNT* lpMsg) {
+	int size = lpMsg->Count;
+	if (lpMsg->h.size <= sizeof(PMSG_PARTY_COUNT) + size * sizeof(PMSG_PARTYLIFEALL))
+		return; // there is no HP/MP value extension
+
+	// range msg
+	for (int i = 0; i < size; i++) {
+		PMSG_PARTYHPMP* partyMember = (PMSG_PARTYHPMP*)((uintptr_t)lpMsg + sizeof(PMSG_PARTY_COUNT) + size * sizeof(PMSG_PARTYLIFEALL) + i * sizeof(PMSG_PARTYHPMP));
+		char name[11] = { 0 };
+		strncpy(name, partyMember->Name, 10);
+		
+		// partyFrame = f00A49798game().m184partyFrame
+		void* partyFrame = nullptr;
+		__asm {
+			mov eax, 0x00A49798; // 1.04R f00A49798game()
+			call eax;
+			mov eax, dword ptr ds:[eax+0x184]; // 1.04R mPartyFrame
+			mov partyFrame, eax;
+		}
+
+		// bRet = partyFrame.f00A83122validateName(name)
+		bool bRet = false;
+		__asm {
+			mov ecx, partyFrame;
+			lea eax, name;
+			push eax;
+			mov eax, 0x00A83122; // 1.04R partyFrame.f00A83122validateName(char* name) __stdcall
+			call eax;
+			mov bRet, al;
+		}
+		if (bRet == false)
+			continue;
+
+		// range PartyFrame
+		int partyFrameSize = *(int*)((uintptr_t)partyFrame + 0x74);
+		for (int index = 0; index < partyFrameSize; index++) {
+			void* partyFrameMember = (int*)((uintptr_t)partyFrame + 0x78 + index * 0x54);
+			// bRet = partyFrame.f00A83171matchIndexByName(index, name)
+			__asm {
+				mov ecx, partyFrame;
+				lea eax, name;
+				push eax;
+				push index;
+				mov eax, 0x00A83171; // 1.04R partyFrame.f00A83171matchIndexByName(int index, char* name) __stdcall
+				call eax;
+				mov bRet, al;
+			}
+			if (bRet) {
+				typedef int(*ScaleformGFX)(void*, char*, char*, ...);
+				ScaleformGFX scaleformGFX = (ScaleformGFX)0x00A3A4F2; // 1.04R
+				
+				int HP = partyMember->HP;
+				int HPMax = partyMember->HPMax;
+				int* partyFrameMemberHP = (int*)((uintptr_t)partyFrameMember + 0x14);
+				int* partyFrameMemberHPMax = (int*)((uintptr_t)partyFrameMember + 0x18);
+				if (*partyFrameMemberHP != HP || *partyFrameMemberHPMax != HPMax) {
+					*partyFrameMemberHP = HP;
+					*partyFrameMemberHPMax = HPMax;
+					scaleformGFX(partyFrame, "SetPartyHPValue", "%d, %d, %d", index, HP, HPMax);
+				}
+
+				int MP = partyMember->MP;
+				int MPMax = partyMember->MPMax;
+				int* partyFrameMemberMP = (int*)((uintptr_t)partyFrameMember + 0x1C);
+				int* partyFrameMemberMPMax = (int*)((uintptr_t)partyFrameMember + 0x20);
+				if (*partyFrameMemberMP != MP || *partyFrameMemberMPMax != MPMax) {
+					*partyFrameMemberMP = MP;
+					*partyFrameMemberMPMax = MPMax;
+					scaleformGFX(partyFrame, "SetPartyMPValue", "%d, %d, %d", index, MP, MPMax);
+				}
+				break;
+			}
+		}
+	}
 }

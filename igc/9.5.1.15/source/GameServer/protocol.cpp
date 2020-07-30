@@ -8737,11 +8737,11 @@ void GameProtocol::CGPartyList(int aIndex)
 					pList.MapNumber = gObj[number].MapNumber;
 					pList.X = gObj[number].X;
 					pList.Y = gObj[number].Y;
-					pList.Life = gObj[number].Life;
-					pList.MaxLife = gObj[number].MaxLife + gObj[number].AddLife;
+					//pList.Life = gObj[number].Life;
+					//pList.MaxLife = gObj[number].MaxLife + gObj[number].AddLife;
 					pList.nServerChannel = gObj[number].m_PlayerData->m_nServerChannel + 1;
-					pList.nMana = gObj[number].Mana;
-					pList.nMaxMana = gObj[number].MaxMana;
+					//pList.nMana = gObj[number].Mana;
+					//pList.nMaxMana = gObj[number].MaxMana;
 
 					memcpy(&sendbuf[lOfs], &pList, sizeof(pList));
 					lOfs += sizeof(pList);
@@ -8809,11 +8809,11 @@ void GameProtocol::CGPartyListAll(int pnumber)
 				pList.MapNumber = gObj[number].MapNumber;
 				pList.X = gObj[number].X;
 				pList.Y = gObj[number].Y;
-				pList.Life = gObj[number].Life;
-				pList.MaxLife =  gObj[number].MaxLife;
+				//pList.Life = gObj[number].Life;
+				//pList.MaxLife =  gObj[number].MaxLife;
 				pList.nServerChannel = gObj[number].m_PlayerData->m_nServerChannel + 1;
-				pList.nMana = gObj[number].Mana;
-				pList.nMaxMana = gObj[number].MaxMana;
+				//pList.nMana = gObj[number].Mana;
+				//pList.nMaxMana = gObj[number].MaxMana;
 
 				memcpy(&sendbuf[lOfs], &pList, sizeof(pList));
 				lOfs += sizeof(pList);

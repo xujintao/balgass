@@ -261,19 +261,13 @@ class PartyFrame extends Common.Base.MUComponent
         this.apbMpBar[iIndex].tfMP.text = ""; // add
         this.RemoveAllBuff(iIndex);
     }
-    function SetPartyHp(iIndex, iHpMax, iHpPos)
+    function SetPartyHPValue(iIndex, iHP, iHPMax)
     {
-        this.apbHPBar[iIndex].minimum = 0;
-        this.apbHPBar[iIndex].maximum = iHpMax;
-        this.apbHPBar[iIndex].position = iHpPos;
-        this.apbHPBar[iIndex].tfHP.text = String(iHpPos) + " / " + String(iHpMax); // add
+        this.apbHPBar[iIndex].tfHP.text = String(iHP) + " / " + String(iHPMax); // add
     }
-    function SetPartyMp(iIndex, iMpMax, iMpPos)
+    function SetPartyMPValue(iIndex, iMP, iMPMax)
     {
-        this.apbMpBar[iIndex].minimum = 0;
-        this.apbMpBar[iIndex].maximum = iMpMax;
-        this.apbMpBar[iIndex].position = iMpPos;
-        this.apbMpBar[iIndex].tfMP.text = String(iMpPos) + " / " + String(iMpMax); // add
+        this.apbMpBar[iIndex].tfMP.text = String(iMP) + " / " + String(iMPMax); // add
     }
 }
 

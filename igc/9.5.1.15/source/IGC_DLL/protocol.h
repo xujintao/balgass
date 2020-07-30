@@ -467,6 +467,33 @@ struct PMSG_SEND_HITHACK_INFO // C1:FA:14
 	DWORD dwHitHackVal2;
 };
 
+// party hp/mp
+struct PMSG_PARTY_COUNT
+{
+	PBMSG_HEAD h;
+	BYTE Count;	// 3
+};
+
+// party hp/mp percent
+#pragma pack (1)
+struct PMSG_PARTYLIFEALL
+{
+	BYTE Life;
+	BYTE Mana;
+	char Name[11];
+};
+#pragma pack ()
+
+// push hp/mp value
+struct PMSG_PARTYHPMP {
+	int level;
+	int HP;
+	int HPMax;
+	int MP;
+	int MPMax;
+	char Name[11];
+};
+
 bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt);
 
 void GCAttackResult(PMSG_ATTACKRESULT *lpMsg);
@@ -498,4 +525,5 @@ void GCAlterPShopVault(int type);
 void GCDropSellMod();
 void GCCustomPost(PMSG_POST_DATA *lpMsg);
 void GCSetChatColors(PMSG_SET_CHAT_COLOR * lpMsg);
+void handlePartyHPMP(PMSG_PARTY_COUNT* lpMsg);
 #endif

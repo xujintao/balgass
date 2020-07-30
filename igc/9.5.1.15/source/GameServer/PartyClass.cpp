@@ -430,6 +430,16 @@ struct PMSG_PARTYLIFEALL
 };
 #pragma pack ()
 
+// push hp/mp value
+struct PMSG_PARTYHPMP {
+	int level;
+	int HP;
+	int HPMax;
+	int MP;
+	int MPMax;
+	char Name[11];
+};
+
 void PartyClass::PartyMemberLifeSend(int party_number)
 {
 	if ( this->IsParty(party_number) == FALSE )
@@ -439,6 +449,7 @@ void PartyClass::PartyMemberLifeSend(int party_number)
 
 	PMSG_DEFAULT_COUNT pCount;
 	PMSG_PARTYLIFEALL pList;
+	PMSG_PARTYHPMP pList2;
 	int usern;
 	char sendbuf[512];
 	int lOfs = 0;
@@ -477,6 +488,30 @@ void PartyClass::PartyMemberLifeSend(int party_number)
 
 			else
 			{
+				this->m_PartyS[party_number].Number[i] = -1;
+				this->m_PartyS[party_number].DbNumber[i] = -1;
+				this->m_PartyS[party_number].Count--;
+			}
+		}
+	}
+
+	// hp/mp
+	for (int i = 0; i<MAX_USER_IN_PARTY; i++) {
+		if ((this->m_PartyS[party_number].Number[i] >= 0) && (this->m_PartyS[party_number].DbNumber[i] >= 0)) {
+			usern = this->m_PartyS[party_number].Number[i];
+			if (gObjIsConnected(usern) != PLAYER_EMPTY) {
+				pList2.level = gObj[usern].Level;
+				pList2.HP = gObj[usern].Life;
+				pList2.HPMax = gObj[usern].MaxLife + gObj[usern].AddLife;
+				pList2.MP = gObj[usern].Mana;
+				pList2.MPMax = gObj[usern].MaxMana + gObj[usern].AddMana;
+				if (g_ConfigRead.server.GetServerType() == SERVER_BATTLECORE)
+					memcpy(pList2.Name, gObj[usern].m_PlayerData->m_RealNameOfUBF, MAX_ACCOUNT_LEN + 1);
+				else
+					memcpy(pList2.Name, gObj[usern].Name, MAX_ACCOUNT_LEN + 1);
+				memcpy(&sendbuf[lOfs], &pList2, sizeof(pList2));
+				lOfs += sizeof(pList2);
+			} else {
 				this->m_PartyS[party_number].Number[i] = -1;
 				this->m_PartyS[party_number].DbNumber[i] = -1;
 				this->m_PartyS[party_number].Count--;

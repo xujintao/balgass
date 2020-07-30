@@ -4695,10 +4695,10 @@ void DGAnsSendPartyMemberListPartyMatching(_stAnsSendPartyMemberList *lpMsg)
 				pList.MapNumber = gObj[nMemberIndex].MapNumber;
 				pList.X = gObj[nMemberIndex].X;
 				pList.Y = gObj[nMemberIndex].Y;
-				pList.Life = gObj[nMemberIndex].Life;
-				pList.MaxLife = gObj[nMemberIndex].MaxLife + gObj[nMemberIndex].AddLife;
-				pList.nMana = gObj[nMemberIndex].Mana;
-				pList.nMaxMana = gObj[nMemberIndex].MaxMana + gObj[nMemberIndex].MaxMana;
+				//pList.Life = gObj[nMemberIndex].Life;
+				//pList.MaxLife = gObj[nMemberIndex].MaxLife + gObj[nMemberIndex].AddLife;
+				//pList.nMana = gObj[nMemberIndex].Mana;
+				//pList.nMaxMana = gObj[nMemberIndex].MaxMana + gObj[nMemberIndex].MaxMana;
 				gObj[nMemberIndex].m_PlayerData->m_nPartyMatchingIndex = lpMsg->nPartyMatchingIndex;
 				nCurrentServer = TRUE;
 				GSProtocol.GCDisplayBuffeffectPartyMember(nMemberIndex);

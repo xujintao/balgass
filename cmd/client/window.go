@@ -1628,7 +1628,7 @@ func (t *windowgamePartyFrame) f00A828ABsetPartyHPPercent(index int, hpPos, hpMa
 		return false
 	}
 	t.m78members[index].HPPercent = hpPos
-	f00A3A4F2(t, "SetPartyHP", "%d, %d, %d", index, hpMax, hpPos)
+	f00A3A4F2(t, "SetPartyHp", "%d, %d, %d", index, hpMax, hpPos)
 	return true
 }
 
@@ -1640,7 +1640,7 @@ func (t *windowgamePartyFrame) f00A8291FsetPartyMPPercent(index int, hpPos, hpMa
 		return false
 	}
 	t.m78members[index].HPPercent = hpPos
-	f00A3A4F2(t, "SetPartyMP", "%d, %d, %d", index, hpMax, hpPos)
+	f00A3A4F2(t, "SetPartyMp", "%d, %d, %d", index, hpMax, hpPos)
 	return true
 }
 
