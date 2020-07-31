@@ -236,7 +236,7 @@ DefineEditText(69).align = 2 // 0
 DefineSprite(71).PlaceObject2(69).Depth = 3 // 1
 DefineSprite(71).PlaceObject2(69).matrix.nTranslateBits = 8 // 7
 DefineSprite(71).PlaceObject2(69).matrix.translateX = -100 // 40
-DefineSprite(71).PlaceObject2(69).matrix.translateY = -100 // 40
+DefineSprite(71).PlaceObject2(69).matrix.translateY = -60 // 40
 DefineSprite(71).PlaceObject2(69).placeFlagHasName = true // false
 DefineSprite(71).PlaceObject2(69).name = tfMP
 
