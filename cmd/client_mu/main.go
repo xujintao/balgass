@@ -39,6 +39,10 @@ func f00449EEAmfcAfxWinMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE
 // f00434EB8, runtime_main, __winMainCRTStartup
 func main() {
 	// ...
+	// 0x00434F22: f00442369heapInit(true)
+	// 0x00434F38: f0043C60FflsInit()
+
+	// ...
 	szcmdLine := strings.Join(os.Args[1:], " ")
 	show := 10
 	// 0x00434FBB:
