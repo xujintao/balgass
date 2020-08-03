@@ -266,7 +266,7 @@ type muDlg struct {
 	m45128         t0018FDB0 // 0x45128, 0x0018FDB0
 }
 
-func (d *muDlg) f0040AEC0(x uint) {
+func (d *muDlg) f0040AEC0construct(x uint) {
 	// d.blocks[0].f0040E510(x, 0x66)
 	func(x, y uint) {
 		// d.f00415984(x, y)
@@ -386,7 +386,7 @@ func (d *muDlg) f0040AEC0(x uint) {
 // 		{WM_COMMAND, BN_CLICKED, 0x7D9, 0x7D9, 0x39, f004064E0}, // 游戏论坛
 // 		{WM_COMMAND, BN_CLICKED, 0x7D7, 0x7D7, 0x39, f0040A8E0}, // 退出
 // 		{WM_COMMAND, BN_CLICKED, 0x7D2, 0x7D2, 0x39, f0040A5A0start}, // 游戏开始
-// 		{WM_COMMAND, BN_CLICKED, 0x7D0, 0x7D0, 0x39, f00406520}, // 游戏设置
+// 		{WM_COMMAND, BN_CLICKED, 0x7D0, 0x7D0, 0x39, f00406520set}, // 游戏设置
 // 		{WM_COMMAND, BN_CLICKED, 0x7D1, 0x7D1, 0x39, f004062B0}, // 注册账号
 // 		{WM_COMMAND, BN_CLICKED, 0x1965, 0x1975, 0x3B, f00408AA0active}, // 激活专区
 // 		{WM_COMMAND, BN_CLICKED, 0x7DB, 0x7DB, 0x39, f004062F0}, // 查看用户协议
@@ -522,7 +522,7 @@ func (d *muDlg) f0040A900onTimer(nIDEvent int) {
 	switch nIDEvent {
 	case 1:
 		// dll.user32.KillTimer(d.m_hWnd, 1)
-		msg := v0046F448.mumsg_GetMsg(0x66) // "连接服务器"
+		msg := v0046F448msg.Get(0x66) // "连接服务器"
 		// d.f00408D80(msg)
 		func(msg string) {
 			// 渲染界面
@@ -565,21 +565,6 @@ func (d *muDlg) f0040A5A0start() {
 	// dll.shell32.ShellExecute(0, "open", "main.exe", "connect /u192.168.0.102 /p44405", 0, SW_SHOW)
 }
 
-var v0046F448 textManager
-
-type textManager struct {
-	texts [0x8000]*struct {
-		m00  uintptr
-		id   int
-		text string
-		data [10]int
-	}
-}
-
-func (m *textManager) mumsg_GetMsg(id int) string {
-	t := m.texts[id]
-	if t != nil {
-		return t.text
-	}
-	return "msg error"
+func (d *muDlg) f00406520set() {
+	// f004025C0()
 }
