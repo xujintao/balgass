@@ -66,6 +66,8 @@ void commandMenuCleanUp();
 //
 void dec();
 void enc();
+void wtfDec();
+void wtfEnc();
 void about();
 
 #endif //PLUGINDEFINITION_H

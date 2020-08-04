@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\random_cipher.hpp">
+    <ClInclude Include="..\src\cipher_random.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

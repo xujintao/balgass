@@ -71,23 +71,31 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\..\lib\cryptopp;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\lib\cryptopp\Win32\Output\Debug;$(LibraryPath)</LibraryPath>
+    <OutDir>$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>..\..\..\lib\cryptopp_8_2_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\Win32\Output\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\..\lib\cryptopp;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\lib\cryptopp\x64\Output\Debug;$(LibraryPath)</LibraryPath>
+    <OutDir>$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>..\..\..\lib\cryptopp_8_2_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\x64\Output\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\lib\cryptopp;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\lib\cryptopp\Win32\Output\Release;$(LibraryPath)</LibraryPath>
+    <OutDir>$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>..\..\..\lib\cryptopp_8_2_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\Win32\Output\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\..\lib\cryptopp;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\lib\cryptopp\x64\Output\Release;$(LibraryPath)</LibraryPath>
+    <OutDir>$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>..\..\..\lib\cryptopp_8_2_0;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\x64\Output\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -165,7 +173,7 @@
     <ClCompile Include="..\src\test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\random_cipher.hpp" />
+    <ClInclude Include="..\src\cipher_random.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

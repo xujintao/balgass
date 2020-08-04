@@ -37,8 +37,9 @@
     <ClInclude Include="..\src\DockingFeature\GoToLineDlg.h">
       <Filter>DockingFeature</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\random_cipher.hpp" />
     <ClInclude Include="..\src\config.h" />
+    <ClInclude Include="..\src\cipher_wtf.hpp" />
+    <ClInclude Include="..\src\cipher_random.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\main.rc" />

@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-#include "random_cipher.hpp"
+#include "cipher_random.hpp"
 
 size_t hex2bytes(unsigned char* dst, const char* src) {
 	if (src == nullptr) {

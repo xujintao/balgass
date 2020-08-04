@@ -1,13 +1,13 @@
 #pragma once
 #include "config.h"
-#include "tea.h"  // 0
-#include "3way.h" // 1
-#include "cast.h" // 2
-#include "rc5.h"  // 3
-#include "rc6.h"  // 4
-#include "mars.h" // 5
-#include "idea.h" // 6
-#include "gost.h" // 7
+#include "cryptopp/tea.h"  // 0
+#include "cryptopp/3way.h" // 1
+#include "cryptopp/cast.h" // 2
+#include "cryptopp/rc5.h"  // 3
+#include "cryptopp/rc6.h"  // 4
+#include "cryptopp/mars.h" // 5
+#include "cryptopp/idea.h" // 6
+#include "cryptopp/gost.h" // 7
 
 NAMESPACE_BEGIN(RandomCipher)
 
