@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "cipher_random.hpp"
+#include <boost/archive/text_oarchive.hpp>
+#include <iostream>
 
 size_t hex2bytes(unsigned char* dst, const char* src) {
 	if (src == nullptr) {
@@ -119,7 +121,6 @@ text texts[] = {
 };
 
 bool test_random_encrypt() {
-	printf("test test_random_encrypt begin\r\n");
 	for (auto v : texts) {
 		unsigned char* streamPlain = nullptr;
 		unsigned char* streamCipher = nullptr;
@@ -167,12 +168,10 @@ bool test_random_encrypt() {
 			}
 		}
 	}
-	printf("test test_random_encrypt ok\r\n\r\n");
 	return true;
 }
 
 bool test_random_decrypt() {
-	printf("test test_random_decrypt begin\r\n");
 	for (auto v : texts) {
 		unsigned char* streamPlain = nullptr;
 		unsigned char* streamCipher = nullptr;
@@ -220,11 +219,34 @@ bool test_random_decrypt() {
 			}
 		}
 	}
-	printf("test test_random_decrypt ok\r\n\r\n");
 	return true;
 }
 
+bool test_wtf_decrypt() {
+	boost::archive::text_oarchive oa(std::cout);
+	int i = 1;
+	oa << i;
+	return true;
+}
+
+typedef bool (*func)();
+typedef struct {
+	const char* name;
+	func f;
+}test_item;
+test_item items[] = {
+	{ "random_encrypt", test_random_encrypt },
+	{ "random_decrypt", test_random_decrypt },
+	{ "wtf_decrypt", test_wtf_decrypt },
+};
+
 void main() {
-	assert(test_random_encrypt() == true);
-	assert(test_random_decrypt() == true);
+	for (auto i : items) {
+		printf("test %s begin\r\n", i.name);
+		if (i.f() != true) {
+			printf("test %s failed\r\n\r\n", i.name);
+			break;
+		}
+		printf("test %s ok\r\n\r\n", i.name);
+	}
 }

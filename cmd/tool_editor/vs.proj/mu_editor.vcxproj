@@ -99,28 +99,28 @@
     <OutDir>$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>..\..\..\lib\cryptopp_8_2_0;..\..\..\lib\boost_1_73_0;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\Win32\Output\Debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\Win32\Output\Debug;..\..\..\lib\boost_1_73_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(Platform)\$(ProjectName)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>..\..\..\lib\cryptopp_8_2_0;..\..\..\lib\boost_1_73_0;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\x64\Output\Debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\x64\Output\Debug;..\..\..\lib\boost_1_73_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\</OutDir>
     <IntDir>$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);..\..\..\lib\cryptopp_8_2_0;..\..\..\lib\boost_1_73_0</IncludePath>
-    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\Win32\Output\Release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\Win32\Output\Release;..\..\..\lib\boost_1_73_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin64\</OutDir>
     <IntDir>$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\..\lib\cryptopp_8_2_0;..\..\..\lib\boost_1_73_0</IncludePath>
-    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\x64\Output\Release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\lib\cryptopp_8_2_0\cryptopp\x64\Output\Release;..\..\..\lib\boost_1_73_0\stage\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
