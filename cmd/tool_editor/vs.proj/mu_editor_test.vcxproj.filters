@@ -5,5 +5,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cipher_random.hpp" />
+    <ClInclude Include="..\src\cipher_wtf.hpp" />
   </ItemGroup>
 </Project>

@@ -10,3 +10,4 @@ vs.proj/*
 !vs.proj/*.filters
 
 src/cryptopp
+!test_data/*

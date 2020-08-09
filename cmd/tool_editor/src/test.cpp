@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "cipher_random.hpp"
-#include <boost/archive/text_oarchive.hpp>
+#include "cipher_wtf.hpp"
 #include <iostream>
 
 size_t hex2bytes(unsigned char* dst, const char* src) {
@@ -222,21 +222,80 @@ bool test_random_decrypt() {
 	return true;
 }
 
-bool test_wtf_decrypt() {
-	boost::archive::text_oarchive oa(std::cout);
-	int i = 1;
-	oa << i;
+bool test_wtf_encrypt() {
+	FILE* f = fopen("..\\test_data\\message.xml", "rb");
+	if (f == nullptr) {
+		printf("open message.wtf failed, errno: %d\r\n", errno);
+		return false;
+	}
+	fseek(f, 0, SEEK_END);
+	int size = ftell(f);
+	if (size == 0) {
+		fclose(f);
+		printf("message.xml is empty\r\n");
+		return false;
+	}
+	auto bufPlain = std::make_unique<unsigned char[]>(size);
+	rewind(f);
+	fread(bufPlain.get(), 1, size, f);
+	fclose(f);
+
+	size_t lenCipher = WTFCipher::encrypt(nullptr, bufPlain.get(), size);
+	if (lenCipher == 0) {
+		printf("encrypt failed\r\n");
+		return false;
+	}
+	auto bufCipher = std::make_unique<unsigned char[]>(lenCipher);
+	WTFCipher::encrypt(bufCipher.get(), bufPlain.get(), size);
+	for (int i = 0; i < lenCipher; i++) {
+		std::cout << bufCipher[i];
+	}
+	std::cout << std::endl;
 	return true;
 }
 
-typedef bool (*func)();
+bool test_wtf_decrypt() {
+	FILE* f = fopen("..\\test_data\\message.wtf", "rb");
+	if (f == nullptr) {
+		printf("open message.wtf failed, errno: %d\r\n", errno);
+		return false;
+	}
+	fseek(f, 0, SEEK_END);
+	int size = ftell(f);
+	if (size == 0) {
+		fclose(f);
+		printf("message.wtf is empty\r\n");
+		return false;
+	}
+	auto bufCipher = std::make_unique<unsigned char[]>(size);
+	rewind(f);
+	fread(bufCipher.get(), 1, size, f);
+	fclose(f);
+
+	size_t lenPlain = WTFCipher::decrypt(nullptr, bufCipher.get(), size);
+	if (lenPlain == 0) {
+		printf("decrypt failed\r\n");
+		return false;
+	}
+	auto bufPlain = std::make_unique<unsigned char[]>(lenPlain);
+	WTFCipher::decrypt(bufPlain.get(), bufCipher.get(), size);
+	for (int i = 0; i < lenPlain; i++) {
+		std::cout << bufPlain[i];
+	}
+	std::cout << std::endl;
+	return true;
+}
+
 typedef struct {
+	typedef bool(*func)();
 	const char* name;
 	func f;
 }test_item;
+
 test_item items[] = {
 	{ "random_encrypt", test_random_encrypt },
 	{ "random_decrypt", test_random_decrypt },
+	{ "wtf_encrypt", test_wtf_encrypt },
 	{ "wtf_decrypt", test_wtf_decrypt },
 };
 
