@@ -2,6 +2,7 @@
 #include "config.h"
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/vector.hpp>
 #include <sstream>
 
 NAMESPACE_BEGIN(WTFCipher)
@@ -21,32 +22,6 @@ public:
 		index(index), value(value) {}
 };
 
-class msgs {
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive& ar, const unsigned int version) {
-		ar & boost::serialization::make_nvp("count", size);
-		if (msgList == nullptr) {
-			msgList = new msg[size];
-		}
-		for (int i = 0; i < size; i++) {
-			ar & boost::serialization::make_nvp("msg", msgList[i]);
-		}
-	}
-public:
-	msg* msgList;
-	int size;
-	msgs() {
-		msgList = nullptr;
-		size = 0;
-	}
-	~msgs() {
-		if (msgList != nullptr) {
-			delete[] msgList;
-		}
-	}
-};
-
 #pragma pack (1)
 typedef struct {
 	unsigned char flag;
@@ -62,16 +37,29 @@ size_t encrypt(unsigned char* out, const unsigned char* in, size_t len) {
 		return 0;
 	}
 
-	// unmarshal
-	msgs msgs;
+	// unmarshal to std::vector<msg>
+	std::vector<msg> msgs;
 	std::stringstream ss(std::string(in, in + len));
-	boost::archive::xml_iarchive ia(ss);
-	ia >> boost::serialization::make_nvp("msgs", msgs);
+/*	boost::archive::xml_iarchive ia(ss);
+	ia >> BOOST_SERIALIZATION_NVP(msgs);*/
+	try {
+		boost::archive::xml_iarchive ia(ss);
+		ia >> BOOST_SERIALIZATION_NVP(msgs);
+	}
+	catch (const boost::archive::archive_exception& e) {
+		if (out != nullptr) {
+			strcpy((char*)out, e.what());
+		}
+		return strlen(e.what()) + 1;
+	}
+	catch (...) {
+		return 0;
+	}
 
-	// marshal
+	// encode and marshal to wtf
 	size_t outLen = sizeof(head);
-	for (int i = 0; i < msgs.size; i++) {
-		outLen += 4 + msgs.msgList[i].value.length();
+	for (auto m : msgs) {
+		outLen += 4 + m.value.length();
 	}
 	if (out == nullptr) {
 		return outLen;
@@ -81,10 +69,8 @@ size_t encrypt(unsigned char* out, const unsigned char* in, size_t len) {
 	h->flag = 0xCC;
 	h->ver = 1;
 	strcpy(h->unk, "WTF File");
-	h->size = msgs.size;
 	unsigned char* p = buf + sizeof(head);
-	for (int i = 0; i < msgs.size; i++) {
-		msg& m = msgs.msgList[i];
+	for (auto m : msgs) {
 		*(short*)p = m.index;
 		p += 2;
 		size_t size = m.value.length();
@@ -101,12 +87,7 @@ size_t encrypt(unsigned char* out, const unsigned char* in, size_t len) {
 
 size_t decrypt(unsigned char* out, const unsigned char* in, size_t len) {
 	// validate parameter
-	if (in == nullptr || len == 0) {
-		return 0;
-	}
-
-	// validate len
-	if (len < sizeof(head)) {
+	if (in == nullptr || len < sizeof(head)) {
 		return 0;
 	}
 
@@ -116,15 +97,12 @@ size_t decrypt(unsigned char* out, const unsigned char* in, size_t len) {
 		return 0;
 	}
 
-	msgs msgs;
-	msgs.size = h->size;
-	auto msgList = std::make_unique<msg[]>(h->size);
-
 	// index to element array
 	unsigned char* p = (unsigned char*)(in + sizeof(head));
 	len -= sizeof(head);
 
-	// range elements
+	// decode and unmarshal to std::vector<msg>
+	std::vector<msg> msgs;
 	for (int i = 0; i < h->size; i++) {
 		if (len <= 4) {
 			return 0;
@@ -132,30 +110,29 @@ size_t decrypt(unsigned char* out, const unsigned char* in, size_t len) {
 		int index = *(short*)p;
 		p += 2;
 		len -= 2;
-		int bufSize = *(short*)p;
+		int size = *(short*)p;
 		p += 2;
 		len -= 2;
-		if (len < bufSize) {
+		if (len < size) {
 			return 0;
 		}
-		unsigned char* buf = new unsigned char[bufSize];
-		memcpy(buf, p, bufSize);
-		for (int j = 0; j < bufSize; j++) {
+		unsigned char* buf = new unsigned char[size];
+		memcpy(buf, p, size);
+		for (int j = 0; j < size; j++) {
 			buf[j] ^= 0xCA;
 		}
-		// std::vector<unsigned char> v(buf, buf + bufSize);
-		std::vector<unsigned char> v(buf, buf + bufSize);
+		// std::vector<unsigned char> v(buf, buf + size);
+		std::vector<unsigned char> v(buf, buf + size);
 		delete[] buf;
-		msgList[i] = msg(index, std::string(v.begin(), v.end()));
-		p += bufSize;
-		len -= bufSize;
+		msgs.push_back(msg(index, std::string(v.begin(), v.end())));
+		p += size;
+		len -= size;
 	}
-	msgs.msgList = msgList.release();
 
-	// serialization
+	// marshal to xml
 	std::stringstream ss;
 	boost::archive::xml_oarchive oa(ss);
-	oa << boost::serialization::make_nvp("msgs", msgs); // oa << BOOST_SERIALIZATION_NVP(m);
+	oa << BOOST_SERIALIZATION_NVP(msgs); // oa << BOOST_SERIALIZATION_NVP(m);
 	
 	// return
 	std::string outStr = ss.str();

@@ -3,300 +3,301 @@
 <boost_serialization signature="serialization::archive" version="18">
 <msgs class_id="0" tracking_level="0" version="0">
 	<count>74</count>
-	<msg class_id="1" tracking_level="0" version="0">
+	<item_version>0</item_version>
+	<item class_id="1" tracking_level="0" version="0">
 		<index>0</index>
 		<value>不存在此信息</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>1</index>
 		<value>(C) WEBZEN Software Inc.</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>2</index>
 		<value>帮助</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>10</index>
 		<value>帐号：</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>11</index>
 		<value>密码：</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>12</index>
 		<value>进度：</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>13</index>
 		<value>总计：</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>96</index>
 		<value>确认</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>97</index>
 		<value>取消</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>98</index>
 		<value>开始游戏</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>99</index>
 		<value>退出游戏</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>100</index>
 		<value>帐号最多可以由10个英文字母或5个汉字组成。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>101</index>
 		<value>密码最多可以由10个字母组成</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>102</index>
 		<value>连接服务器</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>103</index>
 		<value>官方网站</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>104</index>
 		<value>没有帐号的玩家请先申请帐号</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>105</index>
 		<value>忘记密码了？（请按这里！）</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>106</index>
 		<value>选择服务器后，请按“连接”键</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>107</index>
 		<value>连接失败</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>108</index>
 		<value>与更新服务器连接</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>109</index>
 		<value>正在接收更新信息</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>110</index>
 		<value>接收更新信息失败！#1</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>111</index>
 		<value>接收更新信息失败！#2</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>112</index>
 		<value>分析更新信息</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>113</index>
 		<value>更新信息读入失败</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>114</index>
 		<value>资料信息超过了最大值</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>115</index>
 		<value>列表信息接收失败！#1</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>116</index>
 		<value>列表信息接收失败！#2</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>117</index>
 		<value>文件接收错误（无法找到该文件）</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>118</index>
 		<value>下载错误</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>119</index>
 		<value>列表信息读入失败</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>120</index>
 		<value>该路径不存在</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>121</index>
 		<value>分析列表信息</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>122</index>
 		<value>正在接收更新文件。请稍候</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>123</index>
 		<value>更新顺利完成了</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>124</index>
 		<value>请选择服务器</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>125</index>
 		<value>无法找到该文件。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>126</index>
 		<value>选择“服务器”后，点击“游戏开始”进入游戏。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>127</index>
 		<value>奇迹(MU)已经在运行了</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>129</index>
 		<value>奇迹(MU)</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>130</index>
 		<value>  奇迹(MU)</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>131</index>
 		<value>系统资源或内存不足，无法运行。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>132</index>
 		<value>文件无法运行。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>133</index>
 		<value>无法找到奇迹(MU)的实行文件。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>134</index>
 		<value>网络连接失败</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>135</index>
 		<value>无法与FTP连接</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>136</index>
 		<value>超过了允许的文件最大数量。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>137</index>
 		<value>创建文件出错</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>138</index>
 		<value>下载失败。请重新安装。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>139</index>
 		<value>请重新运行奇迹(MU)。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>140</index>
 		<value>MU Online Auto update.</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>141</index>
 		<value>WINSOCK DLL初始化错误</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>142</index>
 		<value>WINSOCK的版本太低。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>143</index>
 		<value>SOCKET创建失败</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>144</index>
 		<value>错误的窗口句柄</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>145</index>
 		<value>正在下载文件</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>146</index>
 		<value>正在解压缩文件</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>147</index>
 		<value>更新作业结束</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>151</index>
 		<value>无法连接</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>200</index>
 		<value>服务器列表读取失败。</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>201</index>
 		<value>错误</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>9993</index>
 		<value>http://bbs.zhaouc.net</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>9994</index>
 		<value>11</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>9995</index>
 		<value>5</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>9996</index>
 		<value>宋体</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>9997</index>
 		<value>http://yht.zhaouc.net/REG/Register.aspx?market=zhaouc</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>9998</index>
 		<value>http://mu.zhaouc.net/</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>9999</index>
 		<value>http://mu.zhaouc.net</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>10000</index>
 		<value>http://mu.zhaouc.net</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>10001</index>
 		<value>http://mu.zhaouc.net/pop/muchinaweb3.htm</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>10002</index>
 		<value>http://mu.zhaouc.net/client/qita1.htm</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>10003</index>
 		<value>http://mu.zhaouc.net/service/agreement.htm</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>10004</index>
 		<value>http://mu.zhaouc.net/client/index.htm</value>
-	</msg>
-	<msg>
+	</item>
+	<item>
 		<index>10005</index>
 		<value>当您点击“游戏开始”时，即表示您已阅读、了解并同意接受本用户协议的所有内容。</value>
-	</msg>
+	</item>
 </msgs>
