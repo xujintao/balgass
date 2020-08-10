@@ -131,8 +131,19 @@ size_t decrypt(unsigned char* out, const unsigned char* in, size_t len) {
 
 	// marshal to xml
 	std::stringstream ss;
-	boost::archive::xml_oarchive oa(ss);
-	oa << BOOST_SERIALIZATION_NVP(msgs); // oa << BOOST_SERIALIZATION_NVP(m);
+	try {
+		boost::archive::xml_oarchive oa(ss);
+		oa << BOOST_SERIALIZATION_NVP(msgs); // oa << BOOST_SERIALIZATION_NVP(m);
+	}
+	catch (const boost::archive::archive_exception& e) {
+		if (out != nullptr) {
+			strcpy((char*)out, e.what());
+		}
+		return strlen(e.what()) + 1;
+	}
+	catch (...) {
+		return 0;
+	}
 	
 	// return
 	std::string outStr = ss.str();
