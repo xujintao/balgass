@@ -69,6 +69,7 @@ size_t encrypt(unsigned char* out, const unsigned char* in, size_t len) {
 	h->flag = 0xCC;
 	h->ver = 1;
 	strcpy(h->unk, "WTF File");
+	h->size = msgs.size();
 	unsigned char* p = buf + sizeof(head);
 	for (auto m : msgs) {
 		*(short*)p = m.index;
@@ -76,8 +77,10 @@ size_t encrypt(unsigned char* out, const unsigned char* in, size_t len) {
 		size_t size = m.value.length();
 		*(short*)p = size;
 		p += 2;
-		while (size--)
-			p[size] ^= 0xCA;
+		memcpy(p, m.value.data(), size);
+		for (int i = 0; i < size; i++) {
+			p[i] ^= 0xCA;
+		}
 		p += size;
 	}
 	memcpy(out, buf, outLen);
