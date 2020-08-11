@@ -3,12 +3,14 @@ package mumsg
 import "os"
 
 type msg struct {
-	m00     uintptr
-	m04id   int
-	m08text []uint8
+	m00next  *msg
+	m04id    int
+	m08value string
 }
 
 type Msg struct {
+	head      *msg
+	tail      *msg
 	msgs      [0x8000]*msg
 	frameHead struct {
 		m00flag uint8
@@ -18,17 +20,17 @@ type Msg struct {
 	err [32]uint8 // "Msg error"
 }
 
-func (t *Msg) msgListInit() int {
-	m := func(int) *msg { return &msg{} }(12) // new
-	if t.msgs[0] = m; m == nil {
+func (t *Msg) msgListInit() bool {
+	m := &msg{} // new
+	if t.head = m; m == nil {
 		// user32.MessageBox("Error")
-		return 0
+		return false
 	}
-	t.msgs[0].m00 = 0
-	t.msgs[0].m04id = 0
-	t.msgs[0].m08text = nil
-	t.msgs[1] = t.msgs[0]
-	return 1
+	t.head.m00next = nil
+	t.head.m04id = 0
+	t.head.m08value = ""
+	t.tail = t.head
+	return true
 }
 
 func (t *Msg) msgListNew() *msg {
@@ -46,10 +48,14 @@ func (t *Msg) msgListAdd(index int, text []uint8) {
 		return
 	}
 	m.m04id = index
-	m.m08text = make([]uint8, l)
-	copy(m.m08text, text)
-	t.msgs[1] = m
-	t.msgs[2+index] = m
+	m.m08value = string(text)
+	t.head.m00next = m
+	t.tail = m
+	if index < 0 || index >= 0x7FFF {
+		// user32.MessageBox(...)
+		return
+	}
+	t.msgs[index] = m // index in [0,0x7FFF] is rapid
 }
 
 func (*Msg) xorBuffer(buf []uint8, size int) {
@@ -83,7 +89,7 @@ func (t *Msg) LoadWTF(name string) {
 		// user32.MessageBox(...)
 		return
 	}
-	if t.msgListInit() == 0 {
+	if t.msgListInit() == false {
 		return
 	}
 	// fread(m.frame[:], 28, 1, f)
@@ -100,9 +106,11 @@ func (t *Msg) LoadWTF(name string) {
 }
 
 func (t *Msg) Get(id int) string {
-	// t := m.texts[id]
-	// if t != nil {
-	// 	return t.text
-	// }
-	return "msg error"
+	if id < 0 || id >= 0x7FFF || t.msgs[id] == nil {
+		for m := t.head.m00next; m != nil && m.m04id == id; m = m.m00next {
+			return m.m08value
+		}
+		return t.head.m08value
+	}
+	return t.msgs[id].m08value
 }
