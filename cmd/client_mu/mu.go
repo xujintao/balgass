@@ -43,23 +43,23 @@ func (app *muApp) InitInstance() bool {
 
 	// CreateMutexA(NULL, TRUE, "MU AutoUpdate")
 	v0046F448msg.LoadWTF("message.wtf")
-	// if 0 == f00403EE0().f00403C20() { // v00453224.f00403C20()
-	// 	f0041E6D3("设备未初始化 请安装最新的图形驱动程序", 10, 0) // EUC-KR  --> translate.google.com
-	// 	return
-	// }
+
+	// 0x00405B0F: 显卡
+	if false == f00403EE0card().f00403C20() {
+		// f0041E6D3("设备未初始化 请安装最新的图形驱动程序", 10, 0) // EUC-KR  --> translate.google.com
+		// return
+	}
 
 	// 0x00405B31: 注册表
-	f00401870reg().f004015D0Get() // 单例v00463180.f004015D0()
-	// dd := struct {
-	// 	displayDeviceName [128]uint8
-	// }{}
-	// f00433360memset(dd.buf[:], 0, 0x1A8)
-	// EnumDisplayDevicesA(0, 0, &dd, 0)
+	f00401870reg().f004015D0get() // 单例v00463180.f004015D0()
+	var displayDeviceName [128]uint8
+	f00433360memset(displayDeviceName[:], 0, 0x1A8)
+	// user32.EnumDisplayDevicesA(0, 0, displayDeviceName[:], 0)
 	// ...
-	// if 0 != f00433461memcmp(f00401870reg().f004017F0(), dd.displayDeviceName[:], 0x80) {
-	// 	// 0x00405BCD:
-	// 	f0041E6D3("分辨率已重置。请按“选项设置”按钮以指定新的分辨率。", 10, 0) // https://r12a.github.io/app-encodings/
-	// }
+	if 0 != f00433461memcmp(f00401870reg().f004017F0getDeviceName(), displayDeviceName[:], 0x80) {
+		// 0x00405BCD:
+		// f0041E6D3("分辨率已重置。请按“选项设置”按钮以指定新的分辨率。", 10, 0) // https://r12a.github.io/app-encodings/
+	}
 
 	// 0x00405BDA:
 	if 183 /*ERROR_ALREADY_EXISTS*/ == win.GetLastError() {

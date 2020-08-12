@@ -26,8 +26,17 @@ var v012E10F4 [3]uint8 // FC CF AB
 var v012E2210 uint32 = 1
 var v012E2214 = "MUCN"
 var v012E2220 uint32 = 900
-var v012E2224 uint32 = 1
-var v012E2228 uint32 = 16
+
+type displayMode int
+
+const (
+	displayModeFullScreen displayMode = 0
+	displayModeWindow     displayMode = 1
+)
+
+var v012E2224displayMode displayMode
+
+var v012E2228displayColorBit int = 16
 var v012E222C *os.File
 var v012E2338ip = "192.168.0.102"
 var v012E233Cport uint16 = 44405
@@ -38,7 +47,7 @@ var v012E233Cport uint16 = 44405
 // 5: game
 var v012E2340state = 1
 
-var v012E3F08 struct {
+var v012E3F08resolution struct {
 	width  int // 0x320, 800
 	height int // 0x258, 600
 }
@@ -64,7 +73,7 @@ var v01319D98 int
 var v01319D9C int
 var v01319DA0 int
 var v01319DB4 int
-var v01319DB8 [64]uint8
+var v01319DB8name [64]uint8
 var v01319DFC = "Chs"
 var v01319E00 = "chinese"
 
@@ -139,10 +148,10 @@ func f004D5F98mainWndProcOrigin(hWnd win.HWND, message uint32, wParam, lParam ui
 		active := uint(wParam) & 0xFFFF // WA_ACTIVE:1, WA_CLICKACTIVE:2, WA_INACTIVE:0
 		if active == 0 {                // WA_INACTIVE
 			// 0x004D6633
-			if v012E2224 == 0 {
+			if v012E2224displayMode == displayModeFullScreen {
 				v01319D95 = false
 			}
-			if v012E2224 == 1 {
+			if v012E2224displayMode == displayModeWindow {
 				// v08C88BC0 = 0
 				// v08C88BC1 = 0
 				// v08C88BC2 = 0
@@ -738,7 +747,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		// 	ebp1.f004D9F88()
 		// 	return ebp1A1C
 		// }
-	} else if v012E2224 == 1 {
+	} else if v012E2224displayMode == displayModeWindow {
 		// ebpC = dll.kernel32.CreateMutex(0, 1, "MuOnline")
 		// if dll.kernel32.GetLastError() == 183 {
 		// 	dll.kernel32.CloseHandle(ebpC)
@@ -851,24 +860,14 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 
 	// 0x004D80A8: read config.ini
 	v01319E08log.f00B38AE4printf("> To read config.ini.\r\n")
-	// 追踪只能追踪一个函数
+	// f004D7281函数被花了
 	f004D7281 := func() bool {
-		// CURRENT_USER
-		// SOFTWARE\\Webzen\\Mu\\Config
 		// 348h个字节的局部变量
 
-		var ebp338 struct {
-			patch [3]uint8
-		}
-		var ebp334 version
-		var ebp328cmd []string
-
-		// ebp-220 ~ ebp-10D
+		// config file version
 		var buf [276]uint8
 		buf[0] = v0114D912                 // 0
 		f00DE8100memset(buf[1:], 0, 0x113) // 0x113=275
-
-		// ebp-108 ~ ebp-9
 		var bufDir [256]uint8
 		win.GetCurrentDirectory(0x100, (*uint16)(unsafe.Pointer(&bufDir[0])))
 		f00DE8000strcpy(buf[:], bufDir[:])
@@ -876,87 +875,102 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		if bufDir[nameLen-1] == 0x5C {
 			f00DE8010strcat(buf[:], "config.ini")
 		}
-		f00DE8010strcat(buf[:], "\\config.ini") // cat拼凑字符串
-
+		f00DE8010strcat(buf[:], "\\config.ini")                                                             // cat拼凑字符串
 		win.GetPrivateProfileStringA("LOGIN", "Version", v0114D913, v01319A44version[:], 8, string(buf[:])) // 1.04.44写到全局变量中
-		// ebp8的底层数组在堆上
+
+		// 0x004D7338: exe file version
+		var ebp338 struct {
+			patch [3]uint8
+		}
+		var ebp334 version
+		var ebp328cmd []string
 		ebp8cmd := os.Args // GetCommandLine()
+		if f004D52ABtruncateCmd(ebp328cmd, ebp8cmd) == false {
+			// 0x004D742E
+		}
+		if f004D55C6queryVersion(ebp328cmd[0], &ebp334) == false {
+			// 0x004D741B
+		}
+		f00DE817Asprintf(v01319A38version[:], "%d.%02d", ebp334.major, ebp334.minor)
+		if ebp334.patch > 0 { // jle 0x004D7419
+			*(*uint16)(unsafe.Pointer(&ebp338)) = v0114DD64
+			ebp338.patch[2] = 0
 
-		// 0x004D7348
-		if f004D52ABtruncateCmd(ebp328cmd, ebp8cmd) && f004D55C6queryVersion(ebp328cmd[0], &ebp334) {
-			// 0x09FF7399
-			f00DE817Asprintf(v01319A38version[:], "%d.%02d", ebp334.major, ebp334.minor)
-			if ebp334.patch > 0 { // jle 0x004D,7419
-				*(*uint16)(unsafe.Pointer(&ebp338)) = v0114DD64
-				ebp338.patch[2] = 0
-
-				// 我的猜测是从patch=26开始使用字母和+标记标识patch，比如
-				// 27就是A+
-				// 28就是B+
-				// 44就是R+
-				if ebp334.patch > 0x1A { // jle 0x004D,73EE
-					ebp338.patch[0] = 'A' - 27 + uint8(ebp334.patch) // 65-27+44=82='R'
-					ebp338.patch[1] = '+'
-				}
-				f00DE8010strcat(v01319A38version[:], string(ebp338.patch[:]))
+			// 我的猜测是从patch=26开始使用字母和+标记标识patch，比如
+			// 27就是A+
+			// 28就是B+
+			// 44就是R+
+			if ebp334.patch > 0x1A { // jle 0x004D,73EE
+				ebp338.patch[0] = 'A' - 27 + uint8(ebp334.patch) // 65-27+44=82='R'
+				ebp338.patch[1] = '+'
 			}
+			f00DE8010strcat(v01319A38version[:], string(ebp338.patch[:]))
 		}
 
-		// f004D7174 这个函数在搞什么？
-		func(fileName string) bool {
+		// 0x004D743F: partition.inf
+		func(fileName string) bool { // f004D7174("partition.inf")
 			// 204个字节的局部变量
-			v01319DB8[0] = 0
-			var ebpCC uint32 = 0
-
-			var partition struct {
-				num  [64]uint8
-				name [64]uint8
-				ip   [64]uint8
-			}
-			ebp4 := f00DE909Efopen(fileName, "rt")
-			if ebp4 == nil {
+			v01319DB8name[0] = 0
+			ebp4file := f00DE909Efopen(fileName, "rt")
+			if ebp4file == nil {
 				return false
 			}
 			// 不能超过50条记录
+			ebpCC := 0
+			var partition struct {
+				name [64]uint8
+				ip   [64]uint8
+				port [64]uint8
+			}
 			for ebpCC < 50 {
-				// f00DECD20
-				nRet := f00DECD20(ebp4, "%s", partition.num[:])
-				if nRet == -1 {
+				if f00DECD20fscanf(ebp4file, "%s", partition.name[:]) == -1 {
 					break
 				}
-				nRet = f00DECD20(ebp4, "%s", partition.name[:])
-				if nRet == -1 {
+				if f00DECD20fscanf(ebp4file, "%s", partition.ip[:]) == -1 {
 					break
 				}
-				nRet = f00DECD20(ebp4, "%s", partition.ip[:])
-				if nRet == -1 {
+				if f00DECD20fscanf(ebp4file, "%s", partition.port[:]) == -1 {
 					break
 				}
-
-				// _00DE94F0
-				nRet = func(x []uint8, y []uint8) int32 {
-					return -1
-				}(v01319A50ip[:], partition.name[:])
-				if nRet == 0 {
-					// _00DECBD1
-					nRet := func(x []uint8) uint32 {
-						return 0
-					}(partition.ip[:])
-					if nRet == uint32(v012E233Cport) {
-						f00DE8000strcpy(v01319DB8[:], partition.num[:])
-						// _00DE8C84
-						func() {
-
-						}()
-						return true
-					}
+				if f00DE94F0strcmp(v01319A50ip[:], partition.ip[:]) == 0 && f00DECBD1atoi(partition.port[:]) == int(v012E233Cport) {
+					f00DE8000strcpy(v01319DB8name[:], partition.name[:])
+					f00DE8C84close(ebp4file)
+					return true
 				}
 				ebpCC++
 			}
-			f00DE8C84close(ebp4)
+			f00DE8C84close(ebp4file)
 			return false
 		}("partition.inf")
-		// 接下来还有一段处理，我没看
+
+		// 0x004D744A: EnumDisplaySettings
+		// f00B0EF1Ecard().f00B0EF7Benum()
+		// f00B0E9BFreg().f00B0EA1Cconstruct("SOFTWARE\\Webzen\\Mu\\Config")
+		// f00B0E9BFreg().f00B0EBC4get()
+
+		// 0x004D7473: FullScreenMode
+		// if f00B0E9BFreg().f00B0EE48getFullScreen() == 0 {
+		// 	v012E2224displayMode = displayModeWindow
+		// } else {
+		// 	v012E2224displayMode = displayModeFullScreen
+		// }
+
+		// 0x004D74A1: DisplayDeviceModelIndex/resolution
+		// m := f00B0EF1Ecard().f00B0F1F6getMode(f00B0E9BFreg().f00B0EE36getModeIndex())
+		// if m == nil {
+		// 	m = f00B0EF1Ecard().f00B0F1F6getMode(0)
+		// }
+		// v012E3F08resolution.width = m.dmPelsWidth
+		// v012E3F08resolution.height = m.dmPelsHeight
+		// v01308EC4resolution.width = v012E3F08resolution.width / v0114AE18 // widht/640.0
+		// v01308EC4resolution.height = v012E3F08resolution.height / v0114AE10 // height/480.0
+
+		// 0x004D7532: DisplayColorBit
+		// if f00B0E9BFreg().f00B0EE5AgetColorBit() == 1 {
+		// 	v012E2228displayColorBit = 32
+		// } else {
+		// 	v012E2228displayColorBit = 16
+		// }
 		return true
 	}
 	if f004D7281() == true {
@@ -988,12 +1002,12 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 	if v012E2210 == 1 {
 		// user32.ShowCursor(0)
 	}
-	if v012E2224 == 0 {
+	if v012E2224displayMode == displayModeFullScreen {
 		// user32.DisplaySetting
 	}
 
 	// 0x004D828B: window init
-	v01319E08log.f00B38AE4printf("> Screen size = %d x %d.\r\n", v012E3F08.height, v012E3F08.width)
+	v01319E08log.f00B38AE4printf("> Screen size = %d x %d.\r\n", v012E3F08resolution.height, v012E3F08resolution.width)
 	v01319D70hInstance = hInstance
 	v01319D6ChWnd = f004D6F82initWindow(hInstance, iCmdShow) // 创建hWnd
 	v01319E08log.f00B38AE4printf("> Start window success.\r\n")
@@ -1028,9 +1042,9 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 
 	// 0x004D83E3:
 	f00DEE871setlocale(0 /*LC_ALL*/, v01319E00)
-	f0043BF3FgetT4003().f0043BF9C(v01319D6ChWnd, v012E3F08.width, v012E3F08.height) // 800*600
+	f0043BF3FgetT4003().f0043BF9C(v01319D6ChWnd, v012E3F08resolution.width, v012E3F08resolution.height) // 800*600
 	// f0090E94C().f0090B256()
-	f00A49798game().f00A49E40init1(v01319D6ChWnd, v012E3F08.height, v012E3F08.width) // r6602 floating point support not loaded
+	f00A49798game().f00A49E40init1(v01319D6ChWnd, v012E3F08resolution.height, v012E3F08resolution.width) // r6602 floating point support not loaded
 	/*
 		if f00B0E9BF().f00B0EE6C() {
 			v01319D67 = true
@@ -1147,7 +1161,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		*/
 	}
 	// 0x004D8C68: SystemparametersInfo
-	if v012E2224 == 0 {
+	if v012E2224displayMode == displayModeFullScreen {
 		/*
 			user32.SystemParametersInfo(0x61, 1, &ebp594, 0)
 			user32.SystemParametersInfo(0x0E, 0, &v012E2220, 0)
@@ -1181,7 +1195,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 			win.DispatchMessage(&ebp28msg) // 到WndProc
 		} else {
 			// 0x004D8D80
-			if v012E2224 == 0 { // 0 means hack?
+			if v012E2224displayMode == displayModeFullScreen { // 0 means hack?
 				// 0x004D8D91 0x004D8D95
 				v01319D9C++
 				if v01319D9C > 30 {
@@ -1213,9 +1227,9 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 				}
 			}
 			// 0x004D8E7F 0x004D8E83
-			if v012E2224 == 1 || v01319D95 == true {
+			if v012E2224displayMode == displayModeWindow || v01319D95 == true {
 				f004E6233handleState(v01319D74hDC) // 状态机 重要
-			} else if v012E2224 == 0 {
+			} else if v012E2224displayMode == displayModeFullScreen {
 				win.SetForegroundWindow(v01319D6ChWnd)
 				win.SetFocus(v01319D6ChWnd)
 				if v01319DA0 > 1 {

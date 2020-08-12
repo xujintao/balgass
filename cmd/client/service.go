@@ -989,7 +989,7 @@ func f004A7D34getWindowManager() *serviceManager {
 	if v01319730once&1 == 0 {
 		v01319730once |= 1
 		v0130F728.f004A7A82()
-		// f00DE8BF6(0x0114817A)
+		// f00DE8BF6atexit(f0114817A)
 	}
 	return &v0130F728
 }
@@ -1196,7 +1196,7 @@ func (t *serviceManager) f004A9F3B(buf []uint8) {
 func f0043BF3FgetT4003() *t4003 {
 	v01308D80once.Do(func() {
 		v01308D18.f0043BF18init()
-		// f00DE8BF6(f01148111)
+		// f00DE8BF6atexit(f01148111)
 	})
 	return &v01308D18
 }

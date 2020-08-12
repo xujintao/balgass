@@ -3,9 +3,22 @@ package main
 import (
 	"os"
 	"strings"
+	"unsafe"
 
 	"github.com/xujintao/balgass/win"
 )
+
+func f00414B5Cnew(size int) unsafe.Pointer {
+	return nil
+}
+
+func f00433360memset(dst []uint8, c uint8, size int) {
+
+}
+
+func f00433461memcmp(dst []uint8, src []uint8, size int) int {
+	return 0
+}
 
 func f00449EEAmfcAfxWinMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCmdLine string, iCmdShow int) int {
 	retCode := -1

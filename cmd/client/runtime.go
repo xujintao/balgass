@@ -274,9 +274,11 @@ func f00DE92E0strstr(haystack string, needle string) []uint8 {
 	return nil
 }
 
-func f00DECD20(f *os.File, strfmt string, y []uint8) int32 {
+func f00DECD20fscanf(f *os.File, strfmt string, y []uint8) int {
 	return -1
 }
+
+func f00DE8BF6atexit(func()) {}
 
 // setlocale?
 func f00DEE8171(x uint32, lang string) {
