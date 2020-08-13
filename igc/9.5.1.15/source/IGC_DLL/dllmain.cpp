@@ -271,7 +271,8 @@ void SetValues()
 	MemAssign(0x00A0A5E1 + 1, (DWORD)0x0941B4CA); // 1.04R, jump over complicated shell logic, which would send trap message
 	//MemAssign(0x0A0C438C + 6, (BYTE)0xDF); // 1.04R, be attacked send, 1D->DF, compatible with s9 server
 	MemAssign(0x004D7D42 + 1, (BYTE)0x42); // support multi instance
-	
+	MemAssign(0x00B0F1C1 + 1, (BYTE)0x00); // discard high dmDisplayFrequency, fixed resolution mismatching
+
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
 	//HookManager.MakeJmpHook(CONNECT_HOOK1, 5, onCsHook);

@@ -107,57 +107,10 @@ func f00403EE0card() *card {
 }
 
 type DEVMODEA struct {
-	dmDeviceName    [32]uint8
-	dmSpecVersion   uint16
-	dmDriverVersion uint16
-	dmSize          uint16
-	dmDriverExtra   uint16
-	dmFields        uint32
-	/*
-		union {
-		  struct {
-			short dmOrientation;
-			short dmPaperSize;
-			short dmPaperLength;
-			short dmPaperWidth;
-			short dmScale;
-			short dmCopies;
-			short dmDefaultSource;
-			short dmPrintQuality;
-		  } DUMMYSTRUCTNAME;
-		  POINTL dmPosition;
-		  struct {
-			POINTL dmPosition;
-			DWORD  dmDisplayOrientation;
-			DWORD  dmDisplayFixedOutput;
-		  } DUMMYSTRUCTNAME2;
-		} DUMMYUNIONNAME;
-	*/
-	dmColor       int16
-	dmDuplex      int16
-	dmYResolution int16
-	dmTTOption    int16
-	dmCollate     int16
-	dmFormName    [32]uint8
-	dmLogPixels   uint16
-	dmBitsPerPel  uint32
-	dmPelsWidth   uint32
-	dmPelsHeight  uint32
-	/*
-		union {
-		  DWORD dmDisplayFlags;
-		  DWORD dmNup;
-		} DUMMYUNIONNAME2;
-	*/
-	dmDisplayFrequency uint32
-	dmICMMethod        uint32
-	dmICMIntent        uint32
-	dmMediaType        uint32
-	dmDitherType       uint32
-	dmReserved1        uint32
-	dmReserved2        uint32
-	dmPanningWidth     uint32
-	dmPanningHeight    uint32
+	dmBitsPerPel       uint32 // 0x68
+	dmPelsWidth        uint32 // 0x6C
+	dmPelsHeight       uint32 // 0x70
+	dmDisplayFrequency uint32 // 0x78
 }
 type DEVMODEx struct {
 	index   int
@@ -180,30 +133,13 @@ type mode struct {
 }
 
 type card struct {
-	m00     **card
-	m18     *mode // tree
-	m1Csize int
-	m20     **card
-	m24     *mode
-	m28     int
-	m2C     int
-}
-
-func (t *card) f00403020() {
-	t.m28 = 0
-	t.m2C = -1
-	// t.f00402F40()
-	func(p *mode) {
-		if p.mC1 {
-			return
-		}
-	}(t.m18.m04)
-	t.m18.m00 = t.m18
-	t.m18.m04 = t.m18
-	t.m18.m08 = t.m18
-	t.m1Csize = 0
-	t.m20 = t.m00
-	t.m24 = t.m18
+	m00      **card
+	m18modes []*mode // tree
+	m1Csize  int
+	m20      **card
+	m24      *mode
+	m28      int
+	m2C      int
 }
 
 func (t *card) f00403E70construct() {
@@ -213,32 +149,30 @@ func (t *card) f00403E70construct() {
 		*c = t
 		t.m00 = c
 		// t.f00402FD0()
-		t.m18 = func() *mode {
-			return &mode{
-				m00: nil,
-				m04: nil,
-				m08: nil,
-				mC0: true,
-				mC1: false,
-			}
+		t.m18modes = func() []*mode {
+			return nil
 		}()
-		t.m18.mC1 = true
-		t.m18.m00 = t.m18
-		t.m18.m04 = t.m18
-		t.m18.m08 = t.m18
 		t.m1Csize = 0
 	}()
 	t.m20 = nil
 	t.m24 = nil
-	t.f00403020()
+	// t.f00403020()
 }
 
-func (t *card) f00403080(devMode *DEVMODEA) bool {
-	if devMode.dmDisplayFrequency != 60 {
+func (t *card) f00403080filter(devMode *DEVMODEA) bool {
+	if devMode.dmDisplayFrequency != 60 { // hook to <48
 		return false
 	}
 	if devMode.dmPelsWidth < 800 || devMode.dmPelsHeight < 600 || devMode.dmBitsPerPel != 32 {
 		return false
+	}
+	for _, node := range t.m18modes {
+		m := node.devModex.devMode
+		if devMode.dmPelsWidth == m.dmPelsWidth &&
+			devMode.dmPelsHeight == m.dmPelsHeight {
+			// && devMode.dmDisplayFrequency == m.dmDisplayFrequency { // hook discard the equality operator of dmDisplayFrequency, fixed resolution mismatching
+			return false
+		}
 	}
 	return true
 }
@@ -252,7 +186,7 @@ func (t *card) f00403080(devMode *DEVMODEA) bool {
 // 1400*1050(4:3)
 // 1920*1080(16:9)
 func (t *card) f00403C20() bool {
-	t.f00403020()
+	// t.f00403020()
 	t.m28 = 0
 	t.m2C = -1
 	var devMode DEVMODEA
@@ -267,7 +201,7 @@ func (t *card) f00403C20() bool {
 		modex.index = index
 		modex.id = id
 
-		if t.f00403080(&devMode) == true {
+		if t.f00403080filter(&devMode) == true {
 			switch {
 			case devMode.dmPelsWidth/4*3 == devMode.dmPelsHeight:
 				modex.w = 4

@@ -34,6 +34,9 @@ typedef struct {
 hook hooks[] = {
 	{ DIR_MEMASSIGN, 0x00405B22 + 1, (DWORD)"设备未初始化 请安装最新的图形驱动程序"/*gbk encode*/, 4, 0 },
 	{ DIR_MEMASSIGN, 0x00405BD0 + 1, (DWORD)"分辨率已重置。请按“选项设置”按钮以指定新的分辨率。"/*gbk encode*/, 4, 0 },
+	{ DIR_MEMASSIGN, 0x0040309D + 3, 0x30, 1, 0 }, // dmDisplayFrequency limit to >= 48
+	{ DIR_MEMASSIGN, 0x004030A6 + 1, 0x8C, 1, 0 }, // dmDisplayFrequency jne -> jl
+	{ DIR_MEMASSIGN, 0x0040314C + 0, 0xEB, 1, 0 }, // discard high dmDisplayFrequency, fixed resolution mismatching
 };
 
 void handleHooks() {

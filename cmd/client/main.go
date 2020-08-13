@@ -944,7 +944,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		}("partition.inf")
 
 		// 0x004D744A: EnumDisplaySettings
-		// f00B0EF1Ecard().f00B0EF7Benum()
+		f00B0EF1EmodeManager().f00B0EF7BenumMode()
 		// f00B0E9BFreg().f00B0EA1Cconstruct("SOFTWARE\\Webzen\\Mu\\Config")
 		// f00B0E9BFreg().f00B0EBC4get()
 
@@ -956,9 +956,9 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		// }
 
 		// 0x004D74A1: DisplayDeviceModelIndex/resolution
-		// m := f00B0EF1Ecard().f00B0F1F6getMode(f00B0E9BFreg().f00B0EE36getModeIndex())
+		// m := f00B0EF1EmodeManager().f00B0F1F6getMode(f00B0E9BFreg().f00B0EE36getModeIndex())
 		// if m == nil {
-		// 	m = f00B0EF1Ecard().f00B0F1F6getMode(0)
+		// 	m = f00B0EF1EmodeManager().f00B0F1F6getMode(0)
 		// }
 		// v012E3F08resolution.width = m.dmPelsWidth
 		// v012E3F08resolution.height = m.dmPelsHeight

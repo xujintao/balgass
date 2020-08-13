@@ -1320,3 +1320,98 @@ func (t *t0114E1ACwindow) do2(hWnd win.HWND) {
 func (t *t0114E1ACwindow) do12initWindow(hWnd win.HWND, width, height int, charNum uint, passwd bool) {
 
 }
+
+// ----------------------------------------------
+var v09D96AAConce sync.Once
+var v09D96A84modeManager modeManager
+
+func f00B0EF1EmodeManager() *modeManager {
+	v09D96AAConce.Do(func() {
+		// v09D96A84modeManager.f00B0EE90construct()
+	})
+	return &v09D96A84modeManager
+}
+
+type DEVMODE struct {
+	dmBitsPerPel       uint32 // 0x68
+	dmPelsWidth        uint32 // 0x6C
+	dmPelsHeight       uint32 // 0x70
+	dmDisplayFrequency uint32 // 0x78
+}
+
+type DEVMODEx struct {
+	devMode DEVMODE
+	index   int
+	w       int
+	h       int
+	isWide  bool
+}
+
+// size:0xC4
+type mode struct {
+	m00     [3]*mode
+	index   int
+	devMode DEVMODE
+	mC0     bool
+	mC1     bool
+}
+type modeManager struct {
+	m18modes []*mode // tree
+	m1Csize  int
+}
+
+func (t *modeManager) f00B0F0E0filter(devMode *DEVMODE) bool {
+	if devMode.dmDisplayFrequency < 48 {
+		return false
+	}
+	if devMode.dmPelsWidth < 800 || devMode.dmPelsHeight < 600 || devMode.dmBitsPerPel != 32 {
+		return false
+	}
+	for _, node := range t.m18modes {
+		m := node.devMode
+		if devMode.dmPelsWidth == m.dmPelsWidth && devMode.dmPelsHeight == m.dmPelsHeight {
+			// && devMode.dmDisplayFrequency == m.dmDisplayFrequency { // hook discard the equality operator of dmDisplayFrequency, fixed resolution mismatching
+			return false
+		}
+	}
+	return true
+}
+
+func (t *modeManager) f00B0EF7BenumMode() {
+	var ebpB8devModex DEVMODEx
+	ebp8index := 0
+	ebp4id := 0
+	for {
+		// if user32.EnumDisplaySettings(0, ebp4id, &ebpB8devModex.devMode) == false {
+		// 	break
+		// }
+		ebpB8devModex.index = ebp8index
+		ebpB8devModex.isWide = false
+		if t.f00B0F0E0filter(&ebpB8devModex.devMode) {
+			switch {
+			case ebpB8devModex.devMode.dmPelsWidth/4*3 == ebpB8devModex.devMode.dmPelsHeight:
+				ebpB8devModex.w = 4
+				ebpB8devModex.h = 3
+			case ebpB8devModex.devMode.dmPelsWidth/16*9 == ebpB8devModex.devMode.dmPelsHeight:
+				ebpB8devModex.w = 16
+				ebpB8devModex.h = 9
+				ebpB8devModex.isWide = true
+			case ebpB8devModex.devMode.dmPelsWidth/16*10 == ebpB8devModex.devMode.dmPelsHeight:
+				ebpB8devModex.w = 16
+				ebpB8devModex.h = 10
+				ebpB8devModex.isWide = true
+			default:
+				goto label1
+			}
+			// ebp168.f00B10FE8(ebp218.f00B0F6BD(&ebp8index, &ebpB8devModex))
+			// t.f00B0F385addMode(&ebp224, &ebp168)
+			ebp8index++
+		}
+	label1:
+		ebp4id++
+	}
+}
+
+func (t *modeManager) f00B0F1F6getMode(index int) {
+
+}
