@@ -86,12 +86,12 @@ void SetHook()
 	//HookThis((DWORD)&SetPrice, 0x00594618); // S8 E3 
 	HookThis(DMG_SEND_HOOK, 6, (DWORD)&dmgSendHook); // 1.04R
 	HookThis(DMG_SEND_RF_HOOK, 6, (DWORD)&dmgSendRFHook); // 1.04R
-	HookThis(HP_SEND_HOOK, 7, (DWORD)&HPSendHook); // 1.04R
-	HookThis(MANA_SEND_HOOK, 7, (DWORD)&manaSendHook); // 1.04R
-	HookThis(HP_SEND_DK_HOOK, 7, (DWORD)&HPSendDKHook); // 1.04R
-	HookThis(HP_SEND_C_HOOK, 5, (DWORD)&HPSendCHook); // 1.04R
-	HookThis(MANA_SEND_DK_HOOK, 7, (DWORD)&ManaSendDKHook); // 1.04R
-	HookThis(MANA_SEND_C_HOOK, 5, (DWORD)&ManaSendCHook); // 1.04R
+	//HookThis(HP_SEND_HOOK, 7, (DWORD)&HPSendHook); // 1.04R
+	//HookThis(MANA_SEND_HOOK, 7, (DWORD)&manaSendHook); // 1.04R
+	//HookThis(HP_SEND_DK_HOOK, 7, (DWORD)&HPSendDKHook); // 1.04R
+	//HookThis(HP_SEND_C_HOOK, 5, (DWORD)&HPSendCHook); // 1.04R
+	//HookThis(MANA_SEND_DK_HOOK, 7, (DWORD)&ManaSendDKHook); // 1.04R
+	//HookThis(MANA_SEND_C_HOOK, 5, (DWORD)&ManaSendCHook); // 1.04R
 	HookThis(SKILL_65K_HOOK, 9, (DWORD)&FixSkill65k); // 1.04R
 	HookThis(ERRTEL_MIX_STAFF_HOOK, 8, (DWORD)&ErrtelMixStaffFix); // 1.04R
 	HookThis(ITEM_LEVEL_REQ_HOOK, 6, (DWORD)&ItemLevelReqFix); // 1.04R

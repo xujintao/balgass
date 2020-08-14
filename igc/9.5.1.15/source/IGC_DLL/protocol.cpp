@@ -172,12 +172,14 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 		case 0x17:
 			GCDiePlayerSend((PMSG_DIEPLAYER*)aRecv);
 			break;
+		/*
 		case 0x26:
 			GCRefillSend((PMSG_REFILL*)aRecv);
 			break;
 		case 0x27:
 			GCManaSend((PMSG_MANASEND*)aRecv);
 			break;
+		*/
 		case 0x44:
 			handlePartyHPMP((PMSG_PARTY_COUNT*)aRecv);
 			break;
