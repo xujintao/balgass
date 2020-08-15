@@ -14,6 +14,7 @@
 //~~ Same map index can be defined only one in file
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //	Name: Name of a map, used for in-file description and logging purpose
+//	annotation: s/<Map(.*)>/<Map$1 annotation="">
 //
 // ### MonsterSpawn::Map::Spot ###
 //	Type: Type of spot:
@@ -81,7 +82,7 @@
 -->
 
 <MonsterSpawn>
-	<Map Number="0" Name="Lorencia">
+	<Map Number="0" Name="Lorencia" annotation="勇者大陆">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="226" Distance="0" StartX="122" StartY="110" Dir="3" /> <!-- -->
 			<!-- <Spawn Index="230" Distance="0" StartX="62" StartY="130" Dir="3" /> --> <!-- Wandering Merchant Alex ~ shop managed via IGC_ShopList.xml -->
@@ -146,7 +147,7 @@
 		</Spot>
 	</Map>
 	
-	<Map Number="1" Name="Dungeon (1 ~ 3)">
+	<Map Number="1" Name="Dungeon (1 ~ 3)" annotation="地下城">
 		<Spot Type="0" Description="NPC/Traps">									
 			<Spawn Index="101" Distance="0" StartX="10" StartY="26" Dir="1" /> <!-- -->
 			<Spawn Index="101" Distance="0" StartX="11" StartY="26" Dir="1" /> <!-- -->
@@ -467,7 +468,7 @@
 		</Spot>
 	</Map>
 	
-	<Map Number="2" Name="Devias">
+	<Map Number="2" Name="Devias" annotation="冰风谷">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="229" Distance="0" StartX="183" StartY="30" Dir="3" /> <!-- -->
 		<!-- <Spawn Index="231" Distance="0" StartX="8" StartY="77" Dir="3" /> --> <!-- Thompson Kenel ~ shop managed via IGC_ShopList.xml -->
@@ -557,7 +558,7 @@
 		</Spot>
 	</Map>
 	
-	<Map Number="3" Name="Noria">
+	<Map Number="3" Name="Noria" annotation="仙踪林">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="237" Distance="0" StartX="171" StartY="105" Dir="3" /> <!-- -->
 			<Spawn Index="238" Distance="0" StartX="180" StartY="103" Dir="1" /> <!-- -->
@@ -601,7 +602,7 @@
 		</Spot>
 	</Map>
 	
-	<Map Number="4" Name="Lost Tower (1 ~ 7)">
+	<Map Number="4" Name="Lost Tower (1 ~ 7)" annotation="失落之塔">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="103" Distance="0" StartX="5" StartY="175" Dir="3" /> <!-- -->
 			<Spawn Index="103" Distance="0" StartX="6" StartY="175" Dir="3" /> <!-- -->
@@ -1198,14 +1199,14 @@
 		</Spot>
 	</Map>
 
-	<Map Number="6" Name="Arena">
+	<Map Number="6" Name="Arena" annotation="竞技场">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="200" Distance="6" StartX="63" StartY="160" Dir="1" /> <!-- Battle Soccer Ball -->
 		<!-- <Spawn Index="239" Distance="6" StartX="72" StartY="164" Dir="1" /> --> <!--  Arena Guard ~ shop managed via IGC_ShopList.xml -->
 		</Spot>
 	</Map>
 
-	<Map Number="7" Name="Atlans (1 ~ 3)">
+	<Map Number="7" Name="Atlans (1 ~ 3)" annotation="亚特兰蒂斯">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="258" Distance="0" StartX="15" StartY="17" Dir="3" /> --> <!-- LMS NPC, spawn managed from IGC_LastManStanding.xml -->
 			<!-- <Spawn Index="414" Distance="0" StartX="12" StartY="14" Dir="3" /> --> <!-- -->
@@ -1553,7 +1554,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="8" Name="Tarkan (1 ~ 2)">
+	<Map Number="8" Name="Tarkan (1 ~ 2)" annotation="死亡沙漠">
 		<Spot Type="2" Description="Single Point Monster">
 			<Spawn Index="61" Distance="30" StartX="7" StartY="205" Dir="-1" /> <!-- -->
 			<Spawn Index="61" Distance="30" StartX="5" StartY="214" Dir="-1" /> <!-- -->
@@ -1775,7 +1776,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="10" Name="Icarus">
+	<Map Number="10" Name="Icarus" annotation="天空之城">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="77" Distance="30" StartX="34" StartY="238" Dir="1" /> <!-- -->
 		</Spot>
@@ -1862,7 +1863,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="24" Name="Kalima 1">
+	<Map Number="24" Name="Kalima 1" annotation="卡利玛神庙/失落的地图">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="259" Distance="0" StartX="7" StartY="19" Dir="2" /> --> <!-- Oracle Layla ~ shop managed via IGC_ShopList.xml -->
 		</Spot>
@@ -1931,7 +1932,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="25" Name="Kalima 2">
+	<Map Number="25" Name="Kalima 2" annotation="">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="259" Distance="0" StartX="7" StartY="19" Dir="2" /> --> <!-- Oracle Layla ~ shop managed via IGC_ShopList.xml -->
 		</Spot>
@@ -2000,7 +2001,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="26" Name="Kalima 3">
+	<Map Number="26" Name="Kalima 3" annotation="">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="259" Distance="0" StartX="7" StartY="19" Dir="2" /> --> <!-- Oracle Layla ~ shop managed via IGC_ShopList.xml -->
 		</Spot>
@@ -2069,7 +2070,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="27" Name="Kalima 4">
+	<Map Number="27" Name="Kalima 4" annotation="">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="259" Distance="0" StartX="7" StartY="19" Dir="2" /> --> <!-- Oracle Layla ~ shop managed via IGC_ShopList.xml -->
 		</Spot>
@@ -2138,7 +2139,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="28" Name="Kalima 5">
+	<Map Number="28" Name="Kalima 5" annotation="">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="259" Distance="0" StartX="7" StartY="19" Dir="2" /> --> <!-- Oracle Layla ~ shop managed via IGC_ShopList.xml -->
 		</Spot>
@@ -2207,7 +2208,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="29" Name="Kalima 6">
+	<Map Number="29" Name="Kalima 6" annotation="">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="259" Distance="0" StartX="7" StartY="19" Dir="2" /> --> <!-- Oracle Layla ~ shop managed via IGC_ShopList.xml -->
 			<Spawn Index="567" Distance="0" StartX="10" StartY="28" Dir="2" /> <!-- -->
@@ -2283,7 +2284,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="30" Name="Valley of Loren">
+	<Map Number="30" Name="Valley of Loren" annotation="罗兰峡谷">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="216" Distance="0" StartX="176" StartY="212" Dir="1" /> --> <!-- -->
 			<Spawn Index="217" Distance="0" StartX="167" StartY="195" Dir="7" /> <!-- -->
@@ -2298,7 +2299,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="31" Name="Land of Trials">
+	<Map Number="31" Name="Land of Trials" annotation="魔炼之地">
 		<Spot Type="2" Description="Single Point Monster">
 			<Spawn Index="294" Distance="30" StartX="228" StartY="42" Dir="-1" /> <!-- -->
 			<Spawn Index="294" Distance="30" StartX="182" StartY="31" Dir="-1" /> <!-- -->
@@ -2508,7 +2509,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="33" Name="Aida (1 ~ 2)">
+	<Map Number="33" Name="Aida (1 ~ 2)" annotation="幽暗森林">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="369" Distance="0" StartX="78" StartY="13" Dir="2" /> <!-- -->
 			<Spawn Index="370" Distance="0" StartX="86" StartY="13" Dir="1" /> <!-- -->
@@ -2771,7 +2772,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="34" Name="Crywolf Fortress (First Dir)">
+	<Map Number="34" Name="Crywolf Fortress (First Dir)" annotation="狼魂要塞">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="406" Distance="0" StartX="228" StartY="48" Dir="1" /> <!-- -->
 			<Spawn Index="407" Distance="0" StartX="62" StartY="239" Dir="1" /> <!-- -->
@@ -2966,10 +2967,10 @@
 		</Spot>
 	</Map>
 
-	<Map Number="35" Name="Crywolf (Second Dir)">
+	<Map Number="35" Name="Crywolf (Second Dir)" annotation="">
 	</Map>
 
-	<Map Number="36" Name="Kalima 7 (Lost)">
+	<Map Number="36" Name="Kalima 7 (Lost)" annotation="">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="259" Distance="0" StartX="7" StartY="19" Dir="2" /> --> <!-- Oracle Layla ~ shop managed via IGC_ShopList.xml -->
 		</Spot>
@@ -3044,7 +3045,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="37" Name="Kanturu Ruins">
+	<Map Number="37" Name="Kanturu Ruins" annotation="坎特鲁废墟">
 		<Spot Type="2" Description="Single Point Monster">
 			<Spawn Index="352" Distance="30" StartX="207" StartY="187" Dir="-1" /> <!-- -->
 			<Spawn Index="350" Distance="30" StartX="188" StartY="11" Dir="-1" /> <!-- -->
@@ -3259,7 +3260,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="38" Name="Kanturu 1 (Remain)">
+	<Map Number="38" Name="Kanturu 1 (Remain)" annotation="坎特鲁遗址">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="367" Distance="0" StartX="141" StartY="191" Dir="2" /> <!-- -->
 		</Spot>
@@ -3359,7 +3360,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="39" Name="Kanturu 2 (Refinery Tower)">
+	<Map Number="39" Name="Kanturu 2 (Refinery Tower)" annotation="坎特鲁提炼之塔">
 		<Spot Type="0" Description="NPC">
 				<Spawn Index="368" Distance="0" StartX="77" StartY="177" Dir="2" /> <!-- -->
 		</Spot>
@@ -3405,10 +3406,10 @@
 		</Spot>
 	</Map>
 
-	<Map Number="40" Name="Silent Map">
+	<Map Number="40" Name="Silent Map" annotation="">
 	</Map>
 
-	<Map Number="41" Name="Barracks of Balgass">
+	<Map Number="41" Name="Barracks of Balgass" annotation="巴卡斯兵营">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="408" Distance="0" StartX="119" StartY="168" Dir="2" /> <!-- -->
 		</Spot>
@@ -3446,7 +3447,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="42" Name="Balgass Refuge">
+	<Map Number="42" Name="Balgass Refuge" annotation="巴卡斯休息室">
 		<Spot Type="2" Description="Single Point Monster">
 			<Spawn Index="412" Distance="30" StartX="97" StartY="187" Dir="-1" /> <!-- -->
 			<Spawn Index="411" Distance="30" StartX="92" StartY="174" Dir="-1" /> <!-- -->
@@ -3460,7 +3461,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="51" Name="Elbeland">
+	<Map Number="51" Name="Elbeland" annotation="幻术园">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="452" Distance="0" StartX="46" StartY="243" Dir="1" /> <!-- -->
 			<Spawn Index="453" Distance="0" StartX="50" StartY="243" Dir="1" /> <!-- -->
@@ -3644,7 +3645,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="56" Name="Swamp of Calmness">
+	<Map Number="56" Name="Swamp of Calmness" annotation="安宁池">
 		<Spot Type="2" Description="Single Point Monster"> <!-- 5 O'Clock Island -->
 			<Spawn Index="441" Distance="5" StartX="198" StartY="198" Dir="-1" /> <!-- -->
 			<Spawn Index="441" Distance="5" StartX="207" StartY="202" Dir="-1" /> <!-- -->
@@ -3937,7 +3938,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="57" Name="Raklion">
+	<Map Number="57" Name="Raklion" annotation="冰霜之城">
 		<Spot Type="2" Description="Single Point Monster">
 			<Spawn Index="454" Distance="30" StartX="203" StartY="204" Dir="-1" /> <!-- -->
 			<Spawn Index="454" Distance="30" StartX="196" StartY="203" Dir="-1" /> <!-- -->
@@ -4062,7 +4063,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="62" Name="Santa Village">
+	<Map Number="62" Name="Santa Village" annotation="圣诞之地">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="467" Distance="0" StartX="202" StartY="41" Dir="1" /> <!-- -->
 			<!-- <Spawn Index="465" Distance="0" StartX="234" StartY="38" Dir="1" /> --> <!-- -->
@@ -4077,7 +4078,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="63" Name="Vulcanus">
+	<Map Number="63" Name="Vulcanus" annotation="囚禁之岛">
 		<Spot Type="0" Description="NPC">
 		<Spawn Index="479" Distance="0" StartX="122" StartY="135" Dir="1" /> <!-- -->
 		</Spot>
@@ -4332,10 +4333,10 @@
 		</Spot>
 	</Map>
 
-	<Map Number="64" Name="Duel Arena">
+	<Map Number="64" Name="Duel Arena" annotation="">
 	</Map>
 
-	<Map Number="79" Name="Loren Market">
+	<Map Number="79" Name="Loren Market" annotation="罗兰市场">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="240" Distance="0" StartX="115" StartY="144" Dir="1" /> --> <!-- -->
 			<!-- <Spawn Index="240" Distance="0" StartX="147" StartY="115" Dir="1" /> --> <!-- -->
@@ -4360,7 +4361,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="80" Name="Karutan 1">
+	<Map Number="80" Name="Karutan 1" annotation="卡伦特">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="577" Distance="0" StartX="121" StartY="102" Dir="3" /> --> <!--  Leina the Merchant ~ shop managed via IGC_ShopList.xml -->
 			<!-- <Spawn Index="578" Distance="0" StartX="117" StartY="126" Dir="3" /> --> <!--  Weapons Merchant_Bolo ~ shop managed via IGC_ShopList.xml -->
@@ -4496,7 +4497,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="81" Name="Karutan 2">
+	<Map Number="81" Name="Karutan 2" annotation="">
 		<Spot Type="2" Description="Single Point Monster">
 			<Spawn Index="575" Distance="30" StartX="78" StartY="42" Dir="-1" /> <!-- -->
 			<Spawn Index="575" Distance="30" StartX="71" StartY="43" Dir="-1" /> <!-- -->
@@ -4634,7 +4635,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="91" Name="Acheron">
+	<Map Number="91" Name="Acheron" annotation="阿卡伦">
 		<Spot Type="0" Description="NPC">
 			<Spawn Index="240" Distance="0" StartX="50" StartY="184" Dir="3" /> <!-- -->
 			<Spawn Index="581" Distance="0" StartX="29" StartY="210" Dir="2" /> <!-- -->
@@ -4879,14 +4880,14 @@
 		</Spot>
 	</Map>
 
-	<Map Number="92" Name="Acheron (Arca Battle)">
+	<Map Number="92" Name="Acheron (Arca Battle)" annotation="阿尔卡战役">
 		<Spot Type="0" Description="NPC">
 			<!-- <Spawn Index="604" Distance="0" StartX="56" StartY="202" Dir="2" /> --> <!--  Jin ~ shop managed via IGC_ShopList.xml -->
 		</Spot>
 		<!-- Monster Spawn for Arca War Event Map is managed trough IGC_ArcaBattle.xml file -->
 	</Map>
 
-	<Map Number="95" Name="Debenter">
+	<Map Number="95" Name="Debenter" annotation="德班泰尔">
 		<Spot Type="3" Description="Multi~Spawn Debenter">
 			<Spawn Index="608" Distance="30" StartX="27" StartY="52" EndX="33" EndY="60" Dir="-1" Count="1" Element="1" /> <!-- -->
 			<Spawn Index="608" Distance="30" StartX="31" StartY="62" EndX="39" EndY="70" Dir="-1" Count="1" Element="2" /> <!-- -->
@@ -5012,7 +5013,7 @@
 		</Spot>
 	</Map>
 
-	<Map Number="100" Name="Uruk Mountain">
+	<Map Number="100" Name="Uruk Mountain" annotation="乌尔克山">
 		<Spot Type="3" Description="Multi~Spawn Uruk Mountain">
 			<Spawn Index="673" Distance="30" StartX="126" StartY="108" EndX="134" EndY="120" Dir="-1" Count="1" Element="0" /> <!-- -->
 			<Spawn Index="670" Distance="30" StartX="31" StartY="38" EndX="33" EndY="40" Dir="-1" Count="1" Element="1" /> <!-- -->
