@@ -105,7 +105,7 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 				switch (lpMsg2->subcode)
 				{
 				case 0x0D:
-					GCOffTradeReq(aRecv);
+					//GCOffTradeReq(aRecv);
 					break;
 				case 0x10:
 				case 0x11:
@@ -118,7 +118,7 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 					GCEnableSiegeSkills();
 					break;
 				case 0xA2:
-					GCSetAgilityFix((PMSG_SETAGILITYBUG*)aRecv);
+					//GCSetAgilityFix((PMSG_SETAGILITYBUG*)aRecv);
 					break;
 				case 0xA3:
 					GCSetCashItemMoveEnable();
@@ -128,13 +128,13 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 					HookThis(0x00AF3484, 7, (DWORD)&LuckyItemEnhancementFix); // 1.04R
 					break;
 				case 0xA5:
-					GCDisableReconnect();
+					//GCDisableReconnect();
 					break;
 				case 0xA6:
 					ExitProcess(0);
 					break;
 				case 0xA7:
-					GCDisableReconnectSystem();
+					//GCDisableReconnectSystem();
 					break;
 				case 0xA8:{
 					PMSG_ALTERPSHOPVAULT * lpMsg = (PMSG_ALTERPSHOPVAULT*)aRecv;
