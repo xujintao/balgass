@@ -36,7 +36,7 @@
 // STRICTLY NO COMMENTS INSIDE TAGS
 -->
 
-<InvasionManager Enable="1">
+<InvasionManager Enable="0">
 	<Invasion Type="0" Name="Red Dragon Invasion">
 		<Start DayOfWeek="-1" Hour="1"  Minute="0" />
 		<Start DayOfWeek="-1" Hour="3"  Minute="0" />

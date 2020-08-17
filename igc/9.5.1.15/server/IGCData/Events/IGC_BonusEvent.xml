@@ -33,7 +33,7 @@
 // STRICTLY NO COMMENTS INSIDE TAGS
 -->
 
-<BonusEvent Enable="1" DisplayNotice="1">
+<BonusEvent Enable="0" DisplayNotice="1">
 	<Event DayOfWeek="-1" StartHour="8" EndHour="10" ExpMultiplier="1.5" MasterExpMultiplier="1.5" ItemDropBonus="15" ExcDropBonus="5" />
 	<Event DayOfWeek="-1" StartHour="14" EndHour="16" ExpMultiplier="1.5" MasterExpMultiplier="1.5" ItemDropBonus="15" ExcDropBonus="5" />
 	<Event DayOfWeek="-1" StartHour="20" EndHour="22" ExpMultiplier="1.5" MasterExpMultiplier="1.5" ItemDropBonus="15" ExcDropBonus="5" />
