@@ -128,7 +128,7 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 					HookThis(0x00AF3484, 7, (DWORD)&LuckyItemEnhancementFix); // 1.04R
 					break;
 				case 0xA5:
-					//GCDisableReconnect();
+					GCDisableReconnect();
 					break;
 				case 0xA6:
 					ExitProcess(0);
