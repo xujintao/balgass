@@ -212,7 +212,7 @@ typedef struct
 	BYTE Height;	// 24
 	char Serial; // 25
 	BYTE OptionFlag; // 26
-	BYTE MondownFlag; // 27
+	BYTE Drop; // 27
 	BYTE AttackSpeed; // 28
 	BYTE WalkSpeed; // 29
 	BYTE DamageMin; // 2A

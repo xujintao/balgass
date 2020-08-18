@@ -4944,7 +4944,7 @@ BOOL OpenItemScript(char* FileName)
 			p->Height = item.attribute("Height").as_int();
 			p->Serial = item.attribute("Serial").as_int();
 			p->OptionFlag = item.attribute("Option").as_int();
-			p->MondownFlag = item.attribute("Drop").as_int();
+			p->Drop = item.attribute("Drop").as_int();
 			strcpy(p->Name, item.attribute("Name").as_string());
 
 			if (ItemType >= 0 && ItemType <= 5)
@@ -5183,7 +5183,7 @@ int GetLevelItem(int type, int index, int level)
 
 	item_num = (type * MAX_SUBTYPE_ITEMS) + index;
 
-	if (ItemAttribute[item_num].MondownFlag == 0)
+	if (ItemAttribute[item_num].Drop == 0)
 	{
 		return -1;
 	}
@@ -5284,7 +5284,7 @@ int GetLevelItem(int type, int index, int level)
 	
 	if ( itemlevel >= level - 18 && itemlevel <= level)
 	{
-		if ( type == 15 )
+		if (GetItemGroup(item_num) == ITEMTYPE_COMMON)
 		{
 			return 0;
 		}

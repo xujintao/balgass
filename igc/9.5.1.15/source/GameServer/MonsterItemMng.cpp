@@ -328,7 +328,6 @@ END_LOOP:
 
 void CMonsterItemMng::NormalGiveItemSearchEx(int monsterlevel, int maxlevel)
 {
-	BYTE DropTypes[14] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14 };
 	int incount = 0;
 	int result;
 	int perc;
@@ -341,124 +340,30 @@ void CMonsterItemMng::NormalGiveItemSearchEx(int monsterlevel, int maxlevel)
 		return;
 	}
 
-	for (int type = 0; type < 14; type++)
+	for (int type = 0; type < 16; type++)
 	{
-		for (int index = 0; index < g_MaxItemIndexOfEachItemType[DropTypes[type]]; index++)
+		for (int index = 0; index < g_MaxItemIndexOfEachItemType[type]; index++)
 		{
+			if (this->m_iMonsterInvenItemCount[monsterlevel] > MAX_ITEM_IN_MONSTER)
+				return;
 			if (!this->CheckMonsterDropItem(type, index))
 				continue;
-			if ((type != 13 || index >= 8)
-				&& (type != 14 || index != 9 && index != 10 && index != 17 && index != 18)
-				&& (type != 13 || index != 14)
-				&& (type != 14 || index != 31))
+			result = GetLevelItem(type, index, monsterlevel);
+			if (result >= 0)
 			{
-				result = GetLevelItem(type, index, monsterlevel);
-				if (result >= 0 && result <= maxlevel)
+				if ( result > maxlevel )
+					result = maxlevel;
+				if (this->InsertItem(monsterlevel, type, index, result, 0, 0, 0) != 255)
 				{
-					if (type == 12 && index != 11)
-						result = 0;
-					if ((type != 12 || index != 11) && result > maxlevel)
-						result = maxlevel;
-					if (type == 4 && index == 7 || type == 4 && index == 15)
-						result = 0;
-					if (this->InsertItem(monsterlevel, type, index, result, 0, 0, 0) != 255)
-					{
-						++incount;
-
-						if (incount > MAX_ITEM_IN_MONSTER-1)
-							return;
-					}
+					++incount;
+					if (incount > MAX_ITEM_IN_MONSTER-1)
+						return;
 				}
 			}
-			else
-			{
-				perc = rand() % 8;
-				bCheckDevil = 0;
-				if (type == 12 && index == 15)
-				{
-					if (monsterlevel < 13 || monsterlevel > 66)
-					{
-						perc = 1;
-					}
-					else
-					{
-						perc = rand() % 7;
-						if (perc < 3)
-							perc = 0;
-					}
-				}
-
-				if (!perc)
-				{
-					if (bCheckDevil == 1)
-					{
-						if (rand() % 5)
-						{
-							if (monsterlevel >= 3)
-							{
-								if (monsterlevel >= 36)
-								{
-									if (monsterlevel >= 47)
-									{
-										if (monsterlevel >= 60)
-										{
-											if (monsterlevel >= 70)
-												devilitemlevel = monsterlevel >= 80 ? 6 : 5;
-											else
-												devilitemlevel = 4;
-										}
-										else
-										{
-											devilitemlevel = 3;
-										}
-									}
-									else
-									{
-										devilitemlevel = 2;
-									}
-								}
-								else
-								{
-									devilitemlevel = 1;
-								}
-							}
-							else
-							{
-								devilitemlevel = 0;
-							}
-							if (devilitemlevel)
-							{
-								if (this->InsertItem(monsterlevel, type, index, devilitemlevel, 0, 0, 0) != 255)
-								{
-									++incount;
-
-									if (incount > MAX_ITEM_IN_MONSTER-1)
-										return;
-								}
-							}
-						}
-					}
-					else
-					{
-						if (zzzItemLevel(type, index, monsterlevel) == 1)
-						{
-							if (this->InsertItem(monsterlevel, type, index, 0, 0, 0, 0) != 255)
-							{
-								++incount;
-								if (incount > MAX_ITEM_IN_MONSTER-1)
-									return;
-							}
-						}
-					}
-				}
-			}
-			if (this->m_iMonsterInvenItemCount[monsterlevel] >= MAX_ITEM_IN_MONSTER)
-				return;
-
 		}
 	}
-
 }
+
 void CMonsterItemMng::NormalGiveItemSearch(int monsterlevel, int maxlevel)
 {
 	int devilitemlevel; 
@@ -607,105 +512,12 @@ void CMonsterItemMng::NormalGiveItemSearch(int monsterlevel, int maxlevel)
 
 int CMonsterItemMng::CheckMonsterDropItem(int type, int index)
 {
-	int result;
-	if ((type != 14 || index != 13)
-		&& (type != 14 || index != 14)
-		&& (type != 14 || index != 16)
-		&& (type != 14 || index != 22)
-		&& (type != 12 || index != 15))
+	if (GetItemKindA(ITEMGET(type, index)) == ITEM_KIND_A_JEWEL
+	 || GetItemKindA(ITEMGET(type, index)) == ITEM_KIND_A_SKILL_ITEM)
 	{
-		if (type != 13 || index != 3)
-		{
-			if ((type != 13 || index != 32)
-				&& (type != 13 || index != 33)
-				&& (type != 13 || index != 34)
-				&& (type != 13 || index != 35)
-				&& (type != 13 || index != 36)
-				&& (type != 13 || index != 37))
-			{
-				if ((type != 14 || index != 35)
-					&& (type != 14 || index != 36)
-					&& (type != 14 || index != 37)
-					&& (type != 14 || index != 38)
-					&& (type != 14 || index != 39)
-					&& (type != 14 || index != 40))
-				{
-					if (IsCashItem(ITEMGET(type, index)) == 1)
-					{
-						result = 0;
-					}
-					else
-					{
-						if (IsPremiumItem(ITEMGET(type, index)) == 1)
-						{
-							result = 0;
-						}
-						else
-						{
-							if (g_LuckyItemManager.IsLuckyItemTicket(ITEMGET(type,index)) == 1)
-							{
-								result = 0;
-							}
-							else
-							{
-								if (g_LuckyItemManager.IsLuckyItemEquipment(ITEMGET(type, index)) == 1)
-								{
-									result = 0;
-								}
-								else
-								{
-									if ((type != 14 || index != 45)
-										&& (type != 14 || index != 46)
-										&& (type != 14 || index != 47)
-										&& (type != 14 || index != 48)
-										&& (type != 14 || index != 49)
-										&& (type != 14 || index != 50))
-									{
-										if (type != 13 || index != 41)
-										{
-											if ((type != 13 || index != 106) && (type != 13 || index != 107))
-												result = (type != 14 || index != 162)
-												&& (type != 14 || index != 163)
-												&& (type != 14 || index != 164)
-												&& (type != 14 || index != 165)
-												&& (type != 14 || index != 166);
-											else
-												result = 0;
-										}
-										else
-										{
-											result = 0;
-										}
-									}
-									else
-									{
-										result = 0;
-									}
-								}
-							}
-						}
-					}
-				}
-				else
-				{
-					result = 0;
-				}
-			}
-			else
-			{
-				result = 0;
-			}
-		}
-		else
-		{
-			result = 0;
-		}
+		return 0;
 	}
-	else
-	{
-		result = 0;
-	}
-	return result;
+	return 1;
 }
 
 CItem * CMonsterItemMng::GetItemEx(int monsterlevel)
