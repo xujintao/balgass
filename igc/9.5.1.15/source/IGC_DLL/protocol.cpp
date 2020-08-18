@@ -166,13 +166,13 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 			}
 		}
 			break;
+		/*
 		case 0x11:
 			GCAttackResult((PMSG_ATTACKRESULT*)aRecv);
 			break;
 		case 0x17:
 			GCDiePlayerSend((PMSG_DIEPLAYER*)aRecv);
 			break;
-		/*
 		case 0x26:
 			GCRefillSend((PMSG_REFILL*)aRecv);
 			break;
