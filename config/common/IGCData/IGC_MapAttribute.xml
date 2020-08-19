@@ -89,7 +89,7 @@
 		<Map Number="58" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Hatchery (Raklion Boss) -->
 	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 		<Map Number="62" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Santa Village -->
-		<Map Number="63" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Vulcanus -->
+		<Map Number="63" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="10.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Vulcanus -->
 		<Map Number="64" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Duel Arena -->
 		<Map Number="65" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="2.0" MasterExpBonus="2.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Dopple Ganger Snow -->
 		<Map Number="66" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="2.0" MasterExpBonus="2.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Dopple Ganger Volcan -->
