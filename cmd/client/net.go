@@ -397,12 +397,12 @@ func (t *conn) f006BDC33() []uint8 {
 func (t *conn) f004397E3write(buf []uint8, len int) int {
 	// ebp10 := t // ecx也要落到栈上
 	ebp4 := len
-	ebp8_sum := 0
+	ebp8sum := 0
 	if uintptr(t.fd) == uintptr(^uint32(0)) {
 		return 0
 	}
 	for {
-		ebpC, err := win.Send(t.fd, buf[ebp8_sum:], len-ebp8_sum, 0)
+		ebpC, err := win.Send(t.fd, buf[ebp8sum:], len-ebp8sum, 0)
 		if err != nil {
 			if 0x2733 != win.WSAGetLastError() {
 				v01319E08log.f00B38AE4printf("[Send Packet Error] WSAGetLastError() != WSAEWOULDBLOCK\r\n")
@@ -425,7 +425,7 @@ func (t *conn) f004397E3write(buf []uint8, len int) int {
 			return 1
 		}
 
-		ebp8_sum += ebpC
+		ebp8sum += ebpC
 		ebp4 -= ebpC
 		if ebp4 <= 0 {
 			return 1
@@ -435,7 +435,7 @@ func (t *conn) f004397E3write(buf []uint8, len int) int {
 }
 
 var v08C88E08 uint32 // 可能是状态
-var v08C88E0C int
+var v08C88E0Cid int
 
 type t5 struct{}
 

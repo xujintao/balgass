@@ -21,21 +21,22 @@ func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 // key: 0x0075FF6A, s9 0x00673FE6
 // value: 0x0075FCB2, s9 0x00673D2E
 var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
-	0x00: f006FA9EBhandle00,        // server_connect is prepared
-	0x0D: f007087BFhandle0D,        // handle notice message
-	0x1D: handle1DBeAttacked,       // hook, hash[DF]=hash[1D]
-	0x26: f0075CE21handle26hpsd,    // hp and sd
-	0x27: f0075CE2Fhandle27mpag,    // mp and ag
-	0x42: f0075D021handlePartyInfo, // party info, 客户端主动请求以及队伍成员信息变化推送
-	0x44: f0075D03DhandlePartyHPMP, // party member HP/MP, 队伍成员HP/MP数据变化了服务器才会推送而不是定时发送
-	0xD2: f0075F7D0handleD2,        // cash shop
-	0xD7: handleD7positionSet,      // hook, hash[D4]=hash[D7]
-	0xD9: handleD9normalAttack,     // hook, hash[11]=hash[D9]
-	0xDA: handleDApositionGet,      // hook, hash[15]=hash[DA]
-	0xF1: handleF1,                 // server_game is prepared and response with server's version, and the login logic also use code F1
-	0xF3: f0075C794handleF3,        // character
-	0xF4: f0075CB02handleF4,        // server list and server info
-	0xF6: f006C18B6handleF6,        // quest list
+	0x00: f006FA9EBhandle00,          // server_connect is prepared
+	0x0D: f007087BFhandle0D,          // handle notice message
+	0x1D: handle1DBeAttacked,         // hook, hash[DF]=hash[1D]
+	0x26: f0075CE21handle26hpsd,      // hp and sd
+	0x27: f0075CE2Fhandle27mpag,      // mp and ag
+	0x42: f0075D021handlePartyInfo,   // party info, 客户端主动请求以及队伍成员信息变化推送
+	0x44: f0075D03DhandlePartyHPMP,   // party member HP/MP, 队伍成员HP/MP数据变化了服务器才会推送而不是定时发送
+	0xA9: f0075E87EhandlePetItemInfo, // pet item info
+	0xD2: f0075F7D0handleD2,          // cash shop
+	0xD7: handleD7positionSet,        // hook, hash[D4]=hash[D7]
+	0xD9: handleD9normalAttack,       // hook, hash[11]=hash[D9]
+	0xDA: handleDApositionGet,        // hook, hash[15]=hash[DA]
+	0xF1: handleF1,                   // server_game is prepared and response with server's version, and the login logic also use code F1
+	0xF3: f0075C794handleF3,          // character
+	0xF4: f0075CB02handleF4,          // server list and server info
+	0xF6: f006C18B6handleF6,          // quest list
 }
 
 func f006FA9EBhandle00(code uint8, buf []uint8, len int, enc bool) {
@@ -199,6 +200,33 @@ func f0075D03DhandlePartyHPMP(code uint8, buf []uint8, len int, enc bool) {
 	}(buf)
 }
 
+func f0075E87EhandlePetItemInfo(code uint8, buf []uint8, len int, enc bool) {
+	// 0x006EAB21: jmp 0x09DEB47B
+	// hook to hidden f0AF12EDA directly, jump over complicated shell logic
+	// that would send trap message c1 08 f3 31 ...
+
+	// 0x09DEB47B
+	var label1 uint32 = 0x009E5B5B
+	// push label1
+	// push 0x09FB8327
+	// ret
+
+	// 0x09FB8327
+	var label2 uint32 = 0x00ECAEB6
+	// push label2
+	// push 0x0AC398A9
+	// ret
+
+	// 0x0AC398A9
+	var label3 uint32 = 0x007AB22A
+	// push label3
+	// push 0x0A56EABC
+	// ret
+	println(label3, label2, label1)
+
+	// f0AF12EDA 隐藏函数
+}
+
 // s9 f00673854
 func f0075F7D0handleD2(code uint8, buf []uint8, len int, enc bool) {
 	// 0x0A5FBCA6 0x0A5D4C5A 0x0A4381F1
@@ -251,7 +279,7 @@ func handleF1(code uint8, buf []uint8, len int, enc bool) {
 				// ebp8 := &v0130F728
 				// ebp8.f004A9123(&ebp8.f4880)
 			}
-			v08C88E0C = int(ebp4[5]<<8 + ebp4[6])
+			v08C88E0Cid = int(ebp4[5]<<8 + ebp4[6])
 			v08C88E08 = 2
 			var ebpC uint8
 			if ebpC >= 5 {
