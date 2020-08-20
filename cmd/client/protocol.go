@@ -260,7 +260,7 @@ func f00760292parse(conn *conn, unk1, unk2 int) {
 		if unk1 == 1 {
 			f00735DC7(unk2, ebp14code, ebp18buf, ebp10len, ebp1820enc)
 		} else {
-			f0075C3B2(ebp14code, ebp18buf, ebp10len, ebp1820enc)
+			f0075C3B2handlecmd(uint8(ebp14code), ebp18buf, ebp10len, func() bool { return ebp1820enc == 1 }())
 		}
 	}
 }

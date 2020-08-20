@@ -6,7 +6,7 @@ import (
 	"unsafe"
 )
 
-// cmd
+// s9 f0067084A
 func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 	// 0x09FB655C
 	if h, ok := cmds[int(code)]; ok {
@@ -21,22 +21,23 @@ func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 // key: 0x0075FF6A, s9 0x00673FE6
 // value: 0x0075FCB2, s9 0x00673D2E
 var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
-	0x00: f006FA9EBhandle00,          // server_connect is prepared
-	0x0D: f007087BFhandle0D,          // handle notice message
-	0x1D: handle1DBeAttacked,         // hook, hash[DF]=hash[1D]
-	0x26: f0075CE21handle26hpsd,      // hp and sd
-	0x27: f0075CE2Fhandle27mpag,      // mp and ag
-	0x42: f0075D021handlePartyInfo,   // party info, 客户端主动请求以及队伍成员信息变化推送
-	0x44: f0075D03DhandlePartyHPMP,   // party member HP/MP, 队伍成员HP/MP数据变化了服务器才会推送而不是定时发送
-	0xA9: f0075E87EhandlePetItemInfo, // pet item info
-	0xD2: f0075F7D0handleD2,          // cash shop
-	0xD7: handleD7positionSet,        // hook, hash[D4]=hash[D7]
-	0xD9: handleD9normalAttack,       // hook, hash[11]=hash[D9]
-	0xDA: handleDApositionGet,        // hook, hash[15]=hash[DA]
-	0xF1: handleF1,                   // server_game is prepared and response with server's version, and the login logic also use code F1
-	0xF3: f0075C794handleF3,          // character
-	0xF4: f0075CB02handleF4,          // server list and server info
-	0xF6: f006C18B6handleF6,          // quest list
+	0x00: f006FA9EBhandle00,             // server_connect is prepared
+	0x0D: f007087BFhandle0D,             // handle notice message
+	0x1D: handle1DBeAttacked,            // hook, hash[DF]=hash[1D]
+	0x26: f0075CE21handle26hpsd,         // hp and sd
+	0x27: f0075CE2Fhandle27mpag,         // mp and ag
+	0x42: f0075D021handlePartyInfo,      // party info, 客户端主动请求以及队伍成员信息变化推送
+	0x44: f0075D03DhandlePartyHPMP,      // party member HP/MP, 队伍成员HP/MP数据变化了服务器才会推送而不是定时发送
+	0x81: f0075D93DhandleWarehouseMoney, // warehouse money
+	0xA9: f0075E87EhandlePetItemInfo,    // pet item info
+	0xD2: f0075F7D0handleD2,             // cash shop
+	0xD7: handleD7positionSet,           // hook, hash[D4]=hash[D7]
+	0xD9: handleD9normalAttack,          // hook, hash[11]=hash[D9]
+	0xDA: handleDApositionGet,           // hook, hash[15]=hash[DA]
+	0xF1: handleF1,                      // server_game is prepared and response with server's version, and the login logic also use code F1
+	0xF3: f0075C794handleF3,             // character
+	0xF4: f0075CB02handleF4,             // server list and server info
+	0xF6: f006C18B6handleF6,             // quest list
 }
 
 func f006FA9EBhandle00(code uint8, buf []uint8, len int, enc bool) {
@@ -197,6 +198,17 @@ func f0075D03DhandlePartyHPMP(code uint8, buf []uint8, len int, enc bool) {
 			ebp2CpartyFrame := f00A49798game().m184partyFrame
 			ebp2CpartyFrame.f00A82A72setPartyHPMPPercent(ebp1Cname[:], ebp40HP, 100, ebp34MP, 100)
 		}
+	}(buf)
+}
+
+func f0075D93DhandleWarehouseMoney(code uint8, buf []uint8, len int, enc bool) {
+	// f006C07B0(buf)
+	func(buf []uint8) {
+		if buf[3] == 0 {
+			return
+		}
+		v086105E8.m1C08money = uint(binary.LittleEndian.Uint32(buf[4:]))
+		v086105E8.m1C04moneyWarehouse = uint(binary.LittleEndian.Uint32(buf[8:]))
 	}(buf)
 }
 
@@ -1375,9 +1387,4 @@ func manaSend(buf []uint8)               {}
 
 func f00735DC7(uk1 int, code int, buf []uint8, len int, enc int) {
 
-}
-
-// s9 f0067084A
-func f0075C3B2(code int, buf []uint8, len int, x int) {
-	f0075C3B2handlecmd(uint8(code), buf, len, func() bool { return x == 1 }())
 }

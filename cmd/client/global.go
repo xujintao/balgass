@@ -464,14 +464,17 @@ var v08C88E58hpMax uint16
 var v08C88E5AmpMax uint16
 var v08C88E5CsdMax uint16
 var v08C88E5EsdMax uint16
+
 var v086105E0 []uint8 // 7k
 var v086105E4 []uint8 // 91*800
 // sizeof=0x1C30
 var v086105E8 *struct {
-	m00    uintptr
-	m04obj object
+	m00                 uintptr
+	m04obj              object
+	m1C04moneyWarehouse uint
+	m1C08money          uint
 }
-var v086105ECobject *object
+var v086105ECobject *object = &v086105E8.m04obj
 var v0805BBACself = &object{}
 
 // object sizeof=0x6BC
