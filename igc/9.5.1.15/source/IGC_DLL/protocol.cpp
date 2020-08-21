@@ -17,6 +17,7 @@
 char ChatServerIp[17];
 
 //start of protocolcore
+#if 0
 bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 {
 	switch(ProtoNum)
@@ -33,7 +34,7 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 				}
 			}
 			break;
-		*/
+		
 		case 0xF3:
 			{
 				PMSG_DEFAULT2 * lpMsg2 = (PMSG_DEFAULT2 *)aRecv;
@@ -68,7 +69,6 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 			}
 		}
 		break;
-		/*
 		case 0xF4:
 			{
 				// for reconnect must disable 0xF4 protocol or client crash
@@ -90,13 +90,14 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 				}
 			}
 			break;
-		*/
+		
 		case 0xCA:
 			GCFriendRoomCreate((PMSG_FRIEND_ROOMCREATE_RESULT*)aRecv);
 			break;
 		case 0xD4:
 			AHCheckGetTickHook();
 			break;
+		*/
 		case 0xFA:
 		{
 			if (aRecv[0] == 0xC1)
@@ -183,6 +184,31 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt)
 		case 0x44:
 			handlePartyHPMP((PMSG_PARTY_COUNT*)aRecv);
 			break;
+	}
+	return true;
+}
+#endif //  0
+
+bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt) {
+	switch (ProtoNum)
+	{
+	case 0xFA:
+		if (aRecv[0] == 0xC1) {
+			PMSG_DEFAULT2 * lpMsg2 = (PMSG_DEFAULT2 *)aRecv;
+			switch (lpMsg2->subcode)
+			{
+			case 0xA5:
+				GCDisableReconnect();
+				break;
+			case 0xA6:
+				ExitProcess(0);
+				break;
+			}
+		}
+		return false;
+	case 0x44:
+		handlePartyHPMP((PMSG_PARTY_COUNT*)aRecv);
+		break;
 	}
 	return true;
 }
