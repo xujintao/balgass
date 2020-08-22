@@ -1418,3 +1418,241 @@ func (t *modeManager) f00B0EF7BenumMode() {
 func (t *modeManager) f00B0F1F6getMode(index int) {
 
 }
+
+// -------------------------------------------
+var v086D09C8items [1000]mapItem
+
+type itemBase struct {
+	m22EkindA uint8
+	m22FkindB uint8
+	m230kind  uint8
+}
+
+// size:0x388
+type item struct {
+	m00itemBase    *itemBase
+	m04code        int
+	m08option      int
+	m1Edurability  uint8
+	m20option      uint8
+	m21option      uint8
+	m58is380       bool
+	m59sockets     [5]uint8
+	m6Csocketbonus int // harmony/socket/pentagram/muun bonus
+	m80excel       uint8
+	m8C            struct {
+		m04 uint8
+		m14 int
+		m18 int
+		m1C int
+		m40 int
+		m44 int
+	}
+	m334 uint8
+	m384 int
+}
+
+func (t *item) f00A2742Einit() {}
+
+func (t *item) f00A276A1getItemBase() *itemBase {
+	if t.m00itemBase == nil {
+		// t.f00A2762E()
+		func() {
+			// t.m00 = f00A29EC7itemBaseTable().f00A2AD34getItemBase(t.m04code)
+		}()
+	}
+	return t.m00itemBase
+}
+
+func (t *item) f00524B13kindA(kindA int) bool {
+	if t.m04code < 0 || t.m04code > 0x2000 {
+		return false
+	}
+	return int(t.f00A276A1getItemBase().m22EkindA) == kindA
+}
+
+func (t *item) f00524B55kindB(kindB int) bool {
+	if t.m04code < 0 || t.m04code > 0x2000 {
+		return false
+	}
+	return int(t.f00A276A1getItemBase().m22FkindB) == kindB
+}
+
+func (t *item) f004FE875kind(kind int) bool {
+	if t.m04code < 0 || t.m04code > 0x2000 {
+		return false
+	}
+	return int(t.f00A276A1getItemBase().m230kind) == kind
+}
+
+func (t *item) f00A29A7AhasExcel() bool {
+	if t.f004FE875kind(1) || // itemTypeRegular
+		t.f004FE875kind(3) || // itemType380
+		t.f004FE875kind(6) || // itemTypeArchangel
+		t.f004FE875kind(7) { // itemTypeChaos
+		return true
+	}
+	return false
+}
+
+type mapItem struct {
+	number int
+	item
+}
+
+func f005A0292code(attr []uint8) int {
+	return (int(attr[3]) & 0x80 << 1) | int(attr[0]) | (int(attr[5]) & 0xF0 << 5)
+}
+
+func f00677421mapItemAdd(mapItem *mapItem, attr []uint8, ord []float32, msb int) {
+	ebp8code := f005A0292code(attr)
+	ebp4item := &mapItem.item
+	ebp4item.f00A2742Einit()
+	ebp4item.m04code = ebp8code
+	if ebp4item.f00A276A1getItemBase() == nil {
+		return
+	}
+	if ebp8code == 0x1C0F { // (14, 15) zen
+		ebp4item.m08option = int(attr[1])<<16 | int(attr[2]<<8) | int(attr[4])
+		ebp4item.m1Edurability = 0
+		ebp4item.m20option = 0
+		if msb == 1 {
+			// f007DAFE0(0x1F, 0, 0)
+		}
+	} else {
+		ebp4item.m08option = int(attr[1])
+		ebp4item.m1Edurability = attr[2]
+		ebp4item.m20option = attr[3] & 0x7F
+		ebp4item.m21option = attr[4]
+		ebp4item.m58is380 = false
+		if attr[5]&0x08>>3 == 1 {
+			ebp4item.m58is380 = true
+		}
+
+		// pentagram
+		if ebp4item.f00524B13kindA(8) == true { // itemKindAPentagram
+			ebp4item.m6Csocketbonus = int(attr[6]) & 0xF
+			// ebp4item.mA0 = ebp4item.m6Csocketbonus
+			// ebp18 := &ebp4item.m8C
+			// ebp18.m14 = ebp4item.m6Csocketbonus
+			// if ebp18.m14 >= 0 && ebp18.m14 < 6 {
+			// 	ebp1C := f00A18027().f00A19CBF(ebp8code, 0)
+			// 	if ebp1C != nil {
+			// 		ebp18.m18 = ebp1C.m10
+			// 		ebp18.m1C = ebp1C.m14[ebp18.m14]
+			// 	}
+			// }
+			if ebp4item.f00524B55kindB(44) == true { // itemKindBPentagramJewel 艾尔特
+				for i := 0; i < 5; i++ {
+					ebp4item.m59sockets[i] = attr[7+i]
+				}
+			}
+		}
+
+		// excellent option
+		if ebp4item.f00A29A7AhasExcel() == true {
+			if attr[3]&0x3F != 0 {
+				ebp4item.m80excel = 1
+			}
+			for i := 0; i < 3; i++ {
+				if attr[7+i] != 0xFF {
+					ebp4item.m80excel = 1
+					break
+				}
+			}
+		}
+
+		if msb != 0 {
+			if ebp8code == 0x1C0D || // (14, 13) 祝福宝石
+				ebp8code == 0x1C0E || // (14, 14) 灵魂宝石
+				ebp8code == 0x1C10 || // (14, 16) 生命宝石
+				ebp8code == 0x180F || // (12, 15) 玛雅宝石
+				ebp8code == 0x1C16 || // (14, 22) 创造宝石
+				ebp8code == 0x1C1F { // (14, 31) 守护宝石
+				// f007DAFE0(0x45, &ebp4item.m8C, 0)
+			} else if ebp8code == 0x1C29 { // (14, 41) 再生原石
+				// f007DAFE0(0x2D3, &ebp4item.m8C, 0)
+			} else if ebp8code == 0x1CFE || // (14, 254) 实习骑士团的礼物
+				(ebp8code >= 0x1D00 && ebp8code <= 0x1D06) { // (14, 256) ~ (14, 262) 骑士团的礼物 恶魔箱子 卫兵箱子
+				// f007DAFE0(0x5A, &ebp4item.m8C, 0)
+			} else {
+				// f007DAFE0(0x1E, &ebp4item.m8C, 0)
+			}
+		}
+	}
+	// 0x6776FA:
+	ebpC := &ebp4item.m8C
+	ebpC.m04 = 1
+	ebpC.m40 = ebp8code + 0x4F8 // 1272
+	ebpC.m44 = 1
+
+	// if ebp8code == 0x1C0B { // (14, 11) 幸运宝箱
+	// 	switch ebp4item.m08option >> 3 {
+	// 	case 1:
+	// 		ebpC.m40 = 0x258E
+	// 	case 2:
+	// 		ebpC.m40 = 0x258F
+	// 	case 3:
+	// 		ebpC.m40 = 0x2590
+	// 	case 5:
+	// 		ebpC.m40 = 0x2592
+	// 	case 6:
+	// 		ebpC.m40 = 0x2593
+	// 	case 8, 9, 10, 11, 12:
+	// 		ebpC.m40 = 0x2593
+	// 	case 13, 14:
+	// 		ebpC.m40 = 0x259B
+	// 	}
+
+	// } else if ebp8code >= 0x1C2E && ebp8code <= 0x1C30 {
+
+	// }
+	switch {
+	case ebp8code == 0x1C0B: // (14, 11) 幸运宝箱
+		switch ebp4item.m08option >> 3 {
+		case 1:
+			ebpC.m40 = 0x258E
+		case 2:
+			ebpC.m40 = 0x258F
+		case 3:
+			ebpC.m40 = 0x2590
+		case 5:
+			ebpC.m40 = 0x2592
+		case 6:
+			ebpC.m40 = 0x2593
+		case 8, 9, 10, 11, 12:
+			ebpC.m40 = 0x2593
+		case 13, 14:
+			ebpC.m40 = 0x259B
+		}
+	case ebp8code >= 0x1C2E && ebp8code <= 0x1C30: // (14, 46/47/48) 南瓜灯祝福/愤怒/呐喊
+		ebpC.m40 = ebp8code + 0x4F8
+	case ebp8code >= 0x1C20 && ebp8code <= 0x1C22: // (14, 32/33/34) 粉红色/红色/蓝色宝箱
+		if ebp4item.m08option>>3 == 1 {
+			ebpC.m40 = ebp8code - 0x1C20 + 0x259F
+		}
+	case ebp8code == 0x1C15:
+		ebp58 := ebp4item.m08option >> 3
+		if ebp58 > 0 && ebp58 <= 2 {
+			ebpC.m40 = 0x2595
+		}
+	case ebp8code == 0x1A13: // (13, 19) 大天使之武器
+	case ebp8code == 0x1A17: // (13, 23) 风之指环
+	case ebp8code == 0x1A18: // (13, 24) 魔之指环
+	case ebp8code == 0x1A14: // (13, 20) 魔法戒指
+	case ebp8code == 0x1C09: // (14, 9) 酒
+	case ebp8code == 0x1A0E: // (13, 14) 洛克之羽
+	case ebp8code == 0x1A0B: // (13, 11) 复活石
+	case ebp8code == 0x1C29: // (14, 41) 再生原石
+	case ebp8code == 0x1C2A: // (14, 42) 再生宝石
+	case ebp8code == 0x2122:
+	case ebp8code == 0x1C2B: // (14, 43) 处级进化宝石
+	case ebp8code == 0x2123:
+	case ebp8code == 0x2124:
+	}
+	// f00674D7A(ebpC)
+	// f007EA8A8(...)
+	// f00653E1E()
+	// f00675564(ebpC)
+	// f0067328Cdraw(mapItem)
+}

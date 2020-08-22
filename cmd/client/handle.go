@@ -21,23 +21,32 @@ func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 // key: 0x0075FF6A, s9 0x00673FE6
 // value: 0x0075FCB2, s9 0x00673D2E
 var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
-	0x00: f006FA9EBhandle00,             // server_connect is prepared
-	0x0D: f007087BFhandle0D,             // handle notice message
-	0x1D: handle1DBeAttacked,            // hook, hash[DF]=hash[1D]
-	0x26: f0075CE21handle26hpsd,         // hp and sd
-	0x27: f0075CE2Fhandle27mpag,         // mp and ag
-	0x42: f0075D021handlePartyInfo,      // party info, 客户端主动请求以及队伍成员信息变化推送
-	0x44: f0075D03DhandlePartyHPMP,      // party member HP/MP, 队伍成员HP/MP数据变化了服务器才会推送而不是定时发送
-	0x81: f0075D93DhandleWarehouseMoney, // warehouse money
-	0xA9: f0075E87EhandlePetItemInfo,    // pet item info
-	0xD2: f0075F7D0handleD2,             // cash shop
-	0xD7: handleD7positionSet,           // hook, hash[D4]=hash[D7]
-	0xD9: handleD9normalAttack,          // hook, hash[11]=hash[D9]
-	0xDA: handleDApositionGet,           // hook, hash[15]=hash[DA]
-	0xF1: handleF1,                      // server_game is prepared and response with server's version, and the login logic also use code F1
-	0xF3: f0075C794handleF3,             // character
-	0xF4: f0075CB02handleF4,             // server list and server info
-	0xF6: f006C18B6handleF6,             // quest list
+	0x00:   f006FA9EBhandle00,              // server_connect is prepared
+	0x0D:   f007087BFhandle0D,              // handle notice message
+	0x1D:   handle1DBeAttacked,             // hook, hash[DF]=hash[1D]
+	0x12:   handleViewportPlayerAdd,        // viewport player add
+	0x13:   handleViewportMonsterNPCAdd,    // viewport monster/npc add
+	0x14:   handleViewportObjRemove,        // viewport object add
+	0x1F:   handleViewportMonsterCallAdd,   // viewport monstercall add
+	0x20:   f0075CC8BhandleViewportItemAdd, // viewport item add
+	0x21:   handleViewportItemRemove,       // viewport item remove
+	0x26:   f0075CE21handle26hpsd,          // hp and sd
+	0x27:   f0075CE2Fhandle27mpag,          // mp and ag
+	0x42:   f0075D021handlePartyInfo,       // party info, 客户端主动请求以及队伍成员信息变化推送
+	0x44:   f0075D03DhandlePartyHPMP,       // party member HP/MP, 队伍成员HP/MP数据变化了服务器才会推送而不是定时发送
+	0x65:   handleViewportGuildInfoAdd,     // viewport guild info add
+	0x45:   handleViewportPlayerChange,     // viewport player change
+	0x81:   f0075D93DhandleWarehouseMoney,  // warehouse money
+	0xA9:   f0075E87EhandlePetItemInfo,     // pet item info
+	0xD2:   f0075F7D0handleD2,              // cash shop
+	0xD7:   handleD7positionSet,            // hook, hash[D4]=hash[D7]
+	0xD9:   handleD9normalAttack,           // hook, hash[11]=hash[D9]
+	0xDA:   handleDApositionGet,            // hook, hash[15]=hash[DA]
+	0xF1:   handleF1,                       // server_game is prepared and response with server's version, and the login logic also use code F1
+	0xF3:   f0075C794handleF3,              // character
+	0xF4:   f0075CB02handleF4,              // server list and server info
+	0xF6:   f006C18B6handleF6,              // quest list
+	0xF805: handleViewportGensInfoAdd,      // viewport gens info add
 }
 
 func f006FA9EBhandle00(code uint8, buf []uint8, len int, enc bool) {
@@ -83,6 +92,40 @@ func f0059D4F6bit4(x uint8) bool {
 }
 
 func handle1DBeAttacked(code uint8, buf []uint8, len int, enc bool) {}
+
+func handleViewportPlayerAdd(code uint8, buf []uint8, len int, enc bool) {}
+
+func handleViewportMonsterNPCAdd(code uint8, buf []uint8, len int, enc bool) {}
+
+func handleViewportObjRemove(code uint8, buf []uint8, len int, enc bool) {}
+
+func handleViewportMonsterCallAdd(code uint8, buf []uint8, len int, enc bool) {}
+
+func f0075CC8BhandleViewportItemAdd(code uint8, buf []uint8, len int, enc bool) {
+	// f006C0242(buf)
+	func(buf []uint8) {
+		var items []struct {
+			number [2]uint8 // 0 ~ 299
+			x      uint8
+			y      uint8
+			attr   [12]uint8
+		}
+		for _, item := range items {
+			var ebp1Cord [2]float32
+			// ebp1Cord[0] := (item.x + v0114A660) / v0114C250
+			// ebp1Cord[1] := (item.y + v0114A660) / v0114C250
+			ebp20number := int(binary.BigEndian.Uint16(item.number[:]))
+			ebp10msb := ebp20number >> 15
+			ebp20number &= 0x7FFF
+			v086D09C8items[ebp20number].item.f00A2742Einit()
+			v086D09C8items[ebp20number].number = ebp20number
+			// v086D09C8items[ebp20number].item.m334 = v012E9995
+			f00677421mapItemAdd(&v086D09C8items[ebp20number], item.attr[:], ebp1Cord[:], ebp10msb)
+		}
+	}(buf)
+}
+
+func handleViewportItemRemove(code uint8, buf []uint8, len int, enc bool) {}
 
 // hp and sd
 func f0075CE21handle26hpsd(code uint8, buf []uint8, len int, enc bool) {
@@ -200,6 +243,9 @@ func f0075D03DhandlePartyHPMP(code uint8, buf []uint8, len int, enc bool) {
 		}
 	}(buf)
 }
+
+func handleViewportGuildInfoAdd(code uint8, buf []uint8, len int, enc bool) {}
+func handleViewportPlayerChange(code uint8, buf []uint8, len int, enc bool) {}
 
 func f0075D93DhandleWarehouseMoney(code uint8, buf []uint8, len int, enc bool) {
 	// f006C07B0(buf)
@@ -1306,6 +1352,8 @@ func f006C18B6handleF6(code uint8, buf []uint8, len int, enc bool) {
 
 	// f0A9F6026 隐藏函数
 }
+
+func handleViewportGensInfoAdd(code uint8, buf []uint8, len int, enc bool) {}
 
 // hijack cmd
 func handlecmdhook(code uint8, subcode uint8, buf []uint8, len int) {
