@@ -1183,7 +1183,7 @@ UINT64 CDevilSquare::gObjMonsterExpSingle(LPOBJ lpObj, LPOBJ lpTargetObj, int dm
 		fBaseExp = g_ExpManager.GetExpMultiplier(lpObj->Level + lpObj->m_PlayerData->MasterLevel, lpObj->m_PlayerData->m_iResets, true);
 	}
 
-	exp *= (fBaseExp + fVipBonus + fEventBonus + fMapBonus);
+	exp = exp * (1 + fMapBonus) * (fBaseExp + fVipBonus + fEventBonus);
 
 	if (g_CrywolfSync.GetOccupationState() == 1 && g_CrywolfSync.GetApplyPenalty() == TRUE)
 	{
@@ -1481,7 +1481,7 @@ void CDevilSquare::gObjExpParty(LPOBJ lpObj, LPOBJ lpTargetObj, int AttackDamage
 						fBaseExp = g_ExpManager.GetExpMultiplier(lpPartyObj->Level, lpPartyObj->m_PlayerData->m_iResets, false);
 					}
 
-					exp *= (fBaseExp + fVipBonus + fEventBonus + fMapBonus);
+					exp = exp * (1 + fMapBonus) * (fBaseExp + fVipBonus + fEventBonus);
 
 					if ( g_CrywolfSync.GetOccupationState() == 1 && g_CrywolfSync.GetApplyPenalty() == TRUE)
 					{

@@ -8633,7 +8633,7 @@ void gObjWingDurProc(LPOBJ lpObj)
 {
 	BYTE send_dur=0;
 
-	// ÀÌ¹ø ¹öÁ¯¿¡¼­´Â ³»±¸·Â ¾È ´â°Ô..
+	// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½..
 	return;
 
 	if( lpObj->pInventory[7].IsItem() == TRUE )
@@ -8655,7 +8655,7 @@ void gObjWingDurProc(LPOBJ lpObj)
 					GSProtocol.GCInventoryItemDeleteSend(lpObj->m_Index, 7, 0);
 				}
 			}
-			//g_Log.Add("³¯°³ ³»±¸·Â %f",lpObj->pInventory[7].m_Durability);
+			//g_Log.Add("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ %f",lpObj->pInventory[7].m_Durability);
 			return;
 	}
 }
@@ -9436,7 +9436,7 @@ UINT64 gObjMonsterExpSingle(LPOBJ lpObj, LPOBJ lpTargetObj, int dmg, int tot_dmg
 		fBaseExp = g_ExpManager.GetExpMultiplier(lpObj->Level + lpObj->m_PlayerData->MasterLevel, lpObj->m_PlayerData->m_iResets, true);
 	}
 
-	exp *= (fBaseExp + fVipBonus + fEventBonus + fMapBonus);
+	exp = exp * (1 + fMapBonus) * (fBaseExp + fVipBonus + fEventBonus);
 
 	if (g_CrywolfSync.GetOccupationState() == 1 && g_CrywolfSync.GetApplyPenalty() == TRUE)
 	{
@@ -9556,7 +9556,7 @@ UINT64 gObjMonsterExpSingleRenewal(LPOBJ lpObj, LPOBJ lpTargetObj, int dmg, int 
 		fBaseExp = g_ExpManager.GetExpMultiplier(lpObj->Level + lpObj->m_PlayerData->MasterLevel, lpObj->m_PlayerData->m_iResets, true);
 	}
 
-	nExp *= (fBaseExp + fVipBonus + fEventBonus + fMapBonus);
+	nExp = nExp * (1 + fMapBonus) * (fBaseExp + fVipBonus + fEventBonus);
 
 	if (g_CrywolfSync.GetOccupationState() == 1 && g_CrywolfSync.GetApplyPenalty() == TRUE)
 	{
@@ -9883,7 +9883,7 @@ void gObjExpParty(LPOBJ lpObj, LPOBJ lpTargetObj, int AttackDamage, int MSBFlag)
 					fBaseExp = g_ExpManager.GetExpMultiplier(lpPartyObj->Level + lpPartyObj->m_PlayerData->MasterLevel, lpPartyObj->m_PlayerData->m_iResets, true);
 				}
 
-				exp *= (fBaseExp + fVipBonus + fEventBonus + fMapBonus);
+				exp = exp * (1 + fMapBonus) * (fBaseExp + fVipBonus + fEventBonus);
 
 				if (g_CrywolfSync.GetOccupationState() == 1 && g_CrywolfSync.GetApplyPenalty() == TRUE)
 				{
@@ -10144,7 +10144,7 @@ UINT64 gObjExpPartyRenewal(int nPartyNumber, int nLastAttackUserIndex, LPOBJ lpT
 								fBaseExp = g_ExpManager.GetExpMultiplier(lpPartyObj->Level + lpPartyObj->m_PlayerData->MasterLevel, lpPartyObj->m_PlayerData->m_iResets, true);
 							}
 
-							nExp *= (fBaseExp + fVipBonus + fMapBonus + fEventBonus);
+							nExp = nExp * (1 + fMapBonus) * (fBaseExp + fVipBonus + fEventBonus);
 
 							if (g_CrywolfSync.GetOccupationState() == 1 && g_CrywolfSync.GetApplyPenalty() == TRUE)
 							{
@@ -16734,11 +16734,11 @@ static int FrustrumY[MAX_ARRAY_FRUSTRUM];
 
 void InitFrustrum()
 {
-	float CameraViewFar    = 2400.f;	// À§ÂÊ ³¡
-	float CameraViewNear   = CameraViewFar*0.19f;// ¾Æ·¡ ³¡
-	float CameraViewTarget = CameraViewFar*0.53f;// Ä³¸¯ÅÍÀÇ Áß¾Ó À§Ä¡
-	float WidthFar  = 1190.f;// À§ÂÊÀÇ °¡·Î Æø
-	float WidthNear = 550.f;// ¾Æ·¡ÂÊÀÇ °¡·Î Æø
+	float CameraViewFar    = 2400.f;	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	float CameraViewNear   = CameraViewFar*0.19f;// ï¿½Æ·ï¿½ ï¿½ï¿½
+	float CameraViewTarget = CameraViewFar*0.53f;// Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß¾ï¿½ ï¿½ï¿½Ä¡
+	float WidthFar  = 1190.f;// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	float WidthNear = 550.f;// ï¿½Æ·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 		
 	vec3_t p[4];
 	Vector(-WidthFar ,CameraViewFar -CameraViewTarget,0.f,p[0]);
