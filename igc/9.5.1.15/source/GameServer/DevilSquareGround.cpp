@@ -452,10 +452,7 @@ void CDevilSquareGround::SendScore()
 		iExp = this->m_DevilSquareScoreInfoTOP10.Score[0].BonusExp;
 		CheckItemOptForGetExpExRenewal(*Itor, NULL, iExp, 0, true);
 
-		(*(Itor))->m_PlayerData->Experience += iExp;
-
 		bool ret = false;
-
 		if (iExp > 0)
 		{
 			ret = gObjLevelUp((*(Itor)), iExp, 0, "Devil Square");

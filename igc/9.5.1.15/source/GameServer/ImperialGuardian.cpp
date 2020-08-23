@@ -2245,18 +2245,18 @@ int CImperialGuardian::ImperialGuardianLevelUp(int iIndex, int iAddExp)
 
 	int iLEFT_EXP = 0;
 
-	g_Log.Add("[Imperial Guardian] Experience : [%s][%s](%d) Experience: %d + %d",	
-		gObj[iIndex].AccountID,	gObj[iIndex].Name,
-		gObj[iIndex].Level, gObj[iIndex].m_PlayerData->Experience,
-		iAddExp);
-
-	::gObjSetExpPetItem(iIndex, iAddExp);
-
 	if ( gObj[iIndex].Level >= g_ConfigRead.data.common.UserMaxLevel)
 	{
 		GSProtocol.GCServerMsgStringSend(Lang.GetText(0,45), gObj[iIndex].m_Index, 1);
 		return 0;
 	}
+
+	::gObjSetExpPetItem(iIndex, iAddExp);
+
+	g_Log.Add("[Imperial Guardian] Experience : [%s][%s](%d) Experience: %d + %d",	
+		gObj[iIndex].AccountID,	gObj[iIndex].Name,
+		gObj[iIndex].Level, gObj[iIndex].m_PlayerData->Experience,
+		iAddExp);
 
 	if ( (gObj[iIndex].m_PlayerData->Experience + iAddExp) < gObj[iIndex].m_PlayerData->NextExp )
 	{

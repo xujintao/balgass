@@ -466,17 +466,6 @@ int QuestExpUserMng::SendQuestReward(int iEpisode, int iObjIndex)
 			{
 				iExp = 0;
 			}
-
-			if (g_MasterLevelSkillTreeSystem.IsMasterLevelUser(&gObj[iObjIndex]))
-			{
-				gObj[iObjIndex].m_PlayerData->MasterExperience += iExp;
-			}
-
-			else
-			{
-				gObj[iObjIndex].m_PlayerData->Experience += iExp;
-			}
-
 			if (gObjLevelUp(&gObj[iObjIndex], iExp, 0, Lang.GetText(0,308)) == true)
 			{
 				GSProtocol.GCKillPlayerMasterExpSend(iObjIndex, -1, iExp, 0, 0);

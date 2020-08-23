@@ -2201,18 +2201,18 @@ int  CBloodCastle::LevelUp(int iIndex, int iAddExp)
 
 	int iLEFT_EXP = 0;
 
-	g_Log.Add("[Blood Castle] Experience : [%s][%s](%d) Experience: %I64d + %d",	// #error gObj[iIndex].X -> gObj[iIndex].Y
-		gObj[iIndex].AccountID,	gObj[iIndex].Name,
-		gObj[iIndex].Level, gObj[iIndex].m_PlayerData->Experience,
-		iAddExp);
-
-	::gObjSetExpPetItem(iIndex, iAddExp);
-
 	if ( gObj[iIndex].Level >= g_ConfigRead.data.common.UserMaxLevel )
 	{
 		::GSProtocol.GCServerMsgStringSend(Lang.GetText(0,45), gObj[iIndex].m_Index, 1);
 		return 0;
 	}
+
+	::gObjSetExpPetItem(iIndex, iAddExp);
+
+	g_Log.Add("[Blood Castle] Experience : [%s][%s](%d) Experience: %I64d + %d",	// #error gObj[iIndex].X -> gObj[iIndex].Y
+		gObj[iIndex].AccountID,	gObj[iIndex].Name,
+		gObj[iIndex].Level, gObj[iIndex].m_PlayerData->Experience,
+		iAddExp);
 
 	if ( (gObj[iIndex].m_PlayerData->Experience + iAddExp) < gObj[iIndex].m_PlayerData->NextExp )
 	{

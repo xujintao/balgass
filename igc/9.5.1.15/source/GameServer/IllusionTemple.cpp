@@ -1927,6 +1927,12 @@ int CIllusionTemple::LevelUp(int UserIndex, int Exp, int Event)
 
 	int iLEFT_EXP = 0;
 
+	if ( gObj[UserIndex].Level >= MAX_CHAR_LEVEL )
+	{
+		GSProtocol.GCServerMsgStringSend(Lang.GetText(0,45), gObj[UserIndex].m_Index, 1);
+		return 0;
+	}
+
 	LogAddTD("Experience : Map[%d]-(%d,%d) [%s][%s](%d) %u %d MonsterIndex : %d, EventType : %d",
 		gObj[UserIndex].MapNumber, gObj[UserIndex].X, gObj[UserIndex].Y,	
 		gObj[UserIndex].AccountID,	gObj[UserIndex].Name,
@@ -1934,12 +1940,6 @@ int CIllusionTemple::LevelUp(int UserIndex, int Exp, int Event)
 		Exp, 0, Event);
 
 	::gObjSetExpPetItem(UserIndex, Exp);
-
-	if ( gObj[UserIndex].Level >= MAX_CHAR_LEVEL )
-	{
-		GSProtocol.GCServerMsgStringSend(Lang.GetText(0,45), gObj[UserIndex].m_Index, 1);
-		return 0;
-	}
 
 	if ( (gObj[UserIndex].Experience + Exp) < gObj[UserIndex].NextExp )
 	{

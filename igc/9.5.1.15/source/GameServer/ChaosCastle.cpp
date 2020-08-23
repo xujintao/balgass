@@ -2055,18 +2055,18 @@ BOOL CChaosCastle::LevelUp(int iUserIndex, int iAddExp)
 
 	int iLEFT_EXP = 0;
 
-	g_Log.Add("[Chaos Castle] Experience : [%s][%s](%d) Experience: %d + %d",	
-		gObj[iUserIndex].AccountID,	gObj[iUserIndex].Name,
-		gObj[iUserIndex].Level, gObj[iUserIndex].m_PlayerData->Experience,
-		iAddExp);
-
-	::gObjSetExpPetItem(iUserIndex, iAddExp);
-
 	if ( gObj[iUserIndex].Level >= g_ConfigRead.data.common.UserMaxLevel)
 	{
 		GSProtocol.GCServerMsgStringSend(Lang.GetText(0,45), gObj[iUserIndex].m_Index, 1);
 		return 0;
 	}
+
+	::gObjSetExpPetItem(iUserIndex, iAddExp);
+
+	g_Log.Add("[Chaos Castle] Experience : [%s][%s](%d) Experience: %d + %d",	
+		gObj[iUserIndex].AccountID,	gObj[iUserIndex].Name,
+		gObj[iUserIndex].Level, gObj[iUserIndex].m_PlayerData->Experience,
+		iAddExp);
 
 	if ( (gObj[iUserIndex].m_PlayerData->Experience + iAddExp) < gObj[iUserIndex].m_PlayerData->NextExp )
 	{

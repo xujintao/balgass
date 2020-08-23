@@ -2151,18 +2151,7 @@ void CArcaBattle::SendPlayResult()
 			if ( gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_PCS_MARK3) || gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_PCBANG_POINT_MARK3) )
 			{
 				iRewardExp = 0;
-			}
-
-			if (g_MasterLevelSkillTreeSystem.IsMasterLevelUser(&gObj[n]))
-			{
-				gObj[n].m_PlayerData->MasterExperience += iRewardExp;
-			}
-
-			else
-			{
-				gObj[n].m_PlayerData->Experience += iRewardExp;
-			}
-				
+			}			
 			if (gObjLevelUp(&gObj[n], iRewardExp, 0, "Arca Battle") == true)
 			{
 				GSProtocol.GCKillPlayerMasterExpSend(n, -1, iRewardExp, 0, 0);

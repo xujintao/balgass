@@ -1200,18 +1200,7 @@ UINT64 CDevilSquare::gObjMonsterExpSingle(LPOBJ lpObj, LPOBJ lpTargetObj, int dm
 		if (lpObj->Type == OBJ_USER)
 		{
 			CheckItemOptForGetExpExRenewal(lpObj, NULL, exp, dwDefaultExp, false);
-
-			if (!g_MasterLevelSkillTreeSystem.IsMasterLevelUser(lpObj))
-			{
-				lpObj->m_PlayerData->Experience += exp;
-			}
-			else
-			{
-				lpObj->m_PlayerData->MasterExperience += exp;
-			}
-
 			lpObj->m_nEventExp += exp;
-
 			if (gObjLevelUp(lpObj, exp, lpTargetObj->Class, "Devil Square Monster (Single)") == false)
 			{
 				return 0;
@@ -1498,18 +1487,7 @@ void CDevilSquare::gObjExpParty(LPOBJ lpObj, LPOBJ lpTargetObj, int AttackDamage
 						if ( lpPartyObj->Type == OBJ_USER )
 						{
 							CheckItemOptForGetExpExRenewal(lpPartyObj, NULL, exp, dwDefaultExp, false);
-
-							if (g_MasterLevelSkillTreeSystem.IsMasterLevelUser(lpPartyObj) )
-							{
-								lpPartyObj->m_PlayerData->MasterExperience += exp;
-							}
-							else
-							{
-								lpPartyObj->m_PlayerData->Experience += exp;
-							}
-
 							lpPartyObj->m_nEventExp += exp;
-
 							if ( gObjLevelUp(lpPartyObj, exp, lpTargetObj->Class, "Devil Square Monster (Party)") == false )
 							{
 								continue;

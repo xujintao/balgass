@@ -6082,17 +6082,18 @@ bool gObjLevelUp(LPOBJ lpObj, UINT64 addexp, int iMonsterType, const char * szEv
 		return g_MasterLevelSkillTreeSystem.MasterLevelUp(lpObj, addexp, iMonsterType, szEventType);
 	}
 
-	g_Log.Add("[%s] Experience : Map[%s]-(%d,%d) [%s][%s](%d) Experience: %I64d + %I64d  MonsterClass : %d",
-		szEventType, Lang.GetMap(0, lpObj->MapNumber),lpObj->X,lpObj->Y,lpObj->AccountID,lpObj->Name,lpObj->Level,lpObj->m_PlayerData->Experience - addexp,addexp,iMonsterType);
-
-	if ( lpObj->Level >= g_ConfigRead.data.common.UserMaxLevel && lpObj->m_PlayerData->Experience >= gLevelExperience[lpObj->Level] )
+	if ( lpObj->Level >= g_ConfigRead.data.common.UserMaxLevel )
 	{
-		lpObj->m_PlayerData->Experience = gLevelExperience[lpObj->Level];
 		GSProtocol.GCServerMsgStringSend(Lang.GetText(0,45), lpObj->m_Index, 1);
 		return false;
 	}
 
 	gObjSetExpPetItem(lpObj->m_Index, addexp);
+	
+	g_Log.Add("[%s] Experience : Map[%s]-(%d,%d) [%s][%s](%d) Experience: %I64d + %I64d  MonsterClass : %d",
+		szEventType, Lang.GetMap(0, lpObj->MapNumber),lpObj->X,lpObj->Y,lpObj->AccountID,lpObj->Name,lpObj->Level,lpObj->m_PlayerData->Experience - addexp,addexp,iMonsterType);
+
+	lpObj->m_PlayerData->Experience += addexp;
 	if ( lpObj->m_PlayerData->Experience < lpObj->m_PlayerData->NextExp )
 	{
 		return true;
@@ -9459,16 +9460,6 @@ UINT64 gObjMonsterExpSingle(LPOBJ lpObj, LPOBJ lpTargetObj, int dmg, int tot_dmg
 	if (exp > 0)
 	{
 		CheckItemOptForGetExpExRenewal(lpObj, lpTargetObj, exp, dwDefaultExp, false);
-
-		if (g_MasterLevelSkillTreeSystem.IsMasterLevelUser(lpObj))
-		{
-			lpObj->m_PlayerData->MasterExperience += exp;
-		}
-		else
-		{
-			lpObj->m_PlayerData->Experience += exp;
-		}
-
 		if (gObjLevelUp(lpObj, exp, lpTargetObj->Class, "Single") == 0)
 		{
 			bSendExp = 0;
@@ -9566,16 +9557,6 @@ UINT64 gObjMonsterExpSingleRenewal(LPOBJ lpObj, LPOBJ lpTargetObj, int dmg, int 
 	if (nExp > 0)
 	{
 		CheckItemOptForGetExpExRenewal(lpObj, lpTargetObj, nExp, dwDefaultExp, false);
-
-		if (g_MasterLevelSkillTreeSystem.IsMasterLevelUser(lpObj))
-		{
-			lpObj->m_PlayerData->MasterExperience += nExp;
-		}
-		else
-		{
-			lpObj->m_PlayerData->Experience += nExp;
-		}
-
 		if (gObjLevelUp(lpObj, nExp, lpTargetObj->Class, "Single") == 0)
 		{
 			bSendExp = 0;
@@ -9906,17 +9887,6 @@ void gObjExpParty(LPOBJ lpObj, LPOBJ lpTargetObj, int AttackDamage, int MSBFlag)
 				if (exp > 0)
 				{
 					CheckItemOptForGetExpExRenewal(lpPartyObj, lpTargetObj, exp, dwDefaultExp, false);
-
-					if (g_MasterLevelSkillTreeSystem.IsMasterLevelUser(lpPartyObj))
-					{
-						lpPartyObj->m_PlayerData->MasterExperience += exp;
-					}
-
-					else
-					{
-						lpPartyObj->m_PlayerData->Experience += exp;
-					}
-
 					if (gObjLevelUp(lpPartyObj, exp, lpTargetObj->Class, "Party") == 0)
 					{
 						continue;
@@ -10167,17 +10137,6 @@ UINT64 gObjExpPartyRenewal(int nPartyNumber, int nLastAttackUserIndex, LPOBJ lpT
 							if (nExp > 0)
 							{
 								CheckItemOptForGetExpExRenewal(lpPartyObj, lpTargetObj, nExp, dwDefaultExp, false);
-
-								if (g_MasterLevelSkillTreeSystem.IsMasterLevelUser(lpPartyObj))
-								{
-									lpPartyObj->m_PlayerData->MasterExperience += nExp;
-								}
-
-								else
-								{
-									lpPartyObj->m_PlayerData->Experience += nExp;
-								}
-
 								if (gObjLevelUp(lpPartyObj, nExp, lpTargetObj->Class, "Party") == 0)
 								{
 									continue;

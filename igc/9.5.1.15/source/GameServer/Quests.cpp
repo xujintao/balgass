@@ -1313,18 +1313,18 @@ int CQuests::LevelUp(LPOBJ lpObj, DWORD Experience)
 
 	int iLEFT_EXP = 0;
 
-	g_Log.Add(0, __FILE__, __FUNCTION__, "[Quest] Experience : [%s][%s](%d) Experience: %d + %d",	
-		lpObj->AccountID, lpObj->Name,
-		lpObj->Level, lpObj->m_PlayerData->Experience,
-		Experience);
-
-	::gObjSetExpPetItem(lpObj->m_Index, Experience);
-
 	if ( lpObj->Level >= MAX_CHAR_LEVEL )
 	{
 		GSProtocol.GCServerMsgStringSend(Lang.GetText(0,45), lpObj->m_Index, 1);
 		return 0;
 	}
+
+	::gObjSetExpPetItem(lpObj->m_Index, Experience);
+
+	g_Log.Add(0, __FILE__, __FUNCTION__, "[Quest] Experience : [%s][%s](%d) Experience: %d + %d",	
+		lpObj->AccountID, lpObj->Name,
+		lpObj->Level, lpObj->m_PlayerData->Experience,
+		Experience);
 
 	if ( (lpObj->m_PlayerData->Experience + Experience) < lpObj->m_PlayerData->NextExp )
 	{
