@@ -70,13 +70,13 @@
 <SocketSystem SphereDrop="1" TetraDrop="1">
 
 	<SphereDrop>
-		<Rate Level1="50" Level2="40" Level3="30" Level4="20" Level5="10" />
-		<Level Level1="40" Level2="60" Level3="80" Level4="100" Level5="120" />
+		<Rate Level1="50" Level2="0" Level3="0" Level4="0" Level5="0" />
+		<Level Level1="102" Level2="0" Level3="0" Level4="0" Level5="0" />
 	</SphereDrop>
 	
 	<TetraDrop>
-		<Bronze Rate="100" LevelMin="50" LevelMax="300" />
-		<Silver Rate="1" LevelMin="50" LevelMax="300" />
+		<Bronze Rate="0" LevelMin="50" LevelMax="300" />
+		<Silver Rate="0" LevelMin="50" LevelMax="300" />
 		<Gold Rate="0" LevelMin="50" LevelMax="300" />
 	</TetraDrop>
 

@@ -53,7 +53,7 @@
 // STRICTLY NO COMMENTS INSIDE TAGS 
 -->
 
-<DevilSquare_Classic Enable="1" MaxPlayerPerRoom="15" DevilsEyeDropRate="80" DevilsKeyDropRate="80">
+<DevilSquare_Classic Enable="1" MaxPlayerPerRoom="15" DevilsEyeDropRate="10" DevilsKeyDropRate="10">
 	<Time Close="35" ToOpen="5" PlayDuration="20" />
 
 	<Schedule>

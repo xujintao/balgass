@@ -36,7 +36,7 @@
 // STRICTLY NO COMMENTS INSIDE TAGS 
 -->
 
-<BloodCastle Enable="1" EarlyFinishRestriction="0" EarlyFinishMinTime="300" ScrollofArchangelDropRate="800" BloodBoneDropRate="800">
+<BloodCastle Enable="1" EarlyFinishRestriction="0" EarlyFinishMinTime="300" ScrollofArchangelDropRate="10" BloodBoneDropRate="10">
 <Time ToOpen="5" PlayDuration="15" ToClose="1" />
 	
 	<Schedule>
