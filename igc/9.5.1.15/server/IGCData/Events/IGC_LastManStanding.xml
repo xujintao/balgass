@@ -65,7 +65,7 @@
 // STRICTLY NO COMMENTS INSIDE TAGS 
 -->	
 
-<LastManStanding Enable="1" DieCount="2" MinPlayers="2" MaxPlayers="500">
+<LastManStanding Enable="0" DieCount="2" MinPlayers="2" MaxPlayers="500">
 	<Event Duration="15" MapNumber="6" StartX="146" StartY="78" EndX="160" EndY="60" />
 	<Registration Time="15" MapNumber="0" NPCIndex="258" PosX="145" PosY="140" Dir="-1" ReqMoney="1000000" ReqSpecialItem="0" SpecialItemCount="1" ItemCat="14" ItemIndex="160" />
 
