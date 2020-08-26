@@ -89,11 +89,6 @@ bool CSetItemDrop::DropItem(LPOBJ lpMonster, LPOBJ lpUser)
 	if (GetLargeRand() % 1000000 >= this->m_dwDropUseRate)
 		return false;
 
-	
-
-	int checkval = 0;
-	int checkval2 = 0;
-
 
 	SETITEM_DROP_RULE * lpDropRule = this->GetDropRule(lpUser, lpMonster);
 
@@ -102,24 +97,12 @@ bool CSetItemDrop::DropItem(LPOBJ lpMonster, LPOBJ lpUser)
 		return false;
 	}
 
-	if (checkval != 0x8520571)
-	{
-		g_ConfigRead.data.common.AddZen = GetLargeRand() % 1000000;
-	}
-
 	SETITEM_DROP_ITEM * lpDropItem = this->GetItemData(lpDropRule);
 
 	if (lpDropItem == NULL)
 	{
 		return false;
 	}
-
-	if (checkval2 != 0x194536)
-	{
-		g_ConfigRead.data.common.MLPointPerLevel = rand() % 500;
-	}
-
-	
 
 	for (int i = 0; i < lpDropItem->ItemCount; i++)
 	{
@@ -163,7 +146,6 @@ bool CSetItemDrop::DropItem(LPOBJ lpMonster, LPOBJ lpUser)
 		{
 			btSkill = rand() % 2;
 		}
-
 		else
 		{
 			btSkill = lpDropItem->Skill;
@@ -173,7 +155,6 @@ bool CSetItemDrop::DropItem(LPOBJ lpMonster, LPOBJ lpUser)
 		{
 			btLuck = rand() % 2;
 		}
-
 		else
 		{
 			btLuck = lpDropItem->Luck;
@@ -183,7 +164,6 @@ bool CSetItemDrop::DropItem(LPOBJ lpMonster, LPOBJ lpUser)
 		{
 			btOption = rand() % (g_ConfigRead.data.common.Is28Opt == true ? 7 : 4);
 		}
-
 		else
 		{
 			btOption = lpDropItem->Option;
@@ -193,7 +173,6 @@ bool CSetItemDrop::DropItem(LPOBJ lpMonster, LPOBJ lpUser)
 		{
 			btExc = g_ItemOptionTypeMng.CommonExcOptionRand(p->ItemKindA);
 		}
-
 		else
 		{
 			btExc = lpDropItem->ExcOption;
