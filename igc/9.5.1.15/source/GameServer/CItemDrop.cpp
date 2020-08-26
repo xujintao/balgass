@@ -97,9 +97,6 @@ bool CItemDrop::DropItem(LPOBJ lpUser, LPOBJ lpMonster)
 	if(!ObjectMaxRange(lpMonster->m_Index))
 		return false;
 
-	if (GetLargeRand() % 1000000 >= this->m_dwDropUseRate)
-		return false;
-
 	int iItemCount = 0;
 	ITEMDROP_ITEM ** lpItems = this->GetItem(lpUser, lpMonster, iItemCount);
 
@@ -358,7 +355,7 @@ boost::shared_ptr<ITEMDROP_MONSTER> CItemDrop::GetMonsterData(OBJECTSTRUCT *lpUs
 			continue;
 		}
 
-		if (rand() % 10000 >= itemdrop_monster_->dwItemDropRate)
+		if (rand() % this->m_dwDropUseRate >= itemdrop_monster_->dwItemDropRate)
 		{
 			continue;
 		}
