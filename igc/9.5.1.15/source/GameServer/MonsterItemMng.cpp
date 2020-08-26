@@ -62,6 +62,7 @@ void CMonsterItemMng::Clear()
 
 	memset(this->m_iMagicBookItmeCount, 0, sizeof(this->m_iMagicBookItmeCount));
 	memset(this->m_iMonsterInvenItemCount, 0, sizeof(this->m_iMonsterInvenItemCount));
+	memset(this->m_monsterInventoryItemExcelCount, 0, sizeof(this->m_monsterInventoryItemExcelCount));
 
 	if (this->m_JewelOfBlessItem)
 	{
@@ -98,8 +99,8 @@ BYTE CMonsterItemMng::InsertItem(int monsterlevel, int type, int index, int item
 	}
 
 	int itemcount = this->m_iMonsterInvenItemCount[monsterlevel];
-
-	if (itemcount >= MAX_ITEM_IN_MONSTER)
+	int itemExcelCount = this->m_monsterInventoryItemExcelCount[monsterlevel];
+	if (itemcount >= MAX_ITEM_IN_MONSTER || itemExcelCount >= MAX_ITEM_IN_MONSTER)
 	{
 		return -1;
 	}
@@ -120,6 +121,10 @@ BYTE CMonsterItemMng::InsertItem(int monsterlevel, int type, int index, int item
 	}
 
 	this->m_iMonsterInvenItemCount[monsterlevel]++;
+	if(GetItemGroup(item->m_Type) == ITEMTYPE_NORMAL) {
+		this->m_monsterInventoryItemExcel[monsterlevel][itemExcelCount] = itemcount;
+		this->m_monsterInventoryItemExcelCount[monsterlevel]++;
+	}
 	return 0;
 }
 
@@ -618,4 +623,17 @@ CItem * CMonsterItemMng::GetItemEx(int monsterlevel)
 	}
 
 	return nullptr;
+}
+
+CItem* CMonsterItemMng::GetItemExcel(int monsterlevel)
+{
+	if(monsterlevel < 0 || monsterlevel >= MAX_LEVEL_MONSTER) {
+		return nullptr;
+	}
+	int itemExcelCount = this->m_monsterInventoryItemExcelCount[monsterlevel];
+	if (itemExcelCount <= 0) {
+		return nullptr;
+	}
+	int itemIndex = this->m_monsterInventoryItemExcel[monsterlevel][GetLargeRand() % itemExcelCount];
+	return &this->m_MonsterInvenItems[monsterlevel][itemIndex];
 }

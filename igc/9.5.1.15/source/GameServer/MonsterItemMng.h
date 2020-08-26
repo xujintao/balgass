@@ -45,10 +45,15 @@ public:
 	void NormalGiveItemSearch(int monsterlevel,  int maxlevel);
 	int CheckMonsterDropItem(int type, int index);
 	CItem * GetItemEx(int monsterlevel);
+	CItem * GetItemExcel(int monsterlevel);
 	void NormalGiveItemSearchEx(int monsterlevel, int maxlevel);
 	__tagMONSTER_ITEM_DROP_PRATE_ m_MonsterItemDropRate[MAX_LEVEL_MONSTER];
+	// normal
 	CItem *m_MonsterInvenItems[MAX_LEVEL_MONSTER];
 	int m_iMonsterInvenItemCount[MAX_LEVEL_MONSTER];
+	// excellent
+	int m_monsterInventoryItemExcel[MAX_LEVEL_MONSTER][MAX_ITEM_IN_MONSTER];
+	int m_monsterInventoryItemExcelCount[MAX_LEVEL_MONSTER];
 	char MonsterName[255];
 	int m_bLoad;
 	int m_iMagicBookItmeCount[MAX_LEVEL_MONSTER];

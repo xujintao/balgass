@@ -4010,29 +4010,9 @@ void gObjMonsterDieGiveItem(LPOBJ lpObj, LPOBJ lpTargetObj)
 
 	if ( ExtDropPer == TRUE )
 	{
-		DropItem = g_MonsterItemMng.GetItemEx(lpObj->Level-25);
-
-		if ( !DropItem )
-			item_drop = FALSE;
-		else
-		{
-			int foundChangeupitem=0;
-			
-			for ( int i=0;i<MAX_TYPE_PLAYER;i++)
-			{
-				if ( DropItem->m_RequireClass[i] > 1 )
-				{
-					foundChangeupitem = TRUE;
-					break;
-				}
-			}
-
-			if ( foundChangeupitem )
-				ExtDropPer = rand()%100;
-
-			if ( ExtDropPer )
-				if ( (rand()%itemrate) < ItemDropPer )
-					item_drop=TRUE;
+		DropItem = g_MonsterItemMng.GetItemExcel(lpObj->Level-25);
+		if (DropItem != nullptr) {
+			item_drop = TRUE;
 		}
 	}
 	else
