@@ -273,6 +273,7 @@ void SetValues()
 	//MemAssign(0x0A0C438C + 6, (BYTE)0xDF); // 1.04R, be attacked send, 1D->DF, compatible with s9 server
 	MemAssign(0x004D7D42 + 1, (BYTE)0x42); // support multi instance
 	MemAssign(0x00B0F1C1 + 1, (BYTE)0x00); // discard high dmDisplayFrequency, fixed resolution mismatching
+	MemAssign(0x0067760B + 1, (BYTE)0x2C); // fixed item with socket show excellent
 
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
