@@ -3800,7 +3800,7 @@ void CMasterLevelSkillTreeSystem::MLS_SkillMonkBarrageJustOneTarget(int aIndex, 
 		{
 			case 558:
 			case 562:
-				if ( rand()%100 <= 40 )
+				if ( rand()%100 < 40 )
 				{
 					BYTE btAttr = MapC[lpTargetObj->MapNumber].GetAttr(lpTargetObj->X, lpTargetObj->Y);
 
@@ -3815,26 +3815,26 @@ void CMasterLevelSkillTreeSystem::MLS_SkillMonkBarrageJustOneTarget(int aIndex, 
 				}
 				break;
 			case 551:
-				if ( rand()%100 <= 10 )
+				if ( rand()%100 < 10 )
 					gObjAddBuffEffect(lpTargetObj, BUFFTYPE_CURSED_ATTACK_DOWN, EFFECTTYPE_CURSED_ATTACKDOWN, 5, 0, 0, 10);
 				break;
 			case 554:
-				if ( rand()%100 <= (this->GetMasterSkillValue(MagicDamageC.SkillGet(lpMagic->m_Skill), lpMagic->m_Level) + 10) )
+				if ( rand()%100 < (this->GetMasterSkillValue(MagicDamageC.SkillGet(lpMagic->m_Skill), lpMagic->m_Level) + 10) )
 					gObjAddBuffEffect(lpTargetObj, BUFFTYPE_CURSED_ATTACK_DOWN, EFFECTTYPE_CURSED_ATTACKDOWN, 5, 0, 0, 10);
 				break;
 			case 552:
-				if ( rand()%100 <= 10 )
+				if ( rand()%100 < 10 )
 					gObjAddBuffEffect(lpTargetObj, BUFFTYPE_DEFENSE_POWER_DEC, EFFECTTYPE_DECREASE_DEFENSE, 10, 0, 0, 10);
 				break;
 			case 555:
-				if ( rand()%100 <= (this->GetMasterSkillValue(MagicDamageC.SkillGet(lpMagic->m_Skill), lpMagic->m_Level) + 10) )
+				if ( rand()%100 < (this->GetMasterSkillValue(MagicDamageC.SkillGet(lpMagic->m_Skill), lpMagic->m_Level) + 10) )
 					gObjAddBuffEffect(lpTargetObj, BUFFTYPE_DEFENSE_POWER_DEC, EFFECTTYPE_DECREASE_DEFENSE, 10, 0, 0, 10);
 				break;
 		}
 
 		if ( lpMagic->m_Skill == 562 )
 		{
-			if ( rand()%100 <= this->GetMasterSkillValue(MagicDamageC.SkillGet(lpMagic->m_Skill), lpMagic->m_Level) )
+			if ( rand()%100 < this->GetMasterSkillValue(MagicDamageC.SkillGet(lpMagic->m_Skill), lpMagic->m_Level) )
 			{
 				gObjAddBuffEffect(lpTargetObj, BUFFTYPE_DEBUFF_FROST, EFFECTTYPE_GIVE_DMG_TICK, 100, 0, 0, 10);
 			}
@@ -3974,7 +3974,7 @@ void CMasterLevelSkillTreeSystem::MLS_SkillStrengthenDragonRoar(int aIndex, CMag
 
 									if ( lpMagic->m_Skill == 561 )
 									{
-										if ( this->GetMasterSkillValue(MagicDamageC.SkillGet(lpMagic->m_Skill), lpMagic->m_Level) >= (rand()%100) )
+										if ( rand()%100 < this->GetMasterSkillValue(MagicDamageC.SkillGet(lpMagic->m_Skill), lpMagic->m_Level) )
 										{
 											gObjAddBuffEffect(&gObj[tObjNum], BUFFTYPE_DEBUFF_FIRE, EFFECTTYPE_GIVE_DMG_TICK, 100, 0, 0, 10);
 										}
@@ -4856,7 +4856,7 @@ void CMasterLevelSkillTreeSystem::MLS_SkillBlind(LPOBJ lpObj, int aTargetIndex, 
 
 	LPOBJ lpTargetObj = &gObj[aTargetIndex];
 	
-	if ( rand()%100 <= ((lpObj->m_PlayerData->Energy+lpObj->AddEnergy) / 100 + 5) )
+	if ( rand()%100 < ((lpObj->m_PlayerData->Energy+lpObj->AddEnergy) / 100 + 5) )
 	{
 		gObjAddBuffEffect(lpTargetObj, BUFFTYPE_BLIND_2, EFFECTTYPE_BLIND, 50, 0, 0, MagicDamageC.GetSkillKeepTime(lpMagic->m_Skill));
 		gObjViewportListCreate(lpTargetObj->m_Index);
@@ -5038,7 +5038,7 @@ void CMasterLevelSkillTreeSystem::MLS_SkillfulKnightBlow(int aIndex, int aTarget
 							gObj[tObjNum].lpAttackObj = lpObj;
 							gObjAttack(lpObj, &gObj[tObjNum], lpMagic, 0, 1, 0, isCombo, 0, 0);
 
-							if ( fValue > (rand()%100) )
+							if ( rand()%100 < fValue )
 							{
 								if ( gObjCheckUsedBuffEffect(&gObj[tObjNum], BUFFTYPE_BLEEDING) == TRUE )
 								{
@@ -5178,7 +5178,7 @@ void CMasterLevelSkillTreeSystem::MLS_MasteryKnightBlow(int aIndex, int aTargetI
 							gObj[tObjNum].lpAttackObj = lpObj;
 							gObjAttack(lpObj, &gObj[tObjNum], lpMagic, 0, 1, 0, isCombo, 0, 0);
 
-							if ( fPrevValue >= (rand()%100) )
+							if ( rand()%100 < fPrevValue)
 							{
 								if ( gObjCheckUsedBuffEffect(&gObj[tObjNum], BUFFTYPE_BLEEDING) == TRUE )
 								{
@@ -5195,7 +5195,7 @@ void CMasterLevelSkillTreeSystem::MLS_MasteryKnightBlow(int aIndex, int aTargetI
 								iStunEffect -= gObj[tObjNum].m_PlayerData->m_Resistance_Stun;
 							}
 
-							if ( iStunEffect >= (rand()%100) )
+							if ( rand()%100 < iStunEffect )
 							{
 								gObjAddBuffEffect(&gObj[tObjNum], BUFFTYPE_STUN, 0, 0, 0, 0, 2);
 								gObjSetPosition(tObjNum, gObj[tObjNum].X, gObj[tObjNum].Y);
@@ -5305,7 +5305,7 @@ void CMasterLevelSkillTreeSystem::MLS_SkillSkillfulDesruction(OBJECTSTRUCT *lpOb
 							{
 								gObjAddAttackProcMsgSendDelay(lpObj, 50, tObjNum, 500, lpMagic->m_Skill, 0);
 
-								if ( fValue >= (rand()%100) )
+								if ( rand()%100 < fValue )
 								{
 									gObjAddBuffEffect(&gObj[tObjNum], BUFFTYPE_FREEZE_2, 0, 0, 0, 0, 3);
 
@@ -5416,7 +5416,7 @@ void CMasterLevelSkillTreeSystem::MLS_SkillMasteryDesruction(OBJECTSTRUCT *lpObj
 							{
 								gObjAddAttackProcMsgSendDelay(lpObj, 50, tObjNum, 500, lpMagic->m_Skill, 0);
 
-								if ( fPrevValue >= (rand()%100) )
+								if ( rand()%100 < fPrevValue )
 								{
 									gObjAddBuffEffect(&gObj[tObjNum], BUFFTYPE_FREEZE_2, 0, 0, 0, 0, 3);
 
@@ -5426,7 +5426,7 @@ void CMasterLevelSkillTreeSystem::MLS_SkillMasteryDesruction(OBJECTSTRUCT *lpObj
 									gObjSetPosition(tObjNum, gObj[tObjNum].X, gObj[tObjNum].Y);
 								}
 
-								if ( fValue >= (rand()%100) )
+								if ( rand()%100 < fValue )
 								{
 									if ( !gObjCheckUsedBuffEffect(&gObj[tObjNum], BUFFTYPE_ATTACK_SPEED_DEC) )
 									{
@@ -5508,7 +5508,7 @@ void CMasterLevelSkillTreeSystem::MLS_MasterySuddenIce(int aIndex, CMagicInf *lp
 					{
 						gObjAttack(lpObj, &gObj[tObjNum], lpMagic, 1, 1, 0, 0, 0, 0);
 
-						if ( fRate >= (rand()%100) )
+						if ( rand()%100 < fRate )
 						{
 							gObjAddBuffEffect(&gObj[tObjNum], BUFFTYPE_FREEZE_2, 0, 0, 0, 0, 3);
 
@@ -5988,7 +5988,7 @@ void CMasterLevelSkillTreeSystem::MLS_SkillMasteryIce(LPOBJ lpObj, CMagicInf* lp
 
 	gObjAttack(lpObj, lpTargetObj, lpMagic, 1, 0, 0, 0, 0, 0);
 
-	if ( fValue >= (rand()%100) )
+	if ( rand()%100 < fValue )
 	{
 		BYTE btAttr = MapC[lpObj->MapNumber].GetAttr(lpObj->X, lpObj->Y);
 

@@ -4493,7 +4493,7 @@ BOOL CObjUseSkill::FireScreamExplosionAttack(LPOBJ lpObj, LPOBJ lpTargetObj, int
 		return false;
 	}
 
-	if(rand()%10000 > g_SkillAdditionInfo.GetFireScreamExplosionRate())
+	if(rand()%10000 >= g_SkillAdditionInfo.GetFireScreamExplosionRate())
 	{
 		return false;
 	}

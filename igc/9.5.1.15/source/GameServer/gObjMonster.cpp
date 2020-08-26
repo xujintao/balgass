@@ -4091,7 +4091,7 @@ void gObjMonsterDieGiveItem(LPOBJ lpObj, LPOBJ lpTargetObj)
 			if ( DropItem->m_Type == ITEMGET(14,13) ||  DropItem->m_Type == ITEMGET(14,14) ||  DropItem->m_Type == ITEMGET(14,16) ||
 				 DropItem->m_Type == ITEMGET(14,22) ||  DropItem->m_Type == ITEMGET(12,15) ||  DropItem->m_Type == ITEMGET(14,31) )
 			{
-				if ( (rand()%100) > g_CrywolfSync.GetGemDropPenaltiyRate() )
+				if ( (rand()%100) >= g_CrywolfSync.GetGemDropPenaltiyRate() )
 				{
 					item_drop = FALSE;
 				}
@@ -4415,14 +4415,14 @@ BOOL gEventMonsterItemDrop(LPOBJ lpObj, LPOBJ lpTargetObj)
 		BOOL bDropStuff = FALSE;
 		int iType = 0;
 
-		if ( lpObj->Level >= g_iCompoundPotionLv1DropLevel && (rand()%10000) <= g_iCompoundPotionLv1DropRate &&
+		if ( lpObj->Level >= g_iCompoundPotionLv1DropLevel && (rand()%10000) < g_iCompoundPotionLv1DropRate &&
 			bDropStuff == FALSE )
 		{
 			bDropStuff = TRUE;
 			iType = ItemGetNumberMake(14, 38);
 		}
 
-		if ( bDropStuff == FALSE && lpObj->Level >= g_iCompoundPotionLv2DropLevel && (rand()%10000) <= g_iCompoundPotionLv2DropRate  )
+		if ( bDropStuff == FALSE && lpObj->Level >= g_iCompoundPotionLv2DropLevel && (rand()%10000) < g_iCompoundPotionLv2DropRate  )
 		{
 			bDropStuff = TRUE;
 			iType = ItemGetNumberMake(14, 39);
@@ -4431,7 +4431,7 @@ BOOL gEventMonsterItemDrop(LPOBJ lpObj, LPOBJ lpTargetObj)
 
 		if ( !bDropStuff )
 		{
-			if ( lpObj->Level >= g_iCompoundPotionLv3DropLevel && (rand()%10000) <= g_iCompoundPotionLv3DropRate )
+			if ( lpObj->Level >= g_iCompoundPotionLv3DropLevel && (rand()%10000) < g_iCompoundPotionLv3DropRate )
 			{
 				bDropStuff = TRUE;
 				iType = ItemGetNumberMake(14, 40);

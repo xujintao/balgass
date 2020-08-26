@@ -1394,7 +1394,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 							gObjUseSkill.m_Lua.Generic_Call("Sleep_PvP", "iiii>ii", Energy, lpObj->m_CurseSpell, lpObj->Level, lpTargetObj->Level, &SuccessRate, &Time);
 						}
 
-						if(SuccessRate >= rand()% 100)
+						if(rand()%100 < SuccessRate)
 						{
 							if(Time >= 0)
 							{
@@ -1437,7 +1437,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 							gObjUseSkill.m_Lua.Generic_Call("SummonerWeakness_PvP", "iiii>iii", Energy, lpObj->m_CurseSpell, lpObj->Level, lpTargetObj->Level, &SuccessRate, &Value, &Time);
 						}
 
-						if(SuccessRate < rand()%100)
+						if(rand()%100 >= SuccessRate)
 						{
 							GSProtocol.GCDamageSend(lpObj->m_Index, lpTargetObj->m_Index, 0, 0, 0, 0);
 							return 0;
@@ -1482,7 +1482,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 							gObjUseSkill.m_Lua.Generic_Call("SummonerInnovation_PvP", "iiii>iii", Energy, lpObj->m_CurseSpell, lpObj->Level, lpTargetObj->Level, &SuccessRate, &Value, &Time);
 						}
 
-						if(SuccessRate < rand()%100)
+						if(rand()%100 >= SuccessRate)
 						{
 							GSProtocol.GCDamageSend(lpObj->m_Index, lpTargetObj->m_Index, 0, 0, 0, 0);
 							return 0;

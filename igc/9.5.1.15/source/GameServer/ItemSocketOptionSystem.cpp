@@ -674,7 +674,7 @@ int CItemSocketOptionSystem::GetSphereDropInfo(int iMonsterLevel)
 
 	for (int i = 0; i < iSphereLevel; i++)
 	{
-		if (m_SphereDropRate[i] >= GetLargeRand()%10000)
+		if (GetLargeRand()%10000 < m_SphereDropRate[i])
 		{
 			iItemCode = i + ITEMGET(12,70);
 		}
@@ -709,7 +709,7 @@ int CItemSocketOptionSystem::GetTetraDropInfo(int iMonsterLevel)
 
 	for (int i = 0; i < iTetraLevel; i++)
 	{
-		if (m_TetraDropRate[i] >= GetLargeRand()%10000)
+		if (GetLargeRand()%10000 < m_TetraDropRate[i])
 		{
 			iItemCode = ITEMGET(14,247) - i;
 		}

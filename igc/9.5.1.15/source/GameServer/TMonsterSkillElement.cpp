@@ -164,7 +164,7 @@ void TMonsterSkillElement::ForceSkillElement(int iIndex, int iTargetIndex)
 		iSuccessRate -= gObj[iTargetIndex].m_PlayerData->m_Resistance_Stun;
 	}
 
-	if ( (rand()%100) > iSuccessRate )
+	if ( rand()%100 >= iSuccessRate )
 		return;
 
 	switch ( this->m_iElementType )

@@ -866,7 +866,7 @@ void CBotSystem::AlchemistTradeOk(int aIndex, int botIndex)
 			MsgOutput(aIndex,"No space in inventory");
 			return;
 		}
-		if(rand()%100 > reward.iSuccessRate)
+		if(rand()%100 >= reward.iSuccessRate)
 		{
 			MsgOutput(aIndex,"Combination failed! ");
 			return;

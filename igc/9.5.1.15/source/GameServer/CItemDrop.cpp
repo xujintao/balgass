@@ -399,7 +399,7 @@ boost::shared_ptr<ITEMDROP_ITEM> CItemDrop::GetItemFromMonster(boost::shared_ptr
 		int iItemRateRangeLow = iSuccessRate-itemDropRate;
 		int iItemRateRangeHigh = iSuccessRate;
 
-		if (randResult <= iItemRateRangeHigh && randResult >= iItemRateRangeLow)
+		if (randResult < iItemRateRangeHigh && randResult >= iItemRateRangeLow)
 		{
 			return *It;
 		}

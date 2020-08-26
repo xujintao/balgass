@@ -173,7 +173,7 @@ BOOL TMonsterAIElement::ForceAIElement(int iIndex, int iTargetIndex, TMonsterAIS
 {
 	LPOBJ lpObj = &gObj[iIndex];
 
-	if ( (rand()%100) > this->m_iSuccessRate )
+	if ( rand()%100 >= this->m_iSuccessRate )
 		return FALSE;
 
 	switch ( this->m_iElementType )
@@ -257,7 +257,7 @@ BOOL TMonsterAIElement::ApplyElementCommon(int iIndex, int iTargetIndex, TMonste
 BOOL TMonsterAIElement::ApplyElementMove(int iIndex, int iTargetIndex, TMonsterAIState * pAIState)
 {
 	LPOBJ lpObj = &gObj[iIndex];
-	UTIL.SendCrywolfChattingMsg(iIndex, "Element-ÀÌµ¿");
+	UTIL.SendCrywolfChattingMsg(iIndex, "Element-ï¿½Ìµï¿½");
 
 	if ( lpObj->PathStartEnd )
 		return FALSE;
@@ -279,7 +279,7 @@ BOOL TMonsterAIElement::ApplyElementMove(int iIndex, int iTargetIndex, TMonsterA
 BOOL TMonsterAIElement::ApplyElementMoveTarget(int iIndex, int iTargetIndex, TMonsterAIState * pAIState)
 {
 	LPOBJ lpObj = &gObj[iIndex];
-	UTIL.SendCrywolfChattingMsg(iIndex, "Element-Å¸°ÙÀÌµ¿");
+	UTIL.SendCrywolfChattingMsg(iIndex, "Element-Å¸ï¿½ï¿½ï¿½Ìµï¿½");
 
 	if ( lpObj->PathStartEnd )
 		return FALSE;
@@ -355,7 +355,7 @@ BOOL TMonsterAIElement::ApplyElementMoveTarget(int iIndex, int iTargetIndex, TMo
 BOOL TMonsterAIElement::ApplyElementGroupMove(int iIndex, int iTargetIndex, TMonsterAIState * pAIState)
 {
 	LPOBJ lpObj = &gObj[iIndex];
-	UTIL.SendCrywolfChattingMsg(iIndex, "Element-±×·ìÀÌµ¿");
+	UTIL.SendCrywolfChattingMsg(iIndex, "Element-ï¿½×·ï¿½ï¿½Ìµï¿½");
 
 	if ( lpObj->PathStartEnd )
 		return FALSE;
@@ -402,7 +402,7 @@ BOOL TMonsterAIElement::ApplyElementGroupMove(int iIndex, int iTargetIndex, TMon
 BOOL TMonsterAIElement::ApplyElementAttack(int iIndex, int iTargetIndex, TMonsterAIState * pAIState)
 {
 	LPOBJ lpObj = &gObj[iIndex];
-	UTIL.SendCrywolfChattingMsg(iIndex, "Element-°ø°Ý");
+	UTIL.SendCrywolfChattingMsg(iIndex, "Element-ï¿½ï¿½ï¿½ï¿½");
 
 	if ( TMonsterSkillManager::CheckMonsterSkill(lpObj->Class) && lpObj->Class != 519 ) // Medic has only BUFF in MONSTERSKILL, so disable check for him
 	{
@@ -499,7 +499,7 @@ struct PMSG_NOTIFY_REGION_MONSTER_ATTACK
 BOOL TMonsterAIElement::ApplyElementAttackArea(int iIndex, int iTargetIndex, TMonsterAIState * pAIState)
 {
 	LPOBJ lpObj = &gObj[iIndex];
-	UTIL.SendCrywolfChattingMsg(iIndex, "Element-¿µ¿ª°ø°Ý");
+	UTIL.SendCrywolfChattingMsg(iIndex, "Element-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
 
 	int iTargetX = this->m_iX + (rand()%5) * ((rand()%2==0)?1:-1 ) ;
 	int iTargetY = this->m_iY + (rand()%5) * ((rand()%2==0)?1:-1 ) ;
@@ -564,7 +564,7 @@ BOOL TMonsterAIElement::ApplyElementAttackPenetration(int iIndex, int iTargetInd
 BOOL TMonsterAIElement::ApplyElementAvoid(int iIndex, int iTargetIndex, TMonsterAIState * pAIState)
 {
 	LPOBJ lpObj = &gObj[iIndex];
-	UTIL.SendCrywolfChattingMsg(iIndex, "Element-È¸ÇÇ");
+	UTIL.SendCrywolfChattingMsg(iIndex, "Element-È¸ï¿½ï¿½");
 
 	BOOL bFindXY = MONSTER_UTIL.GetXYToEascape(lpObj);
 
@@ -581,7 +581,7 @@ BOOL TMonsterAIElement::ApplyElementAvoid(int iIndex, int iTargetIndex, TMonster
 BOOL TMonsterAIElement::ApplyElementHealSelf(int iIndex, int iTargetIndex, TMonsterAIState * pAIState)
 {
 	LPOBJ lpObj = &gObj[iIndex];
-	UTIL.SendCrywolfChattingMsg(iIndex, "Element-¼¿ÇÁÄ¡·á");
+	UTIL.SendCrywolfChattingMsg(iIndex, "Element-ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½");
 
 	lpObj->Life += lpObj->Life * 20.0f / 100.0f;
 	UTIL.SendCrywolfChattingMsg(iIndex, "HP : %d", (int)lpObj->Life);
@@ -596,7 +596,7 @@ BOOL TMonsterAIElement::ApplyElementHealSelf(int iIndex, int iTargetIndex, TMons
 BOOL TMonsterAIElement::ApplyElementHealGroup(int iIndex, int iTargetIndex, TMonsterAIState * pAIState)
 {
 	LPOBJ lpObj = &gObj[iIndex];
-	UTIL.SendCrywolfChattingMsg(iIndex, "Element-±×·ìÄ¡·á");
+	UTIL.SendCrywolfChattingMsg(iIndex, "Element-ï¿½×·ï¿½Ä¡ï¿½ï¿½");
 	TMonsterAIGroupMember * pMemb = TMonsterAIGroup::FindGroupMemberToHeal(lpObj->m_Index, lpObj->m_iGroupNumber, lpObj->m_iGroupMemberGuid, 6);
 
 	if ( pMemb )
@@ -622,7 +622,7 @@ BOOL TMonsterAIElement::ApplyElementHealGroup(int iIndex, int iTargetIndex, TMon
 			lpSkillUnit->RunSkill(iIndex, lpTargetObj->m_Index);
 		}
 
-		UTIL.SendCrywolfChattingMsg(iIndex, "±×·ìÄ¡·á HP : %d", (int)lpTargetObj->Life);
+		UTIL.SendCrywolfChattingMsg(iIndex, "ï¿½×·ï¿½Ä¡ï¿½ï¿½ HP : %d", (int)lpTargetObj->Life);
 		UTIL.SendCrywolfChattingMsg(lpTargetObj->m_Index, "HP : %d", (int)lpTargetObj->Life);
 	}
 
@@ -634,7 +634,7 @@ BOOL TMonsterAIElement::ApplyElementHealGroup(int iIndex, int iTargetIndex, TMon
 BOOL TMonsterAIElement::ApplyElementSpecialSommon(int iIndex, int iTargetIndex, TMonsterAIState * pAIState)
 {
 	LPOBJ lpObj = &gObj[iIndex];
-	UTIL.SendCrywolfChattingMsg(iIndex, "Element-Æ¯¼ö¼ÒÈ¯");
+	UTIL.SendCrywolfChattingMsg(iIndex, "Element-Æ¯ï¿½ï¿½ï¿½ï¿½È¯");
 	TMonsterAIGroupMember * pMemb = TMonsterAIGroup::FindGroupMemberToSommon(lpObj->m_Index, lpObj->m_iGroupNumber, lpObj->m_iGroupMemberGuid);
 
 	if ( pMemb )

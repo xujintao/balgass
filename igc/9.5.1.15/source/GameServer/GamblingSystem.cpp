@@ -390,7 +390,7 @@ BYTE CGamblingItemBag::GetGamblingSystemItem(int aIndex, BYTE btMapNumber, BYTE 
 
 			if( BagObject[iDropItemNum].m_isskill != 0)
 			{
-				if(m_stGamblingRate[iSelectedGroup].iSkillRate >= GetLargeRand()%1000000)
+				if(GetLargeRand()%1000000 < m_stGamblingRate[iSelectedGroup].iSkillRate)
 				{
 					iOption1 = 1;
 				}
@@ -398,7 +398,7 @@ BYTE CGamblingItemBag::GetGamblingSystemItem(int aIndex, BYTE btMapNumber, BYTE 
 
 			if(BagObject[iDropItemNum].m_isluck != 0)
 			{
-				if(m_stGamblingRate[iSelectedGroup].iLuckRate >= GetLargeRand()%1000000)
+				if(GetLargeRand()%1000000 < m_stGamblingRate[iSelectedGroup].iLuckRate)
 				{
 					iOption2 = 1;
 				}
@@ -406,7 +406,7 @@ BYTE CGamblingItemBag::GetGamblingSystemItem(int aIndex, BYTE btMapNumber, BYTE 
 
 			if(BagObject[iDropItemNum].m_isoption != 0)
 			{
-				if(m_stGamblingRate[iSelectedGroup].iAddOptionRate >= GetLargeRand()%1000000)
+				if(GetLargeRand()%1000000 < m_stGamblingRate[iSelectedGroup].iAddOptionRate)
 				{
 					int iOptionTemp = GetLargeRand() % 1000000;
 
@@ -454,7 +454,7 @@ BYTE CGamblingItemBag::GetGamblingSystemItem(int aIndex, BYTE btMapNumber, BYTE 
 			
 			if(BagObject[iDropItemNum].m_isexitem != 0)
 			{
-				if(m_stGamblingRate[iSelectedGroup].iExcellentRate >= GetLargeRand()%1000000)
+				if(GetLargeRand()%1000000 < m_stGamblingRate[iSelectedGroup].iExcellentRate)
 				{
 					iExOption = ExcellentOptionRand();
 					iOption2 = 0;

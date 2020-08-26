@@ -37,7 +37,7 @@ void CKanturuMaya::Init()
 
 void CKanturuMaya::KanturuMayaAct_IceStorm(int iSkillUsingRate)
 {
-	if ( (rand()%10000) > iSkillUsingRate )
+	if ( (rand()%10000) >= iSkillUsingRate )
 		return;
 
 	if ( this->m_iMayaObjIndex < 0 || this->m_iMayaObjIndex > g_ConfigRead.server.GetObjectMax()-1 )	
