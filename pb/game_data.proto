@@ -1,0 +1,168 @@
+syntax = "proto3";
+package model;
+
+message serverLoginReq {
+    int32 type = 1;
+    int32 port = 2;
+    string name = 3;
+    int32 code = 4;
+    int32 vip = 5;
+    int32 maxHWIDUseCount = 6;
+}
+
+message serverLoginRes {
+    uint32 result = 1;
+}
+
+message serverUserCountSetReq {
+    int32 code = 1;
+    int32 UserCount = 2;
+    int32 UserCountMax = 3;
+}
+
+message userLoginReq {
+    string username = 1;
+    string password = 2;
+    uint32 number = 3;
+    string machineID = 4;
+    string addr = 5;
+}
+
+message userLoginRes {
+    uint32 result = 1;
+    string username = 2;
+    uint32 number = 3;
+    uint32 uid = 4;
+}
+
+message userKickRes {
+    string username = 1;
+    uint32 number = 2;
+    bool force = 3;
+}
+
+message userJoinOtherRes {
+    string username = 1;
+}
+
+message userLoginFailedReq {
+    string username = 1;
+}
+
+message userBlockReq {
+    string username = 1;
+}
+
+message userExitReq {
+    string username = 1;
+}
+
+message userKillReq {
+    string username = 1;
+}
+
+message userOffTradeSetReq {
+    string username = 1;
+    bool offTrade = 2;
+}
+
+message userServerMoveReq {
+    int32 index = 1;
+    string username = 2;
+    string charname = 3;
+    string password = 4;
+    uint32 securityLock = 5;
+    uint32 securityCode = 6;
+    uint32 serverCodeSrc = 7;
+    uint32 serverCodeDst = 8;
+    uint32 mapNumber = 9;
+    uint32 x = 10;
+    uint32 y = 11;
+}
+
+message userServerMoveRes {
+    int32 index = 1;
+    string username = 2;
+    string charname = 3;
+    uint32 serverCodeSrc = 4;
+    uint32 serverCodeDst = 5;
+    uint32 mapNumber = 6;
+    uint32 x = 7;
+    uint32 y = 8;
+    uint32 result = 9;
+    int32 authCode1 = 10;
+    int32 authCode2 = 11;
+    int32 authCode3 = 12;
+    int32 authCode4 = 13;
+}
+
+message userServerMoveAuthReq {
+    int32 index = 1;
+    string username = 2;
+    string charname = 3;
+    uint32 serverCode = 4;
+    int32 authCode1 = 5;
+    int32 authCode2 = 6;
+    int32 authCode3 = 7;
+    int32 authCode4 = 8;
+}
+
+message userServerMoveAuthRes {
+    int32 index = 1;
+    string username = 2;
+    string charname = 3;
+    string password = 4;
+    uint32 securityLock = 5;
+    uint32 securityCode = 6;
+    uint32 serverCode = 7;
+    uint32 mapNumber = 8;
+    uint32 x = 9;
+    uint32 y = 10;
+    int32 result = 11;
+}
+
+message vipAddReq {
+    string username = 1;
+    int32 type = 2;
+    int32 days = 3;
+}
+
+message vipCheckReq {
+    string username = 1;
+}
+
+message vipCheckRes {
+    string username = 1;
+    int32 payCode = 2;
+    int32 type = 3;
+    int32 endDays = 4;
+}
+
+message charListGetReq {
+    string username = 1;
+    int32 number = 2;
+    bool unityBattleFieldServer = 3;
+}
+
+message charListGetRes {
+    string username = 1;
+    int32 number = 2;
+    int32 securityCode = 4;
+    int32 enableCharCreate = 5;
+    int32 moveCount = 6;
+    int32 warehouseExtension = 7;
+    message charInfo {
+        int32 index = 1;
+        string name = 2;
+        string battleName = 3;
+        int32 serverCode = 4;
+        int32 level = 5;
+        int32 class = 6;
+        int32 ctlCode = 7;
+        bytes inventory = 8;
+        int32 guildStatus = 9;
+        int32 resets = 10;
+        int32 levelPK = 11;
+    }
+    repeated charInfo chars = 8;
+}

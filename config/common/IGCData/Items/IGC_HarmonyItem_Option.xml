@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+// ============================================================
+// == INTERNATIONAL GAMING CENTER NETWORK
+// == www.igc-network.com
+// == (C) 2010-2015 IGC-Network (R)
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// == File is a part of IGCN Group MuOnline Server files.
+// ============================================================
+//
+// STRICTLY NO COMMENTS INSIDE TAGS
+-->
+
+<HarmonySystem>
+	<Type ID="1" Description="Physical">
+		<Option Index="1" Name="Minimum Attack Damage Increase +%d" RandomWeight="40" ReqLevel="0">
+			<Effect level="0" Value="2" ReqMoney="100000" />
+			<Effect level="1" Value="3" ReqMoney="110000" />
+			<Effect level="2" Value="4" ReqMoney="120000" />
+			<Effect level="3" Value="5" ReqMoney="130000" />
+			<Effect level="4" Value="6" ReqMoney="140000" />
+			<Effect level="5" Value="7" ReqMoney="150000" />
+			<Effect level="6" Value="9" ReqMoney="200000" />
+			<Effect level="7" Value="11" ReqMoney="220000" />
+			<Effect level="8" Value="12" ReqMoney="240000" />
+			<Effect level="9" Value="14" ReqMoney="280000" />
+			<Effect level="10" Value="15" ReqMoney="320000" />
+			<Effect level="11" Value="16" ReqMoney="360000" />
+			<Effect level="12" Value="17" ReqMoney="400000" />
+			<Effect level="13" Value="20" ReqMoney="500000" />
+			<Effect level="14" Value="23" ReqMoney="540000" />
+			<Effect level="15" Value="26" ReqMoney="600000" />
+		</Option>
+		<Option Index="2" Name="Maximum Attack Damage Increase +%d" RandomWeight="40" ReqLevel="0">
+			<Effect level="0" Value="3" ReqMoney="100000" />
+			<Effect level="1" Value="4" ReqMoney="110000" />
+			<Effect level="2" Value="5" ReqMoney="120000" />
+			<Effect level="3" Value="6" ReqMoney="130000" />
+			<Effect level="4" Value="7" ReqMoney="140000" />
+			<Effect level="5" Value="8" ReqMoney="150000" />
+			<Effect level="6" Value="10" ReqMoney="200000" />
+			<Effect level="7" Value="12" ReqMoney="220000" />
+			<Effect level="8" Value="14" ReqMoney="240000" />
+			<Effect level="9" Value="17" ReqMoney="280000" />
+			<Effect level="10" Value="20" ReqMoney="320000" />
+			<Effect level="11" Value="23" ReqMoney="360000" />
+			<Effect level="12" Value="26" ReqMoney="400000" />
+			<Effect level="13" Value="29" ReqMoney="500000" />
+			<Effect level="14" Value="32" ReqMoney="540000" />
+			<Effect level="15" Value="35" ReqMoney="600000" />
+		</Option>
+		<Option Index="3" Name="Required Strength Decrease +%d" RandomWeight="40" ReqLevel="0">
+			<Effect level="0" Value="6" ReqMoney="100000" />
+			<Effect level="1" Value="8" ReqMoney="110000" />
+			<Effect level="2" Value="10" ReqMoney="120000" />
+			<Effect level="3" Value="12" ReqMoney="130000" />
+			<Effect level="4" Value="14" ReqMoney="140000" />
+			<Effect level="5" Value="16" ReqMoney="150000" />
+			<Effect level="6" Value="20" ReqMoney="200000" />
+			<Effect level="7" Value="23" ReqMoney="220000" />
+			<Effect level="8" Value="26" ReqMoney="240000" />
+			<Effect level="9" Value="29" ReqMoney="280000" />
+			<Effect level="10" Value="32" ReqMoney="320000" />
+			<Effect level="11" Value="35" ReqMoney="360000" />
+			<Effect level="12" Value="37" ReqMoney="400000" />
+			<Effect level="13" Value="40" ReqMoney="500000" />
+			<Effect level="14" Value="43" ReqMoney="540000" />
+			<Effect level="15" Value="46" ReqMoney="600000" />
+		</Option>
+		<Option Index="4" Name="Required Agility Increase +%d" RandomWeight="40" ReqLevel="0">
+			<Effect level="0" Value="6" ReqMoney="100000" />
+			<Effect level="1" Value="8" ReqMoney="110000" />
+			<Effect level="2" Value="10" ReqMoney="120000" />
+			<Effect level="3" Value="12" ReqMoney="130000" />
+			<Effect level="4" Value="14" ReqMoney="140000" />
+			<Effect level="5" Value="16" ReqMoney="150000" />
+			<Effect level="6" Value="20" ReqMoney="200000" />
+			<Effect level="7" Value="23" ReqMoney="220000" />
+			<Effect level="8" Value="26" ReqMoney="240000" />
+			<Effect level="9" Value="29" ReqMoney="280000" />
+			<Effect level="10" Value="32" ReqMoney="320000" />
+			<Effect level="11" Value="35" ReqMoney="360000" />
+			<Effect level="12" Value="37" ReqMoney="400000" />
+			<Effect level="13" Value="40" ReqMoney="500000" />
+			<Effect level="14" Value="43" ReqMoney="540000" />
+			<Effect level="15" Value="46" ReqMoney="600000" />
+		</Option>
+		<Option Index="5" Name="Attack Damage Increase (Min, Max) +%d" RandomWeight="30" ReqLevel="6">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="7" ReqMoney="200000" />
+			<Effect level="7" Value="8" ReqMoney="220000" />
+			<Effect level="8" Value="9" ReqMoney="240000" />
+			<Effect level="9" Value="11" ReqMoney="280000" />
+			<Effect level="10" Value="12" ReqMoney="320000" />
+			<Effect level="11" Value="14" ReqMoney="360000" />
+			<Effect level="12" Value="16" ReqMoney="400000" />
+			<Effect level="13" Value="19" ReqMoney="500000" />
+			<Effect level="14" Value="22" ReqMoney="540000" />
+			<Effect level="15" Value="25" ReqMoney="600000" />
+		</Option>
+		<Option Index="6" Name="Critical Damage Increase +%d" RandomWeight="30" ReqLevel="6">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="12" ReqMoney="200000" />
+			<Effect level="7" Value="14" ReqMoney="220000" />
+			<Effect level="8" Value="16" ReqMoney="240000" />
+			<Effect level="9" Value="18" ReqMoney="280000" />
+			<Effect level="10" Value="20" ReqMoney="320000" />
+			<Effect level="11" Value="22" ReqMoney="360000" />
+			<Effect level="12" Value="24" ReqMoney="400000" />
+			<Effect level="13" Value="30" ReqMoney="500000" />
+			<Effect level="14" Value="33" ReqMoney="540000" />
+			<Effect level="15" Value="36" ReqMoney="600000" />
+		</Option>
+		<Option Index="7" Name="Skills Attack Damage Increase +%d" RandomWeight="20" ReqLevel="9">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="12" ReqMoney="280000" />
+			<Effect level="10" Value="14" ReqMoney="320000" />
+			<Effect level="11" Value="16" ReqMoney="360000" />
+			<Effect level="12" Value="18" ReqMoney="400000" />
+			<Effect level="13" Value="22" ReqMoney="500000" />
+			<Effect level="14" Value="24" ReqMoney="540000" />
+			<Effect level="15" Value="26" ReqMoney="600000" />
+		</Option>
+		<Option Index="8" Name="Attack Success Rate Increase (PVP) +%d" RandomWeight="20" ReqLevel="9">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="5" ReqMoney="280000" />
+			<Effect level="10" Value="7" ReqMoney="320000" />
+			<Effect level="11" Value="9" ReqMoney="360000" />
+			<Effect level="12" Value="11" ReqMoney="400000" />
+			<Effect level="13" Value="14" ReqMoney="500000" />
+			<Effect level="14" Value="16" ReqMoney="540000" />
+			<Effect level="15" Value="18" ReqMoney="600000" />
+		</Option>
+		<Option Index="9" Name="SD Decrement Increase +%d" RandomWeight="20" ReqLevel="9">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="3" ReqMoney="280000" />
+			<Effect level="10" Value="5" ReqMoney="320000" />
+			<Effect level="11" Value="7" ReqMoney="360000" />
+			<Effect level="12" Value="9" ReqMoney="400000" />
+			<Effect level="13" Value="10" ReqMoney="500000" />
+			<Effect level="14" Value="11" ReqMoney="540000" />
+			<Effect level="15" Value="12" ReqMoney="600000" />
+		</Option>
+		<Option Index="10" Name="SD Bypass Rate Increase +%d" RandomWeight="10" ReqLevel="13">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="0" ReqMoney="0" />
+			<Effect level="10" Value="0" ReqMoney="0" />
+			<Effect level="11" Value="0" ReqMoney="0" />
+			<Effect level="12" Value="0" ReqMoney="0" />
+			<Effect level="13" Value="10" ReqMoney="500000" />
+			<Effect level="14" Value="12" ReqMoney="540000" />
+			<Effect level="15" Value="14" ReqMoney="600000" />
+		</Option>
+	</Type>
+	
+	<Type ID="2" Description="Magical">
+		<Option Index="1" Name="Wizardy Damage Increase +%d" RandomWeight="40" ReqLevel="0">
+			<Effect level="0" Value="6" ReqMoney="100000" />
+			<Effect level="1" Value="8" ReqMoney="110000" />
+			<Effect level="2" Value="10" ReqMoney="120000" />
+			<Effect level="3" Value="12" ReqMoney="130000" />
+			<Effect level="4" Value="14" ReqMoney="140000" />
+			<Effect level="5" Value="16" ReqMoney="150000" />
+			<Effect level="6" Value="17" ReqMoney="200000" />
+			<Effect level="7" Value="18" ReqMoney="220000" />
+			<Effect level="8" Value="19" ReqMoney="240000" />
+			<Effect level="9" Value="21" ReqMoney="280000" />
+			<Effect level="10" Value="23" ReqMoney="320000" />
+			<Effect level="11" Value="25" ReqMoney="360000" />
+			<Effect level="12" Value="27" ReqMoney="400000" />
+			<Effect level="13" Value="31" ReqMoney="500000" />
+			<Effect level="14" Value="33" ReqMoney="540000" />
+			<Effect level="15" Value="35" ReqMoney="600000" />
+		</Option>
+		<Option Index="2" Name="Required Strength Decrease +%d" RandomWeight="40" ReqLevel="0">
+			<Effect level="0" Value="6" ReqMoney="100000" />
+			<Effect level="1" Value="8" ReqMoney="110000" />
+			<Effect level="2" Value="10" ReqMoney="120000" />
+			<Effect level="3" Value="12" ReqMoney="130000" />
+			<Effect level="4" Value="14" ReqMoney="140000" />
+			<Effect level="5" Value="16" ReqMoney="150000" />
+			<Effect level="6" Value="20" ReqMoney="200000" />
+			<Effect level="7" Value="23" ReqMoney="220000" />
+			<Effect level="8" Value="26" ReqMoney="240000" />
+			<Effect level="9" Value="29" ReqMoney="280000" />
+			<Effect level="10" Value="32" ReqMoney="320000" />
+			<Effect level="11" Value="35" ReqMoney="360000" />
+			<Effect level="12" Value="37" ReqMoney="400000" />
+			<Effect level="13" Value="40" ReqMoney="500000" />
+			<Effect level="14" Value="43" ReqMoney="540000" />
+			<Effect level="15" Value="46" ReqMoney="600000" />
+		</Option>
+		<Option Index="3" Name="Required Agility Increase +%d" RandomWeight="40" ReqLevel="0">
+			<Effect level="0" Value="6" ReqMoney="100000" />
+			<Effect level="1" Value="8" ReqMoney="110000" />
+			<Effect level="2" Value="10" ReqMoney="120000" />
+			<Effect level="3" Value="12" ReqMoney="130000" />
+			<Effect level="4" Value="14" ReqMoney="140000" />
+			<Effect level="5" Value="16" ReqMoney="150000" />
+			<Effect level="6" Value="20" ReqMoney="200000" />
+			<Effect level="7" Value="23" ReqMoney="220000" />
+			<Effect level="8" Value="26" ReqMoney="240000" />
+			<Effect level="9" Value="29" ReqMoney="280000" />
+			<Effect level="10" Value="32" ReqMoney="320000" />
+			<Effect level="11" Value="35" ReqMoney="360000" />
+			<Effect level="12" Value="37" ReqMoney="400000" />
+			<Effect level="13" Value="40" ReqMoney="500000" />
+			<Effect level="14" Value="43" ReqMoney="540000" />
+			<Effect level="15" Value="46" ReqMoney="600000" />
+		</Option>
+		<Option Index="4" Name="Skills Attack Damage Increase +%d" RandomWeight="30" ReqLevel="6">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="7" ReqMoney="200000" />
+			<Effect level="7" Value="10" ReqMoney="220000" />
+			<Effect level="8" Value="13" ReqMoney="240000" />
+			<Effect level="9" Value="16" ReqMoney="280000" />
+			<Effect level="10" Value="19" ReqMoney="320000" />
+			<Effect level="11" Value="22" ReqMoney="360000" />
+			<Effect level="12" Value="25" ReqMoney="400000" />
+			<Effect level="13" Value="30" ReqMoney="500000" />
+			<Effect level="14" Value="33" ReqMoney="540000" />
+			<Effect level="15" Value="36" ReqMoney="600000" />
+		</Option>
+		<Option Index="5" Name="Critical Damage Increase +%d" RandomWeight="30" ReqLevel="6">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="10" ReqMoney="200000" />
+			<Effect level="7" Value="12" ReqMoney="220000" />
+			<Effect level="8" Value="14" ReqMoney="240000" />
+			<Effect level="9" Value="16" ReqMoney="280000" />
+			<Effect level="10" Value="18" ReqMoney="320000" />
+			<Effect level="11" Value="20" ReqMoney="360000" />
+			<Effect level="12" Value="22" ReqMoney="400000" />
+			<Effect level="13" Value="28" ReqMoney="500000" />
+			<Effect level="14" Value="30" ReqMoney="540000" />
+			<Effect level="15" Value="32" ReqMoney="600000" />
+		</Option>
+		<Option Index="6" Name="SD Decrement Increase +%d" RandomWeight="20" ReqLevel="9">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="4" ReqMoney="280000" />
+			<Effect level="10" Value="6" ReqMoney="320000" />
+			<Effect level="11" Value="8" ReqMoney="360000" />
+			<Effect level="12" Value="10" ReqMoney="400000" />
+			<Effect level="13" Value="13" ReqMoney="500000" />
+			<Effect level="14" Value="15" ReqMoney="540000" />
+			<Effect level="15" Value="17" ReqMoney="600000" />
+		</Option>
+		<Option Index="7" Name="Attack Success Rate Increase (PVP) +%d" RandomWeight="20" ReqLevel="9">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="5" ReqMoney="280000" />
+			<Effect level="10" Value="7" ReqMoney="320000" />
+			<Effect level="11" Value="9" ReqMoney="360000" />
+			<Effect level="12" Value="11" ReqMoney="400000" />
+			<Effect level="13" Value="14" ReqMoney="500000" />
+			<Effect level="14" Value="15" ReqMoney="540000" />
+			<Effect level="15" Value="16" ReqMoney="600000" />
+		</Option>
+		<Option Index="8" Name="Attack Success Rate Increase (PVP) +%d" RandomWeight="10" ReqLevel="13">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="0" ReqMoney="0" />
+			<Effect level="10" Value="0" ReqMoney="0" />
+			<Effect level="11" Value="0" ReqMoney="0" />
+			<Effect level="12" Value="0" ReqMoney="0" />
+			<Effect level="13" Value="15" ReqMoney="500000" />
+			<Effect level="14" Value="17" ReqMoney="540000" />
+			<Effect level="15" Value="19" ReqMoney="600000" />
+		</Option>
+	</Type>
+	
+	<Type ID="3" Description="Defensive"> 
+		<Option Index="1" Name="Defense Increase +%d" RandomWeight="50" ReqLevel="0">
+			<Effect level="0" Value="3" ReqMoney="100000" />
+			<Effect level="1" Value="4" ReqMoney="110000" />
+			<Effect level="2" Value="5" ReqMoney="120000" />
+			<Effect level="3" Value="6" ReqMoney="130000" />
+			<Effect level="4" Value="7" ReqMoney="140000" />
+			<Effect level="5" Value="8" ReqMoney="150000" />
+			<Effect level="6" Value="10" ReqMoney="200000" />
+			<Effect level="7" Value="12" ReqMoney="220000" />
+			<Effect level="8" Value="14" ReqMoney="240000" />
+			<Effect level="9" Value="16" ReqMoney="280000" />
+			<Effect level="10" Value="18" ReqMoney="320000" />
+			<Effect level="11" Value="20" ReqMoney="360000" />
+			<Effect level="12" Value="22" ReqMoney="400000" />
+			<Effect level="13" Value="25" ReqMoney="500000" />
+			<Effect level="14" Value="28" ReqMoney="540000" />
+			<Effect level="15" Value="31" ReqMoney="600000" />
+		</Option>
+		<Option Index="2" Name="Maximum AG Increase +%d" RandomWeight="40" ReqLevel="3">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="4" ReqMoney="130000" />
+			<Effect level="4" Value="6" ReqMoney="140000" />
+			<Effect level="5" Value="8" ReqMoney="150000" />
+			<Effect level="6" Value="10" ReqMoney="200000" />
+			<Effect level="7" Value="12" ReqMoney="220000" />
+			<Effect level="8" Value="14" ReqMoney="240000" />
+			<Effect level="9" Value="16" ReqMoney="280000" />
+			<Effect level="10" Value="18" ReqMoney="320000" />
+			<Effect level="11" Value="20" ReqMoney="360000" />
+			<Effect level="12" Value="22" ReqMoney="400000" />
+			<Effect level="13" Value="25" ReqMoney="500000" />
+			<Effect level="14" Value="28" ReqMoney="540000" />
+			<Effect level="15" Value="31" ReqMoney="600000" />
+		</Option>
+		<Option Index="3" Name="Maximum HP Increase +%d" RandomWeight="40" ReqLevel="3">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="7" ReqMoney="130000" />
+			<Effect level="4" Value="9" ReqMoney="140000" />
+			<Effect level="5" Value="11" ReqMoney="150000" />
+			<Effect level="6" Value="13" ReqMoney="200000" />
+			<Effect level="7" Value="15" ReqMoney="220000" />
+			<Effect level="8" Value="17" ReqMoney="240000" />
+			<Effect level="9" Value="19" ReqMoney="280000" />
+			<Effect level="10" Value="21" ReqMoney="320000" />
+			<Effect level="11" Value="23" ReqMoney="360000" />
+			<Effect level="12" Value="25" ReqMoney="400000" />
+			<Effect level="13" Value="30" ReqMoney="500000" />
+			<Effect level="14" Value="32" ReqMoney="540000" />
+			<Effect level="15" Value="34" ReqMoney="600000" />
+		</Option>
+		<Option Index="4" Name="Life Auto Increments Increase +%d" RandomWeight="30" ReqLevel="6">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="1" ReqMoney="200000" />
+			<Effect level="7" Value="2" ReqMoney="220000" />
+			<Effect level="8" Value="3" ReqMoney="240000" />
+			<Effect level="9" Value="4" ReqMoney="280000" />
+			<Effect level="10" Value="5" ReqMoney="320000" />
+			<Effect level="11" Value="6" ReqMoney="360000" />
+			<Effect level="12" Value="7" ReqMoney="400000" />
+			<Effect level="13" Value="8" ReqMoney="500000" />
+			<Effect level="14" Value="9" ReqMoney="540000" />
+			<Effect level="15" Value="10" ReqMoney="600000" />
+		</Option>
+		<Option Index="5" Name="Mana Auto Increments Increase +%d" RandomWeight="20" ReqLevel="9">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="1" ReqMoney="280000" />
+			<Effect level="10" Value="2" ReqMoney="320000" />
+			<Effect level="11" Value="3" ReqMoney="360000" />
+			<Effect level="12" Value="4" ReqMoney="400000" />
+			<Effect level="13" Value="5" ReqMoney="500000" />
+			<Effect level="14" Value="6" ReqMoney="540000" />
+			<Effect level="15" Value="7" ReqMoney="600000" />
+		</Option>
+		<Option Index="6" Name="Defense Success rate Increase (PVP) +%d" RandomWeight="20" ReqLevel="9">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="3" ReqMoney="280000" />
+			<Effect level="10" Value="4" ReqMoney="320000" />
+			<Effect level="11" Value="5" ReqMoney="360000" />
+			<Effect level="12" Value="6" ReqMoney="400000" />
+			<Effect level="13" Value="8" ReqMoney="500000" />
+			<Effect level="14" Value="10" ReqMoney="540000" />
+			<Effect level="15" Value="12" ReqMoney="600000" />
+		</Option>
+		<Option Index="7" Name="Damage Decrement Increase +%d" RandomWeight="20" ReqLevel="9">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="3" ReqMoney="280000" />
+			<Effect level="10" Value="4" ReqMoney="320000" />
+			<Effect level="11" Value="5" ReqMoney="360000" />
+			<Effect level="12" Value="6" ReqMoney="400000" />
+			<Effect level="13" Value="7" ReqMoney="500000" />
+			<Effect level="14" Value="8" ReqMoney="540000" />
+			<Effect level="15" Value="9" ReqMoney="600000" />
+		</Option>
+		<Option Index="8" Name="SD Ratio Increase +%d" RandomWeight="10" ReqLevel="13">
+			<Effect level="0" Value="0" ReqMoney="0" />
+			<Effect level="1" Value="0" ReqMoney="0" />
+			<Effect level="2" Value="0" ReqMoney="0" />
+			<Effect level="3" Value="0" ReqMoney="0" />
+			<Effect level="4" Value="0" ReqMoney="0" />
+			<Effect level="5" Value="0" ReqMoney="0" />
+			<Effect level="6" Value="0" ReqMoney="0" />
+			<Effect level="7" Value="0" ReqMoney="0" />
+			<Effect level="8" Value="0" ReqMoney="0" />
+			<Effect level="9" Value="0" ReqMoney="0" />
+			<Effect level="10" Value="0" ReqMoney="0" />
+			<Effect level="11" Value="0" ReqMoney="0" />
+			<Effect level="12" Value="0" ReqMoney="0" />
+			<Effect level="13" Value="5" ReqMoney="500000" />
+			<Effect level="14" Value="6" ReqMoney="540000" />
+			<Effect level="15" Value="7" ReqMoney="600000" />
+		</Option>
+	</Type>
+</HarmonySystem>

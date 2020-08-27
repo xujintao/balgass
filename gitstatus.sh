@@ -1,0 +1,1 @@
+git status -u > gitstatus

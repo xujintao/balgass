@@ -1,0 +1,9 @@
+########################################################
+################## Game Server Types ###################
+########################################################
+
+1) GameServer_R - Regular Game server for Common Game Play
+2) GameSevrer_A - Arca Server, handles Arca Battle Event (only for Season 8 and later)
+3) GameServer_C - Siege Server, handles Castle Siege Event
+4) GameServer_M - Market Server, handles Loren Market Map, Chaos Castle Survival and Illusion Temple Renewal Events (only for Season 8 and later)
+5) GameServer_B - BattleCore Server, handles all Battle Core events, requires dedicated Data and Join Servers (only for Season 9 and later)

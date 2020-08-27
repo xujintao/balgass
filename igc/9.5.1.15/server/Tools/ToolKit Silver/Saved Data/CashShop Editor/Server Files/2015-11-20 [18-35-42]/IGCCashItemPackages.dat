@@ -1,0 +1,131 @@
+1
+	0	1	0	95	153	//Master Seal of Wealth
+	1	1	1	96	154	//Chaos Card Gold
+	2	1	2	97	155	//Scroll of Protection
+	3	1	3	98	156	//Gold Channel Ticket
+	4	1	4	99	157	//Chaos Card Gold
+	5	1	5	100	158	//Chaos Card Gold
+	6	2	0	94	152	//Seal of Wealth
+	7	2	1	96	154	//Chaos Card Gold
+	8	2	2	97	155	//Scroll of Protection
+	9	2	3	98	156	//Gold Channel Ticket
+	10	2	4	99	157	//Chaos Card Gold
+	11	2	5	100	158	//Chaos Card Gold
+	12	3	0	115	174	//D-Scroll of Quickness
+	13	3	1	116	175	//D-Elite SD Potion
+	14	3	2	118	177	//D-Critical Ring of Wizard
+	15	3	3	119	178	//D-Demon
+	16	3	4	120	179	//D-Scroll of Strengthener
+	17	3	5	121	180	//D-SD Boost Aura
+	18	3	6	122	181	//D-Ruby Necklace
+	19	4	0	159	219	//Scroll of Wrath-P
+	20	4	1	160	220	//Scroll of Protection-P
+	21	4	2	161	221	//Scroll of Quickness-P
+	22	5	0	158	218	//Scroll of Wizardry-P 
+	23	5	1	160	220	//Scroll of Protection-P
+	24	5	2	161	221	//Scroll of Quickness-P
+	25	6	0	156	216	//Scroll of Mana-P
+	26	6	1	157	217	//Scroll of Health-P
+	27	6	2	159	219	//Scroll of Wrath-P
+	28	6	3	160	220	//Scroll of Protection-P
+	29	6	4	161	221	//Scroll of Quickness-P
+	30	6	5	162	222	//Scroll of Battle-P
+	31	7	0	156	216	//Scroll of Mana-P
+	32	7	1	157	217	//Scroll of Health-P
+	33	7	2	158	218	//Scroll of Wizardry-P 
+	34	7	3	160	220	//Scroll of Protection-P
+	35	7	4	161	221	//Scroll of Quickness-P
+	36	7	5	162	222	//Scroll of Battle-P
+	37	8	0	229	289	//Rare Item Ticket 8_BLUE
+	38	8	1	239	299	//Seed (Lightning)_BLUE
+	39	8	2	240	300	//Seed (Earth)_BLUE
+	40	8	3	242	302	//Seed (Ice Mana)_BLUE
+	41	8	4	349	418	//Jewel of Chaos Bundle (30)_BLUE 
+	42	8	5	350	419	//Jewel of Life Bundle (30)_BLUE 
+	55	9	0	535	622	//Chaos Card GOLD_Bonus(1)
+	56	9	1	541	628	//Chaos Card GOLD_5
+	57	9	2	542	629	//Chaos Card GOLD_4
+	58	9	3	543	630	//Chaos Card GOLD_3
+	59	9	4	544	631	//Chaos Card GOLD_2
+	60	9	5	545	632	//Chaos Card GOLD_1
+	61	10	0	530	612	//Chaos Card GOLD_Bonus(3)
+	62	10	1	534	621	//Chaos Card GOLD_Bonus(2)
+	63	10	2	535	622	//Chaos Card GOLD_Bonus(1)
+	64	10	3	536	623	//Chaos Card GOLD_10
+	65	10	4	537	624	//Chaos Card GOLD_9
+	66	10	5	538	625	//Chaos Card GOLD_8
+	67	10	6	539	626	//Chaos Card GOLD_7
+	68	10	7	540	627	//Chaos Card GOLD_6
+	69	10	8	541	628	//Chaos Card GOLD_5
+	70	10	9	542	629	//Chaos Card GOLD_4
+	71	10	10	543	630	//Chaos Card GOLD_3
+	72	10	11	544	631	//Chaos Card GOLD_2
+	73	10	12	545	632	//Chaos Card GOLD_1
+	74	11	0	548	635	//Chaos Card  Mini_Bonus(1)
+	75	11	1	554	641	//Chaos Card  Mini_5
+	76	11	2	555	642	//Chaos Card  Mini_4
+	77	11	3	556	643	//Chaos Card  Mini_3
+	78	11	4	557	644	//Chaos Card  Mini_2
+	79	11	5	558	645	//Chaos Card  Mini_1
+	80	12	0	546	633	//Chaos Card  Mini_Bonus(3)
+	81	12	1	547	634	//Chaos Card  Mini_Bonus(2)
+	82	12	2	548	635	//Chaos Card  Mini_Bonus(1)
+	83	12	3	549	636	//Chaos Card  Mini_10
+	84	12	4	550	637	//Chaos Card  Mini_9
+	85	12	5	551	638	//Chaos Card  Mini_8
+	86	12	6	552	639	//Chaos Card  Mini_7
+	87	12	7	553	640	//Chaos Card  Mini_6
+	88	12	8	554	641	//Chaos Card  Mini_5
+	89	12	9	555	642	//Chaos Card  Mini_4
+	90	12	10	556	643	//Chaos Card  Mini_3
+	91	12	11	557	644	//Chaos Card  Mini_2
+	92	12	12	558	645	//Chaos Card  Mini_1
+	93	13	0	431	500	//Pet Panda (7 Day)_P
+	94	13	1	432	501	//Seal of Healing (7 Day)_P
+	95	13	2	433	502	//Bundle of Jewel of Bless (10)_P
+	96	13	3	434	503	//Bundle of Jewel of Soul (10)_P
+	97	13	4	439	508	//Scroll of Evil Spirit_P
+	98	13	5	455	524	//Scroll of Gigantic Storm_P
+	99	13	6	456	525	//Scroll of Cometfall_P
+	100	13	7	457	526	//Scroll of Flame Strike_P
+	101	14	0	431	500	//Pet Panda (7 Day)_P
+	102	14	1	432	501	//Seal of Healing (7 Day)_P
+	103	14	2	433	502	//Bundle of Jewel of Bless (10)_P
+	104	14	3	434	503	//Bundle of Jewel of Soul (10)_P
+	105	14	4	451	520	//Scroll of Multi Shot_P
+	106	14	5	452	521	//Orb of Ice Arrow_P 
+	107	14	6	453	522	//Orb of Penetration_P
+	108	14	7	454	523	//Orb of Recovery_P
+	109	15	0	431	500	//Pet Panda (7 Day)_P
+	110	15	1	432	501	//Seal of Healing (7 Day)_P
+	110	15	2	433	502	//Bundle of Jewel of Bless (10)_P
+	112	15	3	434	503	//Bundle of Jewel of Soul (10)_P
+	113	15	4	447	516	//Increase Health Parchment_P 
+	114	15	5	448	517	//Dark Side Parchment_P
+	115	15	6	449	518	//Dragon Slasher Parchment_P
+	116	15	7	450	519	//Increase Block Parchment_P
+	117	16	0	431	500	//Pet Panda (7 Day)_P
+	118	16	1	432	501	//Seal of Healing (7 Day)_P
+	119	16	2	433	502	//Bundle of Jewel of Bless (10)_P
+	120	16	3	434	503	//Bundle of Jewel of Soul (10)_P
+	121	16	4	443	512	//Chain Lightning Parchment_P
+	122	16	5	444	513	//Damage Reflection Parchment_P
+	123	16	6	445	514	//Berserker Parchment_P
+	124	16	7	446	515	//Lightning Shock Parchment_P
+	125	17	0	431	500	//Pet Panda (7 Day)_P
+	126	17	1	432	501	//Seal of Healing (7 Day)_P
+	127	17	2	433	502	//Bundle of Jewel of Bless (10)_P
+	128	17	3	434	503	//Bundle of Jewel of Soul (10)_P
+	129	17	4	439	508	//Scroll of Evil Spirit_P 
+	130	17	5	440	509	//Scroll of Expansion of Wizardry_P
+	131	17	6	441	510	//Scroll of Nova_P
+	132	17	7	442	511	//Scroll of Soul Barrior_P
+	133	18	0	431	500	//Pet Panda (7 Day)_P
+	134	18	1	432	501	//Seal of Healing (7 Day)_P
+	135	18	2	433	502	//Bundle of Jewel of Bless (10)_P
+	136	18	3	434	503	//Bundle of Jewel of Soul (10)_P
+	137	18	4	435	504	//Orb of Strike of Destruction_P
+	138	18	5	436	505	//Orb of Rageful Blow_P
+	139	18	6	437	506	//Orb of Death Stab_P
+	140	18	7	438	507	//Orb of Swell Life_P
+end

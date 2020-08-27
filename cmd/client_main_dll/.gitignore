@@ -1,0 +1,6 @@
+!*
+
+vs.proj/*
+!vs.proj/*.sln
+!vs.proj/*.vcxproj
+!vs.proj/*.filters

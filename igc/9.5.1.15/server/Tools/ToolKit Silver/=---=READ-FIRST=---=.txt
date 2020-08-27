@@ -1,0 +1,3 @@
+MU.ToolKit - Cash Shop Editor.
+
+Convert output to .xml using converters from Tools/Toolkit Silver/Converters.

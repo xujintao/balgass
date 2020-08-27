@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Processes>
+  <Process Run="True" Delay="1000" Path="E:\mu\IGCN_S9\server\1. DataServer\IGC.DataServer.exe" Parameters="" />
+  <Process Run="True" Delay="1000" Path="E:\mu\IGCN_S9\server\3. GameServer_Regular\IGC.GameServer_R.exe" Parameters="" />
+  <Process Run="True" Delay="1000" Path="E:\mu\IGCN_S9\server\2. ConnectServer\IGC.ConnectServer.exe" Parameters="" />
+</Processes>
