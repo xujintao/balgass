@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <CashItemList>
     <Item GUID="0" iIndex="619" iSubIndex="0" OptionSelect="0" PackageID="0" CoinType="0" CoinValue="100" UniqueID1="180" UniqueID2="343" ShopCategory="85" GPRewardValue="0" CanBuy="1" CanGift="1" RandomItemSelect="0"></Item>
     <Item GUID="1" iIndex="620" iSubIndex="0" OptionSelect="0" PackageID="0" CoinType="0" CoinValue="150" UniqueID1="86" UniqueID2="183" ShopCategory="85" GPRewardValue="0" CanBuy="1" CanGift="1" RandomItemSelect="0"></Item>
