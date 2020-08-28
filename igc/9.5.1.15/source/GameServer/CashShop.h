@@ -231,7 +231,7 @@ public:
 
   	CItemShop();
 	virtual ~CItemShop();
-
+	void load();
 	void Initialize();
 	void LoadItemInfo(LPSTR pchFilename);
 	void LoadItemList(LPSTR pchFilename);
@@ -276,13 +276,13 @@ private:
 	std::vector<ITEMSHOP_PACKAGELIST> VecPackageList;
 	std::vector<GP_PERMONSTER_DATA> VecGpMonster;
 
-	int	ItemVer1;
-	int ItemVer2;
-	int ItemVer3;
+	std::string ItemVer1;
+	std::string ItemVer2;
+	std::string ItemVer3;
 
-	int BannerVer1;
-	int BannerVer2;
-	int BannerVer3;
+	std::string BannerVer1;
+	std::string BannerVer2;
+	std::string BannerVer3;
 
 	int GoblinSystem;
 	int GoblinAddCoin;

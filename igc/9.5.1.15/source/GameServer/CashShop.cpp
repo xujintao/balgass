@@ -45,29 +45,20 @@ CItemShop::~CItemShop()
 	return;
 }
 
-
-
-void CItemShop::Initialize()
-{
-	this->bCashItemListReload = FALSE;
-
-	if(ITEMSHOP_LOG == NULL)
-	{
-		ITEMSHOP_LOG = new CLogToFile("ITEMSHOP_LOG", g_ConfigRead.server.GetCashShopLogPath(), 256);
-	}
+void CItemShop::load(){
 
 	CIniReader ReadCashShop(g_ConfigRead.GetPath("IGC_CashShop.ini"));
 
 	this->bIsCashShop = ReadCashShop.ReadInt("CashShop", "CashShopEnable", 1);
 	this->bIsGiftSystem = ReadCashShop.ReadInt("CashShop", "GiftSystemEnable", 1);
 	
-	this->ItemVer1 = ReadCashShop.ReadInt("CashShop", "ItemShopItemVersion1", 512);
-	this->ItemVer2 = ReadCashShop.ReadInt("CashShop", "ItemShopItemVersion2", 2011);
-	this->ItemVer3 = ReadCashShop.ReadInt("CashShop", "ItemShopItemVersion3", 011);
+	this->ItemVer1 = ReadCashShop.ReadString("CashShop", "ItemShopItemVersion1", "512");
+	this->ItemVer2 = ReadCashShop.ReadString("CashShop", "ItemShopItemVersion2", "2011");
+	this->ItemVer3 = ReadCashShop.ReadString("CashShop", "ItemShopItemVersion3", "011");
 
-	this->BannerVer1 = ReadCashShop.ReadInt("CashShop", "ItemShopBannerVersion1", 583);
-	this->BannerVer2 = ReadCashShop.ReadInt("CashShop", "ItemShopBannerVersion2", 2011);
-	this->BannerVer3 = ReadCashShop.ReadInt("CashShop", "ItemShopBannerVersion3", 001);
+	this->BannerVer1 = ReadCashShop.ReadString("CashShop", "ItemShopBannerVersion1", "583");
+	this->BannerVer2 = ReadCashShop.ReadString("CashShop", "ItemShopBannerVersion2", "2011");
+	this->BannerVer3 = ReadCashShop.ReadString("CashShop", "ItemShopBannerVersion3", "001");
 
 	this->GoblinSystem = ReadCashShop.ReadInt("CashShop", "ItemShopGoblinPoint", 1);
 	this->GoblinAddCoin = ReadCashShop.ReadInt("CashShop", "ItemShopGoblinAddCoin", 5);
@@ -88,27 +79,40 @@ void CItemShop::Initialize()
 	this->CoinAddKundun = ReadCashShop.ReadInt("CashShop","CoinAddKundun", 0);
 	this->CoinAddMedusa = ReadCashShop.ReadInt("CashShop", "CoinAddMedusa", 0);
 
-	g_Log.Add("[ItemShop] Initializing ItemShop with Version: %d/%d/%d (Image Version: %d/%d/%d)", this->ItemVer1, this->ItemVer2, this->ItemVer3,
-		this->BannerVer1, this->BannerVer2, this->BannerVer3);
-
+	char szVer[256] = {0};
+	char szVerBanner[256] = {0};
+	sprintf(szVer, "%s.%s.%s", this->ItemVer1.c_str(), this->ItemVer2.c_str(), this->ItemVer3.c_str());
+	sprintf(szVerBanner, "%s.%s.%s", this->BannerVer1.c_str(), this->BannerVer1.c_str(), this->BannerVer1.c_str());
+	g_Log.Add("[ItemShop] Initializing ItemShop with Version: %s (Image Version: %s)", szVer, szVerBanner);
+	
 	char szTemp[256];
-
-	sprintf(szTemp, "\\CashShop\\%d.%d.%d\\IGC_CashItem_Info.xml", this->ItemVer1, this->ItemVer2, this->ItemVer3);
+	sprintf(szTemp, "\\CashShop\\%s\\IGC_CashItem_Info.xml", szVer);
 	this->LoadItemInfo(g_ConfigRead.GetPath(szTemp));
 
-	sprintf(szTemp, "\\CashShop\\%d.%d.%d\\IGC_CashItem_List.xml", this->ItemVer1, this->ItemVer2, this->ItemVer3);
+	sprintf(szTemp, "\\CashShop\\%s\\IGC_CashItem_List.xml", szVer);
 	this->LoadItemList(g_ConfigRead.GetPath(szTemp));
 
-	sprintf(szTemp, "\\CashShop\\%d.%d.%d\\IGC_CashItem_Package.xml", this->ItemVer1, this->ItemVer2, this->ItemVer3);
+	sprintf(szTemp, "\\CashShop\\%s\\IGC_CashItem_Package.xml", szVer);
 	this->LoadPackages(g_ConfigRead.GetPath(szTemp));
 
-	sprintf(szTemp, "\\CashShop\\%d.%d.%d\\IGC_MonsterGP_Info.xml", this->ItemVer1, this->ItemVer2, this->ItemVer3);
+	sprintf(szTemp, "\\CashShop\\%s\\IGC_MonsterGP_Info.xml", szVer);
 	this->LoadGPMonsterData(g_ConfigRead.GetPath(szTemp));
 
 	if (this->GoblinSystem)
 	{
 		g_Log.Add("[ItemShop] Goblin Point System Enabled (AddCoin:%d) (Delay:%d seconds) (CoinType:%d)", this->GoblinAddCoin, this->GoblinTime, this->GoblinCoinType);
 	}
+}
+
+void CItemShop::Initialize()
+{
+	this->bCashItemListReload = FALSE;
+
+	if(ITEMSHOP_LOG == NULL)
+	{
+		ITEMSHOP_LOG = new CLogToFile("ITEMSHOP_LOG", g_ConfigRead.server.GetCashShopLogPath(), 256);
+	}
+	this->load();
 }
 
 void CItemShop::Run()
@@ -133,40 +137,9 @@ void CItemShop::Run()
 void CItemShop::CashShopOptioNReload()
 {
 	this->bCashItemListReload = TRUE;
-
 	g_Log.Add("[ItemShop] Reload Info - START");
-
-	CIniReader ReadCashShop(g_ConfigRead.GetPath("IGC_CashShop.ini"));
-
-	this->ItemVer1 = ReadCashShop.ReadInt("CashShop", "ItemShopItemVersion1", 512);
-	this->ItemVer2 = ReadCashShop.ReadInt("CashShop", "ItemShopItemVersion2", 2011);
-	this->ItemVer3 = ReadCashShop.ReadInt("CashShop", "ItemShopItemVersion3", 011);
-
-	this->BannerVer1 = ReadCashShop.ReadInt("CashShop", "ItemShopBannerVersion1", 583);
-	this->BannerVer2 = ReadCashShop.ReadInt("CashShop", "ItemShopBannerVersion2", 2011);
-	this->BannerVer3 = ReadCashShop.ReadInt("CashShop", "ItemShopBannerVersion3", 001);
-
-	this->GoblinSystem = ReadCashShop.ReadInt("CashShop", "ItemShopGoblinPoint", 1);
-	this->GoblinAddCoin = ReadCashShop.ReadInt("CashShop", "ItemShopGoblinAddCoin", 5);
-	this->GoblinTime = ReadCashShop.ReadInt("CashShop", "ItemShopGoblinAddTime", 30);
-	this->GoblinCoinType = ReadCashShop.ReadInt("CashShop", "ItemShopGoblinCoinType", 2);
-
-	char szTemp[256];
-
-	sprintf(szTemp, "\\CashShop\\%d.%d.%d\\IGC_CashItem_Info.xml", this->ItemVer1, this->ItemVer2, this->ItemVer3);
-	this->LoadItemInfo(g_ConfigRead.GetPath(szTemp));
-
-	sprintf(szTemp, "\\CashShop\\%d.%d.%d\\IGC_CashItem_List.xml", this->ItemVer1, this->ItemVer2, this->ItemVer3);
-	this->LoadItemList(g_ConfigRead.GetPath(szTemp));
-
-	sprintf(szTemp, "\\CashShop\\%d.%d.%d\\IGC_CashItem_Package.xml", this->ItemVer1, this->ItemVer2, this->ItemVer3);
-	this->LoadPackages(g_ConfigRead.GetPath(szTemp));
-
-	sprintf(szTemp, "\\CashShop\\%d.%d.%d\\IGC_MonsterGP_Info.xml", this->ItemVer1, this->ItemVer2, this->ItemVer3);
-	this->LoadGPMonsterData(g_ConfigRead.GetPath(szTemp));
-
+	this->load();
 	g_Log.Add("[ItemShop] Reload Info - END");
-
 	this->bCashItemListReload = FALSE;
 }
 
@@ -1329,16 +1302,16 @@ void CItemShop::GCShopVersion(LPOBJ lpObj)
 {
 	PMSG_SHOP_VERSION pMsg;
 	PHeadSubSetB((LPBYTE)&pMsg, 0xD2, 0x0C, sizeof(pMsg));
-	pMsg.ver.Ver1 = this->ItemVer1;
-	pMsg.ver.Ver2 = this->ItemVer2;
-	pMsg.ver.Ver3 = this->ItemVer3;
+	pMsg.ver.Ver1 = std::stoi(this->ItemVer1);
+	pMsg.ver.Ver2 = std::stoi(this->ItemVer2);
+	pMsg.ver.Ver3 = std::stoi(this->ItemVer3);
 
 	IOCP.DataSend(lpObj->m_Index, (LPBYTE)&pMsg, pMsg.h.size);
 
 	PHeadSubSetB((LPBYTE)&pMsg, 0xD2, 0x15, sizeof(pMsg));
-	pMsg.ver.Ver1 = this->BannerVer1;
-	pMsg.ver.Ver2 = this->BannerVer2;
-	pMsg.ver.Ver3 = this->BannerVer3;
+	pMsg.ver.Ver1 = std::stoi(this->BannerVer1);
+	pMsg.ver.Ver2 = std::stoi(this->BannerVer2);
+	pMsg.ver.Ver3 = std::stoi(this->BannerVer3);
 
 	IOCP.DataSend(lpObj->m_Index, (LPBYTE)&pMsg, pMsg.h.size);
 }
