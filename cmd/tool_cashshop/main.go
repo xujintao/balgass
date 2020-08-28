@@ -43,7 +43,9 @@ type ItemInfo struct {
 }
 
 type CashItemInfo struct {
-	Infos []ItemInfo `xml:"Item"`
+	// self-closing current is milestone
+	// https://github.com/golang/go/issues/21399
+	Infos []ItemInfo `xml:"Item,allowempty"`
 }
 type Item struct {
 	GUID             int    `xml:"GUID,attr" dat:"guid"`
@@ -185,7 +187,9 @@ func toXML(v interface{}, path string) error {
 		return err
 	}
 	defer f.Close()
-
+	if _, err = f.WriteString(xml.Header); err != nil {
+		return err
+	}
 	enc := xml.NewEncoder(f)
 	enc.Indent("", "    ")
 	return enc.Encode(v)
