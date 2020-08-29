@@ -19110,13 +19110,13 @@ void gObjManaPotionFill(LPOBJ lpObj)
 			{
 				if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG_Monk > 0.0)
 				{
-					AddBP += BP * lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG_Monk;
+					AddBP += BP * lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG_Monk / 100;
 				}
 			}
 
 			else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG > 0.0)
 			{
-				AddBP += BP * lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG;
+				AddBP += BP * lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG / 100;
 			}
 
 			if(gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_SOUL_POTION) != 0)
