@@ -120,11 +120,11 @@ type harmonyManager struct {
 func (o *harmonyManager) Out() {}
 
 func (o *harmonyManager) getHarmonyItemKind(item *Item) harmonyItemKind {
-	switch item.BaseSection {
+	switch item.Section {
 	case 0, 1, 2, 3:
 		return harmonyItemWeapon
 	case 4:
-		if item.BaseIndex == 7 || item.BaseIndex == 15 {
+		if item.Index == 7 || item.Index == 15 {
 			return harmonyItemNull
 		}
 		return harmonyItemWeapon
