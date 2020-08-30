@@ -14,7 +14,7 @@
 // STRICTLY NO COMMENTS INSIDE TAGS 
 -->
 
-<WhiteWizard Enable="1">
+<WhiteWizard Enable="0">
 	<Time ToOpen="3" PlayDuration="30" ToClose="25" />
 	<Move RandomSize="15" MinRadius="3" MaxRadius="6" />
 
