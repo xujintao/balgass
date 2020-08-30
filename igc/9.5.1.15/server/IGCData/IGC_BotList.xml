@@ -69,8 +69,8 @@
 
 	<BotSystem>
 		<List>
-			<Bot Id="0" Type="0" Class="0" Map="0" PosX="122" PosY="114" Dir="3" VipType="0" Money="5000000" Strength="500" Dexterity="500" Vitality="500" Energy="500" Enable="1" Name="SM_Helper" File="Bots\SM_Helper.xml" />
-			<Bot Id="1" Type="0" Class="1" Map="0" PosX="124" PosY="145" Dir="3" VipType="0" Money="3000000" Strength="500" Dexterity="500" Vitality="500" Energy="500" Enable="1" Name="BK_Helper" File="Bots\BK_Helper.xml" />
+			<Bot Id="0" Type="0" Class="0" Map="0" PosX="122" PosY="114" Dir="3" VipType="0" Money="5000000" Strength="500" Dexterity="500" Vitality="500" Energy="500" Enable="0" Name="SM_Helper" File="Bots\SM_Helper.xml" />
+			<Bot Id="1" Type="0" Class="1" Map="0" PosX="124" PosY="145" Dir="3" VipType="0" Money="3000000" Strength="500" Dexterity="500" Vitality="500" Energy="500" Enable="0" Name="BK_Helper" File="Bots\BK_Helper.xml" />
 			<Bot Id="2" Type="0" Class="2" Map="3" PosX="170" PosY="109" Dir="3" VipType="0" Money="1500000" Strength="500" Dexterity="500" Vitality="500" Energy="500" Enable="0" Name="ELF_Helper" File="Bots\ELF_Helper.xml" />
 			<Bot Id="3" Type="0" Class="3" Map="0" PosX="149" PosY="116" Dir="3" VipType="0" Money="1500000" Strength="500" Dexterity="500" Vitality="500" Energy="500" Enable="0" Name="MG_Helper" File="Bots\MG_Helper.xml" />
 			<Bot Id="4" Type="0" Class="4" Map="0" PosX="130" PosY="127" Dir="3" VipType="0" Money="3000000" Strength="500" Dexterity="500" Vitality="500" Energy="500" Enable="0" Name="DL_Helper" File="Bots\DL_Helper.xml" />
