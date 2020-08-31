@@ -11,6 +11,14 @@ import (
 	"github.com/xujintao/balgass/network"
 )
 
+type AuthLevel int
+
+const (
+	Guest AuthLevel = iota
+	Player
+	GM
+	Admin
+)
 const (
 	MaxMonsterSendMsg       = 20
 	MaxMonsterSendAttackMsg = 100
@@ -212,6 +220,7 @@ type UserData struct {
 type Object struct {
 	index                 int
 	Connected             PlayerType
+	AuthLevel             AuthLevel
 	LoginMsgSend          bool
 	LoginMsgCount         byte
 	CloseCount            byte
@@ -519,9 +528,9 @@ type Object struct {
 	clientHackLogCount       uint8
 	isInMonsterHerd          bool
 	isMonsterAttackFirst     bool
-	monsterHerd              *monster.MonsterHerd
-	fsKillFrustrumX          [MaxArrayFrustrum]int
-	fsKillFrustrumY          [MaxArrayFrustrum]int
+	// monsterHerd              *monster.MonsterHerd
+	fsKillFrustrumX [MaxArrayFrustrum]int
+	fsKillFrustrumY [MaxArrayFrustrum]int
 	// durMagicKeyChecker          *skill.DurMagicKeyChecker
 	IsChaosMixCompleted         bool
 	SkillLongSpearChange        bool
@@ -551,34 +560,34 @@ type Object struct {
 	creationState               uint8
 	createdActiviationTime      int
 	accumulatedCrownAccessTime  int
-	monsterSkillElementInfo     monster.MonsterSkillElementInfo
-	basicAI                     int
-	currentAI                   int
-	currentAIState              int
-	lastAIRunTime               time.Duration
-	groupNumber                 int
-	subGroupNumber              int
-	groupMemberGUID             int
-	regenType                   int
-	argo                        *monster.MonsterAIAgro
-	lastAutoRunTime             time.Time
-	lastAutoDelay               time.Duration
-	crywolfMVPScore             int
-	lastCheckTick               time.Time
-	autoRecuperationTime        time.Time
-	skillDistanceErrorCount     int
-	skillDistanceErrorTick      time.Time
-	skillInfo                   skillInfo
-	bufferIndex                 int
-	buffID                      int
-	buffPlayerIndex             int
-	agiCheckTime                time.Time
-	warehouseSaveLock           uint8
-	crcCheckTime                time.Time
-	off                         bool
-	offLevel                    bool
-	offLevelTime                int
-	PlayerData                  *UserData
+	// monsterSkillElementInfo     monster.MonsterSkillElementInfo
+	basicAI         int
+	currentAI       int
+	currentAIState  int
+	lastAIRunTime   time.Duration
+	groupNumber     int
+	subGroupNumber  int
+	groupMemberGUID int
+	regenType       int
+	// argo                    *monster.MonsterAIAgro
+	lastAutoRunTime         time.Time
+	lastAutoDelay           time.Duration
+	crywolfMVPScore         int
+	lastCheckTick           time.Time
+	autoRecuperationTime    time.Time
+	skillDistanceErrorCount int
+	skillDistanceErrorTick  time.Time
+	skillInfo               skillInfo
+	bufferIndex             int
+	buffID                  int
+	buffPlayerIndex         int
+	agiCheckTime            time.Time
+	warehouseSaveLock       uint8
+	crcCheckTime            time.Time
+	off                     bool
+	offLevel                bool
+	offLevelTime            int
+	PlayerData              *UserData
 }
 
 func (obj *Object) Reset() {
@@ -597,10 +606,10 @@ func (obj *Object) addExcelCommonEffect(opt *item.ExcelCommon, wItem *item.Item,
 		obj.attackSpeed += value
 		obj.magicSpeed += value
 	case item.ExcelCommonIncAttackPercent: // 2%
-		if wItem.BaseSection == 5 || // 法杖
-			wItem.BaseCode == item.Code(13, 12) || // 雷链子
-			wItem.BaseCode == item.Code(13, 25) || // 冰链子
-			wItem.BaseCode == item.Code(13, 27) { // 水链子
+		if wItem.Section == 5 || // 法杖
+			wItem.Code == item.Code(13, 12) || // 雷链子
+			wItem.Code == item.Code(13, 25) || // 冰链子
+			wItem.Code == item.Code(13, 27) { // 水链子
 			obj.magicDamageMin += obj.magicDamageMin * value / 100
 			obj.magicDamageMax += obj.magicDamageMax * value / 100
 		} else {
@@ -614,10 +623,10 @@ func (obj *Object) addExcelCommonEffect(opt *item.ExcelCommon, wItem *item.Item,
 			}
 		}
 	case item.ExcelCommonIncAttackLevel: // =20
-		if wItem.BaseSection == 5 || // 法杖
-			wItem.BaseCode == item.Code(13, 12) || // 雷链子
-			wItem.BaseCode == item.Code(13, 25) || // 冰链子
-			wItem.BaseCode == item.Code(13, 27) { // 水链子
+		if wItem.Section == 5 || // 法杖
+			wItem.Code == item.Code(13, 12) || // 雷链子
+			wItem.Code == item.Code(13, 25) || // 冰链子
+			wItem.Code == item.Code(13, 27) { // 水链子
 			obj.magicDamageMin += (obj.Level + obj.PlayerData.masterLevel) / value
 			obj.magicDamageMax += (obj.Level + obj.PlayerData.masterLevel) / value
 		} else {
@@ -774,7 +783,7 @@ func (obj *Object) CalcSetItem() {
 		if tierIndex == 0 {
 			continue
 		}
-		index := item.SetManager.GetSetIndex(wItem.BaseSection, wItem.BaseIndex, tierIndex)
+		index := item.SetManager.GetSetIndex(wItem.Section, wItem.Index, tierIndex)
 		if index <= 0 {
 			continue
 		}
@@ -828,21 +837,22 @@ func (obj *Object) Calc380Item() {
 		if wItem.Durability == 0 {
 			continue
 		}
-		if !wItem.Option380 || !item.Item380Manager.Is380Item(wItem.BaseSection, wItem.BaseIndex) {
+		if !wItem.Option380 || !item.Item380Manager.Is380Item(wItem.Section, wItem.Index) {
 			continue
 		}
-		item.Item380Manager.Apply380ItemEffect(wItem.BaseSection, wItem.BaseIndex, &obj.PlayerData.item380Effect)
+		item.Item380Manager.Apply380ItemEffect(wItem.Section, wItem.Index, &obj.PlayerData.item380Effect)
 	}
 	obj.AddHP += obj.PlayerData.item380Effect.Item380EffectIncMaxHP
 	obj.AddSD += obj.PlayerData.item380Effect.Item380EffectIncMaxSD
 }
 
-func (obj *Object) SkillAdd(skillIndex int) error {
+func (obj *Object) SkillLearn(it *item.Item) bool {
+	// validate
+	return obj.SkillAdd(it.SkillIndex)
+}
 
-	if err != nil {
-		return err
-	}
-
+func (obj *Object) SkillAdd(skillIndex int) bool {
+	return false
 }
 
 type bill struct {
@@ -933,4 +943,8 @@ func ObjectAdd(addr string, conn network.ConnWriter) (int, error) {
 	objectBills[index-objectUserCountStartIndex].init()
 
 	return 0, nil
+}
+
+func ObjectGet(id int) *Object {
+	return nil
 }

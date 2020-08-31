@@ -3,100 +3,100 @@ package item
 type itemType int
 
 const (
-	itemTypeCommon itemType = iota
-	itemTypeRegular
-	itemTypeSocket
-	itemType380
-	itemTypeLucky
-	itemTypeEvent
-	itemTypeArchangel
-	itemTypeChaos // 玛雅龙斧 玛雅神弓 玛雅雷杖
+	TypeCommon itemType = iota
+	TypeRegular
+	TypeSocket
+	Type380
+	TypeLucky
+	TypeEvent
+	TypeArchangel
+	TypeChaos // 玛雅龙斧 玛雅神弓 玛雅雷杖
 )
 
 type itemKindA int
 
 const (
-	itemKindACommon itemKindA = iota
-	itemKindAWeapon
-	itemKindAPendant
-	itemKindAArmor
-	itemKindARing
-	itemKindAHelper // imp etc.
-	itemKindAWing
-	itemKindAPremiumBuff
-	itemKindAPentagram
-	itemKindAJewel
-	itemKindASkill
-	itemKindAEvent
-	itemKindAMuun
+	KindACommon itemKindA = iota
+	KindAWeapon
+	KindAPendant
+	KindAArmor
+	KindARing
+	KindAHelper // imp etc.
+	KindAWing
+	KindAPremiumBuff
+	KindAPentagram
+	KindAJewel
+	KindASkill
+	KindAEvent
+	KindAMuun
 )
 
 type itemKindB int
 
 const (
-	itemKindBCommon                  itemKindB = iota
-	itemKindBSwordKnight                                  // 剑战士用
-	itemKindBSwordMagicGladiator                          // 剑魔剑士用
-	itemKindBSwordRageFighter                             // 剑格斗用
-	itemKindBAxe                                          // 斧
-	itemKindBMace                                         // 槌
-	itemKindBScepter                                      // 权杖
-	itemKindBSpear                                        // 矛
-	itemKindBBow                                          // 弓
-	itemKindBCrossbow                                     // 弩
-	itemKindBArrow                                        // 弓箭
-	itemKindBBolt                                         // 弩箭
-	itemKindBStaffWizard                                  // 法师杖
-	itemKindBStaffSummoner                                // 召唤杖
-	itemKindBBookSummoner                                 // 召唤副手书
-	itemKindBShield                                       // 盾类
-	itemKindBHelmet                                       // 头盔
-	itemKindBArmor                                        // 铠甲
-	itemKindBPants                                        // 护腿
-	itemKindBGloves                                       // 护手
-	itemKindBBoots                                        // 靴子
-	itemKindBWingTalisman                                 // 翅膀合成符咒
-	itemKindBSmallWing                                    // 小翅膀
-	itemKindBWing1st                                      // 1代翅膀
-	itemKindBWing2nd                                      // 2代翅膀
-	itemKindBWing3rd                                      // 3代翅膀
-	itemKindBCapeLord                                     // 王者披风
-	itemKindBCapeFighter                                  // 舞者披风
-	itemKindBWingMonster                                  // 2.5代翅膀
-	itemKindBPendantAttackPhysical                        // 项链物理系(火/风/紫晶/愁怀)
-	itemKindBPendantAttackMagic                           // 项链魔法系(雷/冰/水/坚硬)
-	itemKindBRing                                         // 指环
-	itemKindBRingEvent                                    // 指环活动变身用
-	itemKindBRingTransform                                // 变身指环
-	itemKindBPremiumPendant                               // 会员项链
-	itemKindBPremiumRing                                  // 会员指环
-	itemKindBSkillScroll                                  // 技能书
-	itemKindBSkillParchment                               // 技能羊皮纸
-	itemKindBSkillOrb                                     // 技能石
-	itemKindBSkillDarkLord                                // 技能卷轴
-	itemKindBSocketSeed                                   // 荧之石
-	itemKindBSocketSphere                                 // 光之石
-	itemKindBSocketSeedSphere                             // 荧光宝石
-	itemKindBPentagram                                    // 元素卷轴
-	itemKindBPentagramJewel                               // 艾尔特
-	itemKindBHelper                                       // 装备辅助道具(小恶魔/守护天使等)
-	itemKindBEquipment               itemKindB = 1 + iota // 背包宠物
-	itemKindBPremiumScroll                                // 会员卷轴(加速/防御/愤怒等卷轴)
-	itemKindBPremiumElixir                                // 会员圣水(力量/敏捷/体力等圣水)
-	itemKindBPremiumPotion                                // 会员活力秘药
-	itemKindBPotion                                       // 药水(红/蓝/酒等)
-	itemKindBRibbonBox                                    // 圣诞宝箱
-	itemKindBEventTicket                                  // 活动门票
-	itemKindBTicket                                       // 传承道具兑换券
-	itemKindBQuest                                        // 任务物品
-	itemKindBJewel                                        // 宝石
-	itemKindBJewelBundle                                  // 宝石组合
-	itemKindBJewelHarmonyStoneGems                        // 再生原石
-	itemKindBJewelHarmonyStoneRefine                      // 进化宝石
-	itemKindBWingConqueror                                // 征服者的翅膀
-	itemKindBWingAngelDevil          itemKindB = 2 + iota // 善恶的翅膀
-	itemKindBMuun                                         // 宠物道具
-	itemKindBMuunExchange                                 // 宠物道具
+	KindBCommon                  itemKindB = iota
+	kindBSwordKnight                                  // 剑战士用
+	kindBSwordMagicGladiator                          // 剑魔剑士用
+	kindBSwordRageFighter                             // 剑格斗用
+	kindBAxe                                          // 斧
+	kindBMace                                         // 槌
+	kindBScepter                                      // 权杖
+	kindBSpear                                        // 矛
+	kindBBow                                          // 弓
+	kindBCrossbow                                     // 弩
+	kindBArrow                                        // 弓箭
+	kindBBolt                                         // 弩箭
+	kindBStaffWizard                                  // 法师杖
+	kindBStaffSummoner                                // 召唤杖
+	kindBBookSummoner                                 // 召唤副手书
+	kindBShield                                       // 盾类
+	kindBHelmet                                       // 头盔
+	kindBArmor                                        // 铠甲
+	kindBPants                                        // 护腿
+	kindBGloves                                       // 护手
+	kindBBoots                                        // 靴子
+	kindBWingTalisman                                 // 翅膀合成符咒
+	kindBSmallWing                                    // 小翅膀
+	kindBWing1st                                      // 1代翅膀
+	kindBWing2nd                                      // 2代翅膀
+	kindBWing3rd                                      // 3代翅膀
+	kindBCapeLord                                     // 王者披风
+	kindBCapeFighter                                  // 舞者披风
+	kindBWingMonster                                  // 2.5代翅膀
+	kindBPendantAttackPhysical                        // 项链物理系(火/风/紫晶/愁怀)
+	kindBPendantAttackMagic                           // 项链魔法系(雷/冰/水/坚硬)
+	kindBRing                                         // 指环
+	kindBRingEvent                                    // 指环活动变身用
+	kindBRingTransform                                // 变身指环
+	kindBPremiumPendant                               // 会员项链
+	kindBPremiumRing                                  // 会员指环
+	kindBSkillScroll                                  // 技能书
+	kindBSkillParchment                               // 技能羊皮纸
+	kindBSkillOrb                                     // 技能石
+	kindBSkillDarkLord                                // 技能卷轴
+	kindBSocketSeed                                   // 荧之石
+	kindBSocketSphere                                 // 光之石
+	kindBSocketSeedSphere                             // 荧光宝石
+	kindBPentagram                                    // 元素卷轴
+	kindBPentagramJewel                               // 艾尔特
+	kindBHelper                                       // 装备辅助道具(小恶魔/守护天使等)
+	kindBEquipment               itemKindB = 1 + iota // 背包宠物
+	kindBPremiumScroll                                // 会员卷轴(加速/防御/愤怒等卷轴)
+	kindBPremiumElixir                                // 会员圣水(力量/敏捷/体力等圣水)
+	kindBPremiumPotion                                // 会员活力秘药
+	kindBPotion                                       // 药水(红/蓝/酒等)
+	kindBRibbonBox                                    // 圣诞宝箱
+	kindBEventTicket                                  // 活动门票
+	kindBTicket                                       // 传承道具兑换券
+	kindBQuest                                        // 任务物品
+	kindBJewel                                        // 宝石
+	kindBJewelBundle                                  // 宝石组合
+	kindBJewelHarmonyStoneGems                        // 再生原石
+	kindBJewelHarmonyStoneRefine                      // 进化宝石
+	kindBWingConqueror                                // 征服者的翅膀
+	kindBWingAngelDevil          itemKindB = 2 + iota // 善恶的翅膀
+	kindBMuun                                         // 宠物道具
+	kindBMuunExchange                                 // 宠物道具
 )
 
 type itemWeaponKind int
