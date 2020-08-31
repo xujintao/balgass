@@ -25,9 +25,9 @@ func Hex2string(src []byte) string {
 
 // Request represents an request received by a server
 type Request struct {
-	Flag    uint8
-	Size    int
-	Code    uint8
+	// Flag uint8
+	// Size int
+	// Code    uint8
 	Body    []uint8
 	Encrypt bool
 }
@@ -151,24 +151,24 @@ func parseFrame(frame []byte, needxor bool) (*Request, error) {
 
 	// Message
 	offset := 1
-	size := 0
+	// size := 0
 	switch flag {
 	case 0xC1:
-		size = int(frame[offset])
+		// size = int(frame[offset])
 		offset++
 	case 0xC2:
-		size = int(binary.BigEndian.Uint16(frame[offset:]))
+		// size = int(binary.BigEndian.Uint16(frame[offset:]))
 		offset += 2
 	}
-	code := frame[offset]
-	offset++
+	// code := frame[offset]
+	// offset++
 	body := frame[offset:]
 	req := &Request{
-		Flag:    flag,
-		Size:    size,
-		Code:    code,
-		Encrypt: enc,
+		// Flag: flag,
+		// Size:    size,
+		// Code:    code,
 		Body:    body,
+		Encrypt: enc,
 	}
 
 	return req, nil
