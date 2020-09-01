@@ -5,13 +5,16 @@ import (
 	"github.com/xujintao/balgass/cmd/server_game/game/object"
 )
 
-func ObjectUseItem(obj *object.Object, msg *MsgObjectUseItem) {
+// ItemUse 0x26
+func ItemUse(player *object.Player, msg *MsgItemUse) {
 	// validate the position
 
-	it := &obj.Inventory[msg.InventoryPos]
-	it2 := &obj.Inventory[msg.InventoryPosTarget]
+	it := &player.Inventory[msg.InventoryPos]
+	it2 := &player.Inventory[msg.InventoryPosTarget]
 	// validate item serial/id
-
+	if player.LimitUseItem(it) {
+		return
+	}
 	switch {
 	case it.Code == item.Code(12, 30): // Bundle Jewel of Bless
 	case it.Code == item.Code(13, 15): // Fruits 果实
@@ -51,10 +54,21 @@ func ObjectUseItem(obj *object.Object, msg *MsgObjectUseItem) {
 	case it.Code == item.Code(14, 224): // Bless of Light (Greater) 光的祝福
 	case it.Code >= item.Code(14, 263) && it.Code <= item.Code(14, 264): // Bless of Light 光之祝福
 	case it.KindA == item.KindASkill:
-		if obj.SkillLearn(it) {
+		// (15, 18) // Scroll of Nova 星辰一怒术
+		skillIndex := it.SkillIndex
+		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
+			skillIndex += it.Level
+		}
+		if player.SkillLearn(skillIndex) {
 			//
 		}
 
 	}
+}
 
+// SkillMasterLearn 0xF352
+func SkillMasterLearn(player *object.Player, msg *MsgSkillMasterLearn) {
+	if player.SkillLearn(msg.SkillIndex) {
+
+	}
 }

@@ -26,7 +26,7 @@ type CMDHandle map[int]*Command
 // Handle *CMDHandle implements network.Handler
 func (cmds CMDHandle) Handle(ctx interface{}, req *network.Request) {
 	id := ctx.(int)
-	obj := object.ObjectGet(id)
+	obj := object.ObjectFind(id)
 
 	var cmd *Command
 	var ok bool
@@ -73,7 +73,7 @@ func (CMDHandle) OnConn(addr string, conn network.ConnWriter) (interface{}, erro
 
 // OnClose implements network.Handler.OnConn
 func (CMDHandle) OnClose(id interface{}) {
-	// object.ObjectDelete(addr, conn)
+	object.ObjectDelete(id.(int))
 }
 
 type Command struct {
@@ -87,7 +87,8 @@ type Command struct {
 }
 
 var cmds = [...]*Command{
-	{1, false, object.Player, "object_use_item", 0x26, cmd.ObjectUseItem, &cmd.MsgObjectUseItem{}},
+	{1, false, object.AuthLevelPlayer, "object_use_item", 0x26, cmd.ItemUse, &cmd.MsgItemUse{}},
+	{2, false, object.AuthLevelPlayer, "skillmaster_learn", 0xF352, cmd.SkillMasterLearn, &cmd.MsgSkillMasterLearn{}},
 }
 
 /*
