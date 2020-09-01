@@ -1,12 +1,14 @@
 package object
 
 import (
-	"fmt"
+	"log"
 	"sync"
 	"time"
 
-	"github.com/xujintao/balgass/cmd/server_game/conf"
-	"github.com/xujintao/balgass/cmd/server_game/game/guild"
+	"github.com/xujintao/balgass/cmd/server_game/game"
+
+	"github.com/xujintao/balgass/cmd/server_game/game/skill"
+
 	"github.com/xujintao/balgass/cmd/server_game/game/item"
 	"github.com/xujintao/balgass/network"
 )
@@ -14,10 +16,10 @@ import (
 type AuthLevel int
 
 const (
-	Guest AuthLevel = iota
-	Player
-	GM
-	Admin
+	AuthLevelGuest AuthLevel = iota
+	AuthLevelPlayer
+	AuthLevelGM
+	AuthLevelAdmin
 )
 const (
 	MaxMonsterSendMsg       = 20
@@ -117,106 +119,6 @@ type skillInfo struct {
 	circleShieldRate     float32
 }
 
-type UserData struct {
-	ip                            string
-	hwid                          string
-	experience                    uint
-	nextExp                       uint
-	masterExperience              uint
-	nextMasterExp                 uint
-	masterLevel                   int
-	levelUpPoint                  int
-	masterPoint                   int
-	masterPointUsed               int
-	fruitPoint                    int
-	money                         int
-	strength                      uint16
-	dexterity                     uint16
-	vitality                      uint16
-	energy                        uint16
-	dbClass                       uint8
-	changeUP                      uint8
-	guild                         *guild.GuildInfo
-	guildName                     string
-	guildStatus                   int
-	guildUnionTimeStamp           int
-	guildNumber                   int
-	lastMoveTime                  time.Time
-	resets                        int
-	vipType                       uint8
-	vipEffect                     uint8
-	santaCount                    uint8
-	goblinTime                    time.Time
-	securityCheck                 bool
-	securityCode                  int
-	RegisterLMS                   uint8
-	registerLMSRoom               uint8
-	jewelHarmonyEffect            item.JewelHarmonyItemEffect
-	item380Effect                 item.Item380Effect
-	kanturuEntranceByNPC          bool
-	gensInfoLoad                  bool
-	questInfoLoad                 bool
-	wCoinP                        int
-	wCoinC                        int
-	goblinPoint                   int
-	periodItemEffectIndex         int
-	seedOptionList                [35]item.SocketOptionList
-	bonusOptionList               [7]item.SocketOptionList
-	setOptionList                 [2]item.SocketOptionList
-	refillHPSocketOption          uint16
-	refillMPSocketOption          uint16
-	socketOptionMonsterDieGetHP   uint16
-	socketOptionMonsterDieGetMana uint16
-	agReduceRate                  uint8
-	muBotEnable                   bool
-	muBotTotalTime                time.Duration
-	muBotPayTime                  time.Duration
-	muBotTick                     time.Time
-	InventoryExpansion            int
-	WarehouseExpansion            int
-	LastAuthTime                  time.Time
-	LastXorKey1                   [4]int
-	LaskXorKey2                   [4]int
-	bot                           bool
-	botIndex                      int
-	skillHellFire2State           int
-	skillHellFire2Count           int
-	skillHellFire2Time            time.Time
-	skillStrengthenHellFire2State int
-	skillStrengthenHellFire2Count int
-	skillStrengthenHellFire2Time  time.Time
-	reqWarehouseOpen              int
-	// set
-	setEffectIncSkillAttack        int
-	setEffectIncExcelDamage        int
-	setEffectIncExcelDamageRate    int
-	setEffectIncCritiDamage        int
-	setEffectIncCritiDamageRate    int
-	setEffectIncAG                 int
-	setEffectIncDamage             int
-	setEffectIncAttackMin          int
-	setEffectIncAttackMax          int
-	setEffectIncAttack             int
-	setEffectIncDefense            int
-	setEffectIncDefenseRate        int
-	setEffectIncMagicAttack        int
-	setEffectIgnoreDefense         int
-	setEffectDoubleDamage          int
-	setEffectTwoHandSwordIncDamage int
-	setEffectIncAttackRate         int
-	setEffectReflectDamage         int
-	setEffectIncShieldDefense      int
-	setEffectDecAG                 int
-	setEffectIncItemDropRate       int
-	fullSet                        bool
-	// excel wing
-	excelWingEffectIgnoreDefense int
-	excelWingEffectReboundDamage int
-	excelWingEffectRecoveryHP    int
-	excelWingEffectRecoveryMP    int
-	excelWingEffectDoubleDamage  int
-}
-
 type Object struct {
 	index                 int
 	Connected             PlayerType
@@ -245,7 +147,7 @@ type Object struct {
 	Live                  byte
 	AccountID             string
 	Name                  string
-	Class                 uint16
+	Class                 game.ClassChar
 	Level                 int
 	HP                    int // HP
 	MaxHP                 int
@@ -262,7 +164,7 @@ type Object struct {
 	AG                    int // AG
 	MaxAG                 int
 	AddAG                 int
-	Leadership            uint16
+	Leadership            int
 	AddLeadership         int
 	ChatLimitTime         uint16
 	ChatLimitTimeSec      byte
@@ -389,19 +291,19 @@ type Object struct {
 	LastAttackerID             uint16
 	attackDamageMin            int
 	attackDamageMax            int
-	magicDamageMin             int
-	magicDamageMax             int
-	curseDamageMin             int
-	curseDamageMax             int
+	magicDamageMin             int // 魔攻min
+	magicDamageMax             int // 魔攻max
+	curseDamageMin             int // 诅咒min
+	curseDamageMax             int // 诅咒max
 	attackDamageLeft           int
 	attackDamageRight          int
-	attackDamageMinLeft        int
-	attackDamageMaxLeft        int
-	attackDamageMinRight       int
-	attackDamageMaxRight       int
+	attackDamageLeftMin        int // 物攻左min
+	attackDamageLeftMax        int // 物攻左min
+	attackDamageRightMin       int // 物攻右min
+	attackDamageRightMax       int // 物攻右max
 	attackRating               int
-	attackSpeed                int
-	magicSpeed                 int
+	attackSpeed                int // 物攻速度
+	magicSpeed                 int // 魔攻速度
 	defense                    int
 	magicDefense               int
 	successfulBlocking         int
@@ -415,11 +317,10 @@ type Object struct {
 	itemRate                   uint16
 	moneyRate                  uint16
 	criticalDamage             int
-	excellentDamage            int
-	skillPool                  sync.Pool
+	excellentDamage            int // 卓越一击概率
 	// magicBack                   *skill.MagicInfo
 	// Magic                       *skill.MagicInfo
-	MagicCount               byte
+	Skills                   map[int]*skill.Skill
 	UseMagicNumber           byte
 	UseMagicTime             time.Duration
 	UseMagicCount            byte
@@ -587,364 +488,18 @@ type Object struct {
 	off                     bool
 	offLevel                bool
 	offLevelTime            int
-	PlayerData              *UserData
 }
 
 func (obj *Object) Reset() {
 
 }
 
-func (obj *Object) addExcelCommonEffect(opt *item.ExcelCommon, wItem *item.Item, position int) {
-	id := opt.ID
-	value := opt.Value
-	switch id {
-	case item.ExcelCommonIncMPMonsterDie: // 杀怪回蓝
-		obj.MonsterDieGetMana++
-	case item.ExcelCommonIncHPMonsterDie: // 杀怪回红
-		obj.MonsterDieGetLife++
-	case item.ExcelCommonIncAttackSpeed: // 攻速
-		obj.attackSpeed += value
-		obj.magicSpeed += value
-	case item.ExcelCommonIncAttackPercent: // 2%
-		if wItem.Section == 5 || // 法杖
-			wItem.Code == item.Code(13, 12) || // 雷链子
-			wItem.Code == item.Code(13, 25) || // 冰链子
-			wItem.Code == item.Code(13, 27) { // 水链子
-			obj.magicDamageMin += obj.magicDamageMin * value / 100
-			obj.magicDamageMax += obj.magicDamageMax * value / 100
-		} else {
-			if position == 0 || position == 9 {
-				obj.attackDamageMinLeft += obj.attackDamageMinLeft * value / 100
-				obj.attackDamageMaxLeft += obj.attackDamageMaxLeft * value / 100
-			}
-			if position == 1 || position == 9 {
-				obj.attackDamageMinRight += obj.attackDamageMinRight * value / 100
-				obj.attackDamageMaxRight += obj.attackDamageMaxRight * value / 100
-			}
-		}
-	case item.ExcelCommonIncAttackLevel: // =20
-		if wItem.Section == 5 || // 法杖
-			wItem.Code == item.Code(13, 12) || // 雷链子
-			wItem.Code == item.Code(13, 25) || // 冰链子
-			wItem.Code == item.Code(13, 27) { // 水链子
-			obj.magicDamageMin += (obj.Level + obj.PlayerData.masterLevel) / value
-			obj.magicDamageMax += (obj.Level + obj.PlayerData.masterLevel) / value
-		} else {
-			if position == 0 || position == 9 {
-				obj.attackDamageMinLeft += (obj.Level + obj.PlayerData.masterLevel) / value
-				obj.attackDamageMaxLeft += (obj.Level + obj.PlayerData.masterLevel) / value
-			}
-			if position == 1 || position == 9 {
-				obj.attackDamageMinRight += (obj.Level + obj.PlayerData.masterLevel) / value
-				obj.attackDamageMaxRight += (obj.Level + obj.PlayerData.masterLevel) / value
-			}
-		}
-	case item.ExcelCommonIncExcelDamage: // 一击
-		obj.excellentDamage += value
-	case item.ExcelCommonIncZen: // 加钱
-		obj.MonsterDieGetMoney += value
-	case item.ExcelCommonIncDefenseRate: // f10
-		obj.successfulBlocking += obj.successfulBlocking * value / 100
-	case item.ExcelCommonReflectDamage: // 反伤
-		obj.DamageReflect += value
-	case item.ExcelCommonDecDamage: // 减伤
-		obj.DamageMinus += value
-	case item.ExcelCommonIncMaxMP: // 加魔
-		obj.AddMP += obj.MaxMP * value / 100
-	case item.ExcelCommonIncMaxHP: // 加生
-		obj.AddHP += obj.MaxHP * value / 100
-	}
-}
-
-func (obj *Object) addExcelWingEffect(opt *item.ExcelWing, wItem *item.Item) {
-	id := opt.ID
-	value := opt.Value
-	switch id {
-	case 0, 9, 13: // incHP
-		obj.AddHP += value + wItem.Level*5
-	case 1, 10, 14: // incMP
-		obj.AddMP += value + wItem.Level*5
-	case 2, 5, 11, 15, 16, 18, 23: // ingore
-		obj.PlayerData.excelWingEffectIgnoreDefense = value
-	// case 3: // AG ?
-	// 	obj.AddAG += value
-	// case 4: // speed ?
-	// 	obj.attackSpeed += value
-	// 	obj.magicSpeed += value
-	case 6, 19:
-		obj.PlayerData.excelWingEffectReboundDamage = value
-	case 7, 17, 20, 24:
-		obj.PlayerData.excelWingEffectRecoveryHP = value
-	case 8, 21:
-		obj.PlayerData.excelWingEffectRecoveryMP = value
-	case 12:
-		obj.AddLeadership += value + wItem.Level*5
-	case 22:
-		obj.PlayerData.excelWingEffectDoubleDamage = value
-	}
-}
-
-func (obj *Object) addSetEffect(index item.SetEffectType, value int) {
-	switch index {
-	case item.SetEffectIncStrength:
-		obj.AddStrength += value
-	case item.SetEffectIncAgility:
-		obj.AddDexterity += value
-	case item.SetEffectIncEnergy:
-		obj.AddEnergy += value
-	case item.SetEffectIncVitality:
-		obj.AddVitality += value
-	case item.SetEffectIncLeadership:
-		obj.AddLeadership += value
-	case item.SetEffectIncMaxHP:
-		obj.AddHP += value
-	case item.SetEffectIncMaxMP:
-		obj.AddMP += value
-	case item.SetEffectIncMaxAG:
-		obj.AddAG += value
-	case item.SetEffectDoubleDamage:
-		obj.PlayerData.setEffectDoubleDamage += value
-	case item.SetEffectIncShieldDefense:
-		obj.PlayerData.setEffectIncShieldDefense += value
-	case item.SetEffectIncTwoHandSwordDamage:
-		obj.PlayerData.setEffectTwoHandSwordIncDamage += value
-	case item.SetEffectIncAttackMin:
-		obj.PlayerData.setEffectIncAttackMin += value
-	case item.SetEffectIncAttackMax:
-		obj.PlayerData.setEffectIncAttackMax += value
-	case item.SetEffectIncMagicAttack:
-		obj.PlayerData.setEffectIncMagicAttack += value
-	case item.SetEffectIncDamage:
-		obj.PlayerData.setEffectIncDamage += value
-	case item.SetEffectIncAttackRate:
-		obj.PlayerData.setEffectIncAttackRate += value
-	case item.SetEffectIncDefense:
-		obj.PlayerData.setEffectIncDefense += value
-	case item.SetEffectIgnoreDefense:
-		obj.PlayerData.setEffectIgnoreDefense += value
-	case item.SetEffectIncAG:
-		obj.PlayerData.setEffectIncAG += value
-	case item.SetEffectIncCritiDamage:
-		obj.PlayerData.setEffectIncCritiDamage += value
-	case item.SetEffectIncCritiDamageRate:
-		obj.PlayerData.setEffectIncCritiDamageRate += value
-	case item.SetEffectIncExcelDamage:
-		obj.PlayerData.setEffectIncExcelDamage += value
-	case item.SetEffectIncExcelDamageRate:
-		obj.PlayerData.setEffectIncExcelDamageRate += value
-	case item.SetEffectIncSkillAttack:
-		obj.PlayerData.setEffectIncSkillAttack += value
-	}
-}
-
-func (obj *Object) CalcExcelItem() {
-	for i, wItem := range obj.Inventory[0:InventoryWearSize] {
-		if wItem.Durability == 0 {
-			continue
-		}
-		if wItem.Excel == 0 {
-			continue
-		}
-		if i == 7 {
-			for _, opt := range item.ExcelManager.Wings.Options {
-				if wItem.KindA == opt.ItemKindA && wItem.KindB == opt.ItemKindB {
-					if wItem.Excel&opt.Number == opt.Number {
-						obj.addExcelWingEffect(opt, &wItem)
-					}
-				}
-			}
-		} else {
-			for _, opt := range item.ExcelManager.Common.Options {
-				switch wItem.KindA {
-				case opt.ItemKindA1, opt.ItemKindA2, opt.ItemKindA3:
-					if wItem.Excel&opt.Number == opt.Number {
-						obj.addExcelCommonEffect(opt, &wItem, i)
-					}
-				}
-			}
-		}
-	}
-}
-
-func (obj *Object) CalcSetItem() {
-	type set struct {
-		index int
-		count int
-	}
-	var sets []set
-
-	sameWeapon := 0
-	sameRing := 0
-	for i, wItem := range obj.Inventory[0:InventoryWearSize] {
-		if wItem.Durability == 0 {
-			continue
-		}
-		tierIndex := wItem.GetSetTierIndex()
-		if tierIndex == 0 {
-			continue
-		}
-		index := item.SetManager.GetSetIndex(wItem.Section, wItem.Index, tierIndex)
-		if index <= 0 {
-			continue
-		}
-		if i == 0 {
-			sameWeapon = index
-		}
-		if i == 1 && sameWeapon > 0 {
-			continue
-		}
-		if i == 10 {
-			sameRing = index
-		}
-		if i == 11 && sameRing > 0 {
-			continue
-		}
-		ok := false
-		for i := range sets {
-			if sets[i].index == index {
-				sets[i].count++
-				ok = true
-				break
-			}
-		}
-		if !ok {
-			sets = append(sets, set{index, 1})
-		}
-	}
-
-	for _, v := range sets {
-		index := v.index
-		count := v.count
-		if count >= 2 {
-			for i := 0; i < count-1; i++ {
-				setEffect := item.SetManager.GetSet(index, i)
-				obj.addSetEffect(setEffect.Index, setEffect.Value)
-			}
-
-			if count > item.SetManager.GetSetEffectCount(index) {
-				obj.PlayerData.fullSet = true
-				setEffects := item.SetManager.GetSetFull(index)
-				for _, setEffect := range setEffects {
-					obj.addSetEffect(setEffect.Index, setEffect.Value)
-				}
-			}
-		}
-	}
-}
-
-func (obj *Object) Calc380Item() {
-	for _, wItem := range obj.Inventory[0:InventoryWearSize] {
-		if wItem.Durability == 0 {
-			continue
-		}
-		if !wItem.Option380 || !item.Item380Manager.Is380Item(wItem.Section, wItem.Index) {
-			continue
-		}
-		item.Item380Manager.Apply380ItemEffect(wItem.Section, wItem.Index, &obj.PlayerData.item380Effect)
-	}
-	obj.AddHP += obj.PlayerData.item380Effect.Item380EffectIncMaxHP
-	obj.AddSD += obj.PlayerData.item380Effect.Item380EffectIncMaxSD
-}
-
-func (obj *Object) SkillLearn(it *item.Item) bool {
-	// validate
-	return obj.SkillAdd(it.SkillIndex)
-}
-
-func (obj *Object) SkillAdd(skillIndex int) bool {
-	return false
-}
-
-type bill struct {
-	certify uint8
-	payCode uint8
-	endTime time.Time
-	endDays [13]uint8
-}
-
-func (*bill) init() {}
-
-var (
-	mu                        sync.Mutex
-	Disconnect                bool
-	maxObjectCount            int
-	objects                   []Object
-	objectUserCountStartIndex int
-	objectCount               int
-	objectUserCount           int
-	objectMonsterCount        int
-	objectSummonMonsterCount  int
-	objectBills               []bill
-)
-
-func init() {
-	maxObjectCount = conf.Server.MaxObjectMonsterCount + conf.Server.MaxObjectSummonMonsterCount + conf.Server.MaxObjectUserCount
-	objects = make([]Object, maxObjectCount)
-	objectBills = make([]bill, conf.Server.MaxObjectUserCount)
-	// 先有怪后有玩家
-	objectUserCountStartIndex = maxObjectCount - conf.Server.MaxObjectUserCount
-	objectCount = objectUserCountStartIndex
-
-}
-
-func objectMaxRange(index int) bool {
-	if index < 0 || index >= maxObjectCount {
+// SkillAdd  object add skill
+func (obj *Object) SkillAdd(skillIndex, level int) bool {
+	if _, ok := obj.Skills[skillIndex]; ok {
+		log.Printf("object[%s] skill[%s] already exists", obj.Name, skill.SkillTable[skillIndex].Name)
 		return false
 	}
+	obj.Skills[skillIndex] = skill.Get(skillIndex, level)
 	return true
-}
-
-// ObjectAdd search a avaliable object from pool
-// and return the object index
-func ObjectAdd(addr string, conn network.ConnWriter) (int, error) {
-	mu.Lock()
-	defer mu.Unlock()
-	if Disconnect {
-		return -1, fmt.Errorf("disconnect")
-	}
-
-	if objectUserCount > conf.Server.MaxObjectUserCount {
-		// 响应
-		res := &network.Response{}
-		body := []byte{0x04}
-		res.WriteHead2(0xC1, 0xF1, 0x01).Write(body)
-		conn.Write(res)
-		return -1, fmt.Errorf("current user number: [%d], over maximum number of users: [%d]", objectUserCount, conf.Server.MaxObjectUserCount)
-	}
-
-	index := objectCount
-	cnt := conf.Server.MaxObjectUserCount
-	for cnt > 0 {
-		if objects[index].Connected == PlayerEmpty {
-			break
-		}
-		index++
-		if index >= maxObjectCount {
-			index = objectUserCountStartIndex
-		}
-		cnt--
-	}
-	if cnt == 0 {
-		return 0, fmt.Errorf("have no free index")
-	}
-
-	o := &objects[index]
-	o.Reset()
-	o.LoginMsgSend = false
-	o.LoginMsgCount = 0
-	o.index = index
-	o.conn = conn
-	o.ConnectCheckTime = time.Now()
-	o.AutoSaveTime = o.ConnectCheckTime
-	o.Connected = PlayerConnected
-	o.CheckSpeedHack = false
-	o.EnableCharacterCreate = false
-	o.Type = ObjectUser
-	objectBills[index-objectUserCountStartIndex].init()
-
-	return 0, nil
-}
-
-func ObjectGet(id int) *Object {
-	return nil
 }
