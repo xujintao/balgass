@@ -1,9 +1,40 @@
-package cmd
+package game
 
 import (
 	"github.com/xujintao/balgass/cmd/server_game/game/item"
 	"github.com/xujintao/balgass/cmd/server_game/game/object"
+	"github.com/xujintao/balgass/network"
 )
+
+func OnConn(addr string, conn network.ConnWriter) (interface{}, error) {
+	index, err := object.PlayerAdd(addr, conn)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &network.Response{}
+	res.WriteHead2(0xC1, 0x00, 0x01)
+	conn.Write(res)
+	return index, nil
+}
+
+func OnClose(ctx interface{}) {
+	object.PlayerDelete(ctx.(int))
+}
+
+// SetAuthLevel set authorized level
+func SetAuthLevel(ctx interface{}, level int) {
+	id := ctx.(int)
+	player := object.Find(id).(*object.Player)
+	player.AuthLevel = level
+}
+
+// GetAuthLevel get authorized level
+func GetAuthLevel(ctx interface{}) int {
+	id := ctx.(int)
+	player := object.Find(id).(*object.Player)
+	return player.AuthLevel
+}
 
 // ItemUse 0x26
 func ItemUse(player *object.Player, msg *MsgItemUse) {
@@ -66,8 +97,8 @@ func ItemUse(player *object.Player, msg *MsgItemUse) {
 	}
 }
 
-// SkillMasterLearn 0xF352
-func SkillMasterLearn(player *object.Player, msg *MsgSkillMasterLearn) {
+// MasterSkillLearn 0xF352
+func MasterSkillLearn(player *object.Player, msg *MsgMasterSkillLearn) {
 	if player.SkillLearn(msg.SkillIndex) {
 
 	}

@@ -4,15 +4,19 @@ import (
 	"log"
 	"time"
 
-	"github.com/xujintao/balgass/cmd/server_game/game/skill"
-
+	"github.com/xujintao/balgass/cmd/server_game/conf"
 	"github.com/xujintao/balgass/cmd/server_game/game/guild"
 	"github.com/xujintao/balgass/cmd/server_game/game/item"
+	"github.com/xujintao/balgass/cmd/server_game/game/skill"
+	"github.com/xujintao/balgass/network"
 )
 
 type Player struct {
 	Object
-	ip                            string
+	Addr                          string
+	Conn                          network.ConnWriter
+	AccountID                     string
+	AuthLevel                     int
 	hwid                          string
 	Experience                    uint
 	ExperienceNext                uint
@@ -109,6 +113,10 @@ type Player struct {
 	excelWingEffectRecoveryHP    int
 	excelWingEffectRecoveryMP    int
 	excelWingEffectDoubleDamage  int
+}
+
+func (player *Player) MasterLevel() bool {
+	return player.ChangeUP == 2 && player.Level >= conf.Common.General.MaxLevelNormal
 }
 
 func (player *Player) addExcelCommonEffect(opt *item.ExcelCommon, wItem *item.Item, position int) {
@@ -372,8 +380,8 @@ func (player *Player) LimitUseItem(it *item.Item) bool {
 		player.Leadership+player.AddLeadership < it.ReqCommand {
 		return true
 	}
-	reqClassChar := it.ReqClass[player.Class]
-	if reqClassChar == 0 || (reqClassChar > player.ChangeUP+1) {
+	reqClass := it.ReqClass[player.Class]
+	if reqClass == 0 || (reqClass > player.ChangeUP+1) {
 		return true
 	}
 	return false
@@ -381,15 +389,41 @@ func (player *Player) LimitUseItem(it *item.Item) bool {
 
 // SkillLearn object learn skill from skill stone or master point
 func (player *Player) SkillLearn(skillIndex int) bool {
-	// validate condition
-	skill, ok := skill.SkillTable[skillIndex]
+	// validate skillIndex
+	skillBase, ok := skill.SkillTable[skillIndex]
 	if !ok {
 		log.Printf("player[%s] learn invalid skill index[%d]", player.Name, skillIndex)
 		return false
 	}
-	if skill.STID == 0 {
+	if skillBase.STID == 0 && skillBase.UseType == 0 {
 		return player.SkillAdd(skillIndex, 0)
 	}
 
-	return false
+	// validate player level
+	if !player.MasterLevel() {
+		return false // 2
+	}
+
+	// validate skill level
+	level := 0
+	if skill, ok := player.Skills[skillIndex]; ok {
+		level = skill.Level
+	}
+	level += skillBase.ReqMLPoint
+	skillMaster, _ := skill.SkillMasterTable[skillIndex]
+	if level > skillMaster.MaxPoint {
+		return false // 4
+	}
+
+	// validate master point
+	if player.MasterPoint < skillBase.ReqMLPoint {
+		return false // 4
+	}
+
+	// validate new skill
+	if level == 1 {
+
+	}
+
+	return true
 }

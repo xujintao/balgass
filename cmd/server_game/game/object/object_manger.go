@@ -1,9 +1,7 @@
 package object
 
 import (
-	"fmt"
 	"sync"
-	"time"
 
 	"github.com/xujintao/balgass/cmd/server_game/conf"
 	"github.com/xujintao/balgass/network"
@@ -36,21 +34,34 @@ func objectMaxRange(index int) bool {
 	return true
 }
 
-func ObjectAdd(addr string, conn network.ConnWriter) (int, error) {
-	return objectManagerDefault.objectAdd(addr, conn)
+// Find find a object from object-manager
+func Find(id int) interface{} {
+	return objectManagerDefault.find(id)
 }
 
-func ObjectFind(id int) *Object {
-	return objectManagerDefault.objectFind(id)
+// MonsterAdd add a monster
+func MonsterAdd(class int) {
+	// return objectManagerDefault.monsterAdd(class)
 }
 
-func ObjectDelete(id int) {
-
+// PlayerAdd add a player
+func PlayerAdd(addr string, conn network.ConnWriter) (int, error) {
+	return objectManagerDefault.playerAdd(addr, conn)
 }
 
-var poolObject = sync.Pool{
+// MonsterDelete delete a monster
+func MonsterDelete(id int) {
+	// objectManagerDefault.monsterDelete(id)
+}
+
+// PlayerDelete delete a player
+func PlayerDelete(id int) {
+	objectManagerDefault.playerDelete(id)
+}
+
+var poolPlayer = sync.Pool{
 	New: func() interface{} {
-		return &Object{}
+		return &Player{}
 	},
 }
 
@@ -58,65 +69,64 @@ var objectManagerDefault objectManager
 
 type objectManager struct {
 	mu      sync.Mutex
-	objects map[int]*Object
+	objects map[int]interface{}
 }
 
-// ObjectAdd search a avaliable object from pool
-// and return the object index
-func (m *objectManager) objectAdd(addr string, conn network.ConnWriter) (int, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	if objectUserCount > conf.Server.MaxObjectUserCount {
-		// 响应
-		res := &network.Response{}
-		body := []byte{0x04}
-		res.WriteHead2(0xC1, 0xF1, 0x01).Write(body)
-		conn.Write(res)
-		return -1, fmt.Errorf("current user number: [%d], over maximum number of users: [%d]", objectUserCount, conf.Server.MaxObjectUserCount)
-	}
-
-	index := objectCount
-	cnt := conf.Server.MaxObjectUserCount
-	for cnt > 0 {
-		if objects[index].Connected == PlayerEmpty {
-			break
-		}
-		index++
-		if index >= maxObjectCount {
-			index = objectUserCountStartIndex
-		}
-		cnt--
-	}
-	if cnt == 0 {
-		return 0, fmt.Errorf("have no free index")
-	}
-
-	o := &objects[index]
-	o.Reset()
-	o.LoginMsgSend = false
-	o.LoginMsgCount = 0
-	o.index = index
-	o.conn = conn
-	o.ConnectCheckTime = time.Now()
-	o.AutoSaveTime = o.ConnectCheckTime
-	o.Connected = PlayerConnected
-	o.CheckSpeedHack = false
-	o.EnableCharacterCreate = false
-	o.Type = ObjectUser
-	return 0, nil
-}
-
-func (m *objectManager) objectFind(id int) *Object {
+func (m *objectManager) find(id int) interface{} {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	return m.objects[id]
 }
 
-func (m *objectManager) objectDelete(id int) {
+func (m *objectManager) playerAdd(addr string, conn network.ConnWriter) (int, error) {
 	m.mu.Lock()
-	obj := m.objectFind(id)
+	defer m.mu.Unlock()
+	/*
+		if objectUserCount > conf.Server.MaxObjectUserCount {
+			// 响应
+			res := &network.Response{}
+			body := []byte{0x04}
+			res.WriteHead2(0xC1, 0xF1, 0x01).Write(body)
+			conn.Write(res)
+			return -1, fmt.Errorf("current user number: [%d], over maximum number of users: [%d]", objectUserCount, conf.Server.MaxObjectUserCount)
+		}
+
+		index := objectCount
+		cnt := conf.Server.MaxObjectUserCount
+		for cnt > 0 {
+			if objects[index].Connected == PlayerEmpty {
+				break
+			}
+			index++
+			if index >= maxObjectCount {
+				index = objectUserCountStartIndex
+			}
+			cnt--
+		}
+		if cnt == 0 {
+			return 0, fmt.Errorf("have no free index")
+		}
+
+		o := &objects[index]
+		o.Reset()
+		o.LoginMsgSend = false
+		o.LoginMsgCount = 0
+		o.index = index
+		o.conn = conn
+		o.ConnectCheckTime = time.Now()
+		o.AutoSaveTime = o.ConnectCheckTime
+		o.Connected = PlayerConnected
+		o.CheckSpeedHack = false
+		o.EnableCharacterCreate = false
+		o.Type = ObjectUser
+	*/
+	return 0, nil
+}
+
+func (m *objectManager) playerDelete(id int) {
+	m.mu.Lock()
+	obj := m.find(id)
 	delete(m.objects, id)
 	m.mu.Unlock()
-	poolObject.Put(obj)
+	poolPlayer.Put(obj)
 }

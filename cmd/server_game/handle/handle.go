@@ -4,38 +4,34 @@ import (
 	"encoding/binary"
 	"log"
 
-	"github.com/xujintao/balgass/cmd/server_game/game/cmd"
-	"github.com/xujintao/balgass/cmd/server_game/game/object"
+	"github.com/xujintao/balgass/cmd/server_game/game"
 	"github.com/xujintao/balgass/network"
 )
 
 func init() {
-	for _, v := range cmds {
-		if vv, ok := CMDHandleDefault[v.code]; ok {
-			log.Printf("duplicated cmd code[%d] name[%s] with code[%d] name[%s]", v.code, v.name, vv.code, vv.name)
+	for _, v := range apis {
+		if vv, ok := APIHandleDefault[v.code]; ok {
+			log.Printf("duplicated api code[%d] name[%s] with code[%d] name[%s]", v.code, v.name, vv.code, vv.name)
 		}
-		CMDHandleDefault[v.code] = v
+		APIHandleDefault[v.code] = v
 	}
 }
 
-var CMDHandleDefault CMDHandle
+// APIHandleDefault default api handle
+var APIHandleDefault apiHandle
 
-// CMDHandle tcp cmd handle
-type CMDHandle map[int]*Command
+type apiHandle map[int]*api
 
-// Handle *CMDHandle implements network.Handler
-func (cmds CMDHandle) Handle(ctx interface{}, req *network.Request) {
-	id := ctx.(int)
-	obj := object.ObjectFind(id)
-
-	var cmd *Command
+// Handle *apiHandle implements network.Handler
+func (apis apiHandle) Handle(ctx interface{}, req *network.Request) {
+	var api *api
 	var ok bool
 	code := int(req.Body[0])
-	if cmd, ok = cmds[code]; !ok {
+	if api, ok = apis[code]; !ok {
 		codes := []byte{req.Body[0], req.Body[1]}
 		code = int(binary.BigEndian.Uint16(codes))
-		if cmd, ok = cmds[code]; !ok {
-			log.Printf("invalid cmd, body: %v", req.Body)
+		if api, ok = apis[code]; !ok {
+			log.Printf("invalid api, body: %v", req.Body)
 			return
 		}
 		req.Body = req.Body[1:]
@@ -43,56 +39,58 @@ func (cmds CMDHandle) Handle(ctx interface{}, req *network.Request) {
 	req.Body = req.Body[1:]
 
 	// validate encrypt
-	if cmd.enc && !req.Encrypt {
-		log.Printf("[%d][%s] not encrypt", cmd.code, cmd.name)
+	if api.enc && !req.Encrypt {
+		log.Printf("[%d][%s] not encrypt", api.code, api.name)
 		// return
 	}
 
-	// validate level
-	if obj.AuthLevel < cmd.level {
-		log.Printf("[%d][%s] not authrized to %s", cmd.code, cmd.name, obj.AccountID)
+	// authenticate/authorize
+	if game.GetAuthLevel(ctx) < api.level {
+		log.Printf("[%d][%s] not authrized", api.code, api.name)
 		return
 	}
 
-	// cbi.Unmarshal(req.Body, cmd.msg)
-	// cmd.handle(obj, cmd.msg) // reflect call
+	// cbi.Unmarshal(req.Body, api.msg)
+	// api.handle(obj, api.msg) // reflect call
 }
 
 // OnConn implements network.Handler.OnConn
-func (CMDHandle) OnConn(addr string, conn network.ConnWriter) (interface{}, error) {
-	index, err := object.ObjectAdd(addr, conn)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &network.Response{}
-	res.WriteHead2(0xC1, 0x00, 0x01)
-	conn.Write(res)
-	return index, nil
+func (apiHandle) OnConn(addr string, conn network.ConnWriter) (interface{}, error) {
+	return game.OnConn(addr, conn)
 }
 
 // OnClose implements network.Handler.OnConn
-func (CMDHandle) OnClose(id interface{}) {
-	object.ObjectDelete(id.(int))
+func (apiHandle) OnClose(ctx interface{}) {
+	game.OnClose(ctx)
 }
 
-type Command struct {
-	id     int
-	enc    bool
-	level  object.AuthLevel
-	name   string
-	code   int
-	handle interface{}
-	msg    interface{}
+type AuthLevel int
+
+const (
+	Guest AuthLevel = iota
+	Player
+	GM
+	Admin
+)
+
+type api struct {
+	id         int
+	enc        bool
+	level      AuthLevel
+	name       string
+	code       int
+	handle     interface{}
+	middleware interface{}
 }
 
-var cmds = [...]*Command{
-	{1, false, object.AuthLevelPlayer, "object_use_item", 0x26, cmd.ItemUse, &cmd.MsgItemUse{}},
-	{2, false, object.AuthLevelPlayer, "skillmaster_learn", 0xF352, cmd.SkillMasterLearn, &cmd.MsgSkillMasterLearn{}},
+var apis = [...]*api{
+	{0, false, Player, "use_item", 0x26, game.ItemUse, nil},
+	{0, false, Player, "masterskill_learn", 0xF352, game.MasterSkillLearn, nil},
+	// {0, false, Guest, "login", 0xF101, game.Login, game.Login, game.SetAuthLevel},
 }
 
 /*
-var cmds = map[int]func(req *network.Request, res *network.Response) bool{
+var apis = map[int]func(req *network.Request, res *network.Response) bool{
 	0x00:   chatProc,
 	0x01:   chatGet,
 	0x02:   chatWhisperGet,

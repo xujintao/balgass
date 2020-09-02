@@ -1,4 +1,4 @@
-package cmd
+package game
 
 type MsgItemUse struct {
 	InventoryPos       int `cbi:"byte"`
@@ -6,6 +6,6 @@ type MsgItemUse struct {
 	ItemUseType        int `cbi:"byte"`
 }
 
-type MsgSkillMasterLearn struct {
+type MsgMasterSkillLearn struct {
 	SkillIndex int `cbi:"dword"`
 }

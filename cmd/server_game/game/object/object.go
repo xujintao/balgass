@@ -5,22 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/xujintao/balgass/cmd/server_game/game"
-
-	"github.com/xujintao/balgass/cmd/server_game/game/skill"
-
 	"github.com/xujintao/balgass/cmd/server_game/game/item"
-	"github.com/xujintao/balgass/network"
+	"github.com/xujintao/balgass/cmd/server_game/game/skill"
 )
 
-type AuthLevel int
-
-const (
-	AuthLevelGuest AuthLevel = iota
-	AuthLevelPlayer
-	AuthLevelGM
-	AuthLevelAdmin
-)
 const (
 	MaxMonsterSendMsg       = 20
 	MaxMonsterSendAttackMsg = 100
@@ -120,76 +108,72 @@ type skillInfo struct {
 }
 
 type Object struct {
-	index                 int
-	Connected             PlayerType
-	AuthLevel             AuthLevel
-	LoginMsgSend          bool
-	LoginMsgCount         byte
-	CloseCount            byte
-	CloseTYpe             byte
-	EnableCharacterDel    bool
-	conn                  network.ConnWriter
-	UserNumber            int
-	DBNumber              int
-	EnableCharacterCreate bool
-	AutoSaveTime          time.Time
-	ConnectCheckTime      time.Time
-	CheckTick             uint
-	CheckSpeedHack        bool
-	CheckTick2            uint
-	CheckTickCount        byte
-	PintTime              int
-	TimeCount             byte
-	PKTimer               *time.Timer
-	CheckSumTableNum      uint16
-	CheckSumTime          uint
-	Type                  ObjectType
-	Live                  byte
-	AccountID             string
-	Name                  string
-	Class                 game.ClassChar
-	Level                 int
-	HP                    int // HP
-	MaxHP                 int
-	AddHP                 int
-	ScriptMaxHP           int
-	FillHP                int
-	FillHPMax             int
-	MP                    int // MP
-	MaxMP                 int
-	AddMP                 int
-	SD                    int // SD
-	MaxSD                 int
-	AddSD                 int
-	AG                    int // AG
-	MaxAG                 int
-	AddAG                 int
-	Leadership            int
-	AddLeadership         int
-	ChatLimitTime         uint16
-	ChatLimitTimeSec      byte
-	FillLifeCount         byte
-	AddStrength           int
-	AddDexterity          int
-	AddVitality           int
-	AddEnergy             int
-	VitalityToLife        float32
-	EnergyToMana          float32
-	PKCount               int
-	PKLevel               byte
-	PKTime                int
-	PKTotalCount          int
-	X                     uint16
-	Y                     uint16
-	Dir                   byte
-	MapNumber             byte
-	XSave                 uint16
-	YSave                 uint16
-	MapNumberSave         byte
-	XDie                  uint16
-	YDie                  uint16
-	MapNumberDie          byte
-
+	index                      int
+	Connected                  PlayerType
+	LoginMsgSend               bool
+	LoginMsgCount              byte
+	CloseCount                 byte
+	CloseTYpe                  byte
+	EnableCharacterDel         bool
+	UserNumber                 int
+	DBNumber                   int
+	EnableCharacterCreate      bool
+	AutoSaveTime               time.Time
+	ConnectCheckTime           time.Time
+	CheckTick                  uint
+	CheckSpeedHack             bool
+	CheckTick2                 uint
+	CheckTickCount             byte
+	PintTime                   int
+	TimeCount                  byte
+	PKTimer                    *time.Timer
+	CheckSumTableNum           uint16
+	CheckSumTime               uint
+	Type                       ObjectType
+	Live                       byte
+	Name                       string
+	Class                      int
+	Level                      int
+	HP                         int // HP
+	MaxHP                      int
+	AddHP                      int
+	ScriptMaxHP                int
+	FillHP                     int
+	FillHPMax                  int
+	MP                         int // MP
+	MaxMP                      int
+	AddMP                      int
+	SD                         int // SD
+	MaxSD                      int
+	AddSD                      int
+	AG                         int // AG
+	MaxAG                      int
+	AddAG                      int
+	Leadership                 int
+	AddLeadership              int
+	ChatLimitTime              uint16
+	ChatLimitTimeSec           byte
+	FillLifeCount              byte
+	AddStrength                int
+	AddDexterity               int
+	AddVitality                int
+	AddEnergy                  int
+	VitalityToLife             float32
+	EnergyToMana               float32
+	PKCount                    int
+	PKLevel                    byte
+	PKTime                     int
+	PKTotalCount               int
+	X                          uint16
+	Y                          uint16
+	Dir                        byte
+	MapNumber                  byte
+	XSave                      uint16
+	YSave                      uint16
+	MapNumberSave              byte
+	XDie                       uint16
+	YDie                       uint16
+	MapNumberDie               byte
 	IFillShieldMax             int
 	IFillShield                int
 	IFillShieldCount           int

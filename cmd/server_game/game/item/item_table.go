@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/xujintao/balgass/cmd/server_game/game"
-
 	"github.com/xujintao/balgass/cmd/server_game/conf"
+	"github.com/xujintao/balgass/cmd/server_game/game/class"
 )
 
 func init() {
@@ -25,13 +24,13 @@ func init() {
 	for i, section := range itemList.Sections {
 		ItemTable[i] = make(map[int]*ItemBase)
 		for _, v := range section.Items {
-			v.ReqClass[game.Wizard] = v.DarkWizard
-			v.ReqClass[game.Knight] = v.DarkKnight
-			v.ReqClass[game.Elf] = v.FairyElf
-			v.ReqClass[game.Magumsa] = v.MagicGladiator
-			v.ReqClass[game.DarkLord] = v.DarkLord
-			v.ReqClass[game.RageFighter] = v.RageFighter
-			// v.ReqClassChar[game.GrowLancer] = v.GrowLancer
+			v.ReqClass[class.Wizard] = v.DarkWizard
+			v.ReqClass[class.Knight] = v.DarkKnight
+			v.ReqClass[class.Elf] = v.FairyElf
+			v.ReqClass[class.Magumsa] = v.MagicGladiator
+			v.ReqClass[class.DarkLord] = v.DarkLord
+			v.ReqClass[class.RageFighter] = v.RageFighter
+			// v.ReqClass[class.GrowLancer] = v.GrowLancer
 			ItemTable[i][v.Index] = v
 		}
 	}
