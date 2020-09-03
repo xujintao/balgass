@@ -34,26 +34,13 @@ type Request struct {
 
 // Response represents the response from a request.
 type Response struct {
-	flag       uint8
-	code       uint8
-	hasSubcode bool
-	subcode    uint8
-	body       []uint8
+	flag uint8
+	body []uint8
 }
 
 // WriteHead write flag and code
-func (r *Response) WriteHead(flag, code uint8) *Response {
+func (r *Response) WriteHead(flag uint8) *Response {
 	r.flag = flag
-	r.code = code
-	return r
-}
-
-// WriteHead2 write flag and code and subcode
-func (r *Response) WriteHead2(flag, code, subcode uint8) *Response {
-	r.flag = flag
-	r.code = code
-	r.hasSubcode = true
-	r.subcode = subcode
 	return r
 }
 
@@ -197,23 +184,12 @@ func newFrame(res *Response) ([]byte, error) {
 		return nil, fmt.Errorf("invalid flag: %0x2x", flag)
 	}
 
-	// code
-	buf.WriteByte(res.code)
-	size++
-
-	// subcode
-	if res.hasSubcode {
-		buf.WriteByte(res.subcode)
-		size++
-	}
-
 	// body
 	buf.Write(res.body)
 	size += len(res.body)
 
-	frame := buf.Bytes()
-
 	// size
+	frame := buf.Bytes()
 	switch flag {
 	case 0xC1:
 		frame[1] = byte(size)
