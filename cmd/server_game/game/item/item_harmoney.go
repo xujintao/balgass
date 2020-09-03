@@ -152,23 +152,23 @@ func (o *harmonyManager) addRandEffect(item *Item, itemKind harmonyItemKind) {
 
 func (o *harmonyManager) StrengthenItem(item *Item) (bool, error) {
 	if item.HarmonyEffect > 0 {
-		return false, lang.MsgTextRestrengthen // already strengthened
+		return false, lang.MsgRestrengthen // already strengthened
 	}
 	if item.Set > 0 && conf.Common.General.EnableUseSetHarmonyItem == false {
-		return false, lang.MsgTextStrengthenSet // set can not be strengthened
+		return false, lang.MsgStrengthenSet // set can not be strengthened
 	}
 	// socket item
 
 	itemKind := o.getHarmonyItemKind(item)
 	if itemKind == harmonyItemNull {
-		return false, lang.MsgTextStrengthenFailed // invalid harmony item
+		return false, lang.MsgStrengthenFailed // invalid harmony item
 	}
 	if rand.Intn(100)+1 > o.Config.StrengthenItemSuccessRate {
-		return true, lang.MsgTextStrengthenFailed // strengthen failed
+		return true, lang.MsgStrengthenFailed // strengthen failed
 	}
 	o.addRandEffect(item, itemKind)
 	// can not find persistence
-	return true, lang.MsgTextStrengthenSuccess
+	return true, lang.MsgStrengthenSuccess
 }
 
 var HarmonyManager harmonyManager

@@ -28,7 +28,7 @@ func init() {
 	}
 	var skillMasterTree skillMasterTreeConfig
 	conf.XML(path.Join(conf.PathCommon, "IGC_MasterSkillTree.xml"), &skillMasterTree)
-
+	SkillMasterTable = make(skillMasterTable)
 	for _, v := range skillMasterTree.Class {
 		for _, v := range v.Tree {
 			for _, v := range v.Skills {

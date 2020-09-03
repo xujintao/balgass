@@ -8,15 +8,8 @@ import (
 	"github.com/xujintao/balgass/cmd/server_game/conf"
 )
 
-type textManager struct {
-	msgTexts []string
-	mapTexts []string
-}
-
-var defalutTextManager textManager
-
 func init() {
-	type LangBase struct {
+	type langBaseConfig struct {
 		DefaultLang string `xml:"DefaultLang,attr"`
 		Lang        []struct {
 			ID       int    `xml:"ID,attr"`
@@ -25,12 +18,12 @@ func init() {
 			Codepage int    `xml:"Codepage,attr"`
 		} `xml:"Lang"`
 	}
-	var langBase LangBase
+	var langBase langBaseConfig
 	conf.XML(path.Join(conf.PathCommon, "IGC_LangBase.xml"), &langBase)
 	var valid bool
 	for _, lang := range langBase.Lang {
 		if lang.Enable {
-			type Language struct {
+			type languageConfig struct {
 				Message struct {
 					Msg []struct {
 						ID   int    `xml:"ID,attr"`
@@ -44,18 +37,18 @@ func init() {
 					} `xml:"Msg"`
 				} `xml:"Map"`
 			}
-			var language Language
+			var language languageConfig
 			conf.XML(path.Join(conf.PathCommon, fmt.Sprintf("Langs/%s", lang.FileName)), &language)
 			// msg
-			defalutTextManager.msgTexts = make([]string, len(language.Message.Msg))
+			textManagerDefault.textMsgs = make(map[int]string)
 			for _, msg := range language.Message.Msg {
-				defalutTextManager.msgTexts[msg.ID-1] = msg.Text
+				textManagerDefault.textMsgs[msg.ID] = msg.Text
 			}
 
 			// map
-			defalutTextManager.mapTexts = make([]string, len(language.Map.Msg))
+			textManagerDefault.textMaps = make(map[int]string)
 			for _, msg := range language.Map.Msg {
-				defalutTextManager.mapTexts[msg.ID] = msg.Text
+				textManagerDefault.textMaps[msg.ID] = msg.Text
 			}
 
 			valid = true
@@ -67,27 +60,50 @@ func init() {
 	}
 }
 
+var textManagerDefault textManager
+
+type textManager struct {
+	textMsgs map[int]string
+	textMaps map[int]string
+}
+
+func (m *textManager) getMsg(index int) string {
+	msg, ok := m.textMsgs[index]
+	if !ok {
+		return "unknown message"
+	}
+	return msg
+}
+
+func (m *textManager) getMap(index int) string {
+	msg, ok := m.textMsgs[index]
+	if !ok {
+		return "unknown map"
+	}
+	return msg
+}
+
 type msgText int
 
 func (m msgText) String() string {
-	return defalutTextManager.msgTexts[m]
+	return textManagerDefault.getMsg(int(m))
 }
 
 func (m msgText) Error() string {
 	return m.String()
 }
 
-const (
-	MsgTextGameServerClosed msgText = iota
-	MsgTextGameServerCloseCountdown
-	MsgTextRestrengthen      msgText = 270
-	MsgTextStrengthenSet     msgText = 273
-	MsgTextStrengthenFailed  msgText = 274
-	MsgTextStrengthenSuccess msgText = 275
-)
-
 type mapText int
 
 func (m mapText) String() string {
-	return defalutTextManager.mapTexts[m]
+	return textManagerDefault.getMap(int(m))
 }
+
+const (
+	MsgGameServerClosed msgText = 1 + iota
+	MsgGameServerCloseCountdown
+	MsgRestrengthen      msgText = 270
+	MsgStrengthenSet     msgText = 273
+	MsgStrengthenFailed  msgText = 274
+	MsgStrengthenSuccess msgText = 275
+)

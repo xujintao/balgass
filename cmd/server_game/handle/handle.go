@@ -26,6 +26,7 @@ type apiHandle struct {
 
 func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	// ingress
+	h.apiIns = make(map[int]*apiIn)
 	for _, v := range apiIns {
 		if vv, ok := h.apiIns[v.code]; ok {
 			log.Printf("duplicated api code[%d] name[%s] with code[%d] name[%s]", v.code, v.name, vv.code, vv.name)
@@ -33,6 +34,7 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 		h.apiIns[v.code] = v
 	}
 	// egress
+	h.apiOuts = make(map[interface{}]*apiOut)
 	for _, v := range apiOuts {
 		t := reflect.TypeOf(v.msg)
 		if t.Kind() != reflect.Ptr {
