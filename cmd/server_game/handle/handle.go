@@ -1,36 +1,56 @@
 package handle
 
 import (
+	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"log"
+	"reflect"
 
 	"github.com/xujintao/balgass/cmd/server_game/game"
+	"github.com/xujintao/balgass/cmd/server_game/game/model"
 	"github.com/xujintao/balgass/network"
 )
 
 func init() {
-	for _, v := range apis {
-		if vv, ok := APIHandleDefault[v.code]; ok {
-			log.Printf("duplicated api code[%d] name[%s] with code[%d] name[%s]", v.code, v.name, vv.code, vv.name)
-		}
-		APIHandleDefault[v.code] = v
-	}
+	APIHandleDefault.init(apiIns[:], apiOuts[:])
 }
 
 // APIHandleDefault default api handle
 var APIHandleDefault apiHandle
 
-type apiHandle map[int]*api
+type apiHandle struct {
+	apiIns  map[int]*apiIn
+	apiOuts map[interface{}]*apiOut
+}
+
+func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
+	// ingress
+	for _, v := range apiIns {
+		if vv, ok := h.apiIns[v.code]; ok {
+			log.Printf("duplicated api code[%d] name[%s] with code[%d] name[%s]", v.code, v.name, vv.code, vv.name)
+		}
+		h.apiIns[v.code] = v
+	}
+	// egress
+	for _, v := range apiOuts {
+		t := reflect.TypeOf(v.msg)
+		if t.Kind() != reflect.Ptr {
+			log.Printf("api code[%d] name[%s] msg field must be a pointer", v.code, v.name)
+		}
+		h.apiOuts[t] = v
+	}
+}
 
 // Handle *apiHandle implements network.Handler
-func (apis apiHandle) Handle(ctx interface{}, req *network.Request) {
-	var api *api
+func (h *apiHandle) Handle(ctx interface{}, req *network.Request) {
+	var api *apiIn
 	var ok bool
 	code := int(req.Body[0])
-	if api, ok = apis[code]; !ok {
+	if api, ok = h.apiIns[code]; !ok {
 		codes := []byte{req.Body[0], req.Body[1]}
 		code = int(binary.BigEndian.Uint16(codes))
-		if api, ok = apis[code]; !ok {
+		if api, ok = h.apiIns[code]; !ok {
 			log.Printf("invalid api, body: %v", req.Body)
 			return
 		}
@@ -45,7 +65,7 @@ func (apis apiHandle) Handle(ctx interface{}, req *network.Request) {
 	}
 
 	// authenticate/authorize
-	if game.GetAuthLevel(ctx) < api.level {
+	if game.GetAuthLevel(ctx) < int(api.level) {
 		log.Printf("[%d][%s] not authrized", api.code, api.name)
 		return
 	}
@@ -54,9 +74,39 @@ func (apis apiHandle) Handle(ctx interface{}, req *network.Request) {
 	// api.handle(obj, api.msg) // reflect call
 }
 
+func (h *apiHandle) Push(w network.ConnWriter, msg interface{}) {
+	t := reflect.TypeOf(msg)
+	api, ok := h.apiOuts[t]
+	if !ok {
+		log.Printf("%s has not yet be registered to api table", t.String())
+		return
+	}
+	data, _ := json.Marshal(msg)
+	var buf bytes.Buffer
+	if api.subcode {
+		var codes [2]uint8
+		binary.BigEndian.PutUint16(codes[:], uint16(api.code))
+		buf.Write(codes[:])
+	} else {
+		buf.WriteByte(uint8(api.code))
+	}
+	buf.Write(data)
+	res := &network.Response{}
+	res.WriteHead(uint8(api.flag)).Write(buf.Bytes())
+	w.Write(res)
+}
+
 // OnConn implements network.Handler.OnConn
-func (apiHandle) OnConn(addr string, conn network.ConnWriter) (interface{}, error) {
-	return game.OnConn(addr, conn)
+func (h *apiHandle) OnConn(addr string, conn network.ConnWriter) (ctx interface{}, err error) {
+	msg := model.MsgConnectResult{}
+	ctx, err = game.OnConn(addr, conn, h)
+	if err != nil {
+		msg.Result = 0
+	} else {
+		msg.Result = ctx.(int)
+	}
+	h.Push(conn, &msg)
+	return
 }
 
 // OnClose implements network.Handler.OnConn
@@ -73,7 +123,7 @@ const (
 	Admin
 )
 
-type api struct {
+type apiIn struct {
 	id         int
 	enc        bool
 	level      AuthLevel
@@ -83,10 +133,25 @@ type api struct {
 	middleware interface{}
 }
 
-var apis = [...]*api{
-	{0, false, Player, "use_item", 0x26, game.ItemUse, nil},
-	{0, false, Player, "masterskill_learn", 0xF352, game.MasterSkillLearn, nil},
-	// {0, false, Guest, "login", 0xF101, game.Login, game.Login, game.SetAuthLevel},
+type apiOut struct {
+	id      int
+	enc     bool
+	name    string
+	flag    int // 0xC1 or 0xC2
+	code    int
+	subcode bool
+	msg     interface{}
+}
+
+var apiIns = [...]*apiIn{
+	{0, false, Player, "in_use_item", 0x26, game.ItemUse, nil},
+	{0, false, Player, "in_masterskill_learn", 0xF352, game.MasterSkillLearn, nil},
+	// {0, false, Guest, "in_login", 0xF101, game.Login, game.Login, game.SetAuthLevel},
+}
+
+var apiOuts = [...]*apiOut{
+	{0, false, "out_connect_result", 0xC1, 0xF100, true, (*model.MsgConnectResult)(nil)},
+	{0, false, "out_skill_list", 0xC1, 0xF311, true, (*model.MsgSkillList)(nil)},
 }
 
 /*

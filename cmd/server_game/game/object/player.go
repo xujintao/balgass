@@ -7,14 +7,20 @@ import (
 	"github.com/xujintao/balgass/cmd/server_game/conf"
 	"github.com/xujintao/balgass/cmd/server_game/game/guild"
 	"github.com/xujintao/balgass/cmd/server_game/game/item"
+	"github.com/xujintao/balgass/cmd/server_game/game/model"
 	"github.com/xujintao/balgass/cmd/server_game/game/skill"
 	"github.com/xujintao/balgass/network"
 )
+
+type Pusher interface {
+	Push(network.ConnWriter, interface{})
+}
 
 type Player struct {
 	Object
 	Addr                          string
 	Conn                          network.ConnWriter
+	pusher                        Pusher
 	AccountID                     string
 	AuthLevel                     int
 	hwid                          string
@@ -426,4 +432,14 @@ func (player *Player) SkillLearn(skillIndex int) bool {
 	}
 
 	return true
+}
+
+func (player *Player) PushSkillOne() {
+	var msg model.MsgSkillList
+	player.pusher.Push(player.Conn, &msg)
+}
+
+func (player *Player) PushSkillAll() {
+	var msg model.MsgSkillList
+	player.pusher.Push(player.Conn, &msg)
 }

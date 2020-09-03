@@ -45,8 +45,8 @@ func MonsterAdd(class int) {
 }
 
 // PlayerAdd add a player
-func PlayerAdd(addr string, conn network.ConnWriter) (int, error) {
-	return objectManagerDefault.playerAdd(addr, conn)
+func PlayerAdd(addr string, conn network.ConnWriter, pusher interface{}) (int, error) {
+	return objectManagerDefault.playerAdd(addr, conn, pusher)
 }
 
 // MonsterDelete delete a monster
@@ -78,9 +78,14 @@ func (m *objectManager) find(id int) interface{} {
 	return m.objects[id]
 }
 
-func (m *objectManager) playerAdd(addr string, conn network.ConnWriter) (int, error) {
+func (m *objectManager) playerAdd(addr string, conn network.ConnWriter, pusher interface{}) (int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	// 判断当前玩家数
+	player := poolPlayer.Get().(*Player)
+	player.Addr = addr
+	player.Conn = conn
+	player.pusher = pusher.(Pusher)
 	/*
 		if objectUserCount > conf.Server.MaxObjectUserCount {
 			// 响应
