@@ -75,11 +75,62 @@
 -->
 
  
-<DropManager DropUseRate="500000">
-	<!-- <Monster Index="-1" MonsterMinLevel="1" MonsterMaxLevel="150" MapNumber="-1" ItemRate="5000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="100" PlayerMinLevel="1" PlayerMaxLevel="MAX">
-		<Item Cat="0" Index="0" ItemMinLevel="0" ItemMaxLevel="0" Durability="-1" Skill="1" Luck="1" Option="1" Exc="1" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+<DropManager DropUseRate="10000">
+	<Monster Index="43" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="0" ItemMaxLevel="0" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
 	</Monster>
-	<Monster Index="20" MonsterMinLevel="1" MonsterMaxLevel="150" MapNumber="-1" ItemRate="3000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="100" PlayerMinLevel="1" PlayerMaxLevel="MAX">
-		<Item Cat="0" Index="1" ItemMinLevel="0" ItemMaxLevel="0" Durability="-1" Skill="1" Luck="1" Option="1" Exc="1" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
-	</Monster> -->
+	<Monster Index="53" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="8" ItemMaxLevel="8" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="54" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="8" ItemMaxLevel="8" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="78" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="8" ItemMaxLevel="8" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="79" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="5" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="8" ItemMaxLevel="10" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="80" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="9" ItemMaxLevel="9" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="81" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="9" ItemMaxLevel="9" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="82" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="10" ItemMaxLevel="10" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="83" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="10" ItemMaxLevel="10" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="493" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="8" ItemMaxLevel="8" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="494" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="9" ItemMaxLevel="9" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="495" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="10" ItemMaxLevel="10" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="496" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="10" ItemMaxLevel="10" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="497" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="11" ItemMaxLevel="11" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="498" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="11" ItemMaxLevel="11" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="499" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="12" ItemMaxLevel="12" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="500" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="12" ItemMaxLevel="12" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="501" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="5" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="11" ItemMaxLevel="12" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
+	<Monster Index="502" MonsterMinLevel="-1" MonsterMaxLevel="-1" MapNumber="-1" ItemRate="10000" ItemCount="1" CoinReward="0" CoinType="0" CoinValue="0" PlayerMinLevel="1" PlayerMaxLevel="MAX">
+		<Item Cat="14" Index="11" ItemMinLevel="8" ItemMaxLevel="8" Durability="-1" Skill="0" Luck="0" Option="0" Exc="0" SetItem="0" SocketCount="0" ElementalItem="0" DropRate="1" />
+	</Monster>
 </DropManager>

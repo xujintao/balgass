@@ -3510,8 +3510,6 @@ void gObjMonsterDieGiveItem(LPOBJ lpObj, LPOBJ lpTargetObj)
 	{
 		return;
 	}
-	
-
 
 	g_KillCountMng.CheckMonsterKillCount(lpObj->Class, lpTargetObj);
 	g_CashShop.AddGPMonster(lpObj);
@@ -3521,26 +3519,75 @@ void gObjMonsterDieGiveItem(LPOBJ lpObj, LPOBJ lpTargetObj)
 		return;
 	}
 
+	// filter
+	if (lpObj->Class == 131 // blood castle gate
+	 || lpObj->Class == 247 // Devias.Guard
+	 || lpTargetObj->Class == 247 // drop of monster killed by Devias.Guard
+	 || lpObj->Class == 249 // Lorencia.Guard
+	 || lpTargetObj->Class == 249 // drop of monster killed by Lorencia.Guard
+	 || lpObj->Class == 278 // life stone
+	 || lpObj->Class == 283 // guardian statue
+	 || lpObj->Class == 288 // canon tower
+	 || (lpObj->Class >= 460 && lpObj->Class <= 462) // spider eggs
+	 || (lpObj->Class >= 504 && lpObj->Class <= 511) // imperial monster which belongs to s10
+	 || (lpObj->Class >= 523 && lpObj->Class <= 528) // trap/statue/gate
+	 || (lpObj->Class >= 598 && lpObj->Class <= 602) // Fire/Water/Earth/Wind/Dark Tower
+	 || lpObj->m_RecallMon >= 0 // recallmon
+	 || g_MineSystem.IsTwinkle(lpObj->Class)) // Mining Area small/medium/large
+	{
+		return;
+	}
+	
+	if ( BC_STATUE_RANGE(lpObj->Class-132) ) // Blood Castle Statue
+	{
+		return;
+	}
+	
+	if ( CC_MAP_RANGE(lpObj->MapNumber) )
+	{
+		g_ChaosCastle.SearchNDropMonsterItem(g_ChaosCastle.GetChaosCastleIndex(lpObj->MapNumber), lpObj->m_Index, lpTargetObj->m_Index);
+		
+		gObjDel(lpObj->m_Index);
+		
+		return;
+	}
+	
+	if (lpObj->MapNumber == MAP_INDEX_CHAOSCASTLE_SURVIVAL && g_ConfigRead.server.GetServerType() == SERVER_BATTLECORE)
+	{
+		g_ChaosCastleFinal.SearchCCFNDropMonsterItem(lpObj->m_Index, lpTargetObj->m_Index);
+
+		gObjDel(lpObj->m_Index);
+
+		return;
+	}
+
+	if (g_ConfigRead.server.GetServerType() == SERVER_CASTLE)
+	{
+		if (lpObj->m_btCsNpcType != 0)
+		{
+			return;
+		}
+	}
+	
+	if ( DG_MAP_RANGE(lpObj->MapNumber) )
+	{
+		return;
+	}
+	
+	if ( lpObj->m_bIsInMonsterHerd )
+	{
+		MonsterHerd * lpMH = lpObj->m_lpMonsterHerd;
+		if ( lpMH && lpMH->MonsterHerdItemDrop(lpObj) )
+		{
+			return;
+		}
+	}
+	
+	// quest
 	if ( g_QuestInfo.MonsterItemDrop(lpObj) ) //Third Quest from Season3 Monster Fix
 		return;
 
-	if( g_NewPVP.IsVulcanusMonster(lpObj->Class) )
-	{
-		if( g_NewPVP.DropItem(lpTargetObj, lpObj) )
-		{
-			return;
-		}
-	}
-
-	if (lpObj->MapNumber == MAP_INDEX_ACHERON)
-	{
-		if (g_ArcaBattle.DropItem(lpTargetObj, lpObj))
-		{
-			return;
-		}
-	}
-
-
+	// BAG_MONSTER
 	if (g_BagManager.IsBag(lpTargetObj->m_Index, BAG_MONSTER, lpObj->Class, lpObj->m_Index) == true)
 	{
 		int iMaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
@@ -3556,11 +3603,25 @@ void gObjMonsterDieGiveItem(LPOBJ lpObj, LPOBJ lpTargetObj)
 		}
 	}
 
-	if ( lpObj->Class >= 598 && lpObj->Class <= 602 )
+	// BAG_EVENT.EVENTBAG_NEWPVP
+	if( g_NewPVP.IsVulcanusMonster(lpObj->Class) )
 	{
-		return;
+		if( g_NewPVP.DropItem(lpTargetObj, lpObj) )
+		{
+			return;
+		}
 	}
 
+	// BAG_EVENT.EVENTBAG_ARCA
+	if (lpObj->MapNumber == MAP_INDEX_ACHERON)
+	{
+		if (g_ArcaBattle.DropItem(lpTargetObj, lpObj))
+		{
+			return;
+		}
+	}
+
+	// BAG_EVENT.EVENTBAG_ACHERONGUARDIAN Cursed Fire/Water/Earth/Wind/Dark Tower
 	if (lpObj->Class >= 627 && lpObj->Class <= 631)
 	{
 		int nMaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
@@ -3575,39 +3636,7 @@ void gObjMonsterDieGiveItem(LPOBJ lpObj, LPOBJ lpTargetObj)
 		return;
 	}
 
-	if ( lpObj->Class >= 504 && lpObj->Class <= 511 )
-	{
-		return;
-	}
-
-	if ( DG_MAP_RANGE(lpObj->MapNumber) )
-	{
-		return;
-	}
-
-	if ( lpObj->Class == 523 )
-	{
-		return;
-	}
-
-	if ( lpObj->Class >= 523 && lpObj->Class <= 528 )
-	{
-		return;
-	}
-
-	if (g_MineSystem.IsTwinkle(lpObj->Class))
-	{
-		return;
-	}
-
-	if (g_ConfigRead.server.GetServerType() == SERVER_CASTLE)
-	{
-		if (lpObj->m_btCsNpcType != 0)
-		{
-			return;
-		}
-	}
-
+	// BAG_EVENT.EVENTBAG_KUNDUN
 	if ( lpObj->Class == 275 ) // Kundun 
 	{
 		g_Log.Add("[Kundun EVENT] Kundun die, Killer [%s][%s]",
@@ -3622,241 +3651,6 @@ void gObjMonsterDieGiveItem(LPOBJ lpObj, LPOBJ lpTargetObj)
 		
 		g_BagManager.SearchAndUseBag(MaxHitUser, BAG_EVENT, EVENTBAG_KUNDUN, lpObj->m_Index);
 		return;
-	}
-	
-	if ( lpObj->Class == 249 || lpTargetObj->Class == 249 ||	// Guard
-		lpObj->Class == 247 || lpTargetObj->Class == 247 )	// Guard
-	{
-		return;
-	}
-
-	if ( lpObj->m_RecallMon >= 0 )
-	{
-		return;
-	}
-	
-	if ( lpObj->Class == 131 )	// Castle Gate
-	{
-		return;
-	}
-
-	if (lpObj->Class == 283)
-	{
-		return;
-	}
-
-	if (lpObj->Class == 288)
-	{
-		return;
-	}
-
-	if (lpObj->Class == 278)
-	{
-		return;
-	}
-
-	if (lpObj->Class == 460 || lpObj->Class == 461 || lpObj->Class == 462) // Season 4.5 Addon
-	{
-		return;
-	}
-	
-	if ( BC_STATUE_RANGE(lpObj->Class-132) )	// Blood Castle Statue
-	{
-		return;
-	}
-	
-	if ( CC_MAP_RANGE(lpObj->MapNumber) )
-	{
-		g_ChaosCastle.SearchNDropMonsterItem(g_ChaosCastle.GetChaosCastleIndex(lpObj->MapNumber), lpObj->m_Index, lpTargetObj->m_Index);
-		
-		gObjDel(lpObj->m_Index);
-		
-		return;
-	}
-
-	if (lpObj->MapNumber == MAP_INDEX_CHAOSCASTLE_SURVIVAL && g_ConfigRead.server.GetServerType() == SERVER_BATTLECORE)
-	{
-		g_ChaosCastleFinal.SearchCCFNDropMonsterItem(lpObj->m_Index, lpTargetObj->m_Index);
-
-		gObjDel(lpObj->m_Index);
-
-		return;
-	}
-	
-	if ( lpObj->m_bIsInMonsterHerd )
-	{
-		MonsterHerd * lpMH = lpObj->m_lpMonsterHerd;
-
-		if ( lpMH )
-		{
-			if ( lpMH->MonsterHerdItemDrop(lpObj) )
-			{
-				return;
-			}
-		}
-	}
-	
-	int itemrate = lpObj->m_ItemRate;
-	int moneyrate = lpObj->m_MoneyRate;
-
-	if (itemrate < 1)
-		itemrate = 1;
-
-//	if (itemrate > 100)
-//		itemrate = 100;
-
-	if (moneyrate < 1)
-		moneyrate = 1;
-
-	if (lpObj->Class == 43 ) // Golden Budge Dragon
-	{
-		dur = 0.0;
-		x = lpObj->X;
-		y = lpObj->Y;
-		level = 0;
-		type = ItemGetNumberMake(14, 11);
-		int MaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
-		ItemSerialCreateSend(lpObj->m_Index, lpObj->MapNumber, x, y, type, level, dur,
-			Option1, Option2, Option3, MaxHitUser, 0, 0, 0, 0, 0);
-
-		return;
-	}
-
-	if ( lpObj->Class == 53 || lpObj->Class == 54 ) // Golden Titan
-	{
-		dur = 0.0f;
-		x = lpObj->X;
-		y = lpObj->Y;
-		level = 8;
-		type = ItemGetNumberMake(14, 11);
-		int MaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
-		ItemSerialCreateSend(lpObj->m_Index, lpObj->MapNumber, x, y, type, level, dur,
-			Option1, Option2, Option3, MaxHitUser, 0, 0, 0, 0, 0);
-
-		return;
-	}
-
-	if ( lpObj->Class == 55 )	// Death King
-	{
-
-	}
-
-	else if ( lpObj->Class == 78 || lpObj->Class == 502 || lpObj->Class == 493 ) // Golden Goblin
-	{
-		int MaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
-		x = lpObj->X;
-		y = lpObj->Y;
-		dur = 0.0f;
-		level = 8;
-		type = ItemGetNumberMake(14, 11);
-		ItemSerialCreateSend(lpObj->m_Index, lpObj->MapNumber, x, y, type, level, dur,
-			Option1, Option2, Option3, MaxHitUser, 0, 0, 0, 0, 0);
-
-		return;
-	}
-	else if ( lpObj->Class == 79 )	// Golden Derkon
-	{
-		int MaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
-		BYTE x = lpObj->X;
-		BYTE y = lpObj->Y;
-		dur = 0.0f;
-		level1 = 8;
-		level2 = 9;
-		level3 = 10;
-
-		for(int i=0;i<g_ConfigRead.data.common.GoldenDragonBoxCount;++i)
-		{
-			if(!gObjGetRandomItemDropLocation(lpObj->MapNumber, x, y, 2, 2, 10))
-			{
-				x = lpObj->X;
-				y = lpObj->Y;
-			}
-
-			type = ItemGetNumberMake(14, 11);
-			level = 8 + rand()%3;
-			ItemSerialCreateSend(lpObj->m_Index, lpObj->MapNumber, x, y, type, level, dur,
-				Option1, Option2, Option3, MaxHitUser, 0, 0, 0, 0, 0);
-		}
-		return;	
-	}
-	else if ( lpObj->Class == 501 )	// Great Golden Derkon
-	{
-		int MaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
-		BYTE x = lpObj->X;
-		BYTE y = lpObj->Y;
-		dur = 0.0f;
-		level1 = 11;
-		level2 = 12;
-
-		for(int i=0;i<g_ConfigRead.data.common.GreatGoldenDragonBoxCount;++i)
-		{
-			if(!gObjGetRandomItemDropLocation(lpObj->MapNumber, x, y, 2, 2, 10))
-			{
-				x = lpObj->X;
-				y = lpObj->Y;
-			}
-
-
-			type = ItemGetNumberMake(14, 11);
-			level = 11 + rand()%2;
-			ItemSerialCreateSend(lpObj->m_Index, lpObj->MapNumber, x, y, type, level, dur,
-				Option1, Option2, Option3, MaxHitUser, 0, 0, 0, 0, 0);
-		}
-		return;	
-	}
-	else if ( lpObj->Class == 80 || lpObj->Class == 81 || lpObj->Class == 494 )	//Golden Lizard King
-	{
-		int MaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
-		x = lpObj->X;
-		y = lpObj->Y;
-		dur = 0.0f;
-		level = 9;
-		type = ItemGetNumberMake(14, 11);
-		ItemSerialCreateSend(lpObj->m_Index, lpObj->MapNumber, x, y, type, level, dur,
-			Option1, Option2, Option3, MaxHitUser, 0, 0, 0, 0, 0);
-
-		return;	
-	}
-	else if ( lpObj->Class == 82 || lpObj->Class == 83 || lpObj->Class == 495 || lpObj->Class == 496 )	// Golden Tantalos
-	{
-		int MaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
-		x = lpObj->X;
-		y = lpObj->Y;
-		dur = 0.0f;
-		level = 10;
-		type = ItemGetNumberMake(14, 11);
-		ItemSerialCreateSend(lpObj->m_Index, lpObj->MapNumber, x, y, type, level, dur,
-			Option1, Option2, Option3, MaxHitUser, 0, 0, 0, 0, 0);
-
-		return;	
-	}
-
-	else if ( lpObj->Class == 497 || lpObj->Class == 498 )
-	{
-		int MaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
-		x = lpObj->X;
-		y = lpObj->Y;
-		dur = 0.0f;
-		level = 11;
-		type = ItemGetNumberMake(14, 11);
-		ItemSerialCreateSend(lpObj->m_Index, lpObj->MapNumber, x, y, type, level, dur,
-			Option1, Option2, Option3, MaxHitUser, 0, 0, 0, 0, 0);
-
-		return;	
-	}
-
-	else if ( lpObj->Class == 499 || lpObj->Class == 500 )
-	{
-		int MaxHitUser = gObjMonsterTopHitDamageUser(lpObj);
-		x = lpObj->X;
-		y = lpObj->Y;
-		dur = 0.0f;
-		level = 12;
-		type = ItemGetNumberMake(14, 11);
-		ItemSerialCreateSend(lpObj->m_Index, lpObj->MapNumber, x, y, type, level, dur,
-			Option1, Option2, Option3, MaxHitUser, 0, 0, 0, 0, 0);
-
-		return;	
 	}
 
 	if (lpObj->Class == 652)
@@ -3952,6 +3746,20 @@ void gObjMonsterDieGiveItem(LPOBJ lpObj, LPOBJ lpTargetObj)
 
 		return;
 	}
+
+	int itemrate = lpObj->m_ItemRate;
+	int moneyrate = lpObj->m_MoneyRate;
+
+	if (itemrate < 1)
+		itemrate = 1;
+
+//	if (itemrate > 100)
+//		itemrate = 100;
+
+	if (moneyrate < 1)
+		moneyrate = 1;
+
+
 
 	if ( gEventMonsterItemDrop(lpObj, lpTargetObj) )
 		return;

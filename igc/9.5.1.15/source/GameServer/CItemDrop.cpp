@@ -9,6 +9,7 @@
 #include "PentagramSystem.h"
 #include "MuunSystem.h"
 #include "LargeRand.h"
+#include "gObjMonster.h"
 
 CItemDrop ItemDrop;
 
@@ -271,8 +272,8 @@ bool CItemDrop::DropItem(LPOBJ lpUser, LPOBJ lpMonster)
 			btSocketOption[0] = iMuunEvolutionItemID >> 8;
 			btSocketOption[1] = ITEM_GET_INDEX(iMuunEvolutionItemID);
 		}
-
-		ItemSerialCreateSend(lpMonster->m_Index, lpMonster->MapNumber, lpMonster->X, lpMonster->Y, ItemNumber, btItemLevel, 0, btSkill, btLuck, btOption, lpUser->m_Index, btExc, btSetItem, dwDuration, btSocketOption, btMainAttribute);
+		int MaxHitUser = gObjMonsterTopHitDamageUser(lpMonster);
+		ItemSerialCreateSend(lpMonster->m_Index, lpMonster->MapNumber, lpMonster->X, lpMonster->Y, ItemNumber, btItemLevel, 0, btSkill, btLuck, btOption, MaxHitUser, btExc, btSetItem, dwDuration, btSocketOption, btMainAttribute);
 	}
 
 	delete [] lpItems;
