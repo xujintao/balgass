@@ -655,6 +655,7 @@ public:
 
 	void ReadCalcCharacter();
 	LPSTR GetPath(LPSTR path);
+	std::string UTF8ToANSI(std::string s, int codepage);
 
 	SERVER_CONFIG server;
 	CONFIG_STRUCT data;

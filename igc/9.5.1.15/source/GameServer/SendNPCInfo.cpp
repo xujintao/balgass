@@ -51,7 +51,8 @@ void CSendNPCInfo::LoadScript(char *lpFileName)
 		sendNpcInfo.btPosY = tag.attribute("Y").as_int();
 		sendNpcInfo.btTag = tag.attribute("DisplayType").as_int();
 		sendNpcInfo.btSync = tag.attribute("SyncType").as_int();
-		memcpy(sendNpcInfo.szName, tag.attribute("Name").as_string(), 31);
+		std::string name = tag.attribute("Name").as_string();
+		memcpy(sendNpcInfo.szName, g_ConfigRead.UTF8ToANSI(name, 0).c_str(), 31);
 
 		this->m_vtSendNpcInfo.push_back(sendNpcInfo);
 	}
@@ -62,7 +63,8 @@ void CSendNPCInfo::LoadScript(char *lpFileName)
 		sendPortalInfo.btMapNumber = tag.attribute("MapNumber").as_int();
 		sendPortalInfo.btPosX = tag.attribute("X").as_int();
 		sendPortalInfo.btPosY = tag.attribute("Y").as_int();
-		memcpy(sendPortalInfo.szName, tag.attribute("Name").as_string(), 31);
+		std::string name = tag.attribute("Name").as_string();
+		memcpy(sendPortalInfo.szName, g_ConfigRead.UTF8ToANSI(name, 0).c_str(), 31);
 
 		this->m_vtSendPortalInfo.push_back(sendPortalInfo);
 	}

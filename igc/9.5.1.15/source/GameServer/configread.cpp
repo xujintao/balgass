@@ -618,6 +618,25 @@ LPSTR CConfigread::GetPath(LPSTR path)
 	return this->CurrPath;
 }
 
+std::string CConfigread::UTF8ToANSI(std::string s, int codepage)
+{
+	const char* pszCode = s.c_str();
+	int nLength = MultiByteToWideChar(CP_UTF8, 0, pszCode, strlen(pszCode), NULL, NULL);
+	wchar_t* pwText = new wchar_t[nLength + 1];
+	memset(pwText, 0, sizeof(wchar_t)*(nLength + 1));
+	MultiByteToWideChar(CP_UTF8, 0, pszCode, strlen(pszCode), pwText, nLength);
+
+	nLength = WideCharToMultiByte(codepage, 0, pwText, -1, NULL, 0, NULL, NULL);
+	char* pszAnsi = new char[nLength];
+	pszAnsi[nLength - 1] = 0;
+	WideCharToMultiByte(codepage, 0, pwText, -1, pszAnsi, nLength, NULL, NULL);
+	delete[] pwText;
+
+	std::string r(pszAnsi);
+	delete[] pszAnsi;
+	return r;
+}
+
 void CConfigread::ReadOffTradeConfig()
 {
 	pugi::xml_document file;

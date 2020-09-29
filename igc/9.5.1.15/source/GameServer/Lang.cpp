@@ -72,8 +72,8 @@ bool CLanguage::LoadLanguage(Language & Lang)
 	{
 		int iMsg = msg.attribute("ID").as_int();
 		std::string szText = msg.attribute("Text").as_string();
-
-		Lang.m_vtText.insert(std::pair<int, std::string>(iMsg, szText));
+		
+		Lang.m_vtText.insert(std::pair<int, std::string>(iMsg, g_ConfigRead.UTF8ToANSI(szText, Lang.Codepage)));
 	}
 
 	pugi::xml_node map = main.child("Map");
@@ -83,7 +83,7 @@ bool CLanguage::LoadLanguage(Language & Lang)
 		int iMsg = msg.attribute("ID").as_int();
 		std::string szText = msg.attribute("Text").as_string();
 
-		Lang.m_vtMap.insert(std::pair<int, std::string>(iMsg, szText));
+		Lang.m_vtMap.insert(std::pair<int, std::string>(iMsg, g_ConfigRead.UTF8ToANSI(szText, Lang.Codepage)));
 	}
 }
 
