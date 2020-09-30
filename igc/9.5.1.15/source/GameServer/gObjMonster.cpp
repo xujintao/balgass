@@ -2702,7 +2702,7 @@ void gObjMonsterBaseAct(LPOBJ lpObj)
 					{
 						if ( lpObj->m_PK_Count == 0 )
 						{
-							GSProtocol.ChatSend(lpObj,(char *)g_ConfigRead.data.common.GuardSayText.c_str());	// Need Translation
+							GSProtocol.ChatSend(lpObj,(char *)g_ConfigRead.data.common.GuardSayText[rand()%5].c_str());	// Need Translation
 						}
 					}
 				}

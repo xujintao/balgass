@@ -142,7 +142,7 @@ private:
 struct COMMON_CONFIG
 {
 	bool IsGuardSay;
-	std::string GuardSayText;
+	std::string GuardSayText[5];
 	short GuardTalkChance;
 	std::string WelcomeMessage;
 	BYTE EnterGameMessage;

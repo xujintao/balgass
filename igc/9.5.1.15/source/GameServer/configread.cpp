@@ -190,12 +190,18 @@ void CConfigread::ReadConfig()
 	this->SeasonX = ReadCommon.ReadInt("General", "SeasonXProtocol", 0);
 
 	this->data.common.IsGuardSay = ReadCommon.ReadInt("General", "GuardSpeak", 1);
-	this->data.common.GuardSayText = ReadCommon.ReadString("General", "GuardSpeakMsg", "Hello from mars");
 	this->data.common.GuardTalkChance = ReadCommon.ReadInt("General", "GuardSpeakChance", 30);
-
-	if (this->data.common.GuardSayText.length() > 60)
-	{
-		g_Log.MsgBox("Error -  Guard Say text is too long");
+	std::string speakmsg[5];
+	speakmsg[0] = ReadCommon.ReadString("General", "GuardSpeakMsg1", "Hello from mars");
+	speakmsg[1] = ReadCommon.ReadString("General", "GuardSpeakMsg2", "Hello from mars");
+	speakmsg[2] = ReadCommon.ReadString("General", "GuardSpeakMsg3", "Hello from mars");
+	speakmsg[3] = ReadCommon.ReadString("General", "GuardSpeakMsg4", "Hello from mars");
+	speakmsg[4] = ReadCommon.ReadString("General", "GuardSpeakMsg5", "Hello from mars");
+	for(int i=0; i<5; i++) {
+		this->data.common.GuardSayText[i] = this->UTF8ToANSI(speakmsg[i], 0);
+		if (this->data.common.GuardSayText[i].length() > 60) {
+			g_Log.MsgBox("Error -  Guard Say text is too long");
+		}
 	}
 
 	this->data.common.WelcomeMessage = ReadCommon.ReadString("General", "WelcomeMessage", "Welcome to our Mu Online server!");
