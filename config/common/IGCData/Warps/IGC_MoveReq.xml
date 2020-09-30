@@ -63,6 +63,7 @@
 	<Warp Index="47" ServerName="Karutan2"			  ClientName="Karutan2"		 MinLevel="170" MaxLevel="400" ReqMoney="14000" GateNumber="344" />
 	<Warp Index="34" ServerName="LaColen"			  ClientName="LaCleon"		 MinLevel="280" MaxLevel="400" ReqMoney="15000" GateNumber="287" />
 	<Warp Index="33" ServerName="Swamp_of_Calmness"	  ClientName="PeaceSwamp"	 MinLevel="400" MaxLevel="400" ReqMoney="15000" GateNumber="273" />
+	<Warp Index="49" ServerName="Akeron"			  ClientName="Akeron"		 MinLevel="300" MaxLevel="-1"  ReqMoney="50000" GateNumber="417" />
 	<Warp Index="42" ServerName="Vulcanus"			  ClientName="Vulcanus"		 MinLevel="30"  MaxLevel="400" ReqMoney="15000" GateNumber="294" />
 	<Warp Index="24" ServerName="LorenDeep"			  ClientName="LorenDeep"	 MinLevel="10"  MaxLevel="400" ReqMoney="0"     GateNumber="104" />
 </WarpSettings>
