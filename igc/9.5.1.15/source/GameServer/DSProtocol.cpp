@@ -1842,7 +1842,7 @@ void JGGetCharacterInfo(SDHP_DBCHAR_INFORESULT * lpMsg)
 
 	if (g_ConfigRead.server.GetServerType() == SERVER_NORMAL)
 	{
-		GSProtocol.GCServerMsgStringSend((char *)g_ConfigRead.data.common.WelcomeMessage.c_str(), lpObj->m_Index, 0);
+		// GSProtocol.GCServerMsgStringSend((char *)g_ConfigRead.data.common.WelcomeMessage.c_str(), lpObj->m_Index, 0);
 	}
 
 	gObjUseSkill.SkillChangeUse(lpObj->m_Index);
