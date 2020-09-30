@@ -4643,6 +4643,142 @@
 			<!-- <Spawn Index="583" Distance="0" StartX="52" StartY="195" Dir="2" /> --> <!--  Jin ~ shop managed via IGC_ShopList.xml -->
 		</Spot>
 		<Spot Type="3" Description="Multi-Spot Acheron">
+			<!-- 门口(155,200) 暗2-->
+			<Spawn Index="589" Distance="10" StartX="152" StartY="197" EndX="158" EndY="203" Dir="-1" Count="1" Element="5" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="152" StartY="197" EndX="158" EndY="203" Dir="-1" Count="1" Element="5" /> <!-- 佩里-->
+
+			<!-- 包间1(169,206) 风4 -->
+			<Spawn Index="589" Distance="10" StartX="166" StartY="203" EndX="172" EndY="209" Dir="-1" Count="1" Element="4" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="166" StartY="203" EndX="172" EndY="209" Dir="-1" Count="1" Element="4" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="166" StartY="203" EndX="172" EndY="209" Dir="-1" Count="1" Element="4" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="166" StartY="203" EndX="172" EndY="209" Dir="-1" Count="1" Element="4" /> <!-- 野兽-->
+
+			<!-- 包间2(183,219) 水6-->
+			<Spawn Index="589" Distance="10" StartX="180" StartY="216" EndX="186" EndY="222" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="180" StartY="216" EndX="186" EndY="222" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="180" StartY="216" EndX="186" EndY="222" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="180" StartY="216" EndX="186" EndY="222" Dir="-1" Count="1" Element="2" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="180" StartY="216" EndX="186" EndY="222" Dir="-1" Count="1" Element="2" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="180" StartY="216" EndX="186" EndY="222" Dir="-1" Count="1" Element="2" /> <!-- 野兽-->
+
+			<!-- 包间3(213,213) 土6-->
+			<Spawn Index="589" Distance="10" StartX="210" StartY="210" EndX="216" EndY="216" Dir="-1" Count="1" Element="3" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="210" StartY="210" EndX="216" EndY="216" Dir="-1" Count="1" Element="3" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="210" StartY="210" EndX="216" EndY="216" Dir="-1" Count="1" Element="3" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="210" StartY="210" EndX="216" EndY="216" Dir="-1" Count="1" Element="3" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="210" StartY="210" EndX="216" EndY="216" Dir="-1" Count="1" Element="3" /> <!-- 野兽-->
+			<Spawn Index="591" Distance="10" StartX="210" StartY="210" EndX="216" EndY="216" Dir="-1" Count="1" Element="3" /> <!-- 骑士-->
+
+			<!-- 包间4(240,207) 土8-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="204" EndX="243" EndY="210" Dir="-1" Count="1" Element="3" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="204" EndX="243" EndY="210" Dir="-1" Count="1" Element="3" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="204" EndX="243" EndY="210" Dir="-1" Count="1" Element="3" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="204" EndX="243" EndY="210" Dir="-1" Count="1" Element="3" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="204" EndX="243" EndY="210" Dir="-1" Count="1" Element="3" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="204" EndX="243" EndY="210" Dir="-1" Count="1" Element="3" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="204" EndX="243" EndY="210" Dir="-1" Count="1" Element="3" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="204" EndX="243" EndY="210" Dir="-1" Count="1" Element="3" /> <!-- 野兽-->
+
+			<!-- 包间5(240,230) 水6 -->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="227" EndX="243" EndY="233" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="227" EndX="243" EndY="233" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="227" EndX="243" EndY="233" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="227" EndX="243" EndY="233" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="227" EndX="243" EndY="233" Dir="-1" Count="1" Element="2" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="227" EndX="243" EndY="233" Dir="-1" Count="1" Element="2" /> <!-- 野兽-->
+
+			<!-- 包间6(173,173) -->
+			<Spawn Index="589" Distance="10" StartX="171" StartY="171" EndX="175" EndY="175" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="171" StartY="171" EndX="175" EndY="175" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="171" StartY="171" EndX="175" EndY="175" Dir="-1" Count="1" Element="2" /> <!-- 野兽-->
+
+			<!-- 包间7(190,183) -->
+			<Spawn Index="589" Distance="10" StartX="188" StartY="181" EndX="192" EndY="185" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="188" StartY="181" EndX="192" EndY="185" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="188" StartY="181" EndX="192" EndY="185" Dir="-1" Count="1" Element="2" /> <!-- 野兽-->
+
+			<!-- 包间8(190,152) 火6 -->
+			<Spawn Index="589" Distance="10" StartX="187" StartY="149" EndX="193" EndY="155" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="187" StartY="149" EndX="193" EndY="155" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="187" StartY="149" EndX="193" EndY="155" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="187" StartY="149" EndX="193" EndY="155" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="187" StartY="149" EndX="193" EndY="155" Dir="-1" Count="1" Element="1" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="187" StartY="149" EndX="193" EndY="155" Dir="-1" Count="1" Element="1" /> <!-- 野兽-->
+
+			<!-- 包间9(212,173) 水5 -->
+			<Spawn Index="589" Distance="10" StartX="209" StartY="170" EndX="215" EndY="176" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="209" StartY="170" EndX="215" EndY="176" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="209" StartY="170" EndX="215" EndY="176" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="209" StartY="170" EndX="215" EndY="176" Dir="-1" Count="1" Element="2" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="209" StartY="170" EndX="215" EndY="176" Dir="-1" Count="1" Element="2" /> <!-- 野兽-->
+
+			<!-- 包间10(237,172) 风8-->
+			<Spawn Index="589" Distance="10" StartX="234" StartY="169" EndX="240" EndY="175" Dir="-1" Count="1" Element="4" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="234" StartY="169" EndX="240" EndY="175" Dir="-1" Count="1" Element="4" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="234" StartY="169" EndX="240" EndY="175" Dir="-1" Count="1" Element="4" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="234" StartY="169" EndX="240" EndY="175" Dir="-1" Count="1" Element="4" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="234" StartY="169" EndX="240" EndY="175" Dir="-1" Count="1" Element="4" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="234" StartY="169" EndX="240" EndY="175" Dir="-1" Count="1" Element="4" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="234" StartY="169" EndX="240" EndY="175" Dir="-1" Count="1" Element="4" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="234" StartY="169" EndX="240" EndY="175" Dir="-1" Count="1" Element="4" /> <!-- 野兽-->
+
+			<!-- 包间11(223,143) 火6-->
+			<Spawn Index="589" Distance="10" StartX="220" StartY="140" EndX="226" EndY="146" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="220" StartY="140" EndX="226" EndY="146" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="220" StartY="140" EndX="226" EndY="146" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="220" StartY="140" EndX="226" EndY="146" Dir="-1" Count="1" Element="1" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="220" StartY="140" EndX="226" EndY="146" Dir="-1" Count="1" Element="1" /> <!-- 野兽-->
+			<Spawn Index="591" Distance="10" StartX="220" StartY="140" EndX="226" EndY="146" Dir="-1" Count="1" Element="1" /> <!-- 骑士-->
+
+			<!-- 包间12(218,102) 水5-->
+			<Spawn Index="589" Distance="10" StartX="215" StartY="99" EndX="221" EndY="105" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="215" StartY="99" EndX="221" EndY="105" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="215" StartY="99" EndX="221" EndY="105" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="591" Distance="10" StartX="215" StartY="99" EndX="221" EndY="105" Dir="-1" Count="1" Element="2" /> <!-- 骑士-->
+			<Spawn Index="591" Distance="10" StartX="215" StartY="99" EndX="221" EndY="105" Dir="-1" Count="1" Element="2" /> <!-- 骑士-->
+
+			<!-- 包间13(238,89) 风5-->
+			<Spawn Index="590" Distance="10" StartX="235" StartY="86" EndX="241" EndY="92" Dir="-1" Count="1" Element="4" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="235" StartY="86" EndX="241" EndY="92" Dir="-1" Count="1" Element="4" /> <!-- 野兽-->
+			<Spawn Index="591" Distance="10" StartX="235" StartY="86" EndX="241" EndY="92" Dir="-1" Count="1" Element="4" /> <!-- 骑士-->
+			<Spawn Index="591" Distance="10" StartX="235" StartY="86" EndX="241" EndY="92" Dir="-1" Count="1" Element="4" /> <!-- 骑士-->
+			<Spawn Index="591" Distance="10" StartX="235" StartY="86" EndX="241" EndY="92" Dir="-1" Count="1" Element="4" /> <!-- 骑士-->
+
+			<!-- 包间14(213,70) 火5-->
+			<Spawn Index="589" Distance="10" StartX="210" StartY="67" EndX="216" EndY="73" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="210" StartY="67" EndX="216" EndY="73" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="210" StartY="67" EndX="216" EndY="73" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="591" Distance="10" StartX="210" StartY="67" EndX="216" EndY="73" Dir="-1" Count="1" Element="1" /> <!-- 骑士-->
+			<Spawn Index="591" Distance="10" StartX="210" StartY="67" EndX="216" EndY="73" Dir="-1" Count="1" Element="1" /> <!-- 骑士-->
+
+			<!-- 包间15(222,55) 火3-->
+			<Spawn Index="589" Distance="10" StartX="220" StartY="53" EndX="224" EndY="57" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="220" StartY="53" EndX="224" EndY="57" Dir="-1" Count="1" Element="1" /> <!-- 野兽-->
+			<Spawn Index="591" Distance="10" StartX="220" StartY="53" EndX="224" EndY="57" Dir="-1" Count="1" Element="1" /> <!-- 骑士-->
+
+			<!-- 包间16(205,58) 暗10-->
+			<Spawn Index="589" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 野兽-->
+
+			<!-- 包间17(240,50) 混8-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 野兽-->
+			<Spawn Index="591" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 骑士-->
+			<Spawn Index="591" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 骑士-->
+		</Spot>
+		<Spot Type="3" Description="Multi-Spot Acheron">
 			<Spawn Index="586" Distance="30" StartX="152" StartY="137" EndX="158" EndY="143" Dir="-1" Count="1" Element="1" /> <!-- -->
 			<Spawn Index="586" Distance="30" StartX="155" StartY="135" EndX="159" EndY="146" Dir="-1" Count="1" Element="1" /> <!-- -->
 			<Spawn Index="586" Distance="30" StartX="152" StartY="145" EndX="157" EndY="151" Dir="-1" Count="1" Element="1" /> <!-- -->
@@ -4769,108 +4905,9 @@
 			<!-- <Spawn Index="592" Distance="30" StartX="75" StartY="30" EndX="108" EndY="47" Dir="-1" Count="1" Element="2" /> --> <!-- -->
 			<!-- <Spawn Index="593" Distance="30" StartX="122" StartY="29" EndX="142" EndY="39" Dir="-1" Count="1" Element="1" /> --> <!-- -->
 			<Spawn Index="588" Distance="30" StartX="107" StartY="67" EndX="124" EndY="80" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="183" StartY="145" EndX="190" EndY="151" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="184" StartY="152" EndX="191" EndY="158" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="191" StartY="147" EndX="197" EndY="155" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="190" StartY="156" EndX="195" EndY="162" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="236" StartY="224" EndX="242" EndY="229" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="242" StartY="226" EndX="247" EndY="235" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="233" StartY="230" EndX="239" EndY="235" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="240" StartY="231" EndX="246" EndY="237" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="235" StartY="201" EndX="240" EndY="207" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="232" StartY="209" EndX="238" EndY="215" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="242" StartY="204" EndX="248" EndY="209" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="239" StartY="197" EndX="247" EndY="205" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="238" StartY="209" EndX="245" EndY="215" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="232" StartY="167" EndX="239" EndY="173" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="230" StartY="175" EndX="236" EndY="180" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="240" StartY="163" EndX="246" EndY="170" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="236" StartY="165" EndX="244" EndY="174" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="236" StartY="175" EndX="242" EndY="180" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="195" StartY="53" EndX="200" EndY="58" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="199" StartY="48" EndX="206" EndY="52" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="202" StartY="58" EndX="207" EndY="64" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="204" StartY="53" EndX="211" EndY="59" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="200" StartY="53" EndX="210" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="195" StartY="53" EndX="200" EndY="58" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="199" StartY="48" EndX="206" EndY="52" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="202" StartY="58" EndX="207" EndY="64" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="204" StartY="53" EndX="211" EndY="59" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="200" StartY="53" EndX="210" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="227" StartY="87" EndX="234" EndY="93" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="231" StartY="77" EndX="237" EndY="85" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="241" StartY="90" EndX="247" EndY="97" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="231" StartY="85" EndX="239" EndY="92" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="238" StartY="84" EndX="245" EndY="92" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="207" StartY="209" EndX="212" EndY="217" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="212" StartY="217" EndX="218" EndY="223" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="218" StartY="210" EndX="226" EndY="213" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="212" StartY="212" EndX="220" EndY="220" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="212" StartY="205" EndX="219" EndY="211" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="213" StartY="138" EndX="221" EndY="145" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="219" StartY="151" EndX="227" EndY="155" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="225" StartY="130" EndX="234" EndY="137" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="226" StartY="145" EndX="233" EndY="152" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="217" StartY="142" EndX="225" EndY="149" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="222" StartY="137" EndX="233" EndY="145" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="201" StartY="177" EndX="208" EndY="182" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="188" StartY="182" EndX="195" EndY="188" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="188" StartY="168" EndX="194" EndY="175" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="193" StartY="176" EndX="200" EndY="180" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="210" StartY="170" EndX="218" EndY="175" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="208" StartY="178" EndX="214" EndY="185" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="153" StartY="185" EndX="160" EndY="189" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="150" StartY="190" EndX="155" EndY="195" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="150" StartY="200" EndX="156" EndY="205" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="162" StartY="203" EndX="169" EndY="208" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="165" StartY="210" EndX="171" EndY="215" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="169" StartY="201" EndX="175" EndY="206" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="168" StartY="219" EndX="175" EndY="222" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="181" StartY="215" EndX="187" EndY="220" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="183" StartY="220" EndX="190" EndY="226" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="190" StartY="217" EndX="196" EndY="222" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="176" StartY="217" EndX="184" EndY="224" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="164" StartY="174" EndX="170" EndY="179" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="172" StartY="171" EndX="179" EndY="178" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="177" StartY="164" EndX="186" EndY="170" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="158" StartY="180" EndX="162" EndY="184" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="180" StartY="183" EndX="186" EndY="191" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="173" StartY="193" EndX="178" EndY="202" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="208" StartY="195" EndX="212" EndY="202" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="201" StartY="188" EndX="207" EndY="192" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="204" StartY="172" EndX="214" EndY="177" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="204" StartY="70" EndX="211" EndY="76" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="213" StartY="70" EndX="218" EndY="75" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="219" StartY="66" EndX="224" EndY="72" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="214" StartY="54" EndX="220" EndY="58" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="221" StartY="51" EndX="230" EndY="55" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="220" StartY="56" EndX="224" EndY="64" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="209" StartY="65" EndX="217" EndY="74" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="215" StartY="98" EndX="220" EndY="103" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="221" StartY="96" EndX="225" EndY="103" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="589" Distance="30" StartX="218" StartY="105" EndX="228" EndY="111" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="227" StartY="108" EndX="232" EndY="118" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="170" StartY="92" EndX="178" EndY="98" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="166" StartY="102" EndX="173" EndY="110" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="173" StartY="116" EndX="182" EndY="121" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="183" StartY="106" EndX="188" EndY="114" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="178" StartY="81" EndX="185" EndY="88" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="188" StartY="91" EndX="197" EndY="100" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="201" StartY="111" EndX="210" EndY="119" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="199" StartY="96" EndX="208" EndY="105" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="190" StartY="109" EndX="199" EndY="116" Dir="-1" Count="1" Element="4" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="193" StartY="79" EndX="202" EndY="86" Dir="-1" Count="1" Element="5" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="179" StartY="94" EndX="192" EndY="105" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="195" StartY="120" EndX="205" EndY="128" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="202" StartY="88" EndX="209" EndY="100" Dir="-1" Count="1" Element="1" /> <!-- -->
 			<!-- <Spawn Index="594" Distance="30" StartX="178" StartY="180" EndX="196" EndY="189" Dir="-1" Count="1" Element="4" /> --> <!-- -->
 			<!-- <Spawn Index="595" Distance="30" StartX="228" StartY="110" EndX="234" EndY="133" Dir="-1" Count="1" Element="3" /> --> <!-- -->
 			<!-- <Spawn Index="596" Distance="30" StartX="179" StartY="90" EndX="198" EndY="107" Dir="-1" Count="1" Element="5" /> --> <!-- -->
-		<!-- xx -->						
-			<Spawn Index="589" Distance="30" StartX="235" StartY="46" EndX="242" EndY="56" Dir="-1" Count="1" Element="1" /> <!-- -->
-			<Spawn Index="590" Distance="30" StartX="239" StartY="52" EndX="246" EndY="57" Dir="-1" Count="1" Element="2" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="237" StartY="42" EndX="245" EndY="50" Dir="-1" Count="1" Element="3" /> <!-- -->
-			<Spawn Index="591" Distance="30" StartX="242" StartY="44" EndX="248" EndY="53" Dir="-1" Count="1" Element="4" /> <!-- -->
 		<!-- xx -->
 			<Spawn Index="596" Distance="30" StartX="93" StartY="7" EndX="246" EndY="188" Dir="-1" Count="1" Element="5" /> <!-- -->
 			<Spawn Index="595" Distance="30" StartX="56" StartY="14" EndX="239" EndY="158" Dir="-1" Count="1" Element="3" /> <!-- -->
