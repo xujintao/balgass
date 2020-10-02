@@ -825,7 +825,7 @@
     <Item GUID="194" ID="367" Cat="13" Index="123" Level="0" Durability="255" Skill="0" Luck="0" Option="0" Exc="0" Set="0" SocketCount="0" Element="0" Type="2" Duration="30"></Item>
     <Item GUID="194" ID="367" Cat="13" Index="123" Level="0" Durability="0" Skill="0" Luck="0" Option="0" Exc="0" Set="0" SocketCount="0" Element="0" Type="0" Duration="0"></Item>
     <Item GUID="194" ID="367" Cat="13" Index="123" Level="0" Durability="0" Skill="0" Luck="0" Option="0" Exc="0" Set="0" SocketCount="0" Element="0" Type="0" Duration="0"></Item>
-    <Item GUID="195" ID="368" Cat="14" Index="140" Level="0" Durability="255" Skill="0" Luck="0" Option="0" Exc="0" Set="0" SocketCount="0" Element="0" Type="2" Duration="1440"></Item>
+    <Item GUID="195" ID="368" Cat="14" Index="140" Level="0" Durability="0" Skill="0" Luck="0" Option="0" Exc="0" Set="0" SocketCount="0" Element="0" Type="1" Duration="1440"></Item>
     <Item GUID="195" ID="368" Cat="14" Index="140" Level="0" Durability="0" Skill="0" Luck="0" Option="0" Exc="0" Set="0" SocketCount="0" Element="0" Type="0" Duration="0"></Item>
     <Item GUID="195" ID="368" Cat="14" Index="140" Level="0" Durability="0" Skill="0" Luck="0" Option="0" Exc="0" Set="0" SocketCount="0" Element="0" Type="0" Duration="0"></Item>
     <Item GUID="196" ID="371" Cat="13" Index="96" Level="0" Durability="255" Skill="0" Luck="0" Option="0" Exc="0" Set="0" SocketCount="0" Element="0" Type="2" Duration="10"></Item>

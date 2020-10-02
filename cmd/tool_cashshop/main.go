@@ -268,16 +268,15 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 		}
 		kind := mustAtoi(values[14])
 		switch kind {
-		case 7:
+		case 7: // quantity
 			switch code(itemInfo.Cat, itemInfo.Index) {
 			case code(13, 97), code(13, 98), code(14, 91), code(14, 169): // 魔剑士角色卡片 圣导师角色卡片 召唤术士角色卡 格斗家角色卡片
 				itemInfo.Type = 3 // character card
 			default:
 				itemInfo.Type = 0 // quantity/number
 			}
-
 			itemInfo.Durability = mustAtoi(values[3])
-		case 2, 10:
+		case 2, 10: // duration
 			// type
 			switch code(itemInfo.Cat, itemInfo.Index) {
 			case code(13, 43), code(13, 44), code(13, 45): // 经验印章 神圣印章 贡献印章
@@ -293,6 +292,8 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 			case code(14, 72), code(14, 73), code(14, 74), code(14, 75), code(14, 76), code(14, 77): // 加速卷轴 防御卷轴 愤怒卷轴 魔力卷轴 体力卷轴 魔法卷轴
 				itemInfo.Type = 1
 			case code(14, 97), code(14, 98): // 幸运一击卷轴 卓越一击卷轴
+				itemInfo.Type = 1
+			case code(14, 140): // 恢复卷轴
 				itemInfo.Type = 1
 			default:
 				itemInfo.Type = 2
