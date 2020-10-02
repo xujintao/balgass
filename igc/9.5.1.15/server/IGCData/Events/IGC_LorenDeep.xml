@@ -45,7 +45,7 @@
 // STRICTLY NO COMMENTS INSIDE TAGS 
 -->
 
-<LorenDeepEvent Enable="1">
+<LorenDeepEvent Enable="0">
 	<Schedule>
 		<Start Hour="20" Minute="0" />
 	</Schedule>
