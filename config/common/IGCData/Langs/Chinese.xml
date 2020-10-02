@@ -29,14 +29,14 @@
 <Language>
 	<Message>
 		<Msg ID="1" Text="GameServer closed" annotation="GameServer closed" />
-		<Msg ID="2" Text="Server will close automatically in %d second(s)" annotation="Server will close automatically in %d second(s)" />
-		<Msg ID="3" Text="You cannot enter this area while using the Unicorn" annotation="You cannot enter this area while using the Unicorn" />
-		<Msg ID="4" Text="[Devil Square] The gates of Devil Square are open!" annotation="[Devil Square] The gates of Devil Square are open!" />
-		<Msg ID="5" Text="[Devil Square] %d minute(s) left before event opens!" annotation="[Devil Square] %d minute(s) left before event opens!" />
+		<Msg ID="2" Text="Server will close automatically in %d seconds" annotation="Server will close automatically in %d second(s)" />
+		<Msg ID="3" Text="无法在骑乘状态下进入此区域" annotation="You cannot enter this area while using the Unicorn" />
+		<Msg ID="4" Text="(恶魔广场)大门已开启" annotation="[Devil Square] The gates of Devil Square are open!" />
+		<Msg ID="5" Text="(恶魔广场)离进场还剩 %d 分钟" annotation="[Devil Square] %d minute(s) left before event opens!" />
 		<Msg ID="6" Text="%d分钟后(恶魔广场)将开始" annotation="[Devil Square] will start after %d minute(s)" />
 		<Msg ID="7" Text="%d分钟后(恶魔广场)将关闭" annotation="[Devil Square] will close after %d minute(s)" />
-		<Msg ID="8" Text="[Devil Square] event has started." annotation="[Devil Square] event has started." />
-		<Msg ID="9" Text="[Devil Square] is closed. Try again next time." annotation="[Devil Square] is closed. Try again next time." />
+		<Msg ID="8" Text="(恶魔广场)开始了" annotation="[Devil Square] event has started." />
+		<Msg ID="9" Text="(恶魔广场)门关闭了，晚到的勇士们请等下次机会" annotation="[Devil Square] is closed. Try again next time." />
 		<Msg ID="10" Text="Failed. Your score is %d. Try again next time." annotation="Failed. Your score is %d. Try again next time." />
 		<Msg ID="11" Text="Chaos combination is ongoing." annotation="Chaos combination is ongoing." />
 		<Msg ID="12" Text="Trading is not allowed in Devil Square." annotation="Trading is not allowed in Devil Square." />
@@ -57,7 +57,7 @@
 		<Msg ID="27" Text="由于%s的攻击，对其处于正当防卫状态" annotation="Self defense is initiated by %s's attack!" />
 		<Msg ID="28" Text="解除了对%s的正当防卫状态" annotation="Self defense against %s diminishes." />
 		<Msg ID="29" Text="还剩%d秒结束游戏" annotation="You have %d second(s) left before exiting the game." />
-		<Msg ID="30" Text="You must be over level %d to can access this location." annotation="You must be over level %d to can access this location." />
+		<Msg ID="30" Text="等级要%d以上才能进入此区域" annotation="You must be over level %d to can access this location." />
 		<Msg ID="31" Text="You cannot get the item" annotation="You cannot get the item" />
 		<Msg ID="32" Text="You are now accepting all requests from other players." annotation="You are now accepting all requests from other players." />
 		<Msg ID="33" Text="You are now rejecting all requests from other players." annotation="You are now rejecting all requests from other players." />
@@ -92,16 +92,16 @@
 		<Msg ID="62" Text="The match starts automatically in 10 second(s)" annotation="The match starts automatically in 10 second(s)" />
 		<Msg ID="63" Text="Dragon Invasion" annotation="Dragon Invasion" />
 		<Msg ID="64" Text="%s, Golden Dragon Invasion" annotation="%s, Golden Dragon Invasion" />
-		<Msg ID="65" Text="(血色城堡)离关门还剩下 %d 分钟" annotation="%d minute(s) left to enter Blood Castle." />
-		<Msg ID="66" Text="第 %d 血色城堡开始了" annotation="The Blood Castle Quest %d has started!" />
+		<Msg ID="65" Text="(血色城堡)离关门还剩 %d 分钟" annotation="%d minute(s) left to enter Blood Castle." />
+		<Msg ID="66" Text="第%d血色城堡开始了" annotation="The Blood Castle Quest %d has started!" />
 		<Msg ID="67" Text="潜入血色城堡失败" annotation="Infiltration into Blood Castle has failed!" />
-		<Msg ID="68" Text="血色城堡任务 %d 将在 %d 秒后开始" annotation="The Blood Castle Quest %d starts in %d second(s)." />
+		<Msg ID="68" Text="第%d血色城堡 %d 秒后开始" annotation="The Blood Castle Quest %d starts in %d second(s)." />
 		<Msg ID="69" Text="The Blood Castle Quest %d has gained you a total of %d EXP." annotation="The Blood Castle Quest %d has gained you a total of %d EXP." />
-		<Msg ID="70" Text="The Blood Castle Quest has been successfully completed by %s!" annotation="The Blood Castle Quest has been successfully completed by %s!" />
+		<Msg ID="70" Text="%s 勇士完成了血色城堡" annotation="The Blood Castle Quest has been successfully completed by %s!" />
 		<Msg ID="71" Text="The Blood Castle Quest has been successfully concluded." annotation="The Blood Castle Quest has been successfully concluded." />
 		<Msg ID="72" Text="清除怪物成功 请攻破血色城门！！" annotation="Monsters eliminated!! Destroy the Castle Gates!!" />
 		<Msg ID="73" Text="The Gates of Blood Castle have been demolished!!!" annotation="The Gates of Blood Castle have been demolished!!!" />
-		<Msg ID="74" Text="欢迎来到第 %d 血色城堡" annotation="you have entered Blood Castle %d" />
+		<Msg ID="74" Text="您来到了第%d血色城堡" annotation="you have entered Blood Castle %d" />
 		<Msg ID="75" Text="%s 勇士获得了大天使之杖" annotation="%s has acquired the Divine Staff of Archangel." />
 		<Msg ID="76" Text="%s 勇士获得了大天使之剑" annotation="%s has acquired the Divine Sword of Archangel." />
 		<Msg ID="77" Text="%s 勇士获得了大天使之弩" annotation="%s has acquired the Divine Crossbow of Archangel." />
@@ -124,7 +124,7 @@
 		<Msg ID="94" Text="%s is in a Duel." annotation="%s is in a Duel." />
 		<Msg ID="95" Text="Challenged %s to a Duel." annotation="Challenged %s to a Duel." />
 		<Msg ID="96" Text="You are already issuing a Duel challenge." annotation="You are already issuing a Duel challenge." />
-		<Msg ID="97" Text="Duelling is not allowed in NON-PK servers." annotation="Duelling is not allowed in NON-PK servers." />
+		<Msg ID="97" Text="non-pvp线路不能决斗." annotation="Duelling is not allowed in NON-PK servers." />
 		<Msg ID="98" Text="An outlaw cannot issue a Duel challenge." annotation="An outlaw cannot issue a Duel challenge." />
 		<Msg ID="99" Text="You cannot Duel with an Outlaw." annotation="You cannot Duel with an Outlaw." />
 		<Msg ID="100" Text="A duel is not allowed in Devil Square." annotation="A duel is not allowed in Devil Square." />
@@ -139,24 +139,24 @@
 		<Msg ID="109" Text="You need to be at least Level 80 to throw the Ring." annotation="You need to be at least Level 80 to throw the Ring." />
 		<Msg ID="110" Text="Please select correct warehouse (0-3)" annotation="Please select correct warehouse (0-3)" />
 		<Msg ID="111" Text="Please close your warehouse first." annotation="Please close your warehouse first." />
-		<Msg ID="112" Text="You cannot use the Chaos Machine while your Personal Shop is open." annotation="You cannot use the Chaos Machine while your Personal Shop is open." />
+		<Msg ID="112" Text="个人商店开张中不能使用该功能" annotation="You cannot use the Chaos Machine while your Personal Shop is open." />
 		<Msg ID="113" Text="All items in your Personal Shop have been sold!" annotation="All items in your Personal Shop have been sold!" />
 		<Msg ID="114" Text="You cannot trade inside Chaos Castle." annotation="You cannot trade inside Chaos Castle." />
 		<Msg ID="115" Text="You cannot open your Personal Shop within Chaos Castle." annotation="You cannot open your Personal Shop within Chaos Castle." />
 		<Msg ID="116" Text="Party cannot be formed within Chaos Castle." annotation="Party cannot be formed within Chaos Castle." />
 		<Msg ID="117" Text="Guild War cannot be waged within Chaos Castle." annotation="Guild War cannot be waged within Chaos Castle." />
 		<Msg ID="118" Text="You cannot enter Chaos Castle from here." annotation="You cannot enter Chaos Castle from here." />
-		<Msg ID="119" Text="Outlaws are not permitted to enter Chaos Castle." annotation="Outlaws are not permitted to enter Chaos Castle." />
-		<Msg ID="120" Text="You cannot enter Chaos Castle while in a duel." annotation="You cannot enter Chaos Castle while in a duel." />
+		<Msg ID="119" Text="恶人不允许进入赤色要塞" annotation="Outlaws are not permitted to enter Chaos Castle." />
+		<Msg ID="120" Text="决斗中无法进入赤色要塞" annotation="You cannot enter Chaos Castle while in a duel." />
 		<Msg ID="121" Text="You cannot enter Chaos Castle while in a guild war." annotation="You cannot enter Chaos Castle while in a guild war." />
 		<Msg ID="122" Text="You cannot enter Chaos Castle while riding a beast." annotation="You cannot enter Chaos Castle while riding a beast." />
 		<Msg ID="123" Text="You cannot enter Chaos Castle while wearing a transformation ring." annotation="You cannot enter Chaos Castle while wearing a transformation ring." />
-		<Msg ID="124" Text="You have entered Chaos Castle %d." annotation="You have entered Chaos Castle %d." />
+		<Msg ID="124" Text="您来到了第%d赤色要塞" annotation="You have entered Chaos Castle %d." />
 		<Msg ID="125" Text="Duels are not allowed within Chaos Castle." annotation="Duels are not allowed within Chaos Castle." />
 		<Msg ID="126" Text="离进入赤色要塞还剩下 %d 分钟" annotation="%d minute(s) left before Chaos Castle starts." />
-		<Msg ID="127" Text="Chaos Castle %d has already commenced!" annotation="Chaos Castle %d has already commenced!" />
-		<Msg ID="128" Text="The Spirits of the Guardsmen have been exorcised. Quest complete!" annotation="The Spirits of the Guardsmen have been exorcised. Quest complete!" />
-		<Msg ID="129" Text="You have failed to complete the Quest. Summon more courage and try again." annotation="You have failed to complete the Quest. Summon more courage and try again." />
+		<Msg ID="127" Text="第%d赤色要塞开始了" annotation="Chaos Castle %d has already commenced!" />
+		<Msg ID="128" Text="卫兵的灵魂已得到净化，成功完成赤色要塞任务了" annotation="The Spirits of the Guardsmen have been exorcised. Quest complete!" />
+		<Msg ID="129" Text="任务失败，下次再试" annotation="You have failed to complete the Quest. Summon more courage and try again." />
 		<Msg ID="130" Text="Not enough warriors to start the Chaos Castle Quest." annotation="Not enough warriors to start the Chaos Castle Quest." />
 		<Msg ID="131" Text="Chaos Castle %d: %s has been granted entry for a fee of %d Zen." annotation="Chaos Castle %d: %s has been granted entry for a fee of %d Zen." />
 		<Msg ID="132" Text="Skill can be used by party leader only" annotation="Skill can be used by party leader only" />
@@ -220,7 +220,7 @@
 		<Msg ID="190" Text="%s's position has been changed to Battle Master." annotation="%s's position has been changed to Battle Master." />
 		<Msg ID="191" Text="%s's position has been changed to Guild Member." annotation="%s's position has been changed to Guild Member." />
 		<Msg ID="192" Text="The %s Guild type has been changed to %d " annotation="The %s Guild type has been changed to %d " />
-		<Msg ID="193" Text="Siege Warfare will start in %d minute(s)." annotation="Siege Warfare will start in %d minute(s)." />
+		<Msg ID="193" Text="距开始攻城战还剩%d分钟" annotation="Siege Warfare will start in %d minute(s)." />
 		<Msg ID="194" Text="Owner Guild cannot be removed." annotation="Owner Guild cannot be removed." />
 		<Msg ID="195" Text="You can join the guild after the siege starts." annotation="You can join the guild after the siege starts." />
 		<Msg ID="196" Text="Leaving the guild is not allowed after Siege Warfare has begun." annotation="Leaving the guild is not allowed after Siege Warfare has begun." />
@@ -247,7 +247,7 @@
 		<Msg ID="217" Text="The attack of %s has been pushed back at Loren pass" annotation="The attack of %s has been pushed back at Loren pass" />
 		<Msg ID="218" Text="%s has pushed back the attack of Erohim's army at Loren pass" annotation="%s has pushed back the attack of Erohim's army at Loren pass" />
 		<Msg ID="219" Text="The attack of Erohim's army has been pushed back at Loren pass" annotation="The attack of Erohim's army has been pushed back at Loren pass" />
-		<Msg ID="220" Text="受昆顿命令的巴卡斯正为占领狼魂要塞准备发起进攻。" annotation="Balgass has join forces with Kundun's army and preparing to attack Crywolf Fortress." />
+		<Msg ID="220" Text="受昆顿命令的巴卡斯正为占领狼魂要塞准备发起进攻" annotation="Balgass has join forces with Kundun's army and preparing to attack Crywolf Fortress." />
 		<Msg ID="221" Text="巴卡斯军团正为攻占狼魂要塞而做准备" annotation="The army of Balgass is ready to attack Crywolf Fortress" />
 		<Msg ID="222" Text="巴卡斯军团向狼魂要塞发起进攻了" annotation="The army of Balgass is marching towards Crywolf Fortress" />
 		<Msg ID="223" Text="巴卡斯军团向狼魂要塞发起进攻了" annotation="The army of Balgass is marching towards Crywolf Fortress" />
@@ -290,7 +290,7 @@
 		<Msg ID="260" Text="Will lead to tower of the refinement road after 1 hour again seal." annotation="Will lead to tower of the refinement road after 1 hour again seal." />
 		<Msg ID="261" Text="Because the unlucky strength transmits to tower of the refinement, after 20 minutes will force to return the ridge security area." annotation="Because the unlucky strength transmits to tower of the refinement, after 20 minutes will force to return the ridge security area." />
 		<Msg ID="262" Text="[Kanturu] The Gateway Machine opens in 1 minute." annotation="[Kanturu] The Gateway Machine opens in 1 minute." />
-		<Msg ID="263" Text="[Kanturu] Next battle will start in 1 minute." annotation="[Kanturu] Next battle will start in 1 minute." />
+		<Msg ID="263" Text="(坎特鲁战役)下一场战斗将在 1 分钟后开始" annotation="[Kanturu] Next battle will start in 1 minute." />
 		<Msg ID="264" Text="Defeat the Nightmare that controls the Maya to gain entrance to the Refinery." annotation="Defeat the Nightmare that controls the Maya to gain entrance to the Refinery." />
 		<Msg ID="265" Text="Has defeated the Nightmare Boss. You may now proceed to the Refinery Tower." annotation="Has defeated the Nightmare Boss. You may now proceed to the Refinery Tower." />
 		<Msg ID="266" Text="Because will limit the time crossed, will force to return the ridge security area." annotation="Because will limit the time crossed, will force to return the ridge security area." />
@@ -320,10 +320,10 @@
 		<Msg ID="290" Text="You cannot trade inside Illusion Temple." annotation="You cannot trade inside Illusion Temple." />
 		<Msg ID="291" Text="Illusion Temple is ongoing. You cannot join the party." annotation="Illusion Temple is ongoing. You cannot join the party." />
 		<Msg ID="292" Text="Illusion Temple is ongoing. You cannot join the guild." annotation="Illusion Temple is ongoing. You cannot join the guild." />
-		<Msg ID="293" Text="冰霜巨蛛已经登场了。%d分钟后孵化魔地入口将被关闭。" annotation="Selupan has appeared. The Hatchery Gates will be closed in %d minute(s)." />
-		<Msg ID="294" Text="通往孵化魔地的入口已经开启了。" annotation="The Hatchery Gate is opened." />
-		<Msg ID="295" Text="Hatchery Gates will open in %d minute(s)." annotation="Hatchery Gates will open in %d minute(s)." />
-		<Msg ID="296" Text="The Hatchery Gate is closed." annotation="The Hatchery Gate is closed." />
+		<Msg ID="293" Text="冰霜巨蛛已经登场了。%d分钟后孵化魔地入口将被关闭" annotation="Selupan has appeared. The Hatchery Gates will be closed in %d minute(s)." />
+		<Msg ID="294" Text="通往孵化魔地的入口已经开启了" annotation="The Hatchery Gate is opened." />
+		<Msg ID="295" Text="%d分钟后孵化魔地将开启" annotation="Hatchery Gates will open in %d minute(s)." />
+		<Msg ID="296" Text="孵化魔地入口已经关闭了" annotation="The Hatchery Gate is closed." />
 		<Msg ID="297" Text="因入口被关闭，无法入场" annotation="The Hatchery Gate is closed, you cannot enter." />
 		<Msg ID="298" Text="因入口被关闭，无法入场" annotation="The Hatchery Gate has closed, you cannot proceed." />
 		<Msg ID="299" Text="The skill cannot be used in Raklion Hatchery locations" annotation="The skill cannot be used in Raklion Hatchery locations" />
@@ -523,11 +523,11 @@
 		<Msg ID="493" Text="Status changed to: VIP! [%s]" annotation="Status changed to: VIP! [%s]" />
 		<Msg ID="494" Text="%d MINUTE(S) LEFT UNTIL ILLUSION TEMPLE CHAMPIONSHIP OPENS" annotation="%d MINUTE(S) LEFT UNTIL ILLUSION TEMPLE CHAMPIONSHIP OPENS" />
 		<Msg ID="495" Text="You cannot enter the Illusion Temple Championship any more." annotation="You cannot enter the Illusion Temple Championship any more." />
-		<Msg ID="496" Text="%d MINUTE(S) LEFT UNTIL ILLUSION TEMPLE OPENS" annotation="%d MINUTE(S) LEFT UNTIL ILLUSION TEMPLE OPENS" />
-		<Msg ID="497" Text="You cannot enter the Illusion Temple any more." annotation="You cannot enter the Illusion Temple any more." />
+		<Msg ID="496" Text="(幻影寺院)离进场还剩 %d 分钟" annotation="%d MINUTE(S) LEFT UNTIL ILLUSION TEMPLE OPENS" />
+		<Msg ID="497" Text="(幻影寺院)大门已关闭" annotation="You cannot enter the Illusion Temple any more." />
 		<Msg ID="498" Text="Gens reward is available, go to your Gens Master" annotation="Gens reward is available, go to your Gens Master" />
-		<Msg ID="499" Text="You cannot warp to Battle Zone" annotation="You cannot warp to Battle Zone" />
-		<Msg ID="500" Text="You have entered to Battle Zone" annotation="You have entered to Battle Zone" />
+		<Msg ID="499" Text="无法移动到纷争区域" annotation="You cannot warp to Battle Zone" />
+		<Msg ID="500" Text="进入纷争区域" annotation="You have entered to Battle Zone" />
 		<Msg ID="501" Text="You are not a murderer, no need the blessing" annotation="You are not a murderer, no need the blessing" />
 		<Msg ID="502" Text="Monster Kill Coin Awarded (%s): %d" annotation="Monster Kill Coin Awarded (%s): %d" />
 		<Msg ID="503" Text="You need 120 level" annotation="You need 120 level" />
@@ -563,14 +563,14 @@
 		<Msg ID="533" Text="Cannot use in Battle Zone" annotation="Cannot use in Battle Zone" />
 		<Msg ID="534" Text="Account is locked by security code!" annotation="Account is locked by security code!" />
 		<Msg ID="535" Text="You received %s" annotation="You received %s" />
-		<Msg ID="536" Text="Gambling failed!" annotation="Gambling failed!" />
+		<Msg ID="536" Text="背包需要4×4的空间" annotation="Gambling failed!" />
 		<Msg ID="537" Text="Invalid guild notice" annotation="Invalid guild notice" />
 		<Msg ID="538" Text="Syntax: &#60;player name&#61; &#60;password&#61;" annotation="Syntax: &#60;player name&#61; &#60;password&#61;" />
 		<Msg ID="539" Text="You cannot use this bag" annotation="You cannot use this bag" />
-		<Msg ID="540" Text="[Quest] Balram: (%d/%d)" annotation="[Quest] Balram: (%d/%d)" />
-		<Msg ID="541" Text="[Quest] Death Spirit: (%d/%d)" annotation="[Quest] Death Spirit: (%d/%d)" />
-		<Msg ID="542" Text="[Quest] Soram: (%d/%d)" annotation="[Quest] Soram: (%d/%d)" />
-		<Msg ID="543" Text="[Quest] Dark Elf: (%d/%d)" annotation="[Quest] Dark Elf: (%d/%d)" />
+		<Msg ID="540" Text="[任务] 暗黑防御者(训练兵): (%d/%d)" annotation="[Quest] Balram: (%d/%d)" />
+		<Msg ID="541" Text="[任务] 暗黑咒术师(训练兵): (%d/%d)" annotation="[Quest] Death Spirit: (%d/%d)" />
+		<Msg ID="542" Text="[任务] 暗黑扫荡者(训练兵): (%d/%d)" annotation="[Quest] Soram: (%d/%d)" />
+		<Msg ID="543" Text="[任务] 暗黑指挥官(训练兵): (%d/%d)" annotation="[Quest] Dark Elf: (%d/%d)" />
 		<Msg ID="544" Text="Entered Game!" annotation="Entered Game!" />
 		<Msg ID="545" Text="Use of prohibited symbol detected in Chat" annotation="Use of prohibited symbol detected in Chat" />
 		<Msg ID="546" Text="Prohibited symbol detected in Guild Name" annotation="Prohibited symbol detected in Guild Name" />
@@ -649,7 +649,7 @@
 		<Msg ID="619" Text="Storage is not available on Battle Core" annotation="Storage is not available on Battle Core" />
 		<Msg ID="620" Text="Create character is not available on Battle Core." annotation="Create character is not available on Battle Core." />
 		<Msg ID="621" Text="You cannot use Personal Store in Battle Core." annotation="You cannot use Personal Store in Battle Core." />
-		<Msg ID="622" Text="Inventory space is insufficient." annotation="Inventory space is insufficient." />
+		<Msg ID="622" Text="空间不足" annotation="Inventory space is insufficient." />
 		<Msg ID="623" Text="You are short of money" annotation="You are short of money" />
 		<Msg ID="624" Text="You can't use item restore function, and item sold now can't be restored." annotation="You can't use item restore function, and item sold now can't be restored." />
 		<Msg ID="625" Text="Internal Error" annotation="Internal Error" />
