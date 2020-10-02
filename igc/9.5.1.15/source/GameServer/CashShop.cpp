@@ -726,6 +726,12 @@ void CItemShop::GCCashInventoryItemUse(LPOBJ lpObj, int Result, int UniqueCode, 
 		return;
 	}
 
+	// durability
+	BYTE dur = ItemGetDurability(ITEMGET(Iter->second.wItemGroup, Iter->second.wItemType), Iter->second.btItemLevel, Iter->second.btItemExOption, Iter->second.btItemSetOption);
+	if(dur == 0) {
+		dur = Iter->second.btItemDurability;
+	}
+
 	if(Iter->second.btItemType == 1)
 	{
 		g_PeriodItemEx.SetPeriodItemInfo(lpObj, ITEMGET(Iter->second.wItemGroup, Iter->second.wItemType), 0, Iter->second.dwItemPeriodTime*60);
@@ -735,7 +741,7 @@ void CItemShop::GCCashInventoryItemUse(LPOBJ lpObj, int Result, int UniqueCode, 
 	{
 		DWORD periodtime = Iter->second.dwItemPeriodTime*60;
 		ItemSerialCreateSend(lpObj->m_Index, 236, NULL, NULL, ITEMGET(Iter->second.wItemGroup, Iter->second.wItemType), Iter->second.btItemLevel, 
-			Iter->second.btItemDurability, Iter->second.btItemSkill, Iter->second.btItemLuck, Iter->second.btItemOption,
+			dur, Iter->second.btItemSkill, Iter->second.btItemLuck, Iter->second.btItemOption,
 			Iter->second.dwItemPeriodTime, Iter->second.btItemExOption, Iter->second.btItemSetOption, periodtime, 0, 0);
 	}
 
@@ -793,7 +799,7 @@ void CItemShop::GCCashInventoryItemUse(LPOBJ lpObj, int Result, int UniqueCode, 
 		else if (lpItemInfo->ItemKindA == 12)
 		{
 			BYTE SocketOption[5] = { -1, -1, -1, -1, -1 };
-			ItemSerialCreateSend(lpObj->m_Index, 224, NULL, NULL, ITEMGET(Iter->second.wItemGroup, Iter->second.wItemType), Iter->second.btItemLevel, Iter->second.btItemDurability, 0, 0, 0, lpObj->m_Index, 0, 0, 0, SocketOption, 0);
+			ItemSerialCreateSend(lpObj->m_Index, 224, NULL, NULL, ITEMGET(Iter->second.wItemGroup, Iter->second.wItemType), Iter->second.btItemLevel, dur, 0, 0, 0, lpObj->m_Index, 0, 0, 0, SocketOption, 0);
 		}
 
 		else
@@ -827,7 +833,7 @@ void CItemShop::GCCashInventoryItemUse(LPOBJ lpObj, int Result, int UniqueCode, 
 			}
 
 			ItemSerialCreateSend(lpObj->m_Index, 235, NULL, NULL, ITEMGET(Iter->second.wItemGroup, Iter->second.wItemType), Iter->second.btItemLevel,
-				Iter->second.btItemDurability, Iter->second.btItemSkill, Iter->second.btItemLuck, Iter->second.btItemOption,
+				dur, Iter->second.btItemSkill, Iter->second.btItemLuck, Iter->second.btItemOption,
 				lpObj->m_Index, Iter->second.btItemExOption, Iter->second.btItemSetOption, 0, SocketOption, MainAttribute);
 		}
 	}
