@@ -259,13 +259,13 @@ function CalcAttackSpeed(Class, Dexterity)
 		MagicSpeed = Dexterity / 10
 	elseif(Class == CLASS_KNIGHT) then
 		AttackSpeed = Dexterity / 15
-		MagicSpeed = Dexterity / 20
+		MagicSpeed = Dexterity / 15
 	elseif(Class == CLASS_ELF) then 
 		AttackSpeed = Dexterity / 50
 		MagicSpeed = Dexterity / 50
 	elseif(Class == CLASS_GLADIATOR) then
 		AttackSpeed = Dexterity / 15
-		MagicSpeed = Dexterity / 20
+		MagicSpeed = Dexterity / 15
 	elseif(Class == CLASS_DARKLORD) then
 		AttackSpeed = Dexterity / 10
 		MagicSpeed = Dexterity / 10
