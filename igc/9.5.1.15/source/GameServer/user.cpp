@@ -2169,13 +2169,28 @@ bool gObjSetCharacter(LPBYTE lpdata, int aIndex)
 	lpObj->m_byKillMobCount = 0;
 	lpObj->m_bCCF_Quit_Msg = 0;
 
-	if (lpObj->MapNumber == MAP_INDEX_REFUGEE)
+	if (lpObj->MapNumber == MAP_INDEX_REFUGEE
+	|| lpObj->MapNumber == MAP_INDEX_BARRACKS)
 	{
-		lpObj->MapNumber = MAP_INDEX_BARRACKS;
-		MapC[lpObj->MapNumber].GetMapPos(lpObj->MapNumber, lpObj->X, lpObj->Y);
+		short sX;
+		short sY;
+		short sLVL;
+		unsigned char btMAPNUM = MAP_INDEX_CRYWOLF_FIRSTZONE;
+		unsigned char btDIR;
+
+		int iMapNumber = gGateC.GetGate(114, (short &)sX, (short &)sY, (BYTE &)btMAPNUM, (BYTE &)btDIR, (short &)sLVL);
+
+		if (iMapNumber >= 0)
+		{
+			lpObj->MapNumber = btMAPNUM;
+			lpObj->X = sX;
+			lpObj->Y = sY;
+		}
 	}
 
-	if (lpObj->MapNumber == MAP_INDEX_ACHERON || lpObj->MapNumber == MAP_INDEX_DEBENTER)
+	if (lpObj->MapNumber == MAP_INDEX_ACHERON
+	|| lpObj->MapNumber == MAP_INDEX_DEBENTER
+	|| lpObj->MapNumber == MAP_INDEX_URUK_MOUNTAIN)
 	{
 		short sX;
 		short sY;
@@ -2432,25 +2447,8 @@ bool gObjSetCharacter(LPBYTE lpdata, int aIndex)
 		MapC[lpObj->MapNumber].GetMapPos(lpObj->MapNumber, (short &)lpObj->X, (short &)lpObj->Y);
 	}
 
-	if (g_ConfigRead.server.IsNonPvP() == TRUE && (g_NewPVP.IsVulcanusMap(lpObj->MapNumber) || g_NewPVP.IsPKFieldMap(lpObj->MapNumber)))
-	{
-		short sX;
-		short sY;
-		short sLVL;
-		unsigned char btMAPNUM = lpObj->MapNumber;
-		unsigned char btDIR;
-
-		int iMapNumber = gGateC.GetGate(17, (short &)sX, (short &)sY, (BYTE &)btMAPNUM, (BYTE &)btDIR, (short &)sLVL);
-
-		if (iMapNumber >= 0)
-		{
-			lpObj->MapNumber = btMAPNUM;
-			lpObj->X = sX;
-			lpObj->Y = sY;
-		}
-	}
-
-	if (g_ConfigRead.server.IsNonPvP() == FALSE && g_NewPVP.IsPKFieldMap(lpObj->MapNumber))
+	if (g_NewPVP.IsVulcanusMap(lpObj->MapNumber)
+	|| g_NewPVP.IsPKFieldMap(lpObj->MapNumber))
 	{
 		short sX;
 		short sY;
@@ -30707,7 +30705,7 @@ BOOL gObjUseInvenPetCheck(LPOBJ lpObj, CItem *lpItem, int flag)
 				
 			else if (lpItem->m_Type == ITEMGET(13,3))
 			{
-				if (lpObj->MapNumber == MAP_INDEX_ICARUS)
+				if (lpObj->MapNumber == MAP_INDEX_ATHLANSE)
 				{
 					return FALSE;
 				}
