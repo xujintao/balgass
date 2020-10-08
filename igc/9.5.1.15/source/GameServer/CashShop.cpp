@@ -183,8 +183,8 @@ void CItemShop::LoadItemInfo(LPSTR pchFilename)
 
 		if (this->MapItemInfo.insert(std::pair<int, ITEMSHOP_ITEMINFO>(ItemInfo.wID, ItemInfo)).second == false)
 		{
-			g_Log.AddC(TColor::Red, "[ItemShop][LoadItemInfo] ERROR: Duplicated Entry in config file: ID:%d",
-				ItemInfo.wID);
+			//g_Log.AddC(TColor::Red, "[ItemShop][LoadItemInfo] ERROR: Duplicated Entry in config file: ID:%d",
+			//	ItemInfo.wID);
 		}
 	}
 
