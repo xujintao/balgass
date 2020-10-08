@@ -275,7 +275,12 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 			default:
 				itemInfo.Type = 0 // quantity/number
 			}
-			itemInfo.Durability = mustAtoi(values[3])
+			switch code(itemInfo.Cat, itemInfo.Index) {
+			case code(13, 54), code(13, 55), code(13, 56), code(13, 57), code(13, 58):
+				itemInfo.Durability = 10
+			default:
+				itemInfo.Durability = mustAtoi(values[3])
+			}
 		case 2, 10: // duration
 			// type
 			switch code(itemInfo.Cat, itemInfo.Index) {
