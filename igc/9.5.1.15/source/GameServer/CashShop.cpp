@@ -727,9 +727,11 @@ void CItemShop::GCCashInventoryItemUse(LPOBJ lpObj, int Result, int UniqueCode, 
 	}
 
 	// durability
-	BYTE dur = ItemGetDurability(ITEMGET(Iter->second.wItemGroup, Iter->second.wItemType), Iter->second.btItemLevel, Iter->second.btItemExOption, Iter->second.btItemSetOption);
+	BYTE dur = Iter->second.btItemDurability;
+	// item durability specified usually refers to quality item
+	// durability zero means use system default durability
 	if(dur == 0) {
-		dur = Iter->second.btItemDurability;
+		dur = ItemGetDurability(ITEMGET(Iter->second.wItemGroup, Iter->second.wItemType), Iter->second.btItemLevel, Iter->second.btItemExOption, Iter->second.btItemSetOption);
 	}
 
 	if(Iter->second.btItemType == 1)

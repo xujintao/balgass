@@ -297,7 +297,6 @@ func convertItemInfo() (itemInfos map[int]ItemInfo) {
 				itemInfo.Type = 1
 			default:
 				itemInfo.Type = 2
-				itemInfo.Durability = 255
 			}
 			// period
 			period := mustAtoi(values[3])
