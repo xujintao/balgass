@@ -327,17 +327,17 @@
 		<Msg ID="297" Text="因入口被关闭，无法入场" annotation="The Hatchery Gate is closed, you cannot enter." />
 		<Msg ID="298" Text="因入口被关闭，无法入场" annotation="The Hatchery Gate has closed, you cannot proceed." />
 		<Msg ID="299" Text="The skill cannot be used in Raklion Hatchery locations" annotation="The skill cannot be used in Raklion Hatchery locations" />
-		<Msg ID="300" Text="Duels are not allowed within Illusion Temple." annotation="Duels are not allowed within Illusion Temple." />
-		<Msg ID="301" Text="Duels are not allowed inside DoppelGanger." annotation="Duels are not allowed inside DoppelGanger." />
-		<Msg ID="302" Text="Duels are not allowed inside Imperial Fort." annotation="Duels are not allowed inside Imperial Fort." />
-		<Msg ID="303" Text="You cannot trade inside DoppelGanger." annotation="You cannot trade inside DoppelGanger." />
-		<Msg ID="304" Text="You cannot trade inside Imperial Fort." annotation="You cannot trade inside Imperial Fort." />
+		<Msg ID="300" Text="该区域不能决斗" annotation="Duels are not allowed within Illusion Temple." />
+		<Msg ID="301" Text="该区域不能决斗" annotation="Duels are not allowed inside DoppelGanger." />
+		<Msg ID="302" Text="该区域不能决斗" annotation="Duels are not allowed inside Imperial Fort." />
+		<Msg ID="303" Text="该区域不能交易" annotation="You cannot trade inside DoppelGanger." />
+		<Msg ID="304" Text="该区域不能交易" annotation="You cannot trade inside Imperial Fort." />
 		<Msg ID="305" Text="Cannot move in NON-PK server." annotation="Cannot move in NON-PK server." />
 		<Msg ID="306" Text="The Crystal Statue has been destroyed!!!" annotation="The Crystal Statue has been destroyed!!!" />
 		<Msg ID="307" Text="%s 消灭了冰霜巨蛛。" annotation="%s killed Selupan!" />
 		<Msg ID="308" Text="Quest Exp" annotation="Quest Exp" />
-		<Msg ID="309" Text="Duel: %s vs %s Arena %d" annotation="Duel: %s vs %s Arena %d" />
-		<Msg ID="310" Text="Duel: %s defeated %s!" annotation="Duel: %s defeated %s!" />
+		<Msg ID="309" Text="决斗: %s vs %s 第%d角斗场" annotation="Duel: %s vs %s Arena %d" />
+		<Msg ID="310" Text="决斗: %s 击败了 %s!" annotation="Duel: %s defeated %s!" />
 		<Msg ID="311" Text="You cannot trade while you are duelling" annotation="You cannot trade while you are duelling" />
 		<Msg ID="312" Text="You cannot trade while you are observing a duel" annotation="You cannot trade while you are observing a duel" />
 		<Msg ID="313" Text="You cannot open store while you are duelling" annotation="You cannot open store while you are duelling" />
@@ -365,22 +365,22 @@
 		<Msg ID="335" Text="抬走，下一个" annotation="You are dead looser, Hahahaha!" />
 		<Msg ID="336" Text="Murderers are not allowed" annotation="Murderers are not allowed" />
 		<Msg ID="337" Text="-Ice Walker appeared.-" annotation="-Ice Walker appeared.-" />
-		<Msg ID="338" Text="-Mission completed.-" annotation="-Mission completed.-" />
-		<Msg ID="339" Text="-Mission failed.-" annotation="-Mission failed.-" />
-		<Msg ID="340" Text="PORTAL IS ALMOST READY, BE READY TO TELEPORT" annotation="PORTAL IS ALMOST READY, BE READY TO TELEPORT" />
-		<Msg ID="341" Text="Portal will create after %d minutes" annotation="Portal will create after %d minutes" />
-		<Msg ID="342" Text="Imperial Guardian Event started!" annotation="Imperial Guardian Event started!" />
-		<Msg ID="343" Text="Portal has been created!" annotation="Portal has been created!" />
-		<Msg ID="344" Text="Use it now to teleport to next zone" annotation="Use it now to teleport to next zone" />
-		<Msg ID="345" Text="%d to start Imperial Guardian" annotation="%d to start Imperial Guardian" />
-		<Msg ID="346" Text="Portal has been destroyed. You cannot warp." annotation="Portal has been destroyed. You cannot warp." />
+		<Msg ID="338" Text="任务完成" annotation="-Mission completed.-" />
+		<Msg ID="339" Text="任务失败" annotation="-Mission failed.-" />
+		<Msg ID="340" Text="1分钟后任务将结束" annotation="PORTAL IS ALMOST READY, BE READY TO TELEPORT" />
+		<Msg ID="341" Text="离传送门出现还剩%d分钟" annotation="Portal will create after %d minutes" />
+		<Msg ID="342" Text="任务开始" annotation="Imperial Guardian Event started!" />
+		<Msg ID="343" Text="传送门已经出现" annotation="Portal has been created!" />
+		<Msg ID="344" Text="请移动到下一个区" annotation="Use it now to teleport to next zone" />
+		<Msg ID="345" Text="离任务开始还剩%d分钟" annotation="%d to start Imperial Guardian" />
+		<Msg ID="346" Text="传送门已经消失，无法传送" annotation="Portal has been destroyed. You cannot warp." />
 		<Msg ID="347" Text="Cannot warp." annotation="Cannot warp." />
 		<Msg ID="348" Text="PvP Last Man Standing event failed to finish in time" annotation="PvP Last Man Standing event failed to finish in time" />
 		<Msg ID="349" Text="You are not eligible to warp. Only party members of first warrior can enter." annotation="You are not eligible to warp. Only party members of first warrior can enter." />
 		<Msg ID="350" Text="Maximum number of warriors has reached" annotation="Maximum number of warriors has reached" />
-		<Msg ID="351" Text="Portal is not ready. You cannot warp." annotation="Portal is not ready. You cannot warp." />
-		<Msg ID="352" Text="Mission completed successfully!!!" annotation="Mission completed successfully!!!" />
-		<Msg ID="353" Text="Mission failed." annotation="Mission failed." />
+		<Msg ID="351" Text="传送点生成时间未到" annotation="Portal is not ready. You cannot warp." />
+		<Msg ID="352" Text="任务完成" annotation="Mission completed successfully!!!" />
+		<Msg ID="353" Text="任务失败" annotation="Mission failed." />
 		<Msg ID="354" Text="You died. Mission failed." annotation="You died. Mission failed." />
 		<Msg ID="355" Text="[Last Man Standing] Sorry, this room is full. Try again next time" annotation="[Last Man Standing] Sorry, this room is full. Try again next time" />
 		<Msg ID="356" Text="Register failed.. No room available for your character" annotation="Register failed.. No room available for your character" />
@@ -446,8 +446,8 @@
 		<Msg ID="416" Text="Guild War (%s) VS (%s) Result: %d / %d" annotation="Guild War (%s) VS (%s) Result: %d / %d" />
 		<Msg ID="417" Text="You are not allowed to use Admin CMD" annotation="You are not allowed to use Admin CMD" />
 		<Msg ID="418" Text="You have insufficient GM Level (You need 6 Level)" annotation="You have insufficient GM Level (You need 6 Level)" />
-		<Msg ID="419" Text="You need %d level" annotation="You need %d level" />
-		<Msg ID="420" Text="You need %d money" annotation="You need %d money" />
+		<Msg ID="419" Text="等级未满%d的角色无法运行奇迹助手" annotation="You need %d level" />
+		<Msg ID="420" Text="金币不足，无法运行奇迹助手" annotation="You need %d money" />
 		<Msg ID="421" Text="Your VIP Level is not enough" annotation="Your VIP Level is not enough" />
 		<Msg ID="422" Text="You are not a VIP" annotation="You are not a VIP" />
 		<Msg ID="423" Text="You are not allowed to stay in this zone" annotation="You are not allowed to stay in this zone" />
@@ -525,7 +525,7 @@
 		<Msg ID="495" Text="You cannot enter the Illusion Temple Championship any more." annotation="You cannot enter the Illusion Temple Championship any more." />
 		<Msg ID="496" Text="(幻影寺院)离进场还剩 %d 分钟" annotation="%d MINUTE(S) LEFT UNTIL ILLUSION TEMPLE OPENS" />
 		<Msg ID="497" Text="(幻影寺院)大门已关闭" annotation="You cannot enter the Illusion Temple any more." />
-		<Msg ID="498" Text="Gens reward is available, go to your Gens Master" annotation="Gens reward is available, go to your Gens Master" />
+		<Msg ID="498" Text="家族奖励可用, 请咨询您的家族管家" annotation="Gens reward is available, go to your Gens Master" />
 		<Msg ID="499" Text="无法移动到纷争区域" annotation="You cannot warp to Battle Zone" />
 		<Msg ID="500" Text="进入纷争区域" annotation="You have entered to Battle Zone" />
 		<Msg ID="501" Text="You are not a murderer, no need the blessing" annotation="You are not a murderer, no need the blessing" />
@@ -587,7 +587,7 @@
 		<Msg ID="557" Text="You lost in the Best of the Best Match. Please try again next time." annotation="You lost in the Best of the Best Match. Please try again next time." />
 		<Msg ID="558" Text="The souls of the Guardsmen have been purified. You won the Best of the Best Match." annotation="The souls of the Guardsmen have been purified. You won the Best of the Best Match." />
 		<Msg ID="559" Text="You lost in the Best of the Best Match.Please try again next time" annotation="You lost in the Best of the Best Match.Please try again next time" />
-		<Msg ID="560" Text="Warping to that specified location is unavailable at the moment." annotation="Warping to that specified location is unavailable at the moment." />
+		<Msg ID="560" Text="该区域处于不可用状态" annotation="Warping to that specified location is unavailable at the moment." />
 		<Msg ID="561" Text="The winner prize is being given. Please wait for a while." annotation="The winner prize is being given. Please wait for a while." />
 		<Msg ID="562" Text="Cannot use while watching the battle" annotation="Cannot use while watching the battle" />
 		<Msg ID="563" Text="You cannot open a private store in the Best of the Best Match." annotation="You cannot open a private store in the Best of the Best Match." />
@@ -643,8 +643,8 @@
 		<Msg ID="613" Text="The Cancel Item Sale is not available at the moment" annotation="The Cancel Item Sale is not available at the moment" />
 		<Msg ID="614" Text="Divorcing is not allowed" annotation="Divorcing is not allowed" />
 		<Msg ID="615" Text="Another mount is already used." annotation="Another mount is already used." />
-		<Msg ID="616" Text="Cannot unequip mount." annotation="Cannot unequip mount." />
-		<Msg ID="617" Text="Cannot equip mount." annotation="Cannot equip mount." />
+		<Msg ID="616" Text="当前状态，无法取消" annotation="Cannot unequip mount." />
+		<Msg ID="617" Text="当前状态，无法使用" annotation="Cannot equip mount." />
 		<Msg ID="618" Text="Trading is not allowed while applying to Battle Core" annotation="Trading is not allowed while applying to Battle Core" />
 		<Msg ID="619" Text="Storage is not available on Battle Core" annotation="Storage is not available on Battle Core" />
 		<Msg ID="620" Text="Create character is not available on Battle Core." annotation="Create character is not available on Battle Core." />
