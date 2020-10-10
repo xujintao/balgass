@@ -1356,37 +1356,40 @@ type windowgame0117A544 struct {
 // mainFrame or dash size:0x340
 type windowgameMainFrame struct {
 	windowgame0117A544
-	m88hp    int
-	m8ChpMax int
-	m90      bool
-	m94mp    int
-	m98mpMax int
-	m9Csd    int
-	mA0sdMax int
-	mA4ag    int
-	mA8agMax int
-	mAC      int
-	mB0      int
-	mB4      bool
-	mB5      bool
-	mB6      bool
-	mB8      int
-	mBC      struct{ data [24]uint8 }
-	mD4      struct{ data [8]uint8 }
-	mDC      struct{ data [8]uint8 }
-	mE4      struct{ data [40]uint8 }
-	m10C     struct{ data [40]uint8 }
-	m134     struct{ data [160]uint8 }
-	m1D4     struct{ data [160]uint8 }
-	m280     int
-	m284     struct{}
-	m2A0     struct{}
-	m328     int
-	m330     bool
-	m331     bool
-	m332     bool
-	m333     bool
-	m334     bool
+	m88hp                   int
+	m8ChpMax                int
+	m90                     bool
+	m94mp                   int
+	m98mpMax                int
+	m9Csd                   int
+	mA0sdMax                int
+	mA4ag                   int
+	mA8agMax                int
+	mAC                     int
+	mB0                     int
+	mB4                     bool
+	mB5                     bool
+	mB6                     bool
+	mB8                     int
+	mBC                     struct{ data [24]uint8 }
+	mD4                     struct{ data [8]uint8 }
+	mDC                     struct{ data [8]uint8 }
+	mE4                     struct{ data [40]uint8 }
+	m10C                    struct{ data [40]uint8 }
+	m134                    struct{ data [160]uint8 }
+	m1D4                    struct{ data [160]uint8 }
+	m280                    int
+	m284                    struct{}
+	m2A0                    struct{}
+	m328expAddition         int
+	m32CexpAdditionNetBar   int16
+	m32EexpMultipleEvent    int16
+	m330                    bool
+	m331                    bool
+	m332drawDone            bool
+	m333                    bool
+	m334                    bool
+	m33EexpMultipleGoldLine int16
 }
 
 func (t *windowgameMainFrame) f00AA9021construct() {
@@ -1462,12 +1465,12 @@ func (t *windowgameMainFrame) f00AAA14Ehpmp() {
 	ebp1 := false
 	if t.m90 != ebp1 {
 		t.m90 = ebp1
-		// f00A3A4F2(t, "SetChangeIntoxication", "%d", t.m90)
+		f00A3A4F2(t, "SetChangeIntoxication", "%d", t.m90) // 中毒状态
 	}
 	if t.m88hp != ebp14hp || t.m8ChpMax != ebp8hpMax {
 		t.m88hp = ebp14hp
 		t.m8ChpMax = ebp8hpMax
-		// f00A3A4F2(t, "SetHP", "%d %d", ebp14hp, ebp8hpMax)
+		f00A3A4F2(t, "SetHP", "%d %d", ebp14hp, ebp8hpMax)
 	}
 	if t.m94mp != ebp10mp || t.m98mpMax != ebpCmpMax {
 		t.m94mp = ebp10mp
@@ -1530,16 +1533,125 @@ func (t *windowgameMainFrame) do6fresh() bool {
 	// t.f00AAA60Bexp() // exp
 	// t.f00AAAA77()
 	// t.f00AAAAAD()
-	// if t.m332 == false {
-	// 	t.m332 = true
-	// 	t.f00AAB4D1(0, 0, 0, 0)
-	// }
+	if t.m332drawDone == false {
+		t.m332drawDone = true
+		t.f00AAB4D1(0, 0, 0, 0)
+	}
 	return true
 }
 
 // f00AA95BA
 func (t *windowgameMainFrame) do7() bool {
 	return false
+}
+
+func (t *windowgameMainFrame) f00AAB386() {
+	var ebp130 stdstring
+	ebp130.f00406A20init()
+	var ebp114 [260]uint8
+	f00DE8100memset(ebp114[:], 0, 260)
+	// f00DE91AA(t.m328expAddition, ebp114[:], 10)
+	// f00A3B454s2ws(&ebp130, ebp114[:])
+	f00A3A4F2(t, "SetBonusExpText", "%s", ebp130.f004073E0cstr())
+}
+
+func (t *windowgameMainFrame) f00AAB447draw(done bool) {
+	t.m332drawDone = done
+}
+
+func (t *windowgameMainFrame) f00AAB45EsetExpMultiple(bang, event, gold int16) {
+	t.m32CexpAdditionNetBar = bang
+	t.m32EexpMultipleEvent = event
+	t.m33EexpMultipleGoldLine = gold
+}
+
+func (t *windowgameMainFrame) f00AAB4D1(unk1, unk2, unk3, unk4 int) {
+	// ...
+	t.f00AAB611drawExpAdditionNetBar()
+	// ...
+	t.f00AAB731drawExpMultiple()
+	t.f00AACF5CdrawExpMultiplePremium()
+}
+
+func (t *windowgameMainFrame) f00AAB611drawExpAdditionNetBar() {
+	// if f005318EC().f00904B6B() == false {
+	// 	return
+	// }
+	if t.m32CexpAdditionNetBar <= 0 {
+		return
+	}
+	var ebp210 [260]uint8
+	f00DE8100memset(ebp210[:], 0, 260)
+	var ebp108 [260]uint8
+	f00DE8100memset(ebp108[:], 0, 260)
+
+	// 网吧优惠 (+%d%%)
+	f00DE817Asprintf(ebp108[:], string(v08610600.f00436DA8findcstr(0x10CD)), t.m32CexpAdditionNetBar)
+	// f00A3FF59(ebp210[:], ebp108[:], 1, 0)
+	// f004A2024(t.m2A8, ebp210[:])
+
+	t.m328expAddition += int(t.m32CexpAdditionNetBar)
+}
+
+func (t *windowgameMainFrame) f00AAB731drawExpMultiple() {
+	var ebp210 [260]uint8
+	f00DE8100memset(ebp210[:], 0, 260)
+	var ebp318gold [260]uint8
+	f00DE8100memset(ebp318gold[:], 0, 260)
+	var ebp108event [260]uint8
+	f00DE8100memset(ebp108event[:], 0, 260)
+	// f00A3FF59(ebp210[:], &v0117A358, 1, 0) // space
+	// f004A2024(t.m2A8, ebp210[:]) //
+
+	// ---------(B)经验值倍数---------
+	// f00A3FF59(ebp210[:], v08610600.f00436DA8findcstr(0x10FC), 0, 0)
+	// f004A2024(t.m2A8, ebp210[:])
+
+	// 经验值活动 (%d.%d倍)
+	if t.m32EexpMultipleEvent > 0 {
+		ebp324 := t.m32EexpMultipleEvent + 100
+		ebp320 := ebp324 / 100
+		ebp328 := ebp324 % 100 / 10
+		f00DE817Asprintf(ebp108event[:], string(v08610600.f00436DA8findcstr(0x10CE)), ebp320, ebp328)
+		// f00A3FF59(ebp210[:], ebp108event[:], 1, 0)
+		// f004A2024(t.m2A8, ebp210[:])
+	}
+
+	// 黄金频道 (%d.%d倍)
+	if f00AF7DC3getServerListManager().f00AF8862isGoldLine() {
+		ebp338 := t.m33EexpMultipleGoldLine + 100
+		ebp330 := ebp338 / 100
+		ebp334 := ebp338 % 100 / 10
+		f00DE817Asprintf(ebp318gold[:], string(v08610600.f00436DA8findcstr(0x10FE)), ebp330, ebp334)
+		// f00A3FF59(ebp210[:], ebp318gold[:], 1, 0)
+		// f004A2024(t.m2A8, ebp210[:])
+	}
+}
+
+func (t *windowgameMainFrame) f00AACF5CdrawExpMultiplePremium() {
+	ebp230 := t
+	if t.m328expAddition <= 0 {
+		return
+	}
+	var ebp110 [260]uint8
+	f00DE8100memset(ebp110[:], 0, 260)
+	var ebp228premium [260]uint8
+	f00DE8100memset(ebp228premium[:], 0, 260)
+
+	ebp11C := f006B8509().f004EBAE3(0x1D)
+	ebp118 := f006B8509().f004EBAE3(0x1C)
+	ebp4 := t.m328expAddition / ebp11C
+	ebp8 := t.m328expAddition % ebp11C
+	if ebp8 == 0 {
+		ebp4--
+	}
+	t.m338 = (ebp4 + 1) * ebp118
+	ebp114 := t.m338 + 100
+	ebp120 := ebp114 / 100
+	ebp22C := ebp114 % 100 / 10
+	f00DE817Asprintf(ebp228premium[:], string(v08610600.f00436DA8findcstr(0x10FF)), ebp120, ebp22C)
+	// f00A3FF59(ebp110[:], ebp228premium[:], 1, 0)
+	// f004A2024(t.m2A8, ebp110[:])
 }
 
 // GuildPosition size:0x78

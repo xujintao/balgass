@@ -371,8 +371,9 @@ type serverListManager struct {
 	m2Ccount int
 
 	// 结构
-	m13C *treeNode
-	size int
+	m138code uint8
+	m13C     *treeNode
+	size     int
 }
 
 // 构造函数
@@ -457,6 +458,13 @@ func (t *serverListManager) f00AF81FF(code, percent int) {
 	// 	t.m04.f00AF8A42(ebp50, ebp44.f00AF8F97(ebp10, ebp10.m04))
 	// 	t.f00AF846C(ebp10, code, percent)
 	// 	t.m04.f00AF89F1(&ebp58)
+}
+
+func (t *serverListManager) f00AF8862isGoldLine() bool {
+	if t.m138code == 2 || t.m138code == 3 {
+		return true
+	}
+	return false
 }
 
 // objectManager

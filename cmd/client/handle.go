@@ -38,6 +38,7 @@ var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
 	0x45:   handleViewportPlayerChange,     // viewport player change
 	0x81:   f0075D93DhandleWarehouseMoney,  // warehouse money
 	0xA9:   f0075E87EhandlePetItemInfo,     // pet item info
+	0xBF:   f0075F391handleBF,              // event experience
 	0xD2:   f0075F7D0handleD2,              // cash shop
 	0xD7:   handleD7positionSet,            // hook, hash[D4]=hash[D7]
 	0xD9:   handleD9normalAttack,           // hook, hash[11]=hash[D9]
@@ -283,6 +284,43 @@ func f0075E87EhandlePetItemInfo(code uint8, buf []uint8, len int, enc bool) {
 	println(label3, label2, label1)
 
 	// f0AF12EDA 隐藏函数
+}
+
+func f0075F391handleBF(code uint8, buf []uint8, len int, enc bool) {
+	// 0x0A047622
+	if buf[0] != 0xC1 {
+		// 0x0075F3B9 0x0AD75D2F
+	}
+	// 0x0A32E264
+	subcode := buf[3]
+	// 0x0075F3D2 0x0A43A189
+	switch subcode {
+	case 0x18:
+		// 0x0075F65C
+	case 0x52: // event experience multiple
+		// 0x0075F686
+		// f006F1C2D
+		func(buf []uint8) {
+			// 0x0AAB24A3 0x0A440F8F 0x0A0C7617 0x0AA08BE8 0x0AF979E6
+			ebpCpcBang := int16(binary.LittleEndian.Uint16(buf[4:]))
+			ebp8eventExpMultiple := int16(binary.LittleEndian.Uint16(buf[6:]))
+			ebp8goldLineExpMultiple := int16(binary.LittleEndian.Uint16(buf[8:]))
+			if ebpCpcBang < 0 {
+				ebpCpcBang = 0
+			}
+			// 0x006F1C68 0x0AF7F5A0
+			if ebp8eventExpMultiple < 0 {
+				ebp8eventExpMultiple = 0
+			}
+			// 0x006F1C76 0x09FFE867
+			if ebp8goldLineExpMultiple < 0 {
+				ebp8goldLineExpMultiple = 0
+			}
+			// 0x006F1C84 0x09E6ABC6 0x006F1CA4 0x0A9F856B 0x0B287414 0x006F1CC2
+			f00A49798game().m8CmainFrame.f00AAB45EsetExpMultiple(ebpCpcBang, ebp8eventExpMultiple, ebp8goldLineExpMultiple)
+			f00A49798game().m8CmainFrame.f00AAB447draw(false)
+		}(buf)
+	}
 }
 
 // s9 f00673854
