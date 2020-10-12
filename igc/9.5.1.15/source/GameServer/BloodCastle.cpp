@@ -709,7 +709,7 @@ void CBloodCastle::ProcState_Closed(int iBridgeIndex)
 				this->m_BridgeData[iBridgeIndex].m_bBC_CAN_PARTY = true;
 			}
 
-			if ( this->m_BridgeData[iBridgeIndex].m_i64_BC_REMAIN_MSEC <= ( this->m_iBC_TIME_MIN_OPEN * 60 * 1000 ) && this->m_BridgeData[iBridgeIndex].m_i64_BC_REMAIN_MSEC > 0 && (this->m_BridgeData[iBridgeIndex].m_i64_BC_REMAIN_MSEC/60000) !=this->m_BridgeData[iBridgeIndex].m_iBC_NOTIFY_COUNT)
+			if ( this->m_BridgeData[iBridgeIndex].m_i64_BC_REMAIN_MSEC < ( this->m_iBC_TIME_MIN_OPEN * 60 * 1000 ) && this->m_BridgeData[iBridgeIndex].m_i64_BC_REMAIN_MSEC > 0 && (this->m_BridgeData[iBridgeIndex].m_i64_BC_REMAIN_MSEC/60000) !=this->m_BridgeData[iBridgeIndex].m_iBC_NOTIFY_COUNT)
 			{
 				this->m_BridgeData[iBridgeIndex].m_iBC_NOTIFY_COUNT = this->m_BridgeData[iBridgeIndex].m_i64_BC_REMAIN_MSEC / 60000;
 
