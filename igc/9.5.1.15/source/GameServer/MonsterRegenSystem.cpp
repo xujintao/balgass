@@ -61,7 +61,7 @@ void CMonsterRegenSystem::LoadScript(char* lpFileName)
 		this->m_stMonsterGroupInfo[nGroupNumber].m_nMapNumber = group.attribute("MapNumber").as_int();
 		this->m_stMonsterGroupInfo[nGroupNumber].m_nBossMonsterClass = group.attribute("BossMonsterIndex").as_int();
 		this->m_stMonsterGroupInfo[nGroupNumber].m_nDuration = group.attribute("Duration").as_int();
-		this->m_stMonsterGroupInfo[nGroupNumber].m_sSpawnNotice = group.attribute("SpawnNotice").as_string();
+		this->m_stMonsterGroupInfo[nGroupNumber].m_sSpawnNotice = g_ConfigRead.UTF8ToANSI(group.attribute("SpawnNotice").as_string(), 0);
 	}
 					
 	//int nTempGroupNumber = 0;
