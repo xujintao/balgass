@@ -2886,8 +2886,9 @@ struct PMSG_EVENT_INVEN_ITEM_MOD
 struct PMSG_RES_EXPEVENTINFO
 {
 	PBMSG_HEAD2 h;
-	WORD wPCBangRate;
+	WORD wNetBarRate;
 	WORD wExpRate;
+	WORD wVipRate;
 };
 
 // Mining System

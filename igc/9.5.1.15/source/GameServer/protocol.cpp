@@ -15285,7 +15285,7 @@ void GameProtocol::CGUseItemRecv(PMSG_USEITEM* lpMsg, int aIndex)
 			}
 		}
 
-		else if ( citem->m_Type == ITEMGET(14,78) ) // CSHOP Arcanum Força
+		else if ( citem->m_Type == ITEMGET(14,78) ) // CSHOP Arcanum Forï¿½a
 		{
 			LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
 
@@ -24389,8 +24389,9 @@ void GameProtocol::GCResSendExpEventInfo(int aIndex)
 
 	PHeadSubSetB((LPBYTE)&pMsg, 0xBF, 0x52, sizeof(pMsg));
 
-	pMsg.wPCBangRate = 0;
+	pMsg.wNetBarRate = 0;
 	pMsg.wExpRate = g_ExpManager.GetEventExp() / g_ExpManager.GetStaticExp() * 100.0;
+	pMsg.wVipRate = g_VipSystem.GetExpBonus(&gObj[aIndex]) *100.0;
 
 	IOCP.DataSend(aIndex, (LPBYTE)&pMsg, pMsg.h.size);
 }
