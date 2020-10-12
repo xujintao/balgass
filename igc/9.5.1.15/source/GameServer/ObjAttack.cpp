@@ -1139,7 +1139,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 					fHPRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate;
 				}
 
-				if (rand() % 100 < fHPRecoveryRate)
+				if (rand()%10000 < fHPRecoveryRate*100)
 				{
 					gObjAddMsgSendDelay(lpTargetObj, 13, lpTargetObj->m_Index, 100, 0);
 				}
@@ -1165,7 +1165,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 					fManaRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate;
 				}
 
-				if (rand() % 100 < fManaRecoveryRate)
+				if (rand()%10000 < fManaRecoveryRate*100)
 				{
 					gObjAddMsgSendDelay(lpTargetObj, 14, lpTargetObj->m_Index, 100, 0);
 				}
@@ -1191,7 +1191,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 					fHPRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate;
 				}
 
-				if (rand() % 100 < fHPRecoveryRate)
+				if (rand()%10000 < fHPRecoveryRate*100)
 				{
 					gObjAddMsgSendDelay(lpTargetObj, 13, lpTargetObj->m_Index, 100, 0);
 				}
@@ -1214,7 +1214,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 					fManaRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate;
 				}
 
-				if (rand() % 100 < fManaRecoveryRate)
+				if (rand()%10000 < fManaRecoveryRate*100)
 				{
 					gObjAddMsgSendDelay(lpTargetObj, 14, lpTargetObj->m_Index, 100, 0);
 				}
@@ -1224,7 +1224,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 			{
 				if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate_Monk > 0.0)
 				{
-					if (rand() % 100 < lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate_Monk)
+					if (rand() % 10000 < lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate_Monk * 100)
 					{
 						gObjAddMsgSendDelay(lpObj, 15, lpTargetObj->m_Index, 100, 0);
 					}
@@ -1233,7 +1233,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 
 			else if (lpObj->Type == OBJ_USER && lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate > 0.0)
 			{
-				if (rand() % 100 < lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate)
+				if (rand() % 10000 < lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate * 100)
 				{
 					gObjAddMsgSendDelay(lpObj, 15, lpTargetObj->m_Index, 100, 0);
 				}
@@ -2218,15 +2218,13 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 
 					if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddSturn2 > 0.0f)
 					{
-						float fPercent = rand() % 100;
-						int iAccessoryEffect = 0;
-
+						float fValue = lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddSturn2;
 						if (lpTargetObj->Type == OBJ_USER)
 						{
-							iAccessoryEffect = lpTargetObj->m_PlayerData->m_Resistance_Stun;
+							fValue -= lpTargetObj->m_PlayerData->m_Resistance_Stun;
 						}
 
-						if (fPercent < lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddSturn2 - iAccessoryEffect)
+						if (fValue>0.0f && rand()%10000<fValue*100)
 						{
 							gObjAddBuffEffect(lpTargetObj, BUFFTYPE_STUN, 0, 0, 0, 0, 3);
 							gObjSetPosition(lpTargetObj->m_Index, lpTargetObj->X, lpTargetObj->Y);
@@ -2988,48 +2986,29 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 			gObjAddMsgSendDelay(lpTargetObj, 10, lpObj->m_Index, 10, AttackDamage);
 		}
 
-		if(lpTargetObj->Type == OBJ_USER && lpTargetObj->m_PlayerData->m_WingExcOption.iWingOpReturnEnemyDamage != 0)
-		{
-			if(rand()%100 < lpTargetObj->m_PlayerData->m_WingExcOption.iWingOpReturnEnemyDamage )
-			{
-				if (lpObj->Type == OBJ_MONSTER)
-				{
-					gObjAddMsgSendDelay(lpTargetObj, 12, lpObj->m_Index, 10, lpObj->m_AttackDamageMax);
-				}
-				else if (lpObj->Type == OBJ_USER)
-				{
-					gObjAddMsgSendDelay(lpTargetObj, 12, lpObj->m_Index, 10, AttackDamage);
-				}
-			}
-		}
-
 		if (lpTargetObj->Type == OBJ_USER)
 		{
-			float fRevengeRate = 0.0;
+			float fRevengeRate = lpTargetObj->m_PlayerData->m_WingExcOption.iWingOpReturnEnemyDamage;
 
 			if (lpTargetObj->Class == CLASS_RAGEFIGHTER)
 			{
-				fRevengeRate = lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsReturnEnemyAttack_Monk;
+				fRevengeRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsReturnEnemyAttack_Monk;
 			}
-
 			else
 			{
-				fRevengeRate = lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsReturnEnemyAttack;
+				fRevengeRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsReturnEnemyAttack;
 			}
 
-			if (fRevengeRate > 0.0 && rand() % 100 <= fRevengeRate)
+			if (fRevengeRate > 0.0 && rand() % 10000 <= fRevengeRate*100)
 			{
 				if (lpObj->Type == OBJ_MONSTER)
 				{
 					gObjAddMsgSendDelay(lpTargetObj, 12, lpObj->m_Index, 10, lpObj->m_AttackDamageMax);
 				}
-
 				else if (lpObj->Type == OBJ_USER)
 				{
 					gObjAddMsgSendDelay(lpTargetObj, 12, lpObj->m_Index, 10, AttackDamage);
 				}
-
-				return TRUE;
 			}
 		}
 
@@ -3142,7 +3121,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 				fRate -= lpTargetObj->m_PlayerData->m_Resistance_Double;
 			}
 
-			if (rand() % 100 < fRate)
+			if (fRate > 0.0 && rand()%10000 < fRate*100)
 			{
 				if (skill == 78 || g_MasterLevelSkillTreeSystem.GetBaseMasterLevelSkill(skill) == 518 || skill == 520)
 				{
@@ -3397,15 +3376,13 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 		{
 			if (gObjCheckUsedBuffEffect(lpTargetObj, BUFFTYPE_IRON_DEFENSE) == false && gObjCheckUsedBuffEffect(lpTargetObj, BUFFTYPE_IRON_DEFENSE_STR) == false)
 			{
-				float fPercent = rand() % 100;
-				int iAccessoryEffect = 0;
-
+				float fValue = lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddSturn;
 				if (lpTargetObj->Type == OBJ_USER)
 				{
-					iAccessoryEffect = lpTargetObj->m_PlayerData->m_Resistance_Stun;
+					fValue -= lpTargetObj->m_PlayerData->m_Resistance_Stun;
 				}
 
-				if (fPercent < lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddSturn - iAccessoryEffect)
+				if (fValue>0.0 && rand()%10000<fValue*100)
 				{
 					gObjAddBuffEffect(lpTargetObj, BUFFTYPE_STUN, 0, 0, 0, 0, 2);
 					gObjSetPosition(lpTargetObj->m_Index, lpTargetObj->X, lpTargetObj->Y);
@@ -3877,8 +3854,8 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 			}
 		}		
 
-		int nCritical = lpObj->m_CriticalDamage;
-		int nExcellent = lpObj->m_ExcelentDamage;
+		float nCritical = lpObj->m_CriticalDamage;
+		float nExcellent = lpObj->m_ExcelentDamage;
 
 		if (lpObj->Class == CLASS_RAGEFIGHTER)
 		{
@@ -3906,18 +3883,18 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 			nExcellent -= lpTargetObj->m_PlayerData->m_Resistance_Excellent;
 		}
 		
-		if ( nCritical > 0 )
+		if ( nCritical > 0.0 )
 		{
-			if ((rand() % 100) < nCritical)
+			if ((rand() % 10000) < nCritical*100)
 			{
 				cDamage = TRUE;
 				effect = 3;
 			}
 		}
 
-		if ( nExcellent > 0 )
+		if ( nExcellent > 0.0 )
 		{
-			if ((rand() % 100) < nExcellent)
+			if ((rand() % 10000) < nExcellent*100)
 			{
 				cDamage = TRUE;
 				effect = 2;

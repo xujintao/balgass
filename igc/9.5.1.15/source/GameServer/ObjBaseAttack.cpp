@@ -993,9 +993,9 @@ int  CObjBaseAttack::GetTargetDefense(LPOBJ lpObj, LPOBJ lpTargetObj, int& MsgDa
 
 	iOriginTargetDefense = targetdefense;
 	
-	if ( percentdamage != 0.0)
+	if ( percentdamage > 0.0)
 	{
-		if ( (rand()%100) < percentdamage)
+		if ( (rand()%10000) < percentdamage*100)
 		{
 			targetdefense = 0;
 			MsgDamage = 1;

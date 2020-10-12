@@ -5187,15 +5187,13 @@ void CMasterLevelSkillTreeSystem::MLS_MasteryKnightBlow(int aIndex, int aTargetI
 
 								gObjAddBuffEffect(&gObj[tObjNum], BUFFTYPE_BLEEDING, EFFECTTYPE_GIVE_DMG_TICK, (lpObj->m_PlayerData->Strength+lpObj->AddStrength)/10, 0, 0, 10);
 							}
-
-							int iStunEffect = fValue;
 							
 							if (gObj[tObjNum].Type == OBJ_USER)
 							{
-								iStunEffect -= gObj[tObjNum].m_PlayerData->m_Resistance_Stun;
+								fValue -= gObj[tObjNum].m_PlayerData->m_Resistance_Stun;
 							}
 
-							if ( rand()%100 < iStunEffect )
+							if (fValue>0.0 && rand()%10000 < fValue*100)
 							{
 								gObjAddBuffEffect(&gObj[tObjNum], BUFFTYPE_STUN, 0, 0, 0, 0, 2);
 								gObjSetPosition(tObjNum, gObj[tObjNum].X, gObj[tObjNum].Y);
@@ -5508,7 +5506,7 @@ void CMasterLevelSkillTreeSystem::MLS_MasterySuddenIce(int aIndex, CMagicInf *lp
 					{
 						gObjAttack(lpObj, &gObj[tObjNum], lpMagic, 1, 1, 0, 0, 0, 0);
 
-						if ( rand()%100 < fRate )
+						if (fRate>0.0 && rand()%10000<fRate*100)
 						{
 							gObjAddBuffEffect(&gObj[tObjNum], BUFFTYPE_FREEZE_2, 0, 0, 0, 0, 3);
 
@@ -5988,7 +5986,7 @@ void CMasterLevelSkillTreeSystem::MLS_SkillMasteryIce(LPOBJ lpObj, CMagicInf* lp
 
 	gObjAttack(lpObj, lpTargetObj, lpMagic, 1, 0, 0, 0, 0, 0);
 
-	if ( rand()%100 < fValue )
+	if (fValue>0.0 && rand()%10000<fValue*100 )
 	{
 		BYTE btAttr = MapC[lpObj->MapNumber].GetAttr(lpObj->X, lpObj->Y);
 
@@ -7703,14 +7701,15 @@ int CMasterLevelSkillTreeSystem::GetScriptClassCode(int iClass)
 
 float CMasterLevelSkillTreeSystem::RoundValue(long double dbValue, int iPos)
 {
-	char szPos[16];
+/*	char szPos[16];
 	char szTemp[256];
 
 	sprintf(szPos, "%%.%d", iPos);
 	strcat(szPos, "f");
 	sprintf(szTemp, szPos, dbValue);
 
-	return atof(szTemp);
+	return atof(szTemp);*/
+	return roundf(dbValue*100)/100;
 }
 
 BYTE CMasterLevelSkillTreeSystem::ResetMasterSkill(int aIndex, int nTreeType)
