@@ -119,10 +119,10 @@
 		<Msg ID="89" Text="You cannot Duel inside Blood Castle." annotation="You cannot Duel inside Blood Castle." />
 		<Msg ID="90" Text="You cannot Duel while trading." annotation="You cannot Duel while trading." />
 		<Msg ID="91" Text="%s is trading an item." annotation="%s is trading an item." />
-		<Msg ID="92" Text="%s has already accepted a challenge to Duel." annotation="%s has already accepted a challenge to Duel." />
-		<Msg ID="93" Text="%s邀请与你决斗" annotation="%s issues a Duel challenge." />
+		<Msg ID="92" Text="%s接受了您的决斗邀请." annotation="%s has already accepted a challenge to Duel." />
+		<Msg ID="93" Text="%s向您提出了决斗邀请" annotation="%s issues a Duel challenge." />
 		<Msg ID="94" Text="%s is in a Duel." annotation="%s is in a Duel." />
-		<Msg ID="95" Text="Challenged %s to a Duel." annotation="Challenged %s to a Duel." />
+		<Msg ID="95" Text="您向%s提出了决斗邀请" annotation="Challenged %s to a Duel." />
 		<Msg ID="96" Text="You are already issuing a Duel challenge." annotation="You are already issuing a Duel challenge." />
 		<Msg ID="97" Text="non-pvp线路不能决斗." annotation="Duelling is not allowed in NON-PK servers." />
 		<Msg ID="98" Text="An outlaw cannot issue a Duel challenge." annotation="An outlaw cannot issue a Duel challenge." />
@@ -642,7 +642,7 @@
 		<Msg ID="612" Text="Your partner has not enough level to be able to move to your location" annotation="Your partner has not enough level to be able to move to your location" />
 		<Msg ID="613" Text="The Cancel Item Sale is not available at the moment" annotation="The Cancel Item Sale is not available at the moment" />
 		<Msg ID="614" Text="Divorcing is not allowed" annotation="Divorcing is not allowed" />
-		<Msg ID="615" Text="Another mount is already used." annotation="Another mount is already used." />
+		<Msg ID="615" Text="正在使用同一系列的道具，请解除当前道具后再试" annotation="Another mount is already used." />
 		<Msg ID="616" Text="当前状态，无法取消" annotation="Cannot unequip mount." />
 		<Msg ID="617" Text="当前状态，无法使用" annotation="Cannot equip mount." />
 		<Msg ID="618" Text="Trading is not allowed while applying to Battle Core" annotation="Trading is not allowed while applying to Battle Core" />
