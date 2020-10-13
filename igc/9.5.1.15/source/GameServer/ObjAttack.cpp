@@ -1051,7 +1051,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 		{
 			if ( AttackDamage > 1 )
 			{
-				AttackDamage = AttackDamage * g_ConfigRead.pet.AngelAddDefense / 100;
+				AttackDamage = AttackDamage * (100 - g_ConfigRead.pet.AngelAddDefense) / 100;
 			}
 		}
 
@@ -1107,7 +1107,6 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 				{
 					WingDamageBlock = 0.0;
 				}
-
 				else
 				{
 					WingDamageBlock = lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsAddWingDamageBlock;
@@ -1118,128 +1117,78 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 
 			if (lpTargetObj->Type == OBJ_USER)
 			{
-				float fHPRecoveryRate = 0.0;
-
 				if (lpTargetObj->m_PlayerData->m_WingExcOption.iWingOpRecoveryHP != 0)
 				{
 					bHaveWingOption_FullHP = TRUE;
-					fHPRecoveryRate = lpTargetObj->m_PlayerData->m_WingExcOption.iWingOpRecoveryHP;
 				}
-
-				if (lpTargetObj->Class == CLASS_RAGEFIGHTER)
-				{
-					if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate_Monk > 0.0)
-					{
-						fHPRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate_Monk;
-					}
-				}
-
-				else if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate > 0.0)
-				{
-					fHPRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate;
-				}
-
-				if (rand()%10000 < fHPRecoveryRate*100)
-				{
-					gObjAddMsgSendDelay(lpTargetObj, 13, lpTargetObj->m_Index, 100, 0);
-				}
-
-				float fManaRecoveryRate = 0.0;
-
 				if (lpTargetObj->m_PlayerData->m_WingExcOption.iWingOpRecoveryMana != 0)
 				{
 					bHaveWingOption_FullMana = TRUE;
-					fManaRecoveryRate = lpTargetObj->m_PlayerData->m_WingExcOption.iWingOpRecoveryMana;
-				}
-
-				if (lpTargetObj->Class == CLASS_RAGEFIGHTER)
-				{
-					if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate_Monk > 0.0)
-					{
-						fManaRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate_Monk;
-					}
-				}
-
-				else if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate > 0.0)
-				{
-					fManaRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate;
-				}
-
-				if (rand()%10000 < fManaRecoveryRate*100)
-				{
-					gObjAddMsgSendDelay(lpTargetObj, 14, lpTargetObj->m_Index, 100, 0);
 				}
 			}
 		}
 
 		if (lpTargetObj->Type == OBJ_USER)
 		{
-			if (bHaveWingOption_FullHP == FALSE)
+			float fHPRecoveryRate = 0.0;
+			if (bHaveWingOption_FullHP == TRUE)
 			{
-				float fHPRecoveryRate = 0.0;
-
-				if (lpTargetObj->Class == CLASS_RAGEFIGHTER)
+				fHPRecoveryRate += lpTargetObj->m_PlayerData->m_WingExcOption.iWingOpRecoveryHP;
+			}
+			if (lpTargetObj->Class == CLASS_RAGEFIGHTER)
+			{
+				if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate_Monk > 0.0)
 				{
-					if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate_Monk > 0.0)
-					{
-						fHPRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate_Monk;
-					}
-				}
-
-				else if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate > 0.0)
-				{
-					fHPRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate;
-				}
-
-				if (rand()%10000 < fHPRecoveryRate*100)
-				{
-					gObjAddMsgSendDelay(lpTargetObj, 13, lpTargetObj->m_Index, 100, 0);
+					fHPRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate_Monk;
 				}
 			}
-
-			if (bHaveWingOption_FullMana == FALSE)
+			else if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate > 0.0)
 			{
-				float fManaRecoveryRate = 0.0;
-
-				if (lpTargetObj->Class == CLASS_RAGEFIGHTER)
+				fHPRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate;
+			}
+			if (rand()%10000 < fHPRecoveryRate*100)
+			{
+				gObjAddMsgSendDelay(lpTargetObj, 13, lpTargetObj->m_Index, 100, 0);
+			}
+			
+			float fManaRecoveryRate = 0.0;
+			if (bHaveWingOption_FullMana == TRUE)
+			{
+				fManaRecoveryRate += lpTargetObj->m_PlayerData->m_WingExcOption.iWingOpRecoveryMana;
+			}
+			if (lpTargetObj->Class == CLASS_RAGEFIGHTER)
+			{
+				if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate_Monk > 0.0)
 				{
-					if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate_Monk > 0.0)
-					{
-						fManaRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate_Monk;
-					}
-				}
-
-				else if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate > 0.0)
-				{
-					fManaRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate;
-				}
-
-				if (rand()%10000 < fManaRecoveryRate*100)
-				{
-					gObjAddMsgSendDelay(lpTargetObj, 14, lpTargetObj->m_Index, 100, 0);
+					fManaRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate_Monk;
 				}
 			}
-
+			else if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate > 0.0)
+			{
+				fManaRecoveryRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate;
+			}
+			if (rand()%10000 < fManaRecoveryRate*100)
+			{
+				gObjAddMsgSendDelay(lpTargetObj, 14, lpTargetObj->m_Index, 100, 0);
+			}
+			
+			float fSDRecoveryRate = 0.0;
 			if (lpObj->Type == OBJ_USER && lpObj->Class == CLASS_RAGEFIGHTER)
 			{
 				if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate_Monk > 0.0)
 				{
-					if (rand() % 10000 < lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate_Monk * 100)
-					{
-						gObjAddMsgSendDelay(lpObj, 15, lpTargetObj->m_Index, 100, 0);
-					}
+					fSDRecoveryRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate_Monk;
 				}
 			}
-
 			else if (lpObj->Type == OBJ_USER && lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate > 0.0)
 			{
-				if (rand() % 10000 < lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate * 100)
-				{
-					gObjAddMsgSendDelay(lpObj, 15, lpTargetObj->m_Index, 100, 0);
-				}
+				fSDRecoveryRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate;
+			}
+			if (rand()%10000 < fSDRecoveryRate*100)
+			{
+				gObjAddMsgSendDelay(lpObj, 15, lpTargetObj->m_Index, 100, 0);
 			}
 		}
-
 
 		if ( gObjDenorantSprite(lpObj ) )
 		{

@@ -7865,7 +7865,7 @@ void gObjSpriteDamage(LPOBJ lpObj, int damage)
 			fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
 		}
 
-		fdamage = (damage*3)/10.0f;
+		fdamage = (fdamage*3)/10.0f;
 		fdamage /= fN;
 		sprite->m_Durability -= fdamage;
 		send_dur = 1;
