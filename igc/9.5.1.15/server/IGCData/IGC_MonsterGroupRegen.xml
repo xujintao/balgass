@@ -57,7 +57,7 @@
 
 <MonsterGroupRegenSystem SpawnNotice="1">
 	<GroupSettings>
-		<Group Index="0" Duration="60" MapNumber="56" BossMonsterIndex="561" BossMonsterName="Medusa" SpawnNotice="Medusa and her assistants has invaded Swamp of Clamness!!!" />
+		<Group Index="0" Duration="60" MapNumber="56" BossMonsterIndex="561" BossMonsterName="Medusa" SpawnNotice="美杜莎: 当你凝视深渊的时候，深渊也在凝视着你" />
 	</GroupSettings>
  
 	<SpotSettings>
@@ -79,6 +79,7 @@
 	<SpawnSettings>
 		<Group Index="0">
 			<Spawn StartHour="15" StarMinute="0" AppearanceRate="100" />
+			<Spawn StartHour="21" StarMinute="0" AppearanceRate="100" />
 		</Group> 
 	</SpawnSettings>
 </MonsterGroupRegenSystem>
