@@ -41,17 +41,29 @@
 	
 	<Schedule>
 		<Start Hour="0" Minute="30" />
+		<Start Hour="1" Minute="30" />
 		<Start Hour="2" Minute="30" />
+		<Start Hour="3" Minute="30" />
 		<Start Hour="4" Minute="30" />
+		<Start Hour="5" Minute="30" />
 		<Start Hour="6" Minute="30" />
+		<Start Hour="7" Minute="30" />
 		<Start Hour="8" Minute="30" />
+		<Start Hour="9" Minute="30" />
 		<Start Hour="10" Minute="30" />
+		<Start Hour="11" Minute="30" />
 		<Start Hour="12" Minute="30" />
+		<Start Hour="13" Minute="30" />
 		<Start Hour="14" Minute="30" />
+		<Start Hour="15" Minute="30" />
 		<Start Hour="16" Minute="30" />
+		<Start Hour="17" Minute="30" />
 		<Start Hour="18" Minute="30" />
+		<Start Hour="19" Minute="30" />
 		<Start Hour="20" Minute="30" />
+		<Start Hour="21" Minute="30" />
 		<Start Hour="22" Minute="30" />
+		<Start Hour="23" Minute="30" />
 	</Schedule>
 	
 	<EventSettings>

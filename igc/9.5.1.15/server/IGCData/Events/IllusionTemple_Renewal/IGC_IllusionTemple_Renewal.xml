@@ -29,28 +29,6 @@
 	<Time StartIn="5" WaitingArea="1" Duration="15" TownSpawn="1" />
 
 	<EventSchedule>
-		<Start Hour="1"  Monute="0" />
-		<Start Hour="2"  Monute="0" />
-		<Start Hour="3"  Monute="0" />
-		<Start Hour="4"  Monute="0" />
-		<Start Hour="5"  Monute="0" />
-		<Start Hour="6"  Monute="0" />
-		<Start Hour="7"  Monute="0" />
-		<Start Hour="8"  Monute="0" />
-		<Start Hour="9"  Monute="0" />
-		<Start Hour="10" Minute="0" />
-		<Start Hour="11" Minute="0" />
-		<Start Hour="12" Minute="0" />
 		<Start Hour="13" Minute="0" />
-		<Start Hour="14" Minute="0" />
-		<Start Hour="15" Minute="0" />
-		<Start Hour="16" Minute="0" />
-		<Start Hour="17" Minute="0" />
-		<Start Hour="18" Minute="0" />
-		<Start Hour="19" Minute="0" />
-		<Start Hour="20" Minute="0" />
-		<Start Hour="21" Minute="0" />
-		<Start Hour="22" Minute="0" />
-		<Start Hour="23" Minute="0" />
 	</EventSchedule>
 </IllusionTempleRenewal>

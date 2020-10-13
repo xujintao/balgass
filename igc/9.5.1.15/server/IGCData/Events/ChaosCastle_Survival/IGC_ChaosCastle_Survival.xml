@@ -71,7 +71,7 @@
 // STRICTLY NO COMMENTS INSIDE TAGS
 -->
 
-<ChaosCastleSurvival Enable="1" MinPlayer="2" MinLevel="280" ExpMultiplier="1.0">
+<ChaosCastleSurvival Enable="0" MinPlayer="2" MinLevel="280" ExpMultiplier="1.0">
 	<Time StartIn="5" Duration="10" TownSpawn="1" Notify="10" />
 	<TournamentCycleDay EliminationOne="16" EliminationTwo="17" EliminationThree="18" SemiFinalOne="19" SemiFinalTwo="20" Final="21" />
 
