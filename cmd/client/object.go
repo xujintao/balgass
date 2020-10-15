@@ -1,0 +1,241 @@
+package main
+
+var v08C88E58hpMax uint16
+var v08C88E5AmpMax uint16
+var v08C88E5CsdMax uint16
+var v08C88E5EsdMax uint16
+
+var v086105E0 []uint8 // 7k
+var v086105E4 []uint8 // 91*800
+
+// sizeof=0x6BC
+type object struct {
+	m8            uint32
+	m13class      uint8
+	m14           uint8
+	m15ctlCode    uint8
+	m18guildtitle uint8
+	m20pklevel    uint8
+	m1E           uint8
+	m24           bool
+	m2B           uint8
+	m38name       [32]uint8
+	m42           uint8
+	m5C           int16
+	m5Eid         uint16
+	m10C          uint16
+	m122hp        uint16 // hp
+	m124mp        uint16 // mp
+	m126hpMax     uint16 // max hp
+	m128mpMax     uint16 // max mp
+	m12Asd        uint16 // sd
+	m12CsdMax     uint16 // max sd
+	m140ag        uint16 // ag
+	m142agMax     uint16 // max ag
+	m154          uint16
+	m160          uint16
+	m164level     uint16
+	m166          uint16
+	m178          [100]uint8
+	m410          struct {
+		m04  bool
+		m0E  bool
+		m28  uint8
+		mB4  float32
+		mB8  float32
+		mBC  float32
+		m114 float32
+		m118 float32
+	}
+	m438 uint8
+}
+
+func (t *object) f004D332C(x uint16) {
+	// t.m3D2 = 0xFFFF
+}
+
+// player
+var v086105E8 *player
+var v086105ECobject *object = &v086105E8.object
+var v0805BBACself *object
+
+// sizeof=0x1C30
+type player struct {
+	object
+	m1C04moneyWarehouse uint
+	m1C08money          uint
+}
+
+// objectPool
+func f004373C5objectPool() *objectPool {
+	return v01308D04objectPool
+}
+
+var v01308D04objectPool *objectPool
+
+type objectPool struct {
+	m00vtabptr []uintptr
+	m04objects []object
+	m08object  *object
+	m0C        int
+}
+
+func (t *objectPool) f00A38D5BgetObject(index int) *object {
+	if index < 0 || index >= 400 {
+		return nil
+	}
+	return &t.m04objects[index]
+}
+
+type t01173638 struct {
+	objectPool
+}
+
+func (t *t01173638) f00A39237construct() *t01173638 {
+	// t.m00vtabptr = v01173638[:]
+	if v01308D04objectPool == nil {
+		v01308D04objectPool = &t.objectPool
+	}
+	return t
+}
+
+var v01319D44 *t01173630
+
+// sizeof=0x10
+type t01173630 struct {
+	t01173638
+}
+
+func (t *t01173630) f00A38C2Cinit() {
+	// ebp14 := f00DE64BCnew(529*1724 + 4) // 0xDEA80: 912000
+	// var ebp1C []uint8
+	// if ebp14 != nil {
+	// 	binary.LittleEndian.PutUint32(ebp14[:], 529)
+	// 	// f00DE8931(ebp14[4:], 1724, 529, f004D2B85, f004D2C3D)
+	// 	ebp1C = ebp14[4:]
+	// }
+	ebp14 := &struct {
+		number  int
+		objects [529]object
+	}{}
+	ebp14.number = 529
+	t.m04objects = ebp14.objects[:]
+	t.m08object = &t.m04objects[f00DE8AADrand()%128]
+	v0805BBACself = t.m08object
+	t.m0C = 0
+}
+
+func (t *t01173630) f00A38B97construct() *t01173630 {
+	t.t01173638.f00A39237construct()
+	// t.m00vtabptr = v01173630[:]
+	t.f00A38C2Cinit()
+	return t
+}
+
+//
+var v08C88FAC bool
+var v012E4080 int16
+var v08C88DB8 int
+
+func f006C64A1init() {
+	v08C88FAC = false
+	v012E4080 = -1
+	v08C88DB8 = 0
+	for i := 0; i < 400; i++ {
+		obj := v01308D04objectPool.f00A38D5BgetObject(i)
+		// f006BF9A3(obj)
+		func(obj *object) {
+			ebp4 := &obj.m410
+			if ebp4.m04 == false {
+				return
+			}
+			obj.m1E = 0
+			if v0805BBACself.m5C == -1 || obj.m5C == v0805BBACself.m5C {
+				obj.m1E = 1
+			}
+			if v08C88FAC == false {
+				return
+			}
+			if v012E4080 == -1 && v08C88DB8 != 0 {
+				// v012E4080 = f006BF959(&v08C88DB8)
+			}
+			if v012E4080 >= 0 && obj.m5C == v012E4080 {
+				obj.m1E = 2
+			}
+
+		}(obj)
+	}
+}
+
+func f004DAAB3setMaxClass(n uint8) {
+	v0131A233 = n
+}
+
+func f0059CFA6class(class uint8) uint8 {
+	// packet class: bit567-class, bit4-changeup1, bit3-changeup2
+	// client class: bit012-class, bit3-changeup1, bit4-changeup2
+	return class>>4&1<<3 | class>>3&1<<4 | class>>5
+}
+
+func f004398F6changeup0(class uint8) uint8 {
+	return class & 7
+}
+
+var v0114AAE4 float32 = 0.3
+
+func f0059CA40newObject(id int, class uint8, unk1 uint8, unk2, unk3, unk4 float32) *object {
+	ebp4obj := f004373C5objectPool().f00A38D5BgetObject(id)
+	if ebp4obj == nil {
+		return nil
+	}
+	// f00592B90objSet(ebp4, 0x4C4, 0, 0, unk4)
+	ebp8 := &ebp4obj.m410
+	ebp8.mB4 = v0114AAE4
+	ebp8.mB8 = v0114AAE4
+	ebp8.mBC = v0114AAE4
+	ebp4obj.m5Eid = uint16(id)
+	ebp8.m114 = unk2
+	ebp8.m118 = unk3
+	ebp4obj.m13class = uint8(class)
+	ebp4obj.m14 = unk1
+	// ebp8.m1FC.f004CF282()
+	if v012E2340state == 2 {
+		// ebp4obj.m1FC = 0x1314
+		// ebp4obj.m1FE = 7
+		// ebp4obj.m220 = 0x1514
+		// ebp4obj.m222 = 7
+		// ebp4obj.m244 = 0x1714
+		// ebp4obj.m246 = 7
+		// ebp4obj.m268 = 0x1914
+		// ebp4obj.m26A = 7
+		// ebp4obj.m28C = 0x1B14
+		// ebp4obj.m28E = 7
+		// ebp4obj.m2B0 = 0x906
+		// ebp4obj.m2B2 = 13
+		// ebp4obj.m2D4 = 0x1EFD
+		// ebp4obj.m2F8 = 0x1F16
+		// ebp4obj.m31C = 0x1EFC
+	} else {
+		// ebp4obj.m1FC = f004398F6changeup0(class) + 0x2512
+		// ebp4obj.m220 = f004398F6changeup0(class) + 0x252A
+		// ebp4obj.m244 = f004398F6changeup0(class) + 0x2542
+		// ebp4obj.m268 = f004398F6changeup0(class) + 0x255A
+		// ebp4obj.m28C = f004398F6changeup0(class) + 0x2572
+		// ebp4obj.m2B0 = 0xFFFF
+		// ebp4obj.m2D4 = 0xFFFF
+		// ebp4obj.m2F8 = 0xFFFF
+		// ebp4obj.m31C = 0xFFFF
+		// ebp4obj.m2D0 = 0xFFFF
+		ebp4obj.f004D332C(0xFFFF)
+		// ebp4obj.m3D0 = 0xFF
+	}
+	// f00736F42(28, ebp8)
+	ebp4obj.m15ctlCode = 0
+	// f00593E76(ebp4obj)
+	// f0055E188(ebp4obj)
+	return ebp4obj
+}
+
+func f00594B19objSet(id int, inventory []uint8, unk1, unk2 int) {
+
+}

@@ -1390,6 +1390,7 @@ type windowgameMainFrame struct {
 	m333                    bool
 	m334                    bool
 	m33EexpMultipleGoldLine int16
+	m338expMultiplePremium  int
 }
 
 func (t *windowgameMainFrame) f00AA9021construct() {
@@ -1425,7 +1426,7 @@ func (t *windowgameMainFrame) f00AAA14Ehpmp() {
 	var ebpCmpMax int
 	var ebp14hp int
 	var ebp10mp int
-	if f0059D4F6bit4(v0805BBACself.m13) {
+	if f0059D4F6bit4changeup2(v0805BBACself.m13class) {
 		var ebp1C, ebp20 int
 		ebp8hpMax = int(v08C88E58hpMax)
 		if v086105ECobject.m122hp >= 0 {
@@ -1482,7 +1483,7 @@ func (t *windowgameMainFrame) f00AAA14Ehpmp() {
 func (t *windowgameMainFrame) f00AAA387sd() {
 	var ebp8sdMax int
 	var ebp4sd int
-	if f0059D4F6bit4(v0805BBACself.m13) {
+	if f0059D4F6bit4changeup2(v0805BBACself.m13class) {
 		var ebp10, ebp12 uint16
 		if v08C88E5CsdMax >= 1 {
 			ebp10 = v08C88E5CsdMax
@@ -1586,7 +1587,7 @@ func (t *windowgameMainFrame) f00AAB611drawExpAdditionNetBar() {
 	f00DE8100memset(ebp108[:], 0, 260)
 
 	// 网吧优惠 (+%d%%)
-	f00DE817Asprintf(ebp108[:], string(v08610600.f00436DA8findcstr(0x10CD)), t.m32CexpAdditionNetBar)
+	f00DE817Asprintf(ebp108[:], string(v08610600textManager.f00436DA8findcstr(0x10CD)), t.m32CexpAdditionNetBar)
 	// f00A3FF59(ebp210[:], ebp108[:], 1, 0)
 	// f004A2024(t.m2A8, ebp210[:])
 
@@ -1604,7 +1605,7 @@ func (t *windowgameMainFrame) f00AAB731drawExpMultiple() {
 	// f004A2024(t.m2A8, ebp210[:]) //
 
 	// ---------(B)经验值倍数---------
-	// f00A3FF59(ebp210[:], v08610600.f00436DA8findcstr(0x10FC), 0, 0)
+	// f00A3FF59(ebp210[:], v08610600textManager.f00436DA8findcstr(0x10FC), 0, 0)
 	// f004A2024(t.m2A8, ebp210[:])
 
 	// 经验值活动 (%d.%d倍)
@@ -1612,7 +1613,7 @@ func (t *windowgameMainFrame) f00AAB731drawExpMultiple() {
 		ebp324 := t.m32EexpMultipleEvent + 100
 		ebp320 := ebp324 / 100
 		ebp328 := ebp324 % 100 / 10
-		f00DE817Asprintf(ebp108event[:], string(v08610600.f00436DA8findcstr(0x10CE)), ebp320, ebp328)
+		f00DE817Asprintf(ebp108event[:], string(v08610600textManager.f00436DA8findcstr(0x10CE)), ebp320, ebp328)
 		// f00A3FF59(ebp210[:], ebp108event[:], 1, 0)
 		// f004A2024(t.m2A8, ebp210[:])
 	}
@@ -1622,14 +1623,13 @@ func (t *windowgameMainFrame) f00AAB731drawExpMultiple() {
 		ebp338 := t.m33EexpMultipleGoldLine + 100
 		ebp330 := ebp338 / 100
 		ebp334 := ebp338 % 100 / 10
-		f00DE817Asprintf(ebp318gold[:], string(v08610600.f00436DA8findcstr(0x10FE)), ebp330, ebp334)
+		f00DE817Asprintf(ebp318gold[:], string(v08610600textManager.f00436DA8findcstr(0x10FE)), ebp330, ebp334)
 		// f00A3FF59(ebp210[:], ebp318gold[:], 1, 0)
 		// f004A2024(t.m2A8, ebp210[:])
 	}
 }
 
 func (t *windowgameMainFrame) f00AACF5CdrawExpMultiplePremium() {
-	ebp230 := t
 	if t.m328expAddition <= 0 {
 		return
 	}
@@ -1638,18 +1638,18 @@ func (t *windowgameMainFrame) f00AACF5CdrawExpMultiplePremium() {
 	var ebp228premium [260]uint8
 	f00DE8100memset(ebp228premium[:], 0, 260)
 
-	ebp11C := f006B8509().f004EBAE3(0x1D)
-	ebp118 := f006B8509().f004EBAE3(0x1C)
+	ebp11C := f006B8509().f004EBAE3(29)
+	ebp118 := f006B8509().f004EBAE3(28)
 	ebp4 := t.m328expAddition / ebp11C
 	ebp8 := t.m328expAddition % ebp11C
 	if ebp8 == 0 {
 		ebp4--
 	}
-	t.m338 = (ebp4 + 1) * ebp118
-	ebp114 := t.m338 + 100
+	t.m338expMultiplePremium = (ebp4 + 1) * ebp118
+	ebp114 := t.m338expMultiplePremium + 100
 	ebp120 := ebp114 / 100
 	ebp22C := ebp114 % 100 / 10
-	f00DE817Asprintf(ebp228premium[:], string(v08610600.f00436DA8findcstr(0x10FF)), ebp120, ebp22C)
+	f00DE817Asprintf(ebp228premium[:], string(v08610600textManager.f00436DA8findcstr(0x10FF)), ebp120, ebp22C)
 	// f00A3FF59(ebp110[:], ebp228premium[:], 1, 0)
 	// f004A2024(t.m2A8, ebp110[:])
 }
@@ -1802,7 +1802,7 @@ func (t *windowgamePartyFrame) f00A82218setPartyInfo(size int, members []msgPart
 			t.m78members[i].channel = members[i].serverChannel
 			t.m78members[i].MP = members[i].MP
 			t.m78members[i].MPMax = members[i].MPMax
-			// t.m78members[i].obj = f004373C5getObjectManager().f00A38E0A(f00594982(t.m78members[i].name[:]))
+			// t.m78members[i].obj = f004373C5objectPool().f00A38E0A(f00594982(t.m78members[i].name[:]))
 			// 0x00A82437: 渲染组队框体
 			if t.m78members[i].channel == 0 {
 				t.f00A82993setPartyState(i, 4)

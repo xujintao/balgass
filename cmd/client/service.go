@@ -13,7 +13,7 @@ type t17 struct {
 	m04 uintptr
 }
 
-func (t *t17) f0043700F(x *treeNode, y *t08610600) {
+func (t *t17) f0043700F(x *treeNode, y *textManager) {
 
 }
 
@@ -72,20 +72,20 @@ func (t *text3) f004A584Efree() {
 }
 
 // 很重要
-var v08610600 t08610600
+var v08610600textManager textManager
 
-type t08610600 struct {
+type textManager struct {
 	// 可能是个结构
 	m18root *treeNode
 	m1Csize int
 	m20     stdstring
 }
 
-func (t *t08610600) f006B8574(x uint, y uint32) bool {
+func (t *textManager) f006B8574(x uint, y uint32) bool {
 	return false
 }
 
-func (t *t08610600) f006B851Ddec(buf []uint8, size uint) {
+func (t *textManager) f006B851Ddec(buf []uint8, size uint) {
 	ebpCi := uint(0)
 	ebp8 := buf
 	ebp4key := [3]uint8{0xFC, 0xCF, 0xAB}
@@ -99,14 +99,14 @@ func (t *t08610600) f006B851Ddec(buf []uint8, size uint) {
 	}
 }
 
-func (t *t08610600) f00436FA1() **treeNode {
+func (t *textManager) f00436FA1() **treeNode {
 	// f0043712E(t.m18root)
 	return func(tree *treeNode) **treeNode {
 		return &tree.p2
 	}(t.m18root)
 }
 
-func (t *t08610600) f00436F1E(pindex *uint32, t1 *t08610600) *treeNode {
+func (t *textManager) f00436F1E(pindex *uint32, t1 *textManager) *treeNode {
 	// ebpC := t
 	// ebp8 := t.f00436FA1()
 	ebp4 := t.m18root
@@ -119,19 +119,19 @@ func (t *t08610600) f00436F1E(pindex *uint32, t1 *t08610600) *treeNode {
 	return ebp4
 }
 
-func (t *t08610600) f00436FB6(x *t17) *t17 {
+func (t *textManager) f00436FB6(x *t17) *t17 {
 	return x
 }
 
-func (t *t08610600) f004A793A(x *t17) *t17 {
+func (t *textManager) f004A793A(x *t17) *t17 {
 	return x
 }
 
-func (t *t08610600) f004A6371(list1 *t17, num int, list2 *treeNode, v *text3) *t17 {
+func (t *textManager) f004A6371(list1 *t17, num int, list2 *treeNode, v *text3) *t17 {
 	return nil
 }
 
-func (t *t08610600) f00436E48(x *t17, pindex *uint) *t17 {
+func (t *textManager) f00436E48(x *t17, pindex *uint) *t17 {
 	// 0x24局部变量
 	// ebp20 := t
 
@@ -153,7 +153,7 @@ func (t *t08610600) f00436E48(x *t17, pindex *uint) *t17 {
 	return x
 }
 
-func (t *t08610600) f00436DF1findstdstring(index uint) *stdstring {
+func (t *textManager) f00436DF1findstdstring(index uint) *stdstring {
 	// 1C局部变量
 	// ebp1C := t
 	var ebp10 t17
@@ -167,7 +167,7 @@ func (t *t08610600) f00436DF1findstdstring(index uint) *stdstring {
 	return &t.m20
 }
 
-func (t *t08610600) f00436DA8findcstr(index uint) []uint8 {
+func (t *textManager) f00436DA8findcstr(index uint) []uint8 {
 	// t.f00436DBE(index)
 	return func(index uint) []uint8 {
 		// t.f00436DD4(index)
@@ -177,7 +177,7 @@ func (t *t08610600) f00436DA8findcstr(index uint) []uint8 {
 	}(index)
 }
 
-func (t *t08610600) f006B8D79assign(index uint, buf []uint8) bool {
+func (t *textManager) f006B8D79assign(index uint, buf []uint8) bool {
 	// 0x64局部变量
 	// ebp68 := t
 	var ebp14 t17
@@ -230,7 +230,7 @@ func (t *t08610600) f006B8D79assign(index uint, buf []uint8) bool {
 	return true
 }
 
-func (t *t08610600) f006B83FD(fileName *stdstring, x uint32) {
+func (t *textManager) f006B83FD(fileName *stdstring, x uint32) {
 	// 0x28局部变量
 	// ebp28 := t
 	ebp4file := f00DE909Efopen(string(fileName.f004073E0cstr()), "rb") // v012F7910 为什么返回一个全局变量的地址？
@@ -477,7 +477,7 @@ func (s *service1) f0043FBCC(x, y uint) { // 渲染文本字符串
 		// 0x0044034D
 		// ebpC.f004A9123(&ebpC.m92D8) // ebpC.f004A9123(&ebpC.s???)
 		// ebpC.m92D8.f0043752C(&ebpC.m9DC8)
-		v08610600.f00436DA8findcstr(0x6B4) // 1716
+		v08610600textManager.f00436DA8findcstr(0x6B4) // 1716
 	}
 
 }
@@ -609,7 +609,7 @@ func (s *service3) f0043E9B6() {
 	ebp14BClogin.f004393EAsend(true, false)
 
 	// var ebp4 int
-	// ebp14E0.f00406FC0stdstring(v08610600.f00436DA8(0x1D8))
+	// ebp14E0.f00406FC0stdstring(v08610600textManager.f00436DA8(0x1D8))
 	// ebp4 = 1
 	// ebp14FC.f00406FC0stdstring(&v0114A327)
 	// ebp4 = 2
@@ -619,7 +619,7 @@ func (s *service3) f0043E9B6() {
 	// ebp4 = 0
 	// ebp14E0.f00407B10()
 
-	// ebp1518.f00406FC0stdstring(v08610600.f00436DA8(0x1D9))
+	// ebp1518.f00406FC0stdstring(v08610600textManager.f00436DA8(0x1D9))
 	// ebp4 = 3
 	// ebp1534.f00406FC0stdstring(&v0114A33E)
 	// f00A49798game().f0043EE21().f00A9FB38(&ebp1534, &ebp1518, 3, 0)
@@ -733,7 +733,7 @@ func (s *service4) do13(unk float64) {
 				ebp292CserverInfo.f004393EAsend(false, false)
 
 				// var ebp4 int
-				// ebp2948.f00406FC0stdstring(v08610600.f00436DA8(0x1D6))
+				// ebp2948.f00406FC0stdstring(v08610600textManager.f00436DA8(0x1D6))
 				// ebp4 = 2
 				// ebp2964.f00406FC0stdstring(&v0114A5FF)
 				// ebp4 = 3
@@ -742,7 +742,7 @@ func (s *service4) do13(unk float64) {
 				// ebp2964.f00407B10()
 				// ebp4 = 1
 				// ebp2948.f00407B10()
-				// ebp2980.f00406FC0stdstring(v08610600.f00436DA8(0x1D7))
+				// ebp2980.f00406FC0stdstring(v08610600textManager.f00436DA8(0x1D7))
 				// ebp4 = 4
 				// ebp299C.f00406FC0stdstring(&v0114A600)
 				// ebp4 = 5
@@ -1349,7 +1349,7 @@ func f004DD578handleState1(hDC win.HDC) {
 			var ebp90 stdstring
 			ebp90.f00406FC0stdstring(ebp74fileName[:])
 			ebp4 = 0
-			v08610600.f006B83FD(&ebp90, 0x80000010)
+			v08610600textManager.f006B83FD(&ebp90, 0x80000010)
 			ebp4 = -1
 			ebp90.f00407B10free()
 			// "Data/Macro.txt"
@@ -1897,7 +1897,7 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 	}{}
 	// GetLocalTime(&ebp64)
 	f00DE817Asprintf(v08C88AB8[:], "Screen(%02d_%02d-%02d_%02d)-%04d.jpg", systime.wMonth, systime.wDay, systime.wHour, systime.wMinute, v08C88C74)
-	// ebp220 := v08610600.f00436DF1findstdstring(0x1CB)
+	// ebp220 := v08610600textManager.f00436DF1findstdstring(0x1CB)
 	// var ebp410 uint32
 	// if ebp220.m18 >= 0x10 {
 	// 	ebp410 = ebp220.m04

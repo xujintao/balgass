@@ -61,6 +61,7 @@ var v01319A50ip [16]uint8
 
 var v01319D18 []uint8
 var v01319D1CwndProc uintptr
+var v01319D54 *t0114EEF8
 var v01319D65 uint32
 var v01319D68gg *t1319D68
 var v01319D6ChWnd win.HWND
@@ -1082,11 +1083,18 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 	// 0x004D859B: array size = 91*800
 	ebp1A5C := f00DE64BCnew(72800)
 	v086105E4 = ebp1A5C
-	// 0x004D85B7: v01319D44
+	// 0x004D85B7: object manager init
+	var ebp1B18 *t01173630
+	ebp1A64 := &t01173630{}
+	if ebp1A64 != nil {
+		ebp1B18 = ebp1A64.f00A38B97construct()
+	}
+	ebp1A60 := ebp1B18
+	v01319D44 = ebp1A60
 	// 0x004D85FF: v086105E8
 	// 0x004D864A: zero init v086105E0, v086105E4, v086105E8
 	// 0x004D8689:
-	v086105ECobject = &v086105E8.m04obj
+	v086105ECobject = &v086105E8.object
 	// v086105E8.m00.f005A3337()
 	// 0x004D86A1:
 	if v012E2210 == 1 {
@@ -1126,7 +1134,14 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 	// 0x004D894E: v01319D48
 	// 0x004D8996: v01319D4C
 	// 0x004D89DE: v01319D50
-	// 0x004D8A26: v01319D54
+	// 0x004D8A26:
+	var ebp1B50 *t0114EEF8
+	ebp1AD4 := &t0114EEF8{}
+	if ebp1AD4 != nil {
+		ebp1B50 = ebp1AD4.f004EB62Bconstruct()
+	}
+	ebp1AD0 := ebp1B50
+	v01319D54 = ebp1AD0
 	// 0x004D8A6E: v01319D8C
 	// 0x004D8AB6: v01319D58
 	// 0x004D8AFE: v01319D5C

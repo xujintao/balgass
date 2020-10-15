@@ -10,6 +10,7 @@ import (
 	"github.com/xujintao/balgass/win"
 )
 
+var v0131A233 uint8
 var v0131A240 uint32
 var v0131A250 uint32
 var v0131A26C bool
@@ -467,61 +468,8 @@ func (t *serverListManager) f00AF8862isGoldLine() bool {
 	return false
 }
 
-// objectManager
-var v08C88E58hpMax uint16
-var v08C88E5AmpMax uint16
-var v08C88E5CsdMax uint16
-var v08C88E5EsdMax uint16
-
-var v086105E0 []uint8 // 7k
-var v086105E4 []uint8 // 91*800
-// sizeof=0x1C30
-var v086105E8 *struct {
-	m00                 uintptr
-	m04obj              object
-	m1C04moneyWarehouse uint
-	m1C08money          uint
-}
-var v086105ECobject *object = &v086105E8.m04obj
-var v0805BBACself = &object{}
-
-// object sizeof=0x6BC
-type object struct {
-	m8        uint32
-	m13       uint8
-	m24       bool
-	m2B       uint8
-	m38name   [32]uint8
-	m5Eid     uint16
-	m10C      uint16
-	m122hp    uint16 // hp
-	m124mp    uint16 // mp
-	m126hpMax uint16 // max hp
-	m128mpMax uint16 // max mp
-	m12Asd    uint16 // sd
-	m12CsdMax uint16 // max sd
-	m140ag    uint16 // ag
-	m142agMax uint16 // max ag
-	m154      uint16
-	m160      uint16
-	m166      uint16
-	m178      [100]uint8
-	m410      struct {
-		m04 bool
-		m0E bool
-		m28 uint8
-	}
-	m438 uint8
-}
-
 var v012E31B0 int = 0
 var v012E3200 int = 5
-
-func f004373C5getObjectManager() *objectManager {
-	return v01308D04objectManager
-}
-
-var v01308D04objectManager = &objectManager{}
 
 var v01308D08 battleCoreSpec
 var v01308D10 sync.Once
@@ -540,17 +488,6 @@ type battleCoreSpec struct {
 
 func (b *battleCoreSpec) f0043A33Cenable() bool {
 	return b.m04Enable
-}
-
-type objectManager struct {
-	m08objects []object
-}
-
-func (t *objectManager) f00A38D5BgetObject(index int) *object {
-	if index < 0 || index >= 0x190 {
-		return nil
-	}
-	return &t.m08objects[index]
 }
 
 type mainFrame struct {
@@ -1663,4 +1600,289 @@ func f00677421mapItemAdd(mapItem *mapItem, attr []uint8, ord []float32, msb int)
 	// f00653E1E()
 	// f00675564(ebpC)
 	// f0067328Cdraw(mapItem)
+}
+
+func f006B8509() *t0114EF00 {
+	return v0131A34C
+}
+
+var v0131A34C *t0114EF00
+
+type tPremium struct {
+}
+
+func (t *tPremium) f004EC50D() {
+
+}
+
+// func (t *tPremium) f004EBB74(unk *int) {
+// 	var ebp8 struct{}
+// 	t.f004EC50D(&ebp8, unk)
+// 	if ebp8.f004EC749(t.f004EBC7C(&ebp10)) != 0 ||
+// 		t.m08.f00436FF3(unk, f004EBE4E(ebp8.f004EC78F())) != 0 {
+// 		ebp1C := 0
+// 		ebp24 := ebp8
+// 		ebp20 := ebp4
+// 		t.f004EBEBA(&ebp2C, ebp24, ebp20, ebp18.f004EC79E(unk, &ebp1C))
+// 	}
+// 	return ebp8.f004EC724() + 4
+// }
+
+type t0114EF00 struct {
+	m00vtabptr []uintptr
+	m04        tPremium
+}
+
+func (t *t0114EF00) f004EBD58construct() *t0114EF00 {
+	// t.m00vtabptr = v0114EF00[:]
+	if v0131A34C == nil {
+		v0131A34C = t
+	}
+	return nil
+}
+
+func (t *t0114EF00) f004EBAE3(unk int) int {
+	// p := t.m04.f004EBB74(&unk)
+	// if *p == 0 {
+	// 	return 0
+	// }
+	// p = t.m04.f004EBB74(&unk)
+	// return p.m08
+	return 0
+}
+
+// sizeof=0x24
+type t0114EEF8 struct {
+	t0114EF00
+}
+
+func (t *t0114EEF8) f004EB62Bconstruct() *t0114EEF8 {
+	t.t0114EF00.f004EBD58construct()
+	// t.m00vtabptr = v0114EEF8[:]
+	return t
+}
+
+// map manager
+func f0050E6D7() *t01351D58 {
+	v01351D74once.Do(func() {
+		v01351D58.f0050E734init()
+		// f00DE8BF6atexit(f01148288)
+	})
+	return &v01351D58
+}
+
+var v01351D58 t01351D58
+var v01351D74once sync.Once
+
+type t01351D58 struct {
+}
+
+func (t *t01351D58) f0050E734init() {
+	// t.f0050F974()
+	// t.f0050E819()
+}
+
+func (t *t01351D58) f0050E893isIllusionTemple(mapnum int) bool {
+	if (mapnum >= 45 && mapnum <= 50) ||
+		(mapnum > 97 && mapnum <= 99) {
+		return true
+	}
+	return false
+}
+
+func (t *t01351D58) f0050F876(unk int) bool {
+	return false
+}
+
+// skill
+func f00A09635skill() *t09D91F4Cskill {
+	v09D91F74once.Do(func() {
+		v09D91F4C.f00A095DAinit()
+		// f00DE8BF6atexit(f011486FF)
+	})
+	return &v09D91F4C
+}
+
+var v09D91F4C t09D91F4Cskill
+var v09D91F74once sync.Once
+
+type t09D91F4Cskill struct {
+	m00obj *object
+	// m04    uintptr
+	m08 int
+	m0C int
+	m10 int
+	m14 int
+	m20 float32
+	m24 bool
+}
+
+func (t *t09D91F4Cskill) f00A095DAinit() {
+	t.m00obj = v0805BBACself
+	// t.m04 = &v0805BBACself.m410
+	t.m08 = 0
+	t.m0C = 0
+	t.m14 = 0
+	t.m20 = 0.0
+	t.m24 = false
+}
+
+func (t *t09D91F4Cskill) f00A14596() bool {
+	return false
+}
+
+// s9 f0092E01C
+// f00A0A5E1->0x09E25AB0, s9 f0092E01C->0x0A37F316
+func (t *t09D91F4Cskill) f00A0A5E1() bool {
+	// 0x0AD31885 hook to hide 0x09E25AB0, disable what?
+	// push 0x09FC14E5
+	// push 0x0A0084AA
+	// ret
+
+	// 0x0A0084AA
+	// push 0x00D0C808
+	// push 0x0A0C4915
+	// ret
+
+	// 0x0A0C4915
+	// push 0x00C04000
+	// push 0x0A4455E0
+	// ret
+
+	// 0x0A4455E0
+	// push ecx edi ebx esi edx fd
+
+	// 0x0A9F5744
+	// push 0x0A95171B
+	// push 0x0AD98CB3
+	// ret
+
+	// 0x0AD98CB3
+	// push ebx esi edi
+	var ecx uint32
+	if v0AA08598 != v0AD7A978 {
+		// 0x0A9F74BC
+		ecx = *(*uint32)(unsafe.Pointer(uintptr(v0A391C78 - v0A9D361D))) // 0x7FFE0014地址处的值一直在变化，体现了随机性
+		v0AA08598 = v0AD7A978
+	} else {
+		// 0x0ABB5B0F
+		ecx = v0A562D19
+	}
+	// 0x0ABD5366
+	if ecx == 0 {
+		// 0x09FCBB36
+		ecx = 1
+	}
+	// 0x0A9F74CD
+	v0A562D19 = v0AD82FDD * ecx % v0A338B93
+	if v0A562D19 > v09F876D2 {
+		// 0x0AD92B1F
+		// [ebp+v0AD574B8*4+8] = v0A0519E0label1
+		// [ebp+v0A059559*4+8] = v0AD72EA4label2
+		// [ebp+v0A048EEB*4+8] = v0A3A8521label3
+		// pop edi esi ebx
+		// leave
+		// 0x0A95171B
+	} else {
+		// 0x0A05EB51
+		// 壳业务
+		// ebpC := v0AD93A11
+		// ebp10 := v0AD93A0D[0]
+		// // ebp18 := v0A33BBC9blocks[:]
+		// // eax = &ebp10
+		// // push 0x0A7434E5
+		// // push eax
+		// // ebx = 0x0A392992
+		// ebp18 := v0AD93A0D[:]
+		// // [ebp+v0AD574B8*4+8] = v0A0519E0label1
+		// // push 0x0A4E10F4
+		// // push 0x012DDE52
+		// // ret
+		// // 0x012DDE52
+		// edx := v0AD93A0D[0]
+		// ecx := v0AD93A11
+		// // push ebx
+		// ebx := v0AFD8339
+		// // push ebp
+		// // push esi
+		// esi := v0A74649D
+		// esi ^= ebx
+		// // push edi
+	}
+	// 0x0A95171B
+	// pop fd edx esi ebx edi ecx
+	// label3(0x0AFD4238)
+	// label2(0x0A057FB2)
+	// label1(0x09E2729C)
+
+	// true logic
+	// 0x09E25AB0 0x0A950A8D 0x09EB974E 0x00A0A5FE
+	f00DE8A70chkstk()
+	// 0x0A9FAFD5
+
+	return false
+}
+
+func (t *t09D91F4Cskill) f00A0E4A0() bool {
+	return false
+}
+
+func (t *t09D91F4Cskill) f00A0FE1A() bool {
+	return false
+}
+
+func (t *t09D91F4Cskill) f00A11A00() bool {
+	return false
+}
+
+func (t *t09D91F4Cskill) f00A133DD() bool {
+	return false
+}
+
+func (t *t09D91F4Cskill) f00A14890() bool {
+	return false
+}
+
+// s9 f0092DEF9
+func (t *t09D91F4Cskill) f00A0A4BE() bool {
+	// f00560030(t.m04)
+	if f0050E6D7().f0050E893isIllusionTemple(v012E3EC8mapNumber) && f0050E6D7().f0050F876(t.m14) {
+		return t.f00A14596()
+	}
+
+	ebp4 := f004398F6changeup0(t.m00obj.m13class)
+	if (ebp4 == 1 || ebp4 == 3 || ebp4 == 4 || ebp4 == 6) && t.f00A0A5E1() == false {
+		return false
+	}
+	if (ebp4 == 0 || ebp4 == 3 || ebp4 == 5) && t.f00A0E4A0() == false {
+		return false
+	}
+	if ebp4 == 2 && t.f00A0FE1A() == false {
+		return false
+	}
+	if ebp4 == 5 && t.f00A11A00() == false {
+		return false
+	}
+	if ebp4 == 6 && t.f00A133DD() == false {
+		return false
+	}
+	if t.f00A14890() == false {
+		return false
+	}
+	return true
+}
+
+// s9 f0092D873
+func (t *t09D91F4Cskill) f00A09E34() {
+	// ...
+	// 0x00A0A472, s9 0x0092DEAD:
+	t.f00A0A4BE()
+	// ...
+}
+
+func (t *t09D91F4Cskill) f00A09A07() {
+	// ...
+	// 0x00A09E11, s9 0x0092D84D:
+	t.f00A09E34()
+	// ...
 }

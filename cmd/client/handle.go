@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"log"
 	"unsafe"
+
+	"github.com/xujintao/balgass/win"
 )
 
 // s9 f0067084A
@@ -82,10 +84,10 @@ func f007087BFhandle0D(code uint8, buf []uint8, len int, enc bool) {
 	}
 }
 
-func f0059D4F6bit4(x uint8) bool {
+func f0059D4F6bit4changeup2(class uint8) bool {
 	// return f0059D1AF(x)
 	return func() bool {
-		if x>>4&1 > 0 { // bit4
+		if class>>4&1 > 0 { // bit4
 			return true
 		}
 		return false
@@ -140,7 +142,7 @@ func f0075CE21handle26hpsd(code uint8, buf []uint8, len int, enc bool) {
 			// v08C88F98 = 0
 			return
 		case 0xFE: // max
-			if f0059D4F6bit4(v0805BBACself.m13) {
+			if f0059D4F6bit4changeup2(v0805BBACself.m13class) {
 				v08C88E58hpMax = binary.BigEndian.Uint16(ebp4[4:])
 				v08C88E5CsdMax = binary.BigEndian.Uint16(ebp4[7:])
 			} else {
@@ -164,7 +166,7 @@ func f0075CE2Fhandle27mpag(code uint8, buf []uint8, len int, enc bool) {
 		ebp8subcode := ebp4[3]
 		switch ebp8subcode {
 		case 0xFE: // max
-			if f0059D4F6bit4(v0805BBACself.m13) {
+			if f0059D4F6bit4changeup2(v0805BBACself.m13class) {
 				v08C88E5AmpMax = binary.BigEndian.Uint16(ebp4[4:])
 				v08C88E5EsdMax = binary.BigEndian.Uint16(ebp4[6:])
 			} else {
@@ -1184,6 +1186,66 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// f00A49798game()
 }
 
+// character list
+func f006C780DhandleF300(buf []uint8) {
+	// 0x0A3A79D0 0x006C7813
+	f006C64A1init()
+	// 0x0AD82BA1 0x006C7826 0x09E731C7
+	// ebp8 := buf
+	f004DAAB3setMaxClass(buf[4])
+	if v012E2340state == 4 {
+		v012E3EC8mapNumber = 106
+	}
+	ebp4offset := 8
+	for ebpC := 0; ebpC < int(buf[6]); ebpC++ {
+		// 0x006C7853 0x0A8FA634
+		// 0x0A55E0C6 0x0AFDCF11 0x006C7874 0x09FC90D1
+		// ebp20char := buf[ebp4offset:]
+		ebp20char := struct {
+			index       uint8
+			name        [10]uint8
+			level       uint16
+			ctlcode     uint8
+			class       uint8
+			inventory   [17]uint8
+			guildstatus uint8
+			pklevel     uint8
+		}{}
+		ebp1Cclass := f0059CFA6class(ebp20char.class)
+		var ebp14 float32
+		var ebp10 float32
+		var ebp18 float32
+		if ebp20char.index >= 0 && ebp20char.index <= 4 {
+			// 0x006C789B 0x0AF972CC 0x0A5584D2
+			ebp14 = 0.0
+			ebp10 = 0.0
+			ebp18 = 0.0
+		}
+		// 0x006C78AA 0x0A33925D 0x09FB4DD9 0x09FE45BB
+		// 0x0A050C84 0x0ABDA84D 0x006C78CB 0x0A9325F7
+		ebp18 = 0.0
+		ebp10 = 0.0
+		ebp14 = 0.0
+		ebp24obj := f0059CA40newObject(int(ebp20char.index), ebp1Cclass, 0, ebp14, ebp10, ebp18)
+		ebp24obj.m164level = ebp20char.level
+		ebp24obj.m15ctlCode = ebp20char.ctlcode
+		// 0x006C7901 0x0AF766EB 0x0AD336E0
+		f00DE7C90memcpy(ebp24obj.m38name[:], ebp20char.name[:], 10)
+		ebp24obj.m42 = 0
+		// 0x0AF89D0F 0x0A4E5B21 0x0A8FD421 0x006C7922 0x09F8EC05
+		f00594B19objSet(int(ebp20char.index), ebp20char.inventory[:], 0, 0)
+		ebp24obj.m18guildtitle = ebp20char.guildstatus
+		ebp24obj.m20pklevel = ebp20char.pklevel
+		ebp4offset += 36
+		// 0x006C784C 0x09E2C1AA
+	}
+	// 0x006C7950 0x0A84B435
+	v08C88E08 = 51
+	// 0x006C795A 0x0A43F003 0x0B076F66 0x0A895BFA 0x006C7979
+	// f00A49798game().m104.f00A636DF(buf[7])
+	v0131A250 = win.GetTickCount()
+}
+
 // s9 f00670C47
 func f0075C794handleF3(code uint8, buf []uint8, len int, enc bool) {
 	if buf[0] != 0xC1 {
@@ -1194,6 +1256,7 @@ func f0075C794handleF3(code uint8, buf []uint8, len int, enc bool) {
 	switch subcode {
 	case 0: // character list
 		// 0x0075C97D
+		f006C780DhandleF300(buf)
 	case 1:
 		// 0x0075C98B 0x0075C90D 0x09FBC920 0x0075C98E
 		f006C798BhandleF301(buf) // character create
@@ -1370,7 +1433,7 @@ func f006C18B6handleF6(code uint8, buf []uint8, len int, enc bool) {
 			// 	if ebp1490 == v08C88CAC {
 			// 		break
 			// 	}
-			// 	ebp1494 := f004373C5getObjectManager()f00A38D5BgetObject(ebp1490)
+			// 	ebp1494 := f004373C5objectPool()f00A38D5BgetObject(ebp1490)
 			// 	if ebp1494.m5E {
 			// 		break
 			// 	}

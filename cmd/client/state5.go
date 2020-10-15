@@ -29,7 +29,7 @@ func f00611C16() {
 	case 2: // code:30, talk
 		// 0x00618C52
 		// v012E3140 = 12
-		ebp69D8 := v01308D04objectManager.f00A38D5BgetObject(v012E31B0) // 0x12DABC9C
+		ebp69D8 := v01308D04objectPool.f00A38D5BgetObject(v012E31B0) // 0x12DABC9C
 		if ebp69D8.m438 != 4 {
 			v012E31B0 = -1
 			return
@@ -116,7 +116,7 @@ func f00611C16() {
 	case 3: // code:D9, attack
 		// 0x00611C9B, s9 0x005A539E
 		// ...
-		ebp20 := v01308D04objectManager.f00A38D5BgetObject(v012E3200) // 0x12DC9B08
+		ebp20 := v01308D04objectPool.f00A38D5BgetObject(v012E3200) // 0x12DC9B08
 		if ebp20 == nil {
 			return
 		}
@@ -166,92 +166,6 @@ func f00611C16() {
 	}
 }
 
-// f00A0A5E1->f09E25AB0, s9 f0092E01C->f0A37F316
-func f00A0A5E1() {
-	// 0x0AD31885 hook to hide 0x09E25AB0, disable what?
-	// push 0x09FC14E5
-	// push 0x0A0084AA
-	// ret
-
-	// 0x0A0084AA
-	// push 0x00D0C808
-	// push 0x0A0C4915
-	// ret
-
-	// 0x0A0C4915
-	// push 0x00C04000
-	// push 0x0A4455E0
-	// ret
-
-	// 0x0A4455E0
-	// push ecx edi ebx esi edx fd
-
-	// 0x0A9F5744
-	// push 0x0A95171B
-	// push 0x0AD98CB3
-	// ret
-
-	// 0x0AD98CB3
-	// push ebx esi edi
-	var ecx uint32
-	if v0AA08598 != v0AD7A978 {
-		// 0x0A9F74BC
-		ecx = *(*uint32)(unsafe.Pointer(uintptr(v0A391C78 - v0A9D361D))) // 0x7FFE0014地址处的值一直在变化，体现了随机性
-		v0AA08598 = v0AD7A978
-	} else {
-		// 0x0ABB5B0F
-		ecx = v0A562D19
-	}
-	// 0x0ABD5366
-	if ecx == 0 {
-		// 0x09FCBB36
-		ecx = 1
-	}
-	// 0x0A9F74CD
-	v0A562D19 = v0AD82FDD * ecx % v0A338B93
-	if v0A562D19 > v09F876D2 {
-		// 0x0AD92B1F
-		// [ebp+v0AD574B8*4+8] = v0A0519E0label1
-		// [ebp+v0A059559*4+8] = v0AD72EA4label2
-		// [ebp+v0A048EEB*4+8] = v0A3A8521label3
-		// pop edi esi ebx
-		// leave
-		// 0x0A95171B
-	} else {
-		// 0x0A05EB51
-		// 壳业务
-		// ebpC := v0AD93A11
-		// ebp10 := v0AD93A0D[0]
-		// // ebp18 := v0A33BBC9blocks[:]
-		// // eax = &ebp10
-		// // push 0x0A7434E5
-		// // push eax
-		// // ebx = 0x0A392992
-		// ebp18 := v0AD93A0D[:]
-		// // [ebp+v0AD574B8*4+8] = v0A0519E0label1
-		// // push 0x0A4E10F4
-		// // push 0x012DDE52
-		// // ret
-		// // 0x012DDE52
-		// edx := v0AD93A0D[0]
-		// ecx := v0AD93A11
-		// // push ebx
-		// ebx := v0AFD8339
-		// // push ebp
-		// // push esi
-		// esi := v0A74649D
-		// esi ^= ebx
-		// // push edi
-	}
-	// 0x0A95171B
-	// pop fd edx esi ebx edi ecx
-	// label3(0x0AFD4238)
-	// label2(0x0A057FB2)
-	// label1(0x09E2729C)
-
-	// 0x09E25AB0 隐藏函数
-}
-
 // s9 what?
 func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 	// 0x09FE4C03 0x007E4FE1 0x09FE4C03 0x0A4400D7, s9 0x0AA9C932
@@ -269,7 +183,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 	var ebp3C int
 	for ebp3C < 0x190 {
 		// 0x007E5083 0x09FD45F8
-		ebp48obj := v01308D04objectManager.f00A38D5BgetObject(ebp3C)
+		ebp48obj := v01308D04objectPool.f00A38D5BgetObject(ebp3C)
 		// 陨石: 13040D54(053B),13041410(053C),13041ACC(053D),13042188(053E),13042844(053F),13042F00(0540),130435BC(0541)
 		// 死神骑士: 13043C78(068B),13044334(0691),130449F0(0692),130450AC(0694),13045E24(0695),13047FD0(068D)
 		// 死神戈登: 13045768(06A2),13046B9C(06CE),13047258(06D1)
@@ -394,8 +308,7 @@ func f004DF0D5handleState5() {
 	f00A49798game().f00A4DC94fresh(v012E2340state)
 	// ...
 	//...
-	// 0x004E0B99
-	// f005B5D6C
+	// 0x004E0B99: f005B5D6C
 	func() {
 		// 0x0A3343F6 hook to hide f09FD38F9, disable anti-temper with backup code
 		// push 0x009E5BF7
@@ -492,11 +405,11 @@ func f004DF0D5handleState5() {
 		// label2(0x0AC9CB58)
 		// label1(0x09EB9FEC)
 
-		// f09FD38F9 隐藏函数
+		// 0x09FD38F9: true logic
 	}()
 	// ...
-	// 0x004E0DA2
-	// f00632F90, s9 f005AE611
+	// 0x004E0DA2, f00632F90
+	// s9 0x?, s9 f005AE611
 	func() {
 		// 很复杂
 		// ...
@@ -510,28 +423,27 @@ func f004DF0D5handleState5() {
 		f00611C16() // f00611C16(ebp24, ebp2C, 1)
 		// }
 		// ...
-		// 0x0063DCD8, s9 0x005B0D93
-		// f00A09A07(), s9 f0092D446()
-		func() {
-			// 0x00A09E11, s9 0x0092D850
-			// f00A09E34(), s9 f0092D873()
-			func() {
-				// 0x00A0A472, s9 0x0092DEAD
-				// f00A0A4BE(), s9 f0092DEF9()
-				func() {
-					// 0x00A0A547, s9 0x0092DF82
-					f00A0A5E1()
-				}()
-			}()
-		}()
+		// 0x0063DCD8: f00A09A07
+		// s9 0x005B0D93: s9 f0092D446
+		f00A09635skill().f00A09A07()
+		/*
+			ebp10 := f00DE76C0(v0805BBACself.m528)/100<<8 | f00DE76C0(v0805BBACself.m524)/100
+			if ebp10 < 0 {
+				ebp10 = 0
+			} else if ebp10 > 0xFFFF {
+				ebp10 = 0xFFFF
+			}
+			v086A3B8C = v088EBC10[ebp10]
+		*/
 	}()
 	// ...
-	// 0x004E0DD1, s9 0x004E0DD2
-	// f0086BA70(), s9 f007879A0()
+	// 0x004E0DD1: f0086BA70
+	// s9 0x004E0DD2: s9 f007879A0
 	func() {
-		// f0085A04E(), s9 f00775F5E()
+		// f0085A04E, s9 f00775F5E
 		func() {
-			// 0x0AC33981, s9 0x0A3F0B8
+			// 0x0AC33981:
+			// s9 0x0A3F0B8:
 			// ...
 			f007E4FC4(1, 1, 1, 1, 1, true)
 			// ...
