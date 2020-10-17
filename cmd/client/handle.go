@@ -23,34 +23,34 @@ func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 // key: 0x0075FF6A, s9 0x00673FE6
 // value: 0x0075FCB2, s9 0x00673D2E
 var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
-	0x00:   f0075CB89handle00,              // server_connect is prepared
-	0x01:   f0075CB97handle01,              // chat
-	0x0D:   f007087BFhandle0D,              // handle notice message
-	0x1D:   handle1DBeAttacked,             // hook, hash[DF]=hash[1D]
-	0x12:   handleViewportPlayerAdd,        // viewport player add
-	0x13:   handleViewportMonsterNPCAdd,    // viewport monster/npc add
-	0x14:   handleViewportObjRemove,        // viewport object add
-	0x1F:   handleViewportMonsterCallAdd,   // viewport monstercall add
-	0x20:   f0075CC8BhandleViewportItemAdd, // viewport item add
-	0x21:   handleViewportItemRemove,       // viewport item remove
-	0x26:   f0075CE21handle26hpsd,          // hp and sd
-	0x27:   f0075CE2Fhandle27mpag,          // mp and ag
-	0x42:   f0075D021handlePartyInfo,       // party info, 客户端主动请求以及队伍成员信息变化推送
-	0x44:   f0075D03DhandlePartyHPMP,       // party member HP/MP, 队伍成员HP/MP数据变化了服务器才会推送而不是定时发送
-	0x65:   handleViewportGuildInfoAdd,     // viewport guild info add
-	0x45:   handleViewportPlayerChange,     // viewport player change
-	0x81:   f0075D93DhandleWarehouseMoney,  // warehouse money
-	0xA9:   f0075E87EhandlePetItemInfo,     // pet item info
-	0xBF:   f0075F391handleBF,              // event experience
-	0xD2:   f0075F7D0handleD2,              // cash shop
-	0xD7:   handleD7positionSet,            // hook, hash[D4]=hash[D7]
-	0xD9:   handleD9normalAttack,           // hook, hash[11]=hash[D9]
-	0xDA:   handleDApositionGet,            // hook, hash[15]=hash[DA]
-	0xF1:   f0075C3E8handleF1,              // server_game is prepared and response with server's version, and the login logic also use code F1
-	0xF3:   f0075C794handleF3,              // character
-	0xF4:   f0075CB02handleF4,              // server list and server info
-	0xF6:   f006C18B6handleF6,              // quest list
-	0xF805: handleViewportGensInfoAdd,      // viewport gens info add
+	0x00:   f0075CB89handle00,                // server_connect is prepared
+	0x01:   f0075CB97handle01,                // chat
+	0x0D:   f007087BFhandle0D,                // handle notice message
+	0x1D:   handle1DBeAttacked,               // hook, hash[DF]=hash[1D]
+	0x12:   handleViewportPlayerAdd,          // viewport player add
+	0x13:   handleViewportMonsterNPCAdd,      // viewport monster/npc add
+	0x14:   handleViewportObjRemove,          // viewport object add
+	0x1F:   handleViewportMonsterCallAdd,     // viewport monstercall add
+	0x20:   f0075CC8Bhandle20ViewportItemAdd, // viewport item add
+	0x21:   handleViewportItemRemove,         // viewport item remove
+	0x26:   f0075CE21handle26hpsd,            // hp and sd
+	0x27:   f0075CE2Fhandle27mpag,            // mp and ag
+	0x42:   f0075D021handlePartyInfo,         // party info, 客户端主动请求以及队伍成员信息变化推送
+	0x44:   f0075D03DhandlePartyHPMP,         // party member HP/MP, 队伍成员HP/MP数据变化了服务器才会推送而不是定时发送
+	0x65:   handleViewportGuildInfoAdd,       // viewport guild info add
+	0x45:   handleViewportPlayerChange,       // viewport player change
+	0x81:   f0075D93DhandleWarehouseMoney,    // warehouse money
+	0xA9:   f0075E87EhandlePetItemInfo,       // pet item info
+	0xBF:   f0075F391handleBF,                // event experience
+	0xD2:   f0075F7D0handleD2,                // cash shop
+	0xD7:   handleD7positionSet,              // hook, hash[D4]=hash[D7]
+	0xD9:   handleD9normalAttack,             // hook, hash[11]=hash[D9]
+	0xDA:   handleDApositionGet,              // hook, hash[15]=hash[DA]
+	0xF1:   f0075C3E8handleF1,                // server_game is prepared and response with server's version, and the login logic also use code F1
+	0xF3:   f0075C794handleF3,                // character
+	0xF4:   f0075CB02handleF4,                // server list and server info
+	0xF6:   f006C18B6handleF6,                // quest list
+	0xF805: handleViewportGensInfoAdd,        // viewport gens info add
 }
 
 func f0075CB89handle00(code uint8, buf []uint8, len int, enc bool) {
@@ -86,15 +86,15 @@ func f0075CB97handle01(code uint8, buf []uint8, len int, enc bool) {
 		if ebp4obj == nil {
 			return
 		}
-		if v0805BBACself.m18guildTitle == 0x80 && f00DE94F0strcmp(ebp4obj.m38name[:], []uint8("길드 마스터")) == 0 { // 战盟使者
+		if v0805BBACobjectself.m18guildTitle == 0x80 && f00DE94F0strcmp(ebp4obj.m38name[:], []uint8("길드 마스터")) == 0 { // 战盟使者
 			// f0090E94C().f0090D6A6(21)
 			// v086A3BDE = 1
 			// v012E31B4 = 0
 			// f005A4C09(0)
 			// v012E31C4 = 8
 			// v012E31B8 = 0
-			if v0805BBACself.m5C == -1 {
-				v0805BBACself.m5C = 1999
+			if v0805BBACobjectself.m5C == -1 {
+				v0805BBACobjectself.m5C = 1999
 			}
 			return
 		}
@@ -134,7 +134,7 @@ func handleViewportObjRemove(code uint8, buf []uint8, len int, enc bool) {}
 
 func handleViewportMonsterCallAdd(code uint8, buf []uint8, len int, enc bool) {}
 
-func f0075CC8BhandleViewportItemAdd(code uint8, buf []uint8, len int, enc bool) {
+func f0075CC8Bhandle20ViewportItemAdd(code uint8, buf []uint8, len int, enc bool) {
 	// f006C0242(buf)
 	func(buf []uint8) {
 		var items []struct {
@@ -145,12 +145,12 @@ func f0075CC8BhandleViewportItemAdd(code uint8, buf []uint8, len int, enc bool) 
 		}
 		for _, item := range items {
 			var ebp1Cord [2]float32
-			// ebp1Cord[0] := (item.x + v0114A660) / v0114C250
-			// ebp1Cord[1] := (item.y + v0114A660) / v0114C250
+			ebp1Cord[0] = (float32(item.x) + 0.5) / 100 // (item.x + v0114A660) / v0114C250
+			ebp1Cord[1] = (float32(item.y) + 0.5) / 100 // (item.y + v0114A660) / v0114C250
 			ebp20number := int(binary.BigEndian.Uint16(item.number[:]))
 			ebp10msb := ebp20number >> 15
 			ebp20number &= 0x7FFF
-			v086D09C8items[ebp20number].item.f00A2742Einit()
+			v086D09C8items[ebp20number].item2.f00A2742Einit()
 			v086D09C8items[ebp20number].number = ebp20number
 			// v086D09C8items[ebp20number].item.m334 = v012E9995
 			f00677421mapItemAdd(&v086D09C8items[ebp20number], item.attr[:], ebp1Cord[:], ebp10msb)
@@ -172,17 +172,17 @@ func f0075CE21handle26hpsd(code uint8, buf []uint8, len int, enc bool) {
 			// v08C88F98 = 0
 			return
 		case 0xFE: // max
-			if f0059D4F6bit4changeup2(v0805BBACself.m13class) {
+			if f0059D4F6bit4changeup2(v0805BBACobjectself.m13class) {
 				v08C88E58hpMax = binary.BigEndian.Uint16(ebp4[4:])
 				v08C88E5CsdMax = binary.BigEndian.Uint16(ebp4[7:])
 			} else {
-				v086105ECobject.m126hpMax = binary.BigEndian.Uint16(ebp4[4:]) // the difference between v086105ECobject and v0805BBACself
-				v086105ECobject.m12CsdMax = binary.BigEndian.Uint16(ebp4[7:])
+				v086105ECpanel.m126hpMax = binary.BigEndian.Uint16(ebp4[4:]) // the difference between v086105ECpanel and v0805BBACobjectself
+				v086105ECpanel.m12CsdMax = binary.BigEndian.Uint16(ebp4[7:])
 			}
 			return
 		case 0xFF: // current
-			v086105ECobject.m122hp = binary.BigEndian.Uint16(ebp4[4:])
-			v086105ECobject.m12Asd = binary.BigEndian.Uint16(ebp4[7:])
+			v086105ECpanel.m122hp = binary.BigEndian.Uint16(ebp4[4:])
+			v086105ECpanel.m12Asd = binary.BigEndian.Uint16(ebp4[7:])
 			return
 		}
 	}(buf)
@@ -196,17 +196,17 @@ func f0075CE2Fhandle27mpag(code uint8, buf []uint8, len int, enc bool) {
 		ebp8subcode := ebp4[3]
 		switch ebp8subcode {
 		case 0xFE: // max
-			if f0059D4F6bit4changeup2(v0805BBACself.m13class) {
+			if f0059D4F6bit4changeup2(v0805BBACobjectself.m13class) {
 				v08C88E5AmpMax = binary.BigEndian.Uint16(ebp4[4:])
 				v08C88E5EsdMax = binary.BigEndian.Uint16(ebp4[6:])
 			} else {
-				v086105ECobject.m128mpMax = binary.BigEndian.Uint16(ebp4[4:])
-				v086105ECobject.m142agMax = binary.BigEndian.Uint16(ebp4[6:])
+				v086105ECpanel.m128mpMax = binary.BigEndian.Uint16(ebp4[4:])
+				v086105ECpanel.m142agMax = binary.BigEndian.Uint16(ebp4[6:])
 			}
 			return
 		case 0xFF: // current
-			v086105ECobject.m124mp = binary.BigEndian.Uint16(ebp4[4:])
-			v086105ECobject.m140ag = binary.BigEndian.Uint16(ebp4[6:])
+			v086105ECpanel.m124mp = binary.BigEndian.Uint16(ebp4[4:])
+			v086105ECpanel.m140ag = binary.BigEndian.Uint16(ebp4[6:])
 			return
 		}
 	}(buf)
@@ -286,8 +286,8 @@ func f0075D93DhandleWarehouseMoney(code uint8, buf []uint8, len int, enc bool) {
 		if buf[3] == 0 {
 			return
 		}
-		v086105E8.m1C08moneyWarehouse = uint(binary.LittleEndian.Uint32(buf[4:]))
-		v086105E8.m1C04money = uint(binary.LittleEndian.Uint32(buf[8:]))
+		v086105E8player.m1C08moneyWarehouse = uint(binary.LittleEndian.Uint32(buf[4:]))
+		v086105E8player.m1C04money = uint(binary.LittleEndian.Uint32(buf[8:]))
 	}(buf)
 }
 
@@ -1106,35 +1106,35 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 		ruud         int    // 48
 	}{}
 	// 0x0A56F62D 0x007033DF 0x0AF113E5
-	if f0059D4F6bit4changeup2(v086105ECobject.m10Aclass) {
+	if f0059D4F6bit4changeup2(v086105ECpanel.m10Aclass) {
 		// 0x09EB66C4
 		v08C88E40exp = ebp17Cmsg.exp
 		v08C88E48expNext = ebp17Cmsg.expNext
 	} else {
 		// 0x007033FF 0x0A848C6C
-		v086105ECobject.m110exp = uint32(ebp17Cmsg.exp)
-		v086105ECobject.m114expNext = uint32(ebp17Cmsg.exp)
+		v086105ECpanel.m110exp = uint32(ebp17Cmsg.exp)
+		v086105ECpanel.m114expNext = uint32(ebp17Cmsg.exp)
 	}
 	// 0x0A88A77F
-	v086105ECobject.m174points = ebp17Cmsg.points
-	v086105ECobject.m118strength = ebp17Cmsg.strength
-	v086105ECobject.m11Aagility = ebp17Cmsg.agility
-	v086105ECobject.m11Cvitality = ebp17Cmsg.vitality
-	v086105ECobject.m11Eenergy = ebp17Cmsg.energy
-	v086105ECobject.m120leadship = ebp17Cmsg.leadship
-	v086105ECobject.m122hp = ebp17Cmsg.hp
-	v086105ECobject.m126hpMax = ebp17Cmsg.hpMax
-	v086105ECobject.m124mp = ebp17Cmsg.mp
-	v086105ECobject.m128mpMax = ebp17Cmsg.mpMax
-	v086105ECobject.m140ag = ebp17Cmsg.ag
-	v086105ECobject.m142agMax = ebp17Cmsg.agMax
-	v086105ECobject.m12Asd = ebp17Cmsg.sd
-	v086105ECobject.m12CsdMax = ebp17Cmsg.sdMax
-	v086105ECobject.m14CpointsAdd = ebp17Cmsg.pointsAdd
-	v086105ECobject.m14EpointsAddMax = ebp17Cmsg.pointsAddMax
-	v086105ECobject.m150pointsDec = ebp17Cmsg.pointsDec
-	v086105ECobject.m152pointsDecMax = ebp17Cmsg.pointsDecMax
-	v086105E8.m1C04money = uint(ebp17Cmsg.money)
+	v086105ECpanel.m174points = ebp17Cmsg.points
+	v086105ECpanel.m118strength = ebp17Cmsg.strength
+	v086105ECpanel.m11Aagility = ebp17Cmsg.agility
+	v086105ECpanel.m11Cvitality = ebp17Cmsg.vitality
+	v086105ECpanel.m11Eenergy = ebp17Cmsg.energy
+	v086105ECpanel.m120leadship = ebp17Cmsg.leadship
+	v086105ECpanel.m122hp = ebp17Cmsg.hp
+	v086105ECpanel.m126hpMax = ebp17Cmsg.hpMax
+	v086105ECpanel.m124mp = ebp17Cmsg.mp
+	v086105ECpanel.m128mpMax = ebp17Cmsg.mpMax
+	v086105ECpanel.m140ag = ebp17Cmsg.ag
+	v086105ECpanel.m142agMax = ebp17Cmsg.agMax
+	v086105ECpanel.m12Asd = ebp17Cmsg.sd
+	v086105ECpanel.m12CsdMax = ebp17Cmsg.sdMax
+	v086105ECpanel.m14CpointsAdd = ebp17Cmsg.pointsAdd
+	v086105ECpanel.m14EpointsAddMax = ebp17Cmsg.pointsAddMax
+	v086105ECpanel.m150pointsDec = ebp17Cmsg.pointsDec
+	v086105ECpanel.m152pointsDecMax = ebp17Cmsg.pointsDecMax
+	v086105E8player.m1C04money = uint(ebp17Cmsg.money)
 	/*
 		// 0x00703776 0x09E9141D
 		// ExtensionBagFrame
@@ -1168,7 +1168,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// f00592B90objSet(ebp178obj, 0x4C4, ebp17Cmsg.x, ebp17Cmsg.y, (ebp17Cmsg.dir-3.14/4)*180/3.14) // (dir-PI/4)*180/PI
 	ebp178obj.m5Eid = v08C88E0CconnID
 	ebp2A84 := &ebp178obj.m410
-	ebp178obj.m13class = v086105ECobject.m10Aclass
+	ebp178obj.m13class = v086105ECpanel.m10Aclass
 	ebp178obj.m14 = 0
 	ebp178obj.m20pkLevel = ebp17Cmsg.pkLevel
 	ebp178obj.m15ctlCode = ebp17Cmsg.ctlCode
@@ -1179,19 +1179,19 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	// 	// 0x00704A2A
 	// }
 	// 0x09FE7B46 0x0AD83F3F
-	ebp178obj.m32 = v0805BBACself.m32
+	ebp178obj.m32 = v0805BBACobjectself.m32
 	// 0x00704A31 0x0A5FEB28
-	v0805BBACself = ebp178obj
+	v0805BBACobjectself = ebp178obj
 	// 0x0A4DD230 0x0AF947B4 0x00704A54 0x09FBD0F4
-	f00DE7C90memcpy(ebp178obj.m64[:], v086105ECobject.m11[:], 255)
+	f00DE7C90memcpy(ebp178obj.m64[:], v086105ECpanel.m11[:], 255)
 	// 0x09FC3478 0x00704A6E 0x0A8FE907
-	f00DE7C90memcpy(ebp178obj.m38name[:], v086105ECobject.m00name[:], 10)
+	f00DE7C90memcpy(ebp178obj.m38name[:], v086105ECpanel.m00name[:], 10)
 
 	/*
 		// 0x00704A8C 0x0A041DE7
 		for ebp2A88 := 0; ebp2A88 < 12; ebp2A88++ {
 			// 0x0A4E92F8
-			// v086105E8.m1348inventorys[ebp2A88].m00 = 0
+			// v086105E8player.m1348inventorys[ebp2A88].m00 = 0
 			// 0x00704A7F 0x0A4413A3
 		}
 
@@ -1217,15 +1217,15 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 		v086A3B9C = 0
 		v012E3140 = 6
 		// 0x00704C2C 0x0A56B7EA
-		f00511409(v0805BBACself)
+		f00511409(v0805BBACobjectself)
 		// 0x0B10C423 0x0AF81D1D 0x0AB4D14C 0x09EB23D9
 		// 0x0A442AB5 0x0AFE08CE 0x00704C73 0x0AFD473A
 		f007EA8A8(0x7D8F, &ebp2A84.m114, &ebp2A84.m120, &ebp2A84.mB4, 0, ebp2A84, -1, 0, 0, 0, 0.0, -1)
 
 		// 0x0A008E9E 0x0A5D41A1 0x09E2BEB8 0x00704CBC
 		ebp2A84.mB0 = 0.0
-		v086105E8.m00 = 0
-		v086105E8.f005A3727(int(ebp178obj.m13class) & 7)
+		v086105E8player.m00 = 0
+		v086105E8player.f005A3727(int(ebp178obj.m13class) & 7)
 
 		f0090E94C().f0090E02B()
 		f00A49798ui().f00A4E2C8()
@@ -1238,9 +1238,9 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 		v012E31A4 = -1
 		v012E31A8 = -1
 		v086D09AC = 0
-		v0805BBACself.m58 = 0
+		v0805BBACobjectself.m58 = 0
 		// 0x00704D27 0x09F857A2 0x00704D33 0x0AD3551E
-		f0055E188(v0805BBACself)
+		f0055E188(v0805BBACobjectself)
 		if f004F4048isBloodCastle(v012E3EC8mapNumber) == false {
 			// 0x0AF7A6EA 0x00704D47 0x00704CF3 0x09FCAF0F
 			f007DB145(139, 1)
@@ -1270,11 +1270,11 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 		// 0x0A5FCD46 0x0AA2D86A 0x00704E30
 		f00A49798ui().m164BuffFram.f00A99B92()
 		// 0x0A39288A 0x00704E3F 0x0AF92E48
-		if f0059D4F6bit4changeup2(v0805BBACself.m13class) {
+		if f0059D4F6bit4changeup2(v0805BBACobjectself.m13class) {
 			// 0x0A9FD488 0x00704E57 0x0AF99B8E 0x00704E69
 			// 0x00704DF0 0x0A902355 0x00704E70 0x00704DF7
 			// 0x0AFE0144 0x00704E77
-			f0090E94C().f0090EA51().f008F3F40(f0059CFDB(v0805BBACself.m13class))
+			f0090E94C().f0090EA51().f008F3F40(f0059CFDB(v0805BBACobjectself.m13class))
 		}
 		// 0x00704E7C 0x0AAB7E3A 0x00704E9F
 		f00A49798ui().m174Alarm.f00A98C4A()
@@ -1514,7 +1514,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 		f00A49798ui().m138MapName.do16()
 		f0080A5ED()
 		// 0x0A9F9C65 0x007050BE 0x0070504E 0x0A7455DF 0x007050C6
-		f005105DC(92).f00974BEA(v0805BBACself)
+		f005105DC(92).f00974BEA(v0805BBACobjectself)
 		// 0x0A4EB760
 		if f009C3904map82to90() == false {
 			// 0x007050DC 0x0B109088 0x007050E6 0x0A9F5570
@@ -1567,7 +1567,7 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 		// 0x00705234
 		f007C8B6A().f007C8BEE()
 		// 0x0B073EE7 0x0070524C
-		v01308D04objectPool.f00A390A6(v0805BBACself)
+		v01308D04objectPool.f00A390A6(v0805BBACobjectself)
 		// 0x0AC378EA 0x00705257 0x0A43DF16
 		f004DAACA(v01319D6ChWnd)
 

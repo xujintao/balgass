@@ -194,11 +194,11 @@ func f004D5F98mainWndProcOrigin(hWnd win.HWND, message uint32, wParam, lParam ui
 				alive.f00439178init()
 				alive.f0043922CwriteHead(0xC1, 0x0E) // 写前缀
 				ebp10 := win.GetTickCount()
-				alive.f0043974FwriteZero(1)                      // 写0
-				alive.f0043EDF5writeUint32(ebp10)                // 写time
-				alive.f004C65EFwriteUint16(v086105ECobject.m154) // 什么
-				alive.f004C65EFwriteUint16(v086105ECobject.m160) // 什么
-				alive.f004393EAsend(true, false)                 // 发送心跳报文
+				alive.f0043974FwriteZero(1)                     // 写0
+				alive.f0043EDF5writeUint32(ebp10)               // 写time
+				alive.f004C65EFwriteUint16(v086105ECpanel.m154) // 什么
+				alive.f004C65EFwriteUint16(v086105ECpanel.m160) // 什么
+				alive.f004393EAsend(true, false)                // 发送心跳报文
 				if v08C88F62 == 0 {
 					v08C88F62 = 1
 					v08C88F84 = ebp10
@@ -1077,25 +1077,32 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 	// 0x004D855B: array size <= 100
 	ebp1A54 := f00DE64BCnew(uint(f00DE8AADrand()%100) + 1)
 	v01319D18 = ebp1A54
+
 	// 0x004D857F: array size = 7k
 	ebp1A58 := f00DE64BCnew(7 * 1024)
 	v086105E0 = ebp1A58
+
 	// 0x004D859B: array size = 91*800
 	ebp1A5C := f00DE64BCnew(72800)
 	v086105E4 = ebp1A5C
-	// 0x004D85B7: object manager init
-	var ebp1B18 *t01173630
-	ebp1A64 := &t01173630{}
+
+	// 0x004D85B7: object pool init
+	var ebp1B18 *t01173630objectPool
+	ebp1A64 := &t01173630objectPool{}
 	if ebp1A64 != nil {
 		ebp1B18 = ebp1A64.f00A38B97construct()
 	}
 	ebp1A60 := ebp1B18
-	v01319D44 = ebp1A60
-	// 0x004D85FF: v086105E8
-	// 0x004D864A: zero init v086105E0, v086105E4, v086105E8
+	v01319D44objectPool = ebp1A60
+
+	// 0x004D85FF:
+	v086105E8player = &player{}
+	v086105E8player.f005A31C1construct()
+	// 0x004D864A: zero init v086105E0, v086105E4, v086105E8player
 	// 0x004D8689:
-	v086105ECobject = &v086105E8.m04
-	// v086105E8.m00.f005A3337()
+	v086105ECpanel = &v086105E8player.m04panel
+	v086105E8player.f005A3337init()
+
 	// 0x004D86A1:
 	if v012E2210 == 1 {
 		// 0x004D86AE: new v01319D20

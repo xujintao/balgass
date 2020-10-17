@@ -1,5 +1,44 @@
 package main
 
+var v0860F290 [8]classDefault
+
+// sizeof=0x29C
+type classDefault struct {
+	m00strength  uint16
+	m02dexterity uint16
+	m04vitality  uint16
+	m06energy    uint16
+	m08          uint16
+	m0A          uint16
+	m0E          uint8
+	m0F          uint8
+	m10          uint8
+	m11          uint8
+}
+
+func f005A2F91(id int, strength, dexterity, vitality, energy uint16, unk1 uint16, unk2 uint16, unk3, unk4, unk5, unk6 uint8) {
+	v0860F290[id].m00strength = strength
+	v0860F290[id].m02dexterity = dexterity
+	v0860F290[id].m04vitality = vitality
+	v0860F290[id].m06energy = energy
+	v0860F290[id].m08 = unk1
+	v0860F290[id].m0A = unk2
+	v0860F290[id].m0E = unk3
+	v0860F290[id].m0F = unk4
+	v0860F290[id].m10 = unk5
+	v0860F290[id].m11 = unk6
+}
+
+func f005A3016() {
+	f005A2F91(0, 18, 18, 15, 30, 80, 60, 1, 2, 1, 2)
+	f005A2F91(1, 28, 20, 25, 10, 110, 20, 2, 1, 2, 1)
+	f005A2F91(2, 50, 50, 50, 30, 110, 30, 110, 30, 6, 3)
+	f005A2F91(3, 30, 30, 30, 30, 120, 80, 1, 1, 2, 2)
+	f005A2F91(4, 30, 30, 30, 30, 120, 80, 1, 1, 2, 2)
+	f005A2F91(5, 50, 50, 50, 30, 110, 30, 110, 30, 6, 3)
+	f005A2F91(6, 32, 27, 25, 20, 100, 40, 1, 3, 1, 1)
+}
+
 var v08C88CACid int
 var v08C88E0CconnID uint16
 
@@ -11,7 +50,7 @@ var v08C88E5AmpMax uint16
 var v08C88E5CsdMax uint16
 var v08C88E5EsdMax uint16
 
-var v0805BBACself *object
+var v0805BBACobjectself *object
 
 // sizeof=0x6BC
 type object struct {
@@ -55,18 +94,26 @@ func (t *object) f004D332C(x uint16) {
 // player
 var v086105E0 []uint8 // 7k
 var v086105E4 []uint8 // 91*800
-var v086105E8 = &player{}
-var v086105ECobject = &v086105E8.m04
+var v086105E8player *player
+var v086105ECpanel = &v086105E8player.m04panel
 
-// sizeof=0x8C
-type inventory struct {
+// sizeof=0x84
+type bag struct {
+	id    int
+	slots [64]uint16
+}
+
+func (t *bag) f00A2678Ainit() {}
+
+func (t *bag) f00A26765construct() {
+	t.f00A2678Ainit()
 }
 
 // sizeof=0x1C30
 type player struct {
 	m00 int
 	// normal level
-	m04 struct {
+	m04panel struct {
 		m00name          [11]uint8
 		m11              [255]uint8
 		m10Aclass        uint8
@@ -100,9 +147,38 @@ type player struct {
 		m174points       uint16
 		m178             [100]uint8
 	}
+	m1344items          [12]item
+	m19D4item           item // 可能是卷轴位置
+	m1A60bag1           bag
+	m1AE4items          [2]item
+	m1BFC               [2]int
 	m1C04money          uint
 	m1C08moneyWarehouse uint
-	m1348inventorys     [12]inventory
+	m1C2C               uint8
+	m1C2D               uint8
+}
+
+func (t *player) f005A31C1construct() {
+	// f00DE8931(t.m1344[:], 0x8C, 12, f00A270D6construct, f00A270EA)
+	t.m19D4item.f00A270D6construct()
+	// t.m1A60.f00A26765() // t.m1A60.f00A2678A()
+	// f00DE8931(t.m1AE4[:], 0x8C, 2, f00A270D6construct, f00A270EA)
+}
+
+func (t *player) f005A3337init() {
+	f005A3016()
+	for ebp4 := 0; ebp4 < 12; ebp4++ {
+		t.m1344items[ebp4].m04code = -1
+	}
+	t.m19D4item.m04code = -1
+	for ebp8 := 0; ebp8 < 2; ebp8++ {
+		t.m1AE4items[ebp8].m04code = -1
+		t.m1BFC[ebp8] = 0
+	}
+	t.m1C04money = 0
+	t.m1C08moneyWarehouse = 0
+	t.m1C2C = 0
+	t.m1C2D = 0
 }
 
 func (t *player) f005A3727(changeup0 int) {
@@ -146,19 +222,19 @@ func (t *t01173638) f00A39237construct() *t01173638 {
 	return t
 }
 
-var v01319D44 *t01173630
+var v01319D44objectPool *t01173630objectPool
 
 // sizeof=0x10
-type t01173630 struct {
+type t01173630objectPool struct {
 	t01173638
 }
 
-func (t *t01173630) f00A38C2Cinit() {
+func (t *t01173630objectPool) f00A38C2Cinit() {
 	// ebp14 := f00DE64BCnew(529*1724 + 4) // 0xDEA80: 912000
 	// var ebp1C []uint8
 	// if ebp14 != nil {
 	// 	binary.LittleEndian.PutUint32(ebp14[:], 529)
-	// 	// f00DE8931(ebp14[4:], 1724, 529, f004D2B85, f004D2C3D)
+	// 	f00DE8931(ebp14[4:], 1724, 529, f004D2B85, f004D2C3D)
 	// 	ebp1C = ebp14[4:]
 	// }
 	ebp14 := &struct {
@@ -168,11 +244,11 @@ func (t *t01173630) f00A38C2Cinit() {
 	ebp14.number = 529
 	t.m04objects = ebp14.objects[:]
 	t.m08object = &t.m04objects[f00DE8AADrand()%128]
-	v0805BBACself = t.m08object
+	v0805BBACobjectself = t.m08object
 	t.m0C = 0
 }
 
-func (t *t01173630) f00A38B97construct() *t01173630 {
+func (t *t01173630objectPool) f00A38B97construct() *t01173630objectPool {
 	t.t01173638.f00A39237construct()
 	// t.m00vtabptr = v01173630[:]
 	t.f00A38C2Cinit()
@@ -197,7 +273,7 @@ func f006C64A1init() {
 				return
 			}
 			obj.m1E = 0
-			if v0805BBACself.m5C == -1 || obj.m5C == v0805BBACself.m5C {
+			if v0805BBACobjectself.m5C == -1 || obj.m5C == v0805BBACobjectself.m5C {
 				obj.m1E = 1
 			}
 			if v08C88FAC == false {

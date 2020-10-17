@@ -1426,43 +1426,43 @@ func (t *windowgameMainFrame) f00AAA14Ehpmp() {
 	var ebpCmpMax int
 	var ebp14hp int
 	var ebp10mp int
-	if f0059D4F6bit4changeup2(v0805BBACself.m13class) {
+	if f0059D4F6bit4changeup2(v0805BBACobjectself.m13class) {
 		var ebp1C, ebp20 int
 		ebp8hpMax = int(v08C88E58hpMax)
-		if v086105ECobject.m122hp >= 0 {
-			ebp1C = int(v086105ECobject.m122hp)
+		if v086105ECpanel.m122hp >= 0 {
+			ebp1C = int(v086105ECpanel.m122hp)
 		} else {
 			ebp1C = 0
 		}
 		ebp14hp = ebp1C
 		ebpCmpMax = int(v08C88E5AmpMax)
-		if v086105ECobject.m124mp >= 0 {
-			ebp20 = int(v086105ECobject.m124mp)
+		if v086105ECpanel.m124mp >= 0 {
+			ebp20 = int(v086105ECpanel.m124mp)
 		} else {
 			ebp20 = 0
 		}
 		ebp10mp = ebp20
 	} else {
 		var ebp24, ebp28 int
-		ebp8hpMax = int(v086105ECobject.m126hpMax) // 0x1B6
-		if v086105ECobject.m122hp >= 0 {
-			ebp24 = int(v086105ECobject.m122hp)
+		ebp8hpMax = int(v086105ECpanel.m126hpMax) // 0x1B6
+		if v086105ECpanel.m122hp >= 0 {
+			ebp24 = int(v086105ECpanel.m122hp)
 		} else {
 			ebp24 = 0
 		}
 		ebp14hp = ebp24                            // 0x144
-		ebpCmpMax = int(v086105ECobject.m128mpMax) // 0x67
-		if v086105ECobject.m124mp >= 0 {
-			ebp28 = int(v086105ECobject.m124mp)
+		ebpCmpMax = int(v086105ECpanel.m128mpMax) // 0x67
+		if v086105ECpanel.m124mp >= 0 {
+			ebp28 = int(v086105ECpanel.m124mp)
 		} else {
 			ebp28 = 0
 		}
 		ebp10mp = ebp28 // 0x6B
 	}
 	// if ebp8hpMax > 0 && ebp14hp > 0 {
-	// 	ebp1 = v0805BBACself.m60C.f004CEC95(0x37, ebp8hpMax, ebp14hp)
+	// 	ebp1 = v0805BBACobjectself.m60C.f004CEC95(0x37, ebp8hpMax, ebp14hp)
 	// }
-	// ebp1 := v0805BBACself.m60C.f004CEC95(0x37, ebp8hpMax, ebp14hp)
+	// ebp1 := v0805BBACobjectself.m60C.f004CEC95(0x37, ebp8hpMax, ebp14hp)
 	ebp1 := false
 	if t.m90 != ebp1 {
 		t.m90 = ebp1
@@ -1483,7 +1483,7 @@ func (t *windowgameMainFrame) f00AAA14Ehpmp() {
 func (t *windowgameMainFrame) f00AAA387sd() {
 	var ebp8sdMax int
 	var ebp4sd int
-	if f0059D4F6bit4changeup2(v0805BBACself.m13class) {
+	if f0059D4F6bit4changeup2(v0805BBACobjectself.m13class) {
 		var ebp10, ebp12 uint16
 		if v08C88E5CsdMax >= 1 {
 			ebp10 = v08C88E5CsdMax
@@ -1491,22 +1491,22 @@ func (t *windowgameMainFrame) f00AAA387sd() {
 			ebp10 = 1
 		}
 		ebp8sdMax = int(ebp10)
-		if ebp8sdMax >= int(v086105ECobject.m12Asd) {
-			ebp12 = v086105ECobject.m12Asd
+		if ebp8sdMax >= int(v086105ECpanel.m12Asd) {
+			ebp12 = v086105ECpanel.m12Asd
 		} else {
 			ebp12 = uint16(ebp8sdMax)
 		}
 		ebp4sd = int(ebp12)
 	} else {
 		var ebp18, ebp1A uint16
-		if v086105ECobject.m12CsdMax >= 1 {
-			ebp18 = v086105ECobject.m12CsdMax
+		if v086105ECpanel.m12CsdMax >= 1 {
+			ebp18 = v086105ECpanel.m12CsdMax
 		} else {
 			ebp18 = 1
 		}
 		ebp8sdMax = int(ebp18) // 0x541
-		if ebp8sdMax >= int(v086105ECobject.m12Asd) {
-			ebp1A = v086105ECobject.m12Asd
+		if ebp8sdMax >= int(v086105ECpanel.m12Asd) {
+			ebp1A = v086105ECpanel.m12Asd
 		} else {
 			ebp1A = uint16(ebp8sdMax)
 		}
@@ -1850,7 +1850,7 @@ func (t *windowgamePartyFrame) f00A82218setPartyInfo(size int, members []msgPart
 
 			// 离开队伍按钮
 			var ebp115btnVisible bool
-			if /*t.f00A831B3(v0805BBACself.m38name[:]) &&*/ t.f00A83171matchIndexByName(i, v0805BBACself.m38name[:]) {
+			if /*t.f00A831B3(v0805BBACobjectself.m38name[:]) &&*/ t.f00A83171matchIndexByName(i, v0805BBACobjectself.m38name[:]) {
 				ebp115btnVisible = true
 			}
 			// 队长
@@ -1861,7 +1861,7 @@ func (t *windowgamePartyFrame) f00A82218setPartyInfo(size int, members []msgPart
 			f00A3A4F2(t, "SetPartyInfo", "%d %s %s %b %b", i, ebp134channel.f004073E0cstr(), ebp150name.f004073E0cstr(), crown, ebp115btnVisible)
 
 			// naviMap
-			if t.f00A83171matchIndexByName(i, v0805BBACself.m38name[:]) == true {
+			if t.f00A83171matchIndexByName(i, v0805BBACobjectself.m38name[:]) == true {
 				continue
 			}
 			if int(t.m78members[i].mapNumber) != v012E3EC8mapNumber {

@@ -1366,15 +1366,13 @@ func (t *modeManager) f00B0F1F6getMode(index int) {
 }
 
 // -------------------------------------------
-var v086D09C8items [1000]mapItem
-
 type itemBase struct {
 	m22EkindA uint8
 	m22FkindB uint8
 	m230kind  uint8
 }
 
-// size:0x388
+// size:0x8C
 type item struct {
 	m00itemBase    *itemBase
 	m04code        int
@@ -1382,23 +1380,23 @@ type item struct {
 	m1Edurability  uint8
 	m20option      uint8
 	m21option      uint8
+	m30            [8]uint16
+	m40            [8]uint8
 	m58is380       bool
 	m59sockets     [5]uint8
+	m5F            [5]uint8
 	m6Csocketbonus int // harmony/socket/pentagram/muun bonus
 	m80excel       uint8
-	m8C            struct {
-		m04 uint8
-		m14 int
-		m18 int
-		m1C int
-		m40 int
-		m44 int
-	}
-	m334 uint8
-	m384 int
+	m81            [6]uint8
+	m87            uint8
+	m88            uint8
 }
 
 func (t *item) f00A2742Einit() {}
+
+func (t *item) f00A270D6construct() {
+	t.f00A2742Einit()
+}
 
 func (t *item) f00A276A1getItemBase() *itemBase {
 	if t.m00itemBase == nil {
@@ -1441,9 +1439,27 @@ func (t *item) f00A29A7AhasExcel() bool {
 	return false
 }
 
+// size:0x388
+type item2 struct {
+	item
+	m8C struct {
+		m04 uint8
+		m14 int
+		m18 int
+		m1C int
+		m40 int
+		m44 int
+	}
+	m334 uint8
+	m384 int
+}
+
+var v086D09C8items [1000]mapItem
+
+// sizeof=0x38C
 type mapItem struct {
 	number int
-	item
+	item2
 }
 
 func f005A0292code(attr []uint8) int {
@@ -1452,7 +1468,7 @@ func f005A0292code(attr []uint8) int {
 
 func f00677421mapItemAdd(mapItem *mapItem, attr []uint8, ord []float32, msb int) {
 	ebp8code := f005A0292code(attr)
-	ebp4item := &mapItem.item
+	ebp4item := &mapItem.item2
 	ebp4item.f00A2742Einit()
 	ebp4item.m04code = ebp8code
 	if ebp4item.f00A276A1getItemBase() == nil {
@@ -1719,8 +1735,8 @@ type t09D91F4Cskill struct {
 }
 
 func (t *t09D91F4Cskill) f00A095DAinit() {
-	t.m00obj = v0805BBACself
-	// t.m04 = &v0805BBACself.m410
+	t.m00obj = v0805BBACobjectself
+	// t.m04 = &v0805BBACobjectself.m410
 	t.m08 = 0
 	t.m0C = 0
 	t.m14 = 0

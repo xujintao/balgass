@@ -34,7 +34,7 @@ func f00611C16() {
 			v012E31B0 = -1
 			return
 		}
-		ebp69DC := v086105ECobject.m10Clevel      // 0x190
+		ebp69DC := v086105ECpanel.m10Clevel      // 0x190
 		if ebp69D8.m166 == 0xEE && ebp69DC < 10 { // 0xF0
 			// ...
 			return
@@ -173,7 +173,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 	// ebp2C := 5
 	ebp4 := 0
 	ebp34 := 0
-	ebp28 := v086105ECobject.m178[x1]
+	ebp28 := v086105ECpanel.m178[x1]
 	var ebp30 int // ebp30 := f0090E94C().f0090EA51().f008F6A00(ebp28)
 	ebpD := 0
 	if v012E3EC8mapNumber == 0x1E {
@@ -191,7 +191,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 		// 福袋: 1304868C(1545)
 		// 月兔: 13048D48(160D),13049404(161E)
 		ebp50 := &ebp48obj.m410
-		if ebp50.m04 && ebp50.m0E && !ebp48obj.m24 && ebp48obj != v0805BBACself { // 1304A838(2E82)
+		if ebp50.m04 && ebp50.m0E && !ebp48obj.m24 && ebp48obj != v0805BBACobjectself { // 1304A838(2E82)
 			// 渲染？
 			// 0x007E50EC 0x0AC3A648
 			// ...
@@ -262,7 +262,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 		// ebp51 := x6
 		// ebp2990.f00406FC0stdstring(&v0114ECB0)
 		ebp4 = 0
-		// v0805BBACself.m38name
+		// v0805BBACobjectself.m38name
 	}
 	// 0x007E7271
 	if ebp28 != 0 {
@@ -272,7 +272,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 			// 0x007E7293 0x0A5D51ED 0x007E72AE 0x0AD57EA6 0x0AD57EA6 0x09FB45A3 0x007E72C5 0x0A05ED3A 0x09FBE557
 			// ebp29CC.f00406FC0stdstring(&v0114ECB0)
 			ebp4 = 4
-			// ebp29E8.f00406FC0stdstring(v0805BBACself.m38name[:])
+			// ebp29E8.f00406FC0stdstring(v0805BBACobjectself.m38name[:])
 			ebp4 = 5
 			var ebp29AD bool // ebp29AD := f004CE0BD(&ebp29E8, &ebp29CC)
 			// 0x09FE37E6 0x0A55B22D 0x0A889689
@@ -427,7 +427,7 @@ func f004DF0D5handleState5() {
 		// s9 0x005B0D93: s9 f0092D446
 		f00A09635skill().f00A09A07()
 		/*
-			ebp10 := f00DE76C0(v0805BBACself.m528)/100<<8 | f00DE76C0(v0805BBACself.m524)/100
+			ebp10 := f00DE76C0(v0805BBACobjectself.m528)/100<<8 | f00DE76C0(v0805BBACobjectself.m524)/100
 			if ebp10 < 0 {
 				ebp10 = 0
 			} else if ebp10 > 0xFFFF {
