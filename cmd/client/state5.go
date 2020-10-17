@@ -34,7 +34,7 @@ func f00611C16() {
 			v012E31B0 = -1
 			return
 		}
-		ebp69DC := v086105ECobject.m10C           // 0x190
+		ebp69DC := v086105ECobject.m10Clevel      // 0x190
 		if ebp69D8.m166 == 0xEE && ebp69DC < 10 { // 0xF0
 			// ...
 			return
@@ -46,9 +46,9 @@ func f00611C16() {
 			ebp69D8.m166 == 0x242 ||
 			ebp69D8.m166 == 0x2AE ||
 			ebp69D8.m166 == 0x2AF {
-			// f00A49798game().mF0.f00A700C1(1)
+			// f00A49798ui().mF0.f00A700C1(1)
 		} else {
-			// f00A49798game().mF0.f00A700C1(0)
+			// f00A49798ui().mF0.f00A700C1(0)
 		}
 		// if f0090E94C().f0090D682(4) {
 		// 	f0090E94C().f0090DC7E(4)
@@ -174,7 +174,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 	ebp4 := 0
 	ebp34 := 0
 	ebp28 := v086105ECobject.m178[x1]
-	var ebp30 int // ebp30 := f0090E94C(ebp28).f0090EA51().f008F6A00()
+	var ebp30 int // ebp30 := f0090E94C().f0090EA51().f008F6A00(ebp28)
 	ebpD := 0
 	if v012E3EC8mapNumber == 0x1E {
 		// 0x007E5035
@@ -305,7 +305,7 @@ func f004DF0D5handleState5() {
 	// 很复杂
 	// ...
 	// 0x004E0A71
-	f00A49798game().f00A4DC94fresh(v012E2340state)
+	f00A49798ui().f00A4DC94fresh(v012E2340state)
 	// ...
 	//...
 	// 0x004E0B99: f005B5D6C

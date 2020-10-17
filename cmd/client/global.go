@@ -21,7 +21,8 @@ var v08C88AB8 [100]uint8
 var v08C88C69 bool
 var v08C88C6A bool
 var v08C88C74 uint32
-var v086A3B94 func()
+
+// var v086A3B94 func()
 var v086A3BEC uint32
 
 var v0638C6C4 uint32 = 0x4EB0E616
@@ -507,7 +508,7 @@ func (t *mainFrame) f00BB1E00(buf []uint8, format string, param ...interface{}) 
 }
 
 // game
-func f00A49798game() *game {
+func f00A49798ui() *game {
 	if v09D96438 == nil {
 		// ebp14 := f00DE852Fnew(0x228) // 0x0DDBB9F0
 		var ebp18 *game
@@ -546,104 +547,104 @@ type game struct {
 	m78      uintptr                // state4
 	m7C      *windowManager01173C54 // state5
 
-	m80            *windowgame0116A864
-	m84infoTooltip *windowgameInfoTooltip
-	m88caution     *windowgameCaution    // Caution
-	m8CmainFrame   *windowgameMainFrame  // MainFrame
-	m90            uintptr               // characterFrame
-	m94            uintptr               // inventoryFrame
-	m98            uintptr               // ExtensionBagFrame
-	m9C            uintptr               // PrivateStoreFrame
-	mA0            uintptr               // MixInventoryFrame
-	mA4            uintptr               // MixSel
-	mA8            uintptr               // MixGoblinSel
-	mAC            uintptr               // MixStone
-	mB0            uintptr               // MixInventoryFrame
-	mB4            uintptr               // GensRanking
-	mB8            uintptr               // GuildCreateFrame
-	mBC            uintptr               // GuildInfoFrame
-	mC0            uintptr               // GuildPosition
-	mC4            uintptr               // infoPopup
-	mC8            uintptr               // PetInfoPopup
-	mCC            uintptr               // ?
-	mD0            uintptr               // QuickCommand
-	mD4            uintptr               // duel
-	mD8            uintptr               // duelwatch
-	mDC            uintptr               // trade
-	mE0            uintptr               // purchaseinven
-	mE4            uintptr               // goldarcher
-	mE8            uintptr               // ?
-	mEC            uintptr               // npcdialogue
-	mF0            uintptr               // NpcShop
-	mF4            uintptr               // PetInfo
-	mF8            uintptr               // Pentagram
-	mFC            uintptr               // ArkaResultInfo
-	m100           uintptr               // StorageInven
-	m104           uintptr               // StorageInven
-	m108           uintptr               // NpcJobChangeQuest
-	m10C           uintptr               // NpcQuestProgress
-	m110           uintptr               // NpcGateKeeper
-	m114           uintptr               // SystemMenu
-	m118           uintptr               // Option
-	m11C           uintptr               // SelectMenu
-	m120           uintptr               // MyQuestInfo
-	m124           uintptr               // ChatWindow
-	m128           uintptr               // MoveCommand
-	m12C           uintptr               // HelpWindow
-	m130           uintptr               // EventMapHelper
-	m134           uintptr               // Trainer 驯兽师
-	m138           uintptr               // MapName
-	m13C           uintptr               // Notice
-	m140           uintptr               // HeroPosition
-	m144           uintptr               // EnterBloodCastle
-	m148           uintptr               // EnterEmpireGuardian
-	m14C           uintptr               // CommandWindow
-	m150           uintptr               // ArkaBattleRegister
-	m154           uintptr               // ArkaBattleProgress
-	m158           uintptr               // ArkaBattleNotice
-	m15C           uintptr               // MonsterInfo
-	m160           uintptr               // PlayerInfo
-	m164           uintptr               // BuffFrame
-	m168           uintptr               // EquipDurabilityInfo
-	m16C           uintptr               // MacroMain
-	m170           uintptr               // MacroSub
-	m174           uintptr               // Alarm
-	m178           uintptr               // MatchingSelect
-	m17C           uintptr               // MatchingGuild
-	m180           uintptr               // MatchingParty
-	m184partyFrame *windowgamePartyFrame // PartyFrame
-	m188           uintptr               // ItemInfo
-	m18C           uintptr               // StrongestMatchMenu
-	m190           uintptr               // StrongestMatchRank
-	m194           uintptr               // StrongestMatchResult
-	m198           uintptr               // SearchPrivateStore
-	m19C           uintptr               // MiniGameRummy
-	m1A0           uintptr               // EventInventoryFrame
-	m1A4           uintptr               // EventInfo
-	m1A8           uintptr               // CursedTempleMatchMenu
-	m1AC           uintptr               // CursedTempleResult
-	m1B0           uintptr               // CursedTempleScore
-	m1B4           uintptr               // CursedTempleInfo
-	m1B8           uintptr               // ListOfMatches
-	m1BC           uintptr               // EventMapProgressInfo
-	m1C0           uintptr               // EventMapRoundCount
-	m1C4           uintptr               // ProgressFrame
-	m1C8           uintptr               // Navimap
-	m1CC           uintptr               // PetInventoryFrame
-	m1D0           uintptr               // MuunExchange
-	m1D4           uintptr               // OrdealSquareEnterMenu
-	m1D8           uintptr               // OrdealSquareScore
-	m1DC           uintptr               // OrdealSquareResult
-	m1E0           uintptr               // EventMapTutorial
-	m1E4           uintptr               // EventInfo
-	m1E8           uintptr               // BattleField_BigDialog
-	m1EC           uintptr               // RideButton
-	m1F0           uintptr               // MonsterCompensation
-	m1F4           uintptr               // ImageNotice
-	m1F8           uintptr               // GremoryCase 活动奖励背包
-	m1FC           uintptr               // RebuyList
-	m200           uintptr               // PetFrame
-	m204           uintptr               // do5 ebp7C
+	m80               *windowgame0116A864
+	m84infoTooltip    *windowgameInfoTooltip
+	m88caution        *windowgameCaution    // Caution
+	m8CmainFrame      *windowgameMainFrame  // MainFrame
+	m90               uintptr               // characterFrame
+	m94               uintptr               // inventoryFrame
+	m98ExtensionBag   uintptr               // ExtensionBagFrame
+	m9C               uintptr               // PrivateStoreFrame
+	mA0               uintptr               // MixInventoryFrame
+	mA4               uintptr               // MixSel
+	mA8               uintptr               // MixGoblinSel
+	mAC               uintptr               // MixStone
+	mB0               uintptr               // MixInventoryFrame
+	mB4               uintptr               // GensRanking
+	mB8               uintptr               // GuildCreateFrame
+	mBC               uintptr               // GuildInfoFrame
+	mC0               uintptr               // GuildPosition
+	mC4               uintptr               // infoPopup
+	mC8               uintptr               // PetInfoPopup
+	mCC               uintptr               // ?
+	mD0               uintptr               // QuickCommand
+	mD4               uintptr               // duel
+	mD8               uintptr               // duelwatch
+	mDC               uintptr               // trade
+	mE0               uintptr               // purchaseinven
+	mE4               uintptr               // goldarcher
+	mE8               uintptr               // ?
+	mEC               uintptr               // npcdialogue
+	mF0               uintptr               // NpcShop
+	mF4               uintptr               // PetInfo
+	mF8               uintptr               // Pentagram
+	mFC               uintptr               // ArkaResultInfo
+	m100              uintptr               // StorageInven
+	m104              uintptr               // StorageInven
+	m108              uintptr               // NpcJobChangeQuest
+	m10C              uintptr               // NpcQuestProgress
+	m110              uintptr               // NpcGateKeeper
+	m114              uintptr               // SystemMenu
+	m118              uintptr               // Option
+	m11C              uintptr               // SelectMenu
+	m120              uintptr               // MyQuestInfo
+	m124ChatWindow    uintptr               // ChatWindow
+	m128              uintptr               // MoveCommand
+	m12C              uintptr               // HelpWindow
+	m130              uintptr               // EventMapHelper
+	m134              uintptr               // Trainer 驯兽师
+	m138MapName       uintptr               // MapName
+	m13C              uintptr               // Notice
+	m140              uintptr               // HeroPosition
+	m144              uintptr               // EnterBloodCastle
+	m148              uintptr               // EnterEmpireGuardian
+	m14C              uintptr               // CommandWindow
+	m150              uintptr               // ArkaBattleRegister
+	m154              uintptr               // ArkaBattleProgress
+	m158              uintptr               // ArkaBattleNotice
+	m15C              uintptr               // MonsterInfo
+	m160              uintptr               // PlayerInfo
+	m164BuffFram      uintptr               // BuffFrame
+	m168              uintptr               // EquipDurabilityInfo
+	m16C              uintptr               // MacroMain
+	m170              uintptr               // MacroSub
+	m174Alarm         uintptr               // Alarm
+	m178              uintptr               // MatchingSelect
+	m17CMatchingGuild uintptr               // MatchingGuild
+	m180MatchingParty uintptr               // MatchingParty
+	m184partyFrame    *windowgamePartyFrame // PartyFrame
+	m188              uintptr               // ItemInfo
+	m18C              uintptr               // StrongestMatchMenu
+	m190              uintptr               // StrongestMatchRank
+	m194              uintptr               // StrongestMatchResult
+	m198              uintptr               // SearchPrivateStore
+	m19C              uintptr               // MiniGameRummy
+	m1A0              uintptr               // EventInventoryFrame
+	m1A4              uintptr               // EventInfo
+	m1A8              uintptr               // CursedTempleMatchMenu
+	m1AC              uintptr               // CursedTempleResult
+	m1B0              uintptr               // CursedTempleScore
+	m1B4              uintptr               // CursedTempleInfo
+	m1B8              uintptr               // ListOfMatches
+	m1BC              uintptr               // EventMapProgressInfo
+	m1C0              uintptr               // EventMapRoundCount
+	m1C4              uintptr               // ProgressFrame
+	m1C8Navimap       uintptr               // Navimap
+	m1CC              uintptr               // PetInventoryFrame
+	m1D0              uintptr               // MuunExchange
+	m1D4              uintptr               // OrdealSquareEnterMenu
+	m1D8              uintptr               // OrdealSquareScore
+	m1DC              uintptr               // OrdealSquareResult
+	m1E0              uintptr               // EventMapTutorial
+	m1E4              uintptr               // EventInfo
+	m1E8              uintptr               // BattleField_BigDialog
+	m1EC              uintptr               // RideButton
+	m1F0              uintptr               // MonsterCompensation
+	m1F4ImageNotice   uintptr               // ImageNotice
+	m1F8GremoryCase   uintptr               // GremoryCase 活动奖励背包
+	m1FC              uintptr               // RebuyList
+	m200              uintptr               // PetFrame
+	m204              uintptr               // do5 ebp7C
 
 	m20Cwidth  int
 	m210height int

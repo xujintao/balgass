@@ -435,7 +435,6 @@ func (t *conn) f004397E3write(buf []uint8, len int) int {
 }
 
 var v08C88E08 uint32 // 可能是状态
-var v08C88E0Cid int
 
 type t5 struct{}
 

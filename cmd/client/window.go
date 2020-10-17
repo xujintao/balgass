@@ -1869,20 +1869,20 @@ func (t *windowgamePartyFrame) f00A82218setPartyInfo(size int, members []msgPart
 				continue
 			}
 			t.m78members[i].unk = true
-			// f00A49798game().m1C8naviMap.f00AE3733enableNavi(t.m78members[i].index, "icon_party-", t.m78members[i].x, t.m78members[i].y, 0, t.m78members[i].name[:], 0)
+			// f00A49798ui().m1C8naviMap.f00AE3733enableNavi(t.m78members[i].index, "icon_party-", t.m78members[i].x, t.m78members[i].y, 0, t.m78members[i].name[:], 0)
 		}
 		// 0x00A827F8: disable navi
 		for i := t.m74memberSize; i < 5; i++ {
-			// f00A49798game().m1C8naviMap.f00AE39F5disableNavi(i, "icon_party-")
+			// f00A49798ui().m1C8naviMap.f00AE39F5disableNavi(i, "icon_party-")
 			t.m78members[i].unk = false
 		}
 	}
 	// 0x00A82856:
-	// if f00A49798game().f006C5EC1() == 0 {
+	// if f00A49798ui().f006C5EC1() == 0 {
 	// 	return
 	// }
 	// f00DE76C0(t.f00A3A2E8(f00DE76C0(t.f00A3A383(0))))
-	// f00A49798game().f006C5EC1().f00A87AC4()
+	// f00A49798ui().f006C5EC1().f00A87AC4()
 	// t.f00A82993setPartyState()
 }
 
@@ -1897,6 +1897,8 @@ func (t *windowgamePartyFrame) do6fresh() bool {
 }
 func (t *windowgamePartyFrame) do7() bool { return false }
 func (t *windowgamePartyFrame) do16()     {}
+
+func (t *windowgamePartyFrame) f00A821E4() {}
 
 // -------------------------------------------------------------
 // size:0x28

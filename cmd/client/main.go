@@ -228,7 +228,7 @@ func f004D5F98mainWndProcOrigin(hWnd win.HWND, message uint32, wParam, lParam ui
 func f004D6C2BmainWndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
 	switch message {
 	case 0x102: // win.WM_CHAR
-		// f00A49798game().f00A4DF93(wParam, lParam)
+		// f00A49798ui().f00A4DF93(wParam, lParam)
 	}
 	return win.CallWindowProc(v01319D1CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98mainWndProcOrigin
 }
@@ -1045,7 +1045,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 	f00DEE871setlocale(0 /*LC_ALL*/, v01319E00)
 	f0043BF3FgetT4003().f0043BF9C(v01319D6ChWnd, v012E3F08resolution.width, v012E3F08resolution.height) // 800*600
 	// f0090E94C().f0090B256()
-	f00A49798game().f00A49E40init1(v01319D6ChWnd, v012E3F08resolution.height, v012E3F08resolution.width) // r6602 floating point support not loaded
+	f00A49798ui().f00A49E40init1(v01319D6ChWnd, v012E3F08resolution.height, v012E3F08resolution.width) // r6602 floating point support not loaded
 	/*
 		if f00B0E9BF().f00B0EE6C() {
 			v01319D67 = true
@@ -1094,7 +1094,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 	// 0x004D85FF: v086105E8
 	// 0x004D864A: zero init v086105E0, v086105E4, v086105E8
 	// 0x004D8689:
-	v086105ECobject = &v086105E8.object
+	v086105ECobject = &v086105E8.m04
 	// v086105E8.m00.f005A3337()
 	// 0x004D86A1:
 	if v012E2210 == 1 {
@@ -1201,7 +1201,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 				// ebp595 == true ||
 				ebp28msg.Message == 0x201 || // WM_LBUTTONDOWN
 				ebp28msg.Message == 0x202 { // WM_LBUTTONUP
-				// f00A49798game().f00A4DFB7(ebp28msg.HWnd, ebp28msg.Message, ebp28msg.WParam, ebp28msg.LParam, 1)
+				// f00A49798ui().f00A4DFB7(ebp28msg.HWnd, ebp28msg.Message, ebp28msg.WParam, ebp28msg.LParam, 1)
 			}
 			if 0 == win.GetMessage(&ebp28msg, 0, 0, 0) { // WM_QUIT返回0，出错返回-1
 				break // 0x004D8F6C

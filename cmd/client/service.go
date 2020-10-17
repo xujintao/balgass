@@ -613,7 +613,7 @@ func (s *service3) f0043E9B6() {
 	// ebp4 = 1
 	// ebp14FC.f00406FC0stdstring(&v0114A327)
 	// ebp4 = 2
-	// f00A49798game().f0043EE21().f00A9FB38(&ebp14FC, &ebp14E0, 3, 0)
+	// f00A49798ui().f0043EE21().f00A9FB38(&ebp14FC, &ebp14E0, 3, 0)
 	// ebp4 = 1
 	// ebp14FC.f00407B10()
 	// ebp4 = 0
@@ -622,7 +622,7 @@ func (s *service3) f0043E9B6() {
 	// ebp1518.f00406FC0stdstring(v08610600textManager.f00436DA8(0x1D9))
 	// ebp4 = 3
 	// ebp1534.f00406FC0stdstring(&v0114A33E)
-	// f00A49798game().f0043EE21().f00A9FB38(&ebp1534, &ebp1518, 3, 0)
+	// f00A49798ui().f0043EE21().f00A9FB38(&ebp1534, &ebp1518, 3, 0)
 	// ebp4 = 3
 	// ebp1534.f00407B10()
 	// ebp4 = 0
@@ -737,7 +737,7 @@ func (s *service4) do13(unk float64) {
 				// ebp4 = 2
 				// ebp2964.f00406FC0stdstring(&v0114A5FF)
 				// ebp4 = 3
-				// f00A49798game().f0043EE21().f00A9FB38(&ebp2964, &ebp2948, 3, 0)
+				// f00A49798ui().f0043EE21().f00A9FB38(&ebp2964, &ebp2948, 3, 0)
 				// ebp4 = 2
 				// ebp2964.f00407B10()
 				// ebp4 = 1
@@ -746,7 +746,7 @@ func (s *service4) do13(unk float64) {
 				// ebp4 = 4
 				// ebp299C.f00406FC0stdstring(&v0114A600)
 				// ebp4 = 5
-				// f00A49798game().f0043EE21().f00A9FB38(&ebp299C, &ebp2980, 3, 0)
+				// f00A49798ui().f0043EE21().f00A9FB38(&ebp299C, &ebp2980, 3, 0)
 				// ebp4 = 4
 				// ebp299C.f00407B10()
 				// ebp4 = 1
@@ -1315,7 +1315,7 @@ func f004DD578handleState1(hDC win.HDC) {
 			win.SendMessage(v01319D6ChWnd, 2, 0, 0)
 		}
 		// 0x006B7C88
-		f00A49798game().f00A4A521loadResource()
+		f00A49798ui().f00A4A521loadResource()
 		// ...
 		// f006B7DDC() // load Data/local/...
 		func() {
@@ -1404,13 +1404,13 @@ func f004E1E1EhandleState2() {
 		// 	ebp10.f004A9123(ebp10.f410)
 		// }
 	}
-	if v08C88E08 != 0x14 {
+	if v08C88E08 != 20 {
 		return
 	}
 	v01319E08log.f00B38AE4printf("> Request Character list\r\n")
 	// f004E9975(0, 0, 0).f004E99D2()
 	v012E2340state = 4
-	v08C88E08 = 0x32
+	v08C88E08 = 50
 	// 0x004E2050 压缩
 	var reqCharList pb // [c1 04 f3 00]
 	reqCharList.f00439178init()
@@ -1968,7 +1968,7 @@ func f004E6233handleState(hDC win.HDC) {
 		f004DB77ChandleState3(hDC)
 	}
 	// 0x004E62F0
-	f00A49798game().f00A4E1BFchangeState(v012E2340state)
+	f00A49798ui().f00A4E1BFchangeState(v012E2340state)
 	// 0x004E6306
 	if v01319D9C <= 31 {
 		return

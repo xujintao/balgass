@@ -1,12 +1,17 @@
 package main
 
+var v08C88CACid int
+var v08C88E0CconnID uint16
+
+// master level
+var v08C88E40exp uint64
+var v08C88E48expNext uint64
 var v08C88E58hpMax uint16
 var v08C88E5AmpMax uint16
 var v08C88E5CsdMax uint16
 var v08C88E5EsdMax uint16
 
-var v086105E0 []uint8 // 7k
-var v086105E4 []uint8 // 91*800
+var v0805BBACself *object
 
 // sizeof=0x6BC
 type object struct {
@@ -14,33 +19,26 @@ type object struct {
 	m13class      uint8
 	m14           uint8
 	m15ctlCode    uint8
-	m18guildtitle uint8
-	m20pklevel    uint8
+	m18guildTitle uint8
+	m20pkLevel    uint8
 	m1E           uint8
 	m24           bool
 	m2B           uint8
-	m38name       [32]uint8
+	m32           uint8
+	m38name       [10]uint8
 	m42           uint8
+	m58           uint8
 	m5C           int16
 	m5Eid         uint16
+	m64           [255]uint8
 	m10C          uint16
-	m122hp        uint16 // hp
-	m124mp        uint16 // mp
-	m126hpMax     uint16 // max hp
-	m128mpMax     uint16 // max mp
-	m12Asd        uint16 // sd
-	m12CsdMax     uint16 // max sd
-	m140ag        uint16 // ag
-	m142agMax     uint16 // max ag
-	m154          uint16
-	m160          uint16
 	m164level     uint16
 	m166          uint16
-	m178          [100]uint8
 	m410          struct {
 		m04  bool
 		m0E  bool
 		m28  uint8
+		mB0  float32
 		mB4  float32
 		mB8  float32
 		mBC  float32
@@ -55,18 +53,67 @@ func (t *object) f004D332C(x uint16) {
 }
 
 // player
-var v086105E8 *player
-var v086105ECobject *object = &v086105E8.object
-var v0805BBACself *object
+var v086105E0 []uint8 // 7k
+var v086105E4 []uint8 // 91*800
+var v086105E8 = &player{}
+var v086105ECobject = &v086105E8.m04
+
+// sizeof=0x8C
+type inventory struct {
+}
 
 // sizeof=0x1C30
 type player struct {
-	object
-	m1C04moneyWarehouse uint
-	m1C08money          uint
+	m00 int
+	// normal level
+	m04 struct {
+		m00name          [11]uint8
+		m11              [255]uint8
+		m10Aclass        uint8
+		m10B             uint8
+		m10Clevel        uint16
+		m110exp          uint32
+		m114expNext      uint32
+		m118strength     uint16
+		m11Aagility      uint16
+		m11Cvitality     uint16
+		m11Eenergy       uint16
+		m120leadship     uint16
+		m122hp           uint16 // hp
+		m124mp           uint16 // mp
+		m126hpMax        uint16 // max hp
+		m128mpMax        uint16 // max mp
+		m12Asd           uint16 // sd
+		m12CsdMax        uint16 // max sd
+		m140ag           uint16 // ag
+		m142agMax        uint16 // max ag
+		m144             uint16
+		m146             uint16
+		m148             uint16
+		m14A             uint16
+		m14CpointsAdd    uint16
+		m14EpointsAddMax uint16
+		m150pointsDec    uint16
+		m152pointsDecMax uint16
+		m154             uint16
+		m160             uint16
+		m174points       uint16
+		m178             [100]uint8
+	}
+	m1C04money          uint
+	m1C08moneyWarehouse uint
+	m1348inventorys     [12]inventory
+}
+
+func (t *player) f005A3727(changeup0 int) {
+
 }
 
 // objectPool
+func f00592888getIndex(id int) int {
+	return 0
+}
+
 func f004373C5objectPool() *objectPool {
 	return v01308D04objectPool
 }
@@ -183,12 +230,12 @@ func f004398F6changeup0(class uint8) uint8 {
 
 var v0114AAE4 float32 = 0.3
 
-func f0059CA40newObject(id int, class uint8, unk1 uint8, unk2, unk3, unk4 float32) *object {
+func f0059CA40newObject(id int, class uint8, unk1 uint8, unk2, unk3, dir float32) *object {
 	ebp4obj := f004373C5objectPool().f00A38D5BgetObject(id)
 	if ebp4obj == nil {
 		return nil
 	}
-	// f00592B90objSet(ebp4, 0x4C4, 0, 0, unk4)
+	// f00592B90objSet(ebp4obj, 0x4C4, 0, 0, dir)
 	ebp8 := &ebp4obj.m410
 	ebp8.mB4 = v0114AAE4
 	ebp8.mB8 = v0114AAE4
