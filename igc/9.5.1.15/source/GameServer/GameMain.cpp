@@ -258,6 +258,8 @@ int g_iFenrirElfMaxDurSmall;
 int g_iFenrir_01Level_MixRate;
 int g_iFenrir_02Level_MixRate;
 int g_iFenrir_03Level_MixRate;
+int g_bTestSkillAttackSpeed;
+int g_iTestSkillID;
 int g_iSkillDistanceCheck;
 int g_iSkillDistanceCheckTemp;
 int g_iSkillDistanceKick;
@@ -1476,6 +1478,8 @@ void ReadCommonServerInfo()
 	g_iCharacterRecuperationMaxLevel = GetPrivateProfileInt("GameServerInfo","CharacterRecuperationMaxLevel", 100, gDirPath.GetNewPath("commonserver.cfg"));
 
 	// Skill Check Settings
+	g_bTestSkillAttackSpeed = GetPrivateProfileInt("GameServerInfo","test_skill_attack_speed", 0, gDirPath.GetNewPath("commonserver.cfg"));
+	g_iTestSkillID = GetPrivateProfileInt("GameServerInfo","test_skill_id", 43, gDirPath.GetNewPath("commonserver.cfg"));
 	g_iSkillDistanceCheck = GetPrivateProfileInt("GameServerInfo","SkillDistanceCheck", 0, gDirPath.GetNewPath("commonserver.cfg"));
 	g_iSkillDistanceCheckTemp = GetPrivateProfileInt("GameServerInfo","SkillDistanceCheckTemp", 2, gDirPath.GetNewPath("commonserver.cfg"));
 	g_iSkillDistanceKick = GetPrivateProfileInt("GameServerInfo","SkillDistanceKick", 0, gDirPath.GetNewPath("commonserver.cfg"));

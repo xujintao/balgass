@@ -12406,6 +12406,12 @@ void GameProtocol::CGMagicAttack(LPBYTE lpRecv, int aIndex)
 	lpObj = &gObj[aIndex];
 	lpTargetObj = &gObj[usernumber];
 	
+	// test attack speed
+	if(g_bTestSkillAttackSpeed && MagicNumber==g_iTestSkillID){
+		g_Log.AddC(TColor::Red, "[%d]ms skill_id[%d]", GetTickCount() - lpObj->iPingTime, MagicNumber);
+		lpObj->iPingTime = GetTickCount();
+	}
+
 	CMagicInf * lpMagic;
 	int attackret = gObjCheckAttackArea(aIndex, usernumber);
 

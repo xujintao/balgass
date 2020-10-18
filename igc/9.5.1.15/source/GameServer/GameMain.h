@@ -229,6 +229,8 @@ extern int g_iFenrirElfMaxDurSmall;
 extern int g_iFenrir_01Level_MixRate;
 extern int g_iFenrir_02Level_MixRate;
 extern int g_iFenrir_03Level_MixRate;
+extern int g_bTestSkillAttackSpeed;
+extern int g_iTestSkillID;
 extern int g_iSkillDistanceCheck;
 extern int g_iSkillDistanceCheckTemp;
 extern int g_iSkillDistanceKick;
