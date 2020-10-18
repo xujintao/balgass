@@ -272,10 +272,10 @@ void SetValues()
 	MemAssign(0x00A0A5E1 + 1, (DWORD)0x0941B4CA); // 1.04R, jump over complicated shell logic, which would send trap message
 	//MemAssign(0x0A0C438C + 6, (BYTE)0xDF); // 1.04R, be attacked send, 1D->DF, compatible with s9 server
 	MemAssign(0x004D7D42 + 1, (BYTE)0x42); // support multi instance
-	MemAssign(0x00B0F1C1 + 1, (BYTE)0x00); // discard high dmDisplayFrequency, fixed resolution mismatching
+	// MemAssign(0x00B0F1C1 + 1, (BYTE)0x00); // discard high dmDisplayFrequency, fixed resolution mismatching
 	MemAssign(0x0067760B + 1, (BYTE)0x2C); // fixed item with socket show excellent
 	MemAssign(0x0AF7F02D + 1, (DWORD)0xC8); // modify max speed limit of death stab from 300ms to 200ms per attack
-
+/*
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
 	//HookManager.MakeJmpHook(CONNECT_HOOK1, 5, onCsHook);
@@ -299,12 +299,10 @@ void SetValues()
 	//009EDC9B   68 00D80901      PUSH main.0109D800                       ; ASCII "> Menu - Exit game. "
 
 	// reconnect
-	/*
 	HookManager.MakeCallback(RENDER_HP_BAR_CALLBACK, RenderLoadingBar, 0, 5, true); // 1.04R
 	HookManager.MakeJmpHook(0x004E56C8, 10, HookDCFunc); // 1.04R, reconnect
 	HookManager.MakeJmpHook(0x00ACD10F, 5, HookExitFunc); // 1.04R
 	HookManager.MakeJmpHook(0x0043F7EA, 5, HookExitCharSelectFunc); // 1.04R
-	*/
 	ResourceManager.LoadGraphics();
 	
 	// HookManager.MakeJmpHook(SETGLOW_EX, 6, OnSetGlowEx); // 1.04R has no glow.bmd
@@ -335,7 +333,6 @@ void SetValues()
 	// LoadDSEntryLevel(); // private custom !!!
 
 	// Launcher init
-	/*
 	SYSTEMTIME Date;
 	GetLocalTime(&Date);
 	DWORD dwParam = (Date.wDay * Date.wMonth * Date.wYear) ^ 0x12894376 + 0xFFFFFFF;
@@ -403,10 +400,10 @@ void SetValues()
 			ExitProcess(0);
 		}
 	}
-	*/
+	
 	// item
-
 	HookManager.MakeJmpHook(TOOLTIP_FIX, 9, ToolTipFix); // 1.04R
+*/
 }
 
 void RecvCheckThread()
