@@ -34,7 +34,7 @@ func f00611C16() {
 			v012E31B0 = -1
 			return
 		}
-		ebp69DC := v086105ECpanel.m10Clevel      // 0x190
+		ebp69DC := v086105ECpanel.m10Clevel       // 0x190
 		if ebp69D8.m166 == 0xEE && ebp69DC < 10 { // 0xF0
 			// ...
 			return
@@ -121,7 +121,7 @@ func f00611C16() {
 			return
 		}
 		// ...
-		var ebp14 uint8 // f00DE76F6()
+		var ebp14 uint8 // f00DE76F6round()
 		// ...
 		// 0x00611FF5 inline send, s9
 		var ebp14A4 pb // 0x00166D38
@@ -173,7 +173,7 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 	// ebp2C := 5
 	ebp4 := 0
 	ebp34 := 0
-	ebp28 := v086105ECpanel.m178[x1]
+	ebp28skillID := v086105ECpanel.m178skillIDs[x1]
 	var ebp30 int // ebp30 := f0090E94C().f0090EA51().f008F6A00(ebp28)
 	ebpD := 0
 	if v012E3EC8mapNumber == 0x1E {
@@ -265,34 +265,32 @@ func f007E4FC4(x1, x2, x3, x4 int, x5 uint16, x6 bool) bool {
 		// v0805BBACobjectself.m38name
 	}
 	// 0x007E7271
-	if ebp28 != 0 {
-		// 0x0A1B1019
-		if ebp28 != 0xEB {
-			// 0x09E27707, s9 0x0AA33867
-			// 0x007E7293 0x0A5D51ED 0x007E72AE 0x0AD57EA6 0x0AD57EA6 0x09FB45A3 0x007E72C5 0x0A05ED3A 0x09FBE557
-			// ebp29CC.f00406FC0stdstring(&v0114ECB0)
-			ebp4 = 4
-			// ebp29E8.f00406FC0stdstring(v0805BBACobjectself.m38name[:])
-			ebp4 = 5
-			var ebp29AD bool // ebp29AD := f004CE0BD(&ebp29E8, &ebp29CC)
-			// 0x09FE37E6 0x0A55B22D 0x0A889689
-			ebp4 = 4
-			// 0x0A8FB3C7
-			ebp4 = -1
-			// 0x007E72FB
-			// ebp29CC.f00407AC0(1, 0)
-			// 0x0A4ECFA3
-			if ebp29AD == false {
-				// 0x007E9323 0x007E932E
-			}
-			// 0x0A436F59, s9 0x0AFE744C
-			var ebp2964 pb
-			ebp2964.f00439178init()
-			// 0x0A0C438C
-			ebp4 = 6
-			ebp2964.f0043922CwriteHead(0xC1, 0x1D)
-			println(ebp4)
+	if ebp28skillID != 0 && ebp28skillID != 234 {
+		// 0x09E27707, s9 0x0AA33867
+		// 0x007E7293 0x0A5D51ED 0x007E72AE 0x0AD57EA6 0x0AD57EA6 0x09FB45A3 0x007E72C5 0x0A05ED3A 0x09FBE557
+		// ebp29CC.f00406FC0stdstring(&v0114ECB0)
+		ebp4 = 4
+		// ebp29E8.f00406FC0stdstring(v0805BBACobjectself.m38name[:])
+		ebp4 = 5
+		var ebp29AD bool // ebp29AD := f004CE0BDstrstr(&ebp29E8, &ebp29CC)
+		// 0x09FE37E6 0x0A55B22D 0x0A889689
+		ebp4 = 4
+		// 0x0A8FB3C7
+		ebp4 = -1
+		// 0x007E72FB
+		// ebp29CC.f00407AC0(1, 0)
+		// 0x0A4ECFA3
+		if ebp29AD == false {
+			// 0x007E9323 0x007E932E
 		}
+		// 0x0A436F59, s9 0x0AFE744C
+		var ebp2964 pb
+		ebp2964.f00439178init()
+		// 0x0A0C438C
+		ebp4 = 6
+		ebp2964.f0043922CwriteHead(0xC1, 0x1D)
+		println(ebp4)
+
 	}
 	// 0x007E9323 0x007E932E 0x0A9FEC0D
 	al := true
@@ -408,8 +406,8 @@ func f004DF0D5handleState5() {
 		// 0x09FD38F9: true logic
 	}()
 	// ...
-	// 0x004E0DA2, f00632F90
-	// s9 0x?, s9 f005AE611
+	// 0x004E0DA2: f00632F90
+	// s9 0x?: s9 f005AE611
 	func() {
 		// 很复杂
 		// ...
@@ -427,7 +425,7 @@ func f004DF0D5handleState5() {
 		// s9 0x005B0D93: s9 f0092D446
 		f00A09635skill().f00A09A07()
 		/*
-			ebp10 := f00DE76C0(v0805BBACobjectself.m528)/100<<8 | f00DE76C0(v0805BBACobjectself.m524)/100
+			ebp10 := f00DE76C0roundf(v0805BBACobjectself.m528)/100<<8 | f00DE76C0roundf(v0805BBACobjectself.m524)/100
 			if ebp10 < 0 {
 				ebp10 = 0
 			} else if ebp10 > 0xFFFF {

@@ -1881,7 +1881,7 @@ func (t *windowgamePartyFrame) f00A82218setPartyInfo(size int, members []msgPart
 	// if f00A49798ui().f006C5EC1() == 0 {
 	// 	return
 	// }
-	// f00DE76C0(t.f00A3A2E8(f00DE76C0(t.f00A3A383(0))))
+	// f00DE76C0roundf(t.f00A3A2E8(f00DE76C0roundf(t.f00A3A383(0))))
 	// f00A49798ui().f006C5EC1().f00A87AC4()
 	// t.f00A82993setPartyState()
 }

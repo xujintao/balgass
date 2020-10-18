@@ -3,6 +3,7 @@ package main
 import (
 	"debug/pe"
 	"io"
+	"math"
 	"math/rand"
 	"os"
 	"strconv"
@@ -74,6 +75,10 @@ func f00DE7BEAdelete(buf []uint8) {
 	buf = buf[:0]
 }
 
+func f00DF08E8abs(v int) int {
+	return 0
+}
+
 // libc.string
 // memchr memcmp memcpy memmove memset
 // strcat strncat strcmp strncmp strcoll
@@ -95,6 +100,10 @@ func f00DE8000strcpy(dst []uint8, src []uint8) {
 
 func f00DE9370strncpy(dst []uint8, src []uint8, size int) {
 	copy(dst, src[:size])
+}
+
+func f00DEC9B0memchr(s []uint8, c uint8, n int) []uint8 {
+	return nil
 }
 
 func f00DE94F0strcmp(str1 []uint8, str2 []uint8) int {
@@ -483,6 +492,15 @@ func f00DEE9E1time(t *time.Duration) time.Duration {
 	}
 	*t = time.Duration(time.Now().Unix())
 	return *t
+}
+
+// libc.math
+func f00DE76F6round(v float64) float64 {
+	return math.Round(v)
+}
+
+func f00DE76C0roundf(v float32) float32 {
+	return float32(math.Round(float64(v)))
 }
 
 //

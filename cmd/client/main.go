@@ -15,7 +15,6 @@ type conf struct {
 
 const (
 	v0114D912 uint8  = 0
-	v0114D913 string = ""
 	v0114DB18 string = "서버와의 접속종료." // 终止与服务器的连接
 	v0114DD64 uint16 = 0x0061
 )
@@ -24,7 +23,6 @@ const (
 // 如果使用string，那么读文件后对buf进行string类型转换，会memmove到堆上
 var v012E10F4 [3]uint8 // FC CF AB
 var v012E2210 uint32 = 1
-var v012E2214 = "MUCN"
 var v012E2220 uint32 = 900
 
 type displayMode int
@@ -51,12 +49,12 @@ var v012E3F08resolution struct {
 	width  int // 0x320, 800
 	height int // 0x258, 600
 }
-var v012E4018version = [8]uint8{'2', '2', '7', '8', '9', 0, 0, 0}                                               // "22789"
+var v012E4018versionDLL = [8]uint8{'2', '2', '7', '8', '9', 0, 0, 0}                                            // "22789"
 var v012E4020serial = [16]uint8{'M', '7', 'B', '4', 'V', 'M', '4', 'C', '5', 'i', '8', 'B', 'C', '4', '9', 'b'} // "M7B4VM4C5i8BC49b"
 var v012F7910 os.File
 
-var v01319A38version [8]uint8 // "1.04R+"	// 可执行程序版本号
-var v01319A44version [8]uint8 // "1.04.44" // 配置文件版本号
+var v01319A38version [8]uint8     // "1.04R+"	// 可执行程序版本号
+var v01319A44versionFile [8]uint8 // "1.04.44" // 配置文件版本号
 var v01319A50ip [16]uint8
 
 var v01319D18 []uint8
@@ -876,8 +874,8 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		if bufDir[nameLen-1] == 0x5C {
 			f00DE8010strcat(buf[:], "config.ini")
 		}
-		f00DE8010strcat(buf[:], "\\config.ini")                                                             // cat拼凑字符串
-		win.GetPrivateProfileStringA("LOGIN", "Version", v0114D913, v01319A44version[:], 8, string(buf[:])) // 1.04.44写到全局变量中
+		f00DE8010strcat(buf[:], "\\config.ini")                                                          // cat拼凑字符串
+		win.GetPrivateProfileStringA("LOGIN", "Version", "", v01319A44versionFile[:], 8, string(buf[:])) // 1.04.44写到全局变量中
 
 		// 0x004D7338: exe file version
 		var ebp338 struct {
@@ -982,10 +980,10 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 	}
 
 	// 0x004D80ED: gg init
-	var ebp1A38 *uint32 = (*uint32)(f00DE852Fnew(1)) // hook: v012E4018version = v01319A44version
+	var ebp1A38 *uint32 = (*uint32)(f00DE852Fnew(1)) // hook: v012E4018versionDLL = v01319A44versionFile
 	var ebp1B0C *t1319D68
 	if ebp1A38 != nil { // 0x004D8102 gameguard 1, hook always nil，disable GameGurad
-		// ebp1B0C = ebp1A38.f004D936A(v012E2214) // &"MUCN"
+		// ebp1B0C = ebp1A38.f004D936A("MUCN")
 	} else {
 		ebp1B0C = nil
 	}
@@ -1082,8 +1080,8 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 	ebp1A58 := f00DE64BCnew(7 * 1024)
 	v086105E0 = ebp1A58
 
-	// 0x004D859B: array size = 91*800
-	ebp1A5C := f00DE64BCnew(72800)
+	// 0x004D859B:
+	ebp1A5C := make([]t086105E4, 650)
 	v086105E4 = ebp1A5C
 
 	// 0x004D85B7: object pool init
@@ -1098,7 +1096,6 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 	// 0x004D85FF:
 	v086105E8player = &player{}
 	v086105E8player.f005A31C1construct()
-	// 0x004D864A: zero init v086105E0, v086105E4, v086105E8player
 	// 0x004D8689:
 	v086105ECpanel = &v086105E8player.m04panel
 	v086105E8player.f005A3337init()

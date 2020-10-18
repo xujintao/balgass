@@ -52,6 +52,19 @@ var v08C88E5EsdMax uint16
 
 var v0805BBACobjectself *object
 
+type object410 struct {
+	m04  bool
+	m0E  bool
+	m28  uint8
+	mB0  float32
+	mB4  float32
+	mB8  float32
+	mBC  float32
+	m114 float32
+	m118 float32
+	m128 float32
+}
+
 // sizeof=0x6BC
 type object struct {
 	m8            uint32
@@ -73,18 +86,10 @@ type object struct {
 	m10C          uint16
 	m164level     uint16
 	m166          uint16
-	m410          struct {
-		m04  bool
-		m0E  bool
-		m28  uint8
-		mB0  float32
-		mB4  float32
-		mB8  float32
-		mBC  float32
-		m114 float32
-		m118 float32
-	}
-	m438 uint8
+	m1C0          float32
+	m1C4          float32
+	m410          object410
+	m438          uint8
 }
 
 func (t *object) f004D332C(x uint16) {
@@ -92,8 +97,8 @@ func (t *object) f004D332C(x uint16) {
 }
 
 // player
-var v086105E0 []uint8 // 7k
-var v086105E4 []uint8 // 91*800
+var v086105E0 []uint8     // 7k
+var v086105E4 []t086105E4 // 650*0x70
 var v086105E8player *player
 var v086105ECpanel = &v086105E8player.m04panel
 
@@ -145,7 +150,9 @@ type player struct {
 		m154             uint16
 		m160             uint16
 		m174points       uint16
-		m178             [100]uint8
+		m176skillNum     uint16
+		m178skillIDs     [650]uint16
+		m918             [650]int
 	}
 	m1344items          [12]item
 	m19D4item           item // 可能是卷轴位置

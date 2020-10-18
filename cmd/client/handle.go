@@ -411,7 +411,7 @@ func f006C75A7handleF100(buf []uint8) {
 	if ebpC >= 5 {
 	}
 	for {
-		if v012E4018version[ebpC]-ebpC-1 != buf[7+ebpC] { // 改为jmp
+		if v012E4018versionDLL[ebpC]-ebpC-1 != buf[7+ebpC] { // 改为jmp
 			break
 		}
 		ebpC++
