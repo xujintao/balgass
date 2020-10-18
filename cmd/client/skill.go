@@ -208,7 +208,7 @@ func (t *t09D91F4Cskill) f00A0A5E1() bool {
 		var ebp230F8 bool
 		// 0x09FD746A 0x00A0C1F3 0x0A4E942D 0x0A050889
 		if f004CE0BDstrstr(&ebp22D40, &ebp22D24) ||
-			(f005A477A(t.m10id) == false && f00DF08E8abs(int(win.GetTickCount()-v08C88F68skillUseTimestamp)) <= 300) {
+			(f005A477A(t.m10id) == false && f00DF08E8abs(int(win.GetTickCount()-v08C88F68skillUseTimestamp)) <= 300) { // hook to 200
 			// 0x00A0C23E 0x0AF79988
 			ebp230F8 = false
 		} else {

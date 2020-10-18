@@ -274,6 +274,7 @@ void SetValues()
 	MemAssign(0x004D7D42 + 1, (BYTE)0x42); // support multi instance
 	MemAssign(0x00B0F1C1 + 1, (BYTE)0x00); // discard high dmDisplayFrequency, fixed resolution mismatching
 	MemAssign(0x0067760B + 1, (BYTE)0x2C); // fixed item with socket show excellent
+	MemAssign(0x0AF7F02D + 1, (DWORD)0xC8); // modify max speed limit of death stab from 300ms to 200ms per attack
 
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
