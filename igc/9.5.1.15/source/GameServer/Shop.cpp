@@ -132,6 +132,15 @@ skiploop:
 
 		this->m_item[blank].m_BonusSocketOption = elemental;
 	}
+	else if (g_PentagramSystem.IsPentagramJewel(itemp)) {
+		// rank 1 only
+		this->m_item[blank].m_SocketOption[0] = 1;
+		this->m_item[blank].m_SocketOption[1] = 0xFF;
+		this->m_item[blank].m_SocketOption[2] = 0xFF;
+		this->m_item[blank].m_SocketOption[3] = 0xFF;
+		this->m_item[blank].m_SocketOption[4] = 0xFF;
+		this->m_item[blank].m_BonusSocketOption = 1<<4 | elemental;
+	}
 
 	this->m_item[blank].Convert(itemp, op1, op2, op3, newop, setop, 0, this->m_item[blank].m_SocketOption, this->m_item[blank].m_BonusSocketOption, 0, CURRENT_DB_VERSION);
 	this->m_item[blank].Value();
