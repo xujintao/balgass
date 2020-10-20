@@ -337,7 +337,7 @@
 		<Msg ID="307" Text="%s 消灭了冰霜巨蛛。" annotation="%s killed Selupan!" />
 		<Msg ID="308" Text="Quest Exp" annotation="Quest Exp" />
 		<Msg ID="309" Text="决斗: %s vs %s 第%d角斗场" annotation="Duel: %s vs %s Arena %d" />
-		<Msg ID="310" Text="决斗: %s 击败了 %s!" annotation="Duel: %s defeated %s!" />
+		<Msg ID="310" Text="决斗: %s 击败了 %s" annotation="Duel: %s defeated %s!" />
 		<Msg ID="311" Text="You cannot trade while you are duelling" annotation="You cannot trade while you are duelling" />
 		<Msg ID="312" Text="You cannot trade while you are observing a duel" annotation="You cannot trade while you are observing a duel" />
 		<Msg ID="313" Text="You cannot open store while you are duelling" annotation="You cannot open store while you are duelling" />
