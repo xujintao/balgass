@@ -4990,99 +4990,24 @@ bool GameProtocol::CGItemDropRequest(PMSG_ITEMTHROW * lpMsg, int aIndex, BOOL dr
 	if (!gObjCanItemTouch(lpObj, 0))
 		pResult.Result = false;
 
-	if (!IsDumpItem(lpObj->pInventory[lpMsg->Ipos].m_Type) && (lpObj->pInventory[lpMsg->Ipos].m_Type != ITEMGET(13, 20) || !lpObj->pInventory[lpMsg->Ipos].m_Level))
-		pResult.Result = false;
-
-	if (g_LuckyItemManager.IsLuckyItemEquipment(lpObj->pInventory[lpMsg->Ipos].m_Type) || g_LuckyItemManager.IsLuckyItemTicket(lpObj->pInventory[lpMsg->Ipos].m_Type))
-	{
-		pResult.Result = false;
-	}
-
-	// Icarus Preventions about Dinorant
-	if ( gObj[aIndex].MapNumber == MAP_INDEX_ICARUS)
-	{
-		if ( lpMsg->Ipos == lpObj->m_btInvenPetPos )
-		{
-			if ( lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(13,3) ) // Dinorant
-			{
-				if( lpObj->pInventory[7].IsItem() == FALSE )
-				{
-					pResult.Result = false;
-				}
-			}
-		}
-		else if ( lpMsg->Ipos == 7 )
-		{
-			if ( lpObj->pInventory[lpObj->m_btInvenPetPos].m_Type != ITEMGET(13,3) ) // Dinorant 
-			{
-				pResult.Result = false;
-			}
-		}
-	}
-
-	if ( lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(12,30) ||
-		 lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(12,31) ||
-		 lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(13,36) ||
-		 lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(13,37) )
-	{
-		pResult.Result = false;
-	}
-
-	if (GetWingType(lpObj->pInventory[lpMsg->Ipos].m_Type, WCF_ITEMNUMBER) != NONE_WING && g_ConfigRead.pk.bPkPenaltyDisable== FALSE)
-	{
-		pResult.Result = false;
-	}
-	if( g_ConfigRead.data.common.joinmuRemoveItemSellDropRestriction == false)
-	{
-		if ( (lpObj->pInventory[lpMsg->Ipos].m_Type >= ITEMGET(13,0) && lpObj->pInventory[lpMsg->Ipos].m_Type <= ITEMGET(13,3))
-			||  lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(14,13) ||
-			lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(14,14) ||
-			lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(14,16) ||
-			(lpObj->pInventory[lpMsg->Ipos].m_Type >= ITEMGET(12,0)
-			&& lpObj->pInventory[lpMsg->Ipos].m_Type <= ITEMGET(12,6)) 	||
-			(lpObj->pInventory[lpMsg->Ipos].m_Type >= ITEMGET(12,36)
-			&& lpObj->pInventory[lpMsg->Ipos].m_Type <= ITEMGET(12,40)) 
-			|| lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(12,15) 
-			|| (lpObj->pInventory[lpMsg->Ipos].m_Level > g_ConfigRead.pk.iPkMaxLevelItemDrop 
-			&& lpObj->pInventory[lpMsg->Ipos].m_Type < ITEMGET(12,0)) 
-			||  (lpObj->pInventory[lpMsg->Ipos].IsSetItem() != FALSE && !g_ConfigRead.pk.bPkDropExpensiveItems)
-			||  (lpObj->pInventory[lpMsg->Ipos].IsExtItem() != FALSE && !g_ConfigRead.pk.bPkDropExpensiveItems))
-		{
-			if ( g_ConfigRead.pk.bPkPenaltyDisable == FALSE )
-			{
-				pResult.Result = false;
-			}
-		}
-	}
-	if ( g_kJewelOfHarmonySystem.IsStrengthenByJewelOfHarmony(&lpObj->pInventory[lpMsg->Ipos]) == TRUE )
-	{
-		pResult.Result = false;
-		this->GCServerMsgStringSend(Lang.GetText(0,272), lpObj->m_Index, 1);
-	}
-
-	if ( g_kJewelOfHarmonySystem.IsJewelOfHarmonyOriginal(lpObj->pInventory[lpMsg->Ipos].m_Type) ||
-		 g_kJewelOfHarmonySystem.IsJewelOfHarmonyPurity(lpObj->pInventory[lpMsg->Ipos].m_Type)   ||
-		 g_kJewelOfHarmonySystem.IsJewelOfHarmonySmeltingItems(lpObj->pInventory[lpMsg->Ipos].m_Type) )
-	{
-		pResult.Result = false;
-	}
-
-	if ( lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(13,39) )
-	{
-		pResult.Result = false;
-	}
-
-	if ( lpObj->pInventory[lpMsg->Ipos].IsPeriodItem() == TRUE )
-	{
-		pResult.Result = false;
-	} 
-
-	if ( g_NewPVP.IsDuel(*lpObj) )
-	{
-		pResult.Result = false;
-	}
-
-	if ( IsJumpingEventItem(lpObj->pInventory[lpMsg->Ipos].m_Type) == TRUE)
+	int code = lpObj->pInventory[lpMsg->Ipos].m_Type;
+	if((GetItemKindA(code) == 4 && GetItemKindB(code) == 32) // expensive ring
+	|| (GetItemKindA(code) == 5 && GetItemKindB(code) == 47) // Uniria/Dinorant/Horse/Fenrir
+	|| GetItemKindA(code) == 6 // wing
+	|| GetItemKindA(code) == 8 // Pentagram
+	|| GetItemKindA(code) == 9 // jewel
+	|| GetItemKindB(code) == 40 // Seed
+	|| GetItemKindB(code) == 42 // Seed Sphere
+	|| g_LuckyItemManager.IsLuckyItemEquipment(code) // lucky item
+	|| g_LuckyItemManager.IsLuckyItemTicket(code) // lucky ticket
+	|| lpObj->pInventory[lpMsg->Ipos].IsSetItem() // set item
+	|| lpObj->pInventory[lpMsg->Ipos].IsExtItem() // excel item
+	|| g_kJewelOfHarmonySystem.IsStrengthenByJewelOfHarmony(&lpObj->pInventory[lpMsg->Ipos]) // strengthen item
+	|| (lpObj->pInventory[lpMsg->Ipos].m_Level >= g_ConfigRead.pk.iPkMaxLevelItemDrop && code < ITEMGET(12,0)) // normal +7 item
+	|| lpObj->pInventory[lpMsg->Ipos].IsPeriodItem() // period item
+	|| IsJumpingEventItem(code) // event item
+	|| lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(13,3) // Dinorant
+	|| lpObj->pInventory[lpMsg->Ipos].m_Type == ITEMGET(13,37)) // Horn of Fenrir
 	{
 		pResult.Result = false;
 	}
