@@ -44,7 +44,7 @@
 -->
 
 <ShopList>
-	<Shop NPCIndex="255" MapNumber="0"  PosX="125" PosY="125" Dir="3" VipType="0" GMShop="1" FileName="NPC(297)_Test.xml" /> <!-- Test -->
+	<!-- <Shop NPCIndex="255" MapNumber="0"  PosX="125" PosY="125" Dir="3" VipType="0" GMShop="1" FileName="NPC(297)_Test.xml" /> Test -->
 	<Shop NPCIndex="251" MapNumber="0"  PosX="116" PosY="141" Dir="3" VipType="0" GMShop="0" FileName="NPC(251)_Hanzo_the_Blacksmith.xml" /> <!-- Lorencia -->
 	<Shop NPCIndex="251" MapNumber="34" PosX="145" PosY="14"  Dir="1" VipType="0" GMShop="0" FileName="NPC(251)_Hanzo_the_Blacksmith.xml" /> <!-- CryWolf -->
 	<Shop NPCIndex="255" MapNumber="0"  PosX="123" PosY="135" Dir="1" VipType="0" GMShop="0" FileName="NPC(255)_Lumen_the_Barmaid.xml" /> <!-- Lorencia -->
@@ -69,7 +69,7 @@
 	<Shop NPCIndex="545" MapNumber="79" PosX="113" PosY="116" Dir="3" VipType="0" GMShop="0" FileName="NPC(545)_Christine_the_Merchant.xml" /> <!-- Loren Market -->
 	<Shop NPCIndex="577" MapNumber="80" PosX="121" PosY="102" Dir="3" VipType="0" GMShop="0" FileName="NPC(577)_Leina_the_Merchant.xml" /> <!-- Karutan 1 -->
 	<Shop NPCIndex="578" MapNumber="80" PosX="117" PosY="126" Dir="3" VipType="0" GMShop="0" FileName="NPC(578)_Weapons_Merchant_Bolo.xml" /> <!-- Karutan 1 -->
-	<Shop NPCIndex="583" MapNumber="91" PosX="55"  PosY="195" Dir="2" VipType="0" GmShop="0" FileName="NPC(583)_Jin.xml" /> <!-- Arca Battle ~ Season 8 and later only -->
+	<Shop NPCIndex="583" MapNumber="91" PosX="56"  PosY="202" Dir="2" VipType="0" GmShop="0" FileName="NPC(583)_Jin.xml" /> <!-- Arca Battle ~ Season 8 and later only -->
 	<Shop NPCIndex="604" MapNumber="92" PosX="56"  PosY="202" Dir="2" VipType="0" GmShop="0" FileName="NPC(604)_Jin.xml" /> <!-- Arca Battle ~ Season 8 and later only -->
 	<Shop NPCIndex="259" MapNumber="24" PosX="7"   PosY="19"  Dir="2" VipType="0" GmShop="0" FileName="NPC(259)_Oracle_Layla.xml" /> <!-- Kalima 1 -->
 	<Shop NPCIndex="259" MapNumber="25" PosX="7"   PosY="19"  Dir="2" VipType="0" GmShop="0" FileName="NPC(259)_Oracle_Layla.xml" /> <!-- Kalima 2 -->
