@@ -58,7 +58,7 @@
 // STRICTLY NO COMMENTS INSIDE TAGS
 -->
 
-<PlayerKillSystem DisablePKLevelIncrease="0" DisablePenalty="0" PKCanUseshops="0" DropExpensiveItems="0" MaxItemLevelDrop="8" PointDeductionDivisor="2" MurdererPointIncrease="3600">
+<PlayerKillSystem DisablePKLevelIncrease="0" DisablePenalty="0" PKCanUseshops="0" DropExpensiveItems="0" MaxItemLevelDrop="7" PointDeductionDivisor="2" MurdererPointIncrease="3600">
 <PKClearCommand Enable="1" Cost="1000000" CostMultiplyByKillCount="1" />
 	<General>
 		<PK Level="3" ReqPoint="0" ItemLoseRateOnMonsterKill="6" ItemLoseRateOnPlayerKill="0" ZenDeductionRateOnMonsterKill="4" ZenDeductionRateOnPlayerKill="0" WarpChargeMultiplier="1" CanSummonByDarkLord="1" Description="Normal" />
