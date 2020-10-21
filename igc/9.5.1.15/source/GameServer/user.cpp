@@ -18950,24 +18950,12 @@ void gObjSecondProc()
 		{
 			if(lpObj->Type == OBJ_USER && lpObj->m_PlayerData->ISBOT == false && lpObj->m_bOff == false)
 			{
-
-				if(lpObj->Connected >= PLAYER_LOGGED )
+				if((lpObj->Connected >= PLAYER_LOGGED && GetTickCount() - lpObj->ConnectCheckTime > 60*1000)		// 60s
+				|| (lpObj->Connected == PLAYER_CONNECTED && GetTickCount() - lpObj->ConnectCheckTime > 30*1000))	// 30s
 				{
-					if(GetTickCount() - lpObj->ConnectCheckTime > 60000)
-					{
-						IOCP.ResponErrorCloseClient(n);
-						g_Log.Add("Game working response error causes conclusion [%d][%s][%s][%s]",lpObj->m_Index,lpObj->AccountID,lpObj->Name,lpObj->m_PlayerData->Ip_addr);
-					}
+					g_Log.AddC(TColor::Red, "timeout close client [%d][%s][%s][%s]",lpObj->m_Index,lpObj->AccountID,lpObj->Name,lpObj->m_PlayerData->Ip_addr);
+					IOCP.ResponErrorCloseClient(n);
 				}
-				else
-				{
-					if(GetTickCount() - lpObj->ConnectCheckTime > 30000)
-					{
-						IOCP.ResponErrorCloseClient(n);
-						g_Log.Add("Response error after connection causes conclusion [%d][%s][%s][%s]",lpObj->m_Index,lpObj->AccountID,lpObj->Name,lpObj->m_PlayerData->Ip_addr);
-					}
-				}
-
 			}
 
 			if(lpObj->Connected == PLAYER_PLAYING && lpObj->Type == OBJ_USER &&

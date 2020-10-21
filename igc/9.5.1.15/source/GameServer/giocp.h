@@ -54,7 +54,7 @@ public:
 	bool RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex);
 	bool DataSend(int aIndex, unsigned char* lpMsg, DWORD dwSize, bool Encrypt = true);
 	bool IoSendSecond(_PER_SOCKET_CONTEXT * lpPerSocketContext);
-	bool IoMoreSend(_PER_SOCKET_CONTEXT * lpPerSocketContext);
+	bool IoSendMore(_PER_SOCKET_CONTEXT * lpPerSocketContext);
 	bool UpdateCompletionPort(SOCKET sd, int ClientIndex, BOOL bAddToList);
 	void CloseClient(_PER_SOCKET_CONTEXT * lpPerSocketContext, int result);
 	void CloseClient(int index);
