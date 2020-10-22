@@ -12332,8 +12332,12 @@ void GameProtocol::CGMagicAttack(LPBYTE lpRecv, int aIndex)
 	lpTargetObj = &gObj[usernumber];
 	
 	// test attack speed
-	if(g_bTestSkillAttackSpeed && MagicNumber==g_iTestSkillID){
-		g_Log.AddC(TColor::Red, "[%d]ms skill_id[%d]", GetTickCount() - lpObj->iPingTime, MagicNumber);
+	if (g_bTestSkillAttackSpeed && MagicNumber==g_iTestSkillID) {
+		g_Log.AddC(TColor::Red, "[%d]ms [skill_id:%d] [%d] [%d]",
+			GetTickCount() - lpObj->iPingTime,
+			MagicNumber,
+			lpObj->m_AttackSpeed,
+			lpObj->m_MagicSpeed);
 		lpObj->iPingTime = GetTickCount();
 	}
 
