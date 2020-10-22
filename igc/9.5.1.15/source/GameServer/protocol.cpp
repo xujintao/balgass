@@ -13885,15 +13885,10 @@ void GameProtocol::CGDurationMagicRecv(LPBYTE lpRecv, int aIndex)
 
 void GameProtocol::CGUseItemRecv(PMSG_USEITEM* lpMsg, int aIndex)
 {
-	int pos;
-	CItem * citem;
-	int iItemUseType = lpMsg->btItemUseType;
-
 	if ( gObj[aIndex].Type != OBJ_USER )
 	{
 		return;
 	}
-
 
 	// Check User States
 	if ( gObj[aIndex].m_IfState.use && gObj[aIndex].m_IfState.type != 3 )
@@ -13932,7 +13927,6 @@ void GameProtocol::CGUseItemRecv(PMSG_USEITEM* lpMsg, int aIndex)
 			gObj[aIndex].AccountID, 
 			gObj[aIndex].Name,
 			__FILE__, __LINE__);
-
 		return;
 	}
 
@@ -13952,7 +13946,6 @@ void GameProtocol::CGUseItemRecv(PMSG_USEITEM* lpMsg, int aIndex)
 			gObj[aIndex].AccountID,
 			gObj[aIndex].Name,
 			gObj[aIndex].m_IfState.type);
-
 		return;
 	}
 
@@ -13963,7 +13956,7 @@ void GameProtocol::CGUseItemRecv(PMSG_USEITEM* lpMsg, int aIndex)
 	}
 
 	// Set Var Pos
-	pos = lpMsg->inventoryPos;
+	int pos = lpMsg->inventoryPos;
 
 	// Check if the pos is in bounds
 	if ( pos > MAIN_INVENTORY_SIZE-1 )
@@ -13977,7 +13970,6 @@ void GameProtocol::CGUseItemRecv(PMSG_USEITEM* lpMsg, int aIndex)
 			gObj[aIndex].AccountID,
 			gObj[aIndex].Name,
 			__FILE__, __LINE__);
-
 		return;
 	}
 
@@ -13993,1184 +13985,1343 @@ void GameProtocol::CGUseItemRecv(PMSG_USEITEM* lpMsg, int aIndex)
 			gObj[aIndex].AccountID,
 			gObj[aIndex].Name,
 			__FILE__, __LINE__);
+		return;
+	}
+
+	// get item with inventory position
+	CItem* citem = &gObj[aIndex].pInventory[pos];
+	if (!citem->IsItem()) {
+		GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+		g_Log.Add("error-L3 : %s return %s %d %d",
+			gObj[aIndex].Name, __FILE__,__LINE__, pos);
+		return;
+	}
+	
+	// Check if item have 0 as Serial
+	if (gObjCheckSerial0ItemList(citem))
+	{
+		MsgOutput(aIndex, Lang.GetText(0,259));
+
+		GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+
+		g_Log.Add("[ANTI-HACK][Serial 0 Item] [UseItem] (%s)(%s) Item(%s) Pos(%d)",
+			gObj[aIndex].AccountID,
+			gObj[aIndex].Name,
+			citem->GetName(),
+			pos);
+		return;
+	}
+
+	// Check the item Serial
+	if (gObjInventorySearchSerialNumber(&gObj[aIndex],
+		citem->GetNumber()) == FALSE)
+	{
+		GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+		g_Log.Add("error-L2 : CopyItem [%s][%s] return %s %d",
+			gObj[aIndex].AccountID,
+			gObj[aIndex].Name,
+			__FILE__, __LINE__);
 
 		return;
 	}
 
-	// Set Pointer
-	citem = &gObj[aIndex].pInventory[pos];
-
-
-	// The item is ITEM
-	if (citem->IsItem())
+	if (citem->m_serial && !gObjCanItemTouch(&gObj[aIndex], 1))
 	{
-		// Check if item have 0 as Serial
-		if (gObjCheckSerial0ItemList(citem))
+		GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+		return;
+	}
+
+	if (citem->m_Type == ITEMGET(14, 0) || // Apple
+		citem->m_Type == ITEMGET(14, 1) || // Small Healing Potion
+		citem->m_Type == ITEMGET(14, 2) || // Healing Potion
+		citem->m_Type == ITEMGET(14, 3))   // Large Healing Potion
+	{
+		int tLife = (citem->m_Value * 10) - (gObj[aIndex].Level * 2);	// #formula
+
+		if (tLife < 0)
 		{
-			MsgOutput(aIndex, Lang.GetText(0,259));
-
-			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-
-			g_Log.Add("[ANTI-HACK][Serial 0 Item] [UseItem] (%s)(%s) Item(%s) Pos(%d)",
-				gObj[aIndex].AccountID,
-				gObj[aIndex].Name,
-				citem->GetName(),
-				pos);
-
-			return;
+			tLife = 0;
 		}
 
-		// Check the item Serial
-		if (gObjInventorySearchSerialNumber(&gObj[aIndex],
-			citem->GetNumber()) == FALSE)
-		{
-			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-			g_Log.Add("error-L2 : CopyItem [%s][%s] return %s %d",
-				gObj[aIndex].AccountID,
-				gObj[aIndex].Name,
-				__FILE__, __LINE__);
+		int nAddRate = 0;
 
-			return;
+		switch (citem->m_Type)
+		{
+		case ITEMGET(14, 0):	// Apple
+			nAddRate = 10;
+			break;
+		case ITEMGET(14, 1):	// 
+			nAddRate = 20;
+			break;
+		case ITEMGET(14, 2):	// 
+			nAddRate = 30;
+			break;
+		case ITEMGET(14, 3):	// 
+			nAddRate = 40;
+			break;
 		}
 
-		if (citem->m_serial && !gObjCanItemTouch(&gObj[aIndex], 1))
+		if (citem->m_Level == 1)	// #formula
 		{
-			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-			return;
+			nAddRate += 5;
 		}
 
-		if (citem->m_Type == ITEMGET(14, 0) || // Apple
-			citem->m_Type == ITEMGET(14, 1) ||
-			citem->m_Type == ITEMGET(14, 2) ||
-			citem->m_Type == ITEMGET(14, 3))
-		{
-			int tLife = (citem->m_Value * 10) - (gObj[aIndex].Level * 2);	// #formula
+		tLife += ((int)gObj[aIndex].MaxLife * nAddRate) / 100;	// #formula
 
-			if (tLife < 0)
+		if (citem->m_Type == ITEMGET(14, 0))
+		{
+			if (citem->m_Level < 2)
 			{
+				gObj[aIndex].FillLife += tLife;
 				tLife = 0;
 			}
-
-			int nAddRate = 0;
-
-			switch (citem->m_Type)
-			{
-			case ITEMGET(14, 0):	// Apple
-				nAddRate = 10;
-				break;
-			case ITEMGET(14, 1):	// 
-				nAddRate = 20;
-				break;
-			case ITEMGET(14, 2):	// 
-				nAddRate = 30;
-				break;
-			case ITEMGET(14, 3):	// 
-				nAddRate = 40;
-				break;
-			}
-
-			if (citem->m_Level == 1)	// #formula
-			{
-				nAddRate += 5;
-			}
-
-			tLife += ((int)gObj[aIndex].MaxLife * nAddRate) / 100;	// #formula
-
-			if (citem->m_Type == ITEMGET(14, 0))
-			{
-				if (citem->m_Level < 2)
-				{
-					gObj[aIndex].FillLife += tLife;
-					tLife = 0;
-				}
-			}
-
-			if (gObj[aIndex].FillLife > 0.0f)
-			{
-				gObj[aIndex].Life += gObj[aIndex].FillLife;
-
-				if (gObj[aIndex].Life > (gObj[aIndex].MaxLife + gObj[aIndex].AddLife))
-				{
-					gObj[aIndex].Life = gObj[aIndex].MaxLife + gObj[aIndex].AddLife;
-					gObj[aIndex].FillLife = 0;
-				}
-
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFF, 0, gObj[aIndex].iShield);
-			}
-
-			gObj[aIndex].FillLifeMax = tLife;
-			gObj[aIndex].FillLife = tLife;
-
-			if (citem->m_Type == ITEMGET(14, 0) && citem->m_Level < 2)
-			{
-				gObj[aIndex].FillLifeCount = 0;
-			}
-			else if (citem->m_Level == 1)
-			{
-				gObj[aIndex].FillLifeCount = 2;
-			}
-			else
-			{
-				gObj[aIndex].FillLifeCount = 3;
-			}
-
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(14, 4) ||	// Small Mana Potion
-			citem->m_Type == ITEMGET(14, 5) ||
-			citem->m_Type == ITEMGET(14, 6))
-		{
-			int tMana = (citem->m_Value * 10) - (gObj[aIndex].Level);	// #formula
-
-			if (tMana < 0)
-			{
-				tMana = 0;
-			}
-
-			switch (citem->m_Type)
-			{
-			case ITEMGET(14, 4):	// Small Mana Potion
-				tMana += ((int)(gObj[aIndex].MaxMana + gObj[aIndex].AddMana)) * 20 / 100;
-				break;
-			case ITEMGET(14, 5):	// Mana Potion
-				tMana += ((int)(gObj[aIndex].MaxMana + gObj[aIndex].AddMana)) * 30 / 100;
-				break;
-			case ITEMGET(14, 6):	// Large Mana Potion
-				tMana += ((int)(gObj[aIndex].MaxMana + gObj[aIndex].AddMana)) * 40 / 100;
-				break;
-			}
-
-			gObj[aIndex].Mana += tMana;
-
-			if (gObj[aIndex].Mana > (gObj[aIndex].MaxMana + gObj[aIndex].AddMana - 1.0f))
-				gObj[aIndex].Mana = gObj[aIndex].MaxMana + gObj[aIndex].AddMana;
-
-			GCManaSend(aIndex, gObj[aIndex].Mana, 0xFF, 0, gObj[aIndex].BP);
-
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(14, 38))	// Small Compound Potion 
-		{
-			int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 5 / 100;	// #formula
-			int iHPGage = (int)((gObj[aIndex].MaxLife + gObj[aIndex].AddLife) * 10.0f / 100.0f);	// #formula
-
-			if (gObj[aIndex].iShield < 0)
-				gObj[aIndex].iShield = 0;
-
-			if (gObj[aIndex].FillLife > 0.0f)
-			{
-				gObj[aIndex].Life += gObj[aIndex].FillLife;
-
-				if (gObj[aIndex].Life > (gObj[aIndex].MaxLife + gObj[aIndex].AddLife))
-					gObj[aIndex].Life = gObj[aIndex].MaxLife + gObj[aIndex].AddLife;
-			}
-
-			if (gObj[aIndex].iFillShield > 0)
-			{
-				gObj[aIndex].iShield += gObj[aIndex].iFillShield;
-
-				if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
-					gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
-			}
-
-			gObj[aIndex].FillLife = iHPGage;
-			gObj[aIndex].FillLifeMax = iHPGage;
-			gObj[aIndex].FillLifeCount = 4;
-			gObj[aIndex].iFillShield = iShieldGage;
-			gObj[aIndex].iFillShieldMax = iShieldGage;
-			gObj[aIndex].iFillShieldCount = 4;
-
-			GCSendEffectInfo(aIndex, 3);
-
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			g_Log.Add("[%s][%s]Use Compound Potion Lv1 - SD[%d] HP[%f] -> SD[%d] HP[%f]",
-				gObj[aIndex].AccountID, gObj[aIndex].Name,
-				gObj[aIndex].iShield, gObj[aIndex].Life,
-				gObj[aIndex].iShield + iShieldGage, (double)(gObj[aIndex].Life + (float)iHPGage));
-		}
-		else if (citem->m_Type == ITEMGET(14, 39))	// Compound Potion 
-		{
-			int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 10 / 100;	// #formula
-			int iHPGage = (int)((gObj[aIndex].MaxLife + gObj[aIndex].AddLife) * 25.0f / 100.0f);	// #formula
-
-			if (gObj[aIndex].iShield < 0)
-				gObj[aIndex].iShield = 0;
-
-			if (gObj[aIndex].FillLife > 0.0f)
-			{
-				gObj[aIndex].Life += gObj[aIndex].FillLife;
-
-				if (gObj[aIndex].Life > (gObj[aIndex].MaxLife + gObj[aIndex].AddLife))
-					gObj[aIndex].Life = gObj[aIndex].MaxLife + gObj[aIndex].AddLife;
-			}
-
-			if (gObj[aIndex].iFillShield > 0)
-			{
-				gObj[aIndex].iShield += gObj[aIndex].iFillShield;
-
-				if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
-					gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
-			}
-
-			gObj[aIndex].FillLife = iHPGage;
-			gObj[aIndex].FillLifeMax = iHPGage;
-			gObj[aIndex].FillLifeCount = 4;
-			gObj[aIndex].iFillShield = iShieldGage;
-			gObj[aIndex].iFillShieldMax = iShieldGage;
-			gObj[aIndex].iFillShieldCount = 4;
-
-			GCSendEffectInfo(aIndex, 3);
-
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			g_Log.Add("[%s][%s]Use Compound Potion Lv2 - SD[%d] HP[%f] -> SD[%d] HP[%f]",
-				gObj[aIndex].AccountID, gObj[aIndex].Name,
-				gObj[aIndex].iShield, gObj[aIndex].Life,
-				gObj[aIndex].iShield + iShieldGage, (double)(gObj[aIndex].Life + (float)iHPGage));
-		}
-		else if (citem->m_Type == ITEMGET(14, 40))	// Large Compound Potion 
-		{
-			int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 20 / 100;	// #formula
-			int iHPGage = (int)((gObj[aIndex].MaxLife + gObj[aIndex].AddLife) * 45.0f / 100.0f);	// #formula
-
-			if (gObj[aIndex].iShield < 0)
-				gObj[aIndex].iShield = 0;
-
-			if (gObj[aIndex].FillLife > 0.0f)
-			{
-				gObj[aIndex].Life += gObj[aIndex].FillLife;
-
-				if (gObj[aIndex].Life > (gObj[aIndex].MaxLife + gObj[aIndex].AddLife))
-					gObj[aIndex].Life = gObj[aIndex].MaxLife + gObj[aIndex].AddLife;
-			}
-
-			if (gObj[aIndex].iFillShield > 0)
-			{
-				gObj[aIndex].iShield += gObj[aIndex].iFillShield;
-
-				if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
-					gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
-			}
-
-			gObj[aIndex].FillLife = iHPGage;
-			gObj[aIndex].FillLifeMax = iHPGage;
-			gObj[aIndex].FillLifeCount = 4;
-			gObj[aIndex].iFillShield = iShieldGage;
-			gObj[aIndex].iFillShieldMax = iShieldGage;
-			gObj[aIndex].iFillShieldCount = 4;
-
-			GCSendEffectInfo(aIndex, 3);
-
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			g_Log.Add("[%s][%s]Use Compound Potion Lv3 - SD[%d] HP[%f] -> SD[%d] HP[%f]",
-				gObj[aIndex].AccountID, gObj[aIndex].Name,
-				gObj[aIndex].iShield, gObj[aIndex].Life,
-				gObj[aIndex].iShield + iShieldGage, (double)(gObj[aIndex].Life + (float)iHPGage));
-		}
-		else if (citem->m_Type == ITEMGET(14, 35))
-		{
-			int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 25 / 100;	// #formula
-
-			if (gObj[aIndex].iShield < 0)
-				gObj[aIndex].iShield = 0;
-
-			if (gObj[aIndex].iFillShield > 0)
-			{
-				gObj[aIndex].iShield += gObj[aIndex].iFillShield;
-
-				if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
-					gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
-			}
-
-			gObj[aIndex].iFillShieldCount = 2;
-			gObj[aIndex].iFillShield = iShieldGage;
-			gObj[aIndex].iFillShieldMax = iShieldGage;
-
-			GCSendEffectInfo(aIndex, 3);
-
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(14, 36))
-		{
-			int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 35 / 100;	// #formula
-
-			if (gObj[aIndex].iShield < 0)
-				gObj[aIndex].iShield = 0;
-
-			if (gObj[aIndex].iFillShield > 0)
-			{
-				gObj[aIndex].iShield += gObj[aIndex].iFillShield;
-
-				if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
-					gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
-			}
-
-			gObj[aIndex].iFillShieldCount = 2;
-			gObj[aIndex].iFillShield = iShieldGage;
-			gObj[aIndex].iFillShieldMax = iShieldGage;
-
-			GCSendEffectInfo(aIndex, 3);
-
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(14, 37))
-		{
-			int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 45 / 100; // #formula
-
-			if (gObj[aIndex].iShield < 0)
-				gObj[aIndex].iShield = 0;
-
-			if (gObj[aIndex].iFillShield > 0)
-			{
-				gObj[aIndex].iShield += gObj[aIndex].iFillShield;
-
-				if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
-					gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
-			}
-
-			gObj[aIndex].iFillShieldCount = 2;
-			gObj[aIndex].iFillShield = iShieldGage;
-			gObj[aIndex].iFillShieldMax = iShieldGage;
-
-			GCSendEffectInfo(aIndex, 3);
-
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(14, 8)) // Antidote
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			if (gObjCheckUsedBuffEffect(&gObj[aIndex], BUFFTYPE_POISON) == TRUE)
-			{
-				gObjRemoveBuffEffect(&gObj[aIndex], BUFFTYPE_POISON);
-				gObj[aIndex].lpAttackObj = 0;
-				GCMagicCancelSend(&gObj[aIndex], 1);
-			}
-
-			if (gObjCheckUsedBuffEffect(&gObj[aIndex], BUFFTYPE_FREEZE) == TRUE)
-			{
-				gObjRemoveBuffEffect(&gObj[aIndex], BUFFTYPE_FREEZE);
-				gObj[aIndex].DelayActionTime = 0;
-				gObj[aIndex].DelayLevel = 0;
-				gObj[aIndex].lpAttackObj = 0;
-				GCMagicCancelSend(&gObj[aIndex], 7);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(14, 46))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_HALLOWEEN_BLESS);
-		}
-		else if (citem->m_Type == ITEMGET(14, 47))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_HALLOWEEN_ANGER);
-		}
-		else if (citem->m_Type == ITEMGET(14, 48))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_HALLOWEEN_CRY);
-		}
-		else if (citem->m_Type == ITEMGET(14, 49))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_HALLOWEEN_FOOD);
-		}
-		else if (citem->m_Type == ITEMGET(14, 50))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_HALLOWEEN_DRINK);
-		}
-		else if (citem->m_Type == ITEMGET(14, 85))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_CHERRYBLOSSOM_DRINK);
-		}
-		else if (citem->m_Type == ITEMGET(14, 86))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_CHERRYBLOSSOM_DUMPLING);
-		}
-		else if (citem->m_Type == ITEMGET(14, 87))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_CHERRYBLOSSOM_PETAL);
-		}
-		else if (citem->m_Type == ITEMGET(13, 81))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_CHARM_GUARDIAN);
-		}
-		else if (citem->m_Type == ITEMGET(13, 82))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_CHARM_PROTECTITEM);
 		}
 
-		else if (citem->m_Type == ITEMGET(13, 43))
+		if (gObj[aIndex].FillLife > 0.0f)
 		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+			gObj[aIndex].Life += gObj[aIndex].FillLife;
+
+			if (gObj[aIndex].Life > (gObj[aIndex].MaxLife + gObj[aIndex].AddLife))
 			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
+				gObj[aIndex].Life = gObj[aIndex].MaxLife + gObj[aIndex].AddLife;
+				gObj[aIndex].FillLife = 0;
 			}
 
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_PCS_MARK1);
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFF, 0, gObj[aIndex].iShield);
 		}
 
-		else if (citem->m_Type == ITEMGET(13, 44))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
+		gObj[aIndex].FillLifeMax = tLife;
+		gObj[aIndex].FillLife = tLife;
 
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_PCS_MARK2);
+		if (citem->m_Type == ITEMGET(14, 0) && citem->m_Level < 2)
+		{
+			gObj[aIndex].FillLifeCount = 0;
 		}
-
-		else if (citem->m_Type == ITEMGET(13, 45))
+		else if (citem->m_Level == 1)
 		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_PCS_MARK3);
+			gObj[aIndex].FillLifeCount = 2;
+		}
+		else
+		{
+			gObj[aIndex].FillLifeCount = 3;
 		}
 
-		else if (g_kJewelOfHarmonySystem.IsJewelOfHarmonyPurity(citem->m_Type) == TRUE && g_SocketOptionSystem.IsSocketItem(&gObj[aIndex].pInventory[lpMsg->invenrotyTarget]) == FALSE) //season4 add-on)
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
 		{
-			if (g_kJewelOfHarmonySystem.StrengthenItemByJewelOfHarmony(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-			else
-			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-			}
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
 		}
-		else if (g_kJewelOfHarmonySystem.IsJewelOfHarmonySmeltingItems(citem->m_Type) == TRUE)
+	}
+	else if (citem->m_Type == ITEMGET(14, 4) ||	// Small Mana Potion
+			citem->m_Type == ITEMGET(14, 5) ||	// Mana Potion
+			citem->m_Type == ITEMGET(14, 6))	// Large Mana Potion
+	{
+		int tMana = (citem->m_Value * 10) - (gObj[aIndex].Level);	// #formula
+
+		if (tMana < 0)
 		{
-			if (g_kJewelOfHarmonySystem.SmeltItemBySmeltingStone(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-			else
-			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(14, 13)) // Jewel Of Bless
-		{
-			if (gObjItemLevelUp(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(12, 30))
-		{
-			if (UseBundleOfBlessJewel(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(14, 14)) // Jewel Of Soul
-		{
-			if (gObjItemRandomLevelUp(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(14, 160))	//1.01.00 update
-		{
-			if (g_LuckyItemManager.LuckyItemRepaire(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-			else
-			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-			}
+			tMana = 0;
 		}
 
-		else if (citem->m_Type == ITEMGET(14, 161))	//1.01.00 update
+		switch (citem->m_Type)
 		{
-			if (g_kJewelOfHarmonySystem.StrengthenItemByJewelOfRise(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-			else
-			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-			}
-		}
-		else if (citem->m_Type == ITEMGET(14, 209)) // Tradeable Seal Season 8
-		{
-			if (g_PentagramSystem.AddTradeCount(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			else
-			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-			}
+		case ITEMGET(14, 4):	// Small Mana Potion
+			tMana += ((int)(gObj[aIndex].MaxMana + gObj[aIndex].AddMana)) * 20 / 100;
+			break;
+		case ITEMGET(14, 5):	// Mana Potion
+			tMana += ((int)(gObj[aIndex].MaxMana + gObj[aIndex].AddMana)) * 30 / 100;
+			break;
+		case ITEMGET(14, 6):	// Large Mana Potion
+			tMana += ((int)(gObj[aIndex].MaxMana + gObj[aIndex].AddMana)) * 40 / 100;
+			break;
 		}
 
-		else if (citem->m_Type == ITEMGET(14, 224))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
+		gObj[aIndex].Mana += tMana;
 
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_LIGHT_BLESSING);
+		if (gObj[aIndex].Mana > (gObj[aIndex].MaxMana + gObj[aIndex].AddMana - 1.0f))
+			gObj[aIndex].Mana = gObj[aIndex].MaxMana + gObj[aIndex].AddMana;
+
+		GCManaSend(aIndex, gObj[aIndex].Mana, 0xFF, 0, gObj[aIndex].BP);
+
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if (citem->m_Type == ITEMGET(14, 38))	// Small Compound Potion 
+	{
+		int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 5 / 100;	// #formula
+		int iHPGage = (int)((gObj[aIndex].MaxLife + gObj[aIndex].AddLife) * 10.0f / 100.0f);	// #formula
+
+		if (gObj[aIndex].iShield < 0)
+			gObj[aIndex].iShield = 0;
+
+		if (gObj[aIndex].FillLife > 0.0f)
+		{
+			gObj[aIndex].Life += gObj[aIndex].FillLife;
+
+			if (gObj[aIndex].Life > (gObj[aIndex].MaxLife + gObj[aIndex].AddLife))
+				gObj[aIndex].Life = gObj[aIndex].MaxLife + gObj[aIndex].AddLife;
 		}
 
-		else if (citem->m_Type == ITEMGET(14, 263))
+		if (gObj[aIndex].iFillShield > 0)
 		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
+			gObj[aIndex].iShield += gObj[aIndex].iFillShield;
 
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_LIGHT_BLESSING_LOW);
+			if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
+				gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
 		}
 
-		else if (citem->m_Type == ITEMGET(14, 264))
-		{
-			if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
+		gObj[aIndex].FillLife = iHPGage;
+		gObj[aIndex].FillLifeMax = iHPGage;
+		gObj[aIndex].FillLifeCount = 4;
+		gObj[aIndex].iFillShield = iShieldGage;
+		gObj[aIndex].iFillShieldMax = iShieldGage;
+		gObj[aIndex].iFillShieldCount = 4;
 
-			gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_LIGHT_BLESSING_MIDDLE);
+		GCSendEffectInfo(aIndex, 3);
+
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
 		}
 
-		else if (citem->m_Type == ITEMGET(14, 16)) // Jewel Of Life
+		g_Log.Add("[%s][%s]Use Compound Potion Lv1 - SD[%d] HP[%f] -> SD[%d] HP[%f]",
+			gObj[aIndex].AccountID, gObj[aIndex].Name,
+			gObj[aIndex].iShield, gObj[aIndex].Life,
+			gObj[aIndex].iShield + iShieldGage, (double)(gObj[aIndex].Life + (float)iHPGage));
+	}
+	else if (citem->m_Type == ITEMGET(14, 39))	// Compound Potion 
+	{
+		int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 10 / 100;	// #formula
+		int iHPGage = (int)((gObj[aIndex].MaxLife + gObj[aIndex].AddLife) * 25.0f / 100.0f);	// #formula
+
+		if (gObj[aIndex].iShield < 0)
+			gObj[aIndex].iShield = 0;
+
+		if (gObj[aIndex].FillLife > 0.0f)
 		{
-			if (gObjItemRandomOption3Up(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-			else
-			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-			}
+			gObj[aIndex].Life += gObj[aIndex].FillLife;
+
+			if (gObj[aIndex].Life > (gObj[aIndex].MaxLife + gObj[aIndex].AddLife))
+				gObj[aIndex].Life = gObj[aIndex].MaxLife + gObj[aIndex].AddLife;
 		}
-		else if (citem->m_Type >= ITEMGET(15, 0) ||	// Group 15 - Scrolls
-			citem->m_Type == ITEMGET(12, 7) || // Orb of Twisting Slash
-			(citem->m_Type >= ITEMGET(12, 8) && citem->m_Type <= ITEMGET(12, 24)) ||	// Orbs
-			citem->m_Type == ITEMGET(12, 35) ||
-			(citem->m_Type >= ITEMGET(12, 44) && citem->m_Type <= ITEMGET(12, 48)) ||	// Scroll of Fire Scream
-			(citem->m_Type >= ITEMGET(12,271) && citem->m_Type <= ITEMGET(12, 277))) // Grow Lancer Skills
+
+		if (gObj[aIndex].iFillShield > 0)
 		{
-			if ((gObj[aIndex].m_PlayerData->Strength + gObj[aIndex].AddStrength) < citem->m_RequireStrength)
+			gObj[aIndex].iShield += gObj[aIndex].iFillShield;
+
+			if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
+				gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
+		}
+
+		gObj[aIndex].FillLife = iHPGage;
+		gObj[aIndex].FillLifeMax = iHPGage;
+		gObj[aIndex].FillLifeCount = 4;
+		gObj[aIndex].iFillShield = iShieldGage;
+		gObj[aIndex].iFillShieldMax = iShieldGage;
+		gObj[aIndex].iFillShieldCount = 4;
+
+		GCSendEffectInfo(aIndex, 3);
+
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		g_Log.Add("[%s][%s]Use Compound Potion Lv2 - SD[%d] HP[%f] -> SD[%d] HP[%f]",
+			gObj[aIndex].AccountID, gObj[aIndex].Name,
+			gObj[aIndex].iShield, gObj[aIndex].Life,
+			gObj[aIndex].iShield + iShieldGage, (double)(gObj[aIndex].Life + (float)iHPGage));
+	}
+	else if (citem->m_Type == ITEMGET(14, 40))	// Large Compound Potion 
+	{
+		int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 20 / 100;	// #formula
+		int iHPGage = (int)((gObj[aIndex].MaxLife + gObj[aIndex].AddLife) * 45.0f / 100.0f);	// #formula
+
+		if (gObj[aIndex].iShield < 0)
+			gObj[aIndex].iShield = 0;
+
+		if (gObj[aIndex].FillLife > 0.0f)
+		{
+			gObj[aIndex].Life += gObj[aIndex].FillLife;
+
+			if (gObj[aIndex].Life > (gObj[aIndex].MaxLife + gObj[aIndex].AddLife))
+				gObj[aIndex].Life = gObj[aIndex].MaxLife + gObj[aIndex].AddLife;
+		}
+
+		if (gObj[aIndex].iFillShield > 0)
+		{
+			gObj[aIndex].iShield += gObj[aIndex].iFillShield;
+
+			if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
+				gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
+		}
+
+		gObj[aIndex].FillLife = iHPGage;
+		gObj[aIndex].FillLifeMax = iHPGage;
+		gObj[aIndex].FillLifeCount = 4;
+		gObj[aIndex].iFillShield = iShieldGage;
+		gObj[aIndex].iFillShieldMax = iShieldGage;
+		gObj[aIndex].iFillShieldCount = 4;
+
+		GCSendEffectInfo(aIndex, 3);
+
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		g_Log.Add("[%s][%s]Use Compound Potion Lv3 - SD[%d] HP[%f] -> SD[%d] HP[%f]",
+			gObj[aIndex].AccountID, gObj[aIndex].Name,
+			gObj[aIndex].iShield, gObj[aIndex].Life,
+			gObj[aIndex].iShield + iShieldGage, (double)(gObj[aIndex].Life + (float)iHPGage));
+	}
+	else if (citem->m_Type == ITEMGET(14, 35)) // Small SD Potion
+	{
+		int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 25 / 100;	// #formula
+
+		if (gObj[aIndex].iShield < 0)
+			gObj[aIndex].iShield = 0;
+
+		if (gObj[aIndex].iFillShield > 0)
+		{
+			gObj[aIndex].iShield += gObj[aIndex].iFillShield;
+
+			if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
+				gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
+		}
+
+		gObj[aIndex].iFillShieldCount = 2;
+		gObj[aIndex].iFillShield = iShieldGage;
+		gObj[aIndex].iFillShieldMax = iShieldGage;
+
+		GCSendEffectInfo(aIndex, 3);
+
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if (citem->m_Type == ITEMGET(14, 36)) // SD Potion
+	{
+		int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 35 / 100;	// #formula
+
+		if (gObj[aIndex].iShield < 0)
+			gObj[aIndex].iShield = 0;
+
+		if (gObj[aIndex].iFillShield > 0)
+		{
+			gObj[aIndex].iShield += gObj[aIndex].iFillShield;
+
+			if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
+				gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
+		}
+
+		gObj[aIndex].iFillShieldCount = 2;
+		gObj[aIndex].iFillShield = iShieldGage;
+		gObj[aIndex].iFillShieldMax = iShieldGage;
+
+		GCSendEffectInfo(aIndex, 3);
+
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if (citem->m_Type == ITEMGET(14, 37)) // Large SD Potion
+	{
+		int iShieldGage = (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield) * 45 / 100; // #formula
+
+		if (gObj[aIndex].iShield < 0)
+			gObj[aIndex].iShield = 0;
+
+		if (gObj[aIndex].iFillShield > 0)
+		{
+			gObj[aIndex].iShield += gObj[aIndex].iFillShield;
+
+			if (gObj[aIndex].iShield > (gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield))
+				gObj[aIndex].iShield = gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield;
+		}
+
+		gObj[aIndex].iFillShieldCount = 2;
+		gObj[aIndex].iFillShield = iShieldGage;
+		gObj[aIndex].iFillShieldMax = iShieldGage;
+
+		GCSendEffectInfo(aIndex, 3);
+
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if (citem->m_Type == ITEMGET(14, 8)) // Antidote
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		if (gObjCheckUsedBuffEffect(&gObj[aIndex], BUFFTYPE_POISON) == TRUE)
+		{
+			gObjRemoveBuffEffect(&gObj[aIndex], BUFFTYPE_POISON);
+			gObj[aIndex].lpAttackObj = 0;
+			GCMagicCancelSend(&gObj[aIndex], 1);
+		}
+
+		if (gObjCheckUsedBuffEffect(&gObj[aIndex], BUFFTYPE_FREEZE) == TRUE)
+		{
+			gObjRemoveBuffEffect(&gObj[aIndex], BUFFTYPE_FREEZE);
+			gObj[aIndex].DelayActionTime = 0;
+			gObj[aIndex].DelayLevel = 0;
+			gObj[aIndex].lpAttackObj = 0;
+			GCMagicCancelSend(&gObj[aIndex], 7);
+		}
+	}
+	else if (citem->m_Type == ITEMGET(14, 46)) // Jack O'Lantern Blessings
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_HALLOWEEN_BLESS);
+	}
+	else if (citem->m_Type == ITEMGET(14, 47)) // Jack O'Lantern Wrath
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_HALLOWEEN_ANGER);
+	}
+	else if (citem->m_Type == ITEMGET(14, 48)) // Jack O'Lantern Cry
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_HALLOWEEN_CRY);
+	}
+	else if (citem->m_Type == ITEMGET(14, 49)) // Jack O'Lantern Food
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_HALLOWEEN_FOOD);
+	}
+	else if (citem->m_Type == ITEMGET(14, 50)) // Jack O'Lantern Drink
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_HALLOWEEN_DRINK);
+	}
+	else if (citem->m_Type == ITEMGET(14, 85)) // Cherry Blossom Wine
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_CHERRYBLOSSOM_DRINK);
+	}
+	else if (citem->m_Type == ITEMGET(14, 86)) // Cherry Blossom Rice Cake
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_CHERRYBLOSSOM_DUMPLING);
+	}
+	else if (citem->m_Type == ITEMGET(14, 87)) // Cherry Blossom Flower Petal
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_CHERRYBLOSSOM_PETAL);
+	}
+	else if (citem->m_Type == ITEMGET(13, 81)) // Talisman of Guardian
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_CHARM_GUARDIAN);
+	}
+	else if (citem->m_Type == ITEMGET(13, 82)) // Talisman of Item Protection
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_CHARM_PROTECTITEM);
+	}
+
+	else if (citem->m_Type == ITEMGET(13, 43)) // Seal of Ascension
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_PCS_MARK1);
+	}
+
+	else if (citem->m_Type == ITEMGET(13, 44)) // Seal of Wealth
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_PCS_MARK2);
+	}
+
+	else if (citem->m_Type == ITEMGET(13, 45)) // Seal of Sustenance
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_PCS_MARK3);
+	}
+
+	else if (g_kJewelOfHarmonySystem.IsJewelOfHarmonyPurity(citem->m_Type) == TRUE && g_SocketOptionSystem.IsSocketItem(&gObj[aIndex].pInventory[lpMsg->invenrotyTarget]) == FALSE) //season4 add-on)
+	{
+		if (g_kJewelOfHarmonySystem.StrengthenItemByJewelOfHarmony(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+		else
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+		}
+	}
+	else if (g_kJewelOfHarmonySystem.IsJewelOfHarmonySmeltingItems(citem->m_Type) == TRUE)
+	{
+		if (g_kJewelOfHarmonySystem.SmeltItemBySmeltingStone(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+		else
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+		}
+	}
+	else if (citem->m_Type == ITEMGET(14, 13)) // Jewel Of Bless
+	{
+		if (gObjItemLevelUp(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if (citem->m_Type == ITEMGET(12, 30)) // Bundle of Jewel of Bless
+	{
+		if (UseBundleOfBlessJewel(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if (citem->m_Type == ITEMGET(14, 14)) // Jewel Of Soul
+	{
+		if (gObjItemRandomLevelUp(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if (citem->m_Type == ITEMGET(14, 160))	// Jewel of Extension 1.01.00 update
+	{
+		if (g_LuckyItemManager.LuckyItemRepaire(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+		else
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+		}
+	}
+
+	else if (citem->m_Type == ITEMGET(14, 161))	//Jewel of Elevation 1.01.00 update
+	{
+		if (g_kJewelOfHarmonySystem.StrengthenItemByJewelOfRise(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+		else
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+		}
+	}
+	else if (citem->m_Type == ITEMGET(14, 209)) // Tradeable Seal Season 8
+	{
+		if (g_PentagramSystem.AddTradeCount(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		else
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+		}
+	}
+
+	else if (citem->m_Type == ITEMGET(14, 224)) // Bless of Light (Greater)
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_LIGHT_BLESSING);
+	}
+
+	else if (citem->m_Type == ITEMGET(14, 263)) // Bless of Light (Low Grade)
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_LIGHT_BLESSING_LOW);
+	}
+
+	else if (citem->m_Type == ITEMGET(14, 264)) // Bless of Light (Middle Grade)
+	{
+		if (!gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		gObjAddBuffEffect(&gObj[aIndex], BUFFTYPE_LIGHT_BLESSING_MIDDLE);
+	}
+
+	else if (citem->m_Type == ITEMGET(14, 16)) // Jewel Of Life
+	{
+		if (gObjItemRandomOption3Up(&gObj[aIndex], lpMsg->inventoryPos, lpMsg->invenrotyTarget) == TRUE)
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemOneSend(aIndex, lpMsg->invenrotyTarget);
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+		else
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+		}
+	}
+	else if (citem->m_Type >= ITEMGET(15, 0) ||	// Group 15 - Scrolls
+		citem->m_Type == ITEMGET(12, 7) || // Orb of Twisting Slash
+		(citem->m_Type >= ITEMGET(12, 8) && citem->m_Type <= ITEMGET(12, 24)) ||	// Orbs
+		citem->m_Type == ITEMGET(12, 35) ||
+		(citem->m_Type >= ITEMGET(12, 44) && citem->m_Type <= ITEMGET(12, 48)) ||	// Scroll of Fire Scream
+		(citem->m_Type >= ITEMGET(12,271) && citem->m_Type <= ITEMGET(12, 277))) // Grow Lancer Skills
+	{
+		if ((gObj[aIndex].m_PlayerData->Strength + gObj[aIndex].AddStrength) < citem->m_RequireStrength)
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+			return;
+		}
+
+		if ((gObj[aIndex].m_PlayerData->Dexterity + gObj[aIndex].AddDexterity) < citem->m_RequireDexterity)
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+			return;
+		}
+
+		if (citem->m_Type == ITEMGET(15, 18))	// Scroll of HellBurst
+		{
+			if (g_QuestInfo.GetQuestState(&gObj[aIndex], 2) != 2)
 			{
 				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
 				return;
 			}
+		}
 
-			if ((gObj[aIndex].m_PlayerData->Dexterity + gObj[aIndex].AddDexterity) < citem->m_RequireDexterity)
+		if (citem->m_Type >= ITEMGET(12, 8) && citem->m_Type <= ITEMGET(12, 24))
+		{
+			if (gObj[aIndex].Level < citem->m_RequireLevel)	// Orbs
 			{
 				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
 				return;
 			}
+		}
 
-			if (citem->m_Type == ITEMGET(15, 18))	// Scroll of HellBurst
+		unsigned short skillnumber;
+
+		if (citem->IsClass(gObj[aIndex].Class, gObj[aIndex].m_PlayerData->ChangeUP) == FALSE)
+		{
+			GCInventoryItemDeleteSend(aIndex, -1, 1);
+		}
+		else
+		{
+			int addskill = gObjMagicAdd(&gObj[aIndex], ITEM_GET_TYPE(citem->m_Type), ITEM_GET_INDEX(citem->m_Type), citem->m_Level, skillnumber);
+
+			if (addskill >= 0)
 			{
-				if (g_QuestInfo.GetQuestState(&gObj[aIndex], 2) != 2)
-				{
-					GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-					return;
-				}
+				gObjInventoryItemSet(aIndex, pos, -1);
+				GCMagicListOneSend(aIndex, addskill, skillnumber, citem->m_Level, 0, 0);
+				gObj[aIndex].pInventory[pos].Clear();
+				GCInventoryItemDeleteSend(aIndex, pos, 1);
 			}
-
-			if (citem->m_Type >= ITEMGET(12, 8) && citem->m_Type <= ITEMGET(12, 24))
-			{
-				if (gObj[aIndex].Level < citem->m_RequireLevel)	// Orbs
-				{
-					GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-					return;
-				}
-			}
-
-			unsigned short skillnumber;
-
-			if (citem->IsClass(gObj[aIndex].Class, gObj[aIndex].m_PlayerData->ChangeUP) == FALSE)
+			else
 			{
 				GCInventoryItemDeleteSend(aIndex, -1, 1);
 			}
+		}
+	}
+	else if (citem->m_Type == ITEMGET(14, 10)) // Town Portal Scroll
+	{
+		if (g_ConfigRead.server.GetServerType() == SERVER_BATTLECORE)
+		{
+			g_Log.Add("[UBF][Return Scroll] [%s][%s][%s] - No Available",
+				gObj[aIndex].AccountID, gObj[aIndex].Name, gObj[aIndex].m_PlayerData->m_RealNameOfUBF);
+
+			return;
+		}
+
+		g_Log.Add("[Using Item] [Return Scroll] [%s][%s] - Current Map:[%d]",
+			gObj[aIndex].AccountID, gObj[aIndex].Name, gObj[aIndex].MapNumber);
+
+		if (BC_MAP_RANGE(gObj[aIndex].MapNumber))
+		{
+			int iBridgeIndex = g_BloodCastle.GetBridgeIndex(gObj[aIndex].MapNumber);
+
+			if (g_BloodCastle.GetCurrentState(iBridgeIndex) == 2)
+			{
+				g_BloodCastle.SearchUserDropQuestItem(aIndex);
+			}
 			else
 			{
-				int addskill = gObjMagicAdd(&gObj[aIndex], ITEM_GET_TYPE(citem->m_Type), ITEM_GET_INDEX(citem->m_Type), citem->m_Level, skillnumber);
+				g_BloodCastle.SearchUserDeleteQuestItem(aIndex);
+			}
+		}
 
-				if (addskill >= 0)
+		if (IT_MAP_RANGE(gObj[aIndex].MapNumber))
+		{
+			g_IT_Event.DropRelicsItem(gObj[aIndex].MapNumber, aIndex);
+		}
+
+		if (gObj[aIndex].m_IfState.use && gObj[aIndex].m_IfState.type == 3)
+		{
+			gObj[aIndex].TargetNpcNumber = -1;
+			gObj[aIndex].m_IfState.type = 0;
+			gObj[aIndex].m_IfState.use = 0;
+		}
+
+		gObjInventoryItemSet(aIndex, pos, -1);
+		gObj[aIndex].pInventory[pos].Clear();
+		GCInventoryItemDeleteSend(aIndex, pos, 1);
+
+		if (gObj[aIndex].MapNumber == MAP_INDEX_DEVIAS)
+		{
+			gObjMoveGate(aIndex, 22);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_NORIA)
+		{
+			gObjMoveGate(aIndex, 27);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_ELBELAND)
+		{
+			gObjMoveGate(aIndex, 267);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_LOSTTOWER)
+		{
+			gObjMoveGate(aIndex, 42);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_ATHLANSE)
+		{
+			gObjMoveGate(aIndex, 49);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_TARKAN)
+		{
+			gObjMoveGate(aIndex, 57);
+		}
+		else if (BC_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
+		{
+			gObjMoveGate(aIndex, 22);
+		}
+		else if (CC_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
+		{
+			gObjMoveGate(aIndex, 22);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_CHAOSCASTLE_SURVIVAL)
+		{
+			gObjMoveGate(aIndex, 333);
+		}
+		else if (KALIMA_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
+		{
+			gObjMoveGate(aIndex, 22);
+		}
+		else if (IT_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
+		{
+			gObjMoveGate(aIndex, 267);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_AIDA)
+		{
+			gObjMoveGate(aIndex, 27);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_CRYWOLF_FIRSTZONE)
+		{
+			gObjMoveGate(aIndex, 27);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_BARRACKS)
+		{
+			gObjMoveGate(aIndex, 114);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_REFUGEE)
+		{
+			gObjMoveGate(aIndex, 114);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_CALMNESS)
+		{
+			gObjMoveGate(aIndex, 273);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_RAKLION || gObj[aIndex].MapNumber == MAP_INDEX_HATCHERY)
+		{
+			gObjMoveGate(aIndex, 287);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_SANTAVILLAGE)
+		{
+			gObjMoveGate(aIndex, 22);
+		}
+		else if (DG_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
+		{
+			gObjMoveGate(aIndex, 267);
+		}
+		else if (IMPERIAL_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
+		{
+			gObjMoveGate(aIndex, 22);
+		}
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_LORENMARKET)
+		{
+			gObjMoveGate(aIndex, 333);
+		}
+
+		else if (g_ConfigRead.server.GetServerType() == SERVER_CASTLE && gObj[aIndex].MapNumber == MAP_INDEX_CASTLESIEGE)
+		{
+			if (g_CastleSiege.GetCastleState() == CASTLESIEGE_STATE_STARTSIEGE)
+			{
+				if (gObj[aIndex].m_btCsJoinSide == 1)
 				{
-					gObjInventoryItemSet(aIndex, pos, -1);
-					GCMagicListOneSend(aIndex, addskill, skillnumber, citem->m_Level, 0, 0);
-					gObj[aIndex].pInventory[pos].Clear();
-					GCInventoryItemDeleteSend(aIndex, pos, 1);
+					gObjMoveGate(aIndex, 101);
 				}
 				else
 				{
-					GCInventoryItemDeleteSend(aIndex, -1, 1);
+					gObjMoveGate(aIndex, 100);
+				}
+			}
+			else
+			{
+				if (g_CastleSiege.CheckCastleOwnerMember(aIndex) == TRUE || g_CastleSiege.CheckCastleOwnerUnionMember(aIndex) == TRUE)
+				{
+					gObjMoveGate(aIndex, 101);
+				}
+				else
+				{
+					gObjMoveGate(aIndex, 100);
 				}
 			}
 		}
-		else if (citem->m_Type == ITEMGET(14, 10)) // Town Portal Scroll
+
+		else if ( g_NewPVP.IsVulcanusMap(gObj[aIndex].MapNumber) )
 		{
-			if (g_ConfigRead.server.GetServerType() == SERVER_BATTLECORE)
+			gObjMoveGate(aIndex, 294);
+		}
+
+		else if ( g_NewPVP.IsPKFieldMap(gObj[aIndex].MapNumber) )
+		{
+			g_NewPVP.Reset(gObj[aIndex]);
+			gObjMoveGate(aIndex, 17);
+		}
+
+		else if ( gObj[aIndex].MapNumber == MAP_INDEX_BATTLESOCCER )
+		{
+		}
+
+
+		else
+		{
+			gObjMoveGate(aIndex, 17);
+		}
+
+	}
+	else if ( citem->m_Type == ITEMGET(13,66) ) // Invitation to Santa Village
+	{
+		if ( DG_MAP_RANGE(gObj[aIndex].MapNumber) == TRUE )
+		{
+			g_DoppelGanger.LeaveDoppelganger(aIndex);
+
+			if ( g_DoppelGanger.GetDoppelgangerState() == 2 )
 			{
-				g_Log.Add("[UBF][Return Scroll] [%s][%s][%s] - No Available",
-					gObj[aIndex].AccountID, gObj[aIndex].Name, gObj[aIndex].m_PlayerData->m_RealNameOfUBF);
-
-				return;
+				g_DoppelGanger.SendDoppelgangerResult(&gObj[aIndex], 1);
 			}
+		}
 
-			g_Log.Add("[Using Item] [Return Scroll] [%s][%s] - Current Map:[%d]",
-				gObj[aIndex].AccountID, gObj[aIndex].Name, gObj[aIndex].MapNumber);
+		gObjTeleport(aIndex, MAP_INDEX_SANTAVILLAGE, 220, 20);
 
-			if (BC_MAP_RANGE(gObj[aIndex].MapNumber))
-			{
-				int iBridgeIndex = g_BloodCastle.GetBridgeIndex(gObj[aIndex].MapNumber);
-
-				if (g_BloodCastle.GetCurrentState(iBridgeIndex) == 2)
-				{
-					g_BloodCastle.SearchUserDropQuestItem(aIndex);
-				}
-				else
-				{
-					g_BloodCastle.SearchUserDeleteQuestItem(aIndex);
-				}
-			}
-
-			if (IT_MAP_RANGE(gObj[aIndex].MapNumber))
-			{
-				g_IT_Event.DropRelicsItem(gObj[aIndex].MapNumber, aIndex);
-			}
-
-			if (gObj[aIndex].m_IfState.use && gObj[aIndex].m_IfState.type == 3)
-			{
-				gObj[aIndex].TargetNpcNumber = -1;
-				gObj[aIndex].m_IfState.type = 0;
-				gObj[aIndex].m_IfState.use = 0;
-			}
-
+		if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
+		{
 			gObjInventoryItemSet(aIndex, pos, -1);
 			gObj[aIndex].pInventory[pos].Clear();
 			GCInventoryItemDeleteSend(aIndex, pos, 1);
-
-			if (gObj[aIndex].MapNumber == MAP_INDEX_DEVIAS)
-			{
-				gObjMoveGate(aIndex, 22);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_NORIA)
-			{
-				gObjMoveGate(aIndex, 27);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_ELBELAND)
-			{
-				gObjMoveGate(aIndex, 267);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_LOSTTOWER)
-			{
-				gObjMoveGate(aIndex, 42);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_ATHLANSE)
-			{
-				gObjMoveGate(aIndex, 49);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_TARKAN)
-			{
-				gObjMoveGate(aIndex, 57);
-			}
-			else if (BC_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
-			{
-				gObjMoveGate(aIndex, 22);
-			}
-			else if (CC_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
-			{
-				gObjMoveGate(aIndex, 22);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_CHAOSCASTLE_SURVIVAL)
-			{
-				gObjMoveGate(aIndex, 333);
-			}
-			else if (KALIMA_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
-			{
-				gObjMoveGate(aIndex, 22);
-			}
-			else if (IT_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
-			{
-				gObjMoveGate(aIndex, 267);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_AIDA)
-			{
-				gObjMoveGate(aIndex, 27);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_CRYWOLF_FIRSTZONE)
-			{
-				gObjMoveGate(aIndex, 27);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_BARRACKS)
-			{
-				gObjMoveGate(aIndex, 114);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_REFUGEE)
-			{
-				gObjMoveGate(aIndex, 114);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_CALMNESS)
-			{
-				gObjMoveGate(aIndex, 273);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_RAKLION || gObj[aIndex].MapNumber == MAP_INDEX_HATCHERY)
-			{
-				gObjMoveGate(aIndex, 287);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_SANTAVILLAGE)
-			{
-				gObjMoveGate(aIndex, 22);
-			}
-			else if (DG_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
-			{
-				gObjMoveGate(aIndex, 267);
-			}
-			else if (IMPERIAL_MAP_RANGE(gObj[aIndex].MapNumber) != FALSE)
-			{
-				gObjMoveGate(aIndex, 22);
-			}
-			else if (gObj[aIndex].MapNumber == MAP_INDEX_LORENMARKET)
-			{
-				gObjMoveGate(aIndex, 333);
-			}
-
-			else if (g_ConfigRead.server.GetServerType() == SERVER_CASTLE && gObj[aIndex].MapNumber == MAP_INDEX_CASTLESIEGE)
-			{
-				if (g_CastleSiege.GetCastleState() == CASTLESIEGE_STATE_STARTSIEGE)
-				{
-					if (gObj[aIndex].m_btCsJoinSide == 1)
-					{
-						gObjMoveGate(aIndex, 101);
-					}
-					else
-					{
-						gObjMoveGate(aIndex, 100);
-					}
-				}
-				else
-				{
-					if (g_CastleSiege.CheckCastleOwnerMember(aIndex) == TRUE || g_CastleSiege.CheckCastleOwnerUnionMember(aIndex) == TRUE)
-					{
-						gObjMoveGate(aIndex, 101);
-					}
-					else
-					{
-						gObjMoveGate(aIndex, 100);
-					}
-				}
-			}
-
-			else if ( g_NewPVP.IsVulcanusMap(gObj[aIndex].MapNumber) )
-			{
-				gObjMoveGate(aIndex, 294);
-			}
-
-			else if ( g_NewPVP.IsPKFieldMap(gObj[aIndex].MapNumber) )
-			{
-				g_NewPVP.Reset(gObj[aIndex]);
-				gObjMoveGate(aIndex, 17);
-			}
-
-			else if ( gObj[aIndex].MapNumber == MAP_INDEX_BATTLESOCCER )
-			{
-			}
-
-
-			else
-			{
-				gObjMoveGate(aIndex, 17);
-			}
-
 		}
-		else if ( citem->m_Type == ITEMGET(13,66) )
+	}
+
+	else if ( citem->m_Type == ITEMGET(14,162) ) // Magic Backpack
+	{
+		if(gObj[aIndex].m_PlayerData->m_InventoryExpansion < 2)
 		{
-			if ( DG_MAP_RANGE(gObj[aIndex].MapNumber) == TRUE )
-			{
-				g_DoppelGanger.LeaveDoppelganger(aIndex);
-
-				if ( g_DoppelGanger.GetDoppelgangerState() == 2 )
-				{
-					g_DoppelGanger.SendDoppelgangerResult(&gObj[aIndex], 1);
-				}
-			}
-
-			gObjTeleport(aIndex, MAP_INDEX_SANTAVILLAGE, 220, 20);
-
-			if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-
-		else if ( citem->m_Type == ITEMGET(14,162) )
-		{
-			if(gObj[aIndex].m_PlayerData->m_InventoryExpansion < 2)
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-				gObj[aIndex].m_PlayerData->m_InventoryExpansion++;
-				GDSetExpWare(aIndex, 1, gObj[aIndex].m_PlayerData->m_InventoryExpansion);
-
-				PMSG_USEEXPANSIONITEM pMsg;
-				PHeadSetB((LPBYTE)&pMsg, 0x2B, sizeof(pMsg));
-				pMsg.Result = 1;
-				IOCP.DataSend(aIndex, (LPBYTE)&pMsg, pMsg.h.size);
-			}
-		}
-
-		else if ( citem->m_Type == ITEMGET(14,163) )
-		{
-			if(gObj[aIndex].m_PlayerData->m_WarehouseExpansion < 1)
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-				GDSetExpWare(aIndex, 2, 1);
-				gObj[aIndex].m_PlayerData->m_WarehouseExpansion = 1;
-
-				PMSG_USEEXPANSIONITEM pMsg;
-				PHeadSetB((LPBYTE)&pMsg, 0x2B, sizeof(pMsg));
-				pMsg.Result = 1;
-				IOCP.DataSend(aIndex, (LPBYTE)&pMsg, pMsg.h.size);
-			}
-		}
-
-		else if ( citem->m_Type == ITEMGET(13,152) || citem->m_Type == ITEMGET(13,156) )
-		{
-			if (g_MasterLevelSkillTreeSystem.CheckMasterSkillPoint(aIndex, 1) == TRUE)
-			{
-				g_MasterLevelSkillTreeSystem.ResetMasterSkill(aIndex, 1);
-				g_Log.Add("[MasterLevelSkill Reset] - Passive (%d)", aIndex);
-				gObjCloseSet(aIndex, 1);
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			else
-			{
-				this->GCServerMsgStringSend(Lang.GetText(0,526), aIndex, 1);
-			}
-		}
-
-		else if (citem->m_Type == ITEMGET(13, 153) || citem->m_Type == ITEMGET(13,157))
-		{
-			if (g_MasterLevelSkillTreeSystem.CheckMasterSkillPoint(aIndex, 2) == TRUE)
-			{
-				g_MasterLevelSkillTreeSystem.ResetMasterSkill(aIndex, 2);
-				g_Log.Add("[MasterLevelSkill Reset] - Strengthen Skill (%d)", aIndex);
-				gObjCloseSet(aIndex, 1);
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			else
-			{
-				this->GCServerMsgStringSend(Lang.GetText(0,526), aIndex, 1);
-			}
-		}
-
-		else if (citem->m_Type == ITEMGET(13, 154) || citem->m_Type == ITEMGET(13,158))
-		{
-			if (g_MasterLevelSkillTreeSystem.CheckMasterSkillPoint(aIndex, 3) == TRUE)
-			{
-				g_MasterLevelSkillTreeSystem.ResetMasterSkill(aIndex, 3);
-				g_Log.Add("[MasterLevelSkill Reset] - Enhance Attack/Defense (%d)", aIndex);
-				gObjCloseSet(aIndex, 1);
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			else
-			{
-				this->GCServerMsgStringSend(Lang.GetText(0,526), aIndex, 1);
-			}
-		}
-
-		else if (citem->m_Type == ITEMGET(13, 155) || citem->m_Type == ITEMGET(13,159))
-		{
-			if (g_MasterLevelSkillTreeSystem.CheckMasterSkillPoint(aIndex, 0) == TRUE)
-			{
-				g_MasterLevelSkillTreeSystem.ResetMasterSkill(aIndex, 0);
-				g_Log.Add("[MasterLevelSkill Reset] - All (%d)", aIndex);
-				gObjCloseSet(aIndex, 1);
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-
-			else
-			{
-				this->GCServerMsgStringSend(Lang.GetText(0,526), aIndex, 1);
-			}
-		}
-
-		else if ( citem->m_Type == ITEMGET(14,9) ) // Ale
-		{
-			int level = citem->m_Level;
-
 			gObjInventoryItemSet(aIndex, pos, -1);
 			gObj[aIndex].pInventory[pos].Clear();
 			GCInventoryItemDeleteSend(aIndex, pos, 1);
-			gObjUseDrink(&gObj[aIndex], level);
+			gObj[aIndex].m_PlayerData->m_InventoryExpansion++;
+			GDSetExpWare(aIndex, 1, gObj[aIndex].m_PlayerData->m_InventoryExpansion);
+
+			PMSG_USEEXPANSIONITEM pMsg;
+			PHeadSetB((LPBYTE)&pMsg, 0x2B, sizeof(pMsg));
+			pMsg.Result = 1;
+			IOCP.DataSend(aIndex, (LPBYTE)&pMsg, pMsg.h.size);
 		}
-		else if ( citem->m_Type == ITEMGET(14,20) ) // Remedy of Love
+	}
+
+	else if ( citem->m_Type == ITEMGET(14,163) ) // Vault Expansion Certificate
+	{
+		if(gObj[aIndex].m_PlayerData->m_WarehouseExpansion < 1)
 		{
-			if ( citem->m_Level == 0 )
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+			GDSetExpWare(aIndex, 2, 1);
+			gObj[aIndex].m_PlayerData->m_WarehouseExpansion = 1;
+
+			PMSG_USEEXPANSIONITEM pMsg;
+			PHeadSetB((LPBYTE)&pMsg, 0x2B, sizeof(pMsg));
+			pMsg.Result = 1;
+			IOCP.DataSend(aIndex, (LPBYTE)&pMsg, pMsg.h.size);
+		}
+	}
+
+	else if ( citem->m_Type == ITEMGET(13,152) || citem->m_Type == ITEMGET(13,156) ) // Scroll of Green Oblivion
+	{
+		if (g_MasterLevelSkillTreeSystem.CheckMasterSkillPoint(aIndex, 1) == TRUE)
+		{
+			g_MasterLevelSkillTreeSystem.ResetMasterSkill(aIndex, 1);
+			g_Log.Add("[MasterLevelSkill Reset] - Passive (%d)", aIndex);
+			gObjCloseSet(aIndex, 1);
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		else
+		{
+			this->GCServerMsgStringSend(Lang.GetText(0,526), aIndex, 1);
+		}
+	}
+
+	else if (citem->m_Type == ITEMGET(13, 153) || citem->m_Type == ITEMGET(13,157)) // Scroll of Blue Oblivion
+	{
+		if (g_MasterLevelSkillTreeSystem.CheckMasterSkillPoint(aIndex, 2) == TRUE)
+		{
+			g_MasterLevelSkillTreeSystem.ResetMasterSkill(aIndex, 2);
+			g_Log.Add("[MasterLevelSkill Reset] - Strengthen Skill (%d)", aIndex);
+			gObjCloseSet(aIndex, 1);
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		else
+		{
+			this->GCServerMsgStringSend(Lang.GetText(0,526), aIndex, 1);
+		}
+	}
+
+	else if (citem->m_Type == ITEMGET(13, 154) || citem->m_Type == ITEMGET(13,158)) // Scroll of Red Oblivion
+	{
+		if (g_MasterLevelSkillTreeSystem.CheckMasterSkillPoint(aIndex, 3) == TRUE)
+		{
+			g_MasterLevelSkillTreeSystem.ResetMasterSkill(aIndex, 3);
+			g_Log.Add("[MasterLevelSkill Reset] - Enhance Attack/Defense (%d)", aIndex);
+			gObjCloseSet(aIndex, 1);
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		else
+		{
+			this->GCServerMsgStringSend(Lang.GetText(0,526), aIndex, 1);
+		}
+	}
+
+	else if (citem->m_Type == ITEMGET(13, 155) || citem->m_Type == ITEMGET(13,159)) // Scroll of Gray Oblivion
+	{
+		if (g_MasterLevelSkillTreeSystem.CheckMasterSkillPoint(aIndex, 0) == TRUE)
+		{
+			g_MasterLevelSkillTreeSystem.ResetMasterSkill(aIndex, 0);
+			g_Log.Add("[MasterLevelSkill Reset] - All (%d)", aIndex);
+			gObjCloseSet(aIndex, 1);
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+
+		else
+		{
+			this->GCServerMsgStringSend(Lang.GetText(0,526), aIndex, 1);
+		}
+	}
+
+	else if ( citem->m_Type == ITEMGET(14,9) ) // Ale
+	{
+		int level = citem->m_Level;
+
+		gObjInventoryItemSet(aIndex, pos, -1);
+		gObj[aIndex].pInventory[pos].Clear();
+		GCInventoryItemDeleteSend(aIndex, pos, 1);
+		gObjUseDrink(&gObj[aIndex], level);
+	}
+	else if ( citem->m_Type == ITEMGET(14,20) ) // Remedy of Love
+	{
+		if ( citem->m_Level == 0 )
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+			gObjUseDrink(&gObj[aIndex], 2);
+		}
+	}
+	else if ( citem->m_Type == ITEMGET(13,15) ) // Fruits
+	{
+		int iItemUseType = lpMsg->btItemUseType;
+		if ( iItemUseType == 0 )
+		{
+			gObjUsePlusStatFruit(aIndex, pos);
+		}
+		else if ( iItemUseType == 1 )
+		{
+			gObjUseMinusStatFruit(aIndex, pos);
+		}
+	}
+	else if ( citem->m_Type == ITEMGET(13,70) ) // Talisman of Mobility
+	{
+		if(gObj[aIndex].SaveMapNumber != -1)
+		{
+			bool bMove = gMoveCommand.CheckEquipmentToMove(&gObj[aIndex], gObj[aIndex].SaveMapNumber);
+
+			if(bMove == true && MapNumberCheck(gObj[aIndex].SaveMapNumber))
+			{
+				gObjTeleport(aIndex, gObj[aIndex].SaveMapNumber, gObj[aIndex].SaveX, gObj[aIndex].SaveY);
+				gObjInventoryItemSet(aIndex, pos, -1);
+				gObj[aIndex].pInventory[pos].Clear();
+				GCInventoryItemDeleteSend(aIndex, pos, 1);
+				gObj[aIndex].SaveMapNumber = -1;
+				GCServerCmd(aIndex, 61, 0, 0);
+			}
+		}
+		else
+		{
+			if(gObjSearchItemMinus(&gObj[aIndex], pos, 1))
+			{
+				gObj[aIndex].SaveMapNumber = gObj[aIndex].MapNumber;
+				gObj[aIndex].SaveX = gObj[aIndex].X;
+				gObj[aIndex].SaveY = gObj[aIndex].Y;
+			}
+			else
 			{
 				gObjInventoryItemSet(aIndex, pos, -1);
 				gObj[aIndex].pInventory[pos].Clear();
 				GCInventoryItemDeleteSend(aIndex, pos, 1);
-				gObjUseDrink(&gObj[aIndex], 2);
 			}
 		}
-		else if ( citem->m_Type == ITEMGET(13,15) ) // Fruits
+	}
+	else if ( citem->m_Type == ITEMGET(13,69) ) // Talisman of Resurrection
+	{
+		if(gObj[aIndex].DieMapNumber != -1)
 		{
-			if ( iItemUseType == 0 )
+			bool bMove = gMoveCommand.CheckEquipmentToMove(&gObj[aIndex], gObj[aIndex].DieMapNumber);
+
+			bool bGens = g_GensSystem.IsMapBattleZone(gObj[aIndex].MapNumber);
+
+			if(bMove == true && bGens == false && MapNumberCheck(gObj[aIndex].DieMapNumber))
 			{
-				gObjUsePlusStatFruit(aIndex, pos);
-			}
-			else if ( iItemUseType == 1 )
-			{
-				gObjUseMinusStatFruit(aIndex, pos);
+				gObjTeleport(aIndex, gObj[aIndex].DieMapNumber, gObj[aIndex].DieX, gObj[aIndex].DieY);
+				gObjInventoryItemSet(aIndex, pos, -1);
+				gObj[aIndex].pInventory[pos].Clear();
+				GCInventoryItemDeleteSend(aIndex, pos, 1);
+				gObj[aIndex].DieMapNumber = -1;
+				GCServerCmd(aIndex, 60, 0, 0);
 			}
 		}
-		else if ( citem->m_Type == ITEMGET(13,70) )
-		{
-			if(gObj[aIndex].SaveMapNumber != -1)
-			{
-				bool bMove = gMoveCommand.CheckEquipmentToMove(&gObj[aIndex], gObj[aIndex].SaveMapNumber);
+	}
+	else if ( citem->m_Type >= ITEMGET(13,54) && citem->m_Type <= ITEMGET(13,58) ) // Reset Fruit
+	{
+		CashShopExMinusStatFruit(aIndex, pos);
+	}
+	else if ( citem->m_Type == ITEMGET(14,70) ) // Elite Healing Potion
+	{
+		int tLife = (citem->m_Value*10) - (gObj[aIndex].Level);	// #formula
 
-				if(bMove == true && MapNumberCheck(gObj[aIndex].SaveMapNumber))
-				{
-					gObjTeleport(aIndex, gObj[aIndex].SaveMapNumber, gObj[aIndex].SaveX, gObj[aIndex].SaveY);
-					gObjInventoryItemSet(aIndex, pos, -1);
-					gObj[aIndex].pInventory[pos].Clear();
-					GCInventoryItemDeleteSend(aIndex, pos, 1);
-					gObj[aIndex].SaveMapNumber = -1;
-					GCServerCmd(aIndex, 61, 0, 0);
-				}
-			}
-			else
-			{
-				if(gObjSearchItemMinus(&gObj[aIndex], pos, 1))
-				{
-					gObj[aIndex].SaveMapNumber = gObj[aIndex].MapNumber;
-					gObj[aIndex].SaveX = gObj[aIndex].X;
-					gObj[aIndex].SaveY = gObj[aIndex].Y;
-				}
-				else
-				{
-					gObjInventoryItemSet(aIndex, pos, -1);
-					gObj[aIndex].pInventory[pos].Clear();
-					GCInventoryItemDeleteSend(aIndex, pos, 1);
-				}
-			}
+		if ( tLife <  0 )
+		{
+			tLife = 0;
 		}
-		else if ( citem->m_Type == ITEMGET(13,69) )
+
+		tLife += ((int)(gObj[aIndex].MaxLife + gObj[aIndex].AddLife));	// #formula
+		gObj[aIndex].Life += tLife;
+
+		if ( gObj[aIndex].Life > (gObj[aIndex].MaxLife+gObj[aIndex].AddLife-1.0f) )
+			gObj[aIndex].Life = gObj[aIndex].MaxLife+gObj[aIndex].AddLife;
+
+		GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+
+		gObj[aIndex].FillLifeMax = tLife;
+		gObj[aIndex].FillLife = tLife;
+
+		if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
 		{
-			if(gObj[aIndex].DieMapNumber != -1)
-			{
-				bool bMove = gMoveCommand.CheckEquipmentToMove(&gObj[aIndex], gObj[aIndex].DieMapNumber);
-
-				bool bGens = g_GensSystem.IsMapBattleZone(gObj[aIndex].MapNumber);
-
-				if(bMove == true && bGens == false && MapNumberCheck(gObj[aIndex].DieMapNumber))
-				{
-					gObjTeleport(aIndex, gObj[aIndex].DieMapNumber, gObj[aIndex].DieX, gObj[aIndex].DieY);
-					gObjInventoryItemSet(aIndex, pos, -1);
-					gObj[aIndex].pInventory[pos].Clear();
-					GCInventoryItemDeleteSend(aIndex, pos, 1);
-					gObj[aIndex].DieMapNumber = -1;
-					GCServerCmd(aIndex, 60, 0, 0);
-				}
-			}
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
 		}
-		else if ( citem->m_Type >= ITEMGET(13,54) && citem->m_Type <= ITEMGET(13,58) )
+	}
+	else if ( citem->m_Type == ITEMGET(14,71) ) // Elite Mana Potion
+	{
+		int tMana = (citem->m_Value*10) - (gObj[aIndex].Level);	// #formula
+
+		if ( tMana < 0 )
 		{
-			CashShopExMinusStatFruit(aIndex, pos);
+			tMana=0;
 		}
-		else if ( citem->m_Type == ITEMGET(14,70) ) // CSHOP HP Potions
+
+		tMana += ((int)(gObj[aIndex].MaxMana + gObj[aIndex].AddMana));
+		gObj[aIndex].Mana += tMana;
+
+		if ( gObj[aIndex].Mana > (gObj[aIndex].MaxMana+gObj[aIndex].AddMana-1.0f) )
+			gObj[aIndex].Mana = gObj[aIndex].MaxMana+gObj[aIndex].AddMana;
+		
+		GCManaSend(aIndex, gObj[aIndex].Mana, 0xFF, 0, gObj[aIndex].BP);
+
+		if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
 		{
-			int tLife = (citem->m_Value*10) - (gObj[aIndex].Level);	// #formula
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if ( citem->m_Type == ITEMGET(14,133) ) // Elite SD Potion
+	{
+		float fSD = (gObj[aIndex].iMaxShield+gObj[aIndex].iAddShield) * 65 / 100;
 
-			if ( tLife <  0 )
-			{
-				tLife = 0;
-			}
+		if(gObj[aIndex].iShield < fSD)
+			gObj[aIndex].iShield = fSD;
 
-			tLife += ((int)(gObj[aIndex].MaxLife + gObj[aIndex].AddLife));	// #formula
-			gObj[aIndex].Life += tLife;
+		GCReFillSend(aIndex, gObj[aIndex].Life, 0xFF, 1, gObj[aIndex].iShield);
 
-			if ( gObj[aIndex].Life > (gObj[aIndex].MaxLife+gObj[aIndex].AddLife-1.0f) )
-				gObj[aIndex].Life = gObj[aIndex].MaxLife+gObj[aIndex].AddLife;
+		if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
 
+	else if ( citem->m_Type == ITEMGET(14,78) ) // Elixir of Strength
+	{
+		LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
+		if (lpEffect == NULL)
+		{
 			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+			return;
+		}
 
-			gObj[aIndex].FillLifeMax = tLife;
-			gObj[aIndex].FillLife = tLife;
+		g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], citem->m_Type, 0, lpEffect->iEffectValidTime);
+		if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if ( citem->m_Type == ITEMGET(14,79) ) // Elixir of Agility
+	{
+		LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
+
+		if (lpEffect == NULL)
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+			return;
+		}
+
+		g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], citem->m_Type, 0, lpEffect->iEffectValidTime);
+		if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if ( citem->m_Type == ITEMGET(14,80) ) // Elixir of Health
+	{
+		LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
+
+		if (lpEffect == NULL)
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+			return;
+		}
+
+		g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], citem->m_Type, 0, lpEffect->iEffectValidTime);
+		if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if ( citem->m_Type == ITEMGET(14,81) ) // Elixir of Energy
+	{
+		LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
+
+		if (lpEffect == NULL)
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+			return;
+		}
+
+		g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], citem->m_Type, 0, lpEffect->iEffectValidTime);
+		if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if ( citem->m_Type == ITEMGET(14,82) ) // Elixir of Control
+	{
+		LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
+
+		if (lpEffect == NULL)
+		{
+			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+			return;
+		}
+
+		g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], citem->m_Type, 0, lpEffect->iEffectValidTime);
+		if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
+		{
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
+		}
+	}
+	else if ( citem->m_Type == ITEMGET(13,60) ) // Indulgence
+	{
+		if ( gObj[aIndex].m_PK_Level == 6 )
+			{
+				gObj[aIndex].m_PK_Level = 5;
+			}
+			else if ( gObj[aIndex].m_PK_Level == 5 )
+			{
+				gObj[aIndex].m_PK_Level = 4;
+			}
+			else if ( gObj[aIndex].m_PK_Level == 4 )
+			{
+				gObj[aIndex].m_PK_Level = 3;
+			}
+			else if ( gObj[aIndex].m_PK_Level <= 3 )
+			{
+				gObj[aIndex].m_PK_Level = gObj[aIndex].m_PK_Level;
+			}
+
+			GCPkLevelSend(aIndex, gObj[aIndex].m_PK_Level);
 
 			if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
 			{
@@ -15178,274 +15329,108 @@ void GameProtocol::CGUseItemRecv(PMSG_USEITEM* lpMsg, int aIndex)
 				gObj[aIndex].pInventory[pos].Clear();
 				GCInventoryItemDeleteSend(aIndex, pos, 1);
 			}
-		}
-		else if ( citem->m_Type == ITEMGET(14,71) ) // CSHOP MP Potions
+			g_Log.Add("[PCS] [%s][%s] Use PK Clear Item", gObj[aIndex].AccountID, gObj[aIndex].Name);
+	}
+	else if ( citem->m_Type == ITEMGET(14,7) )	// Siege Potion
+	{
+		if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
 		{
-			int tMana = (citem->m_Value*10) - (gObj[aIndex].Level);	// #formula
-
-			if ( tMana < 0 )
-			{
-				tMana=0;
-			}
-
-			tMana += ((int)(gObj[aIndex].MaxMana + gObj[aIndex].AddMana));
-			gObj[aIndex].Mana += tMana;
-
-			if ( gObj[aIndex].Mana > (gObj[aIndex].MaxMana+gObj[aIndex].AddMana-1.0f) )
-				gObj[aIndex].Mana = gObj[aIndex].MaxMana+gObj[aIndex].AddMana;
-			
-			GCManaSend(aIndex, gObj[aIndex].Mana, 0xFF, 0, gObj[aIndex].BP);
-
-			if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
+			gObjInventoryItemSet(aIndex, pos, -1);
+			gObj[aIndex].pInventory[pos].Clear();
+			GCInventoryItemDeleteSend(aIndex, pos, 1);
 		}
-		else if ( citem->m_Type == ITEMGET(14,133) )
+		
+		int iLevel = citem->m_Level;
+		int iSerial = citem->GetNumber();
+		int iDur = citem->m_Durability;
+
+		if ( gObj[aIndex].m_PlayerData->lpGuild )
 		{
-			float fSD = (gObj[aIndex].iMaxShield+gObj[aIndex].iAddShield) * 65 / 100;
-
-			if(gObj[aIndex].iShield < fSD)
-				gObj[aIndex].iShield = fSD;
-
-			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFF, 1, gObj[aIndex].iShield);
-
-			if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
+			g_Log.Add("[CastleSiege] Using CastleSiege Potion Lv[%d]/Si[%d]/Dur[%d] - [%s][%s] - (Guild : %s)",
+				iLevel, iSerial, iDur, gObj[aIndex].AccountID, gObj[aIndex].Name, gObj[aIndex].m_PlayerData->lpGuild->Name);
+		}
+		else
+		{
+			g_Log.Add("[CastleSiege] Using CastleSiege Potion Lv[%d]/Si[%d]/Dur[%d] - [%s][%s]",
+				iLevel, iSerial, iDur, gObj[aIndex].AccountID, gObj[aIndex].Name);
 		}
 
-		else if ( citem->m_Type == ITEMGET(14,78) ) // CSHOP Arcanum For�a
+		if ( iLevel == 0 )
 		{
-			LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
-
-			if (lpEffect == NULL)
-			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-				return;
-			}
-
-			g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], citem->m_Type, 0, lpEffect->iEffectValidTime);
-			if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
+			gObjUseBlessAndSoulPotion(aIndex, iLevel);
 		}
-		else if ( citem->m_Type == ITEMGET(14,79) ) // CSHOP Arcanum Agilidade
+		else if ( iLevel == 1 )
 		{
-			LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
-
-			if (lpEffect == NULL)
-			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-				return;
-			}
-
-			g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], citem->m_Type, 0, lpEffect->iEffectValidTime);
-			if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
+			gObjUseBlessAndSoulPotion(aIndex, iLevel);
 		}
-		else if ( citem->m_Type == ITEMGET(14,80) ) // CSHOP Arcanum Vitalidade
+	}
+	else if ( citem->m_Type == ITEMGET(13,48) ) // Kalima Ticket
+	{
+		if ( (gObj[aIndex].MapNumber < MAP_INDEX_KALIMA1 || gObj[aIndex].MapNumber > MAP_INDEX_KALIMA6 ) && gObj[aIndex].MapNumber != MAP_INDEX_KALIMA7 )
 		{
-			LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
+			int iLevel = g_KalimaGate.GetKalimaGateLevel2(aIndex);
+			int iSerial = citem->GetNumber();
+			int iDuration = citem->m_Durability;
+			BOOL bKalimaGateCreateResult = FALSE;
+			int iKalimaGateX = 0;
+			int iKalimaGateY = 0;
 
-			if (lpEffect == NULL)
+			iLevel++;
+			iKalimaGateX = gObj[aIndex].X + rand()%6 - 2;
+			iKalimaGateY = gObj[aIndex].Y + rand()%6 - 2;
+
+			bKalimaGateCreateResult = g_KalimaGate.CreateKalimaGate(aIndex, iLevel, iKalimaGateX, iKalimaGateY);
+
+			if ( bKalimaGateCreateResult == TRUE )
 			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-				return;
-			}
-
-			g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], citem->m_Type, 0, lpEffect->iEffectValidTime);
-			if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if ( citem->m_Type == ITEMGET(14,81) ) // CSHOP Arcanum Energia
-		{
-			LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
-
-			if (lpEffect == NULL)
-			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-				return;
-			}
-
-			g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], citem->m_Type, 0, lpEffect->iEffectValidTime);
-			if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if ( citem->m_Type == ITEMGET(14,82) ) // CSHOP Arcanum Comando
-		{
-			LPITEMEFFECT lpEffect = g_ItemAddOption.GetItemEffectData(citem->m_Type);
-
-			if (lpEffect == NULL)
-			{
-				GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-				return;
-			}
-
-			g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], citem->m_Type, 0, lpEffect->iEffectValidTime);
-			if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-		}
-		else if ( citem->m_Type == ITEMGET(13,60) ) // CSHOP PK Free Ticket
-		{
-			if ( gObj[aIndex].m_PK_Level == 6 )
-				{
-					gObj[aIndex].m_PK_Level = 5;
-				}
-				else if ( gObj[aIndex].m_PK_Level == 5 )
-				{
-					gObj[aIndex].m_PK_Level = 4;
-				}
-				else if ( gObj[aIndex].m_PK_Level == 4 )
-				{
-					gObj[aIndex].m_PK_Level = 3;
-				}
-				else if ( gObj[aIndex].m_PK_Level <= 3 )
-				{
-					gObj[aIndex].m_PK_Level = gObj[aIndex].m_PK_Level;
-				}
-
-				GCPkLevelSend(aIndex, gObj[aIndex].m_PK_Level);
-
 				if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
 				{
 					gObjInventoryItemSet(aIndex, pos, -1);
 					gObj[aIndex].pInventory[pos].Clear();
 					GCInventoryItemDeleteSend(aIndex, pos, 1);
 				}
-				g_Log.Add("[PCS] [%s][%s] Use PK Clear Item", gObj[aIndex].AccountID, gObj[aIndex].Name);
-		}
-		else if ( citem->m_Type == ITEMGET(14,7) )	// Siege Potion
-		{
-			if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
-			{
-				gObjInventoryItemSet(aIndex, pos, -1);
-				gObj[aIndex].pInventory[pos].Clear();
-				GCInventoryItemDeleteSend(aIndex, pos, 1);
-			}
-			
-			int iLevel = citem->m_Level;
-			int iSerial = citem->GetNumber();
-			int iDur = citem->m_Durability;
 
-			if ( gObj[aIndex].m_PlayerData->lpGuild )
-			{
-				g_Log.Add("[CastleSiege] Using CastleSiege Potion Lv[%d]/Si[%d]/Dur[%d] - [%s][%s] - (Guild : %s)",
-					iLevel, iSerial, iDur, gObj[aIndex].AccountID, gObj[aIndex].Name, gObj[aIndex].m_PlayerData->lpGuild->Name);
+				g_Log.Add("[PCS] Use Free Kalima Ticket Success");
 			}
 			else
 			{
-				g_Log.Add("[CastleSiege] Using CastleSiege Potion Lv[%d]/Si[%d]/Dur[%d] - [%s][%s]",
-					iLevel, iSerial, iDur, gObj[aIndex].AccountID, gObj[aIndex].Name);
-			}
-
-			if ( iLevel == 0 )
-			{
-				gObjUseBlessAndSoulPotion(aIndex, iLevel);
-			}
-			else if ( iLevel == 1 )
-			{
-				gObjUseBlessAndSoulPotion(aIndex, iLevel);
+				g_Log.Add("[PCS] Use Free Kalima Ticket Failed");
 			}
 		}
-		else if ( citem->m_Type == ITEMGET(13,48) )
+	}
+
+	else if (g_QuestExpManager.IsQuestItemAtt(citem->m_Type, 64) == true)
+	{
+		int Ep = g_QuestExpManager.GetQuestItemEp(citem->m_Type);
+		int iResult = 0;
+		lua_State *L = g_MuLuaQuestExp.GetLua();
+
+		if (!L)
 		{
-			if ( (gObj[aIndex].MapNumber < MAP_INDEX_KALIMA1 || gObj[aIndex].MapNumber > MAP_INDEX_KALIMA6 ) && gObj[aIndex].MapNumber != MAP_INDEX_KALIMA7 )
-			{
-				int iLevel = g_KalimaGate.GetKalimaGateLevel2(aIndex);
-				int iSerial = citem->GetNumber();
-				int iDuration = citem->m_Durability;
-				BOOL bKalimaGateCreateResult = FALSE;
-				int iKalimaGateX = 0;
-				int iKalimaGateY = 0;
-
-				iLevel++;
-				iKalimaGateX = gObj[aIndex].X + rand()%6 - 2;
-				iKalimaGateY = gObj[aIndex].Y + rand()%6 - 2;
-
-				bKalimaGateCreateResult = g_KalimaGate.CreateKalimaGate(aIndex, iLevel, iKalimaGateX, iKalimaGateY);
-
-				if ( bKalimaGateCreateResult == TRUE )
-				{
-					if ( !gObjSearchItemMinus(&gObj[aIndex], pos, 1) )
-					{
-						gObjInventoryItemSet(aIndex, pos, -1);
-						gObj[aIndex].pInventory[pos].Clear();
-						GCInventoryItemDeleteSend(aIndex, pos, 1);
-					}
-
-					g_Log.Add("[PCS] Use Free Kalima Ticket Success");
-				}
-				else
-				{
-					g_Log.Add("[PCS] Use Free Kalima Ticket Failed");
-				}
-			}
+			g_Log.Add("[QuestExp] - Error - [%s] [%d]", __FILE__, __LINE__);
 		}
 
-		else if (g_QuestExpManager.IsQuestItemAtt(citem->m_Type, 64) == true)
-		{
-			int Ep = g_QuestExpManager.GetQuestItemEp(citem->m_Type);
-			int iResult = 0;
-			lua_State *L = g_MuLuaQuestExp.GetLua();
-
-			if (!L)
-			{
-				g_Log.Add("[QuestExp] - Error - [%s] [%d]", __FILE__, __LINE__);
-			}
-
-			else
-			{
-				if (Ep)
-				{
-					g_Generic_Call(L, "ItemUseQuest", "ii>i", aIndex, Ep, &iResult);
-
-					if (iResult)
-					{
-						gObjInventoryItemSet(aIndex, pos, -1);
-						gObj[aIndex].pInventory[pos].Clear();
-						GCInventoryItemDeleteSend(aIndex, pos, 1);
-					}
-				}
-			}
-		}
 		else
 		{
-			g_Log.Add("error-L3 : %s return %s %d %d %s",
-				gObj[aIndex].Name, __FILE__,__LINE__, pos, gObj[aIndex].pInventory[pos].GetName() );
+			if (Ep)
+			{
+				g_Generic_Call(L, "ItemUseQuest", "ii>i", aIndex, Ep, &iResult);
 
-			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
+				if (iResult)
+				{
+					gObjInventoryItemSet(aIndex, pos, -1);
+					gObj[aIndex].pInventory[pos].Clear();
+					GCInventoryItemDeleteSend(aIndex, pos, 1);
+				}
+			}
 		}
 	}
 	else
 	{
+		g_Log.Add("error-L3 : %s return %s %d %d %s",
+			gObj[aIndex].Name, __FILE__,__LINE__, pos, gObj[aIndex].pInventory[pos].GetName() );
+
 		GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
-		g_Log.Add("error-L3 : %s return %s %d %d",
-			gObj[aIndex].Name, __FILE__,__LINE__, pos);
 	}
 }
 
