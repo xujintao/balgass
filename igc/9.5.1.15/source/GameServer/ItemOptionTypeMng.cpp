@@ -346,7 +346,7 @@ void CItemOptionTypeMng::SetExcOptionEffect(OBJECTSTRUCT *lpObj, int ExcOptionID
 			}
 			break;
 		case OPTION_INC_EXCELLENT_DAMAGE:
-			lpObj->m_ExcelentDamage += lpOption->OptionValue;
+			lpObj->m_ExcellentDamageSuccessRate += lpOption->OptionValue;
 			break;
 		case OPTION_INC_ZEN_MONSTER_DIE:
 			lpObj->MonsterDieGetMoney += lpOption->OptionValue;

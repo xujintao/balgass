@@ -1268,13 +1268,13 @@ void CItemSocketOptionSystem::_SetThunderEffect(LPOBJECTSTRUCT lpObj, BYTE btEff
 	{
 	case SEED_EFFECT_TYPE_EXCELLENT_DAMAGE_INC:
 		{
-			iAddValue = CalcEffectValue(lpObj->m_PlayerData->SetOpAddExDamage, wEffectValue, btEffectValueType);
-			lpObj->m_PlayerData->SetOpAddExDamage += iAddValue;
+			iAddValue = CalcEffectValue(lpObj->m_PlayerData->SetOpAddExcellentDamage, wEffectValue, btEffectValueType);
+			lpObj->m_PlayerData->SetOpAddExcellentDamage += iAddValue;
 		}
 		break;
 	case SEED_EFFECT_TYPE_EXCELLENT_DAMAGE_RATE_INC:
 		{
-			lpObj->m_ExcelentDamage += wEffectValue;
+			lpObj->m_ExcellentDamageSuccessRate += wEffectValue;
 		}
 		break;
 	case SEED_EFFECT_TYPE_CRITICAL_DAMAGE_INC:
@@ -1285,7 +1285,7 @@ void CItemSocketOptionSystem::_SetThunderEffect(LPOBJECTSTRUCT lpObj, BYTE btEff
 		break;
 	case SEED_EFFECT_TYPE_CRITICAL_DAMAGE_RATE_INC:
 		{
-			lpObj->m_CriticalDamage += wEffectValue;
+			lpObj->m_CriticalDamageSuccessRate += wEffectValue;
 		}
 		break;
 	}

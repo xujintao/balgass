@@ -37,7 +37,7 @@ public:
 	int m_AttackDamageMax;	// 8
 	int m_AttackSpeed;	// C
 	int m_SuccessAttackRate;	// 10
-	double m_CriticalDamage;
+	double m_CriticalDamageSuccessRate;
 	double m_ExcellentDamage;
 	int	m_DoubleDamage;
 	int	m_IgnoreEnemy;

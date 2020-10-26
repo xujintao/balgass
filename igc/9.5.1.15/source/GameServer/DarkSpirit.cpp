@@ -193,7 +193,7 @@ void CDarkSpirit::ModeAttackRandom()
 	BOOL EnableAttack;
 	int iDamageType = 0;
 	int iActionType = 0;
-	int iCriticalDamage = this->m_CriticalDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddCriticalDamageRate;
+	int iCriticalDamage = this->m_CriticalDamageSuccessRate + lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddCriticalDamageRate;
 	int iExcellentDamage = this->m_ExcellentDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddExcellentDamageRate;
 	int iDoubleDamage = this->m_DoubleDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDarkSpiritDoubleDamageRate;
 
@@ -335,7 +335,7 @@ void CDarkSpirit::ModeAttackWithMaster()
 	LPOBJ lpObj = &gObj[this->m_iMasterIndex];
 	LPOBJ lpTargetObj = &gObj[this->m_iTargetIndex];
 
-	int iCriticalDamage = this->m_CriticalDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddCriticalDamageRate;
+	int iCriticalDamage = this->m_CriticalDamageSuccessRate + lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddCriticalDamageRate;
 	int iExcellentDamage = this->m_ExcellentDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddExcellentDamageRate;
 	int iDoubleDamage = this->m_DoubleDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDarkSpiritDoubleDamageRate;
 	int dis;
@@ -594,7 +594,7 @@ void CDarkSpirit::SendAttackMsg(int aIndex, int aTargetIndex, int iDamageType, i
 		
 		LPOBJ lpObj = &gObj[this->m_iMasterIndex];
 		int iDamageType = 0;
-		int iCriticalDamage = this->m_CriticalDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddCriticalDamageRate;
+		int iCriticalDamage = this->m_CriticalDamageSuccessRate + lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddCriticalDamageRate;
 		int iExcellentDamage = this->m_ExcellentDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddExcellentDamageRate;
 		int iDoubleDamage = this->m_DoubleDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDarkSpiritDoubleDamageRate;
 
@@ -808,7 +808,7 @@ void CDarkSpirit::Set(int aIndex, CItem * pPetItem)
 	int leadership = lpObj->Leadership + lpObj->AddLeadership;
 
 	g_ConfigRead.m_ItemCalcLua.Generic_Call("DarkSpirit_CalcValues", "ii>iiddiiii", leadership, petitemlevel,
-		&this->m_AttackDamageMin, &this->m_AttackDamageMax, &this->m_CriticalDamage, &this->m_ExcellentDamage,
+		&this->m_AttackDamageMin, &this->m_AttackDamageMax, &this->m_CriticalDamageSuccessRate, &this->m_ExcellentDamage,
 		&this->m_DoubleDamage, &this->m_IgnoreEnemy, &this->m_AttackSpeed, &this->m_SuccessAttackRate);
 
 	this->m_iMasterIndex = aIndex;

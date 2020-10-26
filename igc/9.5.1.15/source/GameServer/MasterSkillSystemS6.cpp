@@ -888,10 +888,10 @@ void CMasterSkillSystemS6::CalcEffect(OBJECTSTRUCT * lpObj)
 					lpObj->m_AttackDamageMaxLeft += this->GetEffectValue(lpObj, 364);
 					break;
 				case 369:
-					lpObj->m_ExcelentDamage += this->GetEffectValue(lpObj, 369);
+					lpObj->m_ExcellentDamageSuccessRate += this->GetEffectValue(lpObj, 369);
 					break;
 				case 366:
-					lpObj->m_CriticalDamage += this->GetEffectValue(lpObj, 366);
+					lpObj->m_CriticalDamageSuccessRate += this->GetEffectValue(lpObj, 366);
 					break;
 				case 407:
 					lpObj->m_MagicDamageMax += this->GetEffectValue(lpObj, 407);
