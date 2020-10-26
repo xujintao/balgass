@@ -3130,7 +3130,8 @@ void CItem::PlusSpecial(int * Value, int Special)
 						*Value += lc4 - (int)( lc4 * this->m_CurrentDurabilityState );
 					}
 					break;
-
+				case 97: // dinorant 5 speed
+					*Value += 5;
 				case 100:
 				case 101:
 					*Value =  *Value + this->m_Level * 5 + 50;
@@ -3797,20 +3798,7 @@ int CItem::DurabilityDown(int dur, int aIndex)
 	this->m_DurabilitySmall += dur;
 
 	int iBaseDurSmall = 564;
-
-	if (gObj[aIndex].Class == CLASS_RAGEFIGHTER)
-	{
-		if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur2_Monk > 0.0)
-		{
-			iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur2_Monk;
-		}
-	}
-
-	else if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur2 > 0.0)
-	{
-		iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur2;
-	}
-	
+	iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur2;
 	if ( this->m_DurabilitySmall > iBaseDurSmall )
 	{
 		this->m_DurabilitySmall = 0;
@@ -3854,20 +3842,7 @@ int CItem::DurabilityDown2(int dur, int aIndex)
 	this->m_DurabilitySmall += dur;
 
 	int iBaseDurSmall = 1000;
-
-	if (gObj[aIndex].Class == CLASS_RAGEFIGHTER)
-	{
-		if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk > 0.0)
-		{
-			iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk;
-		}
-	}
-
-	else if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1 > 0.0)
-	{
-		iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1;
-	}
-	
+	iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1;
 	if ( this->m_DurabilitySmall > iBaseDurSmall )
 	{
 		this->m_DurabilitySmall = 0;
@@ -3937,20 +3912,7 @@ int CItem::NormalWeaponDurabilityDown(int defense, int aIndex)
 	this->m_DurabilitySmall += DecreaseDur;
 
 	int iBaseDurSmall = 846;
-
-	if (gObj[aIndex].Class == CLASS_RAGEFIGHTER)
-	{
-		if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk > 0.0)
-		{
-			iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk;
-		}
-	}
-
-	else if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1 > 0.0)
-	{
-		iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1;
-	}
-
+	iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1;
 	if ( this->m_DurabilitySmall > iBaseDurSmall )
 	{
 		this->m_DurabilitySmall = 0;
@@ -4014,20 +3976,7 @@ int CItem::BowWeaponDurabilityDown(int defense, int aIndex)
 	this->m_DurabilitySmall += DecreaseDur;
 
 	int iBaseDurSmall = 1170;
-
-	if (gObj[aIndex].Class == CLASS_RAGEFIGHTER)
-	{
-		if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk > 0.0)
-		{
-			iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk;
-		}
-	}
-
-	else if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1 > 0.0)
-	{
-		iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1;
-	}
-
+	iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1;
 	if ( this->m_DurabilitySmall > iBaseDurSmall )
 	{
 		this->m_DurabilitySmall = 0;
@@ -4088,20 +4037,7 @@ int CItem::StaffWeaponDurabilityDown(int defence, int aIndex)
 	this->m_DurabilitySmall += DecreaseDur;
 
 	int iBaseDurSmall = 1575;
-
-	if (gObj[aIndex].Class == CLASS_RAGEFIGHTER)
-	{
-		if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk > 0.0)
-		{
-			iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk;
-		}
-	}
-
-	else if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1 > 0.0)
-	{
-		iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1;
-	}
-
+	iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1;
 	if ( this->m_DurabilitySmall > iBaseDurSmall )
 	{
 		this->m_DurabilitySmall = 0;
@@ -4257,20 +4193,7 @@ int CItem::ArmorDurabilityDown(int damagemin, int aIndex)
 	this->m_DurabilitySmall += DecreaseDur;
 
 	int iBaseDurSmall = 69;
-
-	if (gObj[aIndex].Class == CLASS_RAGEFIGHTER)
-	{
-		if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk > 0.0)
-		{
-			iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk;
-		}
-	}
-
-	else if (gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1 > 0.0)
-	{
-		iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1;
-	}
-
+	iBaseDurSmall += gObj[aIndex].m_PlayerData->m_MPSkillOpt.iMpsDownDur1;
 	if ( this->m_DurabilitySmall > iBaseDurSmall )
 	{
 		this->m_DurabilitySmall = 0;

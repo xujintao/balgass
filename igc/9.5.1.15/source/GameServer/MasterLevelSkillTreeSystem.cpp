@@ -190,80 +190,107 @@ void CMasterLevelSkillTreeSystem::CalcPassiveSkillData(LPOBJ lpObj, int iMLSkill
 	switch ( this->GetBaseMasterLevelSkill(iMLSkill) )
 	{
 		case 325:
+		case 599:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate = iSkillValue;
 			break;
 		case 347:
+		case 603:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsPVPAttackDmgRate = iSkillValue;
 			break;
 		case 301:
+		case 579:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsPVPBlockingRate = iSkillValue;
 			break;
 		case 300:
+		case 578:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur1 = iSkillValue;
 			lpObj->m_PlayerData->m_MPSkillOpt.btMpsDownDur1Level = iSkillLevel;
 			break;
 		case 305:
+		case 583:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur2 = iSkillValue;
 			break;
 		case 312:
+		case 590:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 = iSkillValue;
 			break;
 		case 304:
+		case 582:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsResistancePoison = iSkillValue;
 			break;
 		case 308:
+		case 586:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsResistanceThunder = iSkillValue;
 			break;
 		case 311:
+		case 589:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsResistanceIce = iSkillValue;
 			break;
 		case 307:
+		case 585:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife = iSkillValue;
 			break;
 		case 313:
+		case 591: // ragefighter
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsBlockingSuccessRate = iSkillValue;
 			break;
 		case 309:
+		case 587: // ragefighter
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDefence = iSkillValue;
 			break;
 		case 334:
+		case 600: // ragefighter
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxHP = iSkillValue;
 			break;
 		case 338:
+		case 601: // ragefighter
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxMana = iSkillValue;
 			break;
 		case 341:
+		case 602: // ragefighter
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxBP = iSkillValue;
 			break;
 		case 362:
+		case 608:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetMana = iSkillValue;
 			break;
 		case 359:
+		case 606:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetLife = iSkillValue;
 			break;
 		case 358:
+		case 605:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetSD = iSkillValue;
 			break;
 		case 303:
+		case 581:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverMana = iSkillValue;
 			break;
 		case 310:
+		case 588: // ragefighter
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG = iSkillValue;
 			break;
 		case 302:
+		case 580: // ragefighter
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxSD = iSkillValue;
 			break;
 		case 306:
+		case 584: // ragefighter
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsSDSpeed = iSkillValue;
 			break;
-		case 364:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxAttackDamage = iSkillValue;
-			break;
-		case 361:
+		case 361: // knight magumsa darklord
+		case 442: // elf
+		case 607: // ragefighter
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMinAttackDamage = iSkillValue;
 			break;
 		case 357:
+		case 604:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDecreaseMana = iSkillValue;
+			break;
+		case 364: // knight magumsa darklord
+		case 443: // elf
+		case 609: // ragefighter
+			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxAttackDamage = iSkillValue;
 			break;
 		case 407:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxMagicDamage = iSkillValue;
@@ -329,14 +356,20 @@ void CMasterLevelSkillTreeSystem::CalcPassiveSkillData(LPOBJ lpObj, int iMLSkill
 		case 435:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsBowAddDamage = iSkillValue;
 			break;
-		case 438:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsBowAddAttackSpeed = iSkillValue;
-			break;
 		case 436:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsTwoHandsBowAddDamage = iSkillValue;
 			break;
+		case 437:
+			lpObj->m_PlayerData->m_MPSkillOpt.iMpsElfAddShield = iSkillValue;
+			break;
+		case 438:
+			lpObj->m_PlayerData->m_MPSkillOpt.iMpsBowAddAttackSpeed = iSkillValue;
+			break;
 		case 439:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsTwoHandsBowManAttack = iSkillValue;
+			break;
+		case 440:
+			lpObj->m_PlayerData->m_MPSkillOpt.iMpsElfShieldBlockRate = iSkillValue;
 			break;
 		case 421:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsElfAddPhysicDamage = iSkillValue;
@@ -349,12 +382,6 @@ void CMasterLevelSkillTreeSystem::CalcPassiveSkillData(LPOBJ lpObj, int iMLSkill
 			break;
 		case 428:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsCallMonAttack = iSkillValue;
-			break;
-		case 442:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMinAttack = iSkillValue;
-			break;
-		case 443:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMaxAttack = iSkillValue;
 			break;
 		case 448:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDamageFireProper = iSkillValue;
@@ -419,9 +446,6 @@ void CMasterLevelSkillTreeSystem::CalcPassiveSkillData(LPOBJ lpObj, int iMLSkill
 		case 533:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddControlAttack = iSkillValue;
 			break;
-		case 556:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddBlockingRate_Monk = iSkillValue;
-			break;
 		case 568:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonkWeaponDamage = iSkillValue;
 			break;
@@ -431,101 +455,32 @@ void CMasterLevelSkillTreeSystem::CalcPassiveSkillData(LPOBJ lpObj, int iMLSkill
 		case 574:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonkAddVitalToDefense = iSkillValue;
 			break;
-		case 599:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate_Monk = iSkillValue;
-			break;
-		case 603:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsPVPAttackDmgRate_Monk = iSkillValue;
-			break;
-		case 579:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsPVPBlockingRate_Monk = iSkillValue;
-			break;
-		case 578:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur1_Monk = iSkillValue;
-			lpObj->m_PlayerData->m_MPSkillOpt.btMpsDownDur1Level_Monk = iSkillLevel;
-			break;
-		case 583:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur2_Monk = iSkillValue;
-			break;
-		case 590:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk = iSkillValue;
-			break;
-		case 582:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsResistancePoison_Monk = iSkillValue;
-			break;
-		case 586:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsResistanceThunder_Monk = iSkillValue;
-			break;
-		case 589:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsResistanceIce_Monk = iSkillValue;
-			break;
-		case 585:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife_Monk = iSkillValue;
-			break;
-		case 591:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsBlockingSuccessRate_Monk = iSkillValue;
-			break;
-		case 587:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDefence_Monk = iSkillValue;
-			break;
-		case 600:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxHP_Monk = iSkillValue;
-			break;
-		case 601:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxMana_Monk = iSkillValue;
-			break;
-		case 602:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxBP_Monk = iSkillValue;
-			break;
-		case 608:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetMana_Monk = iSkillValue;
-			break;
-		case 606:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetLife_Monk = iSkillValue;
-			break;
-		case 605:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetSD_Monk = iSkillValue;
-			break;
-		case 581:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverMana_Monk = iSkillValue;
-			break;
-		case 588:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG_Monk = iSkillValue;
-			break;
-		case 580:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxSD_Monk = iSkillValue;
-			break;
-		case 584:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsSDSpeed_Monk = iSkillValue;
-			break;
-		case 609:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMaxAttack_Monk = iSkillValue;
-			break;
-		case 607:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMinAttack_Monk = iSkillValue;
-			break;
-		case 604:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDecreaseMana_Monk = iSkillValue;
-			break;
 		case 314:
+		case 592:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsImmuneRate = iSkillValue;
 			break;
 		case 315:
+		case 593: // ragefighter
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncSetItemDefense = iSkillValue;
 			break;
 		case 316:
+		case 594:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsReturnEnemyAttack = iSkillValue;
 			break;
 		case 317:
+		case 595:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncEnergyStat = iSkillValue;
 			break;
 		case 318:
+		case 596:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncVitalStat = iSkillValue;
 			break;
 		case 319:
+		case 597:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDexStat = iSkillValue;
 			break;
 		case 320:
+		case 598:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncPowerStat = iSkillValue;
 			break;
 		case 506:
@@ -563,9 +518,11 @@ void CMasterLevelSkillTreeSystem::CalcPassiveSkillData(LPOBJ lpObj, int iMLSkill
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate = iSkillValue;
 			break;
 		case 367:
+		case 611:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate = iSkillValue;
 			break;
 		case 368:
+		case 612:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate = iSkillValue;
 			break;
 		case 369: // Increases excellent damage rate
@@ -573,15 +530,19 @@ void CMasterLevelSkillTreeSystem::CalcPassiveSkillData(LPOBJ lpObj, int iMLSkill
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate = iSkillValue;
 			break;
 		case 370:
+		case 614:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDoubleDamageRate = iSkillValue;
 			break;
 		case 371:
+		case 615:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncIgnoreEnemyBlock = iSkillValue;
 			break;
 		case 372:
+		case 616:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate = iSkillValue;
 			break;
 		case 373:
+		case 617:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncTripleDamageRate = iSkillValue;
 			break;
 		case 345:
@@ -598,45 +559,6 @@ void CMasterLevelSkillTreeSystem::CalcPassiveSkillData(LPOBJ lpObj, int iMLSkill
 			break;
 		case 539:
 			lpObj->m_PlayerData->m_MPSkillOpt.iMpsDarkSpiritIgnoreEnemyDefense = iSkillValue;
-			break;
-		case 592:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsImmuneRate_Monk = iSkillValue;
-			break;
-		case 593:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncSetItemDefense_Monk = iSkillValue;
-			break;
-		case 594:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsReturnEnemyAttack_Monk = iSkillValue;
-			break;
-		case 595:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncEnergyStat_Monk = iSkillValue;
-			break;
-		case 596:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncVitalStat_Monk = iSkillValue;
-			break;
-		case 597:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDexStat_Monk = iSkillValue;
-			break;
-		case 598:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncPowerStat_Monk = iSkillValue;
-			break;
-		case 611:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverManaRate_Monk = iSkillValue;
-			break;
-		case 612:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverHPRate_Monk = iSkillValue;
-			break;
-		case 614:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDoubleDamageRate_Monk = iSkillValue;
-			break;
-		case 615:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncIgnoreEnemyBlock_Monk = iSkillValue;
-			break;
-		case 616:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsRecoverSDRate_Monk = iSkillValue;
-			break;
-		case 617:
-			lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncTripleDamageRate_Monk = iSkillValue;
 			break;
 		default:
 			break;

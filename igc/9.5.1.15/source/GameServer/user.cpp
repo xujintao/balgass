@@ -7823,19 +7823,7 @@ void gObjSpriteDamage(LPOBJ lpObj, int damage)
 
 	if ( sprite->m_Type == ITEMGET(13,67) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_RUDOLF] == false)
 	{
-		if (lpObj->Class == CLASS_RAGEFIGHTER)
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk > 0.0)
-			{
-				fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk;
-			}
-		}
-
-		else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 > 0.0)
-		{
-			fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
-		}
-
+		fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
 		fdamage = (fdamage*3)/10.0f;
 		fdamage /= fN;
 		sprite->m_Durability -= fdamage;
@@ -7852,19 +7840,7 @@ void gObjSpriteDamage(LPOBJ lpObj, int damage)
 
 	if ( sprite->m_Type == ITEMGET(13,0) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_ANGEL] == false) // angel
 	{
-		if (lpObj->Class == CLASS_RAGEFIGHTER)
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk > 0.0)
-			{
-				fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk;
-			}
-		}
-
-		else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 > 0.0)
-		{
-			fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
-		}
-
+		fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
 		fdamage = (fdamage*3)/10.0f;
 		fdamage /= fN;
 		sprite->m_Durability -= fdamage;
@@ -7872,19 +7848,7 @@ void gObjSpriteDamage(LPOBJ lpObj, int damage)
 	}
 	else if ( sprite->m_Type == ITEMGET(13,1) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_SATAN] == false)
 	{
-		if (lpObj->Class == CLASS_RAGEFIGHTER)
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk > 0.0)
-			{
-				fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk;
-			}
-		}
-
-		else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 > 0.0)
-		{
-			fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
-		}
-
+		fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
 		fdamage = (fdamage*2)/10.0f;
 		fdamage /= fN;
 		sprite->m_Durability -= fdamage;
@@ -10189,41 +10153,17 @@ void gObjMonsterDieLifePlus(LPOBJ lpObj, LPOBJ lpTartObj)
 		lpObj->Mana += lpObj->m_PlayerData->m_wSocketOptionMonsterDieGetMana;
 	}
 
-	if (lpObj->Class == CLASS_RAGEFIGHTER)
-	{
-		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetLife_Monk > 0.0)
-		{
-			lpObj->Life = lpObj->Life + ((lpObj->MaxLife + lpObj->AddLife) / lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetLife_Monk);
-		}
-	}
-
-	else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetLife > 0.0)
+	if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetLife > 0.0)
 	{
 		lpObj->Life = lpObj->Life + ((lpObj->MaxLife + lpObj->AddLife) / lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetLife);
 	}
 
-	if (lpObj->Class == CLASS_RAGEFIGHTER)
-	{
-		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetMana_Monk > 0.0)
-		{
-			lpObj->Mana = lpObj->Mana + ((lpObj->MaxMana + lpObj->AddMana) / lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetMana_Monk);
-		}
-	}
-
-	else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetMana > 0.0)
+	if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetMana > 0.0)
 	{
 		lpObj->Mana = lpObj->Mana + ((lpObj->MaxMana + lpObj->AddMana) / lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetMana);
 	}
 
-	if (lpObj->Class == CLASS_RAGEFIGHTER)
-	{
-		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetSD_Monk > 0.0)
-		{
-			lpObj->iShield = lpObj->iShield + ((lpObj->iMaxShield + lpObj->iAddShield) / lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetSD_Monk);
-		}
-	}
-
-	else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetSD > 0.0)
+	if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetSD > 0.0)
 	{
 		lpObj->iShield = lpObj->iShield + ((lpObj->iMaxShield + lpObj->iAddShield) / lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetSD);
 	}
@@ -10240,8 +10180,9 @@ void gObjMonsterDieLifePlus(LPOBJ lpObj, LPOBJ lpTartObj)
 
 	GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
 
-	if(lpObj->MonsterDieGetMana != 0 || lpObj->m_PlayerData->m_wSocketOptionMonsterDieGetMana != 0 || lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetMana != 0.0 ||
-		lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetMana_Monk != 0.0)
+	if (lpObj->MonsterDieGetMana != 0
+	|| lpObj->m_PlayerData->m_wSocketOptionMonsterDieGetMana != 0
+	|| lpObj->m_PlayerData->m_MPSkillOpt.iMpsMonsterDieGetMana != 0.0)
 	{
 		if(lpObj->Mana > (lpObj->MaxMana + lpObj->AddMana))
 		{
@@ -18950,11 +18891,13 @@ void gObjSecondProc()
 		{
 			if(lpObj->Type == OBJ_USER && lpObj->m_PlayerData->ISBOT == false && lpObj->m_bOff == false)
 			{
-				if((lpObj->Connected >= PLAYER_LOGGED && GetTickCount() - lpObj->ConnectCheckTime > 60*1000)		// 60s
-				|| (lpObj->Connected == PLAYER_CONNECTED && GetTickCount() - lpObj->ConnectCheckTime > 30*1000))	// 30s
+				DWORD timeout = GetTickCount() - lpObj->ConnectCheckTime;
+				if ((lpObj->Connected == PLAYER_CONNECTED && timeout >= 30*1000)// 30s
+				|| (lpObj->Connected >= PLAYER_LOGGED && timeout >= 60*1000))	// 60s
 				{
-					g_Log.AddC(TColor::Red, "timeout close client [%d][%s][%s][%s]",lpObj->m_Index,lpObj->AccountID,lpObj->Name,lpObj->m_PlayerData->Ip_addr);
-					IOCP.ResponErrorCloseClient(n);
+					g_Log.AddC(TColor::Red, "connect timeout [%d] [%ds] [%d][%s][%s][%s]",
+						lpObj->Connected, timeout/1000, lpObj->m_Index, lpObj->AccountID, lpObj->Name, lpObj->m_PlayerData->Ip_addr);
+					IOCP.CloseClient(lpObj->m_Index);
 				}
 			}
 
@@ -19030,15 +18973,7 @@ void gObjManaPotionFill(LPOBJ lpObj)
 				}
 			}
 
-			if (lpObj->Class == CLASS_RAGEFIGHTER)
-			{
-				if (percent > 0.0 && lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverMana_Monk > 0.0)
-				{
-					percent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverMana_Monk;
-				}
-			}
-
-			else if (percent > 0.0 && lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverMana > 0.0)
+			if (percent > 0.0 && lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverMana > 0.0)
 			{
 				percent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverMana;
 			}
@@ -19092,15 +19027,7 @@ void gObjManaPotionFill(LPOBJ lpObj)
 				AddBP = rBP +(BP * 3 / 100);
 			}
 
-			if (lpObj->Class == CLASS_RAGEFIGHTER)
-			{
-				if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG_Monk > 0.0)
-				{
-					AddBP += BP * lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG_Monk / 100;
-				}
-			}
-
-			else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG > 0.0)
+			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG > 0.0)
 			{
 				AddBP += BP * lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverAG / 100;
 			}
@@ -19184,15 +19111,7 @@ void gObjRestPotionFill(LPOBJ lpObj)
 				}
 			}
 
-			if (lpObj->Class == CLASS_RAGEFIGHTER)
-			{
-				if (percent > 0.0 && lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife_Monk > 0.0)
-				{
-					percent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife_Monk;
-				}
-			}
-
-			else if (percent > 0.0 && lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife > 0.0)
+			if (percent > 0.0 && lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife > 0.0)
 			{
 				percent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife;
 			}
@@ -19288,15 +19207,7 @@ void gObjRestPotionFill(LPOBJ lpObj)
 			}
 		}
 
-		if (lpObj->Class == CLASS_RAGEFIGHTER)
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife_Monk > 0.0)
-			{
-				percent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife_Monk;
-			}
-		}
-
-		else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife > 0.0)
+		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife > 0.0)
 		{
 			percent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAutoRecoverLife;
 		}
@@ -21975,22 +21886,12 @@ int	gObjMagicManaUse(LPOBJ lpObj, CMagicInf * lpMagic)
 		DecreaseMana = MagicDamageC.SkillGetMana(lpMagic->m_Skill);
 		DecreaseMana += DecreaseMana * g_MasterLevelSkillTreeSystem.GetMasterSkillManaIncRate(lpMagic->m_Level) / 100.0;
 	}
-
 	else
 	{
 		DecreaseMana = MagicDamageC.SkillGetMana(lpMagic->m_Skill);
 	}
 
-	if (lpObj->Class == CLASS_RAGEFIGHTER)
-	{
-		DecreaseMana -= DecreaseMana * lpObj->m_PlayerData->m_MPSkillOpt.iMpsDecreaseMana_Monk / 100.0;
-	}
-
-	else
-	{
-		DecreaseMana -= DecreaseMana * lpObj->m_PlayerData->m_MPSkillOpt.iMpsDecreaseMana / 100.0;
-	}
-
+	DecreaseMana -= DecreaseMana * lpObj->m_PlayerData->m_MPSkillOpt.iMpsDecreaseMana / 100.0;
 	if (DecreaseMana < 1.0)
 		DecreaseMana = 1.0;
 
@@ -26276,7 +26177,7 @@ void gObjWeaponDurDownInCastle(LPOBJ lpObj, LPOBJ lpTargetObj, int iDecValue)
 			if(iRet == 2)
 			{
 				gObjCalCharacter.CalcCharacter(lpObj->m_Index);
-				gObjCalCharacter.CalcMLSkillItemOption(lpObj);
+				// gObjCalCharacter.ApplyMLSkillItemOption(lpObj);
 			}
 		}
 	}
@@ -26292,7 +26193,7 @@ void gObjWeaponDurDownInCastle(LPOBJ lpObj, LPOBJ lpTargetObj, int iDecValue)
 			if(iRet == 2)
 			{
 				gObjCalCharacter.CalcCharacter(lpObj->m_Index);
-				gObjCalCharacter.CalcMLSkillItemOption(lpObj);
+				// gObjCalCharacter.ApplyMLSkillItemOption(lpObj);
 			}
 		}
 	}
@@ -26524,16 +26425,7 @@ void gObjShieldAutoRefill(LPOBJ lpObj)
 		return;
 	}
 
-	if (lpObj->Class == CLASS_RAGEFIGHTER)
-	{
-		iRefillPoint += iRefillPoint * lpObj->m_PlayerData->m_MPSkillOpt.iMpsSDSpeed_Monk / 100.0;
-	}
-
-	else
-	{
-		iRefillPoint += iRefillPoint * lpObj->m_PlayerData->m_MPSkillOpt.iMpsSDSpeed / 100.0;
-	}
-
+	iRefillPoint += iRefillPoint * lpObj->m_PlayerData->m_MPSkillOpt.iMpsSDSpeed / 100.0;
 	lpObj->iShield += iRefillPoint;
 
 	if(lpObj->iShield > (lpObj->iMaxShield + lpObj->iAddShield))
@@ -30345,15 +30237,7 @@ void gObjInvenPetDamage(LPOBJ lpObj, int damage)
 
 	if ( sprite->m_Type == ITEMGET(13,2) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_UNIRIA] == false)
 	{
-		if (lpObj->Class == CLASS_RAGEFIGHTER)
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk > 0.0)
-			{
-				fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk;
-			}
-		}
-
-		else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 > 0.0)
+		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 > 0.0)
 		{
 			fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
 		}
@@ -30363,18 +30247,9 @@ void gObjInvenPetDamage(LPOBJ lpObj, int damage)
 		sprite->m_Durability -= fdamage;
 		send_dur = 1;
 	}
-
 	else if ( sprite->m_Type == ITEMGET(13,3) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_DINORANT] == false)
 	{
-		if (lpObj->Class == CLASS_RAGEFIGHTER)
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk > 0.0)
-			{
-				fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk;
-			}
-		}
-
-		else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 > 0.0)
+		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 > 0.0)
 		{
 			fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
 		}
@@ -30384,7 +30259,6 @@ void gObjInvenPetDamage(LPOBJ lpObj, int damage)
 		sprite->m_Durability -= fdamage;
 		send_dur = 1;
 	}
-
 	else if ( sprite->m_Type == ITEMGET(13,4) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_DLHORSE] == false)
 	{
 		if ( sprite->m_Durability < 1.0f )
@@ -30428,7 +30302,6 @@ void gObjInvenPetDamage(LPOBJ lpObj, int damage)
 	
 		return;
 	}
-
 	else if(sprite->m_Type == ITEMGET(13,37) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_FENRIR] == false)
 	{
 		if ( sprite->m_Durability < 1.0f )
@@ -30460,15 +30333,7 @@ void gObjInvenPetDamage(LPOBJ lpObj, int damage)
 			iMaxDurSmall = g_ConfigRead.pet.GoldFenrirDurabilityRate;
 		}
 
-		if (lpObj->Class == CLASS_RAGEFIGHTER)
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk > 0.0)
-			{
-				fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3_Monk;
-			}
-		}
-
-		else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 > 0.0)
+		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 > 0.0)
 		{
 			fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
 		}

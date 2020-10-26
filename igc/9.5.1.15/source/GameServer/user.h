@@ -596,10 +596,7 @@ struct _MASTERLEVEL_PASSIVE_SKILL_OPTION
 		iMpsAddShieldBlockingRage = 0.0;
 		iMpsAddPetAttack = 0.0;
 		iMpsAddControlAttack = 0.0;
-		iMpsAddMinAttack = 0.0;
-		iMpsAddMaxAttack = 0.0;
 		iMpsCriticalRateInc = 0.0;
-		iMpsAddBlockingRate_Monk = 0.0;
 		iMpsMonkWeaponDamage = 0.0;
 		iMpsMonkDoubleDamage = 0.0;
 		iMpsMonkAddVitalToDefense = 0.0;
@@ -620,8 +617,6 @@ struct _MASTERLEVEL_PASSIVE_SKILL_OPTION
 		iMpsMaxMagicDamage = 0.0;
 		iMpsMinMagicDamage = 0.0;
 		iMpsPetDurDownSpeed = 0.0;
-		iMpsMaxAttackMagicDamage = 0.0;
-		iMpsMinAttackMagicDamage = 0.0;
 		iMpsImmuneRate = 0.0;
 		iMpsIncSetItemDefense = 0.0;
 		iMpsReturnEnemyAttack = 0.0;
@@ -650,47 +645,6 @@ struct _MASTERLEVEL_PASSIVE_SKILL_OPTION
 		iMpsIncDarkSpiritAttackSpeed = 0.0;
 		iMpsIncDarkSpiritDoubleDamageRate = 0.0;
 		iMpsDarkSpiritIgnoreEnemyDefense = 0.0;
-		iMpsDownDur1_Monk = 0.0;
-		btMpsDownDur1Level_Monk = 0.0;
-		iMpsPVPBlockingRate_Monk = 0.0;
-		iMpsMaxSD_Monk = 0.0;
-		iMpsAutoRecoverMana_Monk = 0.0;
-		iMpsResistancePoison_Monk = 0.0;
-		iMpsDownDur2_Monk = 0.0;
-		iMpsSDSpeed_Monk = 0.0;
-		iMpsAutoRecoverLife_Monk = 0.0;
-		iMpsResistanceThunder_Monk = 0.0;
-		iMpsDefence_Monk = 0.0;
-		iMpsAutoRecoverAG_Monk = 0.0;
-		iMpsResistanceIce_Monk = 0.0;
-		iMpsDownDur3_Monk = 0.0;
-		iMpsBlockingSuccessRate_Monk = 0.0;
-		iMpsImmuneRate_Monk = 0.0;
-		iMpsIncSetItemDefense_Monk = 0.0;
-		iMpsReturnEnemyAttack_Monk = 0.0;
-		iMpsIncEnergyStat_Monk = 0.0;
-		iMpsIncVitalStat_Monk = 0.0;
-		iMpsIncDexStat_Monk = 0.0;
-		iMpsIncPowerStat_Monk = 0.0;
-		iMpsAttackSuccessRate_Monk = 0.0;
-		iMpsMaxHP_Monk = 0.0;
-		iMpsMaxMana_Monk = 0.0;
-		iMpsMaxBP_Monk = 0.0;
-		iMpsPVPAttackDmgRate_Monk = 0.0;
-		iMpsDecreaseMana_Monk = 0.0;
-		iMpsMonsterDieGetSD_Monk = 0.0;
-		iMpsMonsterDieGetLife_Monk = 0.0;
-		iMpsAddMinAttack_Monk = 0.0;
-		iMpsMonsterDieGetMana_Monk = 0.0;
-		iMpsAddMaxAttack_Monk = 0.0;
-		iMpsIncCriticalDamageRate_Monk = 0.0;
-		iMpsRecoverManaRate_Monk = 0.0;
-		iMpsRecoverHPRate_Monk = 0.0;
-		iMpsIncExcellentDamageRate_Monk = 0.0;
-		iMpsIncDoubleDamageRate_Monk = 0.0;
-		iMpsIncIgnoreEnemyBlock_Monk = 0.0;
-		iMpsRecoverSDRate_Monk = 0.0;
-		iMpsIncTripleDamageRate_Monk = 0.0;
 	}
 
 	float	iMpsAttackSuccessRate; // done
@@ -762,10 +716,7 @@ struct _MASTERLEVEL_PASSIVE_SKILL_OPTION
 	float	iMpsAddShieldBlockingRage; // done
 	float	iMpsAddPetAttack; // done
 	float	iMpsAddControlAttack; // done
-	float	iMpsAddMinAttack; // done
-	float	iMpsAddMaxAttack; // done
 	float	iMpsCriticalRateInc; // done
-	float	iMpsAddBlockingRate_Monk; // done
 	float	iMpsMonkWeaponDamage; // done
 	float	iMpsMonkDoubleDamage; // done
 	float	iMpsMonkAddVitalToDefense; // done
@@ -786,8 +737,6 @@ struct _MASTERLEVEL_PASSIVE_SKILL_OPTION
 	float	iMpsMaxMagicDamage; // done
 	float	iMpsMinMagicDamage; // done
 	float	iMpsPetDurDownSpeed; // done
-	float	iMpsMaxAttackMagicDamage; // done, but no reference in CMasterLevelSkillTreeSystem class
-	float	iMpsMinAttackMagicDamage; // done, but no reference in CMasterLevelSkillTreeSystem class
 	float	iMpsImmuneRate; // done
 	float	iMpsIncSetItemDefense; // done
 	float	iMpsReturnEnemyAttack; // done
@@ -816,48 +765,6 @@ struct _MASTERLEVEL_PASSIVE_SKILL_OPTION
 	float	iMpsIncDarkSpiritAttackSpeed; // done
 	float	iMpsIncDarkSpiritDoubleDamageRate; // done
 	float	iMpsDarkSpiritIgnoreEnemyDefense; // done
-	// MONK done
-	float	iMpsDownDur1_Monk;
-	BYTE	btMpsDownDur1Level_Monk;
-	float	iMpsPVPBlockingRate_Monk;
-	float	iMpsMaxSD_Monk;
-	float	iMpsAutoRecoverMana_Monk;
-	float	iMpsResistancePoison_Monk;
-	float	iMpsDownDur2_Monk;
-	float	iMpsSDSpeed_Monk;
-	float	iMpsAutoRecoverLife_Monk;
-	float	iMpsResistanceThunder_Monk;
-	float	iMpsDefence_Monk;
-	float	iMpsAutoRecoverAG_Monk;
-	float	iMpsResistanceIce_Monk;
-	float	iMpsDownDur3_Monk;
-	float	iMpsBlockingSuccessRate_Monk;
-	float	iMpsImmuneRate_Monk;
-	float	iMpsIncSetItemDefense_Monk;
-	float	iMpsReturnEnemyAttack_Monk;
-	float	iMpsIncEnergyStat_Monk;
-	float	iMpsIncVitalStat_Monk;
-	float	iMpsIncDexStat_Monk;
-	float	iMpsIncPowerStat_Monk;
-	float	iMpsAttackSuccessRate_Monk;
-	float	iMpsMaxHP_Monk;
-	float	iMpsMaxMana_Monk;
-	float	iMpsMaxBP_Monk;
-	float	iMpsPVPAttackDmgRate_Monk;
-	float	iMpsDecreaseMana_Monk;
-	float	iMpsMonsterDieGetSD_Monk;
-	float	iMpsMonsterDieGetLife_Monk;
-	float	iMpsAddMinAttack_Monk;
-	float	iMpsMonsterDieGetMana_Monk;
-	float	iMpsAddMaxAttack_Monk;
-	float	iMpsIncCriticalDamageRate_Monk;
-	float	iMpsRecoverManaRate_Monk;
-	float	iMpsRecoverHPRate_Monk;
-	float	iMpsIncExcellentDamageRate_Monk;
-	float	iMpsIncDoubleDamageRate_Monk;
-	float	iMpsIncIgnoreEnemyBlock_Monk;
-	float	iMpsRecoverSDRate_Monk;
-	float	iMpsIncTripleDamageRate_Monk;
 };
 
 struct EFFECTLIST

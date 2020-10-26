@@ -496,23 +496,13 @@ int  CObjUseSkill::GetUseMana(int aIndex, CMagicInf * lpMagic)
 		DecreaseMana += DecreaseMana * g_MasterLevelSkillTreeSystem.GetMasterSkillManaIncRate(lpMagic->m_Level) / 100.0;
 		DecreaseMana += this->GetAddUseMana(lpObj, lpMagic);
 	}
-
 	else
 	{
 		DecreaseMana = MagicDamageC.SkillGetMana(lpMagic->m_Skill);
 		DecreaseMana += this->GetAddUseMana(lpObj, lpMagic);
 	}
 
-	if (lpObj->Class == CLASS_RAGEFIGHTER)
-	{
-		DecreaseMana -= DecreaseMana * lpObj->m_PlayerData->m_MPSkillOpt.iMpsDecreaseMana_Monk / 100.0;
-	}
-
-	else
-	{
-		DecreaseMana -= DecreaseMana * lpObj->m_PlayerData->m_MPSkillOpt.iMpsDecreaseMana / 100.0;
-	}
-
+	DecreaseMana -= DecreaseMana * lpObj->m_PlayerData->m_MPSkillOpt.iMpsDecreaseMana / 100.0;
 	if (DecreaseMana < 1.0)
 		DecreaseMana = 1.0;
 
@@ -6550,7 +6540,6 @@ int CObjUseSkill::SkillMonkBuffApplyParty(int aIndex, CMagicInf * lpMagic)
 					GSProtocol.GCMagicAttackNumberSend(lpPartyObj, lpMagic->m_Skill, partyindex[j], TRUE);
 					gObjCalCharacter.CalcCharacter(partyindex[j]);
 				}
-
 				else
 				{
 					gObjAddBuffEffect(lpPartyObj, BuffIndex, EFFECTTYPE_IMPROVE_DEFENSE_RATE, skill_improve, 0, 0, lpObj->m_PlayerData->Energy / 5 + 60);

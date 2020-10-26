@@ -1707,16 +1707,10 @@ BOOL CDarkSpirit::MissCheck(LPOBJ lpObj, LPOBJ lpTargetObj, int skill,  int skil
 
 	if (lpObj->Type == OBJ_USER)
 	{
-		if (lpObj->Class == CLASS_RAGEFIGHTER && lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate_Monk > 0.0)
-		{
-			SuccessAttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate_Monk;
-		}
-
-		else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate > 0.0)
+		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate > 0.0)
 		{
 			SuccessAttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate;
 		}
-
 	}
 
 	if ( SuccessAttackRate < TargetSuccessfulBlocking )

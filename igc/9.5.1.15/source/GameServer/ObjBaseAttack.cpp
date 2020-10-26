@@ -329,22 +329,10 @@ BOOL CObjBaseAttack::ResistanceCheck(LPOBJ lpObj, LPOBJ lpTargetObj, int skill)
 
 	if (lpTargetObj->Type == OBJ_USER)
 	{
-		if (lpTargetObj->Class == CLASS_RAGEFIGHTER)
+		if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsImmuneRate > 0.0 && lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsImmuneRate >= (rand() % 100) && !gObjCheckUsedBuffEffect(lpTargetObj, BUFFTYPE_INVISIBLE2))
 		{
-			if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsImmuneRate_Monk > 0.0 && lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsImmuneRate_Monk >= (rand() % 100) && !gObjCheckUsedBuffEffect(lpTargetObj, BUFFTYPE_INVISIBLE2))
-			{
-				GSProtocol.GCMagicAttackNumberSend(lpTargetObj, 323, lpTargetObj->m_Index, 1);
-				gObjAddBuffEffect(lpTargetObj, BUFFTYPE_INVISIBLE2, 0, 0, 0, 0, 5);
-			}
-		}
-
-		else
-		{
-			if (lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsImmuneRate > 0.0 && lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsImmuneRate >= (rand() % 100) && !gObjCheckUsedBuffEffect(lpTargetObj, BUFFTYPE_INVISIBLE2))
-			{
-				GSProtocol.GCMagicAttackNumberSend(lpTargetObj, 323, lpTargetObj->m_Index, 1);
-				gObjAddBuffEffect(lpTargetObj, BUFFTYPE_INVISIBLE2, 0, 0, 0, 0, 5);
-			}
+			GSProtocol.GCMagicAttackNumberSend(lpTargetObj, 323, lpTargetObj->m_Index, 1);
+			gObjAddBuffEffect(lpTargetObj, BUFFTYPE_INVISIBLE2, 0, 0, 0, 0, 5);
 		}
 	}
 
@@ -573,10 +561,7 @@ BOOL CObjBaseAttack::MissCheck(LPOBJ lpObj, LPOBJ lpTargetObj, int skill, int sk
 
 		if (lpObj->Type == OBJ_USER)
 		{
-			if (lpObj->Class == CLASS_RAGEFIGHTER)
-				iAttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate_Monk;
-			else
-				iAttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate;
+			iAttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate;
 		}
 
 		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BLIND_2) == true)
@@ -785,16 +770,8 @@ BOOL CObjBaseAttack::MissCheckPvP(LPOBJ lpObj , LPOBJ lpTargetObj, int skill, in
 	iAttackRate += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddAttackSuccessRatePVP;
 	iDefenseRate += lpTargetObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddDefenseSuccessRatePvP;
 
-	if (lpObj->Class == CLASS_RAGEFIGHTER)
-	{
-		iAttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsPVPAttackDmgRate_Monk;
-		iDefenseRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsPVPBlockingRate_Monk;
-	}
-	else
-	{
-		iAttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsPVPAttackDmgRate;
-		iDefenseRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsPVPBlockingRate;
-	}
+	iAttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsPVPAttackDmgRate;
+	iDefenseRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsPVPBlockingRate;
 
 	float iExpressionA = ( iAttackRate * 10000.0f ) / ( iAttackRate + iDefenseRate );	// #formula
 	float iExpressionB = ( AttackLevel * 10000 ) / ( AttackLevel + DefenseLevel );	// #formula
@@ -972,15 +949,7 @@ int  CObjBaseAttack::GetTargetDefense(LPOBJ lpObj, LPOBJ lpTargetObj, int& MsgDa
 			percentdamage += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIgnoreEnemyDefence;
 		}
 
-		if (lpObj->Class == CLASS_RAGEFIGHTER)
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncIgnoreEnemyBlock_Monk > 0.0)
-			{
-				percentdamage += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncIgnoreEnemyBlock_Monk;
-			}
-		}
-
-		else if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncIgnoreEnemyBlock > 0.0)
+		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncIgnoreEnemyBlock > 0.0)
 		{
 			percentdamage += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncIgnoreEnemyBlock;
 		}
