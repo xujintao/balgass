@@ -43,11 +43,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	}
 
 	LPOBJ lpObj = &gObj[aIndex];
-	int Strength = 0;
-	int Dexterity = 0;
-	int Vitality = 0;
-	int Energy = 0;
-	int Leadership = 0;
 	CItem * Right = &lpObj->pInventory[0];
 	CItem * Left  = &lpObj->pInventory[1];
 	CItem * Helmet = &lpObj->pInventory[2];
@@ -61,8 +56,8 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	CItem * RightRing = &lpObj->pInventory[10];
 	CItem * LeftRing = &lpObj->pInventory[11];
 	CItem * Pentagram = &lpObj->pInventory[236];
-	lpObj->HaveWeaponInHand = true;
 
+	lpObj->HaveWeaponInHand = true;
 	if ( Right->IsItem() == FALSE && Left->IsItem() == FALSE )
 	{
 		lpObj->HaveWeaponInHand = false;
@@ -74,15 +69,26 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	else if ( Right->IsItem() == FALSE )
 	{
 		int iType = Left->m_Type / MAX_SUBTYPE_ITEMS;
-
 		if ( Left->m_Type == ITEMGET(4,7) ) // Bolt
 		{
 			lpObj->HaveWeaponInHand = false;
 		}
-		else if ( iType == 6 )
+		else if ( iType == 6 ) // Shield
 		{
 			lpObj->HaveWeaponInHand = false;
 		}
+	}
+
+	for (int iItemIndex=0; iItemIndex<MAX_PLAYER_EQUIPMENT; iItemIndex++)
+	{
+		if ( lpObj->pInventory[iItemIndex].IsItem() != FALSE )
+		{
+			lpObj->pInventory[iItemIndex].m_IsValidItem = true;
+		}
+	}
+	if ( lpObj->pInventory[236].IsItem() != FALSE )
+	{
+		lpObj->pInventory[236].m_IsValidItem = true;
 	}
 
 	lpObj->AddLife = 0;
@@ -96,174 +102,96 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	lpObj->DamageReflect = 0;
 	lpObj->DamageMinus = 0;
 	lpObj->SkillLongSpearChange = false;
+	lpObj->AddStrength = 0;
+	lpObj->AddDexterity = 0;
+	lpObj->AddVitality = 0;
+	lpObj->AddEnergy = 0;
+	lpObj->AddLeadership = 0;
+	lpObj->m_CriticalDamageSuccessRate = 0;
+	lpObj->m_ExcellentDamageSuccessRate = 0;
+	lpObj->m_PlayerData->SetOpAddDamage = 0;
+	lpObj->m_PlayerData->SetOpAddAttackDamage = 0;
+	lpObj->m_PlayerData->SetOpAddSkillAttack = 0;
+	lpObj->m_PlayerData->SetOpAddMagicPower = 0;
+	lpObj->m_PlayerData->SetOpAddMinAttackDamage = 0;
+	lpObj->m_PlayerData->SetOpAddMaxAttackDamage = 0;
+	lpObj->m_PlayerData->SetOpIncAGValue = 0;
+	lpObj->m_PlayerData->SetOpAddCriticalDamageSuccessRate = 0;
+	lpObj->m_PlayerData->SetOpAddCriticalDamage = 0;
+	lpObj->m_PlayerData->SetOpAddExcellentDamageSuccessRate = 0;
+	lpObj->m_PlayerData->SetOpAddExcellentDamage = 0;
+	lpObj->m_PlayerData->SetOpAddDefence = 0;
+	lpObj->m_PlayerData->SetOpAddDefenceRate = 0;
+	lpObj->m_PlayerData->SetOpIgnoreDefense = 0;
+	lpObj->m_PlayerData->SetOpDoubleDamage = 0;
+	lpObj->m_PlayerData->SetOpTwoHandSwordImproveDamage = 0;
+	lpObj->m_PlayerData->SetOpImproveSuccessAttackRate = 0;
+	lpObj->m_PlayerData->SetOpReflectionDamage = 0;
+	lpObj->m_PlayerData->SetOpImproveSheldDefence = 0;
+	lpObj->m_PlayerData->SetOpDecreaseAG = 0;
+	lpObj->m_PlayerData->SetOpImproveItemDropRate = 0;
+	lpObj->m_PlayerData->IsFullSetItem = false;
+	lpObj->m_PlayerData->m_WingExcOption.Clear();
+	memset(lpObj->m_AddResistance, 0, sizeof(lpObj->m_AddResistance));
+	memset(&lpObj->m_PlayerData->m_PentagramOptions, 0, sizeof(lpObj->m_PlayerData->m_PentagramOptions));
+	g_StatSpec.ClearUserOption(lpObj);
 
-	int iItemIndex;
-	BOOL bIsChangeItem;	// lc34
+	// calc buff
+	g_BuffEffect.SetPrevEffect(lpObj);
 
-	for ( iItemIndex=0; iItemIndex<MAX_PLAYER_EQUIPMENT;iItemIndex++)
+	// calc set item stat and option
+	this->CalcSetItemStat(lpObj);
+	this->CalcSetItemOption(lpObj);
+
+	// calc master passive skill
+	g_MasterLevelSkillTreeSystem.SetItemMLPassiveSkill(lpObj, Right->GetDetailItemType());
+	g_MasterLevelSkillTreeSystem.SetItemMLPassiveSkill(lpObj, Left->GetDetailItemType());
+	g_MasterLevelSkillTreeSystem.SetWingMLPassiveSkill(lpObj, Wing->m_Type);
+	g_MasterLevelSkillTreeSystem.SetPetItemMLPassiveSkill(lpObj, Helper->m_Type);
+
+	// calc master five dimemsions stat
+	if (lpObj->Class == CLASS_RAGEFIGHTER && lpObj->m_PlayerData->ISBOT == false)
 	{
-		if ( lpObj->pInventory[iItemIndex].IsItem() != FALSE )
-		{
-			lpObj->pInventory[iItemIndex].m_IsValidItem = true;
-		}
+		lpObj->AddEnergy += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncEnergyStat_Monk;
+		lpObj->AddVitality += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncVitalStat_Monk;
+		EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
+		lpObj->m_PlayerData->AgilityCheckDelay = GetTickCount();
+		lpObj->AddDexterity += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDexStat_Monk;
+		LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
+		lpObj->AddStrength += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncPowerStat_Monk;
+	}
+	else
+	{
+		lpObj->AddEnergy += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncEnergyStat;
+		lpObj->AddVitality += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncVitalStat;
+		EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
+		lpObj->m_PlayerData->AgilityCheckDelay = GetTickCount();
+		lpObj->AddDexterity += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDexStat;
+		LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
+		lpObj->AddStrength += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncPowerStat;
+	}
+	lpObj->AddLeadership += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncLeadershipStat;
+
+	// calc wing leadship option
+	if (Wing->m_IsValidItem)
+	{
+		lpObj->AddLeadership += Wing->m_Leadership;
 	}
 
-	if ( lpObj->pInventory[236].IsItem() != FALSE )
-	{
-		lpObj->pInventory[236].m_IsValidItem = true;
-	}
+	// calc critical damage success rate of luck item
+	lpObj->pInventory[0].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
+	lpObj->pInventory[1].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
+	lpObj->pInventory[2].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
+	lpObj->pInventory[3].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
+	lpObj->pInventory[4].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
+	lpObj->pInventory[5].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
+	lpObj->pInventory[6].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
+	lpObj->pInventory[7].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
 
-	do
-	{
-		lpObj->m_PlayerData->SetOpAddMaxAttackDamage = 0;
-		lpObj->m_PlayerData->SetOpAddMinAttackDamage = 0;
-		lpObj->m_PlayerData->SetOpAddDamage = 0;
-		lpObj->m_PlayerData->SetOpIncAGValue = 0;
-		lpObj->m_PlayerData->SetOpAddCriticalDamageSuccessRate = 0;
-		lpObj->m_PlayerData->SetOpAddCriticalDamage = 0;
-		lpObj->m_PlayerData->SetOpAddExDamageSuccessRate = 0;
-		lpObj->m_PlayerData->SetOpAddExDamage = 0;
-		lpObj->m_PlayerData->SetOpAddSkillAttack = 0;
-		lpObj->AddStrength = 0;
-		lpObj->AddDexterity = 0;
-		lpObj->AddVitality = 0;
-		lpObj->AddEnergy = 0;
-		lpObj->AddLeadership = 0;
-		lpObj->m_PlayerData->SetOpAddAttackDamage = 0;
-		lpObj->m_PlayerData->SetOpAddDefence = 0;
-		lpObj->m_PlayerData->SetOpAddMagicPower = 0;
-		lpObj->m_PlayerData->SetOpAddDefenceRate = 0;
-		lpObj->m_PlayerData->SetOpIgnoreDefense = 0;
-		lpObj->m_PlayerData->SetOpDoubleDamage = 0;
-		lpObj->m_PlayerData->SetOpTwoHandSwordImproveDamage = 0;
-		lpObj->m_PlayerData->SetOpImproveSuccessAttackRate = 0;
-		lpObj->m_PlayerData->SetOpReflectionDamage = 0;
-		lpObj->m_PlayerData->SetOpImproveSheldDefence = 0;
-		lpObj->m_PlayerData->SetOpDecreaseAG = 0;
-		lpObj->m_PlayerData->SetOpImproveItemDropRate = 0;
-		lpObj->m_PlayerData->IsFullSetItem = false;
-		lpObj->m_PlayerData->m_WingExcOption.Clear();
-		memset(lpObj->m_AddResistance, 0, sizeof(lpObj->m_AddResistance));
-		memset(&lpObj->m_PlayerData->m_PentagramOptions, 0, sizeof(lpObj->m_PlayerData->m_PentagramOptions));
-		bIsChangeItem = 0;
-		g_StatSpec.ClearUserOption(lpObj);
-		g_BuffEffect.SetPrevEffect(lpObj);
-		this->CalcSetItemStat(lpObj);
-		this->CalcSetItemOption(lpObj);
-		g_MasterLevelSkillTreeSystem.SetItemMLPassiveSkill(lpObj, Right->GetDetailItemType());
-		g_MasterLevelSkillTreeSystem.SetItemMLPassiveSkill(lpObj, Left->GetDetailItemType());
-		g_MasterLevelSkillTreeSystem.SetWingMLPassiveSkill(lpObj, Wing->m_Type);
-		g_MasterLevelSkillTreeSystem.SetPetItemMLPassiveSkill(lpObj, Helper->m_Type);
+	lpObj->m_CriticalDamageSuccessRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate;
+	lpObj->m_ExcellentDamageSuccessRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate;
 
-		if(gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_MONK_INCREASE_HEALTH) == TRUE)
-		{
-			int iOption;
-			gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_MONK_INCREASE_HEALTH, &iOption, 0);
-			lpObj->AddVitality += iOption;
-		}
-
-		if(gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_MONK_INCREASE_HEALTH_STR) == TRUE)
-		{
-			int iOption;
-			gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_MONK_INCREASE_HEALTH_STR, &iOption, 0);
-			lpObj->AddVitality += iOption;
-		}
-
-		if (lpObj->Class == CLASS_RAGEFIGHTER && lpObj->m_PlayerData->ISBOT == false)
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncEnergyStat_Monk > 0.0)
-			{
-				lpObj->AddEnergy += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncEnergyStat_Monk;
-			}
-
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncVitalStat_Monk > 0.0)
-			{
-				lpObj->AddVitality += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncVitalStat_Monk;
-			}
-
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDexStat_Monk > 0.0)
-			{
-				EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
-				lpObj->m_PlayerData->AgilityCheckDelay = GetTickCount();
-				lpObj->AddDexterity += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDexStat_Monk;
-				LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
-			}
-
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncPowerStat_Monk > 0.0)
-			{
-				lpObj->AddStrength += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncPowerStat_Monk;
-			}
-		}
-
-		else
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncEnergyStat > 0.0)
-			{
-				lpObj->AddEnergy += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncEnergyStat;
-			}
-
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncVitalStat > 0.0)
-			{
-				lpObj->AddVitality += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncVitalStat;
-			}
-
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDexStat > 0.0)
-			{
-				EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
-				lpObj->m_PlayerData->AgilityCheckDelay = GetTickCount();
-				lpObj->AddDexterity += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDexStat;
-				LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
-			}
-
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncPowerStat > 0.0)
-			{
-				lpObj->AddStrength += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncPowerStat;
-			}
-		}
-
-		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncLeadershipStat > 0.0)
-		{
-			lpObj->AddLeadership += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncLeadershipStat;
-		}
-
-		if(gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BLESS) == TRUE)
-		{
-			int iOption;
-			gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_BLESS, &iOption, 0);
-
-			EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
-			lpObj->m_PlayerData->AgilityCheckDelay = GetTickCount();
-			lpObj->AddVitality += iOption;
-			lpObj->AddStrength += iOption;
-			lpObj->AddDexterity += iOption;
-			lpObj->AddEnergy += iOption;
-
-			if(lpObj->Class == CLASS_DARKLORD)
-				lpObj->AddLeadership += iOption;
-
-			LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
-		}
-
-
-		for (iItemIndex=0;iItemIndex<MAX_PLAYER_EQUIPMENT;iItemIndex++)
-		{
-			if ( lpObj->pInventory[iItemIndex].IsItem() != FALSE && lpObj->pInventory[iItemIndex].m_IsValidItem != false )
-			{
-				if ( this->ValidItem( lpObj, &lpObj->pInventory[iItemIndex], iItemIndex) != FALSE )
-				{
-					lpObj->pInventory[iItemIndex].m_IsValidItem = true;
-				}
-				else
-				{
-					lpObj->pInventory[iItemIndex].m_IsValidItem  = false;
-					g_BuffEffect.ClearPrevEffect(lpObj);
-					bIsChangeItem = TRUE;
-				}
-			}
-		}
-	}
-	while ( bIsChangeItem != FALSE );
-
+	// calc pentagram
 	if (lpObj->pInventory[236].IsItem() == TRUE)
 	{
 		if (this->ValidItem(lpObj, &lpObj->pInventory[236], 236))
@@ -271,103 +199,113 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 			lpObj->pInventory[236].m_IsValidItem = true;
 			g_PentagramSystem.CalcPentagramItem(aIndex, &lpObj->pInventory[236]);
 		}
-
 		else
 		{
 			lpObj->pInventory[236].m_IsValidItem = false;
 		}
 	}
-
 	else
 	{
 		g_PentagramSystem.ClearPentagramItem(aIndex);
 	}
 
-	Strength = lpObj->m_PlayerData->Strength + lpObj->AddStrength;
-	Dexterity = lpObj->m_PlayerData->Dexterity + lpObj->AddDexterity;
-	Vitality = lpObj->m_PlayerData->Vitality + lpObj->AddVitality;
-	Energy = lpObj->m_PlayerData->Energy + lpObj->AddEnergy;
-	Leadership = lpObj->Leadership + lpObj->AddLeadership;
-
+	// calc attack damage
+	int Strength = lpObj->m_PlayerData->Strength + lpObj->AddStrength;
+	int Dexterity = lpObj->m_PlayerData->Dexterity + lpObj->AddDexterity;
+	int Vitality = lpObj->m_PlayerData->Vitality + lpObj->AddVitality;
+	int Energy = lpObj->m_PlayerData->Energy + lpObj->AddEnergy;
+	int Leadership = lpObj->Leadership + lpObj->AddLeadership;
 	if ( lpObj->Class == CLASS_ELF ) // Elf
 	{
-		if ( (Right->m_Type >= ITEMGET(4,8) && Right->m_Type < ITEMGET(4,15) ) ||
-			 (Left->m_Type >= ITEMGET(4,0) && Left->m_Type < ITEMGET(4,7)) ||
-			  Right->m_Type == ITEMGET(4,16) ||
-			  Left->m_Type == ITEMGET(4,20) ||
-			  Left->m_Type == ITEMGET(4,21) ||
-			  Left->m_Type == ITEMGET(4,22) ||
-			  Left->m_Type == ITEMGET(4,23) ||
-			  Left->m_Type == ITEMGET(4,24) ||
-			  Left->m_Type == ITEMGET(4,25) ||
-			  Right->m_Type == ITEMGET(4,26) ||
-			  Left->m_Type == ITEMGET(4,27) ||
-			  Right->m_Type == ITEMGET(4,18) ||
-			  Right->m_Type == ITEMGET(4,19) ||
-			  Left->m_Type == ITEMGET(4,17) )
-		{
-			if ( (Right->IsItem() != FALSE && Right->m_IsValidItem == false) || (Left->IsItem() != FALSE && Left->m_IsValidItem == false) )
-			{
-				this->m_Lua.Generic_Call("ElfWithoutBowDamageCalc", "iiii>iiii", Strength, Dexterity, Vitality, Energy,
-					&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
-			}
-			else
-			{
-				this->m_Lua.Generic_Call("ElfWithBowDamageCalc", "iiii>iiii", Strength, Dexterity, Vitality, Energy,
-					&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
-			}
-		}
-		else
-		{
+		if (Right->m_IsValidItem && Right->GetDetailItemType() == ITEM_CROSSBOW
+		|| (Left->m_IsValidItem && Left->GetDetailItemType() == ITEM_BOW)) {
+			this->m_Lua.Generic_Call("ElfWithBowDamageCalc", "iiii>iiii", Strength, Dexterity, Vitality, Energy,
+				&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
+		} else {
 			this->m_Lua.Generic_Call("ElfWithoutBowDamageCalc", "iiii>iiii", Strength, Dexterity, Vitality, Energy,
 				&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
 		}
 	}
-
 	else if ( lpObj->Class == CLASS_KNIGHT ) // Dark Knight
 	{
 		this->m_Lua.Generic_Call("KnightDamageCalc", "iiii>iiii", Strength, Dexterity, Vitality, Energy,
 			&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
 	}
-
 	else if (lpObj->Class == CLASS_MAGUMSA ) // MAgic Gladiator
 	{
 		this->m_Lua.Generic_Call("GladiatorDamageCalc", "iiii>iiii", Strength, Dexterity, Vitality, Energy,
 			&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
 	}
-
 	else if ( lpObj->Class == CLASS_DARKLORD ) // Dark Lord
 	{
 		this->m_Lua.Generic_Call("LordDamageCalc", "iiiii>iiii", Strength, Dexterity, Vitality, Energy, Leadership,
 			&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
 	}
-
 	else if( lpObj->Class == CLASS_SUMMONER ) // Summoner
 	{
 		this->m_Lua.Generic_Call("SummonerDamageCalc", "iiii>iiii", Strength, Dexterity, Vitality, Energy,
 			&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
 	}
-
 	else if( lpObj->Class == CLASS_RAGEFIGHTER )
 	{
 		this->m_Lua.Generic_Call("RageFighterDamageCalc", "iiii>iiii", Strength, Dexterity, Vitality, Energy,
 			&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
 	}
-
 	else if (lpObj->Class == CLASS_WIZARD)
 	{
 		this->m_Lua.Generic_Call("WizardDamageCalc", "iiii>iiii", Strength, Dexterity, Vitality, Energy,
 			&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
 	}
-
 	else if (lpObj->Class == CLASS_GROWLANCER)
 	{
 		this->m_Lua.Generic_Call("GrowLancerDamageCalc", "iiii>iiii", Strength, Dexterity, Vitality, Energy,
 			&lpObj->m_AttackDamageMinLeft, &lpObj->m_AttackDamageMinRight, &lpObj->m_AttackDamageMaxLeft, &lpObj->m_AttackDamageMaxRight);
 	}
 
+	// calc Stat Specialization: increase attack power
+	// http://muonline.webzen.com/guides/219/1976/season-9/season-9-character-renewal
+	// - (Bonus stat generated by equipping items like weapon, armor, wing, or master skill,
+	// etc is not applied to specialization calculation.)
 	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_ATTACK_POWER);
 
+	// cacl weapon attack damage
+	if ( Right->m_IsValidItem)
+	{
+		if (Right->m_Type >= ITEMGET(5,0) && Right->m_Type < ITEMGET(6,0)) // staff
+		{
+			lpObj->m_AttackDamageMinRight += Right->m_DamageMin / 2;
+			lpObj->m_AttackDamageMaxRight += Right->m_DamageMax / 2;
+		}
+		else
+		{
+			lpObj->m_AttackDamageMinRight += Right->m_DamageMin;
+			lpObj->m_AttackDamageMaxRight += Right->m_DamageMax;
+		}
+		if (Right->m_SkillChange != FALSE )
+		{
+			lpObj->SkillLongSpearChange = true;
+		}
+		Right->PlusSpecial(&lpObj->m_AttackDamageMinRight, 80);
+		Right->PlusSpecial(&lpObj->m_AttackDamageMaxRight, 80);
+	}
+	if (Left->m_IsValidItem)
+	{
+		lpObj->m_AttackDamageMinLeft += Left->m_DamageMin;
+		lpObj->m_AttackDamageMaxLeft += Left->m_DamageMax;
+		Left->PlusSpecial(&lpObj->m_AttackDamageMinLeft, 80);
+		Left->PlusSpecial(&lpObj->m_AttackDamageMaxLeft, 80);
+	}
+
+	// calc master weapon Mastery
+	lpObj->m_AttackDamageMinRight += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
+	lpObj->m_AttackDamageMaxRight += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
+	lpObj->m_AttackDamageMinLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
+	lpObj->m_AttackDamageMaxLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
+
+	// calc master weapon Strengthener
+
+
+	// calc master min/max attack damage
 	if (lpObj->Class == CLASS_ELF)
 	{
 		lpObj->m_AttackDamageMinRight += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMinAttack;
@@ -375,7 +313,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_AttackDamageMinLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMinAttack;
 		lpObj->m_AttackDamageMaxLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMaxAttack;
 	}
-
 	else if (lpObj->Class == CLASS_RAGEFIGHTER)
 	{
 		lpObj->m_AttackDamageMinRight += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMinAttack_Monk;
@@ -383,7 +320,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_AttackDamageMinLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMinAttack_Monk;
 		lpObj->m_AttackDamageMaxLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMaxAttack_Monk;
 	}
-
 	else if (lpObj->Class == CLASS_KNIGHT || lpObj->Class == CLASS_MAGUMSA || lpObj->Class == CLASS_DARKLORD)
 	{
 		lpObj->m_AttackDamageMinRight += lpObj->m_PlayerData->m_MPSkillOpt.iMpsMinAttackDamage;
@@ -392,71 +328,12 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_AttackDamageMaxLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxAttackDamage;
 	}
 
-	lpObj->pInventory[7].PlusSpecial(&lpObj->m_AttackDamageMinRight, 80);
-	lpObj->pInventory[7].PlusSpecial(&lpObj->m_AttackDamageMaxRight, 80);
-	lpObj->pInventory[7].PlusSpecial(&lpObj->m_AttackDamageMinLeft, 80);
-	lpObj->pInventory[7].PlusSpecial(&lpObj->m_AttackDamageMaxLeft, 80);
+	// calc wing addition option
+	Wing->PlusSpecial(&lpObj->m_AttackDamageMinRight, 80);
+	Wing->PlusSpecial(&lpObj->m_AttackDamageMaxRight, 80);
+	Wing->PlusSpecial(&lpObj->m_AttackDamageMinLeft, 80);
+	Wing->PlusSpecial(&lpObj->m_AttackDamageMaxLeft, 80);
 
-	int AddLeadership = 0;
-
-	if ( lpObj->pInventory[7].IsItem() != FALSE && lpObj->pInventory[7].m_IsValidItem != false)
-	{
-		AddLeadership += lpObj->pInventory[7].m_Leadership;
-	}
-
-	if ( Right->m_Type != -1 )
-	{
-		if ( Right->m_IsValidItem != false )
-		{
-			if ( Right->m_Type >= ITEMGET(5,0) && Right->m_Type <= ITEMGET(6,0) )
-			{
-				lpObj->m_AttackDamageMinRight += Right->m_DamageMin / 2;
-				lpObj->m_AttackDamageMaxRight += Right->m_DamageMax / 2;
-			}
-			else
-			{
-				lpObj->m_AttackDamageMinRight += Right->m_DamageMin;
-				lpObj->m_AttackDamageMaxRight += Right->m_DamageMax;
-			}
-		}
-
-		if ( lpObj->pInventory[0].m_SkillChange != FALSE )
-		{
-			lpObj->SkillLongSpearChange = true;
-		}
-
-		lpObj->pInventory[0].PlusSpecial(&lpObj->m_AttackDamageMinRight, 80);
-		lpObj->pInventory[0].PlusSpecial(&lpObj->m_AttackDamageMaxRight, 80);
-	}
-		
-	if ( Left->m_Type != -1 )
-	{
-		if ( Left->m_IsValidItem != false)
-		{
-			lpObj->m_AttackDamageMinLeft += Left->m_DamageMin;
-			lpObj->m_AttackDamageMaxLeft += Left->m_DamageMax;
-		}
-
-		lpObj->pInventory[1].PlusSpecial(&lpObj->m_AttackDamageMinLeft, 80);
-		lpObj->pInventory[1].PlusSpecial(&lpObj->m_AttackDamageMaxLeft, 80);
-	}
-
-
-
-	lpObj->m_CriticalDamage = 0;
-	lpObj->m_ExcelentDamage = 0;
-
-	lpObj->pInventory[0].PlusSpecial(&lpObj->m_CriticalDamage, 84);
-	lpObj->pInventory[1].PlusSpecial(&lpObj->m_CriticalDamage, 84);
-	lpObj->pInventory[2].PlusSpecial(&lpObj->m_CriticalDamage, 84);
-	lpObj->pInventory[3].PlusSpecial(&lpObj->m_CriticalDamage, 84);
-	lpObj->pInventory[4].PlusSpecial(&lpObj->m_CriticalDamage, 84);
-	lpObj->pInventory[5].PlusSpecial(&lpObj->m_CriticalDamage, 84);
-	lpObj->pInventory[6].PlusSpecial(&lpObj->m_CriticalDamage, 84);
-	lpObj->pInventory[7].PlusSpecial(&lpObj->m_CriticalDamage, 84);
-
-	lpObj->m_CriticalDamage += gObjGetTotalValueOfEffect(lpObj, EFFECTTYPE_CRITICALDAMAGE);
-	lpObj->m_ExcelentDamage += gObjGetTotalValueOfEffect(lpObj, EFFECTTYPE_EXCELLENTDAMAGE);
 
 	switch (lpObj->Class)
 	{
@@ -1562,7 +1439,7 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_MagicDefense += g_ConfigRead.pet.PandaPetAddDefense;
 	}
 
-	g_BuffEffect.SetNextEffect(lpObj);
+	// g_BuffEffect.SetNextEffect(lpObj);
 
 	this->CalcMLSkillItemOption(lpObj);
 	this->CalcShieldPoint(lpObj);
@@ -1924,10 +1801,10 @@ void CObjCalCharacter::SetItemPlusSpecial(LPOBJ lpObj, int option, int ivalue)
 			lpObj->m_PlayerData->SetOpAddCriticalDamageSuccessRate += ivalue;
 			break;
 		case AT_SET_OPTION_IMPROVE_EX_DAMAGE:
-			lpObj->m_PlayerData->SetOpAddExDamage += ivalue;
+			lpObj->m_PlayerData->SetOpAddExcellentDamage += ivalue;
 			break;
 		case AT_SET_OPTION_IMPROVE_EX_DAMAGE_SUCCESS:
-			lpObj->m_PlayerData->SetOpAddExDamageSuccessRate += ivalue;
+			lpObj->m_PlayerData->SetOpAddExcellentDamageSuccessRate += ivalue;
 			break;
 		case AT_SET_OPTION_IMPROVE_SKILLDAMAGE:
 			lpObj->m_PlayerData->SetOpAddSkillAttack += ivalue;
@@ -1993,8 +1870,8 @@ void CObjCalCharacter::SetItemApply(LPOBJ lpObj)
 	lpObj->AddLife += INT(lpObj->AddVitality * DCInfo.DefClass[lpObj->Class].VitalityToLife);
 	lpObj->AddMana += INT(lpObj->AddEnergy * DCInfo.DefClass[lpObj->Class].EnergyToMana);
 
-	lpObj->m_CriticalDamage += lpObj->m_PlayerData->SetOpAddCriticalDamageSuccessRate;
-	lpObj->m_ExcelentDamage += lpObj->m_PlayerData->SetOpAddExDamageSuccessRate;
+	lpObj->m_CriticalDamageSuccessRate += lpObj->m_PlayerData->SetOpAddCriticalDamageSuccessRate;
+	lpObj->m_ExcellentDamageSuccessRate += lpObj->m_PlayerData->SetOpAddExcellentDamageSuccessRate;
 
 	if ( lpObj->pInventory[10].IsSetItem() )
 	{
@@ -2462,7 +2339,7 @@ void CObjCalCharacter::PremiumItemApply(LPOBJ lpObj)
 				break;
 			case ITEMGET(13,113):
 				lpObj->AutoHPRecovery += 3;
-				lpObj->m_ExcelentDamage += 10;
+				lpObj->m_ExcellentDamageSuccessRate += 10;
 				break;
 			case ITEMGET(13,114):
 				lpObj->AutoHPRecovery += 3;
@@ -2474,10 +2351,10 @@ void CObjCalCharacter::PremiumItemApply(LPOBJ lpObj)
 				lpObj->MonsterDieGetMana += 1;
 				break;
 			case ITEMGET(13,128):
-				lpObj->m_CriticalDamage += 10;
+				lpObj->m_CriticalDamageSuccessRate += 10;
 				break;
 			case ITEMGET(13,129):
-				lpObj->m_ExcelentDamage += 10;
+				lpObj->m_ExcellentDamageSuccessRate += 10;
 				break;
 			case ITEMGET(13,130):
 				lpObj->AddLife += 50;
