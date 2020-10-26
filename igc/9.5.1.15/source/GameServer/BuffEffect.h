@@ -107,7 +107,8 @@ public:
 	void SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int EffectValue);
 	void ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int EffectValue);
 	void SetActiveBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int EffectValue);
-	void SetPrevEffect(LPOBJECTSTRUCT lpObj);
+	void ApplyPrevEffectStat(LPOBJECTSTRUCT lpObj);
+	void ApplyPrevEffectDamage(LPOBJECTSTRUCT lpObj);
 	// void SetNextEffect(LPOBJECTSTRUCT lpObj);
 	// void ClearPrevEffect(LPOBJECTSTRUCT lpObj);
 	void GiveDamageEffect(LPOBJECTSTRUCT lpObj, int Damage);
