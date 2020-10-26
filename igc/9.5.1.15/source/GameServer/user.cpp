@@ -178,8 +178,8 @@ void USER_DATA::Init(bool VipReset)
 	this->SetOpIncAGValue = 0;
 	this->SetOpAddCriticalDamageSuccessRate = 0;
 	this->SetOpAddCriticalDamage = 0;
-	this->SetOpAddExDamageSuccessRate = 0;
-	this->SetOpAddExDamage = 0;
+	this->SetOpAddExcellentDamageSuccessRate = 0;
+	this->SetOpAddExcellentDamage = 0;
 	this->SetOpAddSkillAttack = 0;	
 	this->SetOpAddAttackDamage = 0;
 	this->SetOpAddDefence = 0;
@@ -1282,8 +1282,8 @@ void gObjCharZeroSet(int aIndex)
 	lpObj->MonsterDieGetMoney = 0;
 	lpObj->MonsterDieGetLife = 0;
 	lpObj->MonsterDieGetMana = 0;
-	lpObj->m_CriticalDamage = 0;
-	lpObj->m_ExcelentDamage = 0;
+	lpObj->m_CriticalDamageSuccessRate = 0;
+	lpObj->m_ExcellentDamageSuccessRate = 0;
 	lpObj->UseMagicNumber = 0;
 	lpObj->UseMagicTime = 0;
 	lpObj->UseMagicCount = 0;

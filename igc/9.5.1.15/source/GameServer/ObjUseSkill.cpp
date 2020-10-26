@@ -3631,14 +3631,14 @@ void CObjUseSkill::SkillAddCriticalDamage(int aIndex, int skill_level, CMagicInf
 
 	if(partynum == -1 && lpObj->m_PlayerData->ISBOT == false)
 	{
-		gObjAddBuffEffect(lpObj, BUFFTYPE_CRITICAL_DMG_INC, EFFECTTYPE_CRITICAL_DMG, addcriticaldamagevalue, 0, 0, SkillTime);
+		gObjAddBuffEffect(lpObj, BUFFTYPE_CRITICAL_DMG_INC, EFFECTTYPE_CRITICALDAMAGE, addcriticaldamagevalue, 0, 0, SkillTime);
 		MsgOutput(aIndex,Lang.GetText(0,134),SkillTime);
 		GSProtocol.GCMagicAttackNumberSend(lpObj,lpMagic->m_Skill,lpObj->m_Index,skillSuccess);
 	}
 	else if(lpObj->m_PlayerData->ISBOT == true)
 	{
 		SkillTime = g_BotSystem.GetSkillTime(lpObj->m_Index, lpMagic->m_Skill);
-		gObjAddBuffEffect(&gObj[lpObj->BuffPlayerIndex], BUFFTYPE_CRITICAL_DMG_INC, EFFECTTYPE_CRITICAL_DMG, addcriticaldamagevalue, 0, 0, SkillTime);
+		gObjAddBuffEffect(&gObj[lpObj->BuffPlayerIndex], BUFFTYPE_CRITICAL_DMG_INC, EFFECTTYPE_CRITICALDAMAGE, addcriticaldamagevalue, 0, 0, SkillTime);
 
 		MsgOutput(lpObj->BuffPlayerIndex,Lang.GetText(0,134),SkillTime);
 		GSProtocol.GCMagicAttackNumberSend(lpObj,lpMagic->m_Skill,lpObj->m_Index,skillSuccess);
@@ -3650,7 +3650,7 @@ void CObjUseSkill::SkillAddCriticalDamage(int aIndex, int skill_level, CMagicInf
 			if(ApplyPartyIndex[n] != -1)
 			{
 				lpPartyObj = &gObj[ApplyPartyIndex[n]];
-				gObjAddBuffEffect(lpPartyObj, BUFFTYPE_CRITICAL_DMG_INC, EFFECTTYPE_CRITICAL_DMG, addcriticaldamagevalue, 0, 0, SkillTime);
+				gObjAddBuffEffect(lpPartyObj, BUFFTYPE_CRITICAL_DMG_INC, EFFECTTYPE_CRITICALDAMAGE, addcriticaldamagevalue, 0, 0, SkillTime);
 		
 				MsgOutput(ApplyPartyIndex[n],Lang.GetText(0,134),SkillTime);
 				GSProtocol.GCMagicAttackNumberSend(lpObj,lpMagic->m_Skill,lpPartyObj->m_Index,skillSuccess);
