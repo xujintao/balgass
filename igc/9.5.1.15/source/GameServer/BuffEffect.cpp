@@ -49,6 +49,7 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 		lpObj->m_MagicDefense += EffectValue;
 		break;
 	case EFFECTTYPE_HP:
+	case EFFECTTYPE_MONK_VITALITY:
 		lpObj->AddLife += EffectValue;	
 		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife+lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
 		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
@@ -127,6 +128,12 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 	case EFFECTTYPE_MAGICPOWERMAX_INC:
 		lpObj->m_MagicDamageMax += EffectValue;
 		break;
+	case EFFECTTYPE_CRITICALDAMAGE_RATE:
+	case EFFECTTYPE_CRITICALDAMAGE:
+		lpObj->m_CriticalDamageSuccessRate += EffectValue;
+	case EFFECTTYPE_EXCELLENTDAMAGE_RATE:
+	case EFFECTTYPE_EXCELLENTDAMAGE:
+		lpObj->m_ExcellentDamageSuccessRate += EffectValue;
 	case EFFECTTYPE_POWER_UP:
 		lpObj->m_AttackDamageMaxLeft += EffectValue;
 		lpObj->m_AttackDamageMinLeft += EffectValue;
@@ -170,6 +177,15 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 		if(lpObj->m_SuccessfulBlocking < 0)
 			lpObj->m_SuccessfulBlocking = 0;
 		break;
+	case EFFECTTYPE_ELF_BLESS:
+		EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
+		lpObj->m_PlayerData->AgilityCheckDelay = GetTickCount();
+		lpObj->AddVitality += EffectValue;
+		lpObj->AddStrength += EffectValue;
+		lpObj->AddDexterity += EffectValue;
+		lpObj->AddEnergy += EffectValue;
+		lpObj->AddLeadership += EffectValue;
+		LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
 	case EFFECTTYPE_BLIND:
 		lpObj->m_bBlind = true;
 		break;
@@ -199,6 +215,7 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 		lpObj->m_MagicDefense -= EffectValue;
 		break;
 	case EFFECTTYPE_HP:
+	case EFFECTTYPE_MONK_VITALITY:
 		lpObj->AddLife -= EffectValue;
 		if(lpObj->AddLife <= 0.0)
 			lpObj->AddLife = 0.0;
@@ -285,6 +302,12 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 		lpObj->m_MagicDamageMax -= EffectValue;
 		lpObj->m_PlayerData->m_MPSkillOpt.iMpsCriticalRateInc = 0.0;
 		break;
+	case EFFECTTYPE_CRITICALDAMAGE_RATE:
+	case EFFECTTYPE_CRITICALDAMAGE:
+		lpObj->m_CriticalDamageSuccessRate -= EffectValue;
+	case EFFECTTYPE_EXCELLENTDAMAGE_RATE:
+	case EFFECTTYPE_EXCELLENTDAMAGE:
+		lpObj->m_ExcellentDamageSuccessRate -= EffectValue;
 	case EFFECTTYPE_POWER_UP:
 		lpObj->m_AttackDamageMaxLeft -= EffectValue;
 		lpObj->m_AttackDamageMinLeft -= EffectValue;
@@ -327,6 +350,14 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 		lpObj->m_SuccessfulBlocking += EffectValue;
 		break;
 	case EFFECTTYPE_ELF_BLESS:
+		EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
+		lpObj->m_PlayerData->AgilityCheckDelay = GetTickCount();
+		lpObj->AddVitality -= EffectValue;
+		lpObj->AddStrength -= EffectValue;
+		lpObj->AddDexterity -= EffectValue;
+		lpObj->AddEnergy -= EffectValue;
+		lpObj->AddLeadership -= EffectValue;
+		LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
 		{
 			PMSG_USE_STAT_FRUIT pMsg;
 			PHeadSetB((LPBYTE)&pMsg, 0x2C, sizeof(pMsg));
@@ -547,6 +578,12 @@ void CBuffEffect::SetPrevEffect(LPOBJECTSTRUCT lpObj)
 		case EFFECTTYPE_AG_UP:
 		case EFFECTTYPE_SD_UP_VALUE:
 		case EFFECTTYPE_AG_UP_VALUE:
+		case EFFECTTYPE_MONK_VITALITY:
+		case EFFECTTYPE_ELF_BLESS:
+		case EFFECTTYPE_CRITICALDAMAGE_RATE:
+		case EFFECTTYPE_CRITICALDAMAGE:
+		case EFFECTTYPE_EXCELLENTDAMAGE_RATE:
+		case EFFECTTYPE_EXCELLENTDAMAGE:
 			BuffCount++;
 			SetBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType1, lpObj->m_BuffEffectList[i].EffectValue1);
 			break;
@@ -568,116 +605,14 @@ void CBuffEffect::SetPrevEffect(LPOBJECTSTRUCT lpObj)
 		case EFFECTTYPE_AG_UP:
 		case EFFECTTYPE_SD_UP_VALUE:
 		case EFFECTTYPE_AG_UP_VALUE:
+		case EFFECTTYPE_MONK_VITALITY:
+		case EFFECTTYPE_ELF_BLESS:
+		case EFFECTTYPE_CRITICALDAMAGE_RATE:
+		case EFFECTTYPE_CRITICALDAMAGE:
+		case EFFECTTYPE_EXCELLENTDAMAGE_RATE:
+		case EFFECTTYPE_EXCELLENTDAMAGE:
 			BuffCount++;
 			SetBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType2, lpObj->m_BuffEffectList[i].EffectValue2);
-			break;
-		default:
-			break;
-		}
-	}
-}
-
-void CBuffEffect::SetNextEffect(LPOBJECTSTRUCT lpObj)
-{
-	if(lpObj == NULL)	return;
-
-	int BuffCount = 0;
-
-	for(int i = 0; i < MAX_BUFFEFFECT; i++)
-	{
-		if(lpObj->m_BuffEffectList[i].BuffIndex == BUFFTYPE_NONE) continue;
-
-		switch(lpObj->m_BuffEffectList[i].EffectType1)
-		{
-		case EFFECTTYPE_HP:
-		case EFFECTTYPE_MANA:
-		case EFFECTTYPE_STRENGTH:
-		case EFFECTTYPE_DEXTERITY:
-		case EFFECTTYPE_VITALITY:
-		case EFFECTTYPE_ENERGY:
-		case EFFECTTYPE_LEADERSHIP:
-		case EFFECTTYPE_DAMAGEREFLECT:
-		case EFFECTTYPE_SD_UP:
-		case EFFECTTYPE_AG_UP:
-		case EFFECTTYPE_SD_UP_VALUE:
-		case EFFECTTYPE_AG_UP_VALUE:
-			break;
-		default:
-			BuffCount++;
-			SetBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType1, lpObj->m_BuffEffectList[i].EffectValue1);
-			break;
-		}
-
-		switch(lpObj->m_BuffEffectList[i].EffectType2)
-		{
-		case EFFECTTYPE_HP:
-		case EFFECTTYPE_MANA:
-		case EFFECTTYPE_STRENGTH:
-		case EFFECTTYPE_DEXTERITY:
-		case EFFECTTYPE_VITALITY:
-		case EFFECTTYPE_ENERGY:
-		case EFFECTTYPE_LEADERSHIP:
-		case EFFECTTYPE_DAMAGEREFLECT:
-		case EFFECTTYPE_SD_UP:
-		case EFFECTTYPE_AG_UP:
-		case EFFECTTYPE_SD_UP_VALUE:
-		case EFFECTTYPE_AG_UP_VALUE:
-			break;
-		default:
-			BuffCount++;
-			SetBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType2, lpObj->m_BuffEffectList[i].EffectValue2);
-			break;
-		}
-	}
-}
-
-void CBuffEffect::ClearPrevEffect(LPOBJECTSTRUCT lpObj)
-{
-	if(lpObj == NULL)	return;
-
-	int BuffCount = 0;
-
-	for(int i = 0; i < MAX_BUFFEFFECT; i++)
-	{
-		if(lpObj->m_BuffEffectList[i].BuffIndex == BUFFTYPE_NONE) continue;
-
-		switch(lpObj->m_BuffEffectList[i].EffectType1)
-		{
-		case EFFECTTYPE_HP:
-		case EFFECTTYPE_MANA:
-		case EFFECTTYPE_STRENGTH:
-		case EFFECTTYPE_DEXTERITY:
-		case EFFECTTYPE_VITALITY:
-		case EFFECTTYPE_ENERGY:
-		case EFFECTTYPE_LEADERSHIP:
-		case EFFECTTYPE_DAMAGEREFLECT:
-		case EFFECTTYPE_SD_UP:
-		case EFFECTTYPE_AG_UP:
-		case EFFECTTYPE_SD_UP_VALUE:
-		case EFFECTTYPE_AG_UP_VALUE:
-			BuffCount++;
-			ClearBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType1, lpObj->m_BuffEffectList[i].EffectValue1);
-			break;
-		default:
-			break;
-		}
-
-		switch(lpObj->m_BuffEffectList[i].EffectType2)
-		{
-		case EFFECTTYPE_HP:
-		case EFFECTTYPE_MANA:
-		case EFFECTTYPE_STRENGTH:
-		case EFFECTTYPE_DEXTERITY:
-		case EFFECTTYPE_VITALITY:
-		case EFFECTTYPE_ENERGY:
-		case EFFECTTYPE_LEADERSHIP:
-		case EFFECTTYPE_DAMAGEREFLECT:
-		case EFFECTTYPE_SD_UP:
-		case EFFECTTYPE_AG_UP:
-		case EFFECTTYPE_SD_UP_VALUE:
-		case EFFECTTYPE_AG_UP_VALUE:
-			BuffCount++;
-			ClearBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType2, lpObj->m_BuffEffectList[i].EffectValue2);
 			break;
 		default:
 			break;
