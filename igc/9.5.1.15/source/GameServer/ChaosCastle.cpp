@@ -2063,10 +2063,10 @@ BOOL CChaosCastle::LevelUp(int iUserIndex, int iAddExp)
 
 	::gObjSetExpPetItem(iUserIndex, iAddExp);
 
-	g_Log.Add("[Chaos Castle] Experience : [%s][%s](%d) Experience: %d + %d",	
-		gObj[iUserIndex].AccountID,	gObj[iUserIndex].Name,
-		gObj[iUserIndex].Level, gObj[iUserIndex].m_PlayerData->Experience,
-		iAddExp);
+	//g_Log.Add("[Chaos Castle] Experience : [%s][%s](%d) Experience: %d + %d",	
+	//	gObj[iUserIndex].AccountID,	gObj[iUserIndex].Name,
+	//	gObj[iUserIndex].Level, gObj[iUserIndex].m_PlayerData->Experience,
+	//	iAddExp);
 
 	if ( (gObj[iUserIndex].m_PlayerData->Experience + iAddExp) < gObj[iUserIndex].m_PlayerData->NextExp )
 	{

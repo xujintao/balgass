@@ -2209,10 +2209,10 @@ int  CBloodCastle::LevelUp(int iIndex, int iAddExp)
 
 	::gObjSetExpPetItem(iIndex, iAddExp);
 
-	g_Log.Add("[Blood Castle] Experience : [%s][%s](%d) Experience: %I64d + %d",	// #error gObj[iIndex].X -> gObj[iIndex].Y
-		gObj[iIndex].AccountID,	gObj[iIndex].Name,
-		gObj[iIndex].Level, gObj[iIndex].m_PlayerData->Experience,
-		iAddExp);
+	//g_Log.Add("[Blood Castle] Experience : [%s][%s](%d) Experience: %I64d + %d",	// #error gObj[iIndex].X -> gObj[iIndex].Y
+	//	gObj[iIndex].AccountID,	gObj[iIndex].Name,
+	//	gObj[iIndex].Level, gObj[iIndex].m_PlayerData->Experience,
+	//	iAddExp);
 
 	if ( (gObj[iIndex].m_PlayerData->Experience + iAddExp) < gObj[iIndex].m_PlayerData->NextExp )
 	{

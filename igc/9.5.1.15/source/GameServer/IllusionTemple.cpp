@@ -1933,11 +1933,11 @@ int CIllusionTemple::LevelUp(int UserIndex, int Exp, int Event)
 		return 0;
 	}
 
-	LogAddTD("Experience : Map[%d]-(%d,%d) [%s][%s](%d) %u %d MonsterIndex : %d, EventType : %d",
-		gObj[UserIndex].MapNumber, gObj[UserIndex].X, gObj[UserIndex].Y,	
-		gObj[UserIndex].AccountID,	gObj[UserIndex].Name,
-		gObj[UserIndex].Level, gObj[UserIndex].Experience,
-		Exp, 0, Event);
+	//LogAddTD("Experience : Map[%d]-(%d,%d) [%s][%s](%d) %u %d MonsterIndex : %d, EventType : %d",
+	//	gObj[UserIndex].MapNumber, gObj[UserIndex].X, gObj[UserIndex].Y,	
+	//	gObj[UserIndex].AccountID,	gObj[UserIndex].Name,
+	//	gObj[UserIndex].Level, gObj[UserIndex].Experience,
+	//	Exp, 0, Event);
 
 	::gObjSetExpPetItem(UserIndex, Exp);
 

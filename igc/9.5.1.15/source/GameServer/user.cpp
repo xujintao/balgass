@@ -6088,8 +6088,8 @@ bool gObjLevelUp(LPOBJ lpObj, UINT64 addexp, int iMonsterType, const char * szEv
 
 	gObjSetExpPetItem(lpObj->m_Index, addexp);
 	
-	g_Log.Add("[%s] Experience : Map[%s]-(%d,%d) [%s][%s](%d) Experience: %I64d + %I64d  MonsterClass : %d",
-		szEventType, Lang.GetMap(0, lpObj->MapNumber),lpObj->X,lpObj->Y,lpObj->AccountID,lpObj->Name,lpObj->Level,lpObj->m_PlayerData->Experience - addexp,addexp,iMonsterType);
+	//g_Log.Add("[%s] Experience : Map[%s]-(%d,%d) [%s][%s](%d) Experience: %I64d + %I64d  MonsterClass : %d",
+	//	szEventType, Lang.GetMap(0, lpObj->MapNumber),lpObj->X,lpObj->Y,lpObj->AccountID,lpObj->Name,lpObj->Level,lpObj->m_PlayerData->Experience - addexp,addexp,iMonsterType);
 
 	lpObj->m_PlayerData->Experience += addexp;
 	if ( lpObj->m_PlayerData->Experience < lpObj->m_PlayerData->NextExp )

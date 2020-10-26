@@ -2253,10 +2253,10 @@ int CImperialGuardian::ImperialGuardianLevelUp(int iIndex, int iAddExp)
 
 	::gObjSetExpPetItem(iIndex, iAddExp);
 
-	g_Log.Add("[Imperial Guardian] Experience : [%s][%s](%d) Experience: %d + %d",	
-		gObj[iIndex].AccountID,	gObj[iIndex].Name,
-		gObj[iIndex].Level, gObj[iIndex].m_PlayerData->Experience,
-		iAddExp);
+	//g_Log.Add("[Imperial Guardian] Experience : [%s][%s](%d) Experience: %d + %d",	
+	//	gObj[iIndex].AccountID,	gObj[iIndex].Name,
+	//	gObj[iIndex].Level, gObj[iIndex].m_PlayerData->Experience,
+	//	iAddExp);
 
 	if ( (gObj[iIndex].m_PlayerData->Experience + iAddExp) < gObj[iIndex].m_PlayerData->NextExp )
 	{

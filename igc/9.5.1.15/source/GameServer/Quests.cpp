@@ -1321,10 +1321,10 @@ int CQuests::LevelUp(LPOBJ lpObj, DWORD Experience)
 
 	::gObjSetExpPetItem(lpObj->m_Index, Experience);
 
-	g_Log.Add(0, __FILE__, __FUNCTION__, "[Quest] Experience : [%s][%s](%d) Experience: %d + %d",	
-		lpObj->AccountID, lpObj->Name,
-		lpObj->Level, lpObj->m_PlayerData->Experience,
-		Experience);
+	//g_Log.Add(0, __FILE__, __FUNCTION__, "[Quest] Experience : [%s][%s](%d) Experience: %d + %d",	
+	//	lpObj->AccountID, lpObj->Name,
+	//	lpObj->Level, lpObj->m_PlayerData->Experience,
+	//	Experience);
 
 	if ( (lpObj->m_PlayerData->Experience + Experience) < lpObj->m_PlayerData->NextExp )
 	{
