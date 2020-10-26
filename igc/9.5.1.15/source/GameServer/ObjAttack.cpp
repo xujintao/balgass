@@ -797,7 +797,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 			if ( iFenrirAttackDmg < 0 )
 				iFenrirAttackDmg = 0;
 
-			int CritDamage = lpObj->m_CriticalDamage;
+			int CritDamage = lpObj->m_CriticalDamageSuccessRate;
 
 			if (lpTargetObj->Type == OBJ_USER)
 			{
@@ -812,7 +812,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 				}
 			}
 
-			int ExtDamage = lpObj->m_ExcelentDamage;
+			int ExtDamage = lpObj->m_ExcellentDamageSuccessRate;
 
 			if (lpTargetObj->Type == OBJ_USER)
 			{
@@ -847,7 +847,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 			{
 				AttackDamage = iFenrirAttackDmg + lpMagic->m_DamageMax;
 				AttackDamage += AttackDamage * 20 / 100;
-				AttackDamage += lpObj->m_PlayerData->SetOpAddExDamage;
+				AttackDamage += lpObj->m_PlayerData->SetOpAddExcellentDamage;
 				AttackDamage -= targetdefense;
 			}
 			else
@@ -3596,44 +3596,45 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 	int SkillLeftMinDamage = 0;
 	CItem * Right = &lpObj->pInventory[0];
 	CItem * Left = &lpObj->pInventory[1];
-	BOOL bTwoHandWeapon = FALSE;
+	BOOL bTwoOneHandWeapon = FALSE;
 
 	if ( lpObj->Type == OBJ_MONSTER || lpObj->Type == OBJ_NPC )
 	{
-		int AttackMin = 0;
 		sub = lpObj->m_AttackDamageMax - lpObj->m_AttackDamageMin;
-		
 		if (sub < 0)
 		{
 			g_Log.Add("Monster Class [%d] Damage is 0, check files configuration", lpObj->Class);
 			return 0;
 		}
 
-		AttackMin = lpObj->m_AttackDamageMin + (rand()%(sub+1));
-		lpObj->m_AttackDamageRight = AttackMin;
-		lpObj->m_AttackDamageLeft = AttackMin;
+		int Attack = lpObj->m_AttackDamageMin + (rand()%(sub+1));
+		lpObj->m_AttackDamageRight = Attack;
+		lpObj->m_AttackDamageLeft = Attack;
 	}
 	else
 	{
-		int cDamage=0;
-
 		if ( lpObj->Class == CLASS_DARKLORD ||
 			 lpObj->Class == CLASS_KNIGHT   ||
 			 lpObj->Class == CLASS_MAGUMSA  ||
 			 lpObj->Class == CLASS_RAGEFIGHTER )
 		{
-			if ( Right->m_Type >= ITEMGET(0,0) && Right->m_Type < ITEMGET(4,0) &&
-				 Left->m_Type >= ITEMGET(0,0) && Left->m_Type < ITEMGET(4,0) )
+			if (Right->m_IsValidItem && Right->m_Type >= ITEMGET(0,0) && Right->m_Type < ITEMGET(4,0)
+			&& Left->m_IsValidItem && Left->m_Type >= ITEMGET(0,0) && Left->m_Type < ITEMGET(4,0))
 			{
-				if ( Right->m_IsValidItem && Left->m_IsValidItem )
-				{
-					bTwoHandWeapon = TRUE;
-				}
+				bTwoOneHandWeapon = TRUE;
 			}
 		}
 
+		// damage panel
+		int DamageMinRight = lpObj->m_AttackDamageMinRight;
+		int DamageMaxRight = lpObj->m_AttackDamageMaxRight;
+		int DamageMinLeft = lpObj->m_AttackDamageMinLeft;
+		int DamageMaxLeft = lpObj->m_AttackDamageMaxLeft;
+
+		// skill attack
 		if ( lpMagic )
 		{
+			// skill attack base
 			if ( (lpMagic ->m_Skill == 60 || lpMagic->m_Skill == 509) && lpObj->SkillLongSpearChange )	// #error 60 and skil from GEt is 66???
 			{
 				SkillRightMaxDamage = DefMagicInf[66].m_DamageMax;// #error ???
@@ -3645,9 +3646,11 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 				SkillRightMinDamage = lpMagic->m_DamageMin;
 			}
 
+			// skill specialization
 			SkillRightMinDamage += g_SkillSpec.CalcStatBonus(lpObj, lpMagic->m_Skill);
 			SkillRightMaxDamage += g_SkillSpec.CalcStatBonus(lpObj, lpMagic->m_Skill);
 
+			// master skill strengthen
 			if (g_MasterLevelSkillTreeSystem.CheckMasterLevelSkill(lpMagic->m_Skill) == true)
 			{
 				float fDamage = g_MasterLevelSkillTreeSystem.GetSkillAttackDamage(lpObj, lpMagic->m_Skill);
@@ -3655,17 +3658,20 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 				SkillRightMinDamage += fDamage;
 			}
 
-			if ( bTwoHandWeapon == FALSE )
+			// 
+			if ( bTwoOneHandWeapon == FALSE )
 			{
 				SkillLeftMaxDamage = SkillRightMaxDamage;
 				SkillLeftMinDamage = SkillRightMinDamage;
-			}			
-			
+			}
+
+			// set option skill attack
 			SkillRightMaxDamage += lpObj->m_PlayerData->SetOpAddSkillAttack;
 			SkillRightMinDamage += lpObj->m_PlayerData->SetOpAddSkillAttack;
 			SkillLeftMaxDamage += lpObj->m_PlayerData->SetOpAddSkillAttack;
 			SkillLeftMinDamage += lpObj->m_PlayerData->SetOpAddSkillAttack;
-			
+
+			// buff
 			if ( gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_ARCA_FIRETOWER) == TRUE )
 			{
 				int nEffectValue = 0;
@@ -3676,7 +3682,6 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 				SkillLeftMaxDamage += nEffectValue;
 				SkillLeftMinDamage += nEffectValue;
 			}
-
 			if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_OBSIDIAN) == TRUE)
 			{
 				int nEffectValue = 0;
@@ -3687,7 +3692,6 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 				SkillLeftMaxDamage += nEffectValue;
 				SkillLeftMinDamage += nEffectValue;
 			}
-
 			if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_OBSIDIAN_STR) == TRUE)
 			{
 				int nEffectValue = 0;
@@ -3699,8 +3703,8 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 				SkillLeftMinDamage += nEffectValue;
 			}
 
+			// muun skill attack
 			int nMuunItemEffectValue = 0;
-
 			if (g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_SKILL_POWER, &nMuunItemEffectValue, 0) == TRUE)
 			{
 				SkillRightMaxDamage += nMuunItemEffectValue;
@@ -3708,47 +3712,32 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 				SkillLeftMaxDamage += nMuunItemEffectValue;
 				SkillLeftMinDamage += nMuunItemEffectValue;
 			}
-
 			if (lpObj->Type == OBJ_USER && lpTargetObj->Type != OBJ_USER)
 			{
 				nMuunItemEffectValue = 0;
-				g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_ATTACK_POWER_NONPVP, &nMuunItemEffectValue, 0);
-
-				SkillRightMaxDamage += nMuunItemEffectValue;
-				SkillRightMinDamage += nMuunItemEffectValue;
-				SkillLeftMaxDamage += nMuunItemEffectValue;
-				SkillLeftMinDamage += nMuunItemEffectValue;
-
-				nMuunItemEffectValue = 0;
-				g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_MAX_ATTACK_POWER_NONPVP, &nMuunItemEffectValue, 0);
-
-				SkillRightMaxDamage += nMuunItemEffectValue;
-				SkillLeftMaxDamage += nMuunItemEffectValue;
-
-				nMuunItemEffectValue = 0;
 				g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_SKILL_POWER_NONPVP, &nMuunItemEffectValue, 0);
-
 				SkillRightMaxDamage += nMuunItemEffectValue;
 				SkillRightMinDamage += nMuunItemEffectValue;
 				SkillLeftMaxDamage += nMuunItemEffectValue;
 				SkillLeftMinDamage += nMuunItemEffectValue;
 			}
 
-			int SkillAttr = MagicDamageC.GetSkillAttr(lpMagic->m_Skill);
+			// int SkillAttr = MagicDamageC.GetSkillAttr(lpMagic->m_Skill);
+			// if ( SkillAttr != -1 )
+			// {
+			// 	SkillRightMaxDamage += (BYTE)lpObj->m_AddResistance[SkillAttr];
+			// 	SkillRightMinDamage += (BYTE)lpObj->m_AddResistance[SkillAttr];
+			// 	SkillLeftMaxDamage  += (BYTE)lpObj->m_AddResistance[SkillAttr];
+			// 	SkillLeftMinDamage  += (BYTE)lpObj->m_AddResistance[SkillAttr];
+			// }
 
-			if ( SkillAttr != -1 )
-			{
-				SkillRightMaxDamage += (BYTE)lpObj->m_AddResistance[SkillAttr];
-				SkillRightMinDamage += (BYTE)lpObj->m_AddResistance[SkillAttr];
-				SkillLeftMaxDamage  += (BYTE)lpObj->m_AddResistance[SkillAttr];
-				SkillLeftMinDamage  += (BYTE)lpObj->m_AddResistance[SkillAttr];
-			}
-
+			// harmoney jewel strengthen skill attack
 			SkillRightMaxDamage += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
 			SkillRightMinDamage += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
 			SkillLeftMaxDamage += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
 			SkillLeftMinDamage += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
 
+			// skill
 			if ( lpMagic->m_Skill == 65 || lpMagic->m_Skill == 519 )
 			{
 				int iPartyCount = this->GetPartyMemberCount(lpObj);
@@ -3763,63 +3752,85 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 			{
 				if ( lpObj->pInventory[lpObj->m_btInvenPetPos].m_Type == ITEMGET(13,4) )	// Dark Horse
 				{
-					int addskilldamage = ( lpObj->m_PlayerData->Strength + lpObj->AddStrength ) / 10 + ( lpObj->Leadership + lpObj->AddLeadership ) / 5 + lpObj->pInventory[lpObj->m_btInvenPetPos].m_PetItem_Level * 10;	// #formula
-
+					int addskilldamage = (lpObj->m_PlayerData->Strength + lpObj->AddStrength)/10 +
+										(lpObj->Leadership + lpObj->AddLeadership)/5 +
+										lpObj->pInventory[lpObj->m_btInvenPetPos].m_PetItem_Level*10;	// #formula
 					addskilldamage = addskilldamage * g_ConfigRead.calc.DarkHorseDamageMultiplier / 100.0f;
-
 					SkillRightMaxDamage += addskilldamage;
 					SkillRightMinDamage += addskilldamage;
 					SkillLeftMaxDamage += addskilldamage;
 					SkillLeftMinDamage += addskilldamage;
-
-
 				}
 			}
-
 			else if (lpObj->Class == CLASS_DARKLORD && (lpMagic->m_Skill == 238 || lpMagic->m_Skill == 523))
 			{
 				int iadddamage = (lpObj->m_PlayerData->Strength + lpObj->AddStrength) / 30 + (lpObj->m_PlayerData->Energy + lpObj->AddEnergy) / 55;	// #formula
-
 				SkillRightMaxDamage += iadddamage;
 				SkillRightMinDamage += iadddamage;
 				SkillLeftMaxDamage += iadddamage;
 				SkillLeftMinDamage += iadddamage;
 			}
-
 			else if ( lpObj->Class == CLASS_DARKLORD )
 			{
 				int iadddamage = ( lpObj->m_PlayerData->Strength + lpObj->AddStrength ) / 25 + ( lpObj->m_PlayerData->Energy + lpObj->AddEnergy ) / 50;	// #formula
-
 				SkillRightMaxDamage += iadddamage;
 				SkillRightMinDamage += iadddamage;
 				SkillLeftMaxDamage += iadddamage;
 				SkillLeftMinDamage += iadddamage;
 			}
 
+			// multishot discount
 			if (lpObj->Class == CLASS_ELF && (lpMagic->m_Skill == 235 || lpMagic->m_Skill == 411 || lpMagic->m_Skill == 431)) //season4 add-on
 			{
 				SkillLeftMaxDamage = SkillLeftMaxDamage * 80 / 100;
 				SkillLeftMinDamage = SkillLeftMinDamage * 80 / 100;
 			}
-		}		
-
-		float nCritical = lpObj->m_CriticalDamage;
-		float nExcellent = lpObj->m_ExcelentDamage;
-
-		if (lpObj->Class == CLASS_RAGEFIGHTER)
-		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate_Monk > 0.0)
-				nCritical = (nCritical + lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate_Monk);
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate_Monk > 0.0)
-				nExcellent = (nExcellent + lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate_Monk);
 		}
-		else
+		DamageMinRight += SkillRightMinDamage;
+		DamageMaxRight += SkillRightMaxDamage;
+		DamageMinLeft += SkillLeftMinDamage;
+		DamageMaxLeft += SkillLeftMaxDamage;
+
+		// berserker buff
+		int iAttackBerserkerMin = 0;
+		int iAttackBerserkerMax = 0;
+		if (lpObj->Type == OBJ_USER && gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER))
+			this->GetBuffTypePhysicalIncrease(lpObj, &iAttackBerserkerMin, &iAttackBerserkerMax, BUFFTYPE_BERSERKER);
+		else if(lpObj->Type == OBJ_USER && gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER_STR))
+			this->GetBuffTypePhysicalIncrease(lpObj, &iAttackBerserkerMin, &iAttackBerserkerMax, BUFFTYPE_BERSERKER_STR);
+		else if(lpObj->Type == OBJ_USER && gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER_MAS))
+			this->GetBuffTypePhysicalIncrease(lpObj, &iAttackBerserkerMin, &iAttackBerserkerMax, BUFFTYPE_BERSERKER_MAS);
+		else if(lpObj->Type == OBJ_USER && gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER_PRO))
+			this->GetBuffTypePhysicalIncrease(lpObj, &iAttackBerserkerMin, &iAttackBerserkerMax, BUFFTYPE_BERSERKER_PRO);
+		DamageMinRight += iAttackBerserkerMin;
+		DamageMaxRight += iAttackBerserkerMax;
+		DamageMinLeft += iAttackBerserkerMin;
+		DamageMaxLeft += iAttackBerserkerMax;
+
+		// muun attack power
+		int iMuunOptDamage = 0;
+		int iMuunOptDamageMax = 0;
+		if (lpObj->Type == OBJ_USER && lpTargetObj->Type != OBJ_USER) // Non PvP
 		{
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate > 0.0)
-				nCritical = (nCritical + lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate);
-			if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate > 0.0)
-				nExcellent = (nExcellent + lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate);
+			g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_ATTACK_POWER_NONPVP, &iMuunOptDamage, 0);
+			g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_MAX_ATTACK_POWER_NONPVP, &iMuunOptDamageMax, 0);
 		}
+		DamageMinRight += iMuunOptDamage;
+		DamageMaxRight += iMuunOptDamage + iMuunOptDamageMax;
+		DamageMinLeft += iMuunOptDamage;
+		DamageMaxLeft += iMuunOptDamage + iMuunOptDamageMax;
+
+		// right
+		sub = DamageMaxRight - DamageMinRight;	// #formula
+		lpObj->m_AttackDamageRight = DamageMinRight + (rand()%(sub+1));
+
+		// left
+		sub = DamageMaxLeft - DamageMinLeft;	// #formula
+		lpObj->m_AttackDamageLeft = DamageMinLeft + (rand()%(sub+1));
+
+		// critical/excellent
+		float nCritical = lpObj->m_CriticalDamageSuccessRate;
+		float nExcellent = lpObj->m_ExcellentDamageSuccessRate;
 
 		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_CRITICAL_DMG_INC_MAS) == true && lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate_Darklord > 0.0)
 		{
@@ -3832,68 +3843,20 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 			nExcellent -= lpTargetObj->m_PlayerData->m_Resistance_Excellent;
 		}
 		
-		if ( nCritical > 0.0 )
+		BOOL cDamage = FALSE;
+		if (nCritical > 0.0 && rand()%10000 < nCritical*100)
 		{
-			if ((rand() % 10000) < nCritical*100)
-			{
-				cDamage = TRUE;
-				effect = 3;
-			}
+			cDamage = TRUE;
+			effect = 3;
 		}
-
-		if ( nExcellent > 0.0 )
+		if (nExcellent > 0.0 && rand()%10000 < nExcellent*100)
 		{
-			if ((rand() % 10000) < nExcellent*100)
-			{
-				cDamage = TRUE;
-				effect = 2;
-			}
+			cDamage = TRUE;
+			effect = 2;
 		}
-
-		int iAttackBerserkerMin = 0;
-		int iAttackBerserkerMax = 0;
-		int iMuunOptDamage = 0;
-		int iMuunOptDamageMax = 0;
-
-		if (lpObj->Type == OBJ_USER && gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER))
-			this->GetBuffTypePhysicalIncrease(lpObj, &iAttackBerserkerMin, &iAttackBerserkerMax, BUFFTYPE_BERSERKER);
-		else if(lpObj->Type == OBJ_USER && gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER_STR))
-			this->GetBuffTypePhysicalIncrease(lpObj, &iAttackBerserkerMin, &iAttackBerserkerMax, BUFFTYPE_BERSERKER_STR);
-		else if(lpObj->Type == OBJ_USER && gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER_MAS))
-			this->GetBuffTypePhysicalIncrease(lpObj, &iAttackBerserkerMin, &iAttackBerserkerMax, BUFFTYPE_BERSERKER_MAS);
-		else if(lpObj->Type == OBJ_USER && gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER_PRO))
-			this->GetBuffTypePhysicalIncrease(lpObj, &iAttackBerserkerMin, &iAttackBerserkerMax, BUFFTYPE_BERSERKER_PRO);
-
-		if (lpObj->Type == OBJ_USER && lpTargetObj->Type != OBJ_USER) // Non PvP
-		{
-			g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_ATTACK_POWER_NONPVP, &iMuunOptDamage, 0);
-			g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_MAX_ATTACK_POWER_NONPVP, &iMuunOptDamageMax, 0);
-		}
-
-		__try
-		{
-			sub = ( lpObj->m_AttackDamageMaxRight + SkillRightMaxDamage + iAttackBerserkerMax + iMuunOptDamage + iMuunOptDamageMax ) - ( lpObj->m_AttackDamageMinRight + SkillRightMinDamage + iAttackBerserkerMin + iMuunOptDamage );	// #formula
-			lpObj->m_AttackDamageRight = ( lpObj->m_AttackDamageMinRight + SkillRightMinDamage + iAttackBerserkerMin + iMuunOptDamage ) + (rand()%(sub+1));
-		}
-		__except ( sub=1, 1 )
-		{
-
-		}
-
-		__try
-		{
-			sub = ( lpObj->m_AttackDamageMaxLeft + SkillLeftMaxDamage + iAttackBerserkerMax + iMuunOptDamage + iMuunOptDamageMax ) - ( lpObj->m_AttackDamageMinLeft + SkillLeftMinDamage + iAttackBerserkerMin + iMuunOptDamage );	// #formula
-			lpObj->m_AttackDamageLeft = ( lpObj->m_AttackDamageMinLeft + SkillLeftMinDamage + iAttackBerserkerMin + iMuunOptDamage ) + (rand()%(sub+1));
-		}
-		__except ( sub=1, 1 )
-		{
-
-		}
-
-		if ( cDamage )
-		{
-			lpObj->m_AttackDamageRight = lpObj->m_AttackDamageMaxRight + SkillRightMaxDamage + iAttackBerserkerMax + iMuunOptDamage + iMuunOptDamageMax;
-			lpObj->m_AttackDamageLeft = lpObj->m_AttackDamageMaxLeft + SkillLeftMaxDamage + iAttackBerserkerMax + iMuunOptDamage + iMuunOptDamageMax;
+		if (cDamage) {
+			lpObj->m_AttackDamageRight = DamageMaxRight;
+			lpObj->m_AttackDamageLeft = DamageMaxLeft;
 
 			lpObj->m_AttackDamageRight += lpObj->m_PlayerData->SetOpAddCriticalDamage;
 			lpObj->m_AttackDamageLeft += lpObj->m_PlayerData->SetOpAddCriticalDamage;
@@ -3903,44 +3866,36 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 
 			int iOption = 0;
 			gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_CRITICAL_DMG_INC, &iOption, 0);
-
 			lpObj->m_AttackDamageRight += iOption;
 			lpObj->m_AttackDamageLeft += iOption;
 
 			iOption = 0;
 			gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_CRITICAL_DMG_INC_STR, &iOption, 0);
-
 			lpObj->m_AttackDamageRight += iOption;
 			lpObj->m_AttackDamageLeft += iOption;
 
 			iOption = 0;
 			gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_CRITICAL_DMG_INC_MAS, &iOption, 0);
-
 			lpObj->m_AttackDamageRight += iOption;
 			lpObj->m_AttackDamageLeft += iOption;
 
-			if ( effect == 2 )
+			if (effect == 2)
 			{
-				lpObj->m_AttackDamageRight += ( lpObj->m_AttackDamageMaxRight + SkillRightMaxDamage + iAttackBerserkerMax + iMuunOptDamage + iMuunOptDamageMax) * 20 / 100;
-				lpObj->m_AttackDamageLeft += ( lpObj->m_AttackDamageMaxLeft + SkillLeftMaxDamage + iAttackBerserkerMax + iMuunOptDamage + iMuunOptDamageMax) * 20 / 100;
+				lpObj->m_AttackDamageRight += (lpObj->m_AttackDamageRight) * 20 / 100;
+				lpObj->m_AttackDamageLeft += (lpObj->m_AttackDamageLeft) * 20 / 100;
 
-				lpObj->m_AttackDamageRight += lpObj->m_PlayerData->SetOpAddExDamage;
-				lpObj->m_AttackDamageLeft += lpObj->m_PlayerData->SetOpAddExDamage;
+				lpObj->m_AttackDamageRight += lpObj->m_PlayerData->SetOpAddExcellentDamage;
+				lpObj->m_AttackDamageLeft += lpObj->m_PlayerData->SetOpAddExcellentDamage;
 			}
 		}
 	}
 
-	if ( bTwoHandWeapon )
+	if ( bTwoOneHandWeapon )
 	{
 		ad = ( lpObj->m_AttackDamageRight + lpObj->m_AttackDamageLeft ) - targetDefense;
 		ad -= lpObj->m_PlayerData->SetOpAddCriticalDamage; //season4 add-on
 	}
-
-	else if ((Left->m_Type >= ITEMGET(4, 0) && Left->m_Type < ITEMGET(4, 7)) ||
-		Left->m_Type == ITEMGET(4, 20) || Left->m_Type == ITEMGET(4, 21) ||
-		Left->m_Type == ITEMGET(4, 22) ||
-		Left->m_Type == ITEMGET(4, 23) ||//season4 add-on
-		Left->m_Type == ITEMGET(4, 24)) //season4.6 add-on
+	else if (Left->GetDetailItemType() == ITEM_BOW) // bow
 	{
 		ad = lpObj->m_AttackDamageLeft - targetDefense;
 
@@ -3949,9 +3904,7 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 			ad += lpObj->m_PlayerData->m_MPSkillOpt.iMpsBowAddDamage;
 		}
 	}
-
-	else if ((Right->m_Type >= ITEMGET(4, 8) && Right->m_Type < ITEMGET(4, 15)) ||
-		(Right->m_Type >= ITEMGET(4, 16) && Right->m_Type < ITEMGET(5, 0)))
+	else if (Right->GetDetailItemType() == ITEM_CROSSBOW) // crossbow
 	{
 		ad = lpObj->m_AttackDamageRight - targetDefense;
 
@@ -3960,8 +3913,7 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 			ad += lpObj->m_PlayerData->m_MPSkillOpt.iMpsTwoHandsBowAddDamage;
 		}
 	}
-
-	else if (Right->GetDetailItemType() == ITEM_TWOHAND_SWORD && Right->GetDetailItemType() == ITEM_TWOHAND_SWORD)
+	else if (Right->GetDetailItemType() == ITEM_TWOHAND_SWORD)
 	{
 		ad = lpObj->m_AttackDamageRight - targetDefense;
 
@@ -3970,18 +3922,15 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 			ad += lpObj->m_PlayerData->m_MPSkillOpt.iMpsTwoHandSwordAddDamage;
 		}
 	}
-
 	else if ( Right->m_Type >= ITEMGET(0,0) && Right->m_Type < ITEMGET(4,0) )
 	{
 		ad = lpObj->m_AttackDamageRight - targetDefense;
 	}
-
 	else if ( Right->m_Type >= ITEMGET(5,0) && Right->m_Type < ITEMGET(6,0) )
 	{
 		ad = lpObj->m_AttackDamageRight - targetDefense;
 
 	}
-
 	else
 	{
 		ad = lpObj->m_AttackDamageLeft - targetDefense;
@@ -4127,7 +4076,7 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 		}
 	}
 
-	if (bTwoHandWeapon)
+	if (bTwoOneHandWeapon)
 	{
 		ad += nAddAttackDamageRight * 0.5 + nAddAttackDamageLeft * 0.5;
 	}
@@ -4422,8 +4371,8 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 
 	}
 
-	int nCritical = lpObj->m_CriticalDamage;
-	int nExcellent = lpObj->m_ExcelentDamage;
+	int nCritical = lpObj->m_CriticalDamageSuccessRate;
+	int nExcellent = lpObj->m_ExcellentDamageSuccessRate;
 
 	if (lpObj->Type == OBJ_USER)
 	{
@@ -4487,7 +4436,7 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 		if (effect == 2)
 		{
 			ad += damagemax * 20 / 100;
-			ad += lpObj->m_PlayerData->SetOpAddExDamage;
+			ad += lpObj->m_PlayerData->SetOpAddExcellentDamage;
 		}
 	}
 
@@ -4860,8 +4809,8 @@ int  CObjAttack::GetAttackDamageWizard(LPOBJ lpObj, LPOBJ lpTargetObj, int targe
 
 	}
 
-	int nCritical = lpObj->m_CriticalDamage;
-	int nExcellent = lpObj->m_ExcelentDamage;
+	int nCritical = lpObj->m_CriticalDamageSuccessRate;
+	int nExcellent = lpObj->m_ExcellentDamageSuccessRate;
 
 	if (lpObj->Type == OBJ_USER)
 	{
@@ -4925,7 +4874,7 @@ int  CObjAttack::GetAttackDamageWizard(LPOBJ lpObj, LPOBJ lpTargetObj, int targe
 		if (effect == 2)
 		{
 			ad += damagemax * 20 / 100;
-			ad += lpObj->m_PlayerData->SetOpAddExDamage;
+			ad += lpObj->m_PlayerData->SetOpAddExcellentDamage;
 		}
 	}
 
