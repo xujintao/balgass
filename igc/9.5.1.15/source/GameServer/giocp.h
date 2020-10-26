@@ -58,7 +58,6 @@ public:
 	bool UpdateCompletionPort(SOCKET sd, int ClientIndex, BOOL bAddToList);
 	void CloseClient(_PER_SOCKET_CONTEXT * lpPerSocketContext, int result);
 	void CloseClient(int index);
-	void ResponErrorCloseClient(int index);
 
 private:
 

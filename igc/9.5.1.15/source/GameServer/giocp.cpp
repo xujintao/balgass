@@ -835,24 +835,3 @@ void CIOCP::CloseClient(int index) // go to game
 	}
 	LeaveCriticalSection(&criti);
 }
-
-void CIOCP::ResponErrorCloseClient(int index)
-{
-	if ( index < 0 || index > g_ConfigRead.server.GetObjectMax()-1 )
-	{
-		g_Log.Add("error-L1 : CloseClient index error");
-		return;
-	}
-
-	if ( gObj[index].Connected == PLAYER_EMPTY )
-	{
-		g_Log.Add("error-L1 : CloseClient connect error");
-		return;
-	}
-
-	EnterCriticalSection(&criti);
-	closesocket(gObj[index].m_socket);
-	gObj[index].m_socket = INVALID_SOCKET;
-	gObjDel(index);
-	LeaveCriticalSection(&criti);
-}
