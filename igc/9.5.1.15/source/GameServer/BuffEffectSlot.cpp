@@ -55,35 +55,35 @@ int CBuffEffectSlot::SetEffect(LPOBJECTSTRUCT lpObj, int iBuffIndex, BYTE btEffe
 
 	if(lpBuffData == NULL)	return -1;
 
-	int i;
-	for( i = 0; i < MAX_BUFFEFFECT; i++)
+	// range buff list of object, remove the same buff type
+	for (int i=0; i<MAX_BUFFEFFECT; i++)
 	{
-		if( lpObj->m_BuffEffectList[i].BuffIndex != BUFFTYPE_NONE )
+		if (lpObj->m_BuffEffectList[i].BuffIndex != BUFFTYPE_NONE)
 		{
 			lpPrevBuffData = g_BuffScript.GetBuffData(lpObj->m_BuffEffectList[i].BuffIndex);
-
-			if(lpPrevBuffData == NULL) continue;
-
-			if(lpPrevBuffData->BuffEffectType == lpBuffData->BuffEffectType)
+			if (lpPrevBuffData == NULL)
+				continue;
+			if (lpPrevBuffData->BuffEffectType == lpBuffData->BuffEffectType)
 			{
 				RemoveEffect(lpObj, lpObj->m_BuffEffectList[i].BuffIndex);
 				iRemovedBuffIndex = lpPrevBuffData->BuffIndex;
 			}
 
-			if(lpPrevBuffData->BuffType == BUFFEFFECT_TYPE_POSITIVE)
+			if (lpPrevBuffData->BuffType == BUFFEFFECT_TYPE_POSITIVE)
 			{
 				BuffCount++;
 			}
-			else if(lpPrevBuffData->BuffType == BUFFEFFECT_TYPE_NEGATIVE)
+			else if (lpPrevBuffData->BuffType == BUFFEFFECT_TYPE_NEGATIVE)
 			{
 				DebuffCount++;
 			}
 
-			if(i > lpObj->m_BuffEffectCount) break;
+			if (i > lpObj->m_BuffEffectCount)
+				break;
 		}
 	}
 
-	for( i = 0; i < MAX_BUFFEFFECT; i++)
+	for (int i=0; i<MAX_BUFFEFFECT; i++)
 	{
 		if(lpObj->m_BuffEffectList[i].BuffIndex == BUFFTYPE_NONE)
 		{
@@ -212,13 +212,7 @@ int CBuffEffectSlot::ClearEffect(LPOBJECTSTRUCT lpObj, enum eBuffClearType Clear
 
 LPBUFF_EFFECT_DATE CBuffEffectSlot::GetEffectData(int iBuffIndex)
 {
-	LPBUFF_EFFECT_DATE lpBuffData = NULL;
-
-	if(g_BuffScript.CheckVaildBuffEffect(iBuffIndex) == false)	return NULL;
-	
-	lpBuffData = g_BuffScript.GetBuffData(iBuffIndex);
-
-	return lpBuffData;
+	return g_BuffScript.GetBuffData(iBuffIndex);
 }
 
 LPBUFF_EFFECT_DATE CBuffEffectSlot::GetEffectDataFromItemCode(WORD wItemCode)
@@ -281,219 +275,182 @@ void gObjCheckBuffEffectList(LPOBJECTSTRUCT lpObj)
 
 bool gObjAddBuffEffect(LPOBJECTSTRUCT lpObj, int iBuffIndex)
 {
-	if(lpObj == NULL)	return false;
+	if (lpObj == NULL)
+		return false;
+	if (lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax())
+		return false;
+	if (lpObj->m_bOffLevel == true && g_OffLevel.m_General.Immortal == 1)
+		return false;
 
-	if(lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax()) return false;
+	LPBUFF_EFFECT_DATE lpBuffData = g_BuffEffectSlot.GetEffectData(iBuffIndex);
+	if (lpBuffData == NULL)
+		return false;
 
-	if(lpObj->m_bOffLevel == true && g_OffLevel.m_General.Immortal == 1) return false;
+	int iItemCode = (lpBuffData->ItemType << 9) + lpBuffData->ItemIndex;
+	LPITEMEFFECT lpItemEffectInfo = g_ItemAddOption.GetItemEffectData(iItemCode);
+	if (lpItemEffectInfo == NULL) {
+		return false;
+	}
 
-	int iItemCode = 0;
-	LPITEMEFFECT lpItemEffectInfo = NULL;
-	LPBUFF_EFFECT_DATE lpBuffData = NULL;
-
-	lpBuffData = g_BuffEffectSlot.GetEffectData(iBuffIndex);
-
-	if(lpBuffData == NULL)	return false;
-
-	iItemCode = (lpBuffData->ItemType << 9) + lpBuffData->ItemIndex;
-
-	if(g_ItemAddOption.IsValidEffect(iItemCode) == false)	return false;
-
-	lpItemEffectInfo = g_ItemAddOption.GetItemEffectData(iItemCode);
-
-	int iRemoveBuffIndex = 0;
-
-	iRemoveBuffIndex = g_BuffEffectSlot.SetEffect(lpObj, iBuffIndex, lpItemEffectInfo->wEffectType1, lpItemEffectInfo->wEffectType2, lpItemEffectInfo->iEffectValue1, lpItemEffectInfo->iEffectValue2, lpItemEffectInfo->iEffectValidTime);
-
+	int iRemoveBuffIndex = g_BuffEffectSlot.SetEffect(lpObj, iBuffIndex, lpItemEffectInfo->wEffectType1, lpItemEffectInfo->wEffectType2, lpItemEffectInfo->iEffectValue1, lpItemEffectInfo->iEffectValue2, lpItemEffectInfo->iEffectValidTime);
 	if(iRemoveBuffIndex != -1)
 	{
 		if(iRemoveBuffIndex > 0)
-		{
-			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_NEW, lpItemEffectInfo->wOptionType, 0, 0, 0);
-		}
-		else lpObj->m_BuffEffectCount++;
-		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_DELETE, lpItemEffectInfo->wOptionType, lpItemEffectInfo->wEffectType1, lpItemEffectInfo->iEffectValidTime, lpItemEffectInfo->iEffectValue1);
+			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_REMOVE1, lpItemEffectInfo->wOptionType, 0, 0, 0);
+		else
+			lpObj->m_BuffEffectCount++;
+		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_ADD, lpItemEffectInfo->wOptionType, lpItemEffectInfo->wEffectType1, lpItemEffectInfo->iEffectValidTime, lpItemEffectInfo->iEffectValue1);
 		return true;
 	}
-
 	return false;
 }
 
 bool gObjAddBuffEffect(LPOBJECTSTRUCT lpObj, int iBuffIndex, BYTE EffectType1, int EffectValue1, BYTE EffectType2, int EffectValue2, int Duration)
 {
-	if(lpObj == NULL)	return false;
+	if (lpObj == NULL)
+		return false;
+	if (lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax())
+		return false;
+	if (lpObj->m_bOffLevel == true && g_OffLevel.m_General.Immortal == 1)
+		return false;
 
-	if(lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax()) return false;
+	LPBUFF_EFFECT_DATE lpBuffData = g_BuffEffectSlot.GetEffectData(iBuffIndex);
+	if (lpBuffData == NULL)
+		return false;
 
-	if(lpObj->m_bOffLevel == true && g_OffLevel.m_General.Immortal == 1) return false;
-
-	LPBUFF_EFFECT_DATE lpBuffData = NULL;
-
-	lpBuffData = g_BuffEffectSlot.GetEffectData(iBuffIndex);
-
-	int iRemoveBuffIndex = 0;
-
-	iRemoveBuffIndex = g_BuffEffectSlot.SetEffect(lpObj, iBuffIndex, EffectType1, EffectType2, EffectValue1, EffectValue2, Duration);
-
+	int iRemoveBuffIndex = g_BuffEffectSlot.SetEffect(lpObj, iBuffIndex, EffectType1, EffectType2, EffectValue1, EffectValue2, Duration);
 	if(iRemoveBuffIndex != -1)
 	{
 		if(iRemoveBuffIndex > 0)
-		{
-			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_NEW, lpBuffData->BuffEffectType, 0, 0, 0);
-		}
-		else lpObj->m_BuffEffectCount++;
-		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_DELETE, lpBuffData->BuffEffectType, EffectType1, Duration, EffectValue1);
+			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_REMOVE1, lpBuffData->BuffEffectType, 0, 0, 0);
+		else
+			lpObj->m_BuffEffectCount++;
+		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_ADD, lpBuffData->BuffEffectType, EffectType1, Duration, EffectValue1);
 		return true;
 	}
-
 	return false;
 }
 
 bool gObjAddBuffEffect(LPOBJECTSTRUCT lpObj, int iBuffIndex, int Duration)
 {
-	if(lpObj == NULL)	return false;
+	if (lpObj == NULL)
+		return false;
+	if (lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax())
+		return false;
+	if (lpObj->m_bOffLevel == true && g_OffLevel.m_General.Immortal == 1)
+		return false;
 
-	if(lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax()) return false;
+	LPBUFF_EFFECT_DATE lpBuffData = g_BuffEffectSlot.GetEffectData(iBuffIndex);
+	if (lpBuffData == NULL)
+		return false;
 
-	if(lpObj->m_bOffLevel == true && g_OffLevel.m_General.Immortal == 1) return false;
+	int iItemCode = (lpBuffData->ItemType << 9) + lpBuffData->ItemIndex;
+	LPITEMEFFECT lpItemEffectInfo = g_ItemAddOption.GetItemEffectData(iItemCode);
+	if (lpItemEffectInfo == NULL) {
+		return false;
+	}
 
-	int iItemCode = 0;
-	LPITEMEFFECT lpItemEffectInfo = NULL;
-	LPBUFF_EFFECT_DATE lpBuffData = NULL;
-
-	lpBuffData = g_BuffEffectSlot.GetEffectData(iBuffIndex);
-
-	if(lpBuffData == NULL)	return false;
-
-	iItemCode = (lpBuffData->ItemType << 9) + lpBuffData->ItemIndex;
-
-	if(g_ItemAddOption.IsValidEffect(iItemCode) == false)	return false;
-
-	lpItemEffectInfo = g_ItemAddOption.GetItemEffectData(iItemCode);
-
-	int iRemoveBuffIndex = 0;
-
-	iRemoveBuffIndex = g_BuffEffectSlot.SetEffect(lpObj, iBuffIndex, lpItemEffectInfo->wEffectType1, lpItemEffectInfo->wEffectType2, lpItemEffectInfo->iEffectValue1, lpItemEffectInfo->iEffectValue2, Duration);
-
+	int iRemoveBuffIndex = g_BuffEffectSlot.SetEffect(lpObj, iBuffIndex, lpItemEffectInfo->wEffectType1, lpItemEffectInfo->wEffectType2, lpItemEffectInfo->iEffectValue1, lpItemEffectInfo->iEffectValue2, Duration);
 	if(iRemoveBuffIndex != -1)
 	{
 		if(iRemoveBuffIndex > 0)
-		{
-			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_NEW, lpItemEffectInfo->wOptionType, 0, 0, 0);
-		}
-
-		else lpObj->m_BuffEffectCount++;
-		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_DELETE, lpItemEffectInfo->wOptionType, lpItemEffectInfo->wEffectType1, Duration, lpItemEffectInfo->iEffectValue1);
-
+			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_REMOVE1, lpItemEffectInfo->wOptionType, 0, 0, 0);
+		else
+			lpObj->m_BuffEffectCount++;
+		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_ADD, lpItemEffectInfo->wOptionType, lpItemEffectInfo->wEffectType1, Duration, lpItemEffectInfo->iEffectValue1);
 		return true;
 	}
-
 	return false;
 }
 
 bool gObjAddPeriodBuffEffect(OBJECTSTRUCT *lpObj, _tagPeriodBuffEffectInfo *lpPeriBuff, unsigned int dwDuration)
 {
-	if(lpObj == NULL)	return false;
+	if (lpObj == NULL)
+		return false;
 
-	if(lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax()) return false;
+	if (lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax())
+		return false;
 
-	LPBUFF_EFFECT_DATE lpBuffData = NULL;
+	LPBUFF_EFFECT_DATE lpBuffData = g_BuffEffectSlot.GetEffectData(lpPeriBuff->wBuffIndex);
+	if (lpBuffData == NULL)
+		return false;
 
-	lpBuffData = g_BuffEffectSlot.GetEffectData(lpPeriBuff->wBuffIndex);
-
-	if(lpBuffData == NULL)	return false;
-
-	int iRemoveBuffIndex = 0;
-
-	iRemoveBuffIndex = g_BuffEffectSlot.SetEffect(lpObj, lpPeriBuff->wBuffIndex, lpPeriBuff->btEffectType1, lpPeriBuff->btEffectType2, lpPeriBuff->wEffectValue1, lpPeriBuff->wEffectValue2, dwDuration);
-       
+	int iRemoveBuffIndex = g_BuffEffectSlot.SetEffect(lpObj, lpPeriBuff->wBuffIndex, lpPeriBuff->btEffectType1, lpPeriBuff->btEffectType2, lpPeriBuff->wEffectValue1, lpPeriBuff->wEffectValue2, dwDuration);
 	if(iRemoveBuffIndex != -1)
 	{
 		if(iRemoveBuffIndex > 0)
-		{
-			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_NEW, lpBuffData->BuffEffectType, 0, 0, 0);
-		}
-
-		else lpObj->m_BuffEffectCount++;
-
+			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_REMOVE1, lpBuffData->BuffEffectType, 0, 0, 0);
+		else
+			lpObj->m_BuffEffectCount++;
 		gObjCalCharacter.CalcCharacter(lpObj->m_Index);
-		GCUseBuffEffect(lpObj, lpPeriBuff->wBuffIndex, BUFFSTATE_BUFF_DELETE, lpBuffData->BuffEffectType, lpPeriBuff->btEffectType1, dwDuration, lpPeriBuff->wEffectValue1);
+		GCUseBuffEffect(lpObj, lpPeriBuff->wBuffIndex, BUFFSTATE_BUFF_ADD, lpBuffData->BuffEffectType, lpPeriBuff->btEffectType1, dwDuration, lpPeriBuff->wEffectValue1);
 		return true;
 	}
-
 	return false;
 }
 
 bool gObjAddBuffEffectForInGameShop(LPOBJECTSTRUCT lpObj, WORD wItemCode, int Duration)
 {
-	if(lpObj == NULL) return false;
+	if (lpObj == NULL)
+		return false;
+	if (lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax())
+		return false;
+	if (Duration <= 0)
+		return false;
 
-	if(lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax()) return false;
+	LPBUFF_EFFECT_DATE lpBuffData = g_BuffEffectSlot.GetEffectDataFromItemCode(wItemCode);
+	if (lpBuffData == NULL)
+		return false;
 
-	if(Duration <= 0) return false;
-
-
-	LPBUFF_EFFECT_DATE lpBuffData = NULL;
-	LPITEMEFFECT lpItemEffectInfo = NULL;
-
-	lpBuffData = g_BuffEffectSlot.GetEffectDataFromItemCode(wItemCode);
-
-	if (lpBuffData == NULL) return false;
-
-	if (g_ItemAddOption.IsValidEffect(wItemCode) == false) return false;
-
-	lpItemEffectInfo = g_ItemAddOption.GetItemEffectData(wItemCode);
-
-	int iRemoveBuffIndex = g_BuffEffectSlot.SetEffect(lpObj, lpBuffData->BuffIndex, lpItemEffectInfo->wEffectType1, lpItemEffectInfo->wEffectType2, lpItemEffectInfo->iEffectValue1, lpItemEffectInfo->iEffectValue2, Duration);
-
-	if(iRemoveBuffIndex == -1)
-	{
+	LPITEMEFFECT lpItemEffectInfo = g_ItemAddOption.GetItemEffectData(wItemCode);
+	if (lpItemEffectInfo == NULL) {
 		return false;
 	}
 
-	else if(iRemoveBuffIndex > 0)
+	int iRemoveBuffIndex = g_BuffEffectSlot.SetEffect(lpObj, lpBuffData->BuffIndex, lpItemEffectInfo->wEffectType1, lpItemEffectInfo->wEffectType2, lpItemEffectInfo->iEffectValue1, lpItemEffectInfo->iEffectValue2, Duration);
+	if(iRemoveBuffIndex != -1)
 	{
-		GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_NEW, lpItemEffectInfo->wOptionType, 0, 0, 0);
-	}
-
-	else
-	{
-		lpObj->m_BuffEffectCount++;
+		if(iRemoveBuffIndex > 0)
+			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_REMOVE1, lpItemEffectInfo->wOptionType, 0, 0, 0);
+		else
+			lpObj->m_BuffEffectCount++;
 		gObjCalCharacter.CalcCharacter(lpObj->m_Index);
+		GCUseBuffEffect(lpObj, lpBuffData->BuffIndex, BUFFSTATE_BUFF_ADD, lpItemEffectInfo->wOptionType, lpItemEffectInfo->wEffectType1, Duration, lpItemEffectInfo->iEffectValue1);
+		return true;
 	}
-
-	GCUseBuffEffect(lpObj, lpBuffData->BuffIndex, BUFFSTATE_BUFF_DELETE, lpItemEffectInfo->wOptionType, lpItemEffectInfo->wEffectType1, Duration, lpItemEffectInfo->iEffectValue1);
-	return true;
+	return false;
 }
 
 bool gObjRemoveBuffEffect(LPOBJECTSTRUCT lpObj, int iBuffIndex)
 {
-	if(lpObj == NULL)	return false;
+	if (lpObj == NULL)
+		return false;
 
-	if(lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax())	return false;
+	if (lpObj->m_Index < 0 || lpObj->m_Index > g_ConfigRead.server.GetObjectMax())
+		return false;
 
-	LPBUFF_EFFECT_DATE lpBuffData = NULL;
-
-	lpBuffData = g_BuffEffectSlot.GetEffectData(iBuffIndex);
-
-	if(lpBuffData == NULL)	return false;
+	LPBUFF_EFFECT_DATE lpBuffData = g_BuffEffectSlot.GetEffectData(iBuffIndex);
+	if(lpBuffData == NULL)
+		return false;
 
 	if(g_BuffEffectSlot.RemoveEffect(lpObj, iBuffIndex) == true)
 	{
 		g_BuffEffectSlot.RemoveBuffVariable(lpObj, iBuffIndex);
 		lpObj->m_BuffEffectCount--;
-		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_ADD, 0, lpBuffData->BuffEffectType, 0, 0);
-		
-		if ( iBuffIndex == BUFFTYPE_MONK_INCREASE_HEALTH || iBuffIndex == BUFFTYPE_MONK_INCREASE_HEALTH_STR || iBuffIndex == BUFFTYPE_BLESS ||
-			iBuffIndex == BUFFTYPE_ACHERON_FIRE || iBuffIndex == BUFFTYPE_ACHERON_FROST || iBuffIndex == BUFFTYPE_ACHERON_TORNADO ||
-			iBuffIndex == BUFFTYPE_ACHERON_BIND || iBuffIndex == BUFFTYPE_ACHERON_DARKNESS )
+		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_REMOVE2, 0, lpBuffData->BuffEffectType, 0, 0);
+		if (iBuffIndex == BUFFTYPE_MONK_INCREASE_HEALTH
+		|| iBuffIndex == BUFFTYPE_MONK_INCREASE_HEALTH_STR
+		|| iBuffIndex == BUFFTYPE_BLESS
+		|| iBuffIndex == BUFFTYPE_ACHERON_FIRE
+		|| iBuffIndex == BUFFTYPE_ACHERON_FROST
+		|| iBuffIndex == BUFFTYPE_ACHERON_TORNADO
+		|| iBuffIndex == BUFFTYPE_ACHERON_BIND
+		|| iBuffIndex == BUFFTYPE_ACHERON_DARKNESS)
 		{
 			gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 		}
-
 		return true;
 	}
-
 	return false;
 }
 
