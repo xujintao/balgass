@@ -24,7 +24,7 @@ public:
 	void SetItemStatPlusSpecial(LPOBJ lpObj, int option, int ivalue);
 	void SetItemPlusSpecial(LPOBJ lpObj, int option, int ivalue);
 	void SetItemApply(LPOBJ lpObj);
-	void CalcMLSkillItemOption(LPOBJ lpObj);
+	void ApplyMLSkillItemOption(LPOBJ lpObj);
 	BOOL ValidItem(LPOBJ lpObj, CItem * lpItem, int pos);
 	void CalcShieldPoint(LPOBJ lpObj);
 	void PremiumItemApply(LPOBJ lpObj);
