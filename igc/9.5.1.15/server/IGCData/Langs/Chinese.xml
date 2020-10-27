@@ -470,12 +470,12 @@
 		<Msg ID="440" Text="[CmdAdd]: Points added [%d] to energy. switch character" annotation="[CmdAdd]: Points added [%d] to energy. switch character" />
 		<Msg ID="441" Text="[CmdAdd]: Only Dark Lord Can use /addcmd" annotation="[CmdAdd]: Only Dark Lord Can use /addcmd" />
 		<Msg ID="442" Text="[CmdAdd]: Points added [%d] to Command." annotation="[CmdAdd]: Points added [%d] to Command." />
-		<Msg ID="443" Text="Server Information: Name: %s Code: %d Online Players: %d/%d" annotation="Server Information: Name: %s Code: %d Online Players: %d/%d" />
-		<Msg ID="444" Text="Server Time: %02d:%02d:%02d %02d-%02d-%02d." annotation="Server Time: %02d:%02d:%02d %02d-%02d-%02d." />
-		<Msg ID="445" Text="Total Info:" annotation="Total Info:" />
-		<Msg ID="446" Text="Account: %s Name: %s Level: %d Master Level: %d Class Code: %d" annotation="Account: %s Name: %s Level: %d Master Level: %d Class Code: %d" />
-		<Msg ID="447" Text="Swear Warning Level: %d Map: %s X: %d Y: %d" annotation="Swear Warning Level: %d Map: %s X: %d Y: %d" />
-		<Msg ID="448" Text="Wife/Husband Online Status: %d" annotation="Wife/Husband Online Status: %d" />
+		<Msg ID="443" Text="攻击力(率)(PK): %d~%d(%d)(%.0f)" annotation="Server Information: Name: %s Code: %d Online Players: %d/%d" />
+		<Msg ID="444" Text="防御力(率)(PK): %d(%d)(%.0f)" annotation="Server Time: %02d:%02d:%02d %02d-%02d-%02d." />
+		<Msg ID="445" Text="攻击速度: %d %d" annotation="Total Info:" />
+		<Msg ID="446" Text="魔法攻击力: %d~%d 诅咒攻击力: %d~%d" annotation="Account: %s Name: %s Level: %d Master Level: %d Class Code: %d" />
+		<Msg ID="447" Text="幸运一击: %d%%%% 卓越一击: %d%%%%" annotation="Swear Warning Level: %d Map: %s X: %d Y: %d" />
+		<Msg ID="448" Text="无视概率: %.2f%%%% 双倍概率: %.2f%%%%" annotation="Wife/Husband Online Status: %d" />
 		<Msg ID="449" Text="You have insufficient GM Level (You need 7 Level)" annotation="You have insufficient GM Level (You need 7 Level)" />
 		<Msg ID="450" Text="You need %d money to reset PK" annotation="You need %d money to reset PK" />
 		<Msg ID="451" Text="Please wait %d seconds" annotation="Please wait %d seconds" />
