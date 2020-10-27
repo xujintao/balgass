@@ -1203,9 +1203,15 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 			lpObj->m_AttackDamageMax = (lpObj->m_AttackDamageMaxRight + lpObj->m_AttackDamageMaxLeft)/2;
 		}
 		break;
-	default:
-		lpObj->m_AttackDamageMin = (lpObj->m_AttackDamageMinRight + lpObj->m_AttackDamageMinLeft)/2;
-		lpObj->m_AttackDamageMax = (lpObj->m_AttackDamageMaxRight + lpObj->m_AttackDamageMaxLeft)/2;
+	default: // wizard summoner
+		if (Right->m_IsValidItem) {
+			lpObj->m_AttackDamageMin = lpObj->m_AttackDamageMinRight;
+			lpObj->m_AttackDamageMax = lpObj->m_AttackDamageMaxRight;
+		}
+		else {
+			lpObj->m_AttackDamageMin = (lpObj->m_AttackDamageMinRight + lpObj->m_AttackDamageMinLeft)/2;
+			lpObj->m_AttackDamageMax = (lpObj->m_AttackDamageMaxRight + lpObj->m_AttackDamageMaxLeft)/2;
+		}
 	}
 
 	if (gObjSatanSprite(lpObj) == TRUE){
