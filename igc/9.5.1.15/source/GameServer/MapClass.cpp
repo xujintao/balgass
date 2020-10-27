@@ -657,7 +657,7 @@ void MapClass::StateSetDestroy()
 			{
 				if ( CurTime > this->m_cItem[n].m_Time )
 				{
-					g_Log.Add("Item has disappeared (%s:%d / Level: %d / Skill: %d / Serial: %I64d)", this->m_cItem[n].GetName(), this->m_cItem[n].m_Type, this->m_cItem[n].m_Level, this->m_cItem[n].m_Special[0] , this->m_cItem[n].m_Number);
+					// g_Log.Add("Item has disappeared (%s:%d / Level: %d / Skill: %d / Serial: %I64d)", this->m_cItem[n].GetName(), this->m_cItem[n].m_Type, this->m_cItem[n].m_Level, this->m_cItem[n].m_Special[0] , this->m_cItem[n].m_Number);
 					this->m_cItem[n].m_State = 8;
 
 					if (this->m_cItem[n].m_Type == ITEMGET(14, 223))
