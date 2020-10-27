@@ -115,11 +115,11 @@
 	</Section>
 
 	<Section ID="5">
-		<Item Cat="14" Index="78" Option1="9" Value1="50" Option2="0" Value2="0" Time="864000" /> <!-- Elixir of Strength -->
-		<Item Cat="14" Index="79" Option1="10" Value1="50" Option2="0" Value2="0" Time="864000" /> <!-- Elixir of Agility -->
-		<Item Cat="14" Index="80" Option1="11" Value1="50" Option2="0" Value2="0" Time="864000" /> <!-- Elixir of Health -->
-		<Item Cat="14" Index="81" Option1="12" Value1="50" Option2="0" Value2="0" Time="864000" /> <!-- Elixir of Energy -->
-		<Item Cat="14" Index="82" Option1="13" Value1="50" Option2="0" Value2="0" Time="864000" /> <!-- Elixir of Control -->
+		<Item Cat="14" Index="78" Option1="9" Value1="50" Option2="0" Value2="0" Time="86400" /> <!-- Elixir of Strength -->
+		<Item Cat="14" Index="79" Option1="10" Value1="50" Option2="0" Value2="0" Time="86400" /> <!-- Elixir of Agility -->
+		<Item Cat="14" Index="80" Option1="11" Value1="50" Option2="0" Value2="0" Time="86400" /> <!-- Elixir of Health -->
+		<Item Cat="14" Index="81" Option1="12" Value1="50" Option2="0" Value2="0" Time="86400" /> <!-- Elixir of Energy -->
+		<Item Cat="14" Index="82" Option1="13" Value1="50" Option2="0" Value2="0" Time="86400" /> <!-- Elixir of Control -->
 	</Section>
 
 	<Section ID="6">
