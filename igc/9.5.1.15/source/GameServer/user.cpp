@@ -1430,7 +1430,6 @@ void gObjCharZeroSet(int aIndex)
 	lpObj->AddLeadership = 0;
 	lpObj->ChatLimitTime = 0;
 	lpObj->ChatLimitTimeSec = 0;
-	lpObj->SkillLongSpearChange = false;
 
 	lpObj->bEnableDelCharacter = 1;
 

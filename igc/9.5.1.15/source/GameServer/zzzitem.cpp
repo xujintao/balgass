@@ -857,626 +857,306 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	this->m_Option1 = 0;
 	this->m_Option2 = 0;
 	this->m_Option3 = 0;
-	this->m_SkillChange = FALSE;
 
-	if ( Option1	!= 0 )
+	// 0: skill
+	if (Option1 != 0)
 	{
 		if ( p->SkillType != 0 )
 		{
-			if ( p->SkillType == 66 )
-			{
-				this->m_SkillChange = TRUE;
-				this->m_Special[this->m_SpecialNum] = 0;
-				this->m_Option1 = 1;
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = p->SkillType;
-				this->m_Option1 = 1;
-			}
+			this->m_Special[this->m_SpecialNum] = p->SkillType;
+			this->m_Option1 = 1;
 		}
 	}
-
-	if ( this->m_Type == ITEMGET(13,3) )	// Dinorant
-	{
-		this->m_Option1 = TRUE;
-		this->m_Special[this->m_SpecialNum] = 49;
-	}
-
-	if ( this->m_Type == ITEMGET(13,4) )	//Dark Horse
-	{
-		this->m_Option1 = TRUE;
-		this->m_Special[this->m_SpecialNum] = 62;
-	}
-
-	if ( this->m_Type == ITEMGET(13,37) )
-	{
-		this->m_Option1 = TRUE;
-		this->m_Special[this->m_SpecialNum] = 76;
-	}
-
-	if (this->m_Type >= ITEMGET(12,200) && this->m_Type <= ITEMGET(12,220))
+	if (GetItemKindB(_type) == ITEM_KIND_B_PENTAGRAM_ITEM)
 	{
 		this->m_Special[this->m_SpecialNum] = 106;
 	}
-
 	this->m_SpecialNum++;
 
-	if ( Option2 != 0 )
+	// 1: luck
+	if (Option2 != 0)
 	{
-		if ( _type >= ITEMGET(0,0) && _type < ITEMGET(12,0) )
+		if (GetItemKindA(_type) == ITEM_KIND_A_WEAPON
+		|| GetItemKindA(_type) == ITEM_KIND_A_ARMOR
+		|| GetItemKindA(_type) == ITEM_KIND_A_WING)
 		{
 			this->m_Special[this->m_SpecialNum] = 84;
 			this->m_Option2 = 1;
 		}
-
-		if ( (_type >= ITEMGET(12,0) && _type <= ITEMGET(12,6)) || (_type >= ITEMGET(12,41) && _type <= ITEMGET(12,42)) || _type == ITEMGET(12,49) || _type == ITEMGET(12,269) )	// Wings
-		{
-			this->m_Special[this->m_SpecialNum] = 84;
-			this->m_Option2 = 1;
-		}
-
-		if ( _type == ITEMGET(13,30) )	// Cape of Lord
-		{
-			this->m_Special[this->m_SpecialNum] = 84;
-			this->m_Option2 = 1;
-		}
-
-		if ( (_type >= ITEMGET(12,36) && _type <= ITEMGET(12,40)) || _type == ITEMGET(12,43) || _type == ITEMGET(12,50) || _type == ITEMGET(12,270) )	// Third Wings
-		{
-			this->m_Special[this->m_SpecialNum] = 84;
-			this->m_Option2 = 1;
-		}
-
-		if ( (_type >= ITEMGET(12,41) && _type <= ITEMGET(12,43)) )
-		{
-			this->m_Special[this->m_SpecialNum] = 84;
-			this->m_Option2 = 1;
-		}
-
-		if ( (_type >= ITEMGET(12,262) && _type <= ITEMGET(12,265)) )
-		{
-			this->m_Special[this->m_SpecialNum] = 84;
-			this->m_Option2 = 1;
-		}
-
-		if (_type == ITEMGET(12,266) || _type == ITEMGET(12,267) || _type == ITEMGET(12,268))
-		{
-			this->m_Special[this->m_SpecialNum] = 84;
-			this->m_Option2 = 1;
-		}
-
 	}
-
-	if (this->m_Type >= ITEMGET(12, 200) && this->m_Type <= ITEMGET(12, 220))
+	if (GetItemKindB(_type) == ITEM_KIND_B_PENTAGRAM_ITEM)
 	{
 		this->m_Special[this->m_SpecialNum] = 107;
 	}
-
 	this->m_SpecialNum++;
 
-	if ( Option3 != 0 )
+	// 2: addition
+	if (Option3 != 0)
 	{
-		if ( _type >= ITEMGET(0,0) && _type < ITEMGET(5,0) )
+		this->m_Option3 = Option3;
+
+		// weapon of physical append attack damage
+		if (_type >= ITEMGET(0,0) && _type < ITEMGET(5,0))
 		{
 			this->m_Special[this->m_SpecialNum] = 80;
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
+			this->m_RequireStrength += Option3 * 4;
 		}
 
-		if ( _type >= ITEMGET(5,0) && _type < ITEMGET(6,0) )
+		// weapon of magic append magic damage
+		if (_type >= ITEMGET(5,0) && _type < ITEMGET(6,0))
 		{
 			this->m_Special[this->m_SpecialNum] = 81;
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
+			this->m_RequireStrength += Option3 * 4;
 		}
 		
+		// shield append defense rate
 		if ( _type >= ITEMGET(6,0) && _type < ITEMGET(7,0) )
 		{
 			this->m_Special[this->m_SpecialNum] = 82;
-			this->m_Option3 = Option3;
 			this->m_RequireStrength +=  Option3 * 4;
 		}
 
+		// armor append defense
 		if ( _type >= ITEMGET(7,0) && _type < ITEMGET(12,0) )
 		{
 			this->m_Special[this->m_SpecialNum] = 83;
-			this->m_Option3 = Option3;
 			this->m_RequireStrength +=  Option3 * 4;
 		}
 
-		if ( (_type >= ITEMGET(13,8) && _type < ITEMGET(13,14)) || (_type >= ITEMGET(13,20) && _type <= ITEMGET(13,28)) || (_type >= ITEMGET(13,109) && _type <= ITEMGET(13,115)) || (_type >= ITEMGET(13,171) && _type <= ITEMGET(13,176)) )
-		{
-			if ( _type == ITEMGET(13,24) ) // Ring of MAgic
+		// pendant/ring recovery hp
+		if (GetItemKindA(_type) == ITEM_KIND_A_PENDANT
+		|| GetItemKindA(_type) == ITEM_KIND_A_RING) {
+			if ( _type == ITEMGET(13,24) ) // Ring of Magic
 			{
-				this->m_Special[this->m_SpecialNum] = 172;
-				this->m_Option3 = Option3;
+				this->m_Special[this->m_SpecialNum] = 172; // Energy up 1%~3%
 			}
-			else if ( _type == ITEMGET(13,28) ) // Pendant of abilit
+			else if ( _type == ITEMGET(13,28) ) // Pendant of Abilit
 			{
-				this->m_Special[this->m_SpecialNum] = 173;
-				this->m_Option3 = Option3;
+				this->m_Special[this->m_SpecialNum] = 173; // AG up 1%~3%
 			}
-			else  
+			else
 			{
 				this->m_Special[this->m_SpecialNum] = 85;
-				this->m_Option3 = Option3;
-			}
-		}
-		
-		if ( _type == ITEMGET(13,30) || _type == ITEMGET(12,130) ) // Cape of lord 
-		{
-			this->m_Special[this->m_SpecialNum] = 80;
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-		}
-
-		if ( _type == ITEMGET(12,0) || _type == ITEMGET(12,132) )	// Wing elf
-		{
-			this->m_Special[this->m_SpecialNum] = 85;
-			this->m_Option3 = Option3;
-		}
-		else if ( _type == ITEMGET(12,1) || _type == ITEMGET(12,133) ) // wing Heaven
-		{
-			this->m_Special[this->m_SpecialNum] = 81;
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-		}
-		else if ( _type == ITEMGET(12,2) || _type == ITEMGET(12,134) ) // wing devil
-		{
-			this->m_Special[this->m_SpecialNum] = 80;
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-		}
-		else if ( _type == ITEMGET(12,49) )
-		{
-			this->m_Special[this->m_SpecialNum] = 80;
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			//WTF?? Inverted Values??
-			if ( (this->m_NewOption&0x20) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 85; //Recover Life
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 80; //Additional Damage
 			}
 		}
 
-		else if ( _type == ITEMGET(12,3) ) // wing spitits
-		{
-			this->m_Special[this->m_SpecialNum] = 80;
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			//WTF?? Inverted Values??
-			if ( (this->m_NewOption&0x20) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 85; //Recover Life
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 80; //Additional Damage
-			}
-
-		}
-		else if ( _type == ITEMGET(12,38) ) // Third Wings "Wing of Illusion"
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x20) >= 0 && (this->m_NewOption&0x10) != 0 ) //JoL + Increase Attack Speed PS: I set both Add. Defense and Add. Damage enabled because when item is full have Additional Damage!
-			{
-				this->m_Special[this->m_SpecialNum] = 80; //Additional Damage
-			}
-			else if ( (this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0 ) //Only JoL Option
-			{
-				this->m_Special[this->m_SpecialNum] = 85; //Recover Life
-			}
-			else if ( (this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0 ) //JoL + Take No Effect PS: I set 0x10 equal 0 because Additional Defense only appears with Increase Attack Speed Disabled! It's a Nice Anti-hack or Checker :D
-			{
-				this->m_Special[this->m_SpecialNum] = 83; //Additional Defense
-			}
-
-		}
-		else if ( _type == ITEMGET(12,4) ) // Wings of Soul
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x20) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 81; // Additional Magic
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-
-		}
-		else if ( _type == ITEMGET(12,37) ) // Third Wings "Wing of Vortex"
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x20) >= 0 && (this->m_NewOption&0x10) != 0 ) // JoL + Increase Attack Speed PS: I set both Add. Defense and Add. Magic enabled because when item is full have Additional Damage!
-			{
-				this->m_Special[this->m_SpecialNum] = 81; // Additional Magic
-			}
-			else if ( (this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0 ) // Only JoL Option
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-			else if ( (this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0 ) // JoL + Take No Effect PS: I set 0x10 equal 0 because Additional Defense only appears with Increase Attack Speed Disabled! It's a Nice Anti-hack or Checker :D
-			{
-				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
-			}
-
-		}
-		else if ( _type == ITEMGET(12,5) ) // Wings of Dragon
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x20) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 80; // Additional Damage "Take no Effect"
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-
-		}
-		else if ( _type == ITEMGET(12,36) ) // Third Wings "Wing of Storm"
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x20) >= 0 && (this->m_NewOption&0x10) != 0 ) // JoL + Increase Attack Speed PS: I set both Add. Defense and Add. Damage enabled because when item is full have Additional Damage!
-			{
-				this->m_Special[this->m_SpecialNum] = 80; // Additional Damage
-			}
-			else if ( (this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0 ) //Only JoL Option
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-			else if ( (this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0 ) //JoL + Take No Effect PS: I set 0x10 equal 0 because Additional Defense only appears with Increase Attack Speed Disabled! It's a Nice Anti-hack or Checker :D
-			{
-				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
-			}
-
-		}
-		else if ( _type == ITEMGET(12,6) ) // Wing of Darkness
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x20) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 80; // Additional Damage
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 81; // Additional Magic
-			}
-
-		}
-		else if ( _type == ITEMGET(12,49) ) // Warrior Cloak
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x20) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 80; //Additional Damage
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 85; //Recover Life
-			}
-
-		}
-
-		else if ( _type == ITEMGET(12,39) ) // Third Wings "Wing of Downcast"
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x20) >= 0 && (this->m_NewOption&0x10) != 0 ) //JoL + Increase Attack Speed PS: I set both Add. Defense and Add. Damage enabled because when item is full have Additional Damage!
-			{
-				this->m_Special[this->m_SpecialNum] = 80; //Additional Damage
-			}
-			else if ( (this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0 ) //Only JoL Option
-			{
-				this->m_Special[this->m_SpecialNum] = 85; //Recover Life
-			}
-			else if ( (this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0 ) //JoL + Take No Effect PS: I set 0x10 equal 0 because Additional Defense only appears with Increase Attack Speed Disabled! It's a Nice Anti-hack or Checker :D
-			{
-				this->m_Special[this->m_SpecialNum] = 81; //Additional Magic
-			}
-
-		}
-		else if ( _type == ITEMGET(13,3) ) // dinorant
-		{
-			this->m_Option3 = Option3;
-	
-			if ( (this->m_Option3&0x02) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 0x67;
-				this->m_SpecialNum++;
-			}
-		
-			if ( (this->m_Option3&0x04) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 0x61;
-				this->m_SpecialNum++;
-				this->m_AttackSpeed+=5;
-			}
-		
+		// wing
+		switch (_type) {
+		case ITEMGET(13,3): // Horn of Dinorant is also a wing in some ways
 			if ( (this->m_Option3&0x01) != 0 )
 			{
-				this->m_Special[this->m_SpecialNum] = 0x68;
+				// this->m_Special[this->m_SpecialNum] = ?; // absorb damage 5%
 			}
-		}
-
-		if ( _type == ITEMGET(13,30) ) // Cape ofLord
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-			this->m_Special[this->m_SpecialNum] = 0x50;
-		}
-
-		if ( _type == ITEMGET(12,40) ) // Third Wings "Mantle of Monarch"
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x20) >= 0 && (this->m_NewOption&0x10) != 0 ) // JoL + Increase Attack Speed PS: I set both Add. Defense and Add. Damage enabled because when item is full have Additional Damage!
+			if ( (this->m_Option3&0x02) != 0 )
 			{
-				this->m_Special[this->m_SpecialNum] = 80; // Additional Damage
+				this->m_Special[this->m_SpecialNum] = 103; // AG+50
+				this->m_SpecialNum++;
 			}
-			else if ( (this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0 ) //Only JoL Option
+			if ( (this->m_Option3&0x04) != 0 )
 			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 104; // Speed +5
+				this->m_SpecialNum++;
+				this->m_AttackSpeed += 5;
 			}
-			else if ( (this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0 ) //JoL + Take No Effect PS: I set 0x10 equal 0 because Additional Defense only appears with Increase Attack Speed Disabled! It's a Nice Anti-hack or Checker :D
-			{
-				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
-			}
-
-		}
-		if ( _type == ITEMGET(12,50) ) // Third Wings "Reigning Cloak"
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x20) >= 0 && (this->m_NewOption&0x10) != 0 ) //JoL + Increase Attack Speed PS: I set both Add. Defense and Add. Damage enabled because when item is full have Additional Damage!
-			{
-				this->m_Special[this->m_SpecialNum] = 80; // Additional Damage
-			}
-			else if ( (this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0 ) //Only JoL Option
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-			else if ( (this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0 ) // JoL + Take No Effect PS: I set 0x10 equal 0 because Additional Defense only appears with Increase Attack Speed Disabled! It's a Nice Anti-hack or Checker :D
-			{
-				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
-			}
-
-		}
-
-		else if ( _type == ITEMGET(12,262) ) // Cape of Death 2.5
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x10) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 80; //Additional Damage
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-
-		}
-
-
-		else if ( _type == ITEMGET(12,263) ) // Wing of Chaos 2.5
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x10) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 80; //Additional Damage
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-
-		}
-
-		else if ( _type == ITEMGET(12,264) ) // Wing Of Magic 2.5
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x10) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 81; // Additional Wizardry Damage
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-
-		}
-
-		else if ( _type == ITEMGET(12,265) ) // Wing Of Life 2.5
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength +=  Option3 * 4;
-
-			if ( (this->m_NewOption&0x10) != 0 )
-			{
-				this->m_Special[this->m_SpecialNum] = 80; //Additional Damage
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-
-		}
-
-		else if (_type == ITEMGET(12, 269)) // Cloak Of Limit
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength += Option3 * 4;
-
-			if ((this->m_NewOption & 0x20) != 0)
-			{
-				this->m_Special[this->m_SpecialNum] = 80; // Additional Damage
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-		}
-
-		else if (_type == ITEMGET(12, 270)) // Cloak of Transcendence
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength += Option3 * 4;
-
-			if ((this->m_NewOption & 0x20) >= 0 && (this->m_NewOption & 0x10) != 0) 
-			{
-				this->m_Special[this->m_SpecialNum] = 80; // Additional Magic
-			}
-
-			else if ((this->m_NewOption & 0x20) == 0 && (this->m_NewOption & 0x10) == 0)
-			{
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			}
-
-			else if ((this->m_NewOption & 0x20) != 0 && (this->m_NewOption & 0x10) == 0) 
-			{
-				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
-			}
-		}
-
-		else if (_type == ITEMGET(12,266) || _type == ITEMGET(12,267) || _type == ITEMGET(12,268))
-		{
-			this->m_Special[this->m_SpecialNum] = 85;
-			this->m_Option3 = Option3;
-		}
-
-		if ( _type == ITEMGET(12,41) || _type == ITEMGET(12,131) )
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength += Option3 * 4;
+			break;
+		case ITEMGET(12,2): // Wings of Satan
+		case ITEMGET(13,30): // Cape of Lord, addition always be Additional Damage
+		case ITEMGET(12,134): // Small Wings of Satan
+		case ITEMGET(12,130): // Small Cape of Lord
+		case ITEMGET(12,135): // Little Cape of Fighter
+			this->m_Special[this->m_SpecialNum] = 80;
+			break;
+		case ITEMGET(12,1): // Wings of Heaven
+		case ITEMGET(12,41): // Wing of Curse
+		case ITEMGET(12,133): // Small Wings of Heaven
+		case ITEMGET(12,131): // Small Wing of Curse
 			this->m_Special[this->m_SpecialNum] = 81;
-		}
-
-		if ( _type == ITEMGET(12,42) )
-		{
-			this->m_Option3 = Option3;
-			this->m_RequireStrength += Option3 * 4;
-			if(this->m_NewOption&0x20)
-			{
-				this->m_Special[this->m_SpecialNum] = 81;
-			}
-			else
-			{
-				this->m_Special[this->m_SpecialNum] = 113;
-			}
-		}
-
-		if ( _type == ITEMGET(12,43) )
-		{
-			this->m_Option3 = Option3;
+			break;
+		case ITEMGET(12,0):
+		case ITEMGET(12,132): // Small Wings of Elf
 			this->m_Special[this->m_SpecialNum] = 85;
-			if(this->m_NewOption&0x10)
-			{
-				this->m_Special[this->m_SpecialNum] = 81;
-			}
-			else if(this->m_NewOption&0x20)
-			{
-				this->m_Special[this->m_SpecialNum] = 113;
-			}
+			break;
+		case ITEMGET(12,3): // Wings of Spirits
+			this->m_RequireStrength += Option3 * 4;
+			if (this->m_NewOption&0x20 != 0)
+				// As for ELF, recover life is excellent
+				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+			else
+				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+			break;
+		case ITEMGET(12,4): // Wings of Soul
+			this->m_RequireStrength += Option3 * 4;
+			if (this->m_NewOption&0x20 != 0)
+				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+			else
+				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+			break;
+		case ITEMGET(12,5): // Wings of Dragon
+		case ITEMGET(12,49): // Cape of Fighter
+			this->m_RequireStrength += Option3 * 4;
+			if (this->m_NewOption&0x20 != 0)
+				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+			else
+				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+			break;
+		case ITEMGET(12,6): // Wings of Darkness
+			this->m_RequireStrength +=  Option3 * 4;
+			if (this->m_NewOption&0x20 != 0)
+				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+			else
+				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+			break;
+		case ITEMGET(12,42): // Wind of Despair
+			this->m_RequireStrength += Option3 * 4;
+			if (this->m_NewOption&0x20 != 0)
+				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+			else
+				this->m_Special[this->m_SpecialNum] = 113; // Curse Damage
+			break;
+		case ITEMGET(12,36): // Wing of Storm
+		case ITEMGET(12,38): // Wing of Illusion
+		case ITEMGET(12,40): // Cape of Emperor
+		case ITEMGET(12,50): // Cape of Overrule
+			this->m_RequireStrength += Option3 * 4;
+			if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 0)
+				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+			else if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 1)
+				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
+			else
+				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+			break;
+		case ITEMGET(12,37): // Wing of Eternal
+			this->m_RequireStrength += Option3 * 4;
+			if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 0)
+				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+			else if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 1)
+				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
+			else
+				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+			break;
+		case ITEMGET(12,39): // Wing of Ruin
+			this->m_RequireStrength += Option3 * 4;
+			if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 0)
+				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+			else if (this->m_NewOption&0x20 != 0 && this->m_NewOption&0x10 == 0)
+				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+			else
+				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+			break;
+		case ITEMGET(12,43): // Wing of Dimension
+			if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 0)
+				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+			else if (this->m_NewOption&0x20 != 0 && this->m_NewOption&0x10 == 0)
+				this->m_Special[this->m_SpecialNum] = 113; // Curse Damage
+			else
+				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+			break;
+		case ITEMGET(12,262): // Cap of Death
+		case ITEMGET(12,263): // Wings of Chaos
+		case ITEMGET(12,265): // Wings of Life
+			this->m_RequireStrength += Option3 * 4;
+			if (this->m_NewOption&0x10 != 0)
+				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+			else
+				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+			break;
+		case ITEMGET(12,264): // Wings of Magic
+			this->m_RequireStrength +=  Option3 * 4;
+			if (this->m_NewOption&0x10 != 0)
+				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+			else
+				this->m_Special[this->m_SpecialNum] = 113; // Curse Damage
+			break;
+		case ITEMGET(12,266):
+		case ITEMGET(12,267):
+		case ITEMGET(12,268):
+			this->m_Special[this->m_SpecialNum] = 85;
+			break;
+		case ITEMGET(12,269):
+			this->m_RequireStrength += Option3 * 4;
+			if (this->m_NewOption & 0x20 != 0)
+				this->m_Special[this->m_SpecialNum] = 80; // Additional Damage
+			else
+				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+			break;
+		case ITEMGET(12,270):
+			this->m_RequireStrength += Option3 * 4;
+			if (this->m_NewOption & 0x20 != 0 && this->m_NewOption & 0x10 != 0)
+				this->m_Special[this->m_SpecialNum] = 80; // Additional Magic
+			else if (this->m_NewOption & 0x20 == 0 && this->m_NewOption & 0x10 == 0)
+				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+			else if (this->m_NewOption & 0x20 != 0 && this->m_NewOption & 0x10 == 0)
+				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
+			break;
 		}
 	}
-
-	if (this->m_Type >= ITEMGET(12, 200) && this->m_Type <= ITEMGET(12, 220))
+	if (GetItemKindB(_type) == ITEM_KIND_B_PENTAGRAM_ITEM)
 	{
 		this->m_Special[this->m_SpecialNum] = 108;
 	}
-
 	this->m_SpecialNum++;
 
-	if ( (_type >=ITEMGET(6,0) && _type <ITEMGET(12,0) ) || ( _type >=ITEMGET(13,8) && _type <= ITEMGET(13,9)) || (_type>=ITEMGET(13,21) && _type <= ITEMGET(13,24)) || 
-		(_type == ITEMGET(13,110)) || (_type == ITEMGET(13,111)) || (_type == ITEMGET(13,112)) || (_type >= ITEMGET(13,173) && _type <= ITEMGET(13,176)) )
+	// excellent option
+	if (GetItemKindA(_type) == ITEM_KIND_A_ARMOR
+	|| (GetItemKindA(_type) == ITEM_KIND_A_RING && GetItemKindB(_type) == ITEM_KIND_B_RING))
 	{
 		if ( ((this->m_NewOption>>5)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x56;
+			this->m_Special[this->m_SpecialNum] = 86; // Increase Maximum Life 4%
 			this->m_SpecialNum++;
 		}
 
 		if ( ((this->m_NewOption>>4)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x57;
+			this->m_Special[this->m_SpecialNum] = 87; // Increase Maximum Mana 4%
 			this->m_SpecialNum++;
 		}
 
 		if ( ((this->m_NewOption>>3)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x58;
+			this->m_Special[this->m_SpecialNum] = 88; // Decreases Damage 4%
 			this->m_SpecialNum++;
 		}
 
 		if ( ((this->m_NewOption>>2)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x59;
+			this->m_Special[this->m_SpecialNum] = 89; // Reflect Damage 5%
 			this->m_SpecialNum++;
 		}
 
 		if ( ((this->m_NewOption>>1)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x5A;
+			this->m_Special[this->m_SpecialNum] = 90; // Defense Success Rate 10%
 			this->m_SpecialNum++;
 		}
 
 		if ( ((this->m_NewOption)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x5B;
+			this->m_Special[this->m_SpecialNum] = 91; // Increases the amount of Zen received for hunting monsters
 			this->m_SpecialNum++;
 		}
 	}
 
-	if ( (_type >=ITEMGET(0,0) && _type <ITEMGET(6,0) ) || ( _type >=ITEMGET(13,12) && _type <= ITEMGET(13,13)) || (_type>=ITEMGET(13,25) && _type <= ITEMGET(13,28)) ||
-		_type == ITEMGET(13,109) || _type == ITEMGET(13,113) || _type == ITEMGET(13,114) || _type == ITEMGET(13,115) || (_type >= ITEMGET(13,171) && _type <= ITEMGET(13,172)) )
+	if (GetItemKindA(_type) == ITEM_KIND_A_WEAPON
+	|| GetItemKindA(_type) == ITEM_KIND_A_PENDANT)
 	{
 		if ( ((this->m_NewOption>>5)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x5C;
+			this->m_Special[this->m_SpecialNum] = 92; // Excellent damage rate 10%
 			this->m_SpecialNum++;
 		}
 
-		if ( (_type >=ITEMGET(5,0) && _type <ITEMGET(6,0) ) || (_type ==ITEMGET(13,12) ) || (_type == ITEMGET(13,25)) || (_type == ITEMGET(13,27)) || (_type == ITEMGET(13,109)) || (_type == ITEMGET(13,115)) )
+		if (GetItemKindB(_type) == ITEM_KIND_B_STAFF_WIZARD
+		|| GetItemKindB(_type) == ITEM_KIND_B_PENDANT_MAGIC_ATTACK)
 		{
 			if ( ((this->m_NewOption>>4)&1) != 0 )
 			{
-				this->m_Special[this->m_SpecialNum] = 0x5F;
+				this->m_Special[this->m_SpecialNum] = 95; // Increase (Magic)Attack/Level =20
 				this->m_SpecialNum++;
 			}
 			if ( ((this->m_NewOption>>3)&1) != 0 )
 			{
-				this->m_Special[this->m_SpecialNum] = 0x60;
+				this->m_Special[this->m_SpecialNum] = 96; // Increases (Magic)Attack 2%
 				this->m_SpecialNum++;
 			}
 		}
@@ -1484,156 +1164,157 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		{
 			if ( ((this->m_NewOption>>4)&1) != 0 )
 			{
-				this->m_Special[this->m_SpecialNum] = 0x5D;
+				this->m_Special[this->m_SpecialNum] = 93; // Increase Attack/Level =20
 				this->m_SpecialNum++;
 			}
 			if ( ((this->m_NewOption>>3)&1) != 0 )
 			{
-				this->m_Special[this->m_SpecialNum] = 0x5E;
+				this->m_Special[this->m_SpecialNum] = 94; // // Increases Attack 2%
 				this->m_SpecialNum++;
 			}
 		}
 
 		if ( ((this->m_NewOption>>2)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x61;
+			this->m_Special[this->m_SpecialNum] = 97; // Increase Attack (Wizardry) Speed 7
 			this->m_SpecialNum++;
 		}
 
 		if ( ((this->m_NewOption>>1)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x62;
+			this->m_Special[this->m_SpecialNum] = 98; // Increases the amount of Life received for hunting monsters
 			this->m_SpecialNum++;
 		}
 
 		if ( ((this->m_NewOption)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x63;
+			this->m_Special[this->m_SpecialNum] = 99; // Increases the amount of Mana received for hunting monsters
 			this->m_SpecialNum++;
 		}
 	}
 
-	if ( ((_type >= ITEMGET(12,3)) && (_type <= ITEMGET(12,6))) || (_type ==ITEMGET(13,30)) || (_type == ITEMGET(12,42) || _type == ITEMGET(12,269)) )
+	// 2th wing
+	if (GetItemKindB(_type) == ITEM_KIND_B_WING_2ND
+	|| GetItemKindB(_type) == ITEM_KIND_B_LORD_CAPE
+	|| GetItemKindB(_type) == ITEM_KIND_B_RAGEFIGHTER_CAPE)
 	{
-		if ( ((this->m_NewOption)&1) != 0 )
+		if (this->m_NewOption&1 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x64;
+			this->m_Special[this->m_SpecialNum] = 100; // HP +50
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&2) != 0 )
+		if (this->m_NewOption&2 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x65;
+			this->m_Special[this->m_SpecialNum] = 101; // MP +50
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&4) != 0 )
+		if (this->m_NewOption&4 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x66;
+			this->m_Special[this->m_SpecialNum] = 102; // Ignore defense 3%
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&8) != 0 )
-		{
-			this->m_Special[this->m_SpecialNum] = 0x69;
-			this->m_SpecialNum++;
+		if (GetItemKindB(_type) == ITEM_KIND_B_WING_2ND) {
+			if (this->m_NewOption&8 != 0)
+			{
+				this->m_Special[this->m_SpecialNum] = 103; // AG +50
+				this->m_SpecialNum++;
+			}
+
+			if (this->m_NewOption&16 != 0)
+			{
+				this->m_Special[this->m_SpecialNum] = 104; // Speed 5
+				this->m_SpecialNum++;
+			}
+		}
+		else if (GetItemKindB(_type) == ITEM_KIND_B_LORD_CAPE) {
+			if ( ((this->m_NewOption)&8) != 0 )
+			{
+				this->m_Special[this->m_SpecialNum] = 105; // Command 10
+				this->m_SpecialNum++;
+			}
 		}
 	}
 
-	if ( _type == ITEMGET(12,49) )
+	// 3th wing
+	if (GetItemKindB(_type) == ITEM_KIND_B_WING_3RD)
 	{
-		if ( ((this->m_NewOption)&1) != 0 )
+		if (this->m_NewOption&1 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x64;
+			this->m_Special[this->m_SpecialNum] = 108; // Ignore defense 5%
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&2) != 0 )
+		if (this->m_NewOption&2 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x65;
+			this->m_Special[this->m_SpecialNum] = 109; // Return Damage 5%
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&4) != 0 )
+		if (this->m_NewOption&4 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x66;
-			this->m_SpecialNum++;
-		}
-	}
-
-	if ( ((_type >= ITEMGET(12,36)) && (_type <= ITEMGET(12,40))) || (_type ==ITEMGET(12,43)) || (_type == ITEMGET(12,50) || _type == ITEMGET(12,270)))
-	{
-		if ( ((this->m_NewOption)&1) != 0 )
-		{
-			this->m_Special[this->m_SpecialNum] = 0x6C;
+			this->m_Special[this->m_SpecialNum] = 110; // Recovery HP 5%
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&2) != 0 )
+		if (this->m_NewOption&8 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x6D;
-			this->m_SpecialNum++;
-		}
-
-		if ( ((this->m_NewOption)&4) != 0 )
-		{
-			this->m_Special[this->m_SpecialNum] = 0x6E;
-			this->m_SpecialNum++;
-		}
-
-		if ( ((this->m_NewOption)&8) != 0 )
-		{
-			this->m_Special[this->m_SpecialNum] = 0x6F;
+			this->m_Special[this->m_SpecialNum] = 111; // Recovery MP 5%
 			this->m_SpecialNum++;
 		}
 	}
 
+	// 2.5th wing
 	if ( (_type >= ITEMGET(12,262)) && (_type <= ITEMGET(12,265)) )
 	{
-		if ( ((this->m_NewOption)&1) != 0 )
+		if (this->m_NewOption&1 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x6C;
+			this->m_Special[this->m_SpecialNum] = 102; // Ignore defense 3%
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&4) != 0 )
+		if (this->m_NewOption&4 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x6e;
+			this->m_Special[this->m_SpecialNum] = 110; // Recovery HP 5%
 			this->m_SpecialNum++;
 		}
 	}
 
+	// Wings of Conqueror
 	if ( _type == ITEMGET(12,268) )
 	{
 		if ( ((this->m_NewOption)&1) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x6C;
+			this->m_Special[this->m_SpecialNum] = 108;
 			this->m_SpecialNum++;
 		}
 
 		if ( ((this->m_NewOption)&2) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x6D;
+			this->m_Special[this->m_SpecialNum] = 109;
 			this->m_SpecialNum++;
 		}
 
 		if ( ((this->m_NewOption)&4) != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = 0x6E;
+			this->m_Special[this->m_SpecialNum] = 110;
 			this->m_SpecialNum++;
 		}
 	}
 
-	if ( _type == ITEMGET(13,37) )
+	// Horn of Fenrir
+	if (_type == ITEMGET(13,37))
 	{
-		if ( (this->m_NewOption &1) )
+		if (this->m_NewOption&1 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x6A;
+			this->m_Special[this->m_SpecialNum] = 106;
 			this->m_SpecialNum++;
 		}
-		else if ( (this->m_NewOption &2) )
+		else if (this->m_NewOption&2 != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 0x6B;
+			this->m_Special[this->m_SpecialNum] = 107;
 			this->m_SpecialNum++;
 		}
 	}
@@ -1642,7 +1323,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	{
 		if (p->SetAttr != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = p->SetAttr + 0xC3;
+			this->m_Special[this->m_SpecialNum] = p->SetAttr + 195; // 196 197 198 199
 			this->m_SetAddStat = SOptionStatValue * 5;
 			this->m_SpecialNum++;
 		}
@@ -3089,65 +2770,50 @@ void CItem::PlusSpecialSetRing(BYTE * Value)
 
 void CItem::PlusSpecial(int * Value, int Special)
 {
-	if ( this->m_Type < 0 )
-	{
+	if (this->m_Type < 0
+	|| this->m_Durability == 0.0f
+	|| !this->m_IsValidItem)
 		return;
-	}
 
-	if ( this->m_Durability == 0.0f)
-	{
-		return;
-	}
-
-	if ( this->m_IsValidItem == false )
-	{
-		return;
-	}
-
-	for (int i =0;i<this->m_SpecialNum;i++)
+	for (int i =0; i<this->m_SpecialNum; i++)
 	{
 		if ( this->m_Special[i] == Special )
 		{
-			switch ( Special )
+			switch (Special)
 			{
-				case 82:
-					{
-						int lc3 = this->m_Option3*5;
-						*Value += lc3 - (int)( lc3 * this->m_CurrentDurabilityState );
-					}
-					break;
-
-				case 84:
-					* Value += 4;
-					break;
-
-				case 81:
-				case 80:
-				case 83:
-				case 113:
-					{
-						int lc4 = this->m_Option3*4;
-						*Value += lc4 - (int)( lc4 * this->m_CurrentDurabilityState );
-					}
-					break;
-				case 97: // dinorant 5 speed
-					*Value += 5;
-				case 100:
-				case 101:
-					*Value =  *Value + this->m_Level * 5 + 50;
-					break;
-
-				case 103:
-					*Value += 50;
-					break;
-
-				case 105:
-					*Value =  *Value + this->m_Level * 5 + 10;
-					break;
-
-				default:
-					*Value = *Value + (this->m_Option3*4);
-					break;
+			case 80: // attack damage
+			case 81: // magic damage
+			case 83: // defense
+			case 113: // curse damage
+				{
+					int lc4 = this->m_Option3*4;
+					*Value += lc4 - (int)(lc4 * this->m_CurrentDurabilityState);
+				}
+				break;
+			case 82: // defense rate
+				{
+					int lc3 = this->m_Option3*5;
+					*Value += lc3 - (int)(lc3 * this->m_CurrentDurabilityState);
+				}
+				break;
+			case 84: // luck rate
+				*Value += 5;
+				break;
+			case 100: // HP +50
+			case 101: // MP +50
+				*Value =  *Value + this->m_Level * 5 + 50;
+				break;
+			case 103: // AG +50
+				*Value += 50;
+				break;
+			case 104: // speed
+				*Value += 5;
+			case 105: // Command +10
+				*Value =  *Value + this->m_Level * 5 + 10;
+				break;
+			default:
+				*Value = *Value + (this->m_Option3*4);
+				break;
 			}
 		}
 	}

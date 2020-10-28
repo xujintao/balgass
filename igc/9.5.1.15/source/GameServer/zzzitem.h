@@ -353,7 +353,7 @@ public:
 	WORD m_DurabilitySmall; // 28
 	float m_BaseDurability;	// 2C
 	BYTE m_SpecialNum;	// 30
-	WORD m_Special[8];	// 31
+	WORD m_Special[10];	// 31
 	BYTE m_SpecialValue[8];	// 39
 	WORD m_RequireStrength;	// 42
 	WORD m_RequireDexterity;	// 44
@@ -377,7 +377,6 @@ public:
 	BYTE m_NewOption;	// 7B ExcellentOption
 	float m_DurabilityState[4];	// 7C
 	float m_CurrentDurabilityState;	// 8C
-	bool m_SkillChange;	// 90
 	bool m_QuestItem;	// 91
 	BYTE m_SetOption;	// 92
 	BYTE m_SetAddStat;	// 93

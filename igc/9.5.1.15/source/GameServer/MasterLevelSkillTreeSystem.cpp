@@ -2783,12 +2783,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillStrengthenSpear(int aIndex, int aTarg
 
 	GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, aTargetIndex, TRUE);
 
-	if( lpObj->SkillLongSpearChange == false )
-	{
-		gObjAttack(lpObj,&gObj[aTargetIndex],lpMagic,0,1,0,0,0,0);
-		return;
-	}
-
 	int DuelIndex = lpObj->m_iDuelUser;
 	int iangle = this->MLS_GetAngle(gObj[aIndex].X, gObj[aIndex].Y, gObj[aTargetIndex].X, gObj[aTargetIndex].Y);
 	int tObjNum;

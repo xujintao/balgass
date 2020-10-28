@@ -103,7 +103,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	lpObj->AutoHPRecovery = 0;
 	lpObj->DamageReflect = 0;
 	lpObj->DamageMinus = 0;
-	lpObj->SkillLongSpearChange = false;
 	lpObj->AddStrength = 0;
 	lpObj->AddDexterity = 0;
 	lpObj->AddVitality = 0;
@@ -304,10 +303,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	{
 		lpObj->m_AttackDamageMinRight += Right->m_DamageMin;
 		lpObj->m_AttackDamageMaxRight += Right->m_DamageMax;
-		if (Right->m_SkillChange)
-		{
-			lpObj->SkillLongSpearChange = true;
-		}
 		Right->PlusSpecial(&lpObj->m_AttackDamageMinRight, 80);
 		Right->PlusSpecial(&lpObj->m_AttackDamageMaxRight, 80);
 		Right->PlusSpecial(&lpObj->m_MagicDamageMin, 81);

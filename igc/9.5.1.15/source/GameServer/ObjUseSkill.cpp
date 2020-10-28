@@ -3056,12 +3056,6 @@ BOOL CObjUseSkill::SkillSpear(int aIndex, int aTargetIndex, CMagicInf * lpMagic)
 
 	GSProtocol.GCMagicAttackNumberSend(lpObj,lpMagic->m_Skill,aTargetIndex,1);
 
-	if(lpObj->SkillLongSpearChange == 0)
-	{
-		gObjAttack(lpObj,&gObj[aTargetIndex],lpMagic,0,1,0,0,0,0);
-		return true;
-	}
-
 	int DuelIndex = lpObj->m_iDuelUser;
 	int EnableAttack;
 

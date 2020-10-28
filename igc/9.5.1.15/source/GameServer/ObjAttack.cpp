@@ -3525,16 +3525,8 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 		if (lpMagic)
 		{
 			// skill attack base
-			if ( (lpMagic ->m_Skill == 60 || lpMagic->m_Skill == 509) && lpObj->SkillLongSpearChange )	// #error 60 and skil from GEt is 66???
-			{
-				SkillDamageMin = DefMagicInf[66].m_DamageMin;// #error ???
-				SkillDamageMax = DefMagicInf[66].m_DamageMax;// #error ???
-			}
-			else
-			{
-				SkillDamageMin = lpMagic->m_DamageMax;
-				SkillDamageMax = lpMagic->m_DamageMin;
-			}
+			SkillDamageMin = lpMagic->m_DamageMax;
+			SkillDamageMax = lpMagic->m_DamageMin;
 
 			// skill specialization
 			SkillDamageMin += g_SkillSpec.CalcStatBonus(lpObj, lpMagic->m_Skill);

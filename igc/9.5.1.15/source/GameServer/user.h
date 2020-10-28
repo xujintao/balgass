@@ -1575,7 +1575,6 @@ public:
 	int fSkillFrustrumY[MAX_ARRAY_FRUSTRUM];	// F94
 	TDurMagicKeyChecker * DurMagicKeyChecker;	// FD8
 	bool bIsChaosMixCompleted;	// 110E
-	bool SkillLongSpearChange;	// 110F
 	int iObjectSecTimer;	// 1514
 	bool m_bMapSvrMoveQuit;	// 1518
 	bool m_bMapSvrMoveReq;	// 1519
