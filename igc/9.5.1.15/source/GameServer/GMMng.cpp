@@ -1745,12 +1745,43 @@ int CGMMng::ManagementProc(LPOBJ lpObj, char* szCmd, int aIndex)
 				MsgOutput(aIndex, Lang.GetText(0,447), lpObj->m_PlayerData->SwearWarning, Lang.GetMap(0, lpObj->MapNumber), lpObj->X, lpObj->Y);
 				MsgOutput(aIndex, Lang.GetText(0,448), gObjIsConnectedGP(gObjGetIndex(gObj[aIndex].MarryName)));
 				*/
-				MsgOutput(aIndex, Lang.GetText(0,443), lpObj->m_AttackDamageMin, lpObj->m_AttackDamageMax, lpObj->m_PlayerData->m_AttackRatePvM, lpObj->m_PlayerData->m_AttackRatePvP);
-				MsgOutput(aIndex, Lang.GetText(0,444), lpObj->m_Defense, lpObj->m_SuccessfulBlocking, lpObj->m_PlayerData->m_DefenseRatePvP);
-				MsgOutput(aIndex, Lang.GetText(0,445), lpObj->m_AttackSpeed, lpObj->m_MagicSpeed);
-				MsgOutput(aIndex, Lang.GetText(0,446), lpObj->m_MagicDamageMin, lpObj->m_MagicDamageMax, lpObj->m_CurseDamageMin, lpObj->m_CurseDamageMax);
-				MsgOutput(aIndex, Lang.GetText(0,447), lpObj->m_CriticalDamageSuccessRate, lpObj->m_ExcellentDamageSuccessRate);
+				MsgOutput(aIndex, Lang.GetText(0,443),
+					lpObj->m_AttackDamageMin,
+					lpObj->m_AttackDamageMax,
+					lpObj->m_PlayerData->m_AttackRatePvM,
+					lpObj->m_AttackDamageMin,
+					lpObj->m_AttackDamageMax,
+					lpObj->m_PlayerData->m_AttackRatePvP);
+				MsgOutput(aIndex, Lang.GetText(0,444),
+					lpObj->m_Defense,
+					lpObj->m_SuccessfulBlocking,
+					lpObj->m_Defense,
+					lpObj->m_PlayerData->m_DefenseRatePvP);
+				MsgOutput(aIndex, Lang.GetText(0,445),
+					lpObj->m_AttackSpeed,
+					lpObj->m_MagicSpeed,
+					lpObj->m_PlayerData->Strength + lpObj->AddStrength,
+					lpObj->m_PlayerData->Dexterity + lpObj->AddDexterity,
+					lpObj->m_PlayerData->Vitality + lpObj->AddVitality,
+					lpObj->m_PlayerData->Energy + lpObj->AddEnergy,
+					lpObj->Leadership + lpObj->AddLeadership);
+				MsgOutput(aIndex, Lang.GetText(0,446),
+					lpObj->m_MagicDamageMin,
+					lpObj->m_MagicDamageMax,
+					lpObj->m_PlayerData->m_AttackRatePvM,
+					lpObj->m_MagicDamageMin,
+					lpObj->m_MagicDamageMax,
+					lpObj->m_PlayerData->m_AttackRatePvP);
+				MsgOutput(aIndex, Lang.GetText(0,447),
+					lpObj->m_CurseDamageMin,
+					lpObj->m_CurseDamageMax,
+					lpObj->m_PlayerData->m_AttackRatePvM,
+					lpObj->m_CurseDamageMin,
+					lpObj->m_CurseDamageMax,
+					lpObj->m_PlayerData->m_AttackRatePvP);
 				MsgOutput(aIndex, Lang.GetText(0, 448),
+					lpObj->m_CriticalDamageSuccessRate,
+					lpObj->m_ExcellentDamageSuccessRate,
 					lpObj->m_PlayerData->SetOpIgnoreDefense + lpObj->m_PlayerData->m_MPSkillOpt.iMpsIgnoreEnemyDefence + lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncIgnoreEnemyBlock,
 					lpObj->m_PlayerData->SetOpDoubleDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddDoubleDamage + lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncDoubleDamageRate);
 				break;
