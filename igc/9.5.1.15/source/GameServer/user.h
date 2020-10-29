@@ -1298,7 +1298,7 @@ public:
 	double Mana;	// D4
 	double MaxMana;	// D8
 	WORD  Leadership;	// DC
-	WORD  AddLeadership;	// DE
+	int  AddLeadership;	// DE
 	WORD  ChatLimitTime;	// E0
 	BYTE  ChatLimitTimeSec;	// E2
 	BYTE  FillLifeCount;	// E3

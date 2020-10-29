@@ -43,19 +43,19 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	}
 
 	LPOBJ lpObj = &gObj[aIndex];
-	CItem * Right = &lpObj->pInventory[0];
-	CItem * Left  = &lpObj->pInventory[1];
-	CItem * Helmet = &lpObj->pInventory[2];
-	CItem * Armor = &lpObj->pInventory[3];
-	CItem * Pants = &lpObj->pInventory[4];
-	CItem * Gloves = &lpObj->pInventory[5];
-	CItem * Boots = &lpObj->pInventory[6];
-	CItem * Amulet = &lpObj->pInventory[9];
-	CItem * Helper = &lpObj->pInventory[8];
-	CItem * Wing = &lpObj->pInventory[7];
-	CItem * RightRing = &lpObj->pInventory[10];
-	CItem * LeftRing = &lpObj->pInventory[11];
-	CItem * Pentagram = &lpObj->pInventory[236];
+	CItem* Right = &lpObj->pInventory[0];
+	CItem* Left  = &lpObj->pInventory[1];
+	CItem* Helmet = &lpObj->pInventory[2];
+	CItem* Armor = &lpObj->pInventory[3];
+	CItem* Pants = &lpObj->pInventory[4];
+	CItem* Gloves = &lpObj->pInventory[5];
+	CItem* Boots = &lpObj->pInventory[6];
+	CItem* Amulet = &lpObj->pInventory[9];
+	CItem* Helper = &lpObj->pInventory[8];
+	CItem* Wing = &lpObj->pInventory[7];
+	CItem* RightRing = &lpObj->pInventory[10];
+	CItem* LeftRing = &lpObj->pInventory[11];
+	CItem* Pentagram = &lpObj->pInventory[236];
 
 	lpObj->HaveWeaponInHand = true;
 	if ( Right->IsItem() == FALSE && Left->IsItem() == FALSE )
@@ -139,18 +139,10 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 
 	// stat base already exist
 
-	// stat of buff contributed
+	// apply stat of buff contributed
 	g_BuffEffect.ApplyPrevEffectStat(lpObj);
 
-	// stat of item contributed
-	this->CalcSetItemStat(lpObj);
-	this->CalcSetItemOption(lpObj);
-	if (Wing->m_IsValidItem)
-	{
-		lpObj->AddLeadership += Wing->m_Leadership;
-	}
-
-	// stat of master dimemsions stat
+	// apply stat of master dimemsions stat
 	lpObj->AddEnergy += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncEnergyStat;
 	lpObj->AddVitality += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncVitalStat;
 	EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
@@ -160,38 +152,14 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	lpObj->AddStrength += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncPowerStat;
 	lpObj->AddLeadership += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncLeadershipStat;
 
-	// calc critical damage success rate of luck item
-	lpObj->pInventory[0].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
-	lpObj->pInventory[1].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
-	lpObj->pInventory[2].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
-	lpObj->pInventory[3].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
-	lpObj->pInventory[4].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
-	lpObj->pInventory[5].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
-	lpObj->pInventory[6].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
-	lpObj->pInventory[7].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
-
-	lpObj->m_CriticalDamageSuccessRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate;
-	lpObj->m_ExcellentDamageSuccessRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate;
-
-	// calc pentagram
-	if (lpObj->pInventory[236].IsItem() == TRUE)
+	// apply stat of item contributed
+	this->CalcSetItemStat(lpObj);
+	if (Wing->m_IsValidItem)
 	{
-		if (this->ValidItem(lpObj, &lpObj->pInventory[236], 236))
-		{
-			lpObj->pInventory[236].m_IsValidItem = true;
-			g_PentagramSystem.CalcPentagramItem(aIndex, &lpObj->pInventory[236]);
-		}
-		else
-		{
-			lpObj->pInventory[236].m_IsValidItem = false;
-		}
-	}
-	else
-	{
-		g_PentagramSystem.ClearPentagramItem(aIndex);
+		Wing->PlusSpecial(&lpObj->AddLeadership, 105);
 	}
 
-	// stat(base+buff+item+master)
+	// stat(base+master+buff+item)
 	int Strength = lpObj->m_PlayerData->Strength + lpObj->AddStrength;
 	int Dexterity = lpObj->m_PlayerData->Dexterity + lpObj->AddDexterity;
 	int Vitality = lpObj->m_PlayerData->Vitality + lpObj->AddVitality;
@@ -287,9 +255,7 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	this->m_Lua.Generic_Call("CalcDefense", "ii>i", lpObj->Class, Dexterity, &lpObj->m_Defense);
 	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_DEFENSE);
 
-	// damage(base+item+buff+master)
-	// apply damage buff
-	// g_BuffEffect.ApplyPrevEffectDamage(lpObj);
+	// damage(base+master+item+buff)
 
 	// calc master passive skill
 	g_MasterLevelSkillTreeSystem.SetItemMLPassiveSkill(lpObj, Right->GetDetailItemType());
@@ -297,6 +263,9 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	g_MasterLevelSkillTreeSystem.SetWingMLPassiveSkill(lpObj, Wing->m_Type);
 	g_MasterLevelSkillTreeSystem.SetPetItemMLPassiveSkill(lpObj, Helper->m_Type);
 	this->ApplyMLSkillItemOption(lpObj);
+
+	// apply damage buff
+	// g_BuffEffect.ApplyPrevEffectDamage(lpObj);
 
 	// damage of item weapon and addition
 	if (Right->m_IsValidItem)
@@ -482,6 +451,7 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->pInventory[1].PlusSpecial(&lpObj->m_SuccessfulBlocking, 82);
 	}
 
+	// defense
 	bool Success = true;
 	if (lpObj->Class == CLASS_MAGUMSA)
 	{
@@ -851,7 +821,11 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->AddLife += g_ConfigRead.pet.AngelAddHP;
 	}
 
-	if ( lpObj->pInventory[lpObj->m_btInvenPetPos].m_Type == ITEMGET(13,37) && lpObj->pInventory[lpObj->m_btInvenPetPos].m_NewOption == 4 && lpObj->pInventory[lpObj->m_btInvenPetPos].m_Durability > 0.0f && lpObj->pInventory[lpObj->m_btInvenPetPos].m_JewelOfHarmonyOption == TRUE ) //Golden Fenrir Attribute
+	// Golden Fenrir Attribute
+	if ( lpObj->pInventory[lpObj->m_btInvenPetPos].m_Type == ITEMGET(13,37)
+	&& lpObj->pInventory[lpObj->m_btInvenPetPos].m_NewOption == 4
+	&& lpObj->pInventory[lpObj->m_btInvenPetPos].m_Durability > 0.0f
+	&& lpObj->pInventory[lpObj->m_btInvenPetPos].m_JewelOfHarmonyOption == TRUE )
 	{
 		lpObj->AddLife += 200;	//Life +200
 		lpObj->AddMana += 200;	//Mana +200
@@ -868,13 +842,14 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_MagicDamageMax += lpObj->m_MagicDamageMax * 16 / 100; //Wizardry +16
 	}
 
+	// Dinorant
 	if (lpObj->pInventory[lpObj->m_btInvenPetPos].m_Type == ITEMGET(13,3)
 		&& lpObj->pInventory[lpObj->m_btInvenPetPos].m_Durability > 0.0
 		&& lpObj->pInventory[lpObj->m_btInvenPetPos].m_JewelOfHarmonyOption == TRUE)
 	{
-		lpObj->pInventory[lpObj->m_btInvenPetPos].PlusSpecial(&lpObj->m_AttackSpeed, 97);
-		lpObj->pInventory[lpObj->m_btInvenPetPos].PlusSpecial(&lpObj->m_MagicSpeed, 97);
-		lpObj->pInventory[lpObj->m_btInvenPetPos].PlusSpecial(&lpObj->AddBP, 103);
+		lpObj->pInventory[lpObj->m_btInvenPetPos].PlusSpecial(&lpObj->AddBP, 103); // AG +50
+		lpObj->pInventory[lpObj->m_btInvenPetPos].PlusSpecial(&lpObj->m_AttackSpeed, 104); // Speed 5
+		lpObj->pInventory[lpObj->m_btInvenPetPos].PlusSpecial(&lpObj->m_MagicSpeed, 104); // Speed 5
 	}
 
 	if ( lpObj->Type == OBJ_USER && lpObj->m_PlayerData->ISBOT == false )
@@ -909,9 +884,9 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_CurseDamageMax += nMuunItemEffectValue;
 	}
 
-	lpObj->pInventory[9].PlusSpecialPercentEx(&lpObj->AddBP, lpObj->MaxBP, 173);
 	lpObj->pInventory[10].PlusSpecialPercentEx(&lpObj->AddMana, lpObj->MaxMana, 172);
 	lpObj->pInventory[11].PlusSpecialPercentEx(&lpObj->AddMana, lpObj->MaxMana, 172);
+	lpObj->pInventory[9].PlusSpecialPercentEx(&lpObj->AddBP, lpObj->MaxBP, 173);
 
 	// resistance
 	CItem * rItem[3];
@@ -1063,6 +1038,37 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 
 	g_ItemOptionTypeMng.CalcExcOptionEffect(lpObj);
 	g_ItemOptionTypeMng.CalcWingOptionEffect(lpObj);
+
+	// calc option set item contributed
+	this->CalcSetItemOption(lpObj);
+
+	// calc critical damage success rate of luck item
+	for (int i=0; i<8; i++) {
+		if (lpObj->pInventory[i].m_IsValidItem) {
+			lpObj->pInventory[i].PlusSpecial(&lpObj->m_CriticalDamageSuccessRate, 84);
+		}
+	}
+	lpObj->m_CriticalDamageSuccessRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate;
+	lpObj->m_ExcellentDamageSuccessRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate;
+
+	// calc pentagram
+	if (lpObj->pInventory[236].IsItem() == TRUE)
+	{
+		if (this->ValidItem(lpObj, &lpObj->pInventory[236], 236))
+		{
+			lpObj->pInventory[236].m_IsValidItem = true;
+			g_PentagramSystem.CalcPentagramItem(aIndex, &lpObj->pInventory[236]);
+		}
+		else
+		{
+			lpObj->pInventory[236].m_IsValidItem = false;
+		}
+	}
+	else
+	{
+		g_PentagramSystem.ClearPentagramItem(aIndex);
+	}
+
 	this->SetItemApply(lpObj);
 	this->PremiumItemApply(lpObj);
 	gObjNextExpCal(lpObj);
@@ -1293,45 +1299,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	GSProtocol.GCSendAttackSpeed(lpObj->m_Index);
 }
 
-void CObjCalCharacter::CalcSetItemStat(LPOBJ lpObj)
-{
-	if (lpObj->Type != OBJ_USER)
-	{
-		return;
-	}
-
-	for ( int i=0;i<INVETORY_WEAR_SIZE;i++)
-	{
-		if ( lpObj->pInventory[i].IsSetItem() && lpObj->pInventory[i].m_IsValidItem && lpObj->pInventory[i].m_Durability != 0.0f )
-		{
-			int AddStatType = lpObj->pInventory[i].GetAddStatType();
-
-			switch ( AddStatType )
-			{
-				case 1:
-					lpObj->pInventory[i].SetItemPlusSpecialStat(&lpObj->AddStrength, 196);
-					break;
-				case 2:
-					EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
-					lpObj->m_PlayerData->AgilityCheckDelay = GetTickCount();
-					lpObj->pInventory[i].SetItemPlusSpecialStat(&lpObj->AddDexterity, 197);
-					LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
-					break;
-				case 3:
-					lpObj->pInventory[i].SetItemPlusSpecialStat(&lpObj->AddEnergy, 198);
-					break;
-				case 4:
-					lpObj->pInventory[i].SetItemPlusSpecialStat(&lpObj->AddVitality, 199);
-					break;
-			}
-		}
-	}
-}
-
-
-
-
-
 void CObjCalCharacter::GetSetItemOption(LPOBJ lpObj, LPBYTE pSetOptionTable, LPBYTE pSetOptionCountTable, int * pSetOptionCount)
 {
 	*pSetOptionCount = 0;
@@ -1408,7 +1375,8 @@ void CObjCalCharacter::GetSetItemOption(LPOBJ lpObj, LPBYTE pSetOptionTable, LPB
 		}
 	}
 }
-void CObjCalCharacter::CalcSetItemOption(LPOBJ lpObj)
+
+void CObjCalCharacter::CalcSetItemStat(LPOBJ lpObj)
 {
 	BYTE SetOptionTable[29];
 	BYTE SetOptionCountTable[29];
@@ -1423,6 +1391,38 @@ void CObjCalCharacter::CalcSetItemOption(LPOBJ lpObj)
 	int opvalue3;
 	int opvalue4;
 	int opvalue5;
+
+	if (lpObj->Type != OBJ_USER)
+	{
+		return;
+	}
+
+	for ( int i=0;i<INVETORY_WEAR_SIZE;i++)
+	{
+		if ( lpObj->pInventory[i].IsSetItem() && lpObj->pInventory[i].m_IsValidItem && lpObj->pInventory[i].m_Durability != 0.0f )
+		{
+			int AddStatType = lpObj->pInventory[i].GetAddStatType();
+
+			switch ( AddStatType )
+			{
+				case 1:
+					lpObj->pInventory[i].SetItemPlusSpecialStat(&lpObj->AddStrength, 196);
+					break;
+				case 2:
+					EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
+					lpObj->m_PlayerData->AgilityCheckDelay = GetTickCount();
+					lpObj->pInventory[i].SetItemPlusSpecialStat(&lpObj->AddDexterity, 197);
+					LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
+					break;
+				case 3:
+					lpObj->pInventory[i].SetItemPlusSpecialStat(&lpObj->AddEnergy, 198);
+					break;
+				case 4:
+					lpObj->pInventory[i].SetItemPlusSpecialStat(&lpObj->AddVitality, 199);
+					break;
+			}
+		}
+	}
 
 	memset(SetOptionTable, 0, sizeof(SetOptionTable));
 	memset(SetOptionCountTable, 0, sizeof(SetOptionCountTable));
@@ -1464,6 +1464,27 @@ void CObjCalCharacter::CalcSetItemOption(LPOBJ lpObj)
 			}		
 		}
 	}
+}
+
+void CObjCalCharacter::CalcSetItemOption(LPOBJ lpObj)
+{
+	BYTE SetOptionTable[29];
+	BYTE SetOptionCountTable[29];
+	int SetOptionCount = 0;
+	int op1;
+	int op2;
+	int op3;
+	int op4;
+	int op5;
+	int opvalue1;
+	int opvalue2;
+	int opvalue3;
+	int opvalue4;
+	int opvalue5;
+
+	memset(SetOptionTable, 0, sizeof(SetOptionTable));
+	memset(SetOptionCountTable, 0, sizeof(SetOptionCountTable));
+	this->GetSetItemOption(lpObj, SetOptionTable, SetOptionCountTable, &SetOptionCount);
 
 	for (int optioncount=0;optioncount<SetOptionCount;optioncount++)
 	{
@@ -1496,7 +1517,7 @@ void CObjCalCharacter::CalcSetItemOption(LPOBJ lpObj)
 				this->SetItemPlusSpecial(lpObj, op3, opvalue3);
 				this->SetItemPlusSpecial(lpObj, op4, opvalue4);
 				this->SetItemPlusSpecial(lpObj, op5, opvalue5);
-			}		
+			}
 		}
 	}
 }
