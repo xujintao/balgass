@@ -780,7 +780,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 				this->m_Defense += (this->m_Defense * 12) / p->Level + (p->Level / 5 ) + 4;
 				this->m_Defense += (this->m_Defense * 3) / ItemLevel  + ( ItemLevel / 30 ) + 2;
 			}
-			else if (Attribute2&0x3F != 0)
+			else if ((Attribute2&0x3F) != 0)
 			{
 				if ( p->Level != 0 )
 				{
@@ -900,16 +900,16 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		// wing
 		switch (_type) {
 		case ITEMGET(13,3): // Horn of Dinorant is also a wing in some ways
-			if ( (this->m_Option3&0x01) != 0 )
+			if ((this->m_Option3&0x01) != 0)
 			{
 				// this->m_Special[this->m_SpecialNum] = ?; // absorb damage 5%
 			}
-			if ( (this->m_Option3&0x02) != 0 )
+			if ((this->m_Option3&0x02) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 103; // AG+50
 				this->m_SpecialNum++;
 			}
-			if ( (this->m_Option3&0x04) != 0 )
+			if ((this->m_Option3&0x04) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 104; // Speed +5
 				this->m_SpecialNum++;
@@ -935,7 +935,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			break;
 		case ITEMGET(12,3): // Wings of Spirits
 			this->m_RequireStrength += Option3 * 4;
-			if (this->m_NewOption&0x20 != 0)
+			if ((this->m_NewOption&0x20) != 0)
 				// As for ELF, recover life is excellent
 				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
 			else
@@ -943,7 +943,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			break;
 		case ITEMGET(12,4): // Wings of Soul
 			this->m_RequireStrength += Option3 * 4;
-			if (this->m_NewOption&0x20 != 0)
+			if ((this->m_NewOption&0x20) != 0)
 				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
 			else
 				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
@@ -951,21 +951,21 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		case ITEMGET(12,5): // Wings of Dragon
 		case ITEMGET(12,49): // Cape of Fighter
 			this->m_RequireStrength += Option3 * 4;
-			if (this->m_NewOption&0x20 != 0)
+			if ((this->m_NewOption&0x20) != 0)
 				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
 			else
 				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
 			break;
 		case ITEMGET(12,6): // Wings of Darkness
 			this->m_RequireStrength +=  Option3 * 4;
-			if (this->m_NewOption&0x20 != 0)
+			if ((this->m_NewOption&0x20) != 0)
 				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
 			else
 				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
 			break;
 		case ITEMGET(12,42): // Wind of Despair
 			this->m_RequireStrength += Option3 * 4;
-			if (this->m_NewOption&0x20 != 0)
+			if ((this->m_NewOption&0x20) != 0)
 				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
 			else
 				this->m_Special[this->m_SpecialNum] = 113; // Curse Damage
@@ -975,35 +975,35 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		case ITEMGET(12,40): // Cape of Emperor
 		case ITEMGET(12,50): // Cape of Overrule
 			this->m_RequireStrength += Option3 * 4;
-			if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 0)
+			if ((this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			else if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 1)
+			else if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
 			else
 				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
 			break;
 		case ITEMGET(12,37): // Wing of Eternal
 			this->m_RequireStrength += Option3 * 4;
-			if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 0)
+			if ((this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			else if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 1)
+			else if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
 			else
 				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
 			break;
 		case ITEMGET(12,39): // Wing of Ruin
 			this->m_RequireStrength += Option3 * 4;
-			if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 0)
+			if ((this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			else if (this->m_NewOption&0x20 != 0 && this->m_NewOption&0x10 == 0)
+			else if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
 			else
 				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
 			break;
 		case ITEMGET(12,43): // Wing of Dimension
-			if (this->m_NewOption&0x20 == 0 && this->m_NewOption&0x10 == 0)
+			if ((this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			else if (this->m_NewOption&0x20 != 0 && this->m_NewOption&0x10 == 0)
+			else if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 113; // Curse Damage
 			else
 				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
@@ -1012,14 +1012,14 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		case ITEMGET(12,263): // Wings of Chaos
 		case ITEMGET(12,265): // Wings of Life
 			this->m_RequireStrength += Option3 * 4;
-			if (this->m_NewOption&0x10 != 0)
+			if ((this->m_NewOption&0x10) != 0)
 				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
 			else
 				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
 			break;
 		case ITEMGET(12,264): // Wings of Magic
 			this->m_RequireStrength +=  Option3 * 4;
-			if (this->m_NewOption&0x10 != 0)
+			if ((this->m_NewOption&0x10) != 0)
 				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
 			else
 				this->m_Special[this->m_SpecialNum] = 113; // Curse Damage
@@ -1031,18 +1031,18 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			break;
 		case ITEMGET(12,269):
 			this->m_RequireStrength += Option3 * 4;
-			if (this->m_NewOption & 0x20 != 0)
+			if ((this->m_NewOption&0x20) != 0)
 				this->m_Special[this->m_SpecialNum] = 80; // Additional Damage
 			else
 				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
 			break;
 		case ITEMGET(12,270):
 			this->m_RequireStrength += Option3 * 4;
-			if (this->m_NewOption & 0x20 != 0 && this->m_NewOption & 0x10 != 0)
+			if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) != 0)
 				this->m_Special[this->m_SpecialNum] = 80; // Additional Magic
-			else if (this->m_NewOption & 0x20 == 0 && this->m_NewOption & 0x10 == 0)
+			else if ((this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
-			else if (this->m_NewOption & 0x20 != 0 && this->m_NewOption & 0x10 == 0)
+			else if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
 			break;
 		}
@@ -1057,37 +1057,37 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	if (GetItemKindA(_type) == ITEM_KIND_A_ARMOR
 	|| (GetItemKindA(_type) == ITEM_KIND_A_RING && GetItemKindB(_type) == ITEM_KIND_B_RING))
 	{
-		if ( ((this->m_NewOption>>5)&1) != 0 )
+		if ((this->m_NewOption>>5&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 86; // Increase Maximum Life 4%
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption>>4)&1) != 0 )
+		if ((this->m_NewOption>>4&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 87; // Increase Maximum Mana 4%
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption>>3)&1) != 0 )
+		if ((this->m_NewOption>>3&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 88; // Decreases Damage 4%
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption>>2)&1) != 0 )
+		if ((this->m_NewOption>>2&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 89; // Reflect Damage 5%
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption>>1)&1) != 0 )
+		if ((this->m_NewOption>>1&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 90; // Defense Success Rate 10%
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&1) != 0 )
+		if ((this->m_NewOption&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 91; // Increases the amount of Zen received for hunting monsters
 			this->m_SpecialNum++;
@@ -1097,7 +1097,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	if (GetItemKindA(_type) == ITEM_KIND_A_WEAPON
 	|| GetItemKindA(_type) == ITEM_KIND_A_PENDANT)
 	{
-		if ( ((this->m_NewOption>>5)&1) != 0 )
+		if ((this->m_NewOption>>5&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 92; // Excellent damage rate 10%
 			this->m_SpecialNum++;
@@ -1106,12 +1106,12 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		if (GetItemKindB(_type) == ITEM_KIND_B_STAFF_WIZARD
 		|| GetItemKindB(_type) == ITEM_KIND_B_PENDANT_MAGIC_ATTACK)
 		{
-			if ( ((this->m_NewOption>>4)&1) != 0 )
+			if ((this->m_NewOption>>4&1) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 95; // Increase (Magic)Attack/Level =20
 				this->m_SpecialNum++;
 			}
-			if ( ((this->m_NewOption>>3)&1) != 0 )
+			if ((this->m_NewOption>>3&1) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 96; // Increases (Magic)Attack 2%
 				this->m_SpecialNum++;
@@ -1119,31 +1119,31 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		}
 		else
 		{
-			if ( ((this->m_NewOption>>4)&1) != 0 )
+			if ((this->m_NewOption>>4&1) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 93; // Increase Attack/Level =20
 				this->m_SpecialNum++;
 			}
-			if ( ((this->m_NewOption>>3)&1) != 0 )
+			if ((this->m_NewOption>>3&1) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 94; // // Increases Attack 2%
 				this->m_SpecialNum++;
 			}
 		}
 
-		if ( ((this->m_NewOption>>2)&1) != 0 )
+		if ((this->m_NewOption>>2&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 97; // Increase Attack (Wizardry) Speed 7
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption>>1)&1) != 0 )
+		if ((this->m_NewOption>>1&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 98; // Increases the amount of Life received for hunting monsters
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&1) != 0 )
+		if ((this->m_NewOption&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 99; // Increases the amount of Mana received for hunting monsters
 			this->m_SpecialNum++;
@@ -1155,39 +1155,39 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	|| GetItemKindB(_type) == ITEM_KIND_B_LORD_CAPE
 	|| GetItemKindB(_type) == ITEM_KIND_B_RAGEFIGHTER_CAPE)
 	{
-		if (this->m_NewOption&1 != 0)
+		if ((this->m_NewOption&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 100; // HP +50
 			this->m_SpecialNum++;
 		}
 
-		if (this->m_NewOption&2 != 0)
+		if ((this->m_NewOption&2) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 101; // MP +50
 			this->m_SpecialNum++;
 		}
 
-		if (this->m_NewOption&4 != 0)
+		if ((this->m_NewOption&4) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 102; // Ignore defense 3%
 			this->m_SpecialNum++;
 		}
 
 		if (GetItemKindB(_type) == ITEM_KIND_B_WING_2ND) {
-			if (this->m_NewOption&8 != 0)
+			if ((this->m_NewOption&8) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 103; // AG +50
 				this->m_SpecialNum++;
 			}
 
-			if (this->m_NewOption&16 != 0)
+			if ((this->m_NewOption&16) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 104; // Speed 5
 				this->m_SpecialNum++;
 			}
 		}
 		else if (GetItemKindB(_type) == ITEM_KIND_B_LORD_CAPE) {
-			if ( ((this->m_NewOption)&8) != 0 )
+			if ((this->m_NewOption&8) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 105; // Command 10
 				this->m_SpecialNum++;
@@ -1198,25 +1198,25 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	// 3th wing
 	if (GetItemKindB(_type) == ITEM_KIND_B_WING_3RD)
 	{
-		if (this->m_NewOption&1 != 0)
+		if ((this->m_NewOption&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 108; // Ignore defense 5%
 			this->m_SpecialNum++;
 		}
 
-		if (this->m_NewOption&2 != 0)
+		if ((this->m_NewOption&2) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 109; // Return Damage 5%
 			this->m_SpecialNum++;
 		}
 
-		if (this->m_NewOption&4 != 0)
+		if ((this->m_NewOption&4) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 110; // Recovery HP 5%
 			this->m_SpecialNum++;
 		}
 
-		if (this->m_NewOption&8 != 0)
+		if ((this->m_NewOption&8) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 111; // Recovery MP 5%
 			this->m_SpecialNum++;
@@ -1226,13 +1226,13 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	// 2.5th wing
 	if ( (_type >= ITEMGET(12,262)) && (_type <= ITEMGET(12,265)) )
 	{
-		if (this->m_NewOption&1 != 0)
+		if ((this->m_NewOption&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 102; // Ignore defense 3%
 			this->m_SpecialNum++;
 		}
 
-		if (this->m_NewOption&4 != 0)
+		if ((this->m_NewOption&4) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 110; // Recovery HP 5%
 			this->m_SpecialNum++;
@@ -1242,19 +1242,19 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	// Wings of Conqueror
 	if ( _type == ITEMGET(12,268) )
 	{
-		if ( ((this->m_NewOption)&1) != 0 )
+		if ((this->m_NewOption&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 108;
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&2) != 0 )
+		if ((this->m_NewOption&2) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 109;
 			this->m_SpecialNum++;
 		}
 
-		if ( ((this->m_NewOption)&4) != 0 )
+		if ((this->m_NewOption&4) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 110;
 			this->m_SpecialNum++;
@@ -1264,12 +1264,12 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	// Horn of Fenrir
 	if (_type == ITEMGET(13,37))
 	{
-		if (this->m_NewOption&1 != 0)
+		if ((this->m_NewOption&1) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 106;
 			this->m_SpecialNum++;
 		}
-		else if (this->m_NewOption&2 != 0)
+		else if ((this->m_NewOption&2) != 0)
 		{
 			this->m_Special[this->m_SpecialNum] = 107;
 			this->m_SpecialNum++;
