@@ -1045,22 +1045,22 @@ void CItemSocketOptionSystem::_SetFireEffect(LPOBJECTSTRUCT lpObj, BYTE btEffect
 	{
 	case SEED_EFFECT_TYPE_ATTACK_POWER:
 		{
-			iCalcEffectValue = CalcEffectValue(lpObj->m_AttackDamageMaxLeft, wEffectValue, btEffectValueType);
+			iCalcEffectValue = CalcEffectValue(lpObj->Level + lpObj->m_PlayerData->MasterLevel, wEffectValue, btEffectValueType);
 			lpObj->m_AttackDamageMaxLeft += iCalcEffectValue;
 
-			iCalcEffectValue = CalcEffectValue(lpObj->m_AttackDamageMinLeft, wEffectValue, btEffectValueType);
+			iCalcEffectValue = CalcEffectValue(lpObj->Level + lpObj->m_PlayerData->MasterLevel, wEffectValue, btEffectValueType);
 			lpObj->m_AttackDamageMinLeft += iCalcEffectValue;
 
-			iCalcEffectValue = CalcEffectValue(lpObj->m_AttackDamageMaxRight, wEffectValue, btEffectValueType);
+			iCalcEffectValue = CalcEffectValue(lpObj->Level + lpObj->m_PlayerData->MasterLevel, wEffectValue, btEffectValueType);
 			lpObj->m_AttackDamageMaxRight += iCalcEffectValue;
 
-			iCalcEffectValue = CalcEffectValue(lpObj->m_AttackDamageMinRight, wEffectValue, btEffectValueType);
+			iCalcEffectValue = CalcEffectValue(lpObj->Level + lpObj->m_PlayerData->MasterLevel, wEffectValue, btEffectValueType);
 			lpObj->m_AttackDamageMinRight += iCalcEffectValue;
 			
-			iCalcEffectValue = CalcEffectValue(lpObj->m_MagicDamageMin, wEffectValue, btEffectValueType);
+			iCalcEffectValue = CalcEffectValue(lpObj->Level + lpObj->m_PlayerData->MasterLevel, wEffectValue, btEffectValueType);
 			lpObj->m_MagicDamageMin += iCalcEffectValue;
 
-			iCalcEffectValue = CalcEffectValue(lpObj->m_MagicDamageMax, wEffectValue, btEffectValueType);
+			iCalcEffectValue = CalcEffectValue(lpObj->Level + lpObj->m_PlayerData->MasterLevel, wEffectValue, btEffectValueType);
 			lpObj->m_MagicDamageMax += iCalcEffectValue;
 		}
 		break;
