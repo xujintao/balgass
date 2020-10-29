@@ -232,10 +232,9 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_MAGIC_DAMAGE);
 	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_CURSE_DAMAGE);
 
-	// attack/magic speed
-	this->m_Lua.Generic_Call("CalcAttackSpeed", "ii>ii", lpObj->Class, Dexterity,
-		&lpObj->m_AttackSpeed, &lpObj->m_MagicSpeed);
-	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_ATTACK_SPEED);
+	// calc defense
+	this->m_Lua.Generic_Call("CalcDefense", "ii>i", lpObj->Class, Dexterity, &lpObj->m_Defense);
+	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_DEFENSE);
 
 	// attack success rate
 	this->m_Lua.Generic_Call("CalcAttackSuccessRate_PvM", "iiiii>i", lpObj->Class, Strength, Dexterity, Leadership, (lpObj->Level + lpObj->m_PlayerData->MasterLevel),
@@ -251,18 +250,12 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_DEFENSE_RATE);
 	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_DEFENSE_RATE_PVP);
 
-	// calc defense
-	this->m_Lua.Generic_Call("CalcDefense", "ii>i", lpObj->Class, Dexterity, &lpObj->m_Defense);
-	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_DEFENSE);
+	// attack/magic speed
+	this->m_Lua.Generic_Call("CalcAttackSpeed", "ii>ii", lpObj->Class, Dexterity,
+		&lpObj->m_AttackSpeed, &lpObj->m_MagicSpeed);
+	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_ATTACK_SPEED);
 
 	// damage(base+master+item+buff)
-
-	// calc master passive skill
-	g_MasterLevelSkillTreeSystem.SetItemMLPassiveSkill(lpObj, Right->GetDetailItemType());
-	g_MasterLevelSkillTreeSystem.SetItemMLPassiveSkill(lpObj, Left->GetDetailItemType());
-	g_MasterLevelSkillTreeSystem.SetWingMLPassiveSkill(lpObj, Wing->m_Type);
-	g_MasterLevelSkillTreeSystem.SetPetItemMLPassiveSkill(lpObj, Helper->m_Type);
-	this->ApplyMLSkillItemOption(lpObj);
 
 	// apply damage buff
 	// g_BuffEffect.ApplyPrevEffectDamage(lpObj);
@@ -304,6 +297,109 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	//
 	lpObj->m_AttackRating = (Strength + Dexterity) / 2;
 	lpObj->m_AttackRating += lpObj->pInventory[5].ItemDefense();
+
+	// defense of item contributed
+	for (int i=1; i<8; i++) {
+		if (lpObj->pInventory[i].m_IsValidItem) {
+			lpObj->m_Defense += lpObj->pInventory[i].ItemDefense();
+			lpObj->pInventory[i].PlusSpecial(&lpObj->m_Defense, 83);
+		}
+	}
+
+	if ( lpObj->m_btInvenPetPos != FALSE && lpObj->pInventory[lpObj->m_btInvenPetPos].m_JewelOfHarmonyOption == TRUE )
+	{
+		if ( lpObj->pInventory[lpObj->m_btInvenPetPos].m_Type == ITEMGET(13,4) && lpObj->pInventory[lpObj->m_btInvenPetPos].m_Durability > 0.0f )	// Dark Horse
+		{
+			int addDefense = 0;
+			this->m_Lua.Generic_Call("CalcDarkHorseDefenseBonus", "ii>i", Dexterity, lpObj->pInventory[lpObj->m_btInvenPetPos].m_PetItem_Level, &addDefense);
+
+			//int addDefense = Dexterity / 20 + 5 + lpObj->pInventory[lpObj->m_btInvenPetPos].m_PetItem_Level * 2;
+			//addDefense = addDefense * g_ConfigRead.calc.DarkHorseDefenseMultiplier / 100.0f;
+
+			lpObj->m_Defense += addDefense;
+		}
+	}
+
+	// Pet Unicorn
+	if (Helper->m_Type == ITEMGET(13, 106) && Helper->IsPeriodItemExpire() == FALSE)
+	{
+		lpObj->m_Defense += g_ConfigRead.pet.UnicornAddDefense;
+	}
+
+	// defense success rate of item contributed
+	if (Left->m_IsValidItem != false)
+	{
+		lpObj->m_SuccessfulBlocking += Left->m_SuccessfulBlocking;
+		lpObj->pInventory[1].PlusSpecial(&lpObj->m_SuccessfulBlocking, 82);
+	}
+
+
+	// defense level>=10 bonus of item the same type contributed
+	// defense success rate bonus of item the same type contributed
+	// calc
+	int sameTypeCount = 0;
+	int Level10Count = 0;
+	int Level11Count = 0;
+	int Level12Count = 0;
+	int Level13Count = 0;
+	int Level14Count = 0;
+	int Level15Count = 0;
+
+	if (lpObj->pInventory[6].m_IsValidItem) {
+		int rvalue = lpObj->pInventory[6].m_Type % MAX_SUBTYPE_ITEMS;
+		for (int i=2; i<=6; i++) {
+			if ((i==2 && lpObj->Class == CLASS_MAGUMSA)
+			|| (i==5 && lpObj->Class == CLASS_RAGEFIGHTER)) {
+				sameTypeCount++;
+				Level10Count++;
+				Level11Count++;
+				Level12Count++;
+				Level13Count++;
+				Level14Count++;
+				Level15Count++;
+			}
+			if (lpObj->pInventory[i].m_IsValidItem
+			&& lpObj->pInventory[i].m_Type % MAX_SUBTYPE_ITEMS == rvalue) {
+				sameTypeCount++;
+				if ( lpObj->pInventory[i].m_Level > 14 )
+					Level15Count++;
+				else if ( lpObj->pInventory[i].m_Level > 13 )
+					Level14Count++;
+				else if ( lpObj->pInventory[i].m_Level > 12 )
+					Level13Count++;
+				else if ( lpObj->pInventory[i].m_Level > 11 )
+					Level12Count++;
+				else if ( lpObj->pInventory[i].m_Level > 10 )
+					Level11Count++;
+				else if ( lpObj->pInventory[i].m_Level > 9 )
+					Level10Count++;
+			}
+		}
+	}
+
+	// apply bonus of item the same type
+	if (sameTypeCount == 5) {
+		if ( Level15Count == 5 )
+			lpObj->m_Defense += lpObj->m_Defense * 30 / 100;
+		else if ( Level14Count == 5 || (Level14Count + Level15Count) == 5)
+			lpObj->m_Defense += lpObj->m_Defense * 25 / 100;
+		else if ( Level13Count == 5 || (Level13Count + Level14Count + Level15Count) == 5)
+			lpObj->m_Defense += lpObj->m_Defense * 20 / 100;
+		else if ( Level12Count == 5 || (Level12Count + Level13Count + Level14Count + Level15Count) == 5 )
+			lpObj->m_Defense += lpObj->m_Defense * 15 / 100;
+		else if ( Level11Count == 5 || (Level11Count + Level12Count + Level13Count + Level14Count + Level15Count) == 5 )
+			lpObj->m_Defense += lpObj->m_Defense * 10 / 100;
+		else if ( Level10Count == 5 || (Level10Count + Level11Count + Level12Count + Level13Count + Level14Count + Level15Count) == 5)
+			lpObj->m_Defense += lpObj->m_Defense * 5 / 100;
+		lpObj->m_SuccessfulBlocking += lpObj->m_SuccessfulBlocking / 10;
+	}
+
+	// calc master passive skill
+	g_MasterLevelSkillTreeSystem.SetItemMLPassiveSkill(lpObj, Right->GetDetailItemType());
+	g_MasterLevelSkillTreeSystem.SetItemMLPassiveSkill(lpObj, Left->GetDetailItemType());
+	g_MasterLevelSkillTreeSystem.SetWingMLPassiveSkill(lpObj, Wing->m_Type);
+	g_MasterLevelSkillTreeSystem.SetPetItemMLPassiveSkill(lpObj, Helper->m_Type);
+	this->ApplyMLSkillItemOption(lpObj);
 
 	// speed of item weapon contributed
 	bool bRight = false;
@@ -429,246 +525,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_MagicDamageMax += lpObj->m_MagicDamageMax * g_ConfigRead.pet.EliteSkeletonPetAddDamage / 100;
 		lpObj->m_AttackSpeed += g_ConfigRead.pet.EliteSkeletonPetAddAttackSpeed;
 		lpObj->m_MagicSpeed += g_ConfigRead.pet.EliteSkeletonPetAddAttackSpeed;
-	}
-
-	if (lpObj->Class)
-	{
-		lpObj->m_DetectSpeedHackTime = (gAttackSpeedTimeLimit - lpObj->m_AttackSpeed * gDecTimePerAttackSpeed);
-	}
-	else
-	{
-		lpObj->m_DetectSpeedHackTime = (gAttackSpeedTimeLimit - (2 * lpObj->m_MagicSpeed) * gDecTimePerAttackSpeed);
-	}
-
-	if (lpObj->m_DetectSpeedHackTime < gMinimumAttackSpeedTime)
-	{
-		lpObj->m_DetectSpeedHackTime = gMinimumAttackSpeedTime;
-	}
-
-	if (Left->m_IsValidItem != false)
-	{
-		lpObj->m_SuccessfulBlocking += Left->m_SuccessfulBlocking;
-		lpObj->pInventory[1].PlusSpecial(&lpObj->m_SuccessfulBlocking, 82);
-	}
-
-	// defense
-	bool Success = true;
-	if (lpObj->Class == CLASS_MAGUMSA)
-	{
-		for (int j=3; j<=6; j++)
-		{
-			if (lpObj->pInventory[j].m_Type == -1)
-			{
-				Success = false;
-				break;
-			}
-
-			if (lpObj->pInventory[j].m_IsValidItem == false)
-			{
-				Success = false;
-				break;
-			}
-		}
-	}
-	else if (lpObj->Class == CLASS_RAGEFIGHTER)
-	{
-		for (int l=2; l<=6; l++)
-		{
-			if ( l == 5 )
-			{
-				continue;
-			}
-			if ( lpObj->pInventory[l].m_Type == -1 )
-			{
-				Success = false;
-				break;
-			}
-			if ( lpObj->pInventory[l].m_IsValidItem == false )
-			{
-				Success = false;
-				break;
-			}
-		}
-	}
-	else
-	{
-		for  ( int k=2;k<=6;k++)
-		{
-			if ( lpObj->pInventory[k].m_Type == -1 )
-			{
-				Success = false;
-				break;
-			}
-
-			if ( lpObj->pInventory[k].m_IsValidItem == false )
-			{
-				Success = false;
-				break;
-			}
-		}
-	}
-
-	int Level10Count = 0;
-	int Level11Count = 0;
-	int Level12Count = 0;
-	int Level13Count = 0;
-	int Level14Count = 0;
-	int Level15Count = 0;
-
-	if ( Success != false )
-	{
-		int in;
-
-		if ( lpObj->Class == CLASS_MAGUMSA )
-		{
-			in = lpObj->pInventory[3].m_Type % MAX_SUBTYPE_ITEMS;
-
-			if ( in != ITEMGET(0,15) &&
-				 in != ITEMGET(0,20) &&
-				 in != ITEMGET(0,23) &&
-				 in != ITEMGET(0,33) &&
-				 in != ITEMGET(0,32) &&
-				 in != ITEMGET(0,37) )
-			{
-				Success = false;
-			}
-			else
-			{
-				Level13Count++;
-
-				for (int m=3;m<=6;m++)
-				{
-					if ( in != ( lpObj->pInventory[m].m_Type % MAX_SUBTYPE_ITEMS) )
-					{
-						Success = false;
-					}
-					if ( lpObj->pInventory[m].m_Level > 14 )
-					{
-						Level15Count++;
-					}
-					else if ( lpObj->pInventory[m].m_Level > 13 )
-					{
-						Level14Count++;
-					}
-					else if ( lpObj->pInventory[m].m_Level > 12 )
-					{
-						Level13Count++;
-					}
-					else if ( lpObj->pInventory[m].m_Level > 11 )
-					{
-						Level12Count++;
-					}
-					else if ( lpObj->pInventory[m].m_Level > 10 )
-					{
-						Level11Count++;
-					}
-					else if ( lpObj->pInventory[m].m_Level > 9 )
-					{
-						Level10Count++;
-					}
-				}
-			}
-		}
-		else
-		{
-			in = lpObj->pInventory[2].m_Type % MAX_SUBTYPE_ITEMS;
-
-			for (int m=2;m<=6;m++)
-			{
-				if ( in !=  ( lpObj->pInventory[m].m_Type % MAX_SUBTYPE_ITEMS) )
-				{
-					Success = false;
-				}
-				if ( lpObj->pInventory[m].m_Level > 14 )
-				{
-					Level15Count++;
-				}
-				else if ( lpObj->pInventory[m].m_Level > 13 )
-				{
-					Level14Count++;
-				}
-				else if ( lpObj->pInventory[m].m_Level > 12 )
-				{
-					Level13Count++;
-				}
-				else if ( lpObj->pInventory[m].m_Level > 11 )
-				{
-					Level12Count++;
-				}
-				else if ( lpObj->pInventory[m].m_Level > 10 )
-				{
-					Level11Count++;
-				}
-				else if ( lpObj->pInventory[m].m_Level > 9 )
-				{
-					Level10Count++;
-				}
-			}
-		}
-
-		if ( Success != false )	// #warning unuseful if
-		{
-			lpObj->m_SuccessfulBlocking += lpObj->m_SuccessfulBlocking / 10;
-		}
-	}
-
-	lpObj->m_Defense += lpObj->pInventory[2].ItemDefense();
-	lpObj->m_Defense += lpObj->pInventory[3].ItemDefense();
-	lpObj->m_Defense += lpObj->pInventory[4].ItemDefense();
-	lpObj->m_Defense += lpObj->pInventory[5].ItemDefense();
-	lpObj->m_Defense += lpObj->pInventory[6].ItemDefense();
-	lpObj->m_Defense += lpObj->pInventory[1].ItemDefense();
-	lpObj->m_Defense += lpObj->pInventory[7].ItemDefense();
-
-	if ( lpObj->m_btInvenPetPos != FALSE && lpObj->pInventory[lpObj->m_btInvenPetPos].m_JewelOfHarmonyOption == TRUE )
-	{
-		if ( lpObj->pInventory[lpObj->m_btInvenPetPos].m_Type == ITEMGET(13,4) && lpObj->pInventory[lpObj->m_btInvenPetPos].m_Durability > 0.0f )	// Dark Horse
-		{
-			int addDefense = 0;
-			this->m_Lua.Generic_Call("CalcDarkHorseDefenseBonus", "ii>i", Dexterity, lpObj->pInventory[lpObj->m_btInvenPetPos].m_PetItem_Level, &addDefense);
-
-			//int addDefense = Dexterity / 20 + 5 + lpObj->pInventory[lpObj->m_btInvenPetPos].m_PetItem_Level * 2;
-			//addDefense = addDefense * g_ConfigRead.calc.DarkHorseDefenseMultiplier / 100.0f;
-
-			lpObj->m_Defense += addDefense;
-		}
-	}
-
-	// Pet Unicorn
-	if (Helper->m_Type == ITEMGET(13, 106) && Helper->IsPeriodItemExpire() == FALSE)
-	{
-		lpObj->m_Defense += g_ConfigRead.pet.UnicornAddDefense;
-	}
-
-	if ( (Level15Count + Level14Count + Level13Count + Level12Count + Level11Count + Level10Count) >= 5 )
-	{
-		if ( Success != false )
-		{
-			if ( Level15Count == 5 )
-			{
-				lpObj->m_Defense += lpObj->m_Defense * 30 / 100;
-			}
-			else if ( Level14Count == 5 || (Level14Count + Level15Count) == 5)
-			{
-				lpObj->m_Defense += lpObj->m_Defense * 25 / 100;
-			}
-			else if ( Level13Count == 5 || (Level13Count + Level14Count + Level15Count) == 5)
-			{
-				lpObj->m_Defense += lpObj->m_Defense * 20 / 100;
-			}
-			else if ( Level12Count == 5 || (Level12Count + Level13Count + Level14Count + Level15Count) == 5 )
-			{
-				lpObj->m_Defense += lpObj->m_Defense * 15 / 100;
-			}
-			else if ( Level11Count == 5 || (Level11Count + Level12Count + Level13Count + Level14Count + Level15Count) == 5 )
-			{
-				lpObj->m_Defense += lpObj->m_Defense * 10 / 100;
-			}
-			else if ( Level10Count == 5 || (Level10Count + Level11Count + Level12Count + Level13Count + Level14Count + Level15Count) == 5)
-			{
-				lpObj->m_Defense += lpObj->m_Defense * 5 / 100;
-			}
-		}
 	}
 
 	if ( (LeftRing->IsItem() == TRUE && LeftRing->m_Type == ITEMGET(13,10) && LeftRing->m_Level == 5) || (RightRing->IsItem() == TRUE && RightRing->m_Type == ITEMGET(13,10) && RightRing->m_Level == 5)  )
@@ -1041,6 +897,9 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 
 	// calc option set item contributed
 	this->CalcSetItemOption(lpObj);
+	this->SetItemApply(lpObj);
+
+	this->PremiumItemApply(lpObj);
 
 	// calc critical damage success rate of luck item
 	for (int i=0; i<8; i++) {
@@ -1069,9 +928,15 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		g_PentagramSystem.ClearPentagramItem(aIndex);
 	}
 
-	this->SetItemApply(lpObj);
-	this->PremiumItemApply(lpObj);
 	gObjNextExpCal(lpObj);
+
+	if (lpObj->Class)
+		lpObj->m_DetectSpeedHackTime = (gAttackSpeedTimeLimit - lpObj->m_AttackSpeed * gDecTimePerAttackSpeed);
+	else
+		lpObj->m_DetectSpeedHackTime = (gAttackSpeedTimeLimit - (2 * lpObj->m_MagicSpeed) * gDecTimePerAttackSpeed);
+
+	if (lpObj->m_DetectSpeedHackTime < gMinimumAttackSpeedTime)
+		lpObj->m_DetectSpeedHackTime = gMinimumAttackSpeedTime;
 
 	if ( gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER_PRO) == TRUE )
 	{
@@ -1763,7 +1628,7 @@ void CObjCalCharacter::ApplyMLSkillItemOption(LPOBJ lpObj)
 	lpObj->m_Defense += lpObj->m_PlayerData->m_MPSkillOpt.iMpsDefence;
 	lpObj->m_SuccessfulBlocking += lpObj->m_PlayerData->m_MPSkillOpt.iMpsBlockingSuccessRate;
 	
-	BOOL nFullSet = TRUE;
+	BOOL nFullSet = FALSE;
 	if (lpObj->Class == CLASS_MAGUMSA)
 	{
 		if (Armor->m_IsValidItem
@@ -1773,7 +1638,7 @@ void CObjCalCharacter::ApplyMLSkillItemOption(LPOBJ lpObj)
 		&& (Armor->m_Type%MAX_SUBTYPE_ITEMS == Glove->m_Type%MAX_SUBTYPE_ITEMS)
 		&& (Glove->m_Type%MAX_SUBTYPE_ITEMS == Pant->m_Type%MAX_SUBTYPE_ITEMS)
 		&& (Pant->m_Type%MAX_SUBTYPE_ITEMS == Boot->m_Type%MAX_SUBTYPE_ITEMS))
-			nFullSet = FALSE;
+			nFullSet = TRUE;
 	}
 	else if (lpObj->Class == CLASS_RAGEFIGHTER)
 	{
@@ -1784,7 +1649,7 @@ void CObjCalCharacter::ApplyMLSkillItemOption(LPOBJ lpObj)
 		&& (Helmet->m_Type%MAX_SUBTYPE_ITEMS == Armor->m_Type%MAX_SUBTYPE_ITEMS)
 		&& (Armor->m_Type%MAX_SUBTYPE_ITEMS == Pant->m_Type%MAX_SUBTYPE_ITEMS)
 		&& (Pant->m_Type%MAX_SUBTYPE_ITEMS == Boot->m_Type%MAX_SUBTYPE_ITEMS))
-			nFullSet = FALSE;
+			nFullSet = TRUE;
 	}
 	else
 	{
@@ -1797,7 +1662,7 @@ void CObjCalCharacter::ApplyMLSkillItemOption(LPOBJ lpObj)
 		&& (Armor->m_Type%MAX_SUBTYPE_ITEMS == Glove->m_Type%MAX_SUBTYPE_ITEMS)
 		&& (Glove->m_Type%MAX_SUBTYPE_ITEMS == Pant->m_Type%MAX_SUBTYPE_ITEMS)
 		&& (Pant->m_Type%MAX_SUBTYPE_ITEMS == Boot->m_Type%MAX_SUBTYPE_ITEMS))
-			nFullSet = FALSE;
+			nFullSet = TRUE;
 	}
 	if (nFullSet == TRUE)
 	{

@@ -127,7 +127,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		this->m_Type=_type;
 	}
 
-	this->m_NewOption =Attribute2;
+	this->m_NewOption = Attribute2;
 	
 	if (p->OptionFlag  == 0)
 	{
@@ -732,25 +732,55 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		}
 	}
 
-	if ( p->Defense > 0 )	
+	if ( p->Defense > 0 )
 	{
-		if ( this->m_Type >= ITEMGET(6,0) && this->m_Type < ITEMGET(7,0) )
-		{
+		switch (GetItemKindB(_type)) {
+		case ITEM_KIND_B_SHIELD:
 			this->m_Defense += this->m_Level;
-
-			if ( this->m_SetOption != 0 && ItemLevel != 0 )
-			{
+			if (this->m_SetOption != 0 && ItemLevel != 0)
 				this->m_Defense += (this->m_Defense * 20) / ItemLevel + 2;
+			this->m_Defense += this->m_Level * 3;
+			if ( this->m_Level >= 10 )
+			{
+				this->m_Defense += (this->m_Level - 9) * (this->m_Level - 8) / 2;
 			}
-		}
-		else 
-		{
-			if ( this->m_SetOption != 0 && ItemLevel != 0 )
+		case ITEM_KIND_B_WING_1ST:
+			this->m_Defense += this->m_Level*3;
+			if(this->m_Level >= 10)
+				this->m_Defense += (this->m_Level - 9) * (this->m_Level - 8) / 2;
+			break;
+		case ITEM_KIND_B_WING_2ND:
+		case ITEM_KIND_B_RAGEFIGHTER_CAPE:
+			this->m_Defense += this->m_Level*2;
+			if(this->m_Level >= 10)
+				this->m_Defense += (this->m_Level - 9) * (this->m_Level - 8) / 2 + (this->m_Level - 9);
+			break;
+		case ITEM_KIND_B_LORD_CAPE:
+			this->m_Defense += this->m_Level*2 + 15;
+			if(this->m_Level >= 10)
+				this->m_Defense += (this->m_Level - 9) * (this->m_Level - 8) / 2 + (this->m_Level - 9);
+			break;
+		case ITEM_KIND_B_WING_3RD:
+			this->m_Defense += this->m_Level*4;
+			if ( this->m_Level >= 10 )
+			{
+				this->m_Defense += (this->m_Level - 8) * (this->m_Level - 9) / 2;
+			}
+			break;
+		case ITEM_KIND_B_MONSTER_WING:
+			this->m_Defense += this->m_Level*3;
+			if ( this->m_Level >= 10 )
+			{
+				this->m_Defense += (this->m_Level - 9) * (this->m_Level - 8) / 2;
+			}
+			break;
+		default:
+			if (this->m_SetOption != 0 && ItemLevel != 0)
 			{
 				this->m_Defense += (this->m_Defense * 12) / p->Level + (p->Level / 5 ) + 4;
 				this->m_Defense += (this->m_Defense * 3) / ItemLevel  + ( ItemLevel / 30 ) + 2;
 			}
-			else if ( (Attribute2 & 0x3F) > 0 )
+			else if (Attribute2&0x3F != 0)
 			{
 				if ( p->Level != 0 )
 				{
@@ -758,85 +788,12 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 				}
 			}
 
-			if ( ( _type >= ITEMGET(12,36) && _type <= ITEMGET(12,40)) || _type == ITEMGET(12,43) || _type == ITEMGET(12,50) || _type == ITEMGET(12,268) )
-			{
-				this->m_Defense += this->m_Level * 4;
-
-				if ( this->m_Level >= 10 )
-				{
-					this->m_Defense += (this->m_Level - 9);
-				}
-			}
-
-			else if ( ( _type >= ITEMGET(12,3) && _type <= ITEMGET(12,6)) || _type == ITEMGET(13,30) || _type == ITEMGET(13,4) )
-			{
-				this->m_Defense += this->m_Level * 2;
-			}
-
-			else
-			{
-				this->m_Defense += this->m_Level * 3;
-			}
-
+			this->m_Defense += this->m_Level * 3;
 			if ( this->m_Level >= 10 )
 			{
 				this->m_Defense += (this->m_Level - 9) * (this->m_Level - 8) / 2;
 			}
 		}
-	}
-
-	switch ( _type ) // Wings
-	{
-		case ITEMGET(12,0):
-		case ITEMGET(12,1):
-		case ITEMGET(12,2):
-		case ITEMGET(12,41):
-			this->m_Defense += this->m_Level*3;
-			if(this->m_Level >= 10)
-				this->m_Defense += (this->m_Level - 9) * (this->m_Level - 8) / 2;
-			break;
-		case ITEMGET(12,3):
-		case ITEMGET(12,4):
-		case ITEMGET(12,5):
-		case ITEMGET(12,6):
-		case ITEMGET(12,42):
-		case ITEMGET(12,49):
-		case ITEMGET(12,269):
-			this->m_Defense += this->m_Level*2;
-			if(this->m_Level >= 10)
-				this->m_Defense += (this->m_Level - 9) * (this->m_Level - 8) / 2 + (this->m_Level - 9);
-			break;
-		case ITEMGET(13,30):
-			this->m_Defense += this->m_Level*2 + 15;
-			if(this->m_Level >= 10)
-				this->m_Defense += (this->m_Level - 9) * (this->m_Level - 8) / 2 + (this->m_Level - 9);
-			break;
-
-		case ITEMGET(12,36):
-		case ITEMGET(12,37):
-		case ITEMGET(12,38):
-		case ITEMGET(12,39):
-		case ITEMGET(12,40):
-		case ITEMGET(12,43):
-		case ITEMGET(12,50):
-		case ITEMGET(12,270):
-			this->m_Defense += this->m_Level*4;
-			if ( this->m_Level >= 10 )
-			{
-				this->m_Defense += (this->m_Level - 8) * (this->m_Level - 9) / 2;
-			}
-			break;
-		case ITEMGET(12,262):
-		case ITEMGET(12,263):
-		case ITEMGET(12,264):
-		case ITEMGET(12,265):
-			this->m_Defense += this->m_Level*3;
-			if ( this->m_Level >= 10 )
-			{
-				this->m_Defense += (this->m_Level - 9) * (this->m_Level - 8) / 2;
-			}
-			break;
-
 	}
 
 	if ( p->MagicDefense > 0 )
@@ -2674,31 +2631,10 @@ int CItem::ItemDamageMin()
 
 int CItem::ItemDefense()
 {
-	int Defense;
-	
-	if (this->m_Type < 0)
-	{
+	if (this->m_Type < 0 || !this->m_IsValidItem)
 		return 0;
-	}
-	else
-	{
-		if (this->m_IsValidItem == false)
-		{
-			return 0;
-		}
-		else
-		{
-			Defense=this->m_Defense;
-			this->PlusSpecial(&Defense, 83);
-			return Defense;
-		}
-	}
+	return this->m_Defense;
 }
-
-
-
-
-
 
 BOOL CItem::IsClass(char aClass, int ChangeUP)
 {
