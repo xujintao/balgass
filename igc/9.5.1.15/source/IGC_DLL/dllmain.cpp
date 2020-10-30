@@ -275,6 +275,7 @@ void SetValues()
 	// MemAssign(0x00B0F1C1 + 1, (BYTE)0x00); // discard high dmDisplayFrequency, fixed resolution mismatching
 	MemAssign(0x0067760B + 1, (BYTE)0x2C); // fixed item with socket show excellent
 	MemAssign(0x0AF7F02D + 1, (DWORD)0xC8); // modify max speed limit of death stab from 300ms to 200ms per attack
+	MemSet(CTRL_FREEZE_FIX, 0x02, 1);
 /*
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
@@ -289,7 +290,7 @@ void SetValues()
 	//MemAssign(CHATSERVER_PORT,(DWORD)g_ServerInfo->GetChatServerPort());
 	//HookManager.MakeCallback(GSCONNECT_HOOK1, OnGsConnect, 0, 10, false);
 	//HookManager.MakeCallback(GSCONNECT_HOOK2, OnGsConnect, 0, 10, false);
-	MemSet(CTRL_FREEZE_FIX, 0x02, 1);
+	
 	//MemSet(MAPSRV_DELACCID_FIX, 0x90, 5); // nop call to memcpy in mapserver, because buff source is empty, due to no account id from webzen http (remove new login system)
 	//MemSet(MAPSRV_DELACCID_FIX, 0x90, 5); // this may be annotated in 1.04R
 	//HookManager.MakeJmpHook(0x004E1B32, PreventSwapBufferHack); //s9
