@@ -3854,79 +3854,49 @@ void GameProtocol::GCItemInventoryPutSend(int aIndex,BYTE result, BYTE iteminfo1
 	IOCP.DataSend(aIndex, (UCHAR*)&pResult, pResult.h.size);
 }
 
-
-
-
+void GameProtocol::CGItemGetInvalidRes(int index) {
+	PMSG_ITEMGETRESULT pResult;
+	pResult.h.c = 0xC3;
+	pResult.h.headcode = 0x22;
+	pResult.h.size = sizeof(pResult);
+	pResult.result = -1;
+	pResult.h.size -= sizeof(pResult.Data);
+	IOCP.DataSend(index, (UCHAR*)&pResult, pResult.h.size);
+}
 
 void GameProtocol::CGItemGetRequest(PMSG_ITEMGETREQUEST * lpMsg, int aIndex)
 {
-	int item_num, map_num;
 	PMSG_ITEMGETRESULT pResult;
-	int type;
-	int level;
-	int special;
-	int NOption;
-	char szItemName[50];
-	CMapItem * lpItem;
-
 	pResult.h.c = 0xC3;
 	pResult.h.headcode = 0x22;
 	pResult.h.size = sizeof(pResult);
 	pResult.result = -1;
 
-	if ( !gObjIsConnected(aIndex))
+	if (!gObjIsConnected(aIndex))
 	{
 		g_Log.AddC(TColor::Red, "[ERROR] (CGItemGetRequest) gObjIsConnected(aIndex)  == FALSE");
 		IOCP.CloseClient(aIndex);
 		return;
 	}
 
-	if ( gObj[aIndex].Type != OBJ_USER )
+	if (gObj[aIndex].Type != OBJ_USER || gObj[aIndex].CloseType != -1)
 	{
 		return;
 	}
 
-	if ( gObj[aIndex].CloseType != -1 )
-		return;
-
-	if ( gObj[aIndex].m_PlayerData->m_bSecurityCheck == false )
+	if (!gObj[aIndex].m_PlayerData->m_bSecurityCheck
+	|| gObj[aIndex].DieRegen != 0
+	|| g_NewPVP.IsObserver(gObj[aIndex]))
 	{
-		pResult.result = -1;
-		pResult.h.size -= sizeof(pResult.Data);
-		IOCP.DataSend(aIndex, (UCHAR*)&pResult, pResult.h.size);
-
+		this->CGItemGetInvalidRes(aIndex);
 		return;
 	}
 
-	if ( gObj[aIndex].DieRegen != 0 )
+	if (gObj[aIndex].m_IfState.use != 0 && gObj[aIndex].m_IfState.type != 3)
 	{
-		pResult.result = -1;
-		pResult.h.size -= sizeof(pResult.Data);
-		IOCP.DataSend(aIndex, (UCHAR*)&pResult, pResult.h.size);
-
+		this->GCServerMsgStringSend(Lang.GetText(0,31), aIndex, 1);
+		this->CGItemGetInvalidRes(aIndex);
 		return;
-	}
-
-	if ( g_NewPVP.IsObserver(gObj[aIndex]) == TRUE )
-	{
-		pResult.result = -1;
-		pResult.h.size -= sizeof(pResult.Data);
-		IOCP.DataSend(aIndex, (UCHAR*)&pResult, pResult.h.size);
-
-		return;
-	}
-
-	if ( gObj[aIndex].m_IfState.use != 0 )
-	{
-		if ( gObj[aIndex].m_IfState.type != 3 )
-		{
-			this->GCServerMsgStringSend(Lang.GetText(0,31), aIndex, 1);
-			pResult.result = -1;
-			pResult.h.size -= sizeof(pResult.Data);
-			IOCP.DataSend(aIndex, (UCHAR*)&pResult, pResult.h.size);
-
-			return;
-		}
 	}
 
 	if ( !::gObjFixInventoryPointer(aIndex))
@@ -3937,11 +3907,9 @@ void GameProtocol::CGItemGetRequest(PMSG_ITEMGETREQUEST * lpMsg, int aIndex)
 		g_Log.Add("[%s][%s] CGItemGetRequest() Failed : Transaction == 1, IF_TYPE : %d",
 			gObj[aIndex].AccountID, gObj[aIndex].Name, gObj[aIndex].m_IfState.type);
 		return;
-
 	}
 
-	CMuRummyInfo * pMuRummyInfo = gObj[aIndex].m_PlayerData->m_pCMuRummyInfo;
-
+	CMuRummyInfo* pMuRummyInfo = gObj[aIndex].m_PlayerData->m_pCMuRummyInfo;
 	if (!pMuRummyInfo)
 	{
 		g_Log.Add("[MuRummy][Error] pCMuRummyInfo is NULL [%s][%s] [%s, %d]",
@@ -3951,971 +3919,423 @@ void GameProtocol::CGItemGetRequest(PMSG_ITEMGETREQUEST * lpMsg, int aIndex)
 
 	if (pMuRummyInfo->IsWaitReward() == true)
 	{
-		pResult.result = -1;
-		pResult.h.size -= sizeof(pResult.Data);
-		IOCP.DataSend(aIndex, (UCHAR*)&pResult, pResult.h.size);
-
 		g_Log.Add("[MuRummy][DebugLog][%s][%s] Waiting Item Reward(CGItemGetReq)", gObj[aIndex].AccountID, gObj[aIndex].Name);
 		this->GCServerMsgStringSend(Lang.GetText(0,561), aIndex, 1);
+		this->CGItemGetInvalidRes(aIndex);
 		return;
 	}
 
-	item_num = MAKE_NUMBERW(lpMsg->NumberH, lpMsg->NumberL);
-
-	if ( MaxItemTypeRange(item_num) == FALSE )
+	int item_num = MAKE_NUMBERW(lpMsg->NumberH, lpMsg->NumberL);
+	int map_num = gObj[aIndex].MapNumber;
+	if (MaxItemTypeRange(item_num) == FALSE || MAX_MAP_RANGE(map_num) == FALSE)
 	{
-		g_Log.Add("error-L3 : %s %d", __FILE__, __LINE__);
-		pResult.result = -1;
-		pResult.h.size -= sizeof(pResult.Data);
-		IOCP.DataSend(aIndex, (UCHAR*)&pResult, pResult.h.size);
-
+		g_Log.Add("error invalid map:%d item:%d [%s][%s]", map_num, item_num, gObj[aIndex].AccountID, gObj[aIndex].Name);
+		this->CGItemGetInvalidRes(aIndex);
 		return;
 	}
 
-	map_num = gObj[aIndex].MapNumber;
-
-	if ( MAX_MAP_RANGE(map_num) == FALSE )
-	{
-		g_Log.Add("error-L3 : %s %d", __FILE__, __LINE__);
-		pResult.result = -1;
-		pResult.h.size -= sizeof(pResult.Data);
-		IOCP.DataSend(aIndex, (UCHAR*)&pResult, pResult.h.size);
-
+	CMapItem* lpItem = &MapC[map_num].m_cItem[item_num];
+	if (!lpItem->IsItem() || lpItem->Give || !lpItem->live) {
+		this->CGItemGetInvalidRes(aIndex);
 		return;
 	}
 
-	lpItem = &MapC[map_num].m_cItem[item_num];
+	// if player's positon over the item's postion
+	// TODO:
 
-	if ( lpItem->IsItem() == TRUE && lpItem->Give == false && lpItem->live == true)
+	if (IT_MAP_RANGE(map_num) == TRUE)
 	{
-		if (IT_MAP_RANGE(map_num) == TRUE)
+		if (lpItem->m_Type == ITEMGET(14, 223)) // Cursed Castle Water
 		{
-			if (lpItem->m_Type == ITEMGET(14, 223))
+			if (g_ConfigRead.server.GetServerType() == SERVER_MARKET)
 			{
-				if (g_ConfigRead.server.GetServerType() == SERVER_MARKET)
+				if (g_IT_Event.CheckRelics(aIndex) == TRUE)
 				{
-					if (g_IT_Event.CheckRelics(aIndex) == TRUE)
-					{
-						pResult.result = -1;
-						pResult.h.size -= sizeof(pResult.Data);
-						IOCP.DataSend(aIndex, (UCHAR*)&pResult, pResult.h.size);
-
-						return;
-					}
+					this->CGItemGetInvalidRes(aIndex);
+					return;
 				}
 			}
 		}
+	}
 
-		if ( lpItem->m_QuestItem != false )
+	if ( lpItem->m_QuestItem != false )
+	{
+		bool bIsGetItem = g_QuestInfo.GetQuestItem(aIndex, lpItem->m_Type, lpItem->m_Level);
+		bool bIsQuestExpItem = g_QuestExpProgMng.IsQuestDropItem(aIndex, lpItem->m_Type, lpItem->m_Level);
+		
+		if (bIsGetItem == false && bIsQuestExpItem == false)
 		{
-			bool bIsGetItem = g_QuestInfo.GetQuestItem(aIndex, lpItem->m_Type, lpItem->m_Level);
-			bool bIsQuestExpItem = g_QuestExpProgMng.IsQuestDropItem(aIndex, lpItem->m_Type, lpItem->m_Level);
-			
-			if (bIsGetItem == false && bIsQuestExpItem == false)
+			this->CGItemGetInvalidRes(aIndex);
+			return;
+		}
+	}
+
+	if (GetItemGroup(lpItem->m_Type) == ITEMTYPE_EVENT
+	|| GetItemKindA(lpItem->m_Type) == ITEM_KIND_A_MUUN_INVENTORY_ITEM)
+	{
+		this->CGItemGetInvalidRes(aIndex);
+		return;
+	}
+
+	if ( lpItem->m_Type == ITEMGET(13,20) )	// Wizard Ring
+	{
+		switch (lpItem->m_Level)
+		{
+		case 0:
+		{
+			int iWRCount = gObjGetItemCountInIventory(aIndex, lpItem->m_Type/MAX_SUBTYPE_ITEMS, lpItem->m_Type%MAX_SUBTYPE_ITEMS, lpItem->m_Level);
+			if ( iWRCount > 0 )
 			{
-				pResult.result = -1;
-				pResult.h.size -= sizeof(pResult.Data);
+				g_Log.Add("[Ring Event] Too many have Magician's Ring [%s][%s] (Name:%s, Count:%d)",
+					gObj[aIndex].AccountID, gObj[aIndex].Name, lpItem->GetName(), iWRCount);
+				this->GCServerMsgStringSend(Lang.GetText(0,105), aIndex, 1);
+				this->CGItemGetInvalidRes(aIndex);
+				return;
+			}
+			break;
+		}
+		default:
+			this->CGItemGetInvalidRes(aIndex);
+			return;
+		}
+	}
+
+	if ( lpItem->m_Type == ITEMGET(13,38) )	// MoonStonePendant
+	{
+		int count = gObjGetItemCountInIventory(aIndex, lpItem->m_Type/MAX_SUBTYPE_ITEMS,
+			lpItem->m_Type % MAX_SUBTYPE_ITEMS, lpItem->m_Level);
+		if ( count > 0 )
+		{
+			g_Log.Add("[MoonStonePendant] Too many have MoonStonePendant [%s][%s] ( Name:%s, Count:%d )",
+				gObj[aIndex].AccountID, gObj[aIndex].Name, lpItem->GetName(), count);	
+			GCServerMsgStringSend(Lang.GetText(0,285), aIndex, 1);
+			this->CGItemGetInvalidRes(aIndex);
+			return;
+		}
+	}
+
+	if ( lpItem->m_Type == ITEMGET(13,39) )	// Elite Transfer Skeleton Ring
+	{
+		int count = gObjGetItemCountInIventory(aIndex, lpItem->m_Type/MAX_SUBTYPE_ITEMS,
+			lpItem->m_Type % MAX_SUBTYPE_ITEMS, lpItem->m_Level);
+		if ( count > 0 )
+		{
+			g_Log.Add("[ChangeRing] Too many have ChangeRing [%s][%s] ( Name:%s, Count:%d )",
+				gObj[aIndex].AccountID, gObj[aIndex].Name, lpItem->GetName(), count);
+			GCServerMsgStringSend(Lang.GetText(0,287), aIndex, 1);
+			this->CGItemGetInvalidRes(aIndex);
+			return;
+		}
+	}
+
+	int type = lpItem->m_Type;
+	int level = lpItem->m_Level;
+	char szItemName[50];
+	strcpy(szItemName, lpItem->GetName());
+
+	// handle zen
+	if ( lpItem->m_Type == ITEMGET(14,15) ) // Zen
+	{
+		if ( MapC[map_num].ItemGive(aIndex, item_num, false) == TRUE )
+		{
+			if (!gObjCheckMaxZen(aIndex, lpItem->m_BuyMoney))
+			{
+				gObj[aIndex].m_PlayerData->Money = MAX_ZEN;
+				this->CGItemGetInvalidRes(aIndex);
+				return;
+			}
+			gObj[aIndex].m_PlayerData->Money += lpItem->m_BuyMoney;
+			pResult.result = -2;
+			WORD hiWord = SET_NUMBERHW(gObj[aIndex].m_PlayerData->Money);
+			WORD loWord = SET_NUMBERLW(gObj[aIndex].m_PlayerData->Money);
+			pResult.Data[0] = SET_NUMBERH(hiWord);
+			pResult.Data[1] = SET_NUMBERL(hiWord);
+			pResult.Data[2] = SET_NUMBERH(loWord);
+			pResult.Data[3] = SET_NUMBERL(loWord);
+			// pResult.h.size -= 3;
+			IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
+			return;
+		}
+	}
+
+	// handle fragmentary overlapped item
+	if (IsOverlapItem(lpItem->m_Type) > 0)
+	{
+		for (int i = 12; i < MAIN_INVENTORY_SIZE; i++) {
+			int pos = -1;
+			switch (lpItem->m_Type) {
+			case ITEMGET(12,144): // Mithril Fragment
+				pos = g_PentagramSystem.CheckOverlapMythrilPiece(aIndex, lpItem->m_Type, lpItem->m_BonusSocketOption & 0x0F);
+				break;
+			case ITEMGET(14,29): // Symbol of Kundun
+				pos = g_KalimaGate.CheckOverlapKundunMark(aIndex, lpItem->m_Level);
+				break;
+			default:
+				pos = gObjCheckOverlapItemUsingDur(aIndex, IsOverlapItem(lpItem->m_Type), lpItem->m_Type, lpItem->m_Level);
+				break;
+			}
+			if (!MAIN_INVENTORY_RANGE(pos)) {
+				// there is no fragmentary overlapped item exist in inventory,
+				// we have to treat the item in map as a normal item.
+				break;
+			}
+			if (MapC[map_num].ItemGive(aIndex, item_num, true)) {
+				BYTE NewOption[MAX_EXOPTION_SIZE];
+				::ItemIsBufExOption(NewOption, (lpItem != NULL)?(CItem*)&lpItem->m_Number:NULL);
+				g_Log.Add("[%s][%s][%d]%d/%d Get serial:%I64d [%s][%d][%d][%d][%d][%d] dur:[%d]Ex:[%d,%d,%d,%d,%d,%d,%d] Set:[%d] 380:[%d] HO:[%d,%d] E:[%d]", gObj[aIndex].AccountID, gObj[aIndex].Name, map_num,
+					gObj[aIndex].X, gObj[aIndex].Y, lpItem->m_Number, szItemName, type,
+					level, lpItem->m_Option1, lpItem->m_Option2, lpItem->m_Option3, (int)lpItem->m_Durability,
+					NewOption[0], NewOption[1], NewOption[2], NewOption[3], NewOption[4], NewOption[5],
+					NewOption[6], lpItem->m_SetOption, lpItem->m_ItemOptionEx>>7,
+					g_kJewelOfHarmonySystem.GetItemStrengthenOption((lpItem)?((CItem *)&lpItem->m_Number):NULL), g_kJewelOfHarmonySystem.GetItemOptionLevel((lpItem)?((CItem *)&lpItem->m_Number):NULL),
+					lpItem->m_BonusSocketOption);
+
+				// send response
+				pResult.result = -3;
 				IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-				return;
-			}
-		}
 
-		if (IsJumpingEventItem(lpItem->m_Type))
-		{
-			pResult.result = -1;
-			pResult.h.size -= sizeof(pResult.Data);
-			IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-			return;
-		}
-
-		LPITEM_ATTRIBUTE pItemAttribute = GetItemAttr(lpItem->m_Type);
-
-		if (!pItemAttribute)
-		{
-			pResult.result = -1;
-			pResult.h.size -= sizeof(pResult.Data);
-			IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-			return;
-		}
-
-		if (pItemAttribute->ItemKindA == 12)
-		{
-			pResult.result = -1;
-			pResult.h.size -= sizeof(pResult.Data);
-			IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-			return;
-		}
-
-		if ( lpItem->m_Type == ITEMGET(13,20) )	// Wizard Ring
-		{
-			switch ( lpItem->m_Level )
-			{
-				case 0:
-				{
-					int iWRCount = gObjGetItemCountInIventory(aIndex, lpItem->m_Type/MAX_SUBTYPE_ITEMS, lpItem->m_Type%MAX_SUBTYPE_ITEMS, lpItem->m_Level);
-
-					if ( iWRCount > 0 )
-					{
-						g_Log.Add("[Ring Event] Too many have Magician's Ring [%s][%s] (Name:%s, Count:%d)",
-							gObj[aIndex].AccountID, gObj[aIndex].Name, lpItem->GetName(), iWRCount);
-
-						pResult.result = -1;
-						pResult.h.size -= sizeof(pResult.Data);
-
-						IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-						this->GCServerMsgStringSend(Lang.GetText(0,105), aIndex, 1);
-
-						return;
-					}
-					break;
-				}
-				case 1:
-
-					pResult.result = -1;
-					pResult.h.size -= sizeof(pResult.Data);
-
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-					return;
-					break;
-				
-			}
-		}
-
-		if ( lpItem->m_Type == ITEMGET(13,20) && lpItem->m_Level == 2 )	// Wizard Ring
-		{
-			pResult.result = -1;
-			pResult.h.size -= sizeof(pResult.Data);
-
-			IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-
-			return;
-		}
-
-		if ( lpItem->m_Type == ITEMGET(13,38) )	// MoonStonePendant
-		{
-			int count = gObjGetItemCountInIventory(aIndex, lpItem->m_Type/MAX_SUBTYPE_ITEMS,
-				lpItem->m_Type % MAX_SUBTYPE_ITEMS, lpItem->m_Level);
-
-			if ( count > 0 )
-			{
-				g_Log.Add("[MoonStonePendant] Too many have MoonStonePendant [%s][%s] ( Name:%s, Count:%d )",
-					gObj[aIndex].AccountID, gObj[aIndex].Name, lpItem->GetName(), count);
-
-				pResult.result = -1;
-				pResult.h.size -= sizeof(pResult.Data);
-
-				IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);	
-				GCServerMsgStringSend(Lang.GetText(0,285), aIndex, 1);
-
-				return;
-			}
-		}
-
-		if ( lpItem->m_Type == ITEMGET(13,39) )	// ChangeRing
-		{
-			int count = gObjGetItemCountInIventory(aIndex, lpItem->m_Type/MAX_SUBTYPE_ITEMS,
-				lpItem->m_Type % MAX_SUBTYPE_ITEMS, lpItem->m_Level);
-
-			if ( count > 0 )
-			{
-				g_Log.Add("[ChangeRing] Too many have ChangeRing [%s][%s] ( Name:%s, Count:%d )",
-					gObj[aIndex].AccountID, gObj[aIndex].Name, lpItem->GetName(), count);
-
-				pResult.result = -1;
-				pResult.h.size -= sizeof(pResult.Data);
-
-				IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);	
-				GCServerMsgStringSend(Lang.GetText(0,287), aIndex, 1);
-
-				return;
-			}
-		}
-
-		type = lpItem->m_Type;
-		level = lpItem->m_Level;
-		special = lpItem->m_Special[0];
-		NOption = lpItem->m_NewOption;
-		strcpy(szItemName, lpItem->GetName());
-
-		if ( lpItem->m_Type == ITEMGET(14,15) ) // Zen
-		{
-			if ( MapC[map_num].ItemGive(aIndex, item_num, false) == TRUE )
-			{
-				if ( !gObjCheckMaxZen(aIndex, lpItem->m_BuyMoney))
-				{
-					if ( gObj[aIndex].m_PlayerData->Money < MAX_ZEN )
-					{
-						gObj[aIndex].m_PlayerData->Money = MAX_ZEN;
-						pResult.result = -2;
-						WORD hiWord = SET_NUMBERHW(gObj[aIndex].m_PlayerData->Money);
-						WORD loWord = SET_NUMBERLW(gObj[aIndex].m_PlayerData->Money);
-						pResult.Data[0] = SET_NUMBERH(hiWord);
-						pResult.Data[1] = SET_NUMBERL(hiWord);
-						pResult.Data[2] = SET_NUMBERH(loWord);
-						pResult.Data[3] = SET_NUMBERL(loWord);
-
-						IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-
-						return;
-					}
-
-					pResult.result = -1;
-					pResult.h.size -= sizeof(pResult.Data);
-
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-
-					return;
-				}
-
-				gObj[aIndex].m_PlayerData->Money += lpItem->m_BuyMoney;
-				pResult.result = -2;
-
-				WORD hiWord = SET_NUMBERHW(gObj[aIndex].m_PlayerData->Money);
-				WORD loWord = SET_NUMBERLW(gObj[aIndex].m_PlayerData->Money);
-				pResult.Data[0] = SET_NUMBERH(hiWord);
-				pResult.Data[1] = SET_NUMBERL(hiWord);
-				pResult.Data[2] = SET_NUMBERH(loWord);
-				pResult.Data[3] = SET_NUMBERL(loWord);
-				pResult.h.size -= 3;
-			}
-
-			IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-
-		}
-		else
-		{
-			if ( lpItem->m_Type == ITEMGET(13,32) )
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(13,32), 0);
-
-				if ( MAIN_INVENTORY_RANGE(pos) != FALSE )
-				{
-					pResult.result = -3;
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
+				gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
+				if (gObj[aIndex].pInventory[pos].m_Durability < IsOverlapItem(lpItem->m_Type)) {
+					// we have to update the new durability of the item in inventory
 					GCItemDurSend(aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-
+					this->GCSendGetItemInfoForParty(aIndex, lpItem);
 					return;
 				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(13,33) )
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(13,33), 0);
-
-				if ( MAIN_INVENTORY_RANGE(pos) != FALSE )
-				{
-					pResult.result = -3;
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-					GCItemDurSend(aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-
-					return;
-				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(13,34) )
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(13,34), 0);
-
-				if ( MAIN_INVENTORY_RANGE(pos) != FALSE )
-				{
-					pResult.result = -3;
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-					GCItemDurSend(aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-
-					return;
-				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(13,147) ) // Trophy of Battle
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(13,147), 0);
-
-				if ( MAIN_INVENTORY_RANGE(pos) != FALSE )
-				{
-					pResult.result = -3;
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-					GCItemDurSend(aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-
-					return;
-				}
-			}
-			
-			if ( lpItem->m_Type == ITEMGET(14,29) ) // Symbol of Kundun
-			{
-				for ( int n=0;n<MAIN_INVENTORY_SIZE;n++)
-				{ 
-					int pos = ::g_KalimaGate.CheckOverlapKundunMark(aIndex, lpItem->m_Level);
-
-					if ( MAIN_INVENTORY_RANGE(pos) )
-					{
-						if ( MapC[map_num].ItemGive(aIndex, item_num, true) == TRUE )
-						{
-							BYTE NewOption[MAX_EXOPTION_SIZE];
-
-							::ItemIsBufExOption(NewOption, (lpItem != NULL)?(CItem*)&lpItem->m_Number:NULL);
-
-							g_Log.Add("[%s][%s][%d]%d/%d Get serial:%I64d [%s][%d][%d][%d][%d][%d] dur:[%d]Ex:[%d,%d,%d,%d,%d,%d,%d] Set:[%d] 380:[%d] HO:[%d,%d] E:[%d]", gObj[aIndex].AccountID, gObj[aIndex].Name, map_num,
-								gObj[aIndex].X, gObj[aIndex].Y, lpItem->m_Number, szItemName, type,
-								level, lpItem->m_Option1, lpItem->m_Option2, lpItem->m_Option3, (int)lpItem->m_Durability,
-								NewOption[0], NewOption[1], NewOption[2], NewOption[3], NewOption[4], NewOption[5],
-								NewOption[6], lpItem->m_SetOption, lpItem->m_ItemOptionEx>>7,
-								g_kJewelOfHarmonySystem.GetItemStrengthenOption((lpItem)?((CItem *)&lpItem->m_Number):NULL), g_kJewelOfHarmonySystem.GetItemOptionLevel((lpItem)?((CItem *)&lpItem->m_Number):NULL),
-								lpItem->m_BonusSocketOption);
-
-							pResult.result = -3;
-
-							IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-
-							gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-
-							if ( gObj[aIndex].pInventory[pos].m_Durability >= IsOverlapItem(lpItem->m_Type) )
-							{
-								int NewDur = gObj[aIndex].pInventory[pos].m_Durability - IsOverlapItem(lpItem->m_Type);
-								::gObjInventoryItemSet(aIndex, pos, -1);
-								gObj[aIndex].pInventory[pos].Clear();
-								this->GCInventoryItemDeleteSend(aIndex, pos, 1);
-								::ItemSerialCreateSend(aIndex, 235, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(14, 28),
-									lpItem->m_Level, 0, 0, 0, 0, aIndex, 0, 0, 0, 0, 0);
-
-								g_Log.Add("[Kalima] [%s][%s] Make Lost Kalima Map (Left Kundun Mark:%d)",
-									gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
-
-								if ( NewDur > 0 )
-								{
-									lpItem->m_State = 2;
-									lpItem->Give = false;
-									lpItem->live = true;
-									lpItem->m_Durability = NewDur;
-
-									continue;
-
-								}
-							}
-							else
-							{
-								GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-							}
-							return;
+				else {
+					// if the durability of overlapped item exceeds the specified
+					// max overlap number, we have to:
+					// 1 quest item: limit durability
+					// 2 normal item: keep bunch
+					// 3 specified item: delete previous full overlapped and make a new item
+					int NewDur = gObj[aIndex].pInventory[pos].m_Durability - IsOverlapItem(lpItem->m_Type);
+					gObj[aIndex].pInventory[pos].m_Durability = IsOverlapItem(lpItem->m_Type);
+					if (lpItem->m_Type == ITEMGET(12,144) // Mithril Fragment
+					|| lpItem->m_Type == ITEMGET(12,146) // Elixir Fragment
+					|| lpItem->m_Type == ITEMGET(13,145) // Spirit Map Fragment
+					|| lpItem->m_Type == ITEMGET(14,29) // Symbol of Kundun
+					|| lpItem->m_Type == ITEMGET(14,101) // Suspicious Scrap of Paper
+					|| lpItem->m_Type == ITEMGET(14,110)) { // Sign of Dimensions
+						gObjInventoryItemSet(aIndex, pos, -1);
+						gObj[aIndex].pInventory[pos].Clear();
+						this->GCInventoryItemDeleteSend(aIndex, pos, 1);
+						switch (lpItem->m_Type) {
+						case ITEMGET(12,144): // Mithril Fragment
+							ItemSerialCreateSend(aIndex, 233, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(12, 148),
+								0, 0, 0, 0, 0, aIndex, 0, 0, 0, 0, lpItem->m_BonusSocketOption);
+							g_Log.Add("[Pentagram] [%s][%s] Make Mithril Bunch (Left:%d)", gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
+							break;
+						case ITEMGET(12,146): // Elixir Fragment
+							ItemSerialCreateSend(aIndex, 233, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(12, 149),
+								0, 0, 0, 0, 0, aIndex, 0, 0, 0, 0, 0);
+							g_Log.Add("[Pentagram] [%s][%s] Make Elixir Bunch (Left:%d)", gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
+							break;
+						case ITEMGET(13,145): // Spirit Map Fragment
+							ItemSerialCreateSend(aIndex, 235, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(13, 146),
+								lpItem->m_Level, 0, 0, 0, 0, aIndex, 0, 0, 0, 0, 0);
+							g_Log.Add("[Acheron] [%s][%s] Make Spirit Map (Left:%d)", gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
+							break;
+						case ITEMGET(14,29): // Symbol of Kundun
+							ItemSerialCreateSend(aIndex, 235, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(14, 28),
+								lpItem->m_Level, 0, 0, 0, 0, aIndex, 0, 0, 0, 0, 0);
+							g_Log.Add("[Kalima] [%s][%s] Make Lost Map (Left:%d)", gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
+							break;
+						case ITEMGET(14,101): // Suspicious Scrap of Paper
+							ItemSerialCreateSend(aIndex, 235, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(14, 102),
+								lpItem->m_Level, 0, 0, 0, 0, aIndex, 0, 0, 0, 0, 0);
+							g_Log.Add("[Imperial] [%s][%s] Make Gaion's order (Left:%d)", gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
+							break;
+						case ITEMGET(14,110): // Sign of Dimensions
+							ItemSerialCreateSend(aIndex, 235, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(14, 111),
+								lpItem->m_Level, 0, 0, 0, 0, aIndex, 0, 0, 0, 0, 0);
+							g_Log.Add("[DoppelGanger] [%s][%s] Make Mirror(Left:%d)", gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
+							break;
 						}
 					}
-					else
-					{
-						break;
-					}
-				}
-			}
-			if ( lpItem->m_Type == ITEMGET(14,110) ) // Double Goer
-			{
-					int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(14,110), 0);
-					if ( MAIN_INVENTORY_RANGE(pos) )
-					{
-						pResult.result = -3;
-
-						IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-						gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-
-						if ( gObj[aIndex].pInventory[pos].m_Durability >= IsOverlapItem(lpItem->m_Type))
-							{
-								int NewDur = gObj[aIndex].pInventory[pos].m_Durability - IsOverlapItem(lpItem->m_Type);
-								::gObjInventoryItemSet(aIndex, pos, -1);
-								gObj[aIndex].pInventory[pos].Clear();
-								this->GCInventoryItemDeleteSend(aIndex, pos, 1);
-								::ItemSerialCreateSend(aIndex, 235, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(14, 111),
-									lpItem->m_Level, 0, 0, 0, 0, aIndex, 0, 0, 0, 0, 0);
-
-								g_Log.Add("[DoppelGanger] [%s][%s] Make Mirror of Dimension (Left Marker %d)",
-									gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
-
-								if ( NewDur > 0 )
-								{
-									lpItem->m_State = 2;
-									lpItem->Give = false;
-									lpItem->live = true;
-									lpItem->m_Durability = NewDur;
-
-								//	continue;
-
-								}
-							}
-							else
-							{
-								GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-							}
-						return;
-					}
-					else
-					{
-						
-					}
-			}
-			if ( lpItem->m_Type == ITEMGET(12,144) || lpItem->m_Type == ITEMGET(12,146) ) // Mithril & Elixir
-			{
-				for (int j = 0; j < MAIN_INVENTORY_SIZE; j++)
-				{
-					BYTE btMainAtribute = lpItem->m_BonusSocketOption & 0x0F;
-					int iInventoryPos = g_PentagramSystem.CheckOverlapMythrilPiece(aIndex, lpItem->m_Type, btMainAtribute);
-
-					if (!MAIN_INVENTORY_RANGE(iInventoryPos))
-					{
-						break;
+					else {
+						// we have to update the new durability of the item in inventory
+						GCItemDurSend(aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
+						this->GCSendGetItemInfoForParty(aIndex, lpItem);
 					}
 
-					int Dur = gObj[aIndex].pInventory[iInventoryPos].m_Durability + lpItem->m_Durability;
-
-					if (Dur <= IsOverlapItem(lpItem->m_Type) && MapC[map_num].ItemGive(aIndex, item_num, 1) == TRUE)
-					{
-						BYTE NewOption[MAX_EXOPTION_SIZE];
-
-						::ItemIsBufExOption(NewOption, (lpItem != NULL) ? (CItem*)&lpItem->m_Number : NULL);
-
-						g_Log.Add("[%s][%s][%d]%d/%d Get serial:%I64d [%s][%d][%d][%d][%d][%d] dur:[%d]Ex:[%d,%d,%d,%d,%d,%d,%d] Set:[%d] 380:[%d] HO:[%d,%d] E:[%d]", gObj[aIndex].AccountID, gObj[aIndex].Name, map_num,
-							gObj[aIndex].X, gObj[aIndex].Y, lpItem->m_Number, szItemName, type,
-							level, lpItem->m_Option1, lpItem->m_Option2, lpItem->m_Option3, (int)lpItem->m_Durability,
-							NewOption[0], NewOption[1], NewOption[2], NewOption[3], NewOption[4], NewOption[5],
-							NewOption[6], lpItem->m_SetOption, lpItem->m_ItemOptionEx >> 7,
-							g_kJewelOfHarmonySystem.GetItemStrengthenOption((lpItem) ? ((CItem *)&lpItem->m_Number) : NULL), g_kJewelOfHarmonySystem.GetItemOptionLevel((lpItem) ? ((CItem *)&lpItem->m_Number) : NULL),
-							lpItem->m_BonusSocketOption);
-
-						pResult.result = -3;
-						IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-
-						gObj[aIndex].pInventory[iInventoryPos].m_Durability += lpItem->m_Durability;
-
-						if (gObj[aIndex].pInventory[iInventoryPos].m_Durability < IsOverlapItem(lpItem->m_Type))
-						{
-							this->GCItemDurSend(aIndex, iInventoryPos, gObj[aIndex].pInventory[iInventoryPos].m_Durability, 0);
-							return;
-						}
-
-						int NewDur = gObj[aIndex].pInventory[iInventoryPos].m_Durability - IsOverlapItem(lpItem->m_Type);
-						::gObjInventoryItemSet(aIndex, iInventoryPos, -1);
-						gObj[aIndex].pInventory[iInventoryPos].Clear();
-						this->GCInventoryItemDeleteSend(aIndex, iInventoryPos, 1);
-
-						if (lpItem->m_Type == ITEMGET(12, 144))
-						{
-							ItemSerialCreateSend(aIndex, 233, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(12, 148), 0, 0, 0, 0, 0,
-								aIndex, 0, 0, 0, 0, lpItem->m_BonusSocketOption);
-
-							g_Log.Add("[Pentagram] [%s][%s] Make Mythril (Left:%d)", gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
-						}
-
-						else if (lpItem->m_Type == ITEMGET(12, 146))
-						{
-							ItemSerialCreateSend(aIndex, 233, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(12, 149), 0, 0, 0, 0, 0,
-								aIndex, 0, 0, 0, 0, 0);
-
-							g_Log.Add("[Pentagram] [%s][%s] Make elixir (Left:%d)", gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
-						}
-
-						if (NewDur <= 0)
-							return;
-
+					// if the item in map still have durability
+					if (NewDur > 0) {
 						lpItem->m_State = 2;
 						lpItem->Give = 0;
 						lpItem->live = 1;
 						lpItem->m_Durability = NewDur;
-					}
-				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(13,145) ) // Spirit Map
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(13,145), 0);
-					if ( MAIN_INVENTORY_RANGE(pos) )
-					{
-						pResult.result = -3;
-
-						IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-						gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-
-						if ( gObj[aIndex].pInventory[pos].m_Durability >= IsOverlapItem(lpItem->m_Type))
-							{
-								int NewDur = gObj[aIndex].pInventory[pos].m_Durability - IsOverlapItem(lpItem->m_Type);
-								::gObjInventoryItemSet(aIndex, pos, -1);
-								gObj[aIndex].pInventory[pos].Clear();
-								this->GCInventoryItemDeleteSend(aIndex, pos, 1);
-								::ItemSerialCreateSend(aIndex, 235, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(13, 146),
-									lpItem->m_Level, 0, 0, 0, 0, aIndex, 0, 0, 0, 0, 0);
-
-								g_Log.Add("[Attribute System] [%s][%s] Make Spirit Map (Left Fragments %d)",
-									gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
-
-								if ( NewDur > 0 )
-								{
-									lpItem->m_State = 2;
-									lpItem->Give = false;
-									lpItem->live = true;
-									lpItem->m_Durability = NewDur;
-
-								//	continue;
-
-								}
-							}
-							else
-							{
-								GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-							}
-						return;
-					}
-					else
-					{
-						
-					}
-			}
-			if ( lpItem->m_Type == ITEMGET(14,101) ) // Imperial Fort
-			{
-					int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(14,101), 0);
-					if ( MAIN_INVENTORY_RANGE(pos) )
-					{
-						pResult.result = -3;
-
-						IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-						gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-
-						if ( gObj[aIndex].pInventory[pos].m_Durability >= IsOverlapItem(lpItem->m_Type))
-							{
-								int NewDur = gObj[aIndex].pInventory[pos].m_Durability - IsOverlapItem(lpItem->m_Type);
-								::gObjInventoryItemSet(aIndex, pos, -1);
-								gObj[aIndex].pInventory[pos].Clear();
-								this->GCInventoryItemDeleteSend(aIndex, pos, 1);
-								::ItemSerialCreateSend(aIndex, 235, gObj[aIndex].X, gObj[aIndex].Y, ItemGetNumberMake(14, 102),
-									lpItem->m_Level, 0, 0, 0, 0, aIndex, 0, 0, 0, 0, 0);
-
-								g_Log.Add("[Imperial] [%s][%s] Make Gaion's order letter (Left Scraps %d)",
-									gObj[aIndex].AccountID, gObj[aIndex].Name, NewDur);
-
-								if ( NewDur > 0 )
-								{
-									lpItem->m_State = 2;
-									lpItem->Give = false;
-									lpItem->live = true;
-									lpItem->m_Durability = NewDur;
-
-								//	continue;
-
-								}
-							}
-							else
-							{
-								GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-							}
-						return;
-					}
-					else
-					{
-						
-					}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(14,100) ) // Lucky Coin
-			{
-					int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(14,100), 0);
-					if ( MAIN_INVENTORY_RANGE(pos) )
-					{
-						pResult.result = -3;
-
-						IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-						gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-
-						GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-						return;
-					}
-					else
-					{
-						
-					}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(14,21) && lpItem->m_Level == 3) // Sign of Lord
-			{
-				for ( int n=0;n<MAIN_INVENTORY_SIZE;n++)
-				{
-					int pos = ::g_CastleSiegeSync.CheckOverlapCsMarks(aIndex);
-
-					if ( MAIN_INVENTORY_RANGE(pos) )
-					{
-						int Dur = gObj[aIndex].pInventory[pos].m_Durability + lpItem->m_Durability;
-
-						if ( Dur <= IsOverlapItem(lpItem->m_Type))
-						{
-							if ( MapC[map_num].ItemGive(aIndex, item_num, true) == TRUE )
-							{
-								pResult.result = -3;
-								IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-								gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-								GCItemDurSend( aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability,0);
-								return;
-							}
-						}
-						else
-						{
-							lpItem->m_Durability = Dur - IsOverlapItem(lpItem->m_Type);
-							gObj[aIndex].pInventory[pos].m_Durability = IsOverlapItem(lpItem->m_Type);
-							GCItemDurSend(aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-						}
-
-					}
-					else
-					{
 						break;
 					}
-				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(14,90)) // Golden cherry blossom
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(14,90), 0);
-				if ( MAIN_INVENTORY_RANGE(pos) )
-				{
-					pResult.result = -3;
-				
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-				
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-					
-					GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
 					return;
 				}
-
-				else
-				{
-						
-				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(14,89)) // Red cherry blossom
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(14,89), 0);
-				if ( MAIN_INVENTORY_RANGE(pos) )
-				{
-					pResult.result = -3;
-				
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-				
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-					
-					GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-					return;
-				}
-
-				else
-				{
-						
-				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(14,88)) // White cherry blossom
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(14,88), 0);
-				if ( MAIN_INVENTORY_RANGE(pos) )
-				{
-					pResult.result = -3;
-				
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-				
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-					
-					GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-					return;
-				}
-
-				else
-				{
-						
-				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(14,153)) // White cherry blossom
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(14,153), 0);
-				if ( MAIN_INVENTORY_RANGE(pos) )
-				{
-					pResult.result = -3;
-				
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-				
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-					
-					GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-					return;
-				}
-
-				else
-				{
-						
-				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(14,154)) // White cherry blossom
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(14,154), 0);
-				if ( MAIN_INVENTORY_RANGE(pos) )
-				{
-					pResult.result = -3;
-				
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-				
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-					
-					GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-					return;
-				}
-
-				else
-				{
-						
-				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(14,155)) // White cherry blossom
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(14,155), 0);
-				if ( MAIN_INVENTORY_RANGE(pos) )
-				{
-					pResult.result = -3;
-				
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-				
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-					
-					GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-					return;
-				}
-
-				else
-				{
-						
-				}
-			}
-
-			if ( lpItem->m_Type == ITEMGET(14,156)) // White cherry blossom
-			{
-				int pos = gObjOverlapItemUsingDur((lpItem)?((CItem *)&lpItem->m_Number):NULL, map_num, item_num, aIndex, IsOverlapItem(lpItem->m_Type), ITEMGET(14,156), 0);
-				if ( MAIN_INVENTORY_RANGE(pos) )
-				{
-					pResult.result = -3;
-				
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);			
-				
-					gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-					
-					GCItemDurSend(aIndex,pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								
-					return;
-				}
-
-				else
-				{
-						
-				}
-			}
-
-			if (g_LuckyItemManager.IsLuckyItemEquipment(lpItem->m_Type) && g_ConfigRead.data.common.AllowGetLuckyItemGround == false)
-			{
-				char szSetItemName[48] = { 0 };
-				int tmpSetOption = 0;
-				BYTE NewOption[8] = { 0 };
-
-				ItemIsBufExOption(NewOption, (lpItem != NULL) ? (CItem*)&lpItem->m_Number : NULL);
-
-				if (gSetItemOption.IsSetItem(lpItem->m_Type))
-				{
-					if (lpItem->m_SetOption & 1)
-					{
-						tmpSetOption = 1;
-					}
-				
-					else
-					{
-						if (lpItem->m_SetOption & 2)
-						{
-							tmpSetOption = 2;
-						}
-					}
-
-					strcpy(szSetItemName, gSetItemOption.GetSetOptionName(type, tmpSetOption));
-				}
-
-				g_Log.Add("[%s][%s][%d]%d/%d Try Get LuckyItem serial:%I64d [%s][%d][%d][%d][%d][%d] dur:[%d]Ex:[%d,%d,%d,%d,%d,%d,%d] Set:[%d] 380:[%d] HO:[%d,%d]",
-					gObj[aIndex].AccountID, gObj[aIndex].Name, map_num, gObj[aIndex].X, gObj[aIndex].Y, lpItem->m_Number, szSetItemName,
-					type, level, lpItem->m_Option1, lpItem->m_Option2, lpItem->m_Option3, (INT)lpItem->m_Durability,
-					NewOption[0], NewOption[1], NewOption[2], NewOption[3], NewOption[4], NewOption[5], NewOption[6],
-					lpItem->m_SetOption, lpItem->m_ItemOptionEx >> 7,
-					g_kJewelOfHarmonySystem.GetItemStrengthenOption((lpItem != NULL) ? (CItem*)&lpItem->m_Number : NULL),
-					g_kJewelOfHarmonySystem.GetItemOptionLevel((lpItem != NULL) ? (CItem*)&lpItem->m_Number : NULL));
-
-					pResult.result = -1;
-
-				IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-				this->GCServerMsgStringSend(Lang.GetText(0,519), aIndex, 1);
-				return;
-			}
-
-			if (lpItem->m_QuestItem == true && g_QuestExpManager.IsQuestItemAtt(lpItem->m_Type, 1) == true)
-			{
-				for (int n = 12; n < INVENTORY_SIZE; n++)
-				{
-					int pos = -1;
-
-					if (gObj[aIndex].pInventory[n].m_Type == lpItem->m_Type &&
-						gObj[aIndex].pInventory[n].m_Durability < IsOverlapItem(lpItem->m_Type))
-					{
-						pos = n;
-					}
-
-					if (INVENTORY_RANGE(pos) == true)
-					{
-						if (gObj[aIndex].pInventory[pos].m_Durability + lpItem->m_Durability > IsOverlapItem(lpItem->m_Type))
-						{
-							lpItem->m_Durability = gObj[aIndex].pInventory[pos].m_Durability + lpItem->m_Durability - IsOverlapItem(lpItem->m_Type);
-							gObj[aIndex].pInventory[pos].m_Durability = IsOverlapItem(lpItem->m_Type);
-							this->GCItemDurSend(aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-						}
-
-						else
-						{
-							if (MapC[map_num].ItemGive(aIndex, item_num, 1) == TRUE)
-							{
-								pResult.result = -3;
-								IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-
-								gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
-								GCItemDurSend(aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
-								return;
-							}
-						}
-					}
-				}
-			}
-
-			pResult.result = ::gObjInventoryInsertItemTemp(&gObj[aIndex], lpItem);
-			
-			if ( pResult.result != 0xFF )
-			{
-				ItemByteConvert((LPBYTE)&pResult.Data[0], lpItem->m_Type, lpItem->m_Option1, lpItem->m_Option2,
-					lpItem->m_Option3, lpItem->m_Level, lpItem->m_Durability, lpItem->m_NewOption,
-					lpItem->m_SetOption, lpItem->m_JewelOfHarmonyOption, lpItem->m_ItemOptionEx, lpItem->m_SocketOption, lpItem->m_BonusSocketOption, 0);
-
-				if ( MapC[map_num].ItemGive(aIndex, item_num, false) == TRUE )
-				{
-					BYTE pos = ::gObjInventoryInsertItem(aIndex, lpItem);
-
-					if ( pos == 0xFF )
-						pResult.result = -1;
-
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-
-					if ( pos == 0xFF )
-					{
-						::GCItemListSend(aIndex);
-						g_PeriodItemEx.OnRequestPeriodItemList(&gObj[aIndex]);
-					}
-					else
-					{
-						BYTE NewOption[MAX_EXOPTION_SIZE];
-
-						::ItemIsBufExOption(NewOption, (lpItem != NULL)?(CItem*)&lpItem->m_Number:NULL);
-
-						g_Log.Add("[%s][%s][%d]%d/%d Get serial:%I64d [%s][%d][%d][%d][%d][%d] dur:[%d]Ex:[%d,%d,%d,%d,%d,%d,%d] Set:[%d] 380:[%d] HO:[%d,%d] E:[%d]", gObj[aIndex].AccountID, gObj[aIndex].Name, map_num,
-							gObj[aIndex].X, gObj[aIndex].Y, lpItem->m_Number, szItemName, type,
-							level, lpItem->m_Option1, lpItem->m_Option2, lpItem->m_Option3, (INT)lpItem->m_Durability,
-							NewOption[0], NewOption[1], NewOption[2], NewOption[3], NewOption[4], NewOption[5],
-							NewOption[6], lpItem->m_SetOption, lpItem->m_ItemOptionEx>>7,
-							g_kJewelOfHarmonySystem.GetItemStrengthenOption((lpItem)?((CItem *)&lpItem->m_Number):NULL), g_kJewelOfHarmonySystem.GetItemOptionLevel((lpItem)?((CItem *)&lpItem->m_Number):NULL),
-							lpItem->m_BonusSocketOption);
-						this->GCSendGetItemInfoForParty(aIndex, lpItem);
-
-						if ( BC_MAP_RANGE(map_num) )
-						{
-							int iBridgeIndex = g_BloodCastle.GetBridgeIndex(map_num);
-
-							if ( g_BloodCastle.CheckQuestItemSerial(iBridgeIndex, lpItem) )
-							{
-								g_BloodCastle.CatchQuestItemByUser(iBridgeIndex, aIndex, lpItem->m_Level);
-							}
-						}
-
-						if (IT_MAP_RANGE(map_num) && lpItem->m_Type == ITEMGET(14, 223))
-						{
-							if (g_ConfigRead.server.GetServerType() == SERVER_MARKET)
-							{
-								g_IT_Event.SetRelicsInventoryPos(gObj[aIndex].MapNumber, aIndex, pos);
-								g_IT_Event.SendRelicsUserInfo(&gObj[aIndex]);
-
-								g_Log.Add("[ ITR ] (%d) (Account:%s, Name:%s) picked up Relics Item(serial:%I64d)",
-									map_num - 44, gObj[aIndex].AccountID, gObj[aIndex].Name, lpItem->m_Number);
-							}
-						}
-
-						if ( g_ConfigRead.server.GetServerType() == SERVER_BATTLECORE )
-						{
-							if (gObj[aIndex].MapNumber == MAP_INDEX_CHAOSCASTLE_SURVIVAL)
-							{
-								g_ChaosCastleFinal.SetUBFGetReward(aIndex, lpItem->m_Type, lpItem->m_Number, pos);
-							}
-
-							else if (gObj[aIndex].MapNumber == MAP_INDEX_DEVILSQUARE_FINAL)
-							{
-								g_DevilSquareFinal.SetUBFGetReward(aIndex, lpItem->m_Type, lpItem->m_Number, pos);
-							}
-
-							else if (CC_MAP_RANGE(gObj[aIndex].MapNumber) == TRUE)
-							{
-								g_ChaosCastle.SetUBFGetReward(aIndex, lpItem->m_Type, lpItem->m_Number, pos);
-							}
-						}
-
-						if ( g_ArcaBattle.IsArcaBattleServer() == TRUE && lpItem->m_Type == ITEMGET(13,147) )
-						{
-							g_ArcaBattle.BootyItemGetCnt(&gObj[aIndex]);
-						}
-
-						if ( lpItem->m_PeriodItemDuration > 0 )
-						{
-							g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], lpItem->m_Type, lpItem->m_Number, lpItem->m_PeriodItemDuration);
-
-							this->GCInventoryItemOneSend(aIndex, pos);
-							g_PeriodItemEx.SendPeriodItemInfoOnce(&gObj[aIndex], &gObj[aIndex].pInventory[pos]);
-						}
-					}
-				}
-				else
-				{
-					pResult.result = -1;
-					pResult.h.size -= sizeof(pResult.Data);
-
-					IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
-				}
-			}
-			else
-			{
-				pResult.result = -1;
-				pResult.h.size -= sizeof(pResult.Data);
-
-				IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
 			}
 		}
 	}
-	else
+
+	// handle quest item
+	if (lpItem->m_QuestItem == true && g_QuestExpManager.IsQuestItemAtt(lpItem->m_Type, 1) == true)
 	{
-		pResult.h.size -= sizeof(pResult.Data);
-		IOCP.DataSend(aIndex, (UCHAR*)&pResult, pResult.h.size);
+		for (int n = 12; n < INVENTORY_SIZE; n++)
+		{
+			int pos = -1;
+
+			if (gObj[aIndex].pInventory[n].m_Type == lpItem->m_Type &&
+				gObj[aIndex].pInventory[n].m_Durability < IsOverlapItem(lpItem->m_Type))
+			{
+				pos = n;
+			}
+
+			if (INVENTORY_RANGE(pos) == true)
+			{
+				if (gObj[aIndex].pInventory[pos].m_Durability + lpItem->m_Durability > IsOverlapItem(lpItem->m_Type))
+				{
+					lpItem->m_Durability = gObj[aIndex].pInventory[pos].m_Durability + lpItem->m_Durability - IsOverlapItem(lpItem->m_Type);
+					gObj[aIndex].pInventory[pos].m_Durability = IsOverlapItem(lpItem->m_Type);
+					this->GCItemDurSend(aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
+				}
+
+				else
+				{
+					if (MapC[map_num].ItemGive(aIndex, item_num, 1) == TRUE)
+					{
+						pResult.result = -3;
+						IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
+
+						gObj[aIndex].pInventory[pos].m_Durability += lpItem->m_Durability;
+						GCItemDurSend(aIndex, pos, gObj[aIndex].pInventory[pos].m_Durability, 0);
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	// handle lucky item
+	if (g_LuckyItemManager.IsLuckyItemEquipment(lpItem->m_Type) && g_ConfigRead.data.common.AllowGetLuckyItemGround == false)
+	{
+		char szSetItemName[48] = { 0 };
+		int tmpSetOption = 0;
+		BYTE NewOption[8] = { 0 };
+
+		ItemIsBufExOption(NewOption, (lpItem != NULL) ? (CItem*)&lpItem->m_Number : NULL);
+
+		if (gSetItemOption.IsSetItem(lpItem->m_Type))
+		{
+			if (lpItem->m_SetOption & 1)
+			{
+				tmpSetOption = 1;
+			}
+		
+			else
+			{
+				if (lpItem->m_SetOption & 2)
+				{
+					tmpSetOption = 2;
+				}
+			}
+
+			strcpy(szSetItemName, gSetItemOption.GetSetOptionName(type, tmpSetOption));
+		}
+
+		g_Log.Add("[%s][%s][%d]%d/%d Try Get LuckyItem serial:%I64d [%s][%d][%d][%d][%d][%d] dur:[%d]Ex:[%d,%d,%d,%d,%d,%d,%d] Set:[%d] 380:[%d] HO:[%d,%d]",
+			gObj[aIndex].AccountID, gObj[aIndex].Name, map_num, gObj[aIndex].X, gObj[aIndex].Y, lpItem->m_Number, szSetItemName,
+			type, level, lpItem->m_Option1, lpItem->m_Option2, lpItem->m_Option3, (INT)lpItem->m_Durability,
+			NewOption[0], NewOption[1], NewOption[2], NewOption[3], NewOption[4], NewOption[5], NewOption[6],
+			lpItem->m_SetOption, lpItem->m_ItemOptionEx >> 7,
+			g_kJewelOfHarmonySystem.GetItemStrengthenOption((lpItem != NULL) ? (CItem*)&lpItem->m_Number : NULL),
+			g_kJewelOfHarmonySystem.GetItemOptionLevel((lpItem != NULL) ? (CItem*)&lpItem->m_Number : NULL));
+
+			pResult.result = -1;
+
+		IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
+		this->GCServerMsgStringSend(Lang.GetText(0,519), aIndex, 1);
+		return;
+	}
+
+	pResult.result = ::gObjInventoryInsertItemTemp(&gObj[aIndex], lpItem);
+	if (pResult.result == 0xFF)
+		this->CGItemGetInvalidRes(aIndex);
+
+	ItemByteConvert((LPBYTE)&pResult.Data[0], lpItem->m_Type, lpItem->m_Option1, lpItem->m_Option2,
+		lpItem->m_Option3, lpItem->m_Level, lpItem->m_Durability, lpItem->m_NewOption,
+		lpItem->m_SetOption, lpItem->m_JewelOfHarmonyOption, lpItem->m_ItemOptionEx, lpItem->m_SocketOption, lpItem->m_BonusSocketOption, 0);
+
+	if (!MapC[map_num].ItemGive(aIndex, item_num, false)) {
+		this->CGItemGetInvalidRes(aIndex);
+		return;
+	}
+
+	BYTE pos = gObjInventoryInsertItem(aIndex, lpItem);
+	if (pos == 0xFF) {
+		this->CGItemGetInvalidRes(aIndex);
+		GCItemListSend(aIndex);
+		g_PeriodItemEx.OnRequestPeriodItemList(&gObj[aIndex]);
+		return;
+	}
+
+	IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
+	BYTE NewOption[MAX_EXOPTION_SIZE];
+	ItemIsBufExOption(NewOption, (lpItem != NULL)?(CItem*)&lpItem->m_Number:NULL);
+	g_Log.Add("[%s][%s][%d]%d/%d Get serial:%I64d [%s][%d][%d][%d][%d][%d] dur:[%d]Ex:[%d,%d,%d,%d,%d,%d,%d] Set:[%d] 380:[%d] HO:[%d,%d] E:[%d]", gObj[aIndex].AccountID, gObj[aIndex].Name, map_num,
+		gObj[aIndex].X, gObj[aIndex].Y, lpItem->m_Number, szItemName, type,
+		level, lpItem->m_Option1, lpItem->m_Option2, lpItem->m_Option3, (INT)lpItem->m_Durability,
+		NewOption[0], NewOption[1], NewOption[2], NewOption[3], NewOption[4], NewOption[5],
+		NewOption[6], lpItem->m_SetOption, lpItem->m_ItemOptionEx>>7,
+		g_kJewelOfHarmonySystem.GetItemStrengthenOption((lpItem)?((CItem *)&lpItem->m_Number):NULL), g_kJewelOfHarmonySystem.GetItemOptionLevel((lpItem)?((CItem *)&lpItem->m_Number):NULL),
+		lpItem->m_BonusSocketOption);
+
+	this->GCSendGetItemInfoForParty(aIndex, lpItem);
+
+	if ( BC_MAP_RANGE(map_num) )
+	{
+		int iBridgeIndex = g_BloodCastle.GetBridgeIndex(map_num);
+
+		if ( g_BloodCastle.CheckQuestItemSerial(iBridgeIndex, lpItem) )
+		{
+			g_BloodCastle.CatchQuestItemByUser(iBridgeIndex, aIndex, lpItem->m_Level);
+		}
+	}
+
+	if (IT_MAP_RANGE(map_num) && lpItem->m_Type == ITEMGET(14, 223))
+	{
+		if (g_ConfigRead.server.GetServerType() == SERVER_MARKET)
+		{
+			g_IT_Event.SetRelicsInventoryPos(gObj[aIndex].MapNumber, aIndex, pos);
+			g_IT_Event.SendRelicsUserInfo(&gObj[aIndex]);
+
+			g_Log.Add("[ ITR ] (%d) (Account:%s, Name:%s) picked up Relics Item(serial:%I64d)",
+				map_num - 44, gObj[aIndex].AccountID, gObj[aIndex].Name, lpItem->m_Number);
+		}
+	}
+
+	if ( g_ConfigRead.server.GetServerType() == SERVER_BATTLECORE )
+	{
+		if (gObj[aIndex].MapNumber == MAP_INDEX_CHAOSCASTLE_SURVIVAL)
+		{
+			g_ChaosCastleFinal.SetUBFGetReward(aIndex, lpItem->m_Type, lpItem->m_Number, pos);
+		}
+
+		else if (gObj[aIndex].MapNumber == MAP_INDEX_DEVILSQUARE_FINAL)
+		{
+			g_DevilSquareFinal.SetUBFGetReward(aIndex, lpItem->m_Type, lpItem->m_Number, pos);
+		}
+
+		else if (CC_MAP_RANGE(gObj[aIndex].MapNumber) == TRUE)
+		{
+			g_ChaosCastle.SetUBFGetReward(aIndex, lpItem->m_Type, lpItem->m_Number, pos);
+		}
+	}
+
+	if ( g_ArcaBattle.IsArcaBattleServer() == TRUE && lpItem->m_Type == ITEMGET(13,147) )
+	{
+		g_ArcaBattle.BootyItemGetCnt(&gObj[aIndex]);
+	}
+
+	if ( lpItem->m_PeriodItemDuration > 0 )
+	{
+		g_PeriodItemEx.SetPeriodItemInfo(&gObj[aIndex], lpItem->m_Type, lpItem->m_Number, lpItem->m_PeriodItemDuration);
+
+		this->GCInventoryItemOneSend(aIndex, pos);
+		g_PeriodItemEx.SendPeriodItemInfoOnce(&gObj[aIndex], &gObj[aIndex].pInventory[pos]);
 	}
 }
 

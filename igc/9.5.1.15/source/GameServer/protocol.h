@@ -3590,6 +3590,7 @@ public:
 	void GCSkillKeySend(int aIndex, unsigned char* keybuffer, unsigned char GO, unsigned char Qk, unsigned char Wk, unsigned char Ek, /*<regrel ebp+0x20>*/ /*|0x1|*/ unsigned char ChatWnd, unsigned char Rk, int QWER);
 	void GCMoneySend(int aIndex, unsigned long money);
 	void GCItemInventoryPutSend(int aIndex, unsigned char result, unsigned char iteminfo1, unsigned char iteminfo2);
+	void CGItemGetInvalidRes(int index);
 	void CGItemGetRequest(PMSG_ITEMGETREQUEST* lpMsg, int aIndex);
 	bool CGItemDropRequest(PMSG_ITEMTHROW* lpMsg, int aIndex, int drop_type);
 	void GCItemMoveResultSend(int aIndex, unsigned char result, unsigned char pos, unsigned char* const ItemInfo);
