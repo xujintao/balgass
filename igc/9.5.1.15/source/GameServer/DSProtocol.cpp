@@ -2963,7 +2963,7 @@ void ItemSerialCreateRecv(SDHP_ITEMCREATERECV * lpMsg)
 			else
 			{
 				::GSProtocol.GCInventoryItemOneSend(lpMsg->aIndex, iItemPos);
-				GSProtocol.GCServerMsgStringSendEx(lpMsg->aIndex, 1, Lang.GetText(0,535), ItemAttribute[Item.m_Type].Name);
+				// GSProtocol.GCServerMsgStringSendEx(lpMsg->aIndex, 1, Lang.GetText(0,535), ItemAttribute[Item.m_Type].Name);
 			}
 		}
 	}
@@ -4178,7 +4178,7 @@ void DGMoveOtherServer(SDHP_CHARACTER_TRANSFER_RESULT * lpMsg)
 		
 		lpObj->m_MoveOtherServer = 0;
 		
-		GSProtocol.GCServerMsgStringSend("¹®Á¦ ¹ß»ı½Ã change@webzen.co.kr·Î ¹®ÀÇÇØ ÁÖ½Ã±â¹Ù¶ø´Ï´Ù",lpObj->m_Index, 1);
+		GSProtocol.GCServerMsgStringSend("ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½ï¿½ change@webzen.co.krï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö½Ã±ï¿½Ù¶ï¿½ï¿½Ï´ï¿½",lpObj->m_Index, 1);
 		// Deathway translation here
 		return;
 	}
@@ -4186,8 +4186,8 @@ void DGMoveOtherServer(SDHP_CHARACTER_TRANSFER_RESULT * lpMsg)
 	g_Log.Add("[CharTrasfer] Success [%s][%s] (%d)",
 		lpObj->AccountID, lpObj->Name, lpMsg->Result);
 
-	GSProtocol.GCServerMsgStringSend("Á¢¼ÓÀÌ Á¾·áµË´Ï´Ù.", lpObj->m_Index, 1);// Deathway translation here
-	GSProtocol.GCServerMsgStringSend("ºĞÇÒ ¼­¹ö·Î Á¢¼ÓÇØÁÖ½Ã±â ¹Ù¶ø´Ï´Ù.", lpObj->m_Index, 1);// Deathway translation here
+	GSProtocol.GCServerMsgStringSend("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ë´Ï´ï¿½.", lpObj->m_Index, 1);// Deathway translation here
+	GSProtocol.GCServerMsgStringSend("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö½Ã±ï¿½ ï¿½Ù¶ï¿½ï¿½Ï´ï¿½.", lpObj->m_Index, 1);// Deathway translation here
 	GJSetCharacterInfo(lpObj, lpObj->m_Index, 0);
 	lpObj->LoadWareHouseInfo = false;
 	gObjCloseSet(lpMsg->Number, 2);
