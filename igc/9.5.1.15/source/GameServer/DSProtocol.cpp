@@ -4178,7 +4178,7 @@ void DGMoveOtherServer(SDHP_CHARACTER_TRANSFER_RESULT * lpMsg)
 		
 		lpObj->m_MoveOtherServer = 0;
 		
-		GSProtocol.GCServerMsgStringSend("���� �߻��� change@webzen.co.kr�� ������ �ֽñ�ٶ��ϴ�",lpObj->m_Index, 1);
+		//GSProtocol.GCServerMsgStringSend("���� �߻��� change@webzen.co.kr�� ������ �ֽñ�ٶ��ϴ�",lpObj->m_Index, 1);
 		// Deathway translation here
 		return;
 	}
@@ -4186,8 +4186,8 @@ void DGMoveOtherServer(SDHP_CHARACTER_TRANSFER_RESULT * lpMsg)
 	g_Log.Add("[CharTrasfer] Success [%s][%s] (%d)",
 		lpObj->AccountID, lpObj->Name, lpMsg->Result);
 
-	GSProtocol.GCServerMsgStringSend("������ ����˴ϴ�.", lpObj->m_Index, 1);// Deathway translation here
-	GSProtocol.GCServerMsgStringSend("���� ������ �������ֽñ� �ٶ��ϴ�.", lpObj->m_Index, 1);// Deathway translation here
+	//GSProtocol.GCServerMsgStringSend("������ ����˴ϴ�.", lpObj->m_Index, 1);// Deathway translation here
+	//GSProtocol.GCServerMsgStringSend("���� ������ �������ֽñ� �ٶ��ϴ�.", lpObj->m_Index, 1);// Deathway translation here
 	GJSetCharacterInfo(lpObj, lpObj->m_Index, 0);
 	lpObj->LoadWareHouseInfo = false;
 	gObjCloseSet(lpMsg->Number, 2);
