@@ -296,6 +296,7 @@ void CItemOptionTypeMng::SetExcOptionEffect(OBJECTSTRUCT *lpObj, int ExcOptionID
 			lpObj->m_MagicSpeed += lpOption->OptionValue;
 			break;
 		case OPTION_INC_ATTACK_PERCENT:
+			/*
 			if ( ( lpObj->pInventory[btItemPos].m_Type >= ITEMGET(5, 0) && lpObj->pInventory[btItemPos].m_Type < ITEMGET(6, 0) ) ||
 					lpObj->pInventory[btItemPos].m_Type == ITEMGET(13,12) ||
 					lpObj->pInventory[btItemPos].m_Type == ITEMGET(13,25) ||
@@ -304,7 +305,6 @@ void CItemOptionTypeMng::SetExcOptionEffect(OBJECTSTRUCT *lpObj, int ExcOptionID
 				lpObj->m_MagicDamageMax += lpObj->m_MagicDamageMax * lpOption->OptionValue / 100;
 				lpObj->m_MagicDamageMin += lpObj->m_MagicDamageMin * lpOption->OptionValue / 100;
 			}
-
 			else
 			{
 				if ( btItemPos == 0 || btItemPos == 9 )
@@ -319,8 +319,16 @@ void CItemOptionTypeMng::SetExcOptionEffect(OBJECTSTRUCT *lpObj, int ExcOptionID
 					lpObj->m_AttackDamageMaxLeft += lpObj->m_AttackDamageMaxLeft * lpOption->OptionValue / 100;
 				}
 			}
+			*/
+			lpObj->m_AttackDamageMinRight += lpObj->m_AttackDamageMinRight * lpOption->OptionValue / 100;
+			lpObj->m_AttackDamageMaxRight += lpObj->m_AttackDamageMaxRight * lpOption->OptionValue / 100;
+			lpObj->m_AttackDamageMinLeft += lpObj->m_AttackDamageMinLeft * lpOption->OptionValue / 100;
+			lpObj->m_AttackDamageMaxLeft += lpObj->m_AttackDamageMaxLeft * lpOption->OptionValue / 100;
+			lpObj->m_MagicDamageMax += lpObj->m_MagicDamageMax * lpOption->OptionValue / 100;
+			lpObj->m_MagicDamageMin += lpObj->m_MagicDamageMin * lpOption->OptionValue / 100;
 			break;
 		case OPTION_INC_ATTACK_LEVEL:
+			/*
 			if ( ( lpObj->pInventory[btItemPos].m_Type >= ITEMGET(5, 0) && lpObj->pInventory[btItemPos].m_Type < ITEMGET(6, 0) ) ||
 					lpObj->pInventory[btItemPos].m_Type == ITEMGET(13,12) ||
 					lpObj->pInventory[btItemPos].m_Type == ITEMGET(13,25) ||
@@ -344,6 +352,13 @@ void CItemOptionTypeMng::SetExcOptionEffect(OBJECTSTRUCT *lpObj, int ExcOptionID
 					lpObj->m_AttackDamageMaxLeft += (lpObj->Level+lpObj->m_PlayerData->MasterLevel) / lpOption->OptionValue;
 				}
 			}
+			*/
+			lpObj->m_AttackDamageMinLeft += (lpObj->Level+lpObj->m_PlayerData->MasterLevel) / lpOption->OptionValue;
+			lpObj->m_AttackDamageMaxLeft += (lpObj->Level+lpObj->m_PlayerData->MasterLevel) / lpOption->OptionValue;
+			lpObj->m_AttackDamageMinRight += (lpObj->Level+lpObj->m_PlayerData->MasterLevel) / lpOption->OptionValue;
+			lpObj->m_AttackDamageMaxRight += (lpObj->Level+lpObj->m_PlayerData->MasterLevel) / lpOption->OptionValue;
+			lpObj->m_MagicDamageMax += (lpObj->Level+lpObj->m_PlayerData->MasterLevel) / lpOption->OptionValue;
+			lpObj->m_MagicDamageMin += (lpObj->Level+lpObj->m_PlayerData->MasterLevel) / lpOption->OptionValue;
 			break;
 		case OPTION_INC_EXCELLENT_DAMAGE:
 			lpObj->m_ExcellentDamageSuccessRate += lpOption->OptionValue;
