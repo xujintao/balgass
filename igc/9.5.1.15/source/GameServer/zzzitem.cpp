@@ -40,7 +40,7 @@ void CItem::Clear()	// Fine
 	this->m_AttackSpeed=0;
 	this->m_DamageMin=0;
 	this->m_DamageMax=0;
-	this->m_SuccessfulBlocking=0;
+	this->m_DefenseRate=0;
 	this->m_Defense=0;
 	this->m_MagicDefense =0;
 	this->m_Durability=0;
@@ -309,7 +309,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	this->m_TwoHand = p->TwoHand;
 	this->m_DamageMin = p->DamageMin;
 	this->m_DamageMax = p->DamageMax;
-	this->m_SuccessfulBlocking = p->SuccessfulBlocking;
+	this->m_DefenseRate = p->SuccessfulBlocking;
 	this->m_Defense = p->Defense;
 	this->m_MagicDefense = p->MagicDefense;
 	this->m_WalkSpeed = p->WalkSpeed;
@@ -710,8 +710,8 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	{
 		if ( this->m_SetOption != 0 && ItemLevel != 0 )
 		{
-			this->m_SuccessfulBlocking += (this->m_SuccessfulBlocking * 25) / p->Level + 5;
-			this->m_SuccessfulBlocking += ItemLevel / 40 + 5;
+			this->m_DefenseRate += (this->m_DefenseRate * 25) / p->Level + 5;
+			this->m_DefenseRate += ItemLevel / 40 + 5;
 		}
 		else
 		{
@@ -719,16 +719,16 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			{
 				if ( p->Level != 0 )
 				{
-					this->m_SuccessfulBlocking += (this->m_SuccessfulBlocking * 25) / p->Level + 5;
+					this->m_DefenseRate += (this->m_DefenseRate * 25) / p->Level + 5;
 				}
 			}
 		}
 
-		this->m_SuccessfulBlocking += this->m_Level * 3;
+		this->m_DefenseRate += this->m_Level * 3;
 
 		if ( this->m_Level >= 10 )
 		{
-			this->m_SuccessfulBlocking += (this->m_Level - 9) * (this->m_Level - 8) / 2;
+			this->m_DefenseRate += (this->m_Level - 9) * (this->m_Level - 8) / 2;
 		}
 	}
 
@@ -1301,7 +1301,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		this->m_DamageMin -= (int)(this->m_DamageMin * this->m_CurrentDurabilityState);
 		this->m_DamageMax -= (int)(this->m_DamageMax * this->m_CurrentDurabilityState);
 		this->m_Defense -= (int)(this->m_Defense * this->m_CurrentDurabilityState);
-		this->m_SuccessfulBlocking -= (int)(this->m_SuccessfulBlocking * this->m_CurrentDurabilityState);
+		this->m_DefenseRate -= (int)(this->m_DefenseRate * this->m_CurrentDurabilityState);
 
 		if ( this->m_Durability < 1.0f )
 		{

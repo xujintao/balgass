@@ -341,7 +341,7 @@ public:
 	BYTE m_WalkSpeed;	// E
 	WORD m_DamageMin;	// 10
 	WORD m_DamageMax;	// 12
-	BYTE m_SuccessfulBlocking;	// 14
+	BYTE m_DefenseRate;	// 14
 	WORD m_Defense;	// 16
 	WORD m_MagicDefense;	// 18
 	BYTE m_Speed;	// 1A

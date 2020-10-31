@@ -3381,8 +3381,8 @@ int gObjSetMonster(int aIndex, int MonsterClass)
 	lpObj->m_AttackDamageMax = lpm->m_DamageMax;
 	lpObj->m_Defense = lpm->m_Defense;
 	lpObj->m_MagicDefense = lpm->m_MagicDefense;
-	lpObj->m_AttackRating = lpm->m_AttackRating;
-	lpObj->m_SuccessfulBlocking = lpm->m_Successfulblocking;
+	lpObj->m_AttackRate = lpm->m_AttackRate;
+	lpObj->m_DefenseRate = lpm->m_DefenseRate;
 	lpObj->Life = lpm->m_Hp;
 	lpObj->MaxLife = lpm->m_Hp;
 	lpObj->Mana = lpm->m_Mp;

@@ -522,195 +522,166 @@ BOOL CObjBaseAttack::ResistanceCheck(LPOBJ lpObj, LPOBJ lpTargetObj, int skill)
 
 BOOL CObjBaseAttack::MissCheck(LPOBJ lpObj, LPOBJ lpTargetObj, int skill, int skillSuccess, int magicsend, BOOL& bAllMiss, BYTE RFAttack)
 {
-	int iAttackRate = 0;
-
-	__try
+	if (IT_MAP_RANGE(lpTargetObj->MapNumber) && lpTargetObj->Type == OBJ_USER)
 	{
-		iAttackRate = 0;
-		int iDefenseRate = lpTargetObj->m_SuccessfulBlocking;
-
-		BYTE MSBDamage = 0;	// MonsterSetBasse Damage
-
-		if (IT_MAP_RANGE(lpTargetObj->MapNumber) && lpTargetObj->Type == OBJ_USER)
+		if (g_IT_Event.GetIllusionTempleState(lpTargetObj->MapNumber) == 2)
 		{
-			if (g_IT_Event.GetIllusionTempleState(lpTargetObj->MapNumber) == 2)
+			if (g_IT_Event.CheckSkillProdection(lpTargetObj->m_nITR_Index, lpTargetObj->MapNumber) == TRUE)
 			{
-				if (g_IT_Event.CheckSkillProdection(lpTargetObj->m_nITR_Index, lpTargetObj->MapNumber) == TRUE)
-				{
-					GSProtocol.GCDamageSend(lpObj->m_Index, lpTargetObj->m_Index, 0, 0, 0, 0);
-					return 0;
-				}
+				GSProtocol.GCDamageSend(lpObj->m_Index, lpTargetObj->m_Index, 0, 0, 0, 0);
+				return 0;
+			}
 
-				if (lpTargetObj->PartyNumber == lpObj->PartyNumber)
-				{
-					GSProtocol.GCDamageSend(lpObj->m_Index, lpTargetObj->m_Index, 0, 0, 0, 0);
-					return 0;
-				}
+			if (lpTargetObj->PartyNumber == lpObj->PartyNumber)
+			{
+				GSProtocol.GCDamageSend(lpObj->m_Index, lpTargetObj->m_Index, 0, 0, 0, 0);
+				return 0;
 			}
 		}
+	}
+	int iAttackRate = lpObj->m_AttackRate;
+	int iDefenseRate = lpTargetObj->m_DefenseRate;
 
-		if ( lpObj->Type == OBJ_USER )	// Miss for Uses
+	if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BLIND_2) == true)
+	{
+		int nDecRate = 0;
+		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_BLIND_2, &nDecRate, 0);
+
+		if (nDecRate > 0)
 		{
-			iAttackRate = lpObj->m_PlayerData->m_AttackRatePvM;
-			iAttackRate += iAttackRate * lpObj->m_PlayerData->SetOpImproveSuccessAttackRate / 100;
+			iAttackRate -= iAttackRate * nDecRate / 100.0;
 		}
-		else	// Miss for Monsters
-		{
-			iAttackRate = lpObj->m_AttackRating;
-		}
+	}
 
-		if (lpObj->Type == OBJ_USER)
+	BYTE MSBDamage = 0;	// MonsterSetBasse Damage
+	if ( iAttackRate < iDefenseRate )
+	{
+		bAllMiss = TRUE;
+	}
+	if (bAllMiss)	// When All Miss
+	{
+		if ( (rand()%100) >= 5 )
 		{
-			iAttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate;
-		}
-
-		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BLIND_2) == true)
-		{
-			int nDecRate = 0;
-			gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_BLIND_2, &nDecRate, 0);
-
-			if (nDecRate > 0)
+			if (RFAttack)
 			{
-				iAttackRate -= iAttackRate * nDecRate / 100.0;
-			}
-		}
-
-		if ( iAttackRate < iDefenseRate )
-		{
-			bAllMiss = TRUE;
-		}
-
-		if ( bAllMiss != FALSE )	// When All Miss
-		{
-			if ( (rand()%100) >= 5 )
-			{
-				if (RFAttack)
+				if (lpObj->Class == CLASS_RAGEFIGHTER)
 				{
-					if (lpObj->Class == CLASS_RAGEFIGHTER)
+					if (skill == 261 || skill == 263 || skill == 552 || skill == 555 || skill == 559 || skill == 563)
 					{
-						if (skill == 261 || skill == 263 || skill == 552 || skill == 555 || skill == 559 || skill == 563)
+						if (RFAttack % 2)
 						{
-							if (RFAttack % 2)
-							{
-								MSBDamage |= 0x10;
-							}
-
-							else
-							{
-								MSBDamage |= 0x20;
-							}
+							MSBDamage |= 0x10;
 						}
 
 						else
 						{
-							if (RFAttack % 4)
-							{
-								MSBDamage |= 0x10;
-							}
-
-							else
-							{
-								MSBDamage |= 0x20;
-							}
+							MSBDamage |= 0x20;
 						}
 					}
 
-					else if (lpObj->Class == CLASS_GROWLANCER)
+					else
 					{
-						if (skill == 276 || skill == 274 || skill == 277)
+						if (RFAttack % 4)
 						{
-							if (RFAttack % 2)
-							{
-								MSBDamage |= 0x10;
-							}
-
-							else
-							{
-								MSBDamage |= 0x20;
-							}
-						}
-					}
-				}
-
-				GSProtocol.GCDamageSend(lpObj->m_Index, lpTargetObj->m_Index, 0, 0, MSBDamage, 0);
-
-				if (magicsend != 0 )
-				{
-					GSProtocol.GCMagicAttackNumberSend(lpObj, skill, lpTargetObj->m_Index, skillSuccess);
-				}
-
-				return FALSE;
-			}
-		}
-		else	// if the is a chance  ot hit the target
-		{
-			if ( (rand()%iAttackRate) < iDefenseRate)
-			{
-				if (RFAttack)
-				{
-					if (lpObj->Class == CLASS_RAGEFIGHTER)
-					{
-						if (skill == 261 || skill == 263 || skill == 552 || skill == 555 || skill == 559 || skill == 563)
-						{
-							if (RFAttack % 2)
-							{
-								MSBDamage |= 0x10;
-							}
-
-							else
-							{
-								MSBDamage |= 0x20;
-							}
+							MSBDamage |= 0x10;
 						}
 
 						else
 						{
-							if (RFAttack % 4)
-							{
-								MSBDamage |= 0x10;
-							}
-
-							else
-							{
-								MSBDamage |= 0x20;
-							}
-						}
-					}
-
-					else if (lpObj->Class == CLASS_GROWLANCER)
-					{
-						if (skill == 276 || skill == 274 || skill == 277)
-						{
-							if (RFAttack % 2)
-							{
-								MSBDamage |= 0x10;
-							}
-
-							else
-							{
-								MSBDamage |= 0x20;
-							}
+							MSBDamage |= 0x20;
 						}
 					}
 				}
 
-				GSProtocol.GCDamageSend(lpObj->m_Index, lpTargetObj->m_Index, 0, 0, MSBDamage, 0);
-
-				if (magicsend != 0 )
+				else if (lpObj->Class == CLASS_GROWLANCER)
 				{
-					GSProtocol.GCMagicAttackNumberSend(lpObj, skill, lpTargetObj->m_Index, skillSuccess);
-				}
+					if (skill == 276 || skill == 274 || skill == 277)
+					{
+						if (RFAttack % 2)
+						{
+							MSBDamage |= 0x10;
+						}
 
-				return FALSE;
+						else
+						{
+							MSBDamage |= 0x20;
+						}
+					}
+				}
 			}
+
+			GSProtocol.GCDamageSend(lpObj->m_Index, lpTargetObj->m_Index, 0, 0, MSBDamage, 0);
+
+			if (magicsend != 0 )
+			{
+				GSProtocol.GCMagicAttackNumberSend(lpObj, skill, lpTargetObj->m_Index, skillSuccess);
+			}
+
+			return FALSE;
 		}
 	}
-	__except (iAttackRate = 1, 1)
+	else	// if the is a chance  ot hit the target
 	{
-		g_Log.Add("error2: %s's level is 0", lpObj->Name);
-		return FALSE;
-	}
+		if ( (rand()%iAttackRate) < iDefenseRate)
+		{
+			if (RFAttack)
+			{
+				if (lpObj->Class == CLASS_RAGEFIGHTER)
+				{
+					if (skill == 261 || skill == 263 || skill == 552 || skill == 555 || skill == 559 || skill == 563)
+					{
+						if (RFAttack % 2)
+						{
+							MSBDamage |= 0x10;
+						}
 
+						else
+						{
+							MSBDamage |= 0x20;
+						}
+					}
+
+					else
+					{
+						if (RFAttack % 4)
+						{
+							MSBDamage |= 0x10;
+						}
+
+						else
+						{
+							MSBDamage |= 0x20;
+						}
+					}
+				}
+
+				else if (lpObj->Class == CLASS_GROWLANCER)
+				{
+					if (skill == 276 || skill == 274 || skill == 277)
+					{
+						if (RFAttack % 2)
+						{
+							MSBDamage |= 0x10;
+						}
+
+						else
+						{
+							MSBDamage |= 0x20;
+						}
+					}
+				}
+			}
+
+			GSProtocol.GCDamageSend(lpObj->m_Index, lpTargetObj->m_Index, 0, 0, MSBDamage, 0);
+
+			if (magicsend != 0 )
+			{
+				GSProtocol.GCMagicAttackNumberSend(lpObj, skill, lpTargetObj->m_Index, skillSuccess);
+			}
+
+			return FALSE;
+		}
+	}
 	return TRUE;
 }
 
@@ -762,16 +733,8 @@ BOOL CObjBaseAttack::MissCheckPvP(LPOBJ lpObj , LPOBJ lpTargetObj, int skill, in
 	iAttackRate = lpObj->m_PlayerData->m_AttackRatePvP;
 	iDefenseRate = lpTargetObj->m_PlayerData->m_DefenseRatePvP;
 
-	if ( iAttackRate <= 0.0f || iDefenseRate <= 0.0f || AttackLevel <= 0 || lpTargetObj == 0 ) return FALSE;
-
-	iAttackRate += lpObj->m_PlayerData->m_ItemOptionExFor380.OpAddAttackSuccessRatePVP;
-	iDefenseRate += lpTargetObj->m_PlayerData->m_ItemOptionExFor380.OpAddDefenseSuccessRatePvP;
-
-	iAttackRate += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddAttackSuccessRatePVP;
-	iDefenseRate += lpTargetObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddDefenseSuccessRatePvP;
-
-	iAttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsPVPAttackDmgRate;
-	iDefenseRate += lpTargetObj->m_PlayerData->m_MPSkillOpt.iMpsPVPBlockingRate;
+	if ( iAttackRate <= 0.0f || iDefenseRate <= 0.0f || AttackLevel <= 0 || lpTargetObj == 0 )
+		return FALSE;
 
 	float iExpressionA = ( iAttackRate * 10000.0f ) / ( iAttackRate + iDefenseRate );	// #formula
 	float iExpressionB = ( AttackLevel * 10000 ) / ( AttackLevel + DefenseLevel );	// #formula
@@ -883,10 +846,13 @@ BOOL CObjBaseAttack::MissCheckPvP(LPOBJ lpObj , LPOBJ lpTargetObj, int skill, in
 int  CObjBaseAttack::GetTargetDefense(LPOBJ lpObj, LPOBJ lpTargetObj, int& MsgDamage, int& iOriginTargetDefense)
 {
 	int targetdefense = lpTargetObj->m_Defense;
-
-	if (lpObj->Type == OBJ_USER && lpTargetObj->Type == OBJ_USER)
-	{
-		targetdefense += lpTargetObj->m_PlayerData->m_ItemOptionExFor380.OpAddDefense / 2;
+	if (lpObj->Type == OBJ_USER && lpTargetObj->Type == OBJ_USER) {
+		// pvp
+		targetdefense += lpTargetObj->m_PlayerData->m_ItemOptionExFor380.OpAddDefense;
+	}
+	else if (lpTargetObj->Type == OBJ_USER) {
+		// pve 50%
+		targetdefense /= 2;
 	}
 
 	int decdef = gObjGetTotalValueOfEffect(lpTargetObj, EFFECTTYPE_DECREASE_DEFENSE);
@@ -909,10 +875,8 @@ int  CObjBaseAttack::GetTargetDefense(LPOBJ lpObj, LPOBJ lpTargetObj, int& MsgDa
 	if ( lpTargetObj->m_MonsterSkillElementInfo.m_iSkillElementDefenseTime > 0 )
 	{
 		targetdefense += lpTargetObj->m_MonsterSkillElementInfo.m_iSkillElementDefense;
-
 		if ( targetdefense <0 )
 			targetdefense = 0;
-
 	}
 
 	float percentdamage = 0;
@@ -934,7 +898,7 @@ int  CObjBaseAttack::GetTargetDefense(LPOBJ lpObj, LPOBJ lpTargetObj, int& MsgDa
 		{
 			if (rand() % 100 <= 10)
 			{
-				float nEffectValue = nEffectValue2 * lpTargetObj->m_SuccessfulBlocking / 100.0;
+				float nEffectValue = nEffectValue2 * lpTargetObj->m_DefenseRate / 100.0;
 				gObjAddBuffEffect(lpTargetObj, BUFFTYPE_PENETRATE_ARMOR, EFFECTTYPE_DECREASE_DEFENSE, nEffectValue2, EFFECTTYPE_DECREASE_DEFENSE_RATE, nEffectValue, 10);
 			}
 		}

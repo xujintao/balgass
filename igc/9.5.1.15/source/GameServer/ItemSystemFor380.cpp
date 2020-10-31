@@ -157,9 +157,7 @@ BOOL CItemSystemFor380::ApplyFor380Option(LPOBJ lpObj)
 {
 	ITEMOPTION_FOR380ITEM_EFFECT * pItemEffect = &lpObj->m_PlayerData->m_ItemOptionExFor380;
 	this->InitEffectValue(pItemEffect);
-	int iItemIndex = 0;
-
-	for ( iItemIndex = 0; iItemIndex < INVETORY_WEAR_SIZE ; iItemIndex++)
+	for (int iItemIndex = 0; iItemIndex < INVETORY_WEAR_SIZE ; iItemIndex++)
 	{
 		CItem * pItem = &lpObj->pInventory[iItemIndex];
 
@@ -180,12 +178,12 @@ BOOL CItemSystemFor380::ApplyFor380Option(LPOBJ lpObj)
 		}
 	}
 
+	lpObj->m_PlayerData->m_AttackRatePvP += pItemEffect->OpAddAttackSuccessRatePVP;
+	lpObj->m_PlayerData->m_DefenseRatePvP += pItemEffect->OpAddDefenseSuccessRatePvP;
 	lpObj->AddLife += pItemEffect->OpAddMaxHP;
 	lpObj->iAddShield += pItemEffect->OpAddMaxSD;
-
 	return TRUE;
 }
-
 
 BOOL CItemSystemFor380::_CalcItemEffectValue(int iItemOptionType, int iItemEffectValue, ITEMOPTION_FOR380ITEM_EFFECT * pItemEffect)
 {

@@ -248,8 +248,8 @@ void CMonsterRegenSystem::RegenMonster(int nGroupNumber)
 							gObj[nResult].m_AttackDamageMax = this->m_stMonsterPosition[nGroupNumber].m_stMonsterIndexInfo[k].m_nDamageMax;
 							gObj[nResult].m_Defense = this->m_stMonsterPosition[nGroupNumber].m_stMonsterIndexInfo[k].m_nDefense;
 							gObj[nResult].Life = this->m_stMonsterPosition[nGroupNumber].m_stMonsterIndexInfo[k].m_nHP;
-							gObj[nResult].m_AttackRating = this->m_stMonsterPosition[nGroupNumber].m_stMonsterIndexInfo[k].m_nAttackRate;
-							gObj[nResult].m_SuccessfulBlocking = this->m_stMonsterPosition[nGroupNumber].m_stMonsterIndexInfo[k].m_nDefenseRate;
+							gObj[nResult].m_AttackRate = this->m_stMonsterPosition[nGroupNumber].m_stMonsterIndexInfo[k].m_nAttackRate;
+							gObj[nResult].m_DefenseRate = this->m_stMonsterPosition[nGroupNumber].m_stMonsterIndexInfo[k].m_nDefenseRate;
 						}
 
 						nMonsterArrayIndex++;

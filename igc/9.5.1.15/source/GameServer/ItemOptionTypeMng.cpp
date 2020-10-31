@@ -352,7 +352,7 @@ void CItemOptionTypeMng::SetExcOptionEffect(OBJECTSTRUCT *lpObj, int ExcOptionID
 			lpObj->MonsterDieGetMoney += lpOption->OptionValue;
 			break;
 		case OPTION_INC_DEFENSE_RATE:
-			lpObj->m_SuccessfulBlocking += lpObj->m_SuccessfulBlocking * lpOption->OptionValue / 100;
+			lpObj->m_DefenseRate += lpObj->m_DefenseRate * lpOption->OptionValue / 100;
 			break;
 		case OPTION_INC_DAMAGE_REFLECT:
 			lpObj->DamageReflect += lpOption->OptionValue;

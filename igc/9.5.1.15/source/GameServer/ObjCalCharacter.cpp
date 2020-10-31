@@ -167,6 +167,8 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	int Leadership = lpObj->Leadership + lpObj->AddLeadership;
 
 	// damage base
+	lpObj->m_CurseDamageMin = 0;
+	lpObj->m_CurseDamageMax = 0;
 	switch (lpObj->Class)
 	{
 		case CLASS_ELF:
@@ -238,9 +240,9 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 
 	// attack success rate
 	this->m_Lua.Generic_Call("CalcAttackSuccessRate_PvM", "iiiii>i", lpObj->Class, Strength, Dexterity, Leadership, (lpObj->Level + lpObj->m_PlayerData->MasterLevel),
-		&lpObj->m_PlayerData->m_AttackRatePvM);
+		&lpObj->m_AttackRate);
 	this->m_Lua.Generic_Call("CalcDefenseSuccessRate_PvM", "ii>i", lpObj->Class, Dexterity,
-		&lpObj->m_SuccessfulBlocking);
+		&lpObj->m_DefenseRate);
 	this->m_Lua.Generic_Call("CalcAttackSuccessRate_PvP", "iii>d", lpObj->Class, Dexterity, lpObj->Level + lpObj->m_PlayerData->MasterLevel,
 		&lpObj->m_PlayerData->m_AttackRatePvP);
 	this->m_Lua.Generic_Call("CalcDefenseSuccessRate_PvP", "iii>d", lpObj->Class, Dexterity, lpObj->Level + lpObj->m_PlayerData->MasterLevel,
@@ -294,10 +296,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	Wing->PlusSpecial(&lpObj->m_CurseDamageMin, 113);
 	Wing->PlusSpecial(&lpObj->m_CurseDamageMax, 113);
 
-	//
-	lpObj->m_AttackRating = (Strength + Dexterity) / 2;
-	lpObj->m_AttackRating += lpObj->pInventory[5].ItemDefense();
-
 	// defense of item contributed
 	for (int i=1; i<8; i++) {
 		if (lpObj->pInventory[i].m_IsValidItem) {
@@ -329,8 +327,8 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	// defense success rate of item contributed
 	if (Left->m_IsValidItem != false)
 	{
-		lpObj->m_SuccessfulBlocking += Left->m_SuccessfulBlocking;
-		lpObj->pInventory[1].PlusSpecial(&lpObj->m_SuccessfulBlocking, 82);
+		lpObj->m_DefenseRate += Left->m_DefenseRate;
+		lpObj->pInventory[1].PlusSpecial(&lpObj->m_DefenseRate, 82);
 	}
 
 
@@ -391,7 +389,7 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 			lpObj->m_Defense += lpObj->m_Defense * 10 / 100;
 		else if ( Level10Count == 5 || (Level10Count + Level11Count + Level12Count + Level13Count + Level14Count + Level15Count) == 5)
 			lpObj->m_Defense += lpObj->m_Defense * 5 / 100;
-		lpObj->m_SuccessfulBlocking += lpObj->m_SuccessfulBlocking / 10;
+		lpObj->m_DefenseRate += lpObj->m_DefenseRate / 10;
 	}
 
 	// calc master passive skill
@@ -1625,8 +1623,14 @@ void CObjCalCharacter::ApplyMLSkillItemOption(LPOBJ lpObj)
 	CItem* Boot = &lpObj->pInventory[6];
 	CItem* Wing = &lpObj->pInventory[7];
 
+	// pvp defense rate
+	lpObj->m_PlayerData->m_DefenseRatePvP += lpObj->m_PlayerData->m_MPSkillOpt.iMpsPVPBlockingRate;
+
+	// defense
 	lpObj->m_Defense += lpObj->m_PlayerData->m_MPSkillOpt.iMpsDefence;
-	lpObj->m_SuccessfulBlocking += lpObj->m_PlayerData->m_MPSkillOpt.iMpsBlockingSuccessRate;
+
+	// defense rate
+	lpObj->m_DefenseRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsBlockingSuccessRate;
 	
 	BOOL nFullSet = FALSE;
 	if (lpObj->Class == CLASS_MAGUMSA)
@@ -1685,6 +1689,22 @@ void CObjCalCharacter::ApplyMLSkillItemOption(LPOBJ lpObj)
 		lpObj->m_CurseDamageMax += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddWingDamage;
 		lpObj->m_Defense += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddWingDefense;
 	}
+
+	// attack rate
+	lpObj->m_AttackRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAttackSuccessRate;
+
+	// apply master weapon Mastery
+	lpObj->m_AttackDamageMinRight += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
+	lpObj->m_AttackDamageMaxRight += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
+	lpObj->m_AttackDamageMinLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
+	lpObj->m_AttackDamageMaxLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
+	lpObj->m_MagicDamageMin += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMagicDamage;
+	lpObj->m_MagicDamageMax += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMagicDamage;
+	lpObj->m_CurseDamageMin += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncMagicPower;
+	lpObj->m_CurseDamageMax += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncMagicPower;
+
+	// pvp attack rate
+	lpObj->m_PlayerData->m_AttackRatePvP += lpObj->m_PlayerData->m_MPSkillOpt.iMpsPVPAttackDmgRate;
 
 	// apply master weapon Strengthener
 	if (Left->m_IsValidItem && Left->GetDetailItemType() == ITEM_TWOHAND_SWORD) {
@@ -1819,26 +1839,16 @@ void CObjCalCharacter::ApplyMLSkillItemOption(LPOBJ lpObj)
 	if (Left->m_IsValidItem && Left->GetDetailItemType() == ITEM_SHIELD) {
 		// wizard
 		lpObj->m_Defense += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncShield;
-		lpObj->m_SuccessfulBlocking += lpObj->m_PlayerData->m_MPSkillOpt.iMpsShieldBlockRate;
+		lpObj->m_DefenseRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsShieldBlockRate;
 
 		// elf
 		lpObj->m_Defense += lpObj->m_PlayerData->m_MPSkillOpt.iMpsElfAddShield;
-		lpObj->m_SuccessfulBlocking += lpObj->m_PlayerData->m_MPSkillOpt.iMpsElfShieldBlockRate;
+		lpObj->m_DefenseRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsElfShieldBlockRate;
 		
 		// lord
 		lpObj->m_Defense += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddShieldDefense;
-		lpObj->m_SuccessfulBlocking += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddShieldBlockingRage;
+		lpObj->m_DefenseRate += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddShieldBlockingRage;
 	}
-
-	// apply master weapon Mastery
-	lpObj->m_AttackDamageMinRight += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
-	lpObj->m_AttackDamageMaxRight += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
-	lpObj->m_AttackDamageMinLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
-	lpObj->m_AttackDamageMaxLeft += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddPhysicDamage;
-	lpObj->m_MagicDamageMin += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMagicDamage;
-	lpObj->m_MagicDamageMax += lpObj->m_PlayerData->m_MPSkillOpt.iMpsAddMagicDamage;
-	lpObj->m_CurseDamageMin += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncMagicPower;
-	lpObj->m_CurseDamageMax += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncMagicPower;
 
 	// calc master min/max attack damage
 	lpObj->m_AttackDamageMinRight += lpObj->m_PlayerData->m_MPSkillOpt.iMpsMinAttackDamage;

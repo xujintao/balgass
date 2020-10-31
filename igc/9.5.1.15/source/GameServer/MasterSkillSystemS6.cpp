@@ -730,7 +730,7 @@ void CMasterSkillSystemS6::CalcEffect(OBJECTSTRUCT * lpObj)
 				case 402:
 					if ( lpObj->pInventory[1].m_Type >= ITEMGET(6,0) && lpObj->pInventory[1].m_Type < ITEMGET(7,0) )
 					{
-						lpObj->m_SuccessfulBlocking += this->GetEffectValue(lpObj, 402);
+						lpObj->m_DefenseRate += this->GetEffectValue(lpObj, 402);
 					}
 					break;
 				case 437:
@@ -743,7 +743,7 @@ void CMasterSkillSystemS6::CalcEffect(OBJECTSTRUCT * lpObj)
 				case 440:
 					if ( lpObj->pInventory[1].m_Type >= ITEMGET(6,0) && lpObj->pInventory[1].m_Type < ITEMGET(7,0) )
 					{
-						lpObj->m_SuccessfulBlocking += this->GetEffectValue(lpObj, 440);
+						lpObj->m_DefenseRate += this->GetEffectValue(lpObj, 440);
 					}
 					break;
 				case 405:

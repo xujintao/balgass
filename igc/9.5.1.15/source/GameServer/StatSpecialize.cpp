@@ -114,8 +114,8 @@ void CStatSpecialize::SetStatOption(LPOBJ lpObj, int StatOptionID, double StatOp
 
 		case STAT_OPTION_INC_ATTACK_RATE:
 			{
-				int iEffectValue = lpObj->m_PlayerData->m_AttackRatePvM * StatOptionPercent / 100.0;
-				lpObj->m_PlayerData->m_AttackRatePvM += iEffectValue;
+				int iEffectValue = lpObj->m_AttackRate * StatOptionPercent / 100.0;
+				lpObj->m_AttackRate += iEffectValue;
 				lpObj->m_PlayerData->m_StatSpecOption[ArrayIndex].StatOptionValMin = iEffectValue;
 			}
 			break;
@@ -146,8 +146,8 @@ void CStatSpecialize::SetStatOption(LPOBJ lpObj, int StatOptionID, double StatOp
 
 		case STAT_OPTION_INC_DEFENSE_RATE:
 			{
-				int iEffectValue = lpObj->m_SuccessfulBlocking * StatOptionPercent / 100.0;
-				lpObj->m_SuccessfulBlocking += iEffectValue;
+				int iEffectValue = lpObj->m_DefenseRate * StatOptionPercent / 100.0;
+				lpObj->m_DefenseRate += iEffectValue;
 				lpObj->m_PlayerData->m_StatSpecOption[ArrayIndex].StatOptionValMin = iEffectValue;
 			}
 			break;

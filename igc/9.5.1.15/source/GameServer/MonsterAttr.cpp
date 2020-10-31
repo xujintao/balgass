@@ -56,8 +56,8 @@ void CMonsterAttr::LoadAttr(char* filename)
 		this->m_MonsterAttr[nCount].m_DamageMax = monster.attribute("DamageMax").as_int(0);
 		this->m_MonsterAttr[nCount].m_Defense = monster.attribute("Defense").as_int(0);
 		this->m_MonsterAttr[nCount].m_MagicDefense = monster.attribute("MagicDefense").as_int(0);
-		this->m_MonsterAttr[nCount].m_AttackRating = monster.attribute("AttackRate").as_int(0);
-		this->m_MonsterAttr[nCount].m_Successfulblocking = monster.attribute("BlockRate").as_int(0);
+		this->m_MonsterAttr[nCount].m_AttackRate = monster.attribute("AttackRate").as_int(0);
+		this->m_MonsterAttr[nCount].m_DefenseRate = monster.attribute("BlockRate").as_int(0);
 		this->m_MonsterAttr[nCount].m_MoveRange = monster.attribute("MoveRange").as_int(0);
 		this->m_MonsterAttr[nCount].m_AttackType = monster.attribute("AttackType").as_int(0);
 		this->m_MonsterAttr[nCount].m_AttackRange = monster.attribute("AttackRange").as_int(0);

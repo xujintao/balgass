@@ -1140,8 +1140,8 @@ void CItemSocketOptionSystem::_SetWaterEffect(LPOBJECTSTRUCT lpObj, BYTE btEffec
 	{
 	case SEED_EFFECT_TYPE_SUCCESS_BLOCK:
 		{
-			iCalcEffectValue = CalcEffectValue(lpObj->m_SuccessfulBlocking, wEffectValue, btEffectValueType);
-			lpObj->m_SuccessfulBlocking += iCalcEffectValue;
+			iCalcEffectValue = CalcEffectValue(lpObj->m_DefenseRate, wEffectValue, btEffectValueType);
+			lpObj->m_DefenseRate += iCalcEffectValue;
 		}
 		break;
 	case SEED_EFFECT_TYPE_BLOCK_POWER:
@@ -1197,7 +1197,7 @@ void CItemSocketOptionSystem::_SetIceEffect(LPOBJECTSTRUCT lpObj, BYTE btEffectT
 		break;
 	case SEED_EFFECT_TYPE_ATTACK_ACCURACY:
 		{
-			lpObj->m_AttackRating += wEffectValue;
+			lpObj->m_AttackRate += wEffectValue;
 		}
 		break;
 

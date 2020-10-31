@@ -97,7 +97,7 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 		lpObj->DamageReflect += EffectValue;
 		break;
 	case EFFECTTYPE_REDUCE_ATTACK_RATE:
-		lpObj->m_AttackRating -= EffectValue;
+		lpObj->m_AttackRate -= EffectValue;
 		break;
 	case EFFECTTYPE_MELEE_DEFENSE_DOWN_MANA:
 		lpObj->m_SkillInfo.SoulBarrierManaRate = EffectValue;
@@ -170,12 +170,12 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)lpObj->Mana, 0xFF, 0, (WORD)lpObj->BP);
 		break;
 	case EFFECTTYPE_IMPROVE_DEFENSE_RATE:
-		lpObj->m_SuccessfulBlocking += EffectValue;
+		lpObj->m_DefenseRate += EffectValue;
 		break;
 	case EFFECTTYPE_DECREASE_DEFENSE_RATE:
-		lpObj->m_SuccessfulBlocking -= EffectValue;
-		if(lpObj->m_SuccessfulBlocking < 0)
-			lpObj->m_SuccessfulBlocking = 0;
+		lpObj->m_DefenseRate -= EffectValue;
+		if(lpObj->m_DefenseRate < 0)
+			lpObj->m_DefenseRate = 0;
 		break;
 	case EFFECTTYPE_ELF_BLESS:
 		EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
@@ -267,7 +267,7 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 		lpObj->DamageReflect -= EffectValue;
 		break;
 	case EFFECTTYPE_REDUCE_ATTACK_RATE:
-		lpObj->m_AttackRating += EffectValue;
+		lpObj->m_AttackRate += EffectValue;
 		break;
 	case EFFECTTYPE_MELEE_DEFENSE_DOWN_MANA:
 		lpObj->m_SkillInfo.SoulBarrierManaRate = 0;
@@ -344,10 +344,10 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)lpObj->Mana, 0xFF, 0, (WORD)lpObj->BP);
 		break;
 	case EFFECTTYPE_IMPROVE_DEFENSE_RATE:
-		lpObj->m_SuccessfulBlocking -= EffectValue;
+		lpObj->m_DefenseRate -= EffectValue;
 		break;
 	case EFFECTTYPE_DECREASE_DEFENSE_RATE:
-		lpObj->m_SuccessfulBlocking += EffectValue;
+		lpObj->m_DefenseRate += EffectValue;
 		break;
 	case EFFECTTYPE_ELF_BLESS:
 		EnterCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);

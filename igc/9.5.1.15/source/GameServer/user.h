@@ -1183,7 +1183,6 @@ public:
 	PENTAGRAMJEWEL_INFO m_PentagramJewelInfo_Warehouse[250];
 	DWORD MathAuthenElapsed;
 	DWORD AntiHackCheckTime;
-	int m_AttackRatePvM;
 	double m_AttackRatePvP;
 	double m_DefenseRatePvP;
 	bool bActiveSetParty;
@@ -1442,12 +1441,12 @@ public:
 	int m_AttackDamageMinLeft;	// 318
 	int m_AttackDamageMaxRight;	// 31C
 	int m_AttackDamageMinRight;	// 320
-	int m_AttackRating;	// 324
+	int m_AttackRate;	// 324
 	int m_AttackSpeed;	// 328
 	int m_MagicSpeed;	// 32C
 	int m_Defense;	// 330
 	int m_MagicDefense;	// 334
-	int m_SuccessfulBlocking;	// 338
+	int m_DefenseRate;	// 338
 	int m_CurseSpell;
 	short m_MoveSpeed;	// 33C
 	short m_MoveRange;	// 33E

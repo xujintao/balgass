@@ -21,8 +21,8 @@ typedef struct MONSTER_ATTRIBUTE
 	int m_DamageMax;	// 34
 	int m_Defense;	// 38
 	int m_MagicDefense;	// 3C
-	int m_AttackRating;	// 40
-	int m_Successfulblocking;	// 44
+	int m_AttackRate;	// 40
+	int m_DefenseRate;	// 44
 	int m_MoveRange;	// 48
 	int m_AttackRange;	// 4C
 	int m_AttackType;	// 50

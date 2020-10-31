@@ -96,8 +96,8 @@ BOOL CMonsterStatCalc::ConvertMonsterStat(LPOBJ lpObj, int nUserMaxLevel)
 			lpObj->m_AttackDamageMax = lpAttr->m_DamageMax * monsterStatRef.m_nDamageMax;
 			lpObj->m_Defense = lpAttr->m_Defense * monsterStatRef.m_nDefense;
 			lpObj->m_MagicDefense = lpAttr->m_MagicDefense * monsterStatRef.m_nMagicDefense;
-			lpObj->m_AttackRating = lpAttr->m_AttackRating * monsterStatRef.m_nAttackRating;
-			lpObj->m_SuccessfulBlocking = lpAttr->m_Successfulblocking * monsterStatRef.m_nSuccessfulblocking;
+			lpObj->m_AttackRate = lpAttr->m_AttackRate * monsterStatRef.m_nAttackRating;
+			lpObj->m_DefenseRate = lpAttr->m_DefenseRate * monsterStatRef.m_nSuccessfulblocking;
 			lpObj->m_MoveRange = lpAttr->m_MoveRange;
 			lpObj->m_AttackSpeed = lpAttr->m_AttackSpeed;
 			lpObj->m_MoveSpeed = lpAttr->m_MoveSpeed;

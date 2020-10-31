@@ -1684,7 +1684,7 @@ BOOL CDarkSpirit::MissCheck(LPOBJ lpObj, LPOBJ lpTargetObj, int skill,  int skil
 	int SuccessAttackRate = this->m_SuccessAttackRate;
 	LeaveCriticalSection(&this->m_SpiritCriti);
 
-	int TargetSuccessfulBlocking = lpTargetObj->m_SuccessfulBlocking;
+	int TargetSuccessfulBlocking = lpTargetObj->m_DefenseRate;
 	int MsgDamage = 0;
 
 	if (IT_MAP_RANGE(lpTargetObj->MapNumber) && lpTargetObj->Type == OBJ_USER)
