@@ -556,34 +556,21 @@ void CBuffEffect::GiveDamageFillHPEffect(LPOBJECTSTRUCT lpObj, int Damage)
 
 void CBuffEffect::ApplyPrevEffectStat(LPOBJECTSTRUCT lpObj)
 {
-	if(lpObj == NULL)	return;
-
+	if(lpObj == NULL)
+		return;
 	int BuffCount = 0;
-
 	for(int i = 0; i < MAX_BUFFEFFECT; i++)
 	{
 		if(lpObj->m_BuffEffectList[i].BuffIndex == BUFFTYPE_NONE) continue;
 
 		switch(lpObj->m_BuffEffectList[i].EffectType1)
 		{
-		case EFFECTTYPE_HP:
-		case EFFECTTYPE_MANA:
 		case EFFECTTYPE_STRENGTH:
 		case EFFECTTYPE_DEXTERITY:
 		case EFFECTTYPE_VITALITY:
 		case EFFECTTYPE_ENERGY:
 		case EFFECTTYPE_LEADERSHIP:
-		case EFFECTTYPE_DAMAGEREFLECT:
-		case EFFECTTYPE_SD_UP:
-		case EFFECTTYPE_AG_UP:
-		case EFFECTTYPE_SD_UP_VALUE:
-		case EFFECTTYPE_AG_UP_VALUE:
-		case EFFECTTYPE_MONK_VITALITY:
 		case EFFECTTYPE_ELF_BLESS:
-		case EFFECTTYPE_CRITICALDAMAGE_RATE:
-		case EFFECTTYPE_CRITICALDAMAGE:
-		case EFFECTTYPE_EXCELLENTDAMAGE_RATE:
-		// case EFFECTTYPE_EXCELLENTDAMAGE:
 			BuffCount++;
 			SetBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType1, lpObj->m_BuffEffectList[i].EffectValue1);
 			break;
@@ -593,24 +580,12 @@ void CBuffEffect::ApplyPrevEffectStat(LPOBJECTSTRUCT lpObj)
 
 		switch(lpObj->m_BuffEffectList[i].EffectType2)
 		{
-		case EFFECTTYPE_HP:
-		case EFFECTTYPE_MANA:
 		case EFFECTTYPE_STRENGTH:
 		case EFFECTTYPE_DEXTERITY:
 		case EFFECTTYPE_VITALITY:
 		case EFFECTTYPE_ENERGY:
 		case EFFECTTYPE_LEADERSHIP:
-		case EFFECTTYPE_DAMAGEREFLECT:
-		case EFFECTTYPE_SD_UP:
-		case EFFECTTYPE_AG_UP:
-		case EFFECTTYPE_SD_UP_VALUE:
-		case EFFECTTYPE_AG_UP_VALUE:
-		case EFFECTTYPE_MONK_VITALITY:
 		case EFFECTTYPE_ELF_BLESS:
-		case EFFECTTYPE_CRITICALDAMAGE_RATE:
-		case EFFECTTYPE_CRITICALDAMAGE:
-		case EFFECTTYPE_EXCELLENTDAMAGE_RATE:
-		// case EFFECTTYPE_EXCELLENTDAMAGE:
 			BuffCount++;
 			SetBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType2, lpObj->m_BuffEffectList[i].EffectValue2);
 			break;
@@ -620,27 +595,25 @@ void CBuffEffect::ApplyPrevEffectStat(LPOBJECTSTRUCT lpObj)
 	}
 }
 
-void CBuffEffect::ApplyPrevEffectDamage(LPOBJECTSTRUCT lpObj)
+void CBuffEffect::ClearPrevEffectStat(LPOBJECTSTRUCT lpObj)
 {
-	if (lpObj == NULL)
+	if(lpObj == NULL)
 		return;
-
 	int BuffCount = 0;
-
 	for(int i = 0; i < MAX_BUFFEFFECT; i++)
 	{
-		if(lpObj->m_BuffEffectList[i].BuffIndex == BUFFTYPE_NONE) continue;
-
+		if(lpObj->m_BuffEffectList[i].BuffIndex == BUFFTYPE_NONE)
+			continue;
 		switch(lpObj->m_BuffEffectList[i].EffectType1)
 		{
-		case EFFECTTYPE_BERSERKER_DOWN:
-		case EFFECTTYPE_BERSERKER_UP:
-		case EFFECTTYPE_CRITICALDAMAGE_RATE:
-		case EFFECTTYPE_CRITICALDAMAGE:
-		case EFFECTTYPE_EXCELLENTDAMAGE_RATE:
-		// case EFFECTTYPE_EXCELLENTDAMAGE:
+		case EFFECTTYPE_STRENGTH:
+		case EFFECTTYPE_DEXTERITY:
+		case EFFECTTYPE_VITALITY:
+		case EFFECTTYPE_ENERGY:
+		case EFFECTTYPE_LEADERSHIP:
+		case EFFECTTYPE_ELF_BLESS:
 			BuffCount++;
-			SetBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType1, lpObj->m_BuffEffectList[i].EffectValue1);
+			ClearBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType1, lpObj->m_BuffEffectList[i].EffectValue1);
 			break;
 		default:
 			break;
@@ -648,18 +621,48 @@ void CBuffEffect::ApplyPrevEffectDamage(LPOBJECTSTRUCT lpObj)
 
 		switch(lpObj->m_BuffEffectList[i].EffectType2)
 		{
-		case EFFECTTYPE_BERSERKER_DOWN:
-		case EFFECTTYPE_BERSERKER_UP:
-		case EFFECTTYPE_CRITICALDAMAGE_RATE:
-		case EFFECTTYPE_CRITICALDAMAGE:
-		case EFFECTTYPE_EXCELLENTDAMAGE_RATE:
-		// case EFFECTTYPE_EXCELLENTDAMAGE:
+		case EFFECTTYPE_STRENGTH:
+		case EFFECTTYPE_DEXTERITY:
+		case EFFECTTYPE_VITALITY:
+		case EFFECTTYPE_ENERGY:
+		case EFFECTTYPE_LEADERSHIP:
+		case EFFECTTYPE_ELF_BLESS:
 			BuffCount++;
-			SetBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType2, lpObj->m_BuffEffectList[i].EffectValue2);
+			ClearBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType2, lpObj->m_BuffEffectList[i].EffectValue2);
 			break;
 		default:
 			break;
 		}
+	}
+}
+
+void CBuffEffect::ApplyPrevEffectAll(LPOBJECTSTRUCT lpObj)
+{
+	if(lpObj == NULL)
+		return;
+	int BuffCount = 0;
+	for(int i = 0; i < MAX_BUFFEFFECT; i++)
+	{
+		if(lpObj->m_BuffEffectList[i].BuffIndex == BUFFTYPE_NONE)
+			continue;
+		BuffCount++;
+		SetBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType1, lpObj->m_BuffEffectList[i].EffectValue1);
+		SetBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType2, lpObj->m_BuffEffectList[i].EffectValue2);
+	}
+}
+
+void CBuffEffect::ClearPrevEffectAll(LPOBJECTSTRUCT lpObj)
+{
+	if(lpObj == NULL)
+		return;
+	int BuffCount = 0;
+	for(int i = 0; i < MAX_BUFFEFFECT; i++)
+	{
+		if(lpObj->m_BuffEffectList[i].BuffIndex == BUFFTYPE_NONE)
+			continue;
+		BuffCount++;
+		ClearBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType1, lpObj->m_BuffEffectList[i].EffectValue1);
+		ClearBuffEffect(lpObj, lpObj->m_BuffEffectList[i].EffectType2, lpObj->m_BuffEffectList[i].EffectValue2);
 	}
 }
 

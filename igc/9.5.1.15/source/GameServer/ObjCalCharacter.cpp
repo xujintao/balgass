@@ -93,6 +93,8 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->pInventory[236].m_IsValidItem = true;
 	}
 
+	// We have to clear all previous buff
+	g_BuffEffect.ClearPrevEffectAll(lpObj);
 	lpObj->AddLife = 0;
 	lpObj->AddMana = 0;
 	lpObj->AddBP = 0;
@@ -137,9 +139,7 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	memset(&lpObj->m_PlayerData->m_PentagramOptions, 0, sizeof(lpObj->m_PlayerData->m_PentagramOptions));
 	g_StatSpec.ClearUserOption(lpObj);
 
-	// stat base already exist
-
-	// apply stat of buff contributed
+	// apply previous stat buff
 	g_BuffEffect.ApplyPrevEffectStat(lpObj);
 
 	// apply stat of master dimemsions stat
@@ -257,10 +257,11 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		&lpObj->m_AttackSpeed, &lpObj->m_MagicSpeed);
 	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_ATTACK_SPEED);
 
-	// damage(base+master+item+buff)
+	// Now calculation is done, we have to recovery all previous buff.
+	g_BuffEffect.ClearPrevEffectStat(lpObj);
+	g_BuffEffect.ApplyPrevEffectAll(lpObj);
 
-	// apply damage buff
-	// g_BuffEffect.ApplyPrevEffectDamage(lpObj);
+	// damage(base+master+item+buff)
 
 	// damage of item weapon and addition
 	if (Right->m_IsValidItem)
@@ -304,18 +305,17 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		}
 	}
 
-	if ( lpObj->m_btInvenPetPos != FALSE && lpObj->pInventory[lpObj->m_btInvenPetPos].m_JewelOfHarmonyOption == TRUE )
+	if (lpObj->m_btInvenPetPos
+	&& lpObj->pInventory[lpObj->m_btInvenPetPos].m_JewelOfHarmonyOption == TRUE
+	&& lpObj->pInventory[lpObj->m_btInvenPetPos].m_Type == ITEMGET(13,4) // Dark Horse
+	&& lpObj->pInventory[lpObj->m_btInvenPetPos].m_Durability > 0.0f)
 	{
-		if ( lpObj->pInventory[lpObj->m_btInvenPetPos].m_Type == ITEMGET(13,4) && lpObj->pInventory[lpObj->m_btInvenPetPos].m_Durability > 0.0f )	// Dark Horse
-		{
-			int addDefense = 0;
-			this->m_Lua.Generic_Call("CalcDarkHorseDefenseBonus", "ii>i", Dexterity, lpObj->pInventory[lpObj->m_btInvenPetPos].m_PetItem_Level, &addDefense);
-
-			//int addDefense = Dexterity / 20 + 5 + lpObj->pInventory[lpObj->m_btInvenPetPos].m_PetItem_Level * 2;
-			//addDefense = addDefense * g_ConfigRead.calc.DarkHorseDefenseMultiplier / 100.0f;
-
-			lpObj->m_Defense += addDefense;
-		}
+		int addDefense = 0;
+		this->m_Lua.Generic_Call("CalcDarkHorseDefenseBonus", "ii>i",
+			Dexterity, lpObj->pInventory[lpObj->m_btInvenPetPos].m_PetItem_Level, &addDefense);
+		//int addDefense = Dexterity / 20 + 5 + lpObj->pInventory[lpObj->m_btInvenPetPos].m_PetItem_Level * 2;
+		//addDefense = addDefense * g_ConfigRead.calc.DarkHorseDefenseMultiplier / 100.0f;
+		lpObj->m_Defense += addDefense;
 	}
 
 	// Pet Unicorn
@@ -330,7 +330,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_DefenseRate += Left->m_DefenseRate;
 		lpObj->pInventory[1].PlusSpecial(&lpObj->m_DefenseRate, 82);
 	}
-
 
 	// defense level>=10 bonus of item the same type contributed
 	// defense success rate bonus of item the same type contributed
@@ -880,16 +879,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	lpObj->AddMana += lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxMana;
 	lpObj->AddMana += lpObj->MaxMana * lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxManaRate / 100.0;
 
-	if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_HP_INC_MAS) == true)
-	{
-		lpObj->AddBP += lpObj->MaxBP * lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncMaxBP / 100.0;
-	}
-
-	if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_MELEE_DEFENSE_INC_STR) == true)
-	{
-		lpObj->AddMana += lpObj->MaxMana * lpObj->m_PlayerData->m_MPSkillOpt.iMpsMasManaRate_Wizard / 100.0;
-	}
-
 	g_ItemOptionTypeMng.CalcExcOptionEffect(lpObj);
 	g_ItemOptionTypeMng.CalcWingOptionEffect(lpObj);
 
@@ -1385,9 +1374,6 @@ void CObjCalCharacter::CalcSetItemOption(LPOBJ lpObj)
 	}
 }
 
-
-
-
 void CObjCalCharacter::SetItemStatPlusSpecial(LPOBJ lpObj, int option, int ivalue)
 {
 	if (lpObj->Type != OBJ_USER)
@@ -1418,8 +1404,6 @@ void CObjCalCharacter::SetItemStatPlusSpecial(LPOBJ lpObj, int option, int ivalu
 			break;
 	}
 }
-
-
 
 void CObjCalCharacter::SetItemPlusSpecial(LPOBJ lpObj, int option, int ivalue)
 {
@@ -1527,9 +1511,6 @@ void CObjCalCharacter::SetItemPlusSpecial(LPOBJ lpObj, int option, int ivalue)
 			break;
 	}
 }
-
-
-
 
 void CObjCalCharacter::SetItemApply(LPOBJ lpObj)
 {
