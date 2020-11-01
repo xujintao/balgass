@@ -132,7 +132,7 @@
 		<Msg ID="102" Text="The White Wizard and his minions are starting to assemble!" annotation="The White Wizard and his minions are starting to assemble!" />
 		<Msg ID="103" Text="The White Wizard and his Orcs have invaded us!" annotation="The White Wizard and his Orcs have invaded us!" />
 		<Msg ID="104" Text="The White Wizard has retreated." annotation="The White Wizard has retreated." />
-		<Msg ID="105" Text="You already possess the Wizard's Ring." annotation="You already possess the Wizard's Ring." />
+		<Msg ID="105" Text="您已经拥有了魔法戒指" annotation="You already possess the Wizard's Ring." />
 		<Msg ID="106" Text="You must be over Level 40 to throw the Ring." annotation="You must be over Level 40 to throw the Ring." />
 		<Msg ID="107" Text="You cannot trade while inside Blood Castle." annotation="You cannot trade while inside Blood Castle." />
 		<Msg ID="108" Text="Self-defense is active. You cannot Duel." annotation="Self-defense is active. You cannot Duel." />
@@ -169,7 +169,7 @@
 		<Msg ID="139" Text="Chat Block: %d minute(s) remaining." annotation="Chat Block: %d minute(s) remaining." />
 		<Msg ID="140" Text="Magic Stones have already been conjured." annotation="Magic Stones have already been conjured." />
 		<Msg ID="141" Text="You cannot use your Siege battle skills in this location." annotation="You cannot use your Siege battle skills in this location." />
-		<Msg ID="142" Text="You have exceeded the amount of Zen you can possess." annotation="You have exceeded the amount of Zen you can possess." />
+		<Msg ID="142" Text="您持有的金币已经达到极限" annotation="You have exceeded the amount of Zen you can possess." />
 		<Msg ID="143" Text="准备召唤，移动将被取消。" annotation="Summoning in process. It may be cancelled if you move." />
 		<Msg ID="144" Text="You do not meet some criteria and cannot be warped" annotation="You do not meet some criteria and cannot be warped" />
 		<Msg ID="145" Text="Disconnect only after closing the Training window." annotation="Disconnect only after closing the Training window." />
@@ -312,9 +312,9 @@
 		<Msg ID="282" Text="The smelting system is unable to use." annotation="The smelting system is unable to use." />
 		<Msg ID="283" Text="The goods return to original state system is unable to use." annotation="The goods return to original state system is unable to use." />
 		<Msg ID="284" Text="380 goods are unable to use the combination attribute system." annotation="380 goods are unable to use the combination attribute system." />
-		<Msg ID="285" Text="You already had hang the stone, therefore was unable to pick again." annotation="You already had hang the stone, therefore was unable to pick again." />
+		<Msg ID="285" Text="您已经拥有了悬石" annotation="You already had hang the stone, therefore was unable to pick again." />
 		<Msg ID="286" Text="cannot put the Moonstone Ring inside the Personal Store." annotation="cannot put the Moonstone Ring inside the Personal Store." />
-		<Msg ID="287" Text="You already have the transformation ring." annotation="You already have the transformation ring." />
+		<Msg ID="287" Text="您已经拥有了骷髅战士变身指环" annotation="You already have the transformation ring." />
 		<Msg ID="288" Text="Cannot join to party with opposite Gens" annotation="Cannot join to party with opposite Gens" />
 		<Msg ID="289" Text="You do not have enough Money/Coin to start Offline Levelling." annotation="You do not have enough Money/Coin to start Offline Levelling." />
 		<Msg ID="290" Text="You cannot trade inside Illusion Temple." annotation="You cannot trade inside Illusion Temple." />
@@ -470,12 +470,12 @@
 		<Msg ID="440" Text="[CmdAdd]: Points added [%d] to energy. switch character" annotation="[CmdAdd]: Points added [%d] to energy. switch character" />
 		<Msg ID="441" Text="[CmdAdd]: Only Dark Lord Can use /addcmd" annotation="[CmdAdd]: Only Dark Lord Can use /addcmd" />
 		<Msg ID="442" Text="[CmdAdd]: Points added [%d] to Command." annotation="[CmdAdd]: Points added [%d] to Command." />
-		<Msg ID="443" Text="攻击力(率)(PK): %d~%d(%d)(%.0f)" annotation="Server Information: Name: %s Code: %d Online Players: %d/%d" />
-		<Msg ID="444" Text="防御力(率)(PK): %d(%d)(%.0f)" annotation="Server Time: %02d:%02d:%02d %02d-%02d-%02d." />
-		<Msg ID="445" Text="攻击速度: %d %d" annotation="Total Info:" />
-		<Msg ID="446" Text="魔法攻击力: %d~%d 诅咒攻击力: %d~%d" annotation="Account: %s Name: %s Level: %d Master Level: %d Class Code: %d" />
-		<Msg ID="447" Text="幸运一击: %d%%%% 卓越一击: %d%%%%" annotation="Swear Warning Level: %d Map: %s X: %d Y: %d" />
-		<Msg ID="448" Text="无视概率: %.2f%%%% 双倍概率: %.2f%%%%" annotation="Wife/Husband Online Status: %d" />
+		<Msg ID="443" Text="攻击力(率): %d~%d(%d)  pvp(率): +%d(%.0f)" annotation="Server Information: Name: %s Code: %d Online Players: %d/%d" />
+		<Msg ID="444" Text="防御力(率): %d(%d)  pvp(率): +%d(%.0f)" annotation="Server Time: %02d:%02d:%02d %02d-%02d-%02d." />
+		<Msg ID="445" Text="速度: 物攻%d 魔攻%d  力%d 敏%d 体%d 智%d 统%d" annotation="Total Info:" />
+		<Msg ID="446" Text="魔法攻击力(率): %d~%d(%d)  pvp(率): +%d(%.0f)" annotation="Account: %s Name: %s Level: %d Master Level: %d Class Code: %d" />
+		<Msg ID="447" Text="诅咒攻击力(率): %d~%d(%d)  pvp(率): +%d(%.0f)" annotation="Swear Warning Level: %d Map: %s X: %d Y: %d" />
+		<Msg ID="448" Text="幸运%d%%%% 卓越%d%%%% 无视%.2f%%%% 双倍%.2f%%%%" annotation="Wife/Husband Online Status: %d" />
 		<Msg ID="449" Text="You have insufficient GM Level (You need 7 Level)" annotation="You have insufficient GM Level (You need 7 Level)" />
 		<Msg ID="450" Text="You need %d money to reset PK" annotation="You need %d money to reset PK" />
 		<Msg ID="451" Text="Please wait %d seconds" annotation="Please wait %d seconds" />
