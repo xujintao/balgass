@@ -255,11 +255,11 @@ DWORD CIOCP::ServerWorkerThread()
 		if(bSuccess == 0)
 		{
 			int aError = GetLastError();
-			if((aError != ERROR_NETNAME_DELETED)
-			&& (aError != ERROR_CONNECTION_ABORTED)
-			&& (aError != ERROR_OPERATION_ABORTED)
-			&& (aError != ERROR_SEM_TIMEOUT)
-			&& (aError != ERROR_HOST_UNREACHABLE))
+			if((aError != ERROR_NETNAME_DELETED) // 64
+			&& (aError != ERROR_CONNECTION_ABORTED) // 1236
+			&& (aError != ERROR_OPERATION_ABORTED) // 995
+			&& (aError != ERROR_SEM_TIMEOUT) // 121
+			&& (aError != ERROR_HOST_UNREACHABLE)) // 1232
 			{
 				EnterCriticalSection(&criti);
 				g_Log.AddC(TColor::Red, "GetQueueCompletionStatus error:%d", GetLastError());
