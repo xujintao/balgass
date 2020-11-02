@@ -602,7 +602,7 @@ void GameMainInit(HWND hWnd)
 	{
 		TempLua->Generic_Call("SetExpTable_Normal", "i>d", n, &exp);
 		gLevelExperience[n] = exp;
-		g_Log.Add("[NORMAL EXP] [LEVEL %d] [EXP %I64d]", n, gLevelExperience[n]);
+		// g_Log.Add("[NORMAL EXP] [LEVEL %d] [EXP %I64d]", n, gLevelExperience[n]);
 	}
 
 	delete TempLua;
