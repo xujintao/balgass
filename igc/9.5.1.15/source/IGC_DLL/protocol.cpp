@@ -197,6 +197,9 @@ bool CliProtocolCore(LPBYTE aRecv, BYTE ProtoNum, int len, bool Encrypt) {
 			PMSG_DEFAULT2 * lpMsg2 = (PMSG_DEFAULT2 *)aRecv;
 			switch (lpMsg2->subcode)
 			{
+			case 0x90:
+				GCIGCStatsAdd((PMSG_ADDSTATS*)aRecv);
+				break;
 			case 0xA5:
 				GCDisableReconnect();
 				break;
@@ -395,10 +398,15 @@ void GCIGCStatsAdd(PMSG_ADDSTATS* lpMsg)
 	case 4:
 		*(WORD*)((*(DWORD*)IGC_STAT) + 0x120) = stats; // 1.04R
 		break;
-
 	}
-
 	*(WORD*)((*(DWORD*)IGC_STAT) + 0x174) = lpMsg->LUP; // 1.04R
+
+	// 
+	__asm {
+		mov ecx, 0x086105E8;
+		mov eax, 0x005A36E1;
+		call eax;
+	}
 }
 
 void __fastcall GCOffTradeReq(BYTE* aRecv)
