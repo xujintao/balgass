@@ -26217,12 +26217,12 @@ void gObjCheckTimeOutValue(LPOBJ lpObj, DWORD& rNowTick)
 
 
 
-void MsgOutput(int aIndex, char* msg, ...) 
+void MsgOutput(int aIndex, const char* msg, ...) 
 {
 	char szBuffer[512]="";
 	va_list pArguments;
 
-	va_start(pArguments, msg );
+	va_start(pArguments, msg);
 	vsprintf(&szBuffer[0], msg, pArguments);
 	va_end(pArguments);
 	

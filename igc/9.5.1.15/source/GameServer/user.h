@@ -2083,7 +2083,7 @@ void gObjUseBlessAndSoulPotion(int aIndex, int iItemLevel);
 void gObjWeaponDurDownInCastle(LPOBJ lpObj, LPOBJ lpTargetObj, int iDecValue);
 void gObjReady4Relife(LPOBJ lpObj);
 void gObjCheckTimeOutValue(LPOBJ lpObj, DWORD& rNowTick);
-void MsgOutput(int aIndex, char* msg, ...);
+void MsgOutput(int aIndex, const char* msg, ...);
 void gProcessAutoRecuperation(LPOBJ lpObj);
 void gObjShieldAutoRefill(LPOBJ lpObj);
 int gObjCheckOverlapItemUsingDur(int iUserIndex, int iMaxOverlapped, int iItemType, int iItemLevel);
