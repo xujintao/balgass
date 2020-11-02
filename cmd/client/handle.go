@@ -46,11 +46,17 @@ var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
 	0xD7:   handleD7positionSet,              // hook, hash[D4]=hash[D7]
 	0xD9:   handleD9normalAttack,             // hook, hash[11]=hash[D9]
 	0xDA:   handleDApositionGet,              // hook, hash[15]=hash[DA]
+	0xF0:   nil,                              // reserved
 	0xF1:   f0075C3E8handleF1,                // server_game is prepared and response with server's version, and the login logic also use code F1
+	0xF2:   nil,                              // reserved
 	0xF3:   f0075C794handleF3,                // character
 	0xF4:   f0075CB02handleF4,                // server list and server info
+	0xF5:   nil,                              // reserved
 	0xF6:   f006C18B6handleF6,                // quest list
 	0xF805: handleViewportGensInfoAdd,        // viewport gens info add
+	0xFA:   nil,                              // reserved
+	0xFB:   nil,                              // reserved
+	0xFC:   nil,                              // reserved
 }
 
 func f0075CB89handle00(code uint8, buf []uint8, len int, enc bool) {
@@ -556,6 +562,7 @@ func f006C780DhandleF300(buf []uint8) {
 	v0131A250 = win.GetTickCount()
 }
 
+// character create
 func f006C798BhandleF301(buf []uint8) {
 	//
 	f004A7D34getWindowManager().f004A9EEB(1, 2)
@@ -1630,6 +1637,45 @@ func f00701DF4handleF303(buf []uint8, enc bool) { // (v0018C80C, true)
 	*/
 }
 
+// character add point
+func f006C03F3handleF306(buf []uint8) {
+	addPointRes := struct {
+		result  int
+		hpmpMax int
+		sdMax   int
+		agMax   int
+	}{}
+	if addPointRes.result&0x10 != 0 {
+		// 0x09FBA724
+		v086105ECpanel.m174points--
+		statKind := addPointRes.result & 0x0F
+		switch statKind {
+		case 0:
+			// 0x006C0461
+			v086105ECpanel.m118strength++
+		case 1:
+			// 0x006C0483
+			v086105ECpanel.m11Aagility++
+		case 2:
+			// 0x006C04A5
+			v086105ECpanel.m11Cvitality++
+			v086105ECpanel.m126hpMax = uint16(addPointRes.hpmpMax)
+		case 3:
+			// 0x006C04D7
+			v086105ECpanel.m11Eenergy++
+			v086105ECpanel.m128mpMax = uint16(addPointRes.hpmpMax)
+		case 4:
+			// 0x006C0509
+			v086105ECpanel.m120leadship++
+		}
+		// 0x006C0526 0x0ABF96F6
+		v086105ECpanel.m142agMax = uint16(addPointRes.agMax)
+		v086105ECpanel.m12CsdMax = uint16(addPointRes.sdMax)
+	}
+	// 0x006C054C 0x0AF95874 0x006C0552
+	v086105E8player.f005A36E1()
+}
+
 // s9 f00670C47
 func f0075C794handleF3(code uint8, buf []uint8, len int, enc bool) {
 	if buf[0] != 0xC1 {
@@ -1653,6 +1699,9 @@ func f0075C794handleF3(code uint8, buf []uint8, len int, enc bool) {
 		// 0x0075C9C4
 	case 5:
 		// 0x0075C9EF
+	case 6:
+		// 0x0075C9FD
+		f006C03F3handleF306(buf) // character add point
 	case 0x13:
 		// 0x0075CA35
 	case 0x14:

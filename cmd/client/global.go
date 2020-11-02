@@ -1764,3 +1764,22 @@ func (t *t01351D58) f0050E893isIllusionTemple(mapnum int) bool {
 func (t *t01351D58) f0050F876(unk int) bool {
 	return false
 }
+
+//
+func f0090E94C() *t09D8CFD0 {
+	v09D8D080once.Do(func() {
+		v09D8CFD0.f0090B0FEinit()
+		// f00DE8BF6atexit(f0114865A)
+	})
+	return &v09D8CFD0
+}
+
+var v09D8D080once sync.Once
+var v09D8CFD0 t09D8CFD0
+
+type t09D8CFD0 struct {
+}
+
+func (t *t09D8CFD0) f0090B0FEinit() {
+
+}

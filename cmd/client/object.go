@@ -114,46 +114,48 @@ func (t *bag) f00A26765construct() {
 	t.f00A2678Ainit()
 }
 
+type panel struct {
+	m00name          [11]uint8
+	m11              [255]uint8
+	m10Aclass        uint8
+	m10B             uint8
+	m10Clevel        uint16
+	m110exp          uint32
+	m114expNext      uint32
+	m118strength     uint16
+	m11Aagility      uint16
+	m11Cvitality     uint16
+	m11Eenergy       uint16
+	m120leadship     uint16
+	m122hp           uint16 // hp
+	m124mp           uint16 // mp
+	m126hpMax        uint16 // max hp
+	m128mpMax        uint16 // max mp
+	m12Asd           uint16 // sd
+	m12CsdMax        uint16 // max sd
+	m140ag           uint16 // ag
+	m142agMax        uint16 // max ag
+	m144             uint16
+	m146             uint16
+	m148             uint16
+	m14A             uint16
+	m14CpointsAdd    uint16
+	m14EpointsAddMax uint16
+	m150pointsDec    uint16
+	m152pointsDecMax uint16
+	m154             uint16
+	m160             uint16
+	m174points       uint16
+	m176skillNum     uint16
+	m178skillIDs     [650]uint16
+	m918             [650]int
+}
+
 // sizeof=0x1C30
 type player struct {
 	m00 int
 	// normal level
-	m04panel struct {
-		m00name          [11]uint8
-		m11              [255]uint8
-		m10Aclass        uint8
-		m10B             uint8
-		m10Clevel        uint16
-		m110exp          uint32
-		m114expNext      uint32
-		m118strength     uint16
-		m11Aagility      uint16
-		m11Cvitality     uint16
-		m11Eenergy       uint16
-		m120leadship     uint16
-		m122hp           uint16 // hp
-		m124mp           uint16 // mp
-		m126hpMax        uint16 // max hp
-		m128mpMax        uint16 // max mp
-		m12Asd           uint16 // sd
-		m12CsdMax        uint16 // max sd
-		m140ag           uint16 // ag
-		m142agMax        uint16 // max ag
-		m144             uint16
-		m146             uint16
-		m148             uint16
-		m14A             uint16
-		m14CpointsAdd    uint16
-		m14EpointsAddMax uint16
-		m150pointsDec    uint16
-		m152pointsDecMax uint16
-		m154             uint16
-		m160             uint16
-		m174points       uint16
-		m176skillNum     uint16
-		m178skillIDs     [650]uint16
-		m918             [650]int
-	}
+	m04panel            panel
 	m1344items          [12]item
 	m19D4item           item // 可能是卷轴位置
 	m1A60bag1           bag
@@ -161,6 +163,7 @@ type player struct {
 	m1BFC               [2]int
 	m1C04money          uint
 	m1C08moneyWarehouse uint
+	m1C28iclass         iclass
 	m1C2C               uint8
 	m1C2D               uint8
 }
@@ -188,8 +191,35 @@ func (t *player) f005A3337init() {
 	t.m1C2D = 0
 }
 
-func (t *player) f005A3727(changeup0 int) {
+func (t *player) f005A36E1() {
+	if t.m1C28iclass == nil {
+		return
+	}
+	t.m1C28iclass.f005A4A59()
+}
 
+func (t *player) f005A3727(changeup0 int) {
+	if t.m1C28iclass != nil {
+		t.m1C28iclass.do12(1)
+	}
+	ebp59class := changeup0
+	switch ebp59class {
+	case 0:
+		t.m1C28iclass = &t01180898classWizard{}
+	case 1:
+		t.m1C28iclass = &t01180820classKnight{}
+	case 2:
+		t.m1C28iclass = &t011808D4classELF{}
+	case 3:
+		t.m1C28iclass = &t01180910classGladiator{}
+	case 4:
+		t.m1C28iclass = &t0118085CclassLord{}
+	case 5:
+		t.m1C28iclass = &t01180988classSummoner{}
+	case 6:
+		t.m1C28iclass = &t0118094CclassFighter{}
+	}
+	t.m1C28iclass.do16()
 }
 
 // objectPool
@@ -368,4 +398,98 @@ func f0059CA40newObject(id int, class uint8, unk1 uint8, unk2, unk3, dir float32
 
 func f00594B19objSet(id int, inventory []uint8, unk1, unk2 int) {
 
+}
+
+type iclass interface {
+	do12(int)
+	do16()
+	f005A4A59()
+}
+
+// class base
+type t01180704classBase struct {
+	iclass
+	m04player      *player
+	m08playerpanel *panel
+	m0C            [72]uint8
+	m54            [72]uint8
+	m9C            [72]uint8
+	m12C           uint8
+	m12D           uint8
+	m12E           uint8
+	m130           int
+}
+
+func (t *t01180704classBase) f00B295A2construct() {
+	// t.m00vptr = v01180804[:]
+	t.m130 = -1
+	t.m12C = 0
+	if v086105E8player != nil {
+		t.m04player = v086105E8player
+		t.m08playerpanel = &t.m04player.m04panel
+	}
+	// t.f00B29609()
+	func() {
+		t.m12D = 0
+		t.m12E = 0
+		f00DE8100memset(t.m0C[:], 0, 72)
+		f00DE8100memset(t.m54[:], 0, 72)
+		f00DE8100memset(t.m9C[:], 0, 72)
+	}()
+}
+
+func (t *t01180704classBase) do16() {
+
+}
+
+func (t *t01180704classBase) f005A4A59() {
+	t.m12E = 1
+}
+
+// wizard
+type t01180898classWizard struct {
+	t01180704classBase
+}
+
+func (t *t01180898classWizard) f00B3459Aconstruct() {
+	t.t01180704classBase.f00B295A2construct()
+	// t.m00vptr = v01180898[:]
+	t.m130 = 0
+	t.m12C = 1
+}
+
+// knight
+type t01180820classKnight struct {
+	t01180704classBase
+}
+
+func (t *t01180820classKnight) f00B334CDconstruct() {
+	t.t01180704classBase.f00B295A2construct()
+	// t.m00vptr = v01180820[:]
+	t.m130 = 1
+}
+
+// elf
+type t011808D4classELF struct {
+	t01180704classBase
+}
+
+// gladiator
+type t01180910classGladiator struct {
+	t01180704classBase
+}
+
+// lord
+type t0118085CclassLord struct {
+	t01180704classBase
+}
+
+// summoner
+type t01180988classSummoner struct {
+	t01180704classBase
+}
+
+// fighter
+type t0118094CclassFighter struct {
+	t01180704classBase
 }
