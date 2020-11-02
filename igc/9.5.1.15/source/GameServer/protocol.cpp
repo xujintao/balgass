@@ -2018,7 +2018,7 @@ void GameProtocol::PChatProc(PMSG_CHATDATA * lpChat, short aIndex)
 			}
 			break;
 		case '/':	// Command
-			if ( slen > 2 )
+			if (slen > 1)
 			{
 				cManager.ManagementProc(lpObj, lpChat->chatmsg, aIndex);
 				return;

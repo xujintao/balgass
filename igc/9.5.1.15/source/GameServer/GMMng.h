@@ -151,6 +151,13 @@ public:
 void PostSend(LPOBJ lpObj, char * szMessage);
 void GlobalPostSend(LPOBJ lpObj,int Type,char Sender[20],const char*Message,...);
 
+struct command {
+	std::string name;
+	std::string level;
+	std::string usage;
+	int code;
+};
+
 class CGMMng
 {
 
@@ -161,6 +168,7 @@ public:
 
 	void Init();
 	int GetCmd(LPSTR szCmd);
+	command* findCommand(std::string name);
 	int ManagementProc(LPOBJ lpObj, LPSTR szCmd, int aIndex);
 	LPSTR GetTokenString();
 	int GetTokenNumber();
@@ -178,6 +186,7 @@ public:
 	void DataSend(LPBYTE szMsg, int size);
 	void LoadCommandFile(LPSTR szFile);
 	void LoadGMFile(LPSTR szFile);
+	void LoadCommandXML(LPSTR fileName);
 
 	BOOL CheckTraceMarryCondition(LPOBJ lpObj, LPOBJ lpTargetObj);
 
@@ -185,6 +194,8 @@ public:
 private:
 
 	CGMCommand cCommand;	// 4
+	std::vector<command*> commands;
+	std::map<std::string, command*> mapCommands;
 	char szManagerName[MAX_GAME_MASTER][11];	// 968
 	int ManagerIndex[MAX_GAME_MASTER];	// 9A0
 	COMMANDS_DATA m_CommandNames;
