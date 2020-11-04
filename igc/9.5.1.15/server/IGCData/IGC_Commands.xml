@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<commands>
+    <command name="/?" level="player" code="0" usage="/?      ;列出所有可用的命令"/>
+    <command name="/帮助" level="player" code="0" usage="/帮助    ;列出所有可用的命令"/>
+    <command name="/加力量" level="player" code="393" usage="/加力量 点数"/>
+    <command name="/加敏捷" level="player" code="394" usage="/加敏捷 点数"/>
+    <command name="/加体力" level="player" code="395" usage="/加体力 点数"/>
+    <command name="/加智力" level="player" code="396" usage="/加智力 点数"/>
+    <command name="/加统率" level="player" code="397" usage="/加统率 点数"/>
+    <command name="/面板" level="player" code="399" usage="/面板    ;显示角色的服务器面板"/>
+    <command name="/c" level="player" code="399" usage="/c      ;显示角色的服务器面板"/>
+    <command name="/C" level="player" code="399" usage="/C      ;显示角色的服务器面板"/>
+</commands>
