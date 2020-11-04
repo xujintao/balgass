@@ -461,15 +461,15 @@
 		<Msg ID="431" Text="Disconnecting due to using prohibited words in post" annotation="Disconnecting due to using prohibited words in post" />
 		<Msg ID="432" Text="Swear Warning Level: %d/3, You paid double price for swearing" annotation="Swear Warning Level: %d/3, You paid double price for swearing" />
 		<Msg ID="433" Text="~[POST]" annotation="~[POST]" /> <!-- Global Post -->
-		<Msg ID="434" Text="[CmdAdd]: syntax error" annotation="[CmdAdd]: syntax error" />
-		<Msg ID="435" Text="[CmdAdd]: not enough point." annotation="[CmdAdd]: not enough point." />
-		<Msg ID="436" Text="[CmdAdd]: Cant add more on this statistics!" annotation="[CmdAdd]: Cant add more on this statistics!" />
-		<Msg ID="437" Text="[CmdAdd]: Points added [%d] to strength please switch char." annotation="[CmdAdd]: Points added [%d] to strength please switch char." />
-		<Msg ID="438" Text="[CmdAdd]: Points added [%d] to agility. switch char" annotation="[CmdAdd]: Points added [%d] to agility. switch char" />
-		<Msg ID="439" Text="[CmdAdd]: Points added [%d] to vitality please switch char." annotation="[CmdAdd]: Points added [%d] to vitality please switch char." />
-		<Msg ID="440" Text="[CmdAdd]: Points added [%d] to energy. switch character" annotation="[CmdAdd]: Points added [%d] to energy. switch character" />
-		<Msg ID="441" Text="[CmdAdd]: Only Dark Lord Can use /addcmd" annotation="[CmdAdd]: Only Dark Lord Can use /addcmd" />
-		<Msg ID="442" Text="[CmdAdd]: Points added [%d] to Command." annotation="[CmdAdd]: Points added [%d] to Command." />
+		<Msg ID="434" Text="[加点命令]: 语法错误" annotation="[CmdAdd]: syntax error" />
+		<Msg ID="435" Text="[加点命令]: 点数不足" annotation="[CmdAdd]: not enough point." />
+		<Msg ID="436" Text="[加点命令]: 超过最大限制" annotation="[CmdAdd]: Cant add more on this statistics!" />
+		<Msg ID="437" Text="[加点命令]: Points added [%d] to strength please switch char." annotation="[CmdAdd]: Points added [%d] to strength please switch char." />
+		<Msg ID="438" Text="[加点命令]: Points added [%d] to agility. switch char" annotation="[CmdAdd]: Points added [%d] to agility. switch char" />
+		<Msg ID="439" Text="[加点命令]: Points added [%d] to vitality please switch char." annotation="[CmdAdd]: Points added [%d] to vitality please switch char." />
+		<Msg ID="440" Text="[加点命令]: Points added [%d] to energy. switch character" annotation="[CmdAdd]: Points added [%d] to energy. switch character" />
+		<Msg ID="441" Text="[加点命令]: 只有圣导师才可以使用该命令" annotation="[CmdAdd]: Only Dark Lord Can use /addcmd" />
+		<Msg ID="442" Text="[加点命令]: Points added [%d] to Command." annotation="[CmdAdd]: Points added [%d] to Command." />
 		<Msg ID="443" Text="攻击力(率): %d~%d(%d)  pvp(率): +%d(%.0f)" annotation="Server Information: Name: %s Code: %d Online Players: %d/%d" />
 		<Msg ID="444" Text="防御力(率): %d(%d)  pvp(率): +%d(%.0f)" annotation="Server Time: %02d:%02d:%02d %02d-%02d-%02d." />
 		<Msg ID="445" Text="速度: 物攻%d 魔攻%d  力%d 敏%d 体%d 智%d 统%d" annotation="Total Info:" />
