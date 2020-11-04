@@ -226,7 +226,7 @@ func f004D5F98mainWndProcOrigin(hWnd win.HWND, message uint32, wParam, lParam ui
 func f004D6C2BmainWndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
 	switch message {
 	case 0x102: // win.WM_CHAR
-		// f00A49798ui().f00A4DF93(wParam, lParam)
+		// f00A49798ui().f00A4DF93handleKeyPress(wParam, lParam)
 	}
 	return win.CallWindowProc(v01319D1CwndProc, hWnd, message, wParam, lParam) // 会经过 dll.user32.xxx 再回调到 f004D5F98mainWndProcOrigin
 }
@@ -1205,7 +1205,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 				// ebp595 == true ||
 				ebp28msg.Message == 0x201 || // WM_LBUTTONDOWN
 				ebp28msg.Message == 0x202 { // WM_LBUTTONUP
-				// f00A49798ui().f00A4DFB7(ebp28msg.HWnd, ebp28msg.Message, ebp28msg.WParam, ebp28msg.LParam, 1)
+				f00A49798ui().f00A4DFB7handleClick(ebp28msg.HWnd, ebp28msg.Message, ebp28msg.WParam, ebp28msg.LParam, true)
 			}
 			if 0 == win.GetMessage(&ebp28msg, 0, 0, 0) { // WM_QUIT返回0，出错返回-1
 				break // 0x004D8F6C

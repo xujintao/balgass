@@ -595,12 +595,11 @@ type game struct {
 	m58         struct{}
 	m68hwndNext win.HWND
 
-	m6Cstate int
-	m70      *windowManager01173C54
-	m74      uintptr                // state2
-	m78      uintptr                // state4
-	m7C      *windowManager01173C54 // state5
-
+	m6Cstate          int
+	m70windowManager  *windowManager01173C54
+	m74               uintptr                // state2
+	m78               uintptr                // state4
+	m7C               *windowManager01173C54 // state5
 	m80               *windowgame0116A864
 	m84infoTooltip    *windowgameInfoTooltip
 	m88caution        *windowgameCaution    // Caution
@@ -642,7 +641,7 @@ type game struct {
 	m118              uintptr               // Option
 	m11C              uintptr               // SelectMenu
 	m120              uintptr               // MyQuestInfo
-	m124ChatWindow    uintptr               // ChatWindow
+	m124ChatWindow    *windowgameChat       // ChatWindow
 	m128              uintptr               // MoveCommand
 	m12C              uintptr               // HelpWindow
 	m130              uintptr               // EventMapHelper
@@ -826,7 +825,7 @@ func (t *game) f00A4E46DloadResource(w iwindowgame0117373C, x int, name *xstring
 			if y == true {
 				w.f00A3A717(true)
 			}
-			wm.f00A47FAB(w)
+			wm.f00A47FABappend(w)
 		} else {
 			// dll.user32.MessageBox(0, name.f00A3AF9Ecstr(), "Load Fail!!", 0)
 			if w != nil {
@@ -864,8 +863,8 @@ func (t *game) f00A4A521loadResource() {
 	ebp18 := ebp49C
 	t.m84infoTooltip = ebp18
 
-	// 0x00A4A5D8: t.m70
-	t.m70 = nil
+	// 0x00A4A5D8: t.m70windowManager
+	t.m70windowManager = nil
 
 	// 0x00A4A5E2: Caution
 	ebp24 := new(windowgameCaution)
@@ -895,6 +894,15 @@ func (t *game) f00A4A521loadResource() {
 	tmpName.f00BADDD0xstring("MainFrame")
 	t.f00A4E46DloadResource(t.m8CmainFrame, 1, tmpName, true, 2)
 	// ...
+	// 0x00A4A9BD: ChatWindow
+	ebp80 := new(windowgameChat)
+	ebp80.f00A9D6F2construct()
+	ebp4C0 := ebp80
+	ebp7C := ebp4C0
+	t.m124ChatWindow = ebp7C
+	tmpName.f00BADDD0xstring("ChatWindow")
+	t.f00A4E46DloadResource(t.m124ChatWindow, 6, tmpName, true, 10)
+	// ...
 }
 
 func (t *game) f00A4E1BFchangeState(state int) bool {
@@ -906,26 +914,26 @@ func (t *game) f00A4E1BFchangeState(state int) bool {
 	ebp14 := t.m6Cstate
 	switch ebp14 {
 	case 2:
-		// t.m70 = t.m74
+		// t.m70windowManager = t.m74
 		// ebp4hIMC := dll.imm32.ImmGetContext(v01319D6ChWnd)
 		// dll.imm32.ImmSetConversionStatus(ebp4hIMC, 0, 0)
 		// dll.imm32.ImmReleaseContext(v01319D6ChWnd, ebp4hIMC)
 	case 4:
-		// t.m70 = t.m78
+		// t.m70windowManager = t.m78
 		// ebp8hIMC := dll.imm32.ImmGetContext(v01319D6ChWnd)
 		// dll.imm32.ImmSetConversionStatus(ebp8hIMC, 1, 0)
 		// dll.imm32.ImmReleaseContext(v01319D6ChWnd, ebp8hIMC)
 	case 5:
-		// t.m70 = t.m7C
+		// t.m70windowManager = t.m7C
 		// ebpChIMC := dll.imm32.ImmGetContext(v01319D6ChWnd)
 		// dll.imm32.ImmSetConversionStatus(ebpChIMC, 1, 0) // IME_CMODE_NATIVE, IME_CMODE_ALPHANUMERIC
 		// dll.imm32.ImmReleaseContext(v01319D6ChWnd, ebpChIMC)
 	}
-	if t.m70 == nil {
+	if t.m70windowManager == nil {
 		return true
 	}
-	// t.m70.f00A47353()
-	// t.m70.f00A47C55()
+	// t.m70windowManager.f00A47353()
+	// t.m70windowManager.f00A47C55()
 	return true
 }
 
@@ -933,9 +941,23 @@ func (t *game) f00A4DC94fresh(state int) {
 	if t.m80 != nil {
 		// t.m80.f008E27CFfresh()
 	}
-	if t.m70 != nil {
-		t.m70.f00A47461fresh()
+	if t.m70windowManager != nil {
+		t.m70windowManager.f00A47461fresh()
 	}
+}
+
+func (t *game) f00A4DF93handleKeyPress(wParam, lParam uintptr) {
+	if t.m70windowManager == nil {
+		return
+	}
+	t.m70windowManager.f00A47A25handleKeyPress(wParam)
+}
+
+func (t *game) f00A4DFB7handleClick(hWnd win.HWND, msg uint32, wParam, lParam uintptr, unk bool) {
+	if t.m70windowManager == nil {
+		return
+	}
+	t.m70windowManager.f00A47A93handleClick(hWnd, msg, wParam, lParam, unk)
 }
 
 //

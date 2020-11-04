@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"sync/atomic"
+
+	"github.com/xujintao/balgass/win"
 )
 
 type attr struct {
@@ -1076,8 +1078,9 @@ func (t *windowManager1) f00BB0D20construct(ws ...i011737C4) {
 	}
 }
 
-func (t *windowManager1) f00BAFFD0(ozg string, x *attr, y int, z int) {
+func (t *windowManager1) f00BAFFD0(ozg string, x *attr, y int, z int) bool {
 	t.m04.f00BF55E0(ozg, x, y, z)
+	return false
 }
 
 // -------------------------------------------------------------------------
@@ -1265,6 +1268,8 @@ type barer interface {
 	do4() bool
 	do6fresh() bool
 	do7() bool
+	do13handleKeyPress(uintptr)
+	do14handleClick(hWnd win.HWND, msg uint32, wParam, lParam uintptr, unk bool)
 	do16()
 }
 
@@ -1283,35 +1288,134 @@ type windowgame0117373C struct {
 	m04     struct{}
 	m08     struct{}
 	m0C     attr
+	m30     struct{}
 	m34     int
 	m38ozg  *xstring // "/Data/Interface/GFx/MainFrame.ozg"
 	m3Cozg  *xstring // "/Data/Interface/GFx/MainFrame.ozg"
+	m40     *xstring
 	m44name *xstring // "g_mcMainFrame"
+	m48     bool
 	m49     bool
+	m4A     bool
 	m4B     bool
+	m4C     bool
+	m4D     bool
+	m50     float32
+	m54     float32
+	m58     bool
+	m60     int
+	m64     uintptr
+	m68     struct{ x [2]float32 }
 }
 
 func (t *windowgame0117373C) f00A392A6construct() {
 	// t.m00vtabptr = v0117373C[:]
 	// t.m04.f00A3AE0E(nil)
 	// t.m08.f00A3AE91(nil)
+	// t.m30.f00A3AD6E(nil)
+	t.m38ozg = f00BAC850xstring()
+	t.m3Cozg = f00BAC850xstring()
+	t.m40 = f00BAC850xstring()
+	t.m44name = f00BAC850xstring()
+	t.m48 = true
+	t.m50 = 0.0
+	t.m54 = 0.0
+	t.m64 = 0
+	// t.m68.f00A3AFFF()
+	t.m44name.f00BACD30xstring("scene")
+	t.m34 = 0
+	t.m49 = false
+	t.m4A = false
+	t.m60 = 0
+	t.m58 = false
+	t.m4C = false
+	t.m4D = false
 }
 
 // f00A39479
 func (t *windowgame0117373C) do2(wm *windowManager1, x int, ozgfile *xstring, lang *xstring, unk1, unk2, unk3, unk4 int) bool {
 	// 0x4C4局部变量
 	// ebp484 := t
-	t.m38ozg = ozgfile // t.m38ozg.f00BACE40(&ozgfile)
+	t.m38ozg.f00BACE40assign(ozgfile)
 	var ebp414 [1024]uint8
 	f00DF30EFstrcpysafe(ebp414[:], len(ebp414), ozgfile.f00A3AF9Ecstr())
-	ebp10 := ebp414[:] // ebp10 := f00DF3001(ebp414[:], "\\", &ebp14)
+	ebp10 := ebp414[:] // ebp10 := f00DF3001(ebp414[:], "\\", ebp414[1023:])
 	for ebp10 != nil {
 		t.m3Cozg.f00BACD30xstring(string(ebp10))
-		ebp10 = nil // ebp10 := f00DF3001(nil, "\\", &ebp14)
+		ebp10 = nil // ebp10 := f00DF3001(nil, "\\", ebp414[1023:])
 	}
 	t.m34 = x
-	wm.f00BAFFD0(ozgfile.f00A3AF8Acstr(), &t.m0C, 0, 0x80)
-	return false
+	if !wm.f00BAFFD0(ozgfile.f00A3AF8Acstr(), &t.m0C, 0, 0x80) {
+		ozgfile.f00A3AF16destruct()
+		lang.f00A3AF16destruct()
+		return false
+	}
+	/*
+		t.m04.f00A3AE4D(wm.f00BB0020(), ozgfile.f00A3AF8Acstr(), unk3|0x80|2, unk4)
+		if t.m04.f00A3AE83value() == nil {
+			ozgfile.f00A3AF16destruct()
+			lang.f00A3AF16destruct()
+			return false
+		}
+		t.m08.f00A3AED8(t.m04.f00A3AE75value().do25(ebp448.f00A3B158(), 0, 0)) // 构造t.m08
+		if t.m08.f00A3BAB6value() == nil {
+			ozgfile.f00A3AF16destruct()
+			lang.f00A3AF16destruct()
+			return false
+		}
+		ebp48C := t.m08.f00A3AF08value(&ebp454).m08.f00A3B039()
+		ebp490 := ebp48C
+		ebp450 := ebp490.f00A3AD60value()
+		ebp454.f00A3BA80()
+		if ebp450 != nil {
+			ebp494 := t.m08.f00A3AF08value(&ebp458).m08.f00A3B039()
+			ebp498 := ebp494
+			ebp498.f00A3AD52value().f00BAF930()
+			ebp458.f00A3BA80()
+		}
+		ebp49C := t.m08.f00A3AF08value()
+		ebp49C.do30(unk1)
+		ebp4A0 := t.m08.f00A3AF08value()
+		ebp4A0.do28(unk2)
+		ebp4A4 := t.m08.f00A3AF08value()
+		ebp4A0.do53(t)
+
+		var ebp4A8 string
+		if lang.f00A3AFB2() {
+			ebp4A8 = "Default"
+		} else {
+			ebp4A8 = lang.f00A3AF9Ecstr()
+		}
+		ebp418 := ebp4A8
+		ebp4B0 := ebp46C.f00A3B1A7(ebp418, 1)
+		ebp4B4 := ebp4B0
+		t.m08.f00A3AF08value().do17("_global.gfxLanguage", ebp4B4)
+		ebp46C.f00A3B1CE()
+
+		if t.m30.f00A3AE00value() == nil {
+			ebp474 := &t0117378C{}
+			ebp474.f00A3A91Cconstruct(t)
+			ebp4B8 := ebp474
+			ebp470 := ebp4B8
+			t.m30.f00A3ADBC()
+		}
+		if t.m30.f00A3AE00value() != nil {
+			ebp4BC := ebp478.f00A3AD92(&t.m30)
+			ebp4C0 := ebp4BC
+			t.m08.f00A3AF08value().m08.f00A3B388(ebp4C0.f00A3AE00value())
+			ebp478.f00A3BA9B()
+		}
+		t.m08.f00A3AF08value().do38(0.0, 0)
+		t.m08.f00A3AF08value().do44(0.0)
+		var ebp47C uiparam
+		ebp47C.f00A3B06B(8)
+		t.m08.f00A3AF08value().do46(&ebp47C)
+		t.m08.f00A3AF08value().do9(0)
+		t.m60 = winmm.timeGetTime()
+	*/
+	ozgfile.f00A3AF16destruct()
+	lang.f00A3AF16destruct()
+	return true
 }
 func (t *windowgame0117373C) f00A3A717(x bool) {
 	t.do16()
@@ -1342,12 +1446,15 @@ func (t *windowgameCaution) f00A99F11construct() {
 	// t.m00vtabptr = v01179074[:]
 }
 
-func (t *windowgameCaution) do1(x bool)     {}
-func (t *windowgameCaution) do3()           {}
-func (t *windowgameCaution) do4() bool      { return false }
-func (t *windowgameCaution) do6fresh() bool { return false }
-func (t *windowgameCaution) do7() bool      { return false }
-func (t *windowgameCaution) do16()          {}
+func (t *windowgameCaution) do1(x bool)                 {}
+func (t *windowgameCaution) do3()                       {}
+func (t *windowgameCaution) do4() bool                  { return false }
+func (t *windowgameCaution) do6fresh() bool             { return false }
+func (t *windowgameCaution) do7() bool                  { return false }
+func (t *windowgameCaution) do13handleKeyPress(uintptr) {}
+func (t *windowgameCaution) do14handleClick(hWnd win.HWND, msg uint32, wParam, lParam uintptr, unk bool) {
+}
+func (t *windowgameCaution) do16() {}
 
 type windowgame0117A544 struct {
 	windowgame0117373C
@@ -1450,7 +1557,7 @@ func (t *windowgameMainFrame) f00AAA14Ehpmp() {
 		} else {
 			ebp24 = 0
 		}
-		ebp14hp = ebp24                            // 0x144
+		ebp14hp = ebp24                           // 0x144
 		ebpCmpMax = int(v086105ECpanel.m128mpMax) // 0x67
 		if v086105ECpanel.m124mp >= 0 {
 			ebp28 = int(v086105ECpanel.m124mp)
@@ -1654,9 +1761,196 @@ func (t *windowgameMainFrame) f00AACF5CdrawExpMultiplePremium() {
 	// f004A2024(t.m2A8, ebp110[:])
 }
 
-// GuildPosition size:0x78
-type windowgameGuildPosition struct {
+type t01173798 struct {
+	window011737A4
 }
+
+func (t *t01173798) f00A3B28Cconstruct() {
+	t.window011737A4.f00A3B2ABconstruct(9)
+	// t.m00vptr = v01173798[:]
+}
+
+type t0117378C struct {
+	t01173798
+	m0C iwindowgame0117373C
+}
+
+func (t *t0117378C) f00A3A91Cconstruct(w iwindowgame0117373C) {
+	t.t01173798.f00A3B28Cconstruct()
+	// t.m00vptr = v0117378C[:]
+	t.m0C = w
+}
+
+type t01179864 struct {
+	t0117378C
+	m10 iwindowgame0117373C
+}
+
+func (t *t01179864) f00AA13BBconstruct(w iwindowgame0117373C) {
+	t.t0117378C.f00A3A91Cconstruct(w)
+	// t.m00vptr = v01179864[:]
+	t.m10 = w
+}
+
+// ChatWindow size:0x1E0
+type windowgameChat struct {
+	windowgame0117373C
+	m70  int
+	m74  int
+	m78  int
+	m7C  uint8
+	m7D  uint8
+	m7E  uint8
+	m7F  uint8
+	m80  uint8
+	m81  uint8
+	m82  uint8
+	m83  uint8
+	m84  uint8
+	m88  struct{}
+	mA0  struct{}
+	m1A8 [10]uint8
+	m1CC int
+	m1D0 int
+	m1D4 uint8
+	m1D5 uint8
+	m1D6 uint8
+	m1D7 uint8
+	m1D8 uint8
+	m1D9 uint8
+	m1DC int
+}
+
+func (t *windowgameChat) f00A9D6F2construct() {
+	t.windowgame0117373C.f00A392A6construct()
+	// t.m00vtabptr = v0117980C[:]
+	// t.m88.f00523C05()
+	// t.mA0.f00523C05()
+	// t.mB8.f00AA1C80()
+	// t.mD0.f00AA1C80()
+	// t.mE8.f00AA1C80()
+	// t.m100.f00AA1C80()
+	// t.m118.f00AA1C80()
+	// t.m130.f00AA1C80()
+	// t.m148.f00AA1C80()
+	// t.m160.f00AA1C80()
+	// t.m178.f00AA1C80()
+	// t.m190.f00AA1C80()
+	// t.m1B4.f00523C05()
+	ebp14 := &t01179864{}
+	ebp14.f00AA13BBconstruct(t)
+	// ebp1C := ebp14
+	// ebp10 := ebp1C
+	// t.m30.f00A3ADBC(ebp10)
+	t.m70 = 0
+	t.m74 = 0
+	t.m78 = 0
+	t.m7C = 0
+	// t.f00A9EFC6()
+	func() {
+		t.m81 = 1
+		t.m82 = 1
+		t.m83 = 1
+		t.m84 = 1
+		t.m7D = 1
+	}()
+	t.m7E = 1
+	t.m7F = 1
+	t.m80 = 0
+	// t.m88.f007D1869()
+	// t.mA0.f007D1869()
+	t.m1CC = 0
+	t.m1D0 = 0x3C
+	t.m1D4 = 0
+	// t.f00A9F747()
+	func() {
+		for i := 0; i < 10; i++ {
+			t.m1A8[i] = 1
+		}
+	}()
+	t.m1D5 = 0
+	t.m1D6 = 0
+	t.m1D7 = 0
+	t.m1D8 = 1
+	t.m1D9 = 1
+	t.m1DC = 1
+}
+func (t *windowgameChat) do1(bool)       {}
+func (t *windowgameChat) do3()           {}
+func (t *windowgameChat) do4() bool      { return false }
+func (t *windowgameChat) do6fresh() bool { return false }
+func (t *windowgameChat) do7() bool      { return false }
+
+type uiparam struct {
+	m00 int // 13=key, 14=click
+	m04 uintptr
+	m08 uintptr
+	m0C uintptr
+	m10 uintptr
+	m14 win.HWND
+	m18 uintptr
+}
+
+func (t *uiparam) f00A3B06B(unk int) {
+	t.m00 = unk
+}
+
+// func (t *uiparam) f00A3B137(unk uintptr) {
+// 	t.f00A3B06B(14)
+// 	t.m04 = unk
+// }
+
+func (t *uiparam) f00A3B0C7translateKey(wParam uintptr, unk uintptr) {
+	t.f00A3B06B(13)
+	t.m04 = uintptr(wParam)
+	t.m08 = unk
+}
+
+func (t *uiparam) f00A3B0F1translateClick(unk1 uintptr, hWnd win.HWND, msg uint32, wParam, lParam uintptr, unk2 uintptr) {
+	// t.f00A3B137(unk1)
+	func() {
+		t.f00A3B06B(14)
+		t.m04 = unk1
+	}()
+	t.m08 = uintptr(msg)
+	t.m0C = wParam
+	t.m10 = lParam
+	t.m14 = hWnd
+	t.m18 = unk2
+}
+
+// f00A3A0CE
+func (t *windowgameChat) do13handleKeyPress(wParam uintptr) {
+	// if t.m08.f00A3BAB6value() == 0 && !t.f00A3A41F() {
+	// 	return
+	// }
+	var ebp10param uiparam
+	ebp10param.f00A3B0C7translateKey(wParam, 0)
+	// t.m08.f00A3AF08value().do46(&ebp10param)
+}
+
+// f00A3A132
+func (t *windowgameChat) do14handleClick(hWnd win.HWND, msg uint32, wParam, lParam uintptr, unk bool) {
+	// if t.m08.f00A3BAB6value() == 0{
+	// 	return
+	// }
+	if unk {
+		t.m64 = wParam
+		var ebp3Cparam uiparam
+		ebp3Cparam.f00A3B0F1translateClick(1, hWnd, msg, wParam, lParam, 0)
+		// t.m08.f00A3AF08value().do46(&ebp3Cparam)
+	} else {
+		wParam = t.m64
+		var ebp1Cparam uiparam
+		ebp1Cparam.f00A3B0F1translateClick(0, hWnd, msg, wParam, lParam, 1)
+		// t.m08.f00A3AF08value().do46(&ebp1Cparam)
+	}
+}
+func (t *windowgameChat) do16() {}
+
+// GuildPosition size:0x78
+// type windowgameGuildPosition struct {
+// }
 
 // PartyFrame size:0x560
 type windowgamePartyFrame struct {
@@ -1895,16 +2189,19 @@ func (t *windowgamePartyFrame) do6fresh() bool {
 	// t.f00A82993setPartyState()
 	return false
 }
-func (t *windowgamePartyFrame) do7() bool { return false }
-func (t *windowgamePartyFrame) do16()     {}
+func (t *windowgamePartyFrame) do7() bool                  { return false }
+func (t *windowgamePartyFrame) do13handleKeyPress(uintptr) {}
+func (t *windowgamePartyFrame) do14handleClick(hWnd win.HWND, msg uint32, wParam, lParam uintptr, unk bool) {
+}
+func (t *windowgamePartyFrame) do16() {}
 
 func (t *windowgamePartyFrame) f00A821E4() {}
 
 // -------------------------------------------------------------
 // size:0x28
 type windowManager01173C54 struct {
-	m00vtabptr []uintptr
-	m04        struct{}
+	// m00vtabptr []uintptr
+	m04windows []iwindowgame0117373C
 	m20        int
 	m24        int
 }
@@ -1917,36 +2214,82 @@ func (t *windowManager01173C54) f00A472A7construct() {
 	t.m24 = 0
 }
 
-func (t *windowManager01173C54) f00A47FAB(w iwindowgame0117373C) {
+func (t *windowManager01173C54) f00A47A25handleKeyPress(wParam uintptr) {
+	/*
+		t.m04.f00A483A4(&ebp8)
+		for {
+			if false == ebp8.f00A486CA(t.m04.f00A483CB(&ebp1C)) {
+				break
+			}
+			var ebpC iwindowgame0117373C // ebpC := ebp8.f00A4863A()
+			if ebpC != nil {
+				ebpC.do13handleKeyPress(wParam)
+			}
+			ebp8.f00A4864B(&ebp14, 0)
+		}
+	*/
+	for _, w := range t.m04windows {
+		w.do13handleKeyPress(wParam)
+	}
+}
+
+func (t *windowManager01173C54) f00A47A93handleClick(hWnd win.HWND, msg uint32, wParam, lParam uintptr, unk bool) {
+	for _, w := range t.m04windows {
+		w.do14handleClick(hWnd, msg, wParam, lParam, unk)
+	}
+}
+
+func (t *windowManager01173C54) f00A47FABappend(w iwindowgame0117373C) {
 	// t.m04.f00A4843C(&w)
+	t.m04windows = append(t.m04windows, w)
 }
 
 func (t *windowManager01173C54) f00A47461fresh() {
-	// 0x24局部变量
+	/*
+		ebp1 := false
+		t.m04.f00A483A4(&ebpC)
+		for {
+			if false == ebpC.f00A486CA(t.m04.f00A483CB(&ebp20)) {
+				break
+			}
+			var ebp10 iwindowgame0117373C // ebp10 := *ebpC.f00A4863A()
+			if ebp10 != nil {
+				if ebp10.do4() {
+					ebp10.do6fresh()
+				}
+				if ebp1 == false &&
+					v01319D6ChWnd == win.GetActiveWindow() &&
+					v01319D6ChWnd == win.GetFocus() {
+					ebp1 = ebp10.do7()
+				}
+				if ebp10.f00A4977A() == 5 && ebp10.f00A3A41F() == true {
+					ebp1 = true
+				}
+				if ebp10.f00A3A4C1() {
+					t.f00A47B22(ebp10)
+					break
+				}
+			}
+			ebpC.f00A4864B(&ebp18, 0)
+		}
+	*/
 	ebp1 := false
-	// t.m04.f00A483A4(&ebpC)
-	for {
-		// if false == ebpC.f00A486CA(t.m04.f00A483CB(&ebp20)) {
-		// 	return
-		// }
-		var ebp10 iwindowgame0117373C // ebp10 := *ebpC.f00A4863A()
-		if ebp10 == nil {
-			return
+	for _, w := range t.m04windows {
+		if w.do4() {
+			w.do6fresh()
 		}
-		if ebp10.do4() {
-			ebp10.do6fresh()
+		if ebp1 == false &&
+			v01319D6ChWnd == win.GetActiveWindow() &&
+			v01319D6ChWnd == win.GetFocus() {
+			ebp1 = w.do7()
 		}
-		if ebp1 == false { // if ebp1 == false && v01319D6ChWnd == dll.user32.GetActiveWindow() && v01319D6ChWnd == dll.user32.GetFocus() {
-			ebp1 = ebp10.do7()
-		}
-		if ebp10.f00A4977A() == 5 && ebp10.f00A3A41F() == true {
+		if w.f00A4977A() == 5 && w.f00A3A41F() == true {
 			ebp1 = true
 		}
-		if ebp10.f00A3A4C1() {
-			// t.f00A47B22(ebp10)
+		if w.f00A3A4C1() {
+			// t.f00A47B22(w)
 			break
 		}
-		// ebpC.f00A4864B(&ebp18, 0)
 	}
 }
 
@@ -1954,17 +2297,10 @@ func f00A3A4F2(iw iwindowgame0117373C, attr string, format string, param ...inte
 	// 0x408局部变量
 	// reflect
 	w := iw.(*windowgameMainFrame)
-	// ebp4 := param
 	var ebp408 [1024]uint8 // "_root.g_mcMainFrame.SetSD"
 	f00DF30EFstrcpysafe(ebp408[:], 1024, "_root.")
 	f00DECB2Estrcatsafe(ebp408[:], 1024, w.m44name.f00A3AF9Ecstr()) // "g_mcMainFrame"
 	f00DECB2Estrcatsafe(ebp408[:], 1024, ".")
 	f00DECB2Estrcatsafe(ebp408[:], 1024, attr) // "SetSD"
-	// if w.m08.m00 != nil {                      // if b.m08.f00A3BAB6() != nil {
-	// 	w.m08.m00.f00BB1E00(ebp408[:], format, ebp4...) // b.m08.f00A3AF08().f00BB1E00(ebp408[:], format, ebp4)
-	// }
-
-}
-
-type t01190C50 struct {
+	// w.m08.f00A3AF08value().f00BB1E00(ebp408[:], format, param...)
 }
