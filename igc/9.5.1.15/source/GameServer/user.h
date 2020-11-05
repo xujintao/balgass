@@ -1268,7 +1268,6 @@ public:
 	char CloseType;	// B
 	bool bEnableDelCharacter;	// C
 	_PER_SOCKET_CONTEXT* PerSocketContext;	// 10
-	SOCKET m_socket;	// 14
 	int UserNumber;	// 28
 	int DBNumber;	// 2C
 	unsigned char EnableCharacterCreate;
@@ -1804,7 +1803,6 @@ void gObjClearViewport(LPOBJ lpObj);
 void gObjCloseSet(int aIndex, int Flag);
 void gObjCharTradeClear(LPOBJ lpObj);
 void gObjCharZeroSet(int aIndex);
-int gObjGetSocket(SOCKET socket);
 int gObjGetHWIDUseCount(LPTSTR HWID);
 void gObjSetTradeOption(int aIndex, int option);
 bool IsDuelEnable(int aIndex);
@@ -1823,7 +1821,6 @@ void gObjWarehouseTextSave(LPOBJ lpObj);
 void gObjAuthorityCodeSet(LPOBJ lpObj);
 int gObjSetPosMonster(int aIndex, int PosTableNum);
 int gObjSetMonster(int aIndex, int MonsterClass);
-int gObjGetSocket(SOCKET socket);
 int GetMapMoveLevel(LPOBJ lpObj, int mapnumber, int max_over);
 void ItemIsBufExOption(unsigned char* buf, class CItem* lpItem);
 short gObjAddSearch(SOCKET aSocket, char* ip);

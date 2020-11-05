@@ -919,7 +919,6 @@ void gObjInit()
 		{
 			memset(&gObj[n], 0, sizeof(OBJECTSTRUCT));
 			gObj[n].Type = (BYTE)OBJ_EMPTY;
-			gObj[n].m_socket = INVALID_SOCKET;
 			gObj[n].PathTime = GetTickCount();
 			gObj[n].m_RecallMon = -1;
 			gObj[n].m_lpMagicBack = new CMagicInf[MAGIC_SIZE];
@@ -1597,21 +1596,6 @@ void gObjCharZeroSet(int aIndex)
 		lpObj->m_nRecallMonIndex[k] = -1;
 
 	gObjClearViewport(lpObj);
-}
-
-int gObjGetSocket(SOCKET socket)
-{
-	for (int n= g_ConfigRead.server.GetObjectStartUserIndex();n<g_ConfigRead.server.GetObjectMax();n++)
-	{
-		if (gObj[n].Connected != PLAYER_EMPTY)
-		{
-			if (gObj[n].m_socket == socket)
-			{
-				return n;
-			}
-		}
-	}
-	return -1;
 }
 
 int gObjGetHWIDUseCount(LPTSTR HWID)
@@ -3620,7 +3604,6 @@ short gObjAdd(SOCKET aSocket, char* ip, int aIndex)
 	gObj[aIndex].LoginMsgCount = 0;
 	memset(gObj[aIndex].AccountID, 0, sizeof(gObj[0].AccountID)-1);
 	gObj[aIndex].m_Index = aIndex;
-	gObj[aIndex].m_socket = aSocket;
 	gObj[aIndex].ConnectCheckTime = GetTickCount();
 	gObj[aIndex].AutoSaveTime = gObj[aIndex].ConnectCheckTime;
 	gObj[aIndex].Connected = PLAYER_CONNECTED;
