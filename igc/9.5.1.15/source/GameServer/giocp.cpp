@@ -214,7 +214,6 @@ DWORD CIOCP::IocpServerWorker(void * p)
 				int err = WSAGetLastError();
 				if (err != WSA_IO_PENDING) {
 					g_Log.AddC(TColor::Azure, "error-L1 : WSARecv() failed with error %d", err);
-					gObj[ClientIndex].PerSocketContext->IOContext[0].nWaitIO = 4;
 					CloseClient(ClientIndex, err);
 					LeaveCriticalSection(&criti);
 					continue;
@@ -359,8 +358,17 @@ DWORD CIOCP::ServerWorkerThread()
 			if (nRet == SOCKET_ERROR)
 			{
 				int err = WSAGetLastError();
+				// The error code WSA_IO_PENDING indicates that the overlapped
+				// operation has been successfully initiated and that completion
+				// will be indicated at a later time.
 				if (err != WSA_IO_PENDING) {
-					g_Log.Add("WSARecv() failed with error %d", err);
+					// Any other error code indicates that the overlapped operation
+					// was not successfully initiated and no completion indication
+					// will occur.
+					// So we have to close client here.
+					g_Log.Add("WSARecv() failed with error:%d [%d][%s]",
+						err, ClientIndex, gObj[ClientIndex].m_PlayerData->Ip_addr);
+					CloseClient(ClientIndex, err);
 					LeaveCriticalSection(&criti);
 					continue;
 				}
@@ -718,10 +726,16 @@ bool CIOCP::DataSend(int aIndex, unsigned char* lpMsg, DWORD dwSize, bool Encryp
 	int nRet = WSASend(lpPerSocketContext->m_socket, &lpIoCtxt->wsabuf , 1, &SendBytes, 0, &lpIoCtxt->Overlapped, NULL);
 	if (nRet == SOCKET_ERROR) {
 		int err = WSAGetLastError();
+		// The error code WSA_IO_PENDING indicates that the overlapped
+		// operation has been successfully initiated and that completion
+		// will be indicated at a later time.
 		if (err != WSA_IO_PENDING) {
-			g_Log.AddC(TColor::Red, "WSASend (line:%d) (index:%d) (ip:%s) [%02X][%02X][%02X] error:%d", __LINE__,
-				aIndex, gObj[aIndex].m_PlayerData->Ip_addr,
-				(BYTE)lpIoCtxt->wsabuf.buf[0], (BYTE)lpIoCtxt->wsabuf.buf[1], (BYTE)lpIoCtxt->wsabuf.buf[2], err);
+			// Any other error code indicates that the overlapped operation
+			// was not successfully initiated and no completion indication
+			// will occur.
+			g_Log.AddC(TColor::Red, "WSASend [line:%d] error:%d [%d][%s] [%02X][%02X][%02X]", __LINE__,
+				err, aIndex, gObj[aIndex].m_PlayerData->Ip_addr,
+				(BYTE)lpIoCtxt->wsabuf.buf[0], (BYTE)lpIoCtxt->wsabuf.buf[1], (BYTE)lpIoCtxt->wsabuf.buf[2]);
 			LeaveCriticalSection(&criti);
 			return false;
 		}
@@ -748,9 +762,15 @@ bool CIOCP::IoSendSecond(_PER_SOCKET_CONTEXT * lpPerSocketContext)
 	int nRet = WSASend(lpPerSocketContext->m_socket, &lpIoCtxt->wsabuf, 1, &SendBytes, 0, &lpIoCtxt->Overlapped, NULL);
 	if (nRet == SOCKET_ERROR) {
 		int err = WSAGetLastError();
+		// The error code WSA_IO_PENDING indicates that the overlapped
+		// operation has been successfully initiated and that completion
+		// will be indicated at a later time.
 		if (err != WSA_IO_PENDING) {
-			g_Log.AddC(TColor::Red, "WSASend (line:%d) (index:%d) (ip:%s) error:%d", __LINE__,
-				aIndex, gObj[aIndex].m_PlayerData->Ip_addr, err);
+			// Any other error code indicates that the overlapped operation
+			// was not successfully initiated and no completion indication
+			// will occur.
+			g_Log.AddC(TColor::Red, "WSASend [line:%d] error:%d [%d][%s]", __LINE__,
+				err, aIndex, gObj[aIndex].m_PlayerData->Ip_addr);
 			return false;
 		}
 	}
@@ -771,9 +791,15 @@ bool CIOCP::IoSendMore(_PER_SOCKET_CONTEXT * lpPerSocketContext)
 	int nRet = WSASend(lpPerSocketContext->m_socket, &lpIoCtxt->wsabuf, 1, &SendBytes, 0, &lpIoCtxt->Overlapped, NULL);
 	if (nRet == SOCKET_ERROR) {
 		int err = WSAGetLastError();
+		// The error code WSA_IO_PENDING indicates that the overlapped
+		// operation has been successfully initiated and that completion
+		// will be indicated at a later time.
 		if (err != WSA_IO_PENDING) {
-			g_Log.AddC(TColor::Red, "WSASend (line:%d) (index:%d) (ip:%s) error:%d", __LINE__,
-				aIndex, gObj[aIndex].m_PlayerData->Ip_addr, err);
+			// Any other error code indicates that the overlapped operation
+			// was not successfully initiated and no completion indication
+			// will occur.
+			g_Log.AddC(TColor::Red, "WSASend [line:%d] error:%d [%d][%s]", __LINE__,
+				err, aIndex, gObj[aIndex].m_PlayerData->Ip_addr);
 			return false;
 		}
 	}
@@ -798,21 +824,20 @@ bool CIOCP::UpdateCompletionPort(SOCKET sd, int ClientIndex, BOOL bAddToList)
 // no lock
 void CIOCP::CloseClient(int index, int err)
 {
-	if (index < g_ConfigRead.server.GetObjectStartUserIndex() || index >= g_ConfigRead.server.GetObjectMax()) {
+	if (index < g_ConfigRead.server.GetObjectStartUserIndex()
+	|| index >= g_ConfigRead.server.GetObjectMax()) {
 		return;
 	}
 
-	if (gObj[index].m_bOff)
-	{
-		return;
-	}
 	_PER_SOCKET_CONTEXT* lpPerSocketContext = gObj[index].PerSocketContext;
 	if (lpPerSocketContext->m_socket != INVALID_SOCKET)
 	{
-		g_Log.AddC(TColor::Orange, "connection closed [err:%d] [%d][%s]", err, index, gObj[index].m_PlayerData->Ip_addr);
+		g_Log.AddC(TColor::Orange, "connection closed [err:%d] [%d][%s]",
+			err, index, gObj[index].m_PlayerData->Ip_addr);
 		if (closesocket(lpPerSocketContext->m_socket) == SOCKET_ERROR)
 		{
-			g_Log.AddC(TColor::Red, "close socket error:%d [%d][%s]", WSAGetLastError(), index, gObj[index].m_PlayerData->Ip_addr);
+			g_Log.AddC(TColor::Red, "close socket error:%d [%d][%s]",
+				WSAGetLastError(), index, gObj[index].m_PlayerData->Ip_addr);
 		}
 		lpPerSocketContext->m_socket = INVALID_SOCKET;
 	}
@@ -821,12 +846,22 @@ void CIOCP::CloseClient(int index, int err)
 
 void CIOCP::CloseClient(int index) // go to game
 {
-	if (index < g_ConfigRead.server.GetObjectStartUserIndex() || index >= g_ConfigRead.server.GetObjectMax()) {
+	if (index < g_ConfigRead.server.GetObjectStartUserIndex()
+	|| index >= g_ConfigRead.server.GetObjectMax()) {
 		return;
 	}
 
 	EnterCriticalSection(&criti);
 	_PER_SOCKET_CONTEXT* lpPerSocketContext = gObj[index].PerSocketContext;
-	shutdown(lpPerSocketContext->m_socket, SD_SEND);
+	if (lpPerSocketContext->m_socket != INVALID_SOCKET)
+	{
+		// just shutdown
+		g_Log.AddC(TColor::Orange, "shutdown connection [%d][%s]",
+			index, gObj[index].m_PlayerData->Ip_addr);
+		if (shutdown(lpPerSocketContext->m_socket, SD_SEND) == SOCKET_ERROR) {
+			g_Log.AddC(TColor::Red, "shutdown connection error:%d [%d][%s]",
+				WSAGetLastError(), index, gObj[index].m_PlayerData->Ip_addr);
+		}
+	}
 	LeaveCriticalSection(&criti);
 }
