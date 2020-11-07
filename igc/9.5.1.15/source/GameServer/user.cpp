@@ -7771,71 +7771,34 @@ void gObjSpriteDamage(LPOBJ lpObj, int damage)
 	CItem * sprite = &lpObj->pInventory[8];
 	float fdamage = damage;
 
-	if ( sprite->m_Type == ITEMGET(13,64) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_DEMON] == false)
-	{
-		fdamage = (damage*3)/10.0f;
-		fdamage /= fN;
-		sprite->m_Durability -= fdamage;
-		send_dur = 1;
+	// master skill durability(3)
+	switch (sprite->m_Type) {
+	case ITEMGET(13,0): // Guardian Angel
+	case ITEMGET(13,1): // Imp
+		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3 > 0.0) {
+			fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
+		}
+		break;
 	}
 
-	if ( sprite->m_Type == ITEMGET(13,106) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_UNICORN] == false)
-	{
-		fdamage = (damage*3)/10.0f;
-		fdamage /= fN;
-		sprite->m_Durability -= fdamage;
-		send_dur = 1;
-	}
-
-	if ( sprite->m_Type == ITEMGET(13,123) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_SKELETON] == false)
-	{
-		fdamage = (damage*3)/10.0f;
-		fdamage /= fN;
-		sprite->m_Durability -= fdamage;
-		send_dur = 1;
-	}
-
-	if ( sprite->m_Type == ITEMGET(13,65) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_SPIRIT_ANGEL] == false)
-	{
-		fdamage = (damage*2)/10.0f;
-		fdamage /= fN;
-		sprite->m_Durability -= fdamage;
-		send_dur = 1;
-	}
-
-	if ( sprite->m_Type == ITEMGET(13,67) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_RUDOLF] == false)
-	{
-		fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
+	// natural durability
+	switch (sprite->m_Type) {
+	case ITEMGET(13,0): // Guardian Angel
+	case ITEMGET(13,1): // Imp
+	case ITEMGET(13,64): // Demon
+	case ITEMGET(13,65): // Spirit of Guardian
+	case ITEMGET(13,67): // Pet Rudolph
+	case ITEMGET(13,106): // Pet Unicorn
+	case ITEMGET(13,123): // Pet Skeleton
 		fdamage = (fdamage*3)/10.0f;
-		fdamage /= fN;
-		sprite->m_Durability -= fdamage;
-		send_dur = 1;
-	}
-
-	if ( sprite->m_Type == ITEMGET(13,80) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_PANDA] == false)
-	{
-		fdamage = (damage*2)/10.0f;
-		fdamage /= fN;
-		sprite->m_Durability -= fdamage;
-		send_dur = 1;
-	}
-
-	if ( sprite->m_Type == ITEMGET(13,0) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_ANGEL] == false) // angel
-	{
-		fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
-		fdamage = (fdamage*3)/10.0f;
-		fdamage /= fN;
-		sprite->m_Durability -= fdamage;
-		send_dur = 1;
-	}
-	else if ( sprite->m_Type == ITEMGET(13,1) && g_ConfigRead.pet.DamageDisableForPet[DAMAGE_OFF_SATAN] == false)
-	{
-		fdamage = damage / lpObj->m_PlayerData->m_MPSkillOpt.iMpsDownDur3;
+		break;
+	default: // ITEMGET(13,80) Pet Panda
 		fdamage = (fdamage*2)/10.0f;
-		fdamage /= fN;
-		sprite->m_Durability -= fdamage;
-		send_dur = 1;
 	}
+
+	fdamage /= fN;
+	sprite->m_Durability -= fdamage;
+	send_dur = 1;
 
 	if ( sprite->m_Durability < 0.0f )
 	{
