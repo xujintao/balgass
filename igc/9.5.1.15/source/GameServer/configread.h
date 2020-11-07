@@ -443,7 +443,7 @@ struct PETCONFIG
 	WORD DSFRingAddHP;
 
 	WORD AngelAddHP;
-	WORD AngelAddDefense;
+	WORD AngelReduceDamageRate;
 
 	WORD SatanAddDamage;
 
@@ -451,7 +451,7 @@ struct PETCONFIG
 	WORD DemonAddAttackSpeed;
 
 	WORD SafeGuardAddHP;
-	WORD SafeGuardAddDefense;
+	WORD SafeGuardReduceDamageRate;
 
 	WORD PandaPetAddDefense;
 

@@ -538,7 +538,7 @@ void CConfigread::ReadPetSettings()
 	pet.DSFRingAddHP = ReadPet.ReadInt("Ring", "DarkTransformRingAddLifeValue", 50);
 
 	pet.AngelAddHP = ReadPet.ReadInt("Pet", "AngelAddLifeValue", 50);
-	pet.AngelAddDefense = ReadPet.ReadInt("Pet", "AngelReduceDamagePercent", 20);
+	pet.AngelReduceDamageRate = ReadPet.ReadInt("Pet", "AngelReduceDamagePercent", 20);
 
 	pet.SatanAddDamage = ReadPet.ReadInt("Pet", "SatanAddDamagePercent", 30);
 
@@ -546,7 +546,7 @@ void CConfigread::ReadPetSettings()
 	pet.DemonAddAttackSpeed = ReadPet.ReadInt("Pet", "DemonAddAttackSpeed", 10);
 
 	pet.SafeGuardAddHP = ReadPet.ReadInt("Pet", "GuardianAngelAddLifeValue", 50);
-	pet.SafeGuardAddDefense = ReadPet.ReadInt("Pet", "GuardianAngelReduceDamagePercent", 30);
+	pet.SafeGuardReduceDamageRate = ReadPet.ReadInt("Pet", "GuardianAngelReduceDamagePercent", 30);
 
 	pet.PandaPetAddDefense = ReadPet.ReadInt("Pet", "PandaPetAddDefenseValue", 50);
 

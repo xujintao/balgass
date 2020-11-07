@@ -665,11 +665,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->AddLife += g_ConfigRead.pet.DSFRingAddHP;
 	}
 
-	if ( lpObj->pInventory[8].m_Type == ITEMGET(13,0) )
-	{
-		lpObj->AddLife += g_ConfigRead.pet.AngelAddHP;
-	}
-
 	// Golden Fenrir Attribute
 	if ( lpObj->pInventory[lpObj->m_btInvenPetPos].m_Type == ITEMGET(13,37)
 	&& lpObj->pInventory[lpObj->m_btInvenPetPos].m_NewOption == 4
@@ -1085,6 +1080,9 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_CurseDamageMax += lpObj->m_CurseDamageMax * g_ConfigRead.pet.DemonAddDamage / 100;
 		lpObj->m_AttackSpeed += g_ConfigRead.pet.DemonAddAttackSpeed;
 		lpObj->m_MagicSpeed += g_ConfigRead.pet.DemonAddAttackSpeed;
+	}
+	else if (gObjAngelSprite(lpObj) == TRUE) {
+		lpObj->AddLife += g_ConfigRead.pet.AngelAddHP;
 	}
 	else if (gObjSafeGuardSprite(lpObj) == TRUE)
 	{

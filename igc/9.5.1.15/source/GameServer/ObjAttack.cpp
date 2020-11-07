@@ -1034,7 +1034,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 		{
 			if ( AttackDamage > 1 )
 			{
-				AttackDamage = AttackDamage * (100 - g_ConfigRead.pet.AngelAddDefense) / 100;
+				AttackDamage = AttackDamage * (100 - g_ConfigRead.pet.AngelReduceDamageRate) / 100;
 			}
 		}
 
@@ -1052,7 +1052,7 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 		{
 			if (AttackDamage > 1)
 			{
-				AttackDamage = AttackDamage * (100 - g_ConfigRead.pet.SafeGuardAddDefense) / 100;
+				AttackDamage = AttackDamage * (100 - g_ConfigRead.pet.SafeGuardReduceDamageRate) / 100;
 			}
 		}
 
