@@ -44,6 +44,14 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 		lpObj->m_AttackSpeed += EffectValue;
 		lpObj->m_MagicSpeed += EffectValue;
 		break;
+	case EFFECTTYPE_IMPROVE_DAMAGE:
+		lpObj->m_AttackDamageMin += EffectValue;
+		lpObj->m_AttackDamageMax += EffectValue;
+		lpObj->m_MagicDamageMin += EffectValue;
+		lpObj->m_MagicDamageMax += EffectValue;
+		lpObj->m_CurseDamageMin += EffectValue;
+		lpObj->m_CurseDamageMax += EffectValue;
+		break;
 	case EFFECTTYPE_IMPROVE_DEFENSE:
 		lpObj->m_Defense += EffectValue;
 		lpObj->m_MagicDefense += EffectValue;
@@ -78,10 +86,8 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 		lpObj->AddLeadership += EffectValue;
 		break;
 	case EFFECTTYPE_MELEEDAMAGE:
-		lpObj->m_AttackDamageMaxLeft += EffectValue;
-		lpObj->m_AttackDamageMinLeft += EffectValue;
-		lpObj->m_AttackDamageMaxRight += EffectValue;
-		lpObj->m_AttackDamageMinRight += EffectValue;
+		lpObj->m_AttackDamageMin += EffectValue;
+		lpObj->m_AttackDamageMax += EffectValue;
 		break;
 	case EFFECTTYPE_MAGICDAMAGE:
 		lpObj->m_MagicDamageMin += EffectValue;
@@ -135,14 +141,10 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 	// case EFFECTTYPE_EXCELLENTDAMAGE:
 		lpObj->m_ExcellentDamageSuccessRate += EffectValue;
 	case EFFECTTYPE_POWER_UP:
-		lpObj->m_AttackDamageMaxLeft += EffectValue;
-		lpObj->m_AttackDamageMinLeft += EffectValue;
-		lpObj->m_AttackDamageMaxRight += EffectValue;
-		lpObj->m_AttackDamageMinRight += EffectValue;
-
+		lpObj->m_AttackDamageMin += EffectValue;
+		lpObj->m_AttackDamageMax += EffectValue;
 		lpObj->m_MagicDamageMin += EffectValue;
 		lpObj->m_MagicDamageMax += EffectValue;
-
 		lpObj->m_CurseDamageMin += EffectValue;
 		lpObj->m_CurseDamageMax += EffectValue;
 		break;
@@ -190,10 +192,8 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 		lpObj->m_bBlind = true;
 		break;
 	case EFFECTTYPE_WRATH_INC_DAMAGE:
-		lpObj->m_AttackDamageMinLeft += lpObj->m_AttackDamageMinLeft * EffectValue / 100;
-		lpObj->m_AttackDamageMaxLeft += lpObj->m_AttackDamageMaxLeft * EffectValue / 100;
-		lpObj->m_AttackDamageMinRight += lpObj->m_AttackDamageMinRight * EffectValue / 100;
-		lpObj->m_AttackDamageMaxRight += lpObj->m_AttackDamageMaxRight * EffectValue / 100;
+		lpObj->m_AttackDamageMin += lpObj->m_AttackDamageMin * EffectValue / 100;
+		lpObj->m_AttackDamageMax += lpObj->m_AttackDamageMax * EffectValue / 100;
 		break;
 	}
 }
@@ -209,6 +209,14 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 	case EFFECTTYPE_ATTACKSPEED:
 		lpObj->m_AttackSpeed -= EffectValue;
 		lpObj->m_MagicSpeed -= EffectValue;
+		break;
+	case EFFECTTYPE_IMPROVE_DAMAGE:
+		lpObj->m_AttackDamageMin -= EffectValue;
+		lpObj->m_AttackDamageMax -= EffectValue;
+		lpObj->m_MagicDamageMin -= EffectValue;
+		lpObj->m_MagicDamageMax -= EffectValue;
+		lpObj->m_CurseDamageMin -= EffectValue;
+		lpObj->m_CurseDamageMax -= EffectValue;
 		break;
 	case EFFECTTYPE_IMPROVE_DEFENSE:
 		lpObj->m_Defense -= EffectValue;
@@ -248,10 +256,8 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 		lpObj->AddLeadership -= EffectValue;
 		break;
 	case EFFECTTYPE_MELEEDAMAGE:
-		lpObj->m_AttackDamageMaxLeft -= EffectValue;
-		lpObj->m_AttackDamageMinLeft -= EffectValue;
-		lpObj->m_AttackDamageMaxRight -= EffectValue;
-		lpObj->m_AttackDamageMinRight -= EffectValue;
+		lpObj->m_AttackDamageMin -= EffectValue;
+		lpObj->m_AttackDamageMax -= EffectValue;
 		break;
 	case EFFECTTYPE_MAGICDAMAGE:
 		lpObj->m_MagicDamageMin -= EffectValue;
@@ -309,14 +315,10 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 	// case EFFECTTYPE_EXCELLENTDAMAGE:
 		lpObj->m_ExcellentDamageSuccessRate -= EffectValue;
 	case EFFECTTYPE_POWER_UP:
-		lpObj->m_AttackDamageMaxLeft -= EffectValue;
-		lpObj->m_AttackDamageMinLeft -= EffectValue;
-		lpObj->m_AttackDamageMaxRight -= EffectValue;
-		lpObj->m_AttackDamageMinRight -= EffectValue;
-
+		lpObj->m_AttackDamageMin -= EffectValue;
+		lpObj->m_AttackDamageMax -= EffectValue;
 		lpObj->m_MagicDamageMin -= EffectValue;
 		lpObj->m_MagicDamageMax -= EffectValue;
-
 		lpObj->m_CurseDamageMin -= EffectValue;
 		lpObj->m_CurseDamageMax -= EffectValue;
 		break;
@@ -371,10 +373,8 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 		lpObj->m_bBlind = false;
 		break;
 	case EFFECTTYPE_WRATH_INC_DAMAGE:
-		lpObj->m_AttackDamageMinLeft -= lpObj->m_AttackDamageMinLeft * EffectValue / 100;
-		lpObj->m_AttackDamageMaxLeft -= lpObj->m_AttackDamageMaxLeft * EffectValue / 100;
-		lpObj->m_AttackDamageMinRight -= lpObj->m_AttackDamageMinRight * EffectValue / 100;
-		lpObj->m_AttackDamageMaxRight -= lpObj->m_AttackDamageMaxRight * EffectValue / 100;
+		lpObj->m_AttackDamageMin -= lpObj->m_AttackDamageMin * EffectValue / 100;
+		lpObj->m_AttackDamageMax -= lpObj->m_AttackDamageMax * EffectValue / 100;
 		break;
 	}
 }

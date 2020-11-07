@@ -257,10 +257,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		&lpObj->m_AttackSpeed, &lpObj->m_MagicSpeed);
 	g_StatSpec.CalcStatOption(lpObj, STAT_OPTION_INC_ATTACK_SPEED);
 
-	// Now calculation is done, we have to recovery all previous buff.
-	g_BuffEffect.ClearPrevEffectStat(lpObj);
-	g_BuffEffect.ApplyPrevEffectAll(lpObj);
-
 	// damage(base+master+item+buff)
 
 	// damage of item weapon and addition
@@ -1066,6 +1062,10 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 			lpObj->m_AttackDamageMax = (lpObj->m_AttackDamageMaxRight + lpObj->m_AttackDamageMaxLeft)/2;
 		}
 	}
+
+	// Now calculation is done, we have to recovery all previous buff.
+	g_BuffEffect.ClearPrevEffectStat(lpObj);
+	g_BuffEffect.ApplyPrevEffectAll(lpObj);
 
 	if (gObjSatanSprite(lpObj) == TRUE){
 		lpObj->m_AttackDamageMin += lpObj->m_AttackDamageMin * g_ConfigRead.pet.SatanAddDamage / 100;

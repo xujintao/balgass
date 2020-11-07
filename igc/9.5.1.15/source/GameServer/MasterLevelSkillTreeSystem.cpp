@@ -2477,7 +2477,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillStrendthenAddCriticalDamage(int aInde
 		gObjAddBuffEffect(lpObj, BUFFTYPE_CRITICAL_DMG_INC, EFFECTTYPE_CRITICALDAMAGE, addcriticaldamagevalue, 0, 0, SkillTime);
 		MsgOutput(aIndex, Lang.GetText(0,134), SkillTime);
 		GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, lpObj->m_Index, TRUE);
-		gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 	}
 	else
 	{
@@ -2489,7 +2488,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillStrendthenAddCriticalDamage(int aInde
 				gObjAddBuffEffect(lpPartyObj, BUFFTYPE_CRITICAL_DMG_INC, EFFECTTYPE_CRITICALDAMAGE, addcriticaldamagevalue, 0, 0, SkillTime);
 				MsgOutput(ApplyPartyIndex[n], Lang.GetText(0,134), SkillTime);
 				GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, lpPartyObj->m_Index, TRUE);
-				gObjCalCharacter.CalcCharacter(lpPartyObj->m_Index);
 			}
 		}
 	}
@@ -2538,7 +2536,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillSkillFulAddCriticalDamage(int aIndex,
 		gObjAddBuffEffect(lpObj, BUFFTYPE_CRITICAL_DMG_INC, EFFECTTYPE_CRITICALDAMAGE, addcriticaldamagevalue, 0, 0, SkillTime);
 		MsgOutput(aIndex, Lang.GetText(0,134), SkillTime);
 		GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, lpObj->m_Index, TRUE);
-		gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 	}
 	else
 	{
@@ -2551,7 +2548,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillSkillFulAddCriticalDamage(int aIndex,
 				gObjAddBuffEffect(lpPartyObj, BUFFTYPE_CRITICAL_DMG_INC, EFFECTTYPE_CRITICALDAMAGE, addcriticaldamagevalue, 0, 0, SkillTime);
 				MsgOutput(ApplyPartyIndex[n], Lang.GetText(0,134), SkillTime);
 				GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, lpPartyObj->m_Index, TRUE);
-				gObjCalCharacter.CalcCharacter(lpPartyObj->m_Index);
 			}
 		}
 	}
@@ -2602,7 +2598,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillMasteryAddCriticalDamage(int aIndex, 
 		gObjAddBuffEffect(lpObj, BUFFTYPE_CRITICAL_DMG_INC_STR, EFFECTTYPE_CRITICALDAMAGE, addcriticaldamagevalue, EFFECTTYPE_CRITICALDAMAGE_RATE, fRate, SkillTime);
 		MsgOutput(aIndex, Lang.GetText(0,134), SkillTime);
 		GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, lpObj->m_Index, TRUE);
-		gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 	}
 	else
 	{
@@ -2614,7 +2609,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillMasteryAddCriticalDamage(int aIndex, 
 				gObjAddBuffEffect(lpPartyObj, BUFFTYPE_CRITICAL_DMG_INC_STR, EFFECTTYPE_CRITICALDAMAGE, addcriticaldamagevalue, EFFECTTYPE_CRITICALDAMAGE_RATE, fRate, SkillTime);
 				MsgOutput(ApplyPartyIndex[n], Lang.GetText(0,134), SkillTime);
 				GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, lpPartyObj->m_Index, TRUE);
-				gObjCalCharacter.CalcCharacter(lpPartyObj->m_Index);
 			}
 		}
 	}
@@ -4083,7 +4077,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillStrengthenIncVital(int aIndex, CMagic
 	{
 		gObjAddBuffEffect(lpObj, BUFFTYPE_MONK_INCREASE_HEALTH_STR, EFFECTTYPE_MONK_VITALITY, nEffectValue, 0, 0, lpObj->m_PlayerData->Energy / 5 + 60);
 		GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, aIndex, TRUE);
-		// gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 	}
 
 	else
@@ -4094,7 +4087,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillStrengthenIncVital(int aIndex, CMagic
 			{
 				gObjAddBuffEffect(&gObj[ApplyPartyIndex[i]], BUFFTYPE_MONK_INCREASE_HEALTH_STR, EFFECTTYPE_MONK_VITALITY, nEffectValue, 0, 0, lpObj->m_PlayerData->Energy / 5 + 60);
 				GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, ApplyPartyIndex[i], TRUE);
-				// gObjCalCharacter.CalcCharacter(ApplyPartyIndex[i]);
 			}
 		}
 	}
@@ -4665,7 +4657,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillBless(LPOBJ lpObj, int aTargetIndex, 
 	IOCP.DataSend(aTargetIndex, (LPBYTE)&pMsg, pMsg.h.size);
 	LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
 
-	gObjCalCharacter.CalcCharacter(aTargetIndex);
 	GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, aTargetIndex, TRUE);
 }
 
@@ -4745,7 +4736,6 @@ void CMasterLevelSkillTreeSystem::MLS_SkillStrengthenBless(LPOBJ lpObj, int aTar
 	IOCP.DataSend(aTargetIndex, (LPBYTE)&pMsg, pMsg.h.size);
 	LeaveCriticalSection(&lpObj->m_PlayerData->AgiCheckCriti);
 
-	gObjCalCharacter.CalcCharacter(aTargetIndex);
 	GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, aTargetIndex, TRUE);
 }
 

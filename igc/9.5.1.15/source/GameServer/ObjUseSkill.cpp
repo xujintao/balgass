@@ -1288,7 +1288,6 @@ void CObjUseSkill::KnightSkillAddLife(int aIndex, CMagicInf * lpMagic)
 		
 		gObjAddBuffEffect(lpObj, BUFFTYPE_HP_INC, EFFECTTYPE_HP, iaddlife, 0, 0, iLifeTime);
 		GSProtocol.GCMagicAttackNumberSend(lpObj,lpMagic->m_Skill,lpObj->m_Index,skillSuccess);
-		gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 	}
 
 	else if ( lpObj->Type == OBJ_USER && lpObj->m_PlayerData->ISBOT == true)
@@ -1304,7 +1303,6 @@ void CObjUseSkill::KnightSkillAddLife(int aIndex, CMagicInf * lpMagic)
 
 		gObjAddBuffEffect(&gObj[lpObj->BuffPlayerIndex], BUFFTYPE_HP_INC, EFFECTTYPE_HP, iaddlife, 0, 0, iLifeTime);
 		GSProtocol.GCMagicAttackNumberSend(lpObj,lpMagic->m_Skill,lpObj->m_Index,skillSuccess);
-		gObjCalCharacter.CalcCharacter(lpObj->BuffPlayerIndex);
 	}
 	else
 	{
@@ -1318,7 +1316,6 @@ void CObjUseSkill::KnightSkillAddLife(int aIndex, CMagicInf * lpMagic)
 
 				gObjAddBuffEffect(lpPartyObj, BUFFTYPE_HP_INC, EFFECTTYPE_HP, iaddlife, 0, 0, iLifeTime);
 				GSProtocol.GCMagicAttackNumberSend(lpObj,lpMagic->m_Skill,lpPartyObj->m_Index,skillSuccess);
-				gObjCalCharacter.CalcCharacter(ApplyPartyIndex[n]);
 			}
 		}
 	}
@@ -6510,7 +6507,6 @@ int CObjUseSkill::SkillMonkBuffApplyParty(int aIndex, CMagicInf * lpMagic)
 		{
 			gObjAddBuffEffect(lpObj, BuffIndex, EFFECTTYPE_MONK_VITALITY, skill_improve, 0, 0, lpObj->m_PlayerData->Energy / 5 + 60);
 			GSProtocol.GCMagicAttackNumberSend(lpObj, lpMagic->m_Skill, aIndex, TRUE);
-			gObjCalCharacter.CalcCharacter(aIndex);
 		}
 
 		else if ( lpMagic->m_Skill == AT_SKILL_DSRINCREASE )
@@ -6532,7 +6528,6 @@ int CObjUseSkill::SkillMonkBuffApplyParty(int aIndex, CMagicInf * lpMagic)
 				{
 					gObjAddBuffEffect(lpPartyObj, BuffIndex, EFFECTTYPE_MONK_VITALITY, skill_improve, 0, 0, lpObj->m_PlayerData->Energy / 5 + 60);
 					GSProtocol.GCMagicAttackNumberSend(lpPartyObj, lpMagic->m_Skill, partyindex[j], TRUE);
-					gObjCalCharacter.CalcCharacter(partyindex[j]);
 				}
 				else
 				{

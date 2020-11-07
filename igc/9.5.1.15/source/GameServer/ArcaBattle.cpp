@@ -327,8 +327,6 @@ void CArcaBattle::RemoveGuildBuff(char *szGuildName, WORD wBuffIndex)
 			if ( gObjCheckUsedBuffEffect(&gObj[iIndex], wBuffIndex) == TRUE )
 			{
 				gObjRemoveBuffEffect(&gObj[iIndex], wBuffIndex);
-				gObjCalCharacter.CalcCharacter(iIndex);
-
 				g_Log.Add( "[ArcaBattle] Remove Buff [%s][%s] GuildName [%s] BuffIndex [%d]", 
 					gObj[iIndex].AccountID, gObj[iIndex].Name, szGuildName, wBuffIndex);
 			}
@@ -348,7 +346,6 @@ void CArcaBattle::ReqGuildMemberDelBuffDel(OBJECTSTRUCT *lpObj, char *szGuildNam
 			{
 				g_BuffEffect.RequestPeriodBuffDelete(lpObj, wBuffIndex);
 				gObjRemoveBuffEffect(lpObj, wBuffIndex);
-				gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 			}
 		}
 	}

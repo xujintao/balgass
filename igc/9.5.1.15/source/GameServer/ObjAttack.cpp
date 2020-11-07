@@ -3729,12 +3729,6 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 		}
 	}
 
-	int BuffAtk = gObjGetTotalValueOfEffect(lpObj, EFFECTTYPE_IMPROVE_DAMAGE);
-	int BuffForce = gObjGetTotalValueOfEffect(lpObj, EFFECTTYPE_MELEEDAMAGE);
-	
-	ad += BuffAtk;
-	ad += BuffForce;
-
 	if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_ARCA_WINDTOWER))
 	{
 		int iArcaEffect = 0;
@@ -4051,14 +4045,12 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 		ad += 10;
 	}
 
-	iIncreaseDamage += gObjGetTotalValueOfEffect(lpObj, EFFECTTYPE_IMPROVE_DAMAGE);
-
 	if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_ARCA_WINDTOWER))
 	{
 		int iArcaEffect = 0;
 		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_ARCA_WINDTOWER, &iArcaEffect, NULL);
 
-		iIncreaseDamage += iArcaEffect;
+		ad += iArcaEffect;
 	}
 
 	ad += iIncreaseDamage;
@@ -4483,12 +4475,6 @@ int  CObjAttack::GetAttackDamageWizard(LPOBJ lpObj, LPOBJ lpTargetObj, int targe
 			ad += lpObj->m_PlayerData->SetOpAddExcellentDamage;
 		}
 	}
-
-	int BuffAtk = gObjGetTotalValueOfEffect(lpObj, EFFECTTYPE_IMPROVE_DAMAGE);
-	int BuffForce = gObjGetTotalValueOfEffect(lpObj, EFFECTTYPE_MELEEDAMAGE);
-	
-	ad += BuffAtk;
-	ad += BuffForce;
 
 	if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_ARCA_WINDTOWER))
 	{

@@ -299,6 +299,7 @@ bool gObjAddBuffEffect(LPOBJECTSTRUCT lpObj, int iBuffIndex)
 			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_REMOVE1, lpItemEffectInfo->wOptionType, 0, 0, 0);
 		else
 			lpObj->m_BuffEffectCount++;
+		gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_ADD, lpItemEffectInfo->wOptionType, lpItemEffectInfo->wEffectType1, lpItemEffectInfo->iEffectValidTime, lpItemEffectInfo->iEffectValue1);
 		return true;
 	}
@@ -325,6 +326,7 @@ bool gObjAddBuffEffect(LPOBJECTSTRUCT lpObj, int iBuffIndex, BYTE EffectType1, i
 			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_REMOVE1, lpBuffData->BuffEffectType, 0, 0, 0);
 		else
 			lpObj->m_BuffEffectCount++;
+		gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_ADD, lpBuffData->BuffEffectType, EffectType1, Duration, EffectValue1);
 		return true;
 	}
@@ -357,6 +359,7 @@ bool gObjAddBuffEffect(LPOBJECTSTRUCT lpObj, int iBuffIndex, int Duration)
 			GCUseBuffEffect(lpObj, iRemoveBuffIndex, BUFFSTATE_BUFF_REMOVE1, lpItemEffectInfo->wOptionType, 0, 0, 0);
 		else
 			lpObj->m_BuffEffectCount++;
+		gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_ADD, lpItemEffectInfo->wOptionType, lpItemEffectInfo->wEffectType1, Duration, lpItemEffectInfo->iEffectValue1);
 		return true;
 	}
@@ -437,18 +440,8 @@ bool gObjRemoveBuffEffect(LPOBJECTSTRUCT lpObj, int iBuffIndex)
 	{
 		g_BuffEffectSlot.RemoveBuffVariable(lpObj, iBuffIndex);
 		lpObj->m_BuffEffectCount--;
+		gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 		GCUseBuffEffect(lpObj, iBuffIndex, BUFFSTATE_BUFF_REMOVE2, 0, lpBuffData->BuffEffectType, 0, 0);
-		if (iBuffIndex == BUFFTYPE_MONK_INCREASE_HEALTH
-		|| iBuffIndex == BUFFTYPE_MONK_INCREASE_HEALTH_STR
-		|| iBuffIndex == BUFFTYPE_BLESS
-		|| iBuffIndex == BUFFTYPE_ACHERON_FIRE
-		|| iBuffIndex == BUFFTYPE_ACHERON_FROST
-		|| iBuffIndex == BUFFTYPE_ACHERON_TORNADO
-		|| iBuffIndex == BUFFTYPE_ACHERON_BIND
-		|| iBuffIndex == BUFFTYPE_ACHERON_DARKNESS)
-		{
-			gObjCalCharacter.CalcCharacter(lpObj->m_Index);
-		}
 		return true;
 	}
 	return false;
