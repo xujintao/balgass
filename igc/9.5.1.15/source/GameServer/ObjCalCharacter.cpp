@@ -343,13 +343,7 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		for (int i=2; i<=6; i++) {
 			if ((i==2 && lpObj->Class == CLASS_MAGUMSA)
 			|| (i==5 && lpObj->Class == CLASS_RAGEFIGHTER)) {
-				sameTypeCount++;
-				Level10Count++;
-				Level11Count++;
-				Level12Count++;
-				Level13Count++;
-				Level14Count++;
-				Level15Count++;
+				continue;
 			}
 			if (lpObj->pInventory[i].m_IsValidItem
 			&& lpObj->pInventory[i].m_Type % MAX_SUBTYPE_ITEMS == rvalue) {
@@ -367,6 +361,22 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 				else if ( lpObj->pInventory[i].m_Level > 9 )
 					Level10Count++;
 			}
+		}
+		if (lpObj->Class == CLASS_MAGUMSA
+		|| lpObj->Class == CLASS_RAGEFIGHTER) {
+			sameTypeCount++;
+			if (Level10Count > 0)
+				Level10Count++;
+			else if (Level11Count > 0)
+				Level11Count++;
+			else if (Level12Count > 0)
+				Level12Count++;
+			else if (Level13Count > 0)
+				Level13Count++;
+			else if (Level14Count > 0)
+				Level14Count++;
+			else if (Level15Count > 0)
+				Level15Count++;
 		}
 	}
 
