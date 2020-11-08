@@ -20606,6 +20606,10 @@ void GameProtocol::CGInventoryEquipment(_tagPMSG_REQ_INVENTORY_EQUIPMENT_ITEM *l
 	}
 
 	LPOBJ lpObj = &gObj[iIndex];
+	if (lpMsg->btItemPos<0 || lpMsg->btItemPos>=INVENTORY_SIZE) {
+		g_Log.AddC(TColor::Red, "[CGInventoryEquipment] over bound [%s][%s]", lpObj->AccountID, lpObj->Name);
+		return;
+	}
 
 	_tagPMSG_ANS_INVENTORY_EQUIPMENT_ITEM pMsg = {0};
 
@@ -20624,8 +20628,8 @@ void GameProtocol::CGInventoryEquipment(_tagPMSG_REQ_INVENTORY_EQUIPMENT_ITEM *l
 
 	switch ( lpObj->pInventory[lpMsg->btItemPos].m_Type )
 	{
-		case ITEMGET(13,128):
-		case ITEMGET(13,129):
+		case ITEMGET(13,128): // Hawk Figurine
+		case ITEMGET(13,129): // Goat Figurine
 			if (lpObj->m_PlayerData->m_btSculptPos == 0)
 			{
 				if (lpMsg->btValue == (BYTE)-2 && lpObj->pInventory[lpMsg->btItemPos].m_Durability == 255.0)
@@ -20657,10 +20661,10 @@ void GameProtocol::CGInventoryEquipment(_tagPMSG_REQ_INVENTORY_EQUIPMENT_ITEM *l
 			this->GCServerMsgStringSend(Lang.GetText(0,548), iIndex, 1);
 			IOCP.DataSend(iIndex, (LPBYTE)&pMsg, pMsg.h.size);
 			break;
-		case ITEMGET(13,130):
-		case ITEMGET(13,131):
-		case ITEMGET(13,132):
-		case ITEMGET(13,133):
+		case ITEMGET(13,130): // Oak Charm
+		case ITEMGET(13,131): // Maple Charm
+		case ITEMGET(13,132): // Golden Oak Charm
+		case ITEMGET(13,133): // Golden Maple Charm
 			if (lpObj->m_PlayerData->m_btCharmPos == 0)
 			{
 				if (lpMsg->btValue == (BYTE)-2 && lpObj->pInventory[lpMsg->btItemPos].m_Durability == 255.0)
@@ -20692,7 +20696,7 @@ void GameProtocol::CGInventoryEquipment(_tagPMSG_REQ_INVENTORY_EQUIPMENT_ITEM *l
 			this->GCServerMsgStringSend(Lang.GetText(0,548), iIndex, 1);
 			IOCP.DataSend(iIndex, (LPBYTE)&pMsg, pMsg.h.size);
 			break;
-		case ITEMGET(13,134):
+		case ITEMGET(13,134): // Worn Horseshoe
 			if (lpObj->m_PlayerData->m_btArtifactPos == 0)
 			{
 				if (lpMsg->btValue == (BYTE)-2 && lpObj->pInventory[lpMsg->btItemPos].m_Durability == 255.0)
@@ -20724,9 +20728,9 @@ void GameProtocol::CGInventoryEquipment(_tagPMSG_REQ_INVENTORY_EQUIPMENT_ITEM *l
 			this->GCServerMsgStringSend(Lang.GetText(0,548), iIndex, 1);
 			IOCP.DataSend(iIndex, (LPBYTE)&pMsg, pMsg.h.size);
 			break;
-		case ITEMGET(13,177):
-		case ITEMGET(13,178):
-		case ITEMGET(13,179):
+		case ITEMGET(13,177): // Talisman of Ascension I
+		case ITEMGET(13,178): // Talisman of Ascension II
+		case ITEMGET(13,179): // Talisman of Ascension III
 			if (lpObj->m_PlayerData->m_btExpUpCharmPos == 0)
 			{
 				if (lpMsg->btValue == (BYTE)-2 && lpObj->pInventory[lpMsg->btItemPos].m_Durability == 255.0)
@@ -20758,10 +20762,10 @@ void GameProtocol::CGInventoryEquipment(_tagPMSG_REQ_INVENTORY_EQUIPMENT_ITEM *l
 			this->GCServerMsgStringSend(Lang.GetText(0,548), iIndex, 1);
 			IOCP.DataSend(iIndex, (LPBYTE)&pMsg, pMsg.h.size);
 			break;
-		case ITEMGET(13,2):
-		case ITEMGET(13,3):
-		case ITEMGET(13,4):
-		case ITEMGET(13,37):
+		case ITEMGET(13,2): // Horn of Uniria
+		case ITEMGET(13,3): // Horn of Dinorant
+		case ITEMGET(13,4): // Dark Horse
+		case ITEMGET(13,37): // Horn of Fenrir
 			if (lpObj->m_btInvenPetPos != 0)
 			{
 				if (lpObj->m_btInvenPetPos >= INVETORY_WEAR_SIZE && lpObj->m_btInvenPetPos < MAIN_INVENTORY_SIZE)
@@ -20794,7 +20798,6 @@ void GameProtocol::CGInventoryEquipment(_tagPMSG_REQ_INVENTORY_EQUIPMENT_ITEM *l
 					}
 				}
 			}
-
 			else if (lpMsg->btValue == (BYTE)-2)
 			{
 				g_Log.Add("[CRenewal][InvenPet][ReqRidePet][%s][%s]", lpObj->AccountID, lpObj->Name);
@@ -20826,11 +20829,13 @@ void GameProtocol::CGInventoryEquipment(_tagPMSG_REQ_INVENTORY_EQUIPMENT_ITEM *l
 			}
 
 			gObjMakePreviewCharSet(iIndex);
+			gObjInventoryEquipment(lpObj);
 			this->GCEquipmentChange(iIndex, lpMsg->btItemPos);
 			IOCP.DataSend(iIndex, (LPBYTE)&pMsg, pMsg.h.size);
 			break;
 		default:
 DEF_SWITCH:
+			gObjInventoryEquipment(lpObj);
 			gObjCalCharacter.CalcCharacter(iIndex);
 			IOCP.DataSend(iIndex, (LPBYTE)&pMsg, pMsg.h.size);
 			break;

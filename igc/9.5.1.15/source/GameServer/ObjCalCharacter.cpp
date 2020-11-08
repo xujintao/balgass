@@ -872,7 +872,6 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	g_kItemSystemFor380.ApplyFor380Option(lpObj);
 	g_kJewelOfHarmonySystem.SetApplyStrengthenItem(lpObj);
 	g_SocketOptionSystem.SetApplySocketEffect(lpObj);
-	gObjInventoryEquipment(lpObj);
 
 	lpObj->AddLife += lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxHP;
 	lpObj->AddBP += lpObj->m_PlayerData->m_MPSkillOpt.iMpsMaxBP;
