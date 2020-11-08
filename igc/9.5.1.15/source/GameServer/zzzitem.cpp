@@ -474,53 +474,30 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		{
 			this->m_RequireLevel = this->m_PetItem_Level * 2 + 218;
 		}
-
-		else if ( (_type >= ITEMGET(12,3) && _type <= ITEMGET(12,6)) || _type == ITEMGET(12,42) || _type == ITEMGET(12,49))
-		{
+		else if (GetItemKindB(_type) == ITEM_KIND_B_WING_2ND) {
 			this->m_RequireLevel = p->RequireLevel + (this->m_Level * 5);
 		}
-
-		else if ( (_type >= ITEMGET(12,36) && _type <= ITEMGET(12,40)) || _type == ITEMGET(12,43) || _type == ITEMGET(12,50) || _type == ITEMGET(12,270)) //Third Wings Fix Required Level
-		{
-			this->m_RequireLevel = p->RequireLevel;
-		}
-
-		else if ( _type >= ITEMGET(12,7) && _type <= ITEMGET(12,24) )
-		{
-			this->m_RequireLevel = p->RequireLevel;
-		}
-
-		else if (_type >= ITEMGET(12, 262) && _type <= ITEMGET(12, 265))
+		else if (GetItemKindB(_type) == ITEM_KIND_B_WING_1ST
+		|| GetItemKindB(_type) == ITEM_KIND_B_LORD_CAPE
+		|| GetItemKindB(_type) == ITEM_KIND_B_RAGEFIGHTER_CAPE
+		|| GetItemKindB(_type) == ITEM_KIND_B_MONSTER_WING)
 		{
 			this->m_RequireLevel = p->RequireLevel + this->m_Level * 4;
 		}
-
-		else if (_type == ITEMGET(12, 266) || _type == ITEMGET(12, 267) || _type == ITEMGET(12,268))
+		else if (GetItemKindB(_type) == ITEM_KIND_B_WING_3RD
+		|| GetItemKindB(_type) == ITEM_KIND_B_CCF_WING
+		|| GetItemKindB(_type) == ITEM_KIND_B_GOLDCOLOSSUS_WING)
 		{
 			this->m_RequireLevel = p->RequireLevel;
 		}
-
-		else if (_type == ITEMGET(12, 269))
+		else if (GetItemKindA(_type) == ITEM_KIND_A_SKILL_ITEM)
 		{
-			this->m_RequireLevel = p->RequireLevel * this->m_Level * 4;
+			this->m_RequireLevel = p->RequireLevel;
 		}
-
-		else if ( _type >= ITEMGET(12,51) && _type <= ITEMGET(12,52) )
-		{
-			this->m_RequireLevel = p->RequireLevel + this->m_Level * 4;
-			if(this->m_RequireLevel > 400)
-			{
-				this->m_RequireLevel= 400;
-			}
-			
-		}
-
 		else if ( _type >= ITEMGET(0,0) && _type < ITEMGET(12,0) )
 		{
-			if ( p->RequireLevel )
-				this->m_RequireLevel = p->RequireLevel;
+			this->m_RequireLevel = p->RequireLevel;
 		}
-
 		else
 		{
 			this->m_RequireLevel = p->RequireLevel + this->m_Level * 4;
