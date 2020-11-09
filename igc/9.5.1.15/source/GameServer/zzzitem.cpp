@@ -2448,60 +2448,14 @@ void CItem::Value()
 	this->m_SellMoney = Gold;
 	this->m_SellMoney /= g_ConfigRead.itemPrices.btItemSellPriceDivisor;
 
-	if ( (this->m_Type < ITEMGET(14,0) || this->m_Type >  ITEMGET(14,8)) &&
-		  this->m_Type != ITEMGET(13,20) &&
-		  this->m_Type != ITEMGET(14,28) &&
-		  this->m_Type != ITEMGET(14,29) &&
-		  this->m_Type != ITEMGET(14,21) &&
-		  this->m_Type != ITEMGET(13,15) &&
-		  this->m_Type != ITEMGET(13,16) &&
-		  this->m_Type != ITEMGET(13,17) &&
-		  this->m_Type != ITEMGET(13,18) &&
-		  this->m_Type != ITEMGET(13,11) &&
-		  this->m_Type != ITEMGET(13,7)  &&
-		  this->m_Type != ITEMGET(13,32) &&
-		  this->m_Type != ITEMGET(13,33) &&
-		  this->m_Type != ITEMGET(13,34) &&
-		  this->m_Type != ITEMGET(13,35) &&
-		  this->m_Type != ITEMGET(13,36) &&
-		  this->m_Type != ITEMGET(13,37) &&
-		  this->m_Type != ITEMGET(14,45) &&
-		  this->m_Type != ITEMGET(14,46) &&
-		  this->m_Type != ITEMGET(14,47) &&
-		  this->m_Type != ITEMGET(14,48) &&
-		  this->m_Type != ITEMGET(14,49) &&
-		  this->m_Type != ITEMGET(14,100) &&
-		  this->m_Type != ITEMGET(14,85) &&
-		  this->m_Type != ITEMGET(14,86) &&
-		  this->m_Type != ITEMGET(14,87) &&
-		  this->m_Type != ITEMGET(14,90) &&
-		  this->m_Type != ITEMGET(14,110) &&
-		  this->m_Type != ITEMGET(14,101) &&
-		  this->m_Type != ITEMGET(13,76) &&
-		  this->m_Type != ITEMGET(13,77) &&
-		  this->m_Type != ITEMGET(13,78) &&
-		  this->m_Type != ITEMGET(13,80) &&
-		  this->m_Type != ITEMGET(13,122) &&
-		  this->m_Type != ITEMGET(13,123) &&
-		  this->m_Type != ITEMGET(13,163) &&
-		  this->m_Type != ITEMGET(13,164) &&
-		  this->m_Type != ITEMGET(13,165) &&
-		  this->m_Type != ITEMGET(13,166) &&
-		  this->m_Type != ITEMGET(13,169) &&
-		  this->m_Type != ITEMGET(13,170) &&
-		  !(this->m_Type >= ITEMGET(13,109) && this->m_Type <= ITEMGET(13,115)) &&
-		  !(this->m_Type >= ITEMGET(13,128) && this->m_Type <= ITEMGET(13,134)) &&
-		  this->m_Type != ITEMGET(13,169) &&
-		  this->m_Type != ITEMGET(13,170) &&
-		  this->m_Type < ITEMGET(14,151) &&
-		  this->m_Type <= ITEMGET(14,159) &&
-		  !(this->m_Type >= ITEMGET(12,130) && this->m_Type <= ITEMGET(12,135)) &&
-		  !g_PentagramSystem.IsPentagramItem(this->m_Type) &&
-		  !g_PentagramSystem.IsPentagramJewel(this->m_Type) &&
-		  !(this->m_Type >= ITEMGET(13,145) && this->m_Type <= ITEMGET(13,147)) &&
-		  this->m_Type != ITEMGET(12,266) &&
-		  this->m_Type != ITEMGET(12,267) &&
-		  this->m_BaseDurability != 0.0)
+	// durability discount
+	if ((GetItemKindA(this->m_Type) == ITEM_KIND_A_WEAPON
+	|| GetItemKindA(this->m_Type) == ITEM_KIND_A_PENDANT
+	|| GetItemKindA(this->m_Type) == ITEM_KIND_A_ARMOR
+	|| GetItemKindA(this->m_Type) == ITEM_KIND_A_RING
+	|| GetItemKindA(this->m_Type) == ITEM_KIND_A_HELPER
+	|| GetItemKindA(this->m_Type) == ITEM_KIND_A_WING)
+	&& this->m_BaseDurability != 0.0)
 	{
 		float persent = 1.0 - this->m_Durability / this->m_BaseDurability;
 		this->m_SellMoney -= (this->m_SellMoney * 0.6 * persent);
@@ -2530,8 +2484,6 @@ void CItem::Value()
 		this->m_SellMoney = 0;
 	}
 }
-
-
 
 void CItem::OldValue()
 {
@@ -4259,106 +4211,81 @@ BOOL HasItemDurability(int index)
 
 int ItemGetDurability(int index, int itemLevel, int ExcellentItem, int SetItem)
 {
-	 if ( index < 0 || index > MAX_ITEMS )
-	 {
-		 g_Log.AddC(TColor::Red,"BAD INDEX %d",index);
-		 return 0;
-	 }
+	if ( index < 0 || index > MAX_ITEMS )
+	{
+		g_Log.AddC(TColor::Red,"BAD INDEX %d",index);
+		return 0;
+	}
+	if (index == ITEMGET(13, 51)) //Season 2.5 Illusion Temple Blood Scroll Ticket
+	{
+		return 1;
+	}
+	if (index == ITEMGET(14, 21) && itemLevel == 3)	// Mark Lord
+		itemLevel = 0;
 
-	 if (index == ITEMGET(14, 21) && itemLevel == 3)	// Mark Lord
-		 itemLevel = 0;
+	if (index == ITEMGET(14, 29)) // Symbol of Kundun
+		return 1;
 
-	 if (index == ITEMGET(14, 29))
-		 return 1;
+	if (index == ITEMGET(14, 100)) //season 4.5 lucky coin add-on
+		return 1;
 
-	 if (index == ITEMGET(14, 100)) //season 4.5 lucky coin add-on
-		 return 1;
+	if (index == ITEMGET(12, 144) // Mithril Fragment
+	|| index == ITEMGET(12, 146)) // Elixir Fragment
+		return 1;
 
-	 if (g_PentagramSystem.IsPentagramItem(index) == true)
-	 {
-		 return ItemAttribute[index].Durability;
-	 }
+	if (g_PentagramSystem.IsPentagramItem(index) == true)
+		return ItemAttribute[index].Durability;
 
-	 if (index == ITEMGET(12, 144) || index == ITEMGET(12, 146))
-	 {
-		 return 1;
-	 }
+	int dur = 0;
+	if (itemLevel < 5)
+	{
+		dur = ItemAttribute[index].Durability + itemLevel;
+	}
+	else if (itemLevel >= 5)
+	{
+		if (itemLevel == 10)
+		{
+			dur = ItemAttribute[index].Durability + itemLevel * 2 - 3;
+		}
+		else if (itemLevel == 11)
+		{
+			dur = ItemAttribute[index].Durability + itemLevel * 2 - 1;
+		}
+		else if (itemLevel == 12)
+		{
+			dur = ItemAttribute[index].Durability + itemLevel * 2 + 2;
+		}
+		else if (itemLevel == 13)
+		{
+			dur = ItemAttribute[index].Durability + itemLevel * 2 + 6;
+		}
+		else if (itemLevel == 14)
+		{
+			dur = ItemAttribute[index].Durability + 39;
+		}
+		else if (itemLevel == 15)
+		{
+			dur = ItemAttribute[index].Durability + 47;
+		}
+		else
+		{
+			dur = ItemAttribute[index].Durability + itemLevel * 2 - 4;
+		}
+	}
 
-	 int dur = 0;
+	if (GetItemKindA(index) != ITEM_KIND_A_WING
+	&& GetItemGroup(index) != ITEMTYPE_ANGEL)
+	{
+		if (SetItem != 0)
+			dur += 20;
+		else if (ExcellentItem != 0) // Prevent duple if items
+			dur += 15;
+	}
 
-	 if (itemLevel < 5)
-	 {
-		 dur = ItemAttribute[index].Durability + itemLevel;
-	 }
+	if (dur > 255)
+		dur = 255;
 
-	 else if (itemLevel >= 5)
-	 {
-		 if (itemLevel == 10)
-		 {
-			 dur = ItemAttribute[index].Durability + itemLevel * 2 - 3;
-		 }
-		 else if (itemLevel == 11)
-		 {
-			 dur = ItemAttribute[index].Durability + itemLevel * 2 - 1;
-		 }
-		 else if (itemLevel == 12)
-		 {
-			 dur = ItemAttribute[index].Durability + itemLevel * 2 + 2;
-		 }
-		 else if (itemLevel == 13)
-		 {
-			 dur = ItemAttribute[index].Durability + itemLevel * 2 + 6;
-		 }
-		 else if (itemLevel == 14)
-		 {
-			 dur = ItemAttribute[index].Durability + 39;
-		 }
-		 else if (itemLevel == 15)
-		 {
-			 dur = ItemAttribute[index].Durability + 47;
-		 }
-		 else
-		 {
-			 dur = ItemAttribute[index].Durability + itemLevel * 2 - 4;
-		 }
-	 }
-
-	 if (index == ITEMGET(13, 51)) //Season 2.5 Illusion Temple Blood Scroll Ticket
-	 {
-		 dur = 1;
-	 }
-
-	 if ((index < ITEMGET(12, 3) || index > ITEMGET(12, 6)) &&
-		 index != ITEMGET(0, 19) &&
-		 index != ITEMGET(4, 18) &&
-		 index != ITEMGET(5, 10) &&
-		 index != ITEMGET(2, 13) &&
-		 index != ITEMGET(13, 30) &&
-		 index != ITEMGET(12, 36) &&
-		 index != ITEMGET(12, 37) &&
-		 index != ITEMGET(12, 38) &&
-		 index != ITEMGET(12, 39) &&
-		 index != ITEMGET(12, 40) &&
-		 index != ITEMGET(12, 41) &&
-		 index != ITEMGET(12, 42) &&
-		 index != ITEMGET(12, 43) &&
-		 index != ITEMGET(12, 49) &&
-		 index != ITEMGET(12, 50) &&
-		 index != ITEMGET(12, 262) &&
-		 index != ITEMGET(12, 263) &&
-		 index != ITEMGET(12, 264) &&
-		 index != ITEMGET(12, 265))
-	 {
-		 if (SetItem != 0)
-			 dur += 20;
-		 else if (ExcellentItem != 0) // Prevent duple if items
-			 dur += 15;
-	 }
-
-	 if (dur > 255)
-		 dur = 255;
-
-	 return dur;
+	return dur;
 }
 
 
