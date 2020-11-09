@@ -717,49 +717,56 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 			iOriginTargetDefense -= iOriginTargetDefense * iCurseValue / 100;
 		}
 
+		if (targetdefense < 0) {
+			targetdefense = 0;
+		}
+		if (iOriginTargetDefense < 0) {
+			iOriginTargetDefense = 0;
+		}
+
 		iTargetDefense = iOriginTargetDefense;
 
 		if ( skill == 19
-			|| skill == 20
-			|| skill == 21
-			|| skill == 23
-			|| skill == 56
-			|| skill == 41
-			|| skill == 47
-			|| skill == 42
-			|| skill == 49
-			|| skill == 43
-			|| skill == 22
-			|| skill == 55
-			|| skill == 44
-			|| skill == 57
-			|| skill == 74
-			|| g_MasterLevelSkillTreeSystem.GetBaseMasterLevelSkill(skill) == 330
-			|| g_MasterLevelSkillTreeSystem.GetBaseMasterLevelSkill(skill) == 481
-			|| g_MasterLevelSkillTreeSystem.GetBaseMasterLevelSkill(skill) == 336
-			|| g_MasterLevelSkillTreeSystem.GetBaseMasterLevelSkill(skill) == 331
-			|| g_MasterLevelSkillTreeSystem.GetBaseMasterLevelSkill(skill) == 490
-			|| g_MasterLevelSkillTreeSystem.GetBaseMasterLevelSkill(skill) == 482
-			|| skill == 235
-			|| skill == 232
-			|| skill == 236
-			|| skill == 238
-			|| skill == 326
-			|| skill == 327
-			|| skill == 328
-			|| skill == 329
-			|| skill == 479
-			|| skill == 337
-			|| skill == 332
-			|| skill == 333
-			|| skill == 344
-			|| skill == 346
-			|| skill == 411
-			|| skill == 431
-			|| skill == 492
-			|| skill == 494
-			|| skill == 523
-			|| skill == 493)
+		|| skill == 20
+		|| skill == 21
+		|| skill == 22
+		|| skill == 23
+		|| skill == 41
+		|| skill == 42
+		|| skill == 43
+		|| skill == 44
+		|| skill == 47
+		|| skill == 49
+		|| skill == 55
+		|| skill == 56
+		|| skill == 57
+		|| skill == 74
+		|| skill == 232
+		|| skill == 235
+		|| skill == 236
+		|| skill == 238
+		|| skill == 326
+		|| skill == 327
+		|| skill == 328
+		|| skill == 329
+		|| skill == 330
+		|| skill == 331
+		|| skill == 332
+		|| skill == 333
+		|| skill == 336
+		|| skill == 337
+		|| skill == 344
+		|| skill == 346
+		|| skill == 411
+		|| skill == 431
+		|| skill == 479
+		|| skill == 481
+		|| skill == 482
+		|| skill == 490
+		|| skill == 492
+		|| skill == 493
+		|| skill == 494
+		|| skill == 523)
 		{
 			AttackDamage = this->GetAttackDamage(lpObj, lpTargetObj, targetdefense, MsgDamage, lpMagic);
 
@@ -887,11 +894,11 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 				AttackDamage += iOption * AttackDamage / 100;
 
 			iOption = 0;
-			if ( gObjGetValueOfBuffIndex(lpObj, 122, &iOption, 0) )
+			if ( gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_HAWK_FIGURINE, &iOption, 0) )
 				AttackDamage += iOption * AttackDamage / 100;
 
 			iOption = 0;
-			if (gObjGetValueOfBuffIndex(lpObj, 202, &iOption, 0))
+			if (gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_PCS_SCROLL_BATTLE_MASTER, &iOption, 0))
 				AttackDamage += iOption * AttackDamage / 100;
 
 			int iMuunEffectValue = 0;
@@ -914,11 +921,11 @@ BOOL CObjAttack::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf* lpMagic,  int
 				AttackDamage += iOption * AttackDamage / 100;
 
 			iOption = 0;
-			if ( gObjGetValueOfBuffIndex(lpObj, 123, &iOption, 0) )
+			if ( gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_GOAT_FIGURINE, &iOption, 0) )
 				AttackDamage += iOption * AttackDamage / 100;
 
 			iOption = 0;
-			if (gObjGetValueOfBuffIndex(lpObj, 203, &iOption, 0))
+			if (gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_PCS_SCROLL_STRENGTH_MASTER, &iOption, 0))
 				AttackDamage += iOption * AttackDamage / 100;
 
 			int iMuunEffectValue = 0;
