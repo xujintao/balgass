@@ -3680,7 +3680,8 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 		float nCritical = lpObj->m_CriticalDamageSuccessRate;
 		float nExcellent = lpObj->m_ExcellentDamageSuccessRate;
 
-		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_CRITICAL_DMG_INC_MAS) == true && lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate_Darklord > 0.0)
+		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_CRITICAL_DMG_INC_MAS) == true
+		&& lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate_Darklord > 0.0)
 		{
 			nExcellent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate_Darklord;
 		}
@@ -3692,12 +3693,12 @@ int  CObjAttack::GetAttackDamage(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefen
 		}
 		
 		BOOL cDamage = FALSE;
-		if (nCritical > 0.0 && rand()%10000 < nCritical*100)
+		if (nCritical > 0.0f && rand()%10000 < nCritical*100)
 		{
 			cDamage = TRUE;
 			effect = 3;
 		}
-		if (nExcellent > 0.0 && rand()%10000 < nExcellent*100)
+		if (nExcellent > 0.0f && rand()%10000 < nExcellent*100)
 		{
 			cDamage = TRUE;
 			effect = 2;
@@ -3783,8 +3784,7 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 	int ad;
 	int iIncreaseDamage = 0;
 
-	ad = lpMagic->GetDamage();
-
+	int magicCurse = 0;
 	switch (lpMagic->m_Skill)
 	{
 	case 219:
@@ -3796,7 +3796,6 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 	case 225:
 	case 459:
 	case 460:
-	{
 		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER) == true)
 		{
 			int iValue = gObjGetTotalValueOfEffect(lpObj, EFFECTTYPE_BERSERKER_UP);
@@ -3825,27 +3824,9 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 		damagemin = lpObj->m_CurseDamageMin + fCurseDamageMin + lpMagic->m_DamageMin + g_SkillSpec.CalcStatBonus(lpObj, lpMagic->m_Skill);
 		damagemax = lpObj->m_CurseDamageMax + fCurseDamageMax + lpMagic->m_DamageMax + g_SkillSpec.CalcStatBonus(lpObj, lpMagic->m_Skill);
 
-		if (g_MasterLevelSkillTreeSystem.CheckMasterLevelSkill(lpMagic->m_Skill) == true)
-		{
-			float fDamage = g_MasterLevelSkillTreeSystem.GetSkillAttackDamage(lpObj, lpMagic->m_Skill);
-			damagemin += fDamage;
-			damagemax += fDamage;
-		}
-
-		if (lpObj->pInventory[1].IsItem() && (lpObj->pInventory[1].m_Type >= ITEMGET(5, 0) && lpObj->pInventory[1].m_Type < ITEMGET(6, 0)) && lpObj->pInventory[1].m_IsValidItem)
-		{
-			int damage = lpObj->pInventory[1].m_CurseSpell / 2 + lpObj->pInventory[1].m_Level * 2;	// #formula
-			damage -= (WORD)(lpObj->pInventory[1].m_CurrentDurabilityState * damage);	// #formula
-
-			damagemin += damagemin * damage / 100;	// #formula
-			damagemax += damagemax * damage / 100;	// #formula
-		}
-
-		iIncreaseDamage += gObjGetTotalValueOfEffect(lpObj, EFFECTTYPE_CURSED_DAMAGE);
+		magicCurse = lpObj->m_Curse;
 		break;
-	}
 	default:
-	{
 		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_BERSERKER) == true)
 		{
 			int iValue = gObjGetTotalValueOfEffect(lpObj, 31);
@@ -3869,27 +3850,15 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 		damagemin = (int)((float)(lpMagic->m_DamageMin + lpObj->m_MagicDamageMin) + fMagicDamageMin + g_SkillSpec.CalcStatBonus(lpObj, lpMagic->m_Skill));
 		damagemax = (int)((float)(lpMagic->m_DamageMax + lpObj->m_MagicDamageMax) + fMagicDamageMax + g_SkillSpec.CalcStatBonus(lpObj, lpMagic->m_Skill));
 
-		if (g_MasterLevelSkillTreeSystem.CheckMasterLevelSkill(lpMagic->m_Skill) == true)
-		{
-			float fDamage = g_MasterLevelSkillTreeSystem.GetSkillAttackDamage(lpObj, lpMagic->m_Skill);
-			damagemin += fDamage;
-			damagemax += fDamage;
-		}
-
-		if (lpObj->pInventory[0].IsItem() && (lpObj->pInventory[0].m_Type >= ITEMGET(5, 0) && lpObj->pInventory[0].m_Type < ITEMGET(6, 0)) && lpObj->pInventory[0].m_IsValidItem)
-		{
-			int damage = lpObj->pInventory[0].m_Magic / 2 + lpObj->pInventory[0].m_Level * 2;	// #formula
-			damage -= (WORD)(lpObj->pInventory[0].m_CurrentDurabilityState * damage);	// #formula
-
-			damagemin += damagemin * damage / 100;	// #formula
-			damagemax += damagemax * damage / 100;	// #formula
-		}
-
-		iIncreaseDamage += gObjGetTotalValueOfEffect(lpObj, EFFECTTYPE_MAGICDAMAGE);
-	}
+		magicCurse = lpObj->m_Magic;
 		break;
 	}
-
+	if (g_MasterLevelSkillTreeSystem.CheckMasterLevelSkill(lpMagic->m_Skill) == true)
+	{
+		float fDamage = g_MasterLevelSkillTreeSystem.GetSkillAttackDamage(lpObj, lpMagic->m_Skill);
+		damagemin += fDamage;
+		damagemax += fDamage;
+	}
 	damagemin += lpObj->m_PlayerData->SetOpAddSkillAttack;
 	damagemax += lpObj->m_PlayerData->SetOpAddSkillAttack;
 
@@ -3908,9 +3877,6 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 			damagemax += 255;
 		}
 	}
-
-	damagemin += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
-	damagemax += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
 
 	if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_ARCA_FIRETOWER))
 	{
@@ -3966,37 +3932,18 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 		damagemax += nMuunItemEffectValue;
 	}
 
+	damagemin += damagemax * magicCurse / 100;
+	damagemax += damagemax * magicCurse / 100;
+
 	int subd = damagemax - damagemin;
+	ad = (damagemin + (rand() % (subd + 1))) - targetDefense;
 
-	__try
+	float nCritical = lpObj->m_CriticalDamageSuccessRate;
+	float nExcellent = lpObj->m_ExcellentDamageSuccessRate;
+
+	if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate_Darklord > 0.0)
 	{
-		ad = (damagemin + (rand() % (subd + 1))) - targetDefense;
-	}
-
-	__except (subd = 1, 1)
-	{
-
-	}
-
-	int nCritical = lpObj->m_CriticalDamageSuccessRate;
-	int nExcellent = lpObj->m_ExcellentDamageSuccessRate;
-
-	if (lpObj->Type == OBJ_USER)
-	{
-		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate > 0.0)
-		{
-			nCritical += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate;
-		}
-
-		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate > 0.0)
-		{
-			nExcellent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate;
-		}
-
-		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate_Darklord > 0.0)
-		{
-			nExcellent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate_Darklord;
-		}
+		nExcellent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate_Darklord;
 	}
 
 	if (lpTargetObj->Type == OBJ_USER)
@@ -4006,23 +3953,15 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 	}
 
 	int cDamage = FALSE;
-
-	if (nCritical > 0)
+	if (nCritical > 0.0f && rand()%10000 < nCritical*100)
 	{
-		if ((rand() % 100) < nCritical)
-		{
-			effect = 3;
-			cDamage = TRUE;
-		}
+		effect = 3;
+		cDamage = TRUE;
 	}
-
-	if (nExcellent > 0)
+	if (nExcellent > 0.0f && rand()%10000 < nExcellent*100)
 	{
-		if ((rand() % 100) < nExcellent)
-		{
-			effect = 2;
-			cDamage = TRUE;
-		}
+		effect = 2;
+		cDamage = TRUE;
 	}
 
 	if (cDamage)
@@ -4030,16 +3969,6 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 		ad = damagemax - targetDefense;
 		ad += lpObj->m_PlayerData->SetOpAddCriticalDamage;
 		ad += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddCriticalDamage;
-		int iOption = 0;
-		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_CRITICAL_DMG_INC, &iOption, 0);
-		ad += iOption;
-		iOption = 0;
-		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_CRITICAL_DMG_INC_STR, &iOption, 0);
-		ad += iOption;
-		iOption = 0;
-		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_CRITICAL_DMG_INC_MAS, &iOption, 0);
-		ad += iOption;
-
 		if (effect == 2)
 		{
 			ad += damagemax * 20 / 100;
@@ -4060,12 +3989,10 @@ int CObjAttack::GetAttackDamageSummoner(LPOBJ lpObj, LPOBJ lpTargetObj, int targ
 		ad += iArcaEffect;
 	}
 
-	ad += iIncreaseDamage;
-
 	return ad;
 }
 
-int  CObjAttack::GetAttackDamageWizard(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefense, CMagicInf* lpMagic, int& effect)
+int CObjAttack::GetAttackDamageWizard(LPOBJ lpObj, LPOBJ lpTargetObj, int targetDefense, CMagicInf* lpMagic, int& effect)
 {
 	if (lpObj->Type != OBJ_USER)
 	{
@@ -4074,366 +4001,130 @@ int  CObjAttack::GetAttackDamageWizard(LPOBJ lpObj, LPOBJ lpTargetObj, int targe
 
 	int damagemin;
 	int damagemax;
-	int ad;
 
-	if (lpMagic->m_Skill == 40)
+	if (lpMagic->m_Skill == 40
+	&& lpObj->m_PlayerData->SkillHellFire2Count >= 0)
 	{
-		if (lpObj->m_PlayerData->SkillHellFire2Count >= 0)
+		int SkillHellFire2CountDamageTable[13] =
 		{
-			int SkillHellFire2CountDamageTable[13] =
-			{
-				0, 20, 50, 99, 160,
-				225, 325, 425, 550, 700,
-				880, 1090, 1320
-			};
-			int CountDamage;
-
-			if (lpObj->m_PlayerData->SkillHellFire2Count > 12)
-			{
-				CountDamage = 0;
-			}
-			else
-			{
-				CountDamage = SkillHellFire2CountDamageTable[lpObj->m_PlayerData->SkillHellFire2Count];
-			}
-
-			ad = (lpObj->m_PlayerData->Strength + lpObj->AddStrength) / 2 + CountDamage;
-
-			damagemin = ad + lpObj->m_MagicDamageMin;
-			damagemax = ad + lpObj->m_MagicDamageMax;
-
-			damagemin += lpObj->m_PlayerData->SetOpAddSkillAttack;
-			damagemax += lpObj->m_PlayerData->SetOpAddSkillAttack;
-
-			if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_ARCA_FIRETOWER))
-			{
-				int nEffectValue = 0;
-				gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_ARCA_FIRETOWER, &nEffectValue, 0);
-
-				damagemin += nEffectValue;
-				damagemax += nEffectValue;
-			}
-
-			if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_OBSIDIAN) == TRUE)
-			{
-				int nEffectValue = 0;
-				gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_OBSIDIAN, &nEffectValue, NULL);
-
-				damagemin += nEffectValue;
-				damagemax += nEffectValue;
-			}
-
-			if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_OBSIDIAN_STR) == TRUE)
-			{
-				int nEffectValue = 0;
-				gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_OBSIDIAN_STR, &nEffectValue, NULL);
-
-				damagemin += nEffectValue;
-				damagemax += nEffectValue;
-			}
-
-			int nMuunItemValue = 0;
-
-			if (g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_SKILL_POWER, &nMuunItemValue, 0) == 1)
-			{
-				damagemin += nMuunItemValue;
-				damagemax += nMuunItemValue;
-			}
-
-			if (lpObj->Type == OBJ_USER && lpTargetObj->Type != OBJ_USER)
-			{
-				nMuunItemValue = 0;
-				g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_ATTACK_POWER_NONPVP, &nMuunItemValue, 0);
-
-				damagemin += nMuunItemValue;
-				damagemax += nMuunItemValue;
-
-				nMuunItemValue = 0;
-				g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_MAX_ATTACK_POWER_NONPVP, &nMuunItemValue, 0);
-				
-				damagemax += nMuunItemValue;
-
-				nMuunItemValue = 0;
-				g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_SKILL_POWER_NONPVP, &nMuunItemValue, 0);
-
-				damagemin += nMuunItemValue;
-				damagemax += nMuunItemValue;
-			}
-
-			int SkillAttr = MagicDamageC.GetSkillAttr(lpMagic->m_Skill);
-
-			if (SkillAttr != -1)
-			{
-				if ((lpObj->Authority & 0x20) != 0x20 || (lpObj->pInventory[10].m_Type != ITEMGET(13, 42) && lpObj->pInventory[11].m_Type != ITEMGET(13, 42)))
-				{
-					damagemin += (BYTE)lpObj->m_AddResistance[SkillAttr];
-					damagemax += (BYTE)lpObj->m_AddResistance[SkillAttr];
-				}
-				else
-				{
-					damagemin += 255;
-					damagemax += 255;
-				}
-			}
-
-			damagemin += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
-			damagemax += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
-		}
+			0, 20, 50, 99, 160,
+			225, 325, 425, 550, 700,
+			880, 1090, 1320
+		};
+		int CountDamage;
+		if (lpObj->m_PlayerData->SkillHellFire2Count > 12)
+			CountDamage = 0;
+		else
+			CountDamage = SkillHellFire2CountDamageTable[lpObj->m_PlayerData->SkillHellFire2Count];
+		int ad = (lpObj->m_PlayerData->Strength + lpObj->AddStrength) / 2 + CountDamage;
+		damagemin = ad + lpObj->m_MagicDamageMin;
+		damagemax = ad + lpObj->m_MagicDamageMax;
 	}
-
-	else if (lpMagic->m_Skill == 392)
+	else if (lpMagic->m_Skill == 392
+	&& lpObj->m_PlayerData->SkillStrengthenHellFire2Count >= 0)
 	{
-		if (lpObj->m_PlayerData->SkillStrengthenHellFire2Count >= 0)
+		int SkillHellFire2CountDamageTable[13] =
 		{
-			int SkillHellFire2CountDamageTable[13] =
-			{
-				0, 20, 50, 99, 160,
-				225, 325, 425, 550, 700,
-				880, 1090, 1320
-			};
+			0, 20, 50, 99, 160,
+			225, 325, 425, 550, 700,
+			880, 1090, 1320
+		};
+		int CountDamage;
+		if (lpObj->m_PlayerData->SkillStrengthenHellFire2Count > 12)
+			CountDamage = 0;
+		else
+			CountDamage = SkillHellFire2CountDamageTable[lpObj->m_PlayerData->SkillStrengthenHellFire2Count];
 
-			int CountDamage;
-
-			if (lpObj->m_PlayerData->SkillStrengthenHellFire2Count > 12)
-			{
-				CountDamage = 0;
-			}
-			else
-			{
-				CountDamage = SkillHellFire2CountDamageTable[lpObj->m_PlayerData->SkillStrengthenHellFire2Count];
-			}
-
-			ad = (lpObj->m_PlayerData->Strength + lpObj->AddStrength) / 2 + CountDamage;
-
-			damagemin = ad + lpObj->m_MagicDamageMin;
-			damagemax = ad + lpObj->m_MagicDamageMax;
-
-			damagemin += lpObj->m_PlayerData->SetOpAddSkillAttack;
-			damagemax += lpObj->m_PlayerData->SetOpAddSkillAttack;
-
-			int SkillAttr = MagicDamageC.GetSkillAttr(lpMagic->m_Skill);
-
-			if (SkillAttr != -1)
-			{
-				if ((lpObj->Authority & 0x20) != 0x20 || (lpObj->pInventory[10].m_Type != ITEMGET(13, 42) && lpObj->pInventory[11].m_Type != ITEMGET(13, 42)))
-				{
-					damagemin += (BYTE)lpObj->m_AddResistance[SkillAttr];
-					damagemax += (BYTE)lpObj->m_AddResistance[SkillAttr];
-				}
-				else
-				{
-					damagemin += 255;
-					damagemax += 255;
-				}
-			}
-
-			if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_ARCA_FIRETOWER))
-			{
-				int nEffectValue = 0;
-				gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_ARCA_FIRETOWER, &nEffectValue, 0);
-
-				damagemin += nEffectValue;
-				damagemax += nEffectValue;
-			}
-
-			if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_OBSIDIAN) == TRUE)
-			{
-				int nEffectValue = 0;
-				gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_OBSIDIAN, &nEffectValue, NULL);
-
-				damagemin += nEffectValue;
-				damagemax += nEffectValue;
-			}
-
-			if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_OBSIDIAN_STR) == TRUE)
-			{
-				int nEffectValue = 0;
-				gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_OBSIDIAN_STR, &nEffectValue, NULL);
-
-				damagemin += nEffectValue;
-				damagemax += nEffectValue;
-			}
-
-			int nMuunItemValue = 0;
-
-			if (g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_SKILL_POWER, &nMuunItemValue, 0) == 1)
-			{
-				damagemin += nMuunItemValue;
-				damagemax += nMuunItemValue;
-			}
-
-			if (lpObj->Type == OBJ_USER && lpTargetObj->Type != OBJ_USER)
-			{
-				nMuunItemValue = 0;
-				g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_ATTACK_POWER_NONPVP, &nMuunItemValue, 0);
-
-				damagemin += nMuunItemValue;
-				damagemax += nMuunItemValue;
-
-				nMuunItemValue = 0;
-				g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_MAX_ATTACK_POWER_NONPVP, &nMuunItemValue, 0);
-				
-				damagemax += nMuunItemValue;
-
-				nMuunItemValue = 0;
-				g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_SKILL_POWER_NONPVP, &nMuunItemValue, 0);
-
-				damagemin += nMuunItemValue;
-				damagemax += nMuunItemValue;
-			}
-
-			damagemin += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
-			damagemax += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
-		}
+		int ad = (lpObj->m_PlayerData->Strength + lpObj->AddStrength) / 2 + CountDamage;
+		damagemin = ad + lpObj->m_MagicDamageMin;
+		damagemax = ad + lpObj->m_MagicDamageMax;
 	}
-
 	else
 	{
-		ad = lpMagic->GetDamage();
-
 		damagemin = lpMagic->m_DamageMin + lpObj->m_MagicDamageMin + g_SkillSpec.CalcStatBonus(lpObj, lpMagic->m_Skill);
 		damagemax = lpMagic->m_DamageMax + lpObj->m_MagicDamageMax + g_SkillSpec.CalcStatBonus(lpObj, lpMagic->m_Skill);
-
 		if (g_MasterLevelSkillTreeSystem.CheckMasterLevelSkill(lpMagic->m_Skill) == true)
 		{
 			float fDamage = g_MasterLevelSkillTreeSystem.GetSkillAttackDamage(lpObj, lpMagic->m_Skill);
 			damagemin += fDamage;
 			damagemax += fDamage;
 		}
-
-		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_ARCA_FIRETOWER))
-		{
-			int nEffectValue = 0;
-			gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_ARCA_FIRETOWER, &nEffectValue, 0);
-
-			damagemin += nEffectValue;
-			damagemax += nEffectValue;
-		}
-
-		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_OBSIDIAN) == TRUE)
-		{
-			int nEffectValue = 0;
-			gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_OBSIDIAN, &nEffectValue, NULL);
-
-			damagemin += nEffectValue;
-			damagemax += nEffectValue;
-		}
-
-		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_OBSIDIAN_STR) == TRUE)
-		{
-			int nEffectValue = 0;
-			gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_OBSIDIAN_STR, &nEffectValue, NULL);
-
-			damagemin += nEffectValue;
-			damagemax += nEffectValue;
-		}
-
-		int nMuunOptValue = 0;
-
-		if (g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_SKILL_POWER, &nMuunOptValue, 0) == 1)
-		{
-			damagemin += nMuunOptValue;
-			damagemax += nMuunOptValue;
-		}
-
-		if (lpObj->Type == OBJ_USER && lpTargetObj->Type != OBJ_USER)
-		{
-			nMuunOptValue = 0;
-			g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_ATTACK_POWER_NONPVP, &nMuunOptValue, 0);
-
-			damagemin += nMuunOptValue;
-			damagemax += nMuunOptValue;
-
-			nMuunOptValue = 0;
-			g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_MAX_ATTACK_POWER_NONPVP, &nMuunOptValue, 0);
-
-			damagemax += nMuunOptValue;
-
-			nMuunOptValue = 0;
-			g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_SKILL_POWER_NONPVP, &nMuunOptValue, 0);
-
-			damagemin += nMuunOptValue;
-			damagemax += nMuunOptValue;
-		}
-
-		damagemin += lpObj->m_PlayerData->SetOpAddSkillAttack;
-		damagemax += lpObj->m_PlayerData->SetOpAddSkillAttack;
-
-		int SkillAttr = MagicDamageC.GetSkillAttr(lpMagic->m_Skill);
-
-		if (SkillAttr != -1)
-		{
-			if ((lpObj->Authority & 0x20) != 0x20 || (lpObj->pInventory[10].m_Type != ITEMGET(13, 42) && lpObj->pInventory[11].m_Type != ITEMGET(13, 42)))
-			{
-				damagemin += (BYTE)lpObj->m_AddResistance[SkillAttr];
-				damagemax += (BYTE)lpObj->m_AddResistance[SkillAttr];
-			}
-			else
-			{
-				damagemin += 255;
-				damagemax += 255;
-			}
-		}
-
-		damagemin += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
-		damagemax += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddSkillAttack;
 	}
-
-	CItem * Right = &lpObj->pInventory[0];
-
-	if (Right->IsItem())
+	if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_ARCA_FIRETOWER))
 	{
-		if ((Right->m_Type >= ITEMGET(5, 0) && Right->m_Type < ITEMGET(6, 0)) ||
-			Right->m_Type == ITEMGET(0, 31) ||
-			Right->m_Type == ITEMGET(0, 21) ||
-			Right->m_Type == ITEMGET(0, 23) ||
-			Right->m_Type == ITEMGET(0, 25) ||
-			Right->m_Type == ITEMGET(0, 28) ||
-			Right->m_Type == ITEMGET(0, 30))
-		{
-			if (Right->m_IsValidItem)
-			{
-				int damage = Right->m_Magic / 2 + Right->m_Level * 2;	// #formula
-				damage -= (WORD)(Right->m_CurrentDurabilityState * damage);	// #formula
+		int nEffectValue = 0;
+		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_ARCA_FIRETOWER, &nEffectValue, 0);
 
-				damagemin += damagemin * damage / 100;	// #formula
-				damagemax += damagemax * damage / 100;	// #formula
-			}
+		damagemin += nEffectValue;
+		damagemax += nEffectValue;
+	}
+
+	if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_OBSIDIAN) == TRUE)
+	{
+		int nEffectValue = 0;
+		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_OBSIDIAN, &nEffectValue, NULL);
+
+		damagemin += nEffectValue;
+		damagemax += nEffectValue;
+	}
+
+	if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_OBSIDIAN_STR) == TRUE)
+	{
+		int nEffectValue = 0;
+		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_OBSIDIAN_STR, &nEffectValue, NULL);
+
+		damagemin += nEffectValue;
+		damagemax += nEffectValue;
+	}
+	int SkillAttr = MagicDamageC.GetSkillAttr(lpMagic->m_Skill);
+	if (SkillAttr != -1)
+	{
+		if ((lpObj->Authority & 0x20) != 0x20 || (lpObj->pInventory[10].m_Type != ITEMGET(13, 42) && lpObj->pInventory[11].m_Type != ITEMGET(13, 42)))
+		{
+			damagemin += (BYTE)lpObj->m_AddResistance[SkillAttr];
+			damagemax += (BYTE)lpObj->m_AddResistance[SkillAttr];
+		}
+		else
+		{
+			damagemin += 255;
+			damagemax += 255;
 		}
 	}
+
+	int nMuunOptValue = 0;
+	if (g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_SKILL_POWER, &nMuunOptValue, 0) == 1)
+	{
+		damagemin += nMuunOptValue;
+		damagemax += nMuunOptValue;
+	}
+	if (lpObj->Type == OBJ_USER && lpTargetObj->Type != OBJ_USER)
+	{
+		nMuunOptValue = 0;
+		g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_ATTACK_POWER_NONPVP, &nMuunOptValue, 0);
+
+		damagemin += nMuunOptValue;
+		damagemax += nMuunOptValue;
+
+		nMuunOptValue = 0;
+		g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_MAX_ATTACK_POWER_NONPVP, &nMuunOptValue, 0);
+
+		damagemax += nMuunOptValue;
+
+		nMuunOptValue = 0;
+		g_CMuunSystem.GetMuunItemValueOfOptType(lpObj, MUUN_INC_SKILL_POWER_NONPVP, &nMuunOptValue, 0);
+
+		damagemin += nMuunOptValue;
+		damagemax += nMuunOptValue;
+	}
+
+	damagemin += damagemax * lpObj->m_Magic / 100;
+	damagemax += damagemax * lpObj->m_Magic / 100;
 
 	int subd = damagemax - damagemin;
+	int ad = (damagemin + (rand() % (subd + 1))) - targetDefense;
 
-	__try
-	{
-		ad = (damagemin + (rand() % (subd + 1))) - targetDefense;
-	}
-
-	__except (subd = 1, 1)
-	{
-
-	}
-
-	int nCritical = lpObj->m_CriticalDamageSuccessRate;
-	int nExcellent = lpObj->m_ExcellentDamageSuccessRate;
-
-	if (lpObj->Type == OBJ_USER)
-	{
-		if (gObjCheckUsedBuffEffect(lpObj, BUFFTYPE_MAGIC_POWER_INC_MAS) == true)
-		{
-			nCritical += lpObj->m_PlayerData->m_MPSkillOpt.iMpsCriticalRateInc;
-		}
-
-		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate > 0.0)
-		{
-			nCritical += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncCriticalDamageRate;
-		}
-
-		if (lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate > 0.0)
-		{
-			nExcellent += lpObj->m_PlayerData->m_MPSkillOpt.iMpsIncExcellentDamageRate;
-		}
-	}
+	float nCritical = lpObj->m_CriticalDamageSuccessRate;
+	float nExcellent = lpObj->m_ExcellentDamageSuccessRate;
 
 	if (lpTargetObj->Type == OBJ_USER)
 	{
@@ -4442,23 +4133,16 @@ int  CObjAttack::GetAttackDamageWizard(LPOBJ lpObj, LPOBJ lpTargetObj, int targe
 	}
 
 	int cDamage = FALSE;
-
-	if (nCritical > 0)
+	if (nCritical > 0.0f && rand()%10000 < nCritical*100)
 	{
-		if ((rand() % 100) < nCritical)
-		{
-			effect = 3;
-			cDamage = TRUE;
-		}
+		effect = 3;
+		cDamage = TRUE;
 	}
 
-	if (nExcellent > 0)
+	if (nExcellent > 0.0f && rand()%10000 < nExcellent*100)
 	{
-		if ((rand() % 100) < nExcellent)
-		{
-			effect = 2;
-			cDamage = TRUE;
-		}
+		effect = 2;
+		cDamage = TRUE;
 	}
 
 	if (cDamage)
@@ -4466,16 +4150,6 @@ int  CObjAttack::GetAttackDamageWizard(LPOBJ lpObj, LPOBJ lpTargetObj, int targe
 		ad = damagemax - targetDefense;
 		ad += lpObj->m_PlayerData->SetOpAddCriticalDamage;
 		ad += lpObj->m_PlayerData->m_JewelOfHarmonyEffect.HJOpAddCriticalDamage;
-		int iOption = 0;
-		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_CRITICAL_DMG_INC, &iOption, 0);
-		ad += iOption;
-		iOption = 0;
-		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_CRITICAL_DMG_INC_STR, &iOption, 0);
-		ad += iOption;
-		iOption = 0;
-		gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_CRITICAL_DMG_INC_MAS, &iOption, 0);
-		ad += iOption;
-
 		if (effect == 2)
 		{
 			ad += damagemax * 20 / 100;

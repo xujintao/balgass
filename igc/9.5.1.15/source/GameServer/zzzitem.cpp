@@ -103,47 +103,31 @@ int CItem::IsSetItem() // Good
 
 void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Attribute2, BYTE SetOption, BYTE ItemEffectEx, BYTE *SocketOption, BYTE SocketBonusOption, BYTE PeriodItemOption, BYTE DbVersion)
 {
-	int _type;
 	int ItemLevel;
-	LPITEM_ATTRIBUTE p;
 	int SOption;
 	int SOptionStatValue;
-	int iChaosItem;
 	int i;
-	
-	_type = type;
-	
-	if ( _type >MAX_ITEMS-1)
-	{
-		g_Log.AddC(TColor::Red,  "error-L1 : ItemIndex error %d", _type);
-	}
-	
-	p=&ItemAttribute[_type];
-	this->m_serial=ItemAttribute[_type].Serial ;
-	this->m_Type=type;
-	
-	if ( (DbVersion ) <= 2)
-	{
-		this->m_Type=_type;
-	}
 
-	this->m_NewOption = Attribute2;
+	if (type >MAX_ITEMS-1)
+	{
+		g_Log.AddC(TColor::Red,  "error-L1 : ItemIndex error %d", type);
+	}
 	
+	LPITEM_ATTRIBUTE p = &ItemAttribute[type];
+	this->m_serial = ItemAttribute[type].Serial ;
+	this->m_Type = type;
+	this->m_NewOption = Attribute2;
 	if (p->OptionFlag  == 0)
 	{
 		this->m_NewOption=0;
 	}
 
-	if ( ((_type >= ITEMGET(12,3) ) && (_type <= ITEMGET(12,6) ) ) || ((_type >= ITEMGET(12,36) ) && (_type <= ITEMGET(12,40) ) ) || (_type == ITEMGET(13,30) ) || (_type == ITEMGET(12,41)) || (_type == ITEMGET(12,42)) || (_type == ITEMGET(12,43)) || (_type == ITEMGET(12,49)) || (_type == ITEMGET(12,50)) || ((_type >= ITEMGET(12,262) && _type <= ITEMGET(12,265))) ) //Third Wings Fix
-	{
-		Attribute2=0;
-	}
-
-	if ( _type == ITEMGET(13,37) )
+	if (type == ITEMGET(13,37)
+	|| GetItemKindA(type) == ITEM_KIND_A_WING
+	|| GetItemGroup(type) == ITEMTYPE_ANGEL)
 		Attribute2 = 0;
 
 	SetOption = SetOption & 15;
-		
 	SOption=SetOption & 3;
 	SOptionStatValue=0;
 
@@ -157,14 +141,13 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		SOption=0;
 	}
 
-	if ( gSetItemOption.IsSetItem(_type) != 0 && SetOption != 255 && SOption != 0)
+	if ( gSetItemOption.IsSetItem(type) != 0 && SetOption != 255 && SOption != 0)
 	{
 		this->m_SetOption = SetOption;
-
 		if ( this->m_SetOption != 0 )
 		{
-			//this->m_NewOption = 0;
-			//Attribute2 = 0;
+			this->m_NewOption = 0;
+			Attribute2 = 0;
 			SOptionStatValue = (SetOption>>2)&3;
 		}
 	}
@@ -199,7 +182,6 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			}
 		}
 	}
-
 	else if (g_PentagramSystem.IsPentagramItem(this) == true || g_PentagramSystem.IsPentagramJewel(this) == true)
 	{
 		if (SocketOption)
@@ -218,7 +200,6 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		Attribute2 = 0;
 		this->m_NewOption = 0;
 	}
-
 	else if (g_CMuunSystem.IsMuunItem(this) == true)
 	{
 		if (SocketOption)
@@ -237,7 +218,6 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		this->m_NewOption = 0;
 		this->m_JewelOfHarmonyOption = 0;
 	}
-
 	else if (g_CMuunSystem.IsStoneofEvolution(this) == true)
 	{
 		if (SocketOption)
@@ -256,11 +236,9 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		this->m_NewOption = 0;
 		this->m_JewelOfHarmonyOption = 0;
 	}
-
 	else
 	{
 		this->m_BonusSocketOption = 0;
-
 		for (int i = 0; i < 5; i++)
 		{
 			this->m_SocketOption[i] = 0xFF;
@@ -269,14 +247,8 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 
 	this->m_PeriodItemOption = PeriodItemOption;
 	memset( this->m_SkillResistance , 0, sizeof(this->m_SkillResistance) );
-	
-	if ( _type == ITEMGET(0,19) || _type == ITEMGET(4,18) || _type == ITEMGET(5,10) || _type == ITEMGET(2,13))
-	{
-		Attribute2=0;
-	}
 
-	iChaosItem = 0;
-
+	int iChaosItem = 0;
 	if ( this->m_Type == ITEMGET(2,6) )
 	{
 		iChaosItem = 15;
@@ -317,7 +289,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	this->m_QuestItem = (bool)p->QuestItem;
 	this->m_RequireLeaderShip = 0;
 
-	if((type >> 9) != 5 || p->ItemSlot != 1)
+	if(p->ItemSlot == 0)
 	{
 		this->m_Magic = p->MagicPW;
 		this->m_CurseSpell = 0;
@@ -357,17 +329,13 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	}
 
 	ItemLevel = p->Level;
-
-	if ( ( Attribute2 & 0x3F) > 0 )
+	if (( Attribute2 & 0x3F) > 0)
 	{
 		ItemLevel = p->Level + 25;
 	}
-	else
+	else if (this->m_SetOption != 0 )
 	{
-		if (this->m_SetOption != 0 )
-		{
-			ItemLevel = p->Level + 25;
-		}
+		ItemLevel = p->Level + 25;
 	}
 
 	if ( p->RequireStrength != 0 )
@@ -400,7 +368,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 
 	if( p->RequireEnergy != 0 )
 	{
-		if((_type >> 9) == 5 && p->ItemSlot == 1) //Season3 add-on
+		if((type >> 9) == 5 && p->ItemSlot == 1) //Season3 add-on
 		{
 			this->m_RequireEnergy = ((p->RequireEnergy * (ItemLevel + this->m_Level) ) * 3) / 100 + 20;
 		}
@@ -410,7 +378,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		this->m_RequireEnergy = 0;
 	}
 
-	if ( _type >= ITEMGET(0,0) && _type < ITEMGET(12,0) )
+	if ( type >= ITEMGET(0,0) && type < ITEMGET(12,0) )
 	{
 		if ( p->RequireVitality != 0 )
 		{
@@ -431,7 +399,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		}
 	}
 
-	if( _type == ITEMGET(13,4) || _type == ITEMGET(13,5) )
+	if( type == ITEMGET(13,4) || type == ITEMGET(13,5) )
 	{
 		if(this->m_PetItem_Level > MAX_PET_LEVEL)
 		{
@@ -439,7 +407,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		}
 	}
 
-	if ( _type == ITEMGET(13,5) )
+	if ( type == ITEMGET(13,5) )
 		this->m_RequireLeaderShip = this->m_PetItem_Level * 10 + 185;
 
 	if ( g_kJewelOfHarmonySystem.IsActive(this) == TRUE )
@@ -470,31 +438,31 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 
 	if ( p->RequireLevel != 0 )
 	{
-		if ( _type == ITEMGET(13,4) )	// DarkHorse
+		if ( type == ITEMGET(13,4) )	// DarkHorse
 		{
 			this->m_RequireLevel = this->m_PetItem_Level * 2 + 218;
 		}
-		else if (GetItemKindB(_type) == ITEM_KIND_B_WING_2ND) {
+		else if (GetItemKindB(type) == ITEM_KIND_B_WING_2ND) {
 			this->m_RequireLevel = p->RequireLevel + (this->m_Level * 5);
 		}
-		else if (GetItemKindB(_type) == ITEM_KIND_B_WING_1ST
-		|| GetItemKindB(_type) == ITEM_KIND_B_LORD_CAPE
-		|| GetItemKindB(_type) == ITEM_KIND_B_RAGEFIGHTER_CAPE
-		|| GetItemKindB(_type) == ITEM_KIND_B_MONSTER_WING)
+		else if (GetItemKindB(type) == ITEM_KIND_B_WING_1ST
+		|| GetItemKindB(type) == ITEM_KIND_B_LORD_CAPE
+		|| GetItemKindB(type) == ITEM_KIND_B_RAGEFIGHTER_CAPE
+		|| GetItemKindB(type) == ITEM_KIND_B_MONSTER_WING)
 		{
 			this->m_RequireLevel = p->RequireLevel + this->m_Level * 4;
 		}
-		else if (GetItemKindB(_type) == ITEM_KIND_B_WING_3RD
-		|| GetItemKindB(_type) == ITEM_KIND_B_CCF_WING
-		|| GetItemKindB(_type) == ITEM_KIND_B_GOLDCOLOSSUS_WING)
+		else if (GetItemKindB(type) == ITEM_KIND_B_WING_3RD
+		|| GetItemKindB(type) == ITEM_KIND_B_CCF_WING
+		|| GetItemKindB(type) == ITEM_KIND_B_GOLDCOLOSSUS_WING)
 		{
 			this->m_RequireLevel = p->RequireLevel;
 		}
-		else if (GetItemKindA(_type) == ITEM_KIND_A_SKILL_ITEM)
+		else if (GetItemKindA(type) == ITEM_KIND_A_SKILL_ITEM)
 		{
 			this->m_RequireLevel = p->RequireLevel;
 		}
-		else if ( _type >= ITEMGET(0,0) && _type < ITEMGET(12,0) )
+		else if (type >= ITEMGET(0,0) && type < ITEMGET(12,0))
 		{
 			this->m_RequireLevel = p->RequireLevel;
 		}
@@ -520,21 +488,6 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		}
 	}
 
-	if ( (Attribute2 & 0x3F) > 0 ) // TODO (WING) 2
-	{
-		if ( this->m_RequireLevel > 0 )
-		{
-			if ( (_type >= ITEMGET(12,36) && _type <= ITEMGET(12,40)) || this->m_Type == ITEMGET(12,43) || this->m_Type == ITEMGET(12,50) || this->m_Type == ITEMGET(12,270) ) //Third Wings Fix Required Level
-			{
-				this->m_RequireLevel;
-			}
-			else if ( _type < ITEMGET(0,0) || _type >= ITEMGET(12,0) && !((_type >= ITEMGET(12,36) && _type <= ITEMGET(12,40)) || this->m_Type == ITEMGET(12,43) || this->m_Type == ITEMGET(12,50) || this->m_Type == ITEMGET(12,266) || this->m_Type == ITEMGET(12,267) || this->m_Type == ITEMGET(12,268) || this->m_Type == ITEMGET(12,270)) ) //Third Wings Fix Anti-Hack
-			{
-				this->m_RequireLevel += 20;
-			}
-		}
-	}
-
 	if (this->m_RequireLevel > 400)
 	{
 		this->m_RequireLevel = 400;
@@ -547,101 +500,51 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 
 	this->m_Leadership = 0;
 
-	if ( this->m_DamageMax > 0 )
+	if (this->m_DamageMin > 0 && this->m_DamageMax > 0)
 	{
+		WORD damageDelta = 0;
 		if ( this->m_SetOption != 0 && ItemLevel != 0 )
 		{
-			this->m_DamageMax += (this->m_DamageMin * 25) / p->Level + 5;
-			this->m_DamageMax += ItemLevel / 40 + 5;
+			damageDelta += (this->m_DamageMin * 25) / p->Level + 5;
+			damageDelta += ItemLevel / 40 + 5;
 		}
-		else
+		else if ((Attribute2 & 0x3F) > 0)
 		{
-			if ( (Attribute2 & 0x3F)  > 0 )
+			if ( iChaosItem != 0 )
 			{
-				if ( iChaosItem != 0 )
-				{
-					this->m_DamageMax += iChaosItem;
-				}
-				else if ( p->Level != 0 )
-				{
-					this->m_DamageMax += (this->m_DamageMin * 25) / p->Level + 5;
-				}
+				damageDelta += iChaosItem;
+			}
+			else if ( p->Level != 0 )
+			{
+				damageDelta += (this->m_DamageMin * 25) / p->Level + 5;
 			}
 		}
 
-		if (g_PentagramSystem.IsPentagramItem(this) == true)
-		{
-			this->m_DamageMax += this->m_Level * 3;
-		}
-
-		else
-		{
-			this->m_DamageMax += this->m_Level * 3;
-		}
-
+		damageDelta += this->m_Level * 3;
 		if ( this->m_Level >= 10 )
 		{
-			this->m_DamageMax += (this->m_Level - 9) * (this->m_Level - 8) / 2;
+			damageDelta += (this->m_Level - 9) * (this->m_Level - 8) / 2;
 		}
+		this->m_DamageMin += damageDelta;
+		this->m_DamageMax += damageDelta;
 	}
 
-	if ( this->m_DamageMin > 0 )	
-	{
-		if ( this->m_SetOption != 0 && ItemLevel != 0 )
-		{
-			this->m_DamageMin += (this->m_DamageMin * 25) / p->Level + 5;
-			this->m_DamageMin += ItemLevel / 40 + 5;
-		}
-		else
-		{
-			if ( (Attribute2 & 0x3F)  > 0 )
-			{
-				if ( iChaosItem != 0 )
-				{
-					this->m_DamageMin += iChaosItem;
-				}
-				else if ( p->Level != 0 )
-				{
-					this->m_DamageMin += (this->m_DamageMin * 25) / p->Level + 5;
-				}
-			}
-		}
-
-		if (g_PentagramSystem.IsPentagramItem(this) == true)
-		{
-			this->m_DamageMin += this->m_Level * 3;
-		}
-
-		else
-		{
-			this->m_DamageMin += this->m_Level * 3;
-		}
-
-		if ( this->m_Level >= 10 )
-		{
-			this->m_DamageMin += (this->m_Level - 9) * (this->m_Level - 8) / 2;
-		}
-	}
-
-	if ( this->m_Magic > 0 )	
+	if (this->m_Magic > 0)
 	{
 		if ( this->m_SetOption != 0 && ItemLevel != 0 )
 		{
 			this->m_Magic += (this->m_Magic * 25) / p->Level + 5;
 			this->m_Magic += ItemLevel / 60 + 2;
 		}
-		else
+		else if ( (Attribute2 & 0x3F)  > 0 )
 		{
-			if ( (Attribute2 & 0x3F)  > 0 )
+			if ( iChaosItem != 0 )
 			{
-				if ( iChaosItem != 0 )
-				{
-					this->m_Magic += iChaosItem;
-				}
-				else if ( p->Level != 0 )
-				{
-					this->m_Magic += (this->m_Magic * 25) / p->Level + 5;
-				}
+				this->m_Magic += iChaosItem;
+			}
+			else if ( p->Level != 0 )
+			{
+				this->m_Magic += (this->m_Magic * 25) / p->Level + 5;
 			}
 		}
 
@@ -711,7 +614,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 
 	if ( p->Defense > 0 )
 	{
-		switch (GetItemKindB(_type)) {
+		switch (GetItemKindB(type)) {
 		case ITEM_KIND_B_SHIELD:
 			this->m_Defense += this->m_Level;
 			if (this->m_SetOption != 0 && ItemLevel != 0)
@@ -801,7 +704,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			this->m_Option1 = 1;
 		}
 	}
-	if (GetItemKindB(_type) == ITEM_KIND_B_PENTAGRAM_ITEM)
+	if (GetItemKindB(type) == ITEM_KIND_B_PENTAGRAM_ITEM)
 	{
 		this->m_Special[this->m_SpecialNum] = 106;
 	}
@@ -810,15 +713,15 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	// 1: luck
 	if (Option2 != 0)
 	{
-		if (GetItemKindA(_type) == ITEM_KIND_A_WEAPON
-		|| GetItemKindA(_type) == ITEM_KIND_A_ARMOR
-		|| GetItemKindA(_type) == ITEM_KIND_A_WING)
+		if (GetItemKindA(type) == ITEM_KIND_A_WEAPON
+		|| GetItemKindA(type) == ITEM_KIND_A_ARMOR
+		|| GetItemKindA(type) == ITEM_KIND_A_WING)
 		{
 			this->m_Special[this->m_SpecialNum] = 84;
 			this->m_Option2 = 1;
 		}
 	}
-	if (GetItemKindB(_type) == ITEM_KIND_B_PENTAGRAM_ITEM)
+	if (GetItemKindB(type) == ITEM_KIND_B_PENTAGRAM_ITEM)
 	{
 		this->m_Special[this->m_SpecialNum] = 107;
 	}
@@ -830,41 +733,41 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		this->m_Option3 = Option3;
 
 		// weapon of physical append attack damage
-		if (_type >= ITEMGET(0,0) && _type < ITEMGET(5,0))
+		if (type >= ITEMGET(0,0) && type < ITEMGET(5,0))
 		{
 			this->m_Special[this->m_SpecialNum] = 80;
 			this->m_RequireStrength += Option3 * 4;
 		}
 
 		// weapon of magic append magic damage
-		if (_type >= ITEMGET(5,0) && _type < ITEMGET(6,0))
+		if (type >= ITEMGET(5,0) && type < ITEMGET(6,0))
 		{
 			this->m_Special[this->m_SpecialNum] = 81;
 			this->m_RequireStrength += Option3 * 4;
 		}
 		
 		// shield append defense rate
-		if ( _type >= ITEMGET(6,0) && _type < ITEMGET(7,0) )
+		if ( type >= ITEMGET(6,0) && type < ITEMGET(7,0) )
 		{
 			this->m_Special[this->m_SpecialNum] = 82;
 			this->m_RequireStrength +=  Option3 * 4;
 		}
 
 		// armor append defense
-		if ( _type >= ITEMGET(7,0) && _type < ITEMGET(12,0) )
+		if ( type >= ITEMGET(7,0) && type < ITEMGET(12,0) )
 		{
 			this->m_Special[this->m_SpecialNum] = 83;
 			this->m_RequireStrength +=  Option3 * 4;
 		}
 
 		// pendant/ring recovery hp
-		if (GetItemKindA(_type) == ITEM_KIND_A_PENDANT
-		|| GetItemKindA(_type) == ITEM_KIND_A_RING) {
-			if ( _type == ITEMGET(13,24) ) // Ring of Magic
+		if (GetItemKindA(type) == ITEM_KIND_A_PENDANT
+		|| GetItemKindA(type) == ITEM_KIND_A_RING) {
+			if ( type == ITEMGET(13,24) ) // Ring of Magic
 			{
 				this->m_Special[this->m_SpecialNum] = 172; // Energy up 1%~3%
 			}
-			else if ( _type == ITEMGET(13,28) ) // Pendant of Abilit
+			else if ( type == ITEMGET(13,28) ) // Pendant of Abilit
 			{
 				this->m_Special[this->m_SpecialNum] = 173; // AG up 1%~3%
 			}
@@ -875,7 +778,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		}
 
 		// wing
-		switch (_type) {
+		switch (type) {
 		case ITEMGET(13,3): // Horn of Dinorant is also a wing in some ways
 			if ((this->m_Option3&0x01) != 0)
 			{
@@ -1024,15 +927,15 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			break;
 		}
 	}
-	if (GetItemKindB(_type) == ITEM_KIND_B_PENTAGRAM_ITEM)
+	if (GetItemKindB(type) == ITEM_KIND_B_PENTAGRAM_ITEM)
 	{
 		this->m_Special[this->m_SpecialNum] = 108;
 	}
 	this->m_SpecialNum++;
 
 	// excellent option
-	if (GetItemKindA(_type) == ITEM_KIND_A_ARMOR
-	|| (GetItemKindA(_type) == ITEM_KIND_A_RING && GetItemKindB(_type) == ITEM_KIND_B_RING))
+	if (GetItemKindA(type) == ITEM_KIND_A_ARMOR
+	|| (GetItemKindA(type) == ITEM_KIND_A_RING && GetItemKindB(type) == ITEM_KIND_B_RING))
 	{
 		if ((this->m_NewOption>>5&1) != 0)
 		{
@@ -1071,8 +974,8 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		}
 	}
 
-	if (GetItemKindA(_type) == ITEM_KIND_A_WEAPON
-	|| GetItemKindA(_type) == ITEM_KIND_A_PENDANT)
+	if (GetItemKindA(type) == ITEM_KIND_A_WEAPON
+	|| GetItemKindA(type) == ITEM_KIND_A_PENDANT)
 	{
 		if ((this->m_NewOption>>5&1) != 0)
 		{
@@ -1080,8 +983,8 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			this->m_SpecialNum++;
 		}
 
-		if (GetItemKindB(_type) == ITEM_KIND_B_STAFF_WIZARD
-		|| GetItemKindB(_type) == ITEM_KIND_B_PENDANT_MAGIC_ATTACK)
+		if (GetItemKindB(type) == ITEM_KIND_B_STAFF_WIZARD
+		|| GetItemKindB(type) == ITEM_KIND_B_PENDANT_MAGIC_ATTACK)
 		{
 			if ((this->m_NewOption>>4&1) != 0)
 			{
@@ -1128,9 +1031,9 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	}
 
 	// 2th wing
-	if (GetItemKindB(_type) == ITEM_KIND_B_WING_2ND
-	|| GetItemKindB(_type) == ITEM_KIND_B_LORD_CAPE
-	|| GetItemKindB(_type) == ITEM_KIND_B_RAGEFIGHTER_CAPE)
+	if (GetItemKindB(type) == ITEM_KIND_B_WING_2ND
+	|| GetItemKindB(type) == ITEM_KIND_B_LORD_CAPE
+	|| GetItemKindB(type) == ITEM_KIND_B_RAGEFIGHTER_CAPE)
 	{
 		if ((this->m_NewOption&1) != 0)
 		{
@@ -1150,7 +1053,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			this->m_SpecialNum++;
 		}
 
-		if (GetItemKindB(_type) == ITEM_KIND_B_WING_2ND) {
+		if (GetItemKindB(type) == ITEM_KIND_B_WING_2ND) {
 			if ((this->m_NewOption&8) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 103; // AG +50
@@ -1163,7 +1066,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 				this->m_SpecialNum++;
 			}
 		}
-		else if (GetItemKindB(_type) == ITEM_KIND_B_LORD_CAPE) {
+		else if (GetItemKindB(type) == ITEM_KIND_B_LORD_CAPE) {
 			if ((this->m_NewOption&8) != 0)
 			{
 				this->m_Special[this->m_SpecialNum] = 105; // Command 10
@@ -1173,7 +1076,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	}
 
 	// 3th wing
-	if (GetItemKindB(_type) == ITEM_KIND_B_WING_3RD)
+	if (GetItemKindB(type) == ITEM_KIND_B_WING_3RD)
 	{
 		if ((this->m_NewOption&1) != 0)
 		{
@@ -1201,7 +1104,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	}
 
 	// 2.5th wing
-	if ( (_type >= ITEMGET(12,262)) && (_type <= ITEMGET(12,265)) )
+	if ((type >= ITEMGET(12,262)) && (type <= ITEMGET(12,265)))
 	{
 		if ((this->m_NewOption&1) != 0)
 		{
@@ -1217,7 +1120,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	}
 
 	// Wings of Conqueror
-	if ( _type == ITEMGET(12,268) )
+	if (type == ITEMGET(12,268))
 	{
 		if ((this->m_NewOption&1) != 0)
 		{
@@ -1239,7 +1142,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	}
 
 	// Horn of Fenrir
-	if (_type == ITEMGET(13,37))
+	if (type == ITEMGET(13,37))
 	{
 		if ((this->m_NewOption&1) != 0)
 		{
@@ -1253,7 +1156,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		}
 	}
 
-	if ( SOptionStatValue != 0 )
+	if (SOptionStatValue != 0)
 	{
 		if (p->SetAttr != 0 )
 		{

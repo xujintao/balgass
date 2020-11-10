@@ -915,6 +915,9 @@ void CJewelOfHarmonySystem::SetApplyStrengthenItem(LPOBJ lpObj)
 	lpObj->m_MagicDamageMin += pItemEffect->HJOpAddMagicPower;
 	lpObj->m_MagicDamageMax += pItemEffect->HJOpAddMagicPower;
 
+	lpObj->m_MagicDamageMin += pItemEffect->HJOpAddSkillAttack;
+	lpObj->m_MagicDamageMax += pItemEffect->HJOpAddSkillAttack;
+
 	lpObj->m_Defense += pItemEffect->HJOpAddDefense * 10 / 20;
 
 	lpObj->AddBP += pItemEffect->HJOpAddMaxAG;

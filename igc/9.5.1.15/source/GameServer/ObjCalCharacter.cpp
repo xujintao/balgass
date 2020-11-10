@@ -167,8 +167,10 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	int Leadership = lpObj->Leadership + lpObj->AddLeadership;
 
 	// damage base
+	lpObj->m_Magic = 0;
 	lpObj->m_CurseDamageMin = 0;
 	lpObj->m_CurseDamageMax = 0;
+	lpObj->m_Curse = 0;
 	switch (lpObj->Class)
 	{
 		case CLASS_ELF:
@@ -262,8 +264,13 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	// damage of item weapon and addition
 	if (Right->m_IsValidItem)
 	{
-		lpObj->m_AttackDamageMinRight += Right->m_DamageMin;
-		lpObj->m_AttackDamageMaxRight += Right->m_DamageMax;
+		lpObj->m_AttackDamageMinRight += Right->m_DamageMin * (1.0f - Right->m_CurrentDurabilityState);
+		lpObj->m_AttackDamageMaxRight += Right->m_DamageMax * (1.0f - Right->m_CurrentDurabilityState);
+		if (Right->m_Magic > 0) {
+			lpObj->m_MagicDamageMin += lpObj->m_MagicDamageMin * 2 * Right->m_Level / 100;
+			lpObj->m_MagicDamageMax += lpObj->m_MagicDamageMax * 2 * Right->m_Level / 100;
+			lpObj->m_Magic += Right->m_Magic * (1.0f - Right->m_CurrentDurabilityState) / 2;
+		}
 		Right->PlusSpecial(&lpObj->m_AttackDamageMinRight, 80);
 		Right->PlusSpecial(&lpObj->m_AttackDamageMaxRight, 80);
 		Right->PlusSpecial(&lpObj->m_MagicDamageMin, 81);
@@ -273,8 +280,13 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	}
 	if (Left->m_IsValidItem)
 	{
-		lpObj->m_AttackDamageMinLeft += Left->m_DamageMin;
-		lpObj->m_AttackDamageMaxLeft += Left->m_DamageMax;
+		lpObj->m_AttackDamageMinLeft += Left->m_DamageMin * (1.0f - Left->m_CurrentDurabilityState);
+		lpObj->m_AttackDamageMaxLeft += Left->m_DamageMax * (1.0f - Left->m_CurrentDurabilityState);
+		if (Left->m_CurseSpell > 0) {
+			lpObj->m_CurseDamageMin += lpObj->m_CurseDamageMin * 2 * Left->m_Level / 100;
+			lpObj->m_CurseDamageMax += lpObj->m_CurseDamageMax * 2 * Left->m_Level / 100;
+			lpObj->m_Curse += Left->m_CurseSpell * (1.0f - Left->m_CurrentDurabilityState) / 2;
+		}
 		Left->PlusSpecial(&lpObj->m_AttackDamageMinLeft, 80);
 		Left->PlusSpecial(&lpObj->m_AttackDamageMaxLeft, 80);
 		Left->PlusSpecial(&lpObj->m_MagicDamageMin, 81);
@@ -1534,6 +1546,9 @@ void CObjCalCharacter::SetItemApply(LPOBJ lpObj)
 
 	lpObj->m_MagicDamageMin += lpObj->m_MagicDamageMin * lpObj->m_PlayerData->SetOpAddMagicPower / 100;
 	lpObj->m_MagicDamageMax += lpObj->m_MagicDamageMax * lpObj->m_PlayerData->SetOpAddMagicPower / 100;
+
+	lpObj->m_MagicDamageMin += lpObj->m_PlayerData->SetOpAddSkillAttack;
+	lpObj->m_MagicDamageMax += lpObj->m_PlayerData->SetOpAddSkillAttack;
 
 	lpObj->AddLife += INT(lpObj->AddVitality * DCInfo.DefClass[lpObj->Class].VitalityToLife);
 	lpObj->AddMana += INT(lpObj->AddEnergy * DCInfo.DefClass[lpObj->Class].EnergyToMana);

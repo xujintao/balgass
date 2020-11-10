@@ -1432,8 +1432,10 @@ public:
 	int m_AttackDamageMax;	// 300
 	int m_MagicDamageMin;	// 304
 	int m_MagicDamageMax;	// 308
+	int m_Magic;
 	int m_CurseDamageMin;
 	int m_CurseDamageMax;
+	int m_Curse;
 	int m_AttackDamageLeft;	// 30C
 	int m_AttackDamageRight;	// 310
 	int m_AttackDamageMaxLeft;	// 314

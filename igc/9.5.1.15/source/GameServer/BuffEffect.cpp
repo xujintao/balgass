@@ -105,6 +105,10 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 	case EFFECTTYPE_REDUCE_ATTACK_RATE:
 		lpObj->m_AttackRate -= EffectValue;
 		break;
+	case EFFECTTYPE_CURSED_DAMAGE:
+		lpObj->m_CurseDamageMin += EffectValue;
+		lpObj->m_CurseDamageMax += EffectValue;
+		break;
 	case EFFECTTYPE_MELEE_DEFENSE_DOWN_MANA:
 		lpObj->m_SkillInfo.SoulBarrierManaRate = EffectValue;
 		break;
@@ -275,6 +279,10 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 	case EFFECTTYPE_REDUCE_ATTACK_RATE:
 		lpObj->m_AttackRate += EffectValue;
 		break;
+	case EFFECTTYPE_CURSED_DAMAGE:
+		lpObj->m_CurseDamageMin -= EffectValue;
+		lpObj->m_CurseDamageMax -= EffectValue;
+		break;
 	case EFFECTTYPE_MELEE_DEFENSE_DOWN_MANA:
 		lpObj->m_SkillInfo.SoulBarrierManaRate = 0;
 		break;
@@ -306,7 +314,6 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 		break;
 	case EFFECTTYPE_MAGICPOWERMAX_INC:
 		lpObj->m_MagicDamageMax -= EffectValue;
-		lpObj->m_PlayerData->m_MPSkillOpt.iMpsCriticalRateInc = 0.0;
 		break;
 	case EFFECTTYPE_CRITICALDAMAGE_RATE:
 	case EFFECTTYPE_CRITICALDAMAGE:

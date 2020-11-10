@@ -1531,15 +1531,11 @@ int CGMMng::ManagementProc(LPOBJ lpObj, char* szCmd, int aIndex)
 			MsgOutput(aIndex, Lang.GetText(0,446),
 				lpObj->m_MagicDamageMin,
 				lpObj->m_MagicDamageMax,
-				lpObj->m_AttackRate,
-				lpObj->m_PlayerData->m_ItemOptionExFor380.OpAddDamage,
-				lpObj->m_PlayerData->m_AttackRatePvP);
+				lpObj->m_Magic);
 			MsgOutput(aIndex, Lang.GetText(0,447),
 				lpObj->m_CurseDamageMin,
 				lpObj->m_CurseDamageMax,
-				lpObj->m_AttackRate,
-				lpObj->m_PlayerData->m_ItemOptionExFor380.OpAddDamage,
-				lpObj->m_PlayerData->m_AttackRatePvP);
+				lpObj->m_Curse);
 			MsgOutput(aIndex, Lang.GetText(0, 448),
 				lpObj->m_CriticalDamageSuccessRate,
 				lpObj->m_ExcellentDamageSuccessRate,
