@@ -473,8 +473,8 @@
 		<Msg ID="443" Text="攻击力(率): %d~%d(%d)  pvp(率): +%d(%.0f)" annotation="Server Information: Name: %s Code: %d Online Players: %d/%d" />
 		<Msg ID="444" Text="防御力(率): %d(%d)  pvp(率): +%d(%.0f)" annotation="Server Time: %02d:%02d:%02d %02d-%02d-%02d." />
 		<Msg ID="445" Text="速度: 物攻%d 魔攻%d  力%d 敏%d 体%d 智%d 统%d" annotation="Total Info:" />
-		<Msg ID="446" Text="魔法攻击力(率): %d~%d(%d)  pvp(率): +%d(%.0f)" annotation="Account: %s Name: %s Level: %d Master Level: %d Class Code: %d" />
-		<Msg ID="447" Text="诅咒攻击力(率): %d~%d(%d)  pvp(率): +%d(%.0f)" annotation="Swear Warning Level: %d Map: %s X: %d Y: %d" />
+		<Msg ID="446" Text="魔法攻击力: %d~%d(+%d%%%%)" annotation="Account: %s Name: %s Level: %d Master Level: %d Class Code: %d" />
+		<Msg ID="447" Text="诅咒攻击力: %d~%d(+%d%%%%)" annotation="Swear Warning Level: %d Map: %s X: %d Y: %d" />
 		<Msg ID="448" Text="幸运%d%%%% 卓越%d%%%% 无视%.2f%%%% 双倍%.2f%%%%" annotation="Wife/Husband Online Status: %d" />
 		<Msg ID="449" Text="You have insufficient GM Level (You need 7 Level)" annotation="You have insufficient GM Level (You need 7 Level)" />
 		<Msg ID="450" Text="You need %d money to reset PK" annotation="You need %d money to reset PK" />
