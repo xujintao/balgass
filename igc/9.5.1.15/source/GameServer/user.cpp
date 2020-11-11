@@ -2848,6 +2848,7 @@ bool gObjSetCharacter(LPBYTE lpdata, int aIndex)
 	lpObj->m_PlayerData->AgilityCheckCount = 0;
 	lpObj->AgiCheckTime = GetTickCount();
 	gObjFindInventoryEquipment(aIndex);
+	gObjInventoryEquipment(lpObj);
 	::gObjMakePreviewCharSet(lpObj->m_Index);
 	CreateFrustrum(lpObj->X, lpObj->Y, lpObj->m_Index);
 	MapC[lpObj->MapNumber].SetStandAttr(lpObj->X, lpObj->Y);
