@@ -343,7 +343,7 @@ DWORD CIOCP::ServerWorkerThread()
 			if (RecvDataParse(lpIOContext, lpPerSocketContext->nIndex ) == 0)
 			{
 				g_Log.Add("error-L1 : RecvDataParse error %d", lpPerSocketContext->nIndex);
-				CloseClient(ClientIndex, 0);
+				shutdown_no_lock(ClientIndex);
 				LeaveCriticalSection(&criti);
 				continue;
 			}
@@ -445,7 +445,7 @@ bool CIOCP::RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex)
 					{
 						g_Log.AddC(TColor::Red, "[ANTI-HACK] Packets Per Second: %d / %d", gObj[uIndex].m_PlayerData->PacketsPerSecond, g_ConfigRead.data.common.PacketLimit);
 						GSProtocol.GCSendDisableReconnect(uIndex);
-						//IOCP.CloseClient(uIndex);
+						//IOCP.shutdown_no_lock(uIndex);
 						return 0;
 					}
 
@@ -491,7 +491,7 @@ bool CIOCP::RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex)
 					{
 						g_Log.AddC(TColor::Red, "[ANTI-HACK] Packets Per Second: %d / %d", gObj[uIndex].m_PlayerData->PacketsPerSecond, g_ConfigRead.data.common.PacketLimit);
 						GSProtocol.GCSendDisableReconnect(uIndex);
-						//IOCP.CloseClient(uIndex);
+						//IOCP.shutdown_no_lock(uIndex);
 						return 0;
 					}
 
@@ -536,7 +536,7 @@ bool CIOCP::RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex)
 				{
 					g_Log.AddC(TColor::Red, "[ANTI-HACK] Packets Per Second: %d / %d", gObj[uIndex].m_PlayerData->PacketsPerSecond, g_ConfigRead.data.common.PacketLimit);
 					GSProtocol.GCSendDisableReconnect(uIndex);
-					//IOCP.CloseClient(uIndex);
+					//IOCP.shutdown_no_lock(uIndex);
 					return 0;
 				}
 
@@ -675,21 +675,21 @@ bool CIOCP::DataSend(int aIndex, unsigned char* lpMsg, DWORD dwSize, bool Encryp
 	if ( dwSize > sizeof(lpPerSocketContext->IOContext[0].Buffer))
 	{
 		g_Log.Add("Error : Max msg(%d) %s %d", dwSize, __FILE__, __LINE__);
-		CloseClient(aIndex, 0);
+		shutdown_no_lock(aIndex);
 		LeaveCriticalSection(&criti);
 		return false;
 	}
 
 	_PER_IO_CONTEXT* lpIoCtxt = &lpPerSocketContext->IOContext[1];
-	if ( lpIoCtxt->nWaitIO > 0 )
+	if (lpIoCtxt->nWaitIO > 0)
 	{
-		if ( ( lpIoCtxt->nSecondOfs + dwSize ) > MAX_IO_BUFFER_SIZE-1 )
+		if ((lpIoCtxt->nSecondOfs + dwSize ) > MAX_IO_BUFFER_SIZE-1)
 		{
-			g_Log.Add("(%d)error-L2 MAX BUFFER OVER %d %d %d [%s][%s]", aIndex, lpIoCtxt->nTotalBytes, lpIoCtxt->nSecondOfs, dwSize, gObj[aIndex].AccountID, gObj[aIndex].Name);
-			lpIoCtxt->nWaitIO = 0;
-			CloseClient(aIndex, 0);
+			g_Log.Add("the second send buffer is full %d + %d [%d][%s]",
+				lpIoCtxt->nSecondOfs, dwSize, aIndex, gObj[aIndex].AccountID);
+			shutdown_no_lock(aIndex);
 			LeaveCriticalSection(&criti);
-			return true;
+			return false;
 		}
 
 		memcpy( &lpIoCtxt->BufferSecond[lpIoCtxt->nSecondOfs], SendBuf, dwSize);
@@ -707,11 +707,11 @@ bool CIOCP::DataSend(int aIndex, unsigned char* lpMsg, DWORD dwSize, bool Encryp
 		lpIoCtxt->nSecondOfs = 0;
 	}
 
-	if ( (lpIoCtxt->nTotalBytes+dwSize) > MAX_IO_BUFFER_SIZE-1 )
+	if ((lpIoCtxt->nTotalBytes+dwSize) > MAX_IO_BUFFER_SIZE-1)
 	{
-		g_Log.Add("(%d)error-L2 MAX BUFFER OVER %d %d [%s][%s]", aIndex, lpIoCtxt->nTotalBytes, dwSize, gObj[aIndex].AccountID, gObj[aIndex].Name);
-		lpIoCtxt->nWaitIO = 0;
-		CloseClient(aIndex, 0);
+		g_Log.Add("the first send buffer is full %d + %d [%d][%s]",
+			lpIoCtxt->nTotalBytes, dwSize, aIndex, gObj[aIndex].AccountID);
+		shutdown_no_lock(aIndex);
 		LeaveCriticalSection(&criti);
 		return false;
 	}
@@ -844,14 +844,13 @@ void CIOCP::CloseClient(int index, int err)
 	gObjDel(index);
 }
 
-void CIOCP::CloseClient(int index) // go to game
+void CIOCP::shutdown_no_lock(int index) // go to game
 {
 	if (index < g_ConfigRead.server.GetObjectStartUserIndex()
 	|| index >= g_ConfigRead.server.GetObjectMax()) {
 		return;
 	}
 
-	EnterCriticalSection(&criti);
 	_PER_SOCKET_CONTEXT* lpPerSocketContext = gObj[index].PerSocketContext;
 	if (lpPerSocketContext->m_socket != INVALID_SOCKET)
 	{
@@ -863,5 +862,16 @@ void CIOCP::CloseClient(int index) // go to game
 				WSAGetLastError(), index, gObj[index].m_PlayerData->Ip_addr);
 		}
 	}
+}
+
+void CIOCP::CloseClient(int index) // go to game
+{
+	if (index < g_ConfigRead.server.GetObjectStartUserIndex()
+	|| index >= g_ConfigRead.server.GetObjectMax()) {
+		return;
+	}
+
+	EnterCriticalSection(&criti);
+	shutdown_no_lock(index);
 	LeaveCriticalSection(&criti);
 }

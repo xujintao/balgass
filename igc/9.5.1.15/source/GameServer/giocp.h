@@ -57,6 +57,7 @@ public:
 	bool IoSendMore(_PER_SOCKET_CONTEXT * lpPerSocketContext);
 	bool UpdateCompletionPort(SOCKET sd, int ClientIndex, BOOL bAddToList);
 	void CloseClient(int index, int err);
+	void shutdown_no_lock(int index);
 	void CloseClient(int index);
 
 private:
