@@ -169,7 +169,7 @@ function StatSpec_AtkPowerInc_Elf(Agility)
 	elseif (Agility >= 1801 and Agility < 2101) then
 		Percent = 10 + (Agility - 1800) / 15
 	elseif (Agility >= 2101 and Agility < 3000) then
-		Percent = 30 + (Agility - 2100) / 45
+		Percent = 30 + (Agility - 2100) / 60
 	end
 	
 	return Percent
@@ -183,7 +183,7 @@ function StatSpec_DefRatePvMInc_Elf(Agility)
 	elseif (Agility >= 1801 and Agility < 2101) then
 		Percent = 10 + (Agility - 1800) / 15
 	elseif (Agility >= 2101 and Agility < 3000) then
-		Percent = 30 + (Agility - 2100) / 45
+		Percent = 30 + (Agility - 2100) / 60
 	end
 	
 	return Percent
@@ -197,7 +197,7 @@ function StatSpec_DefRatePvPInc_Elf(Agility)
 	elseif (Agility >= 1801 and Agility < 2101) then
 		Percent = 10 + (Agility - 1800) / 15
 	elseif (Agility >= 2101 and Agility < 3000) then
-		Percent = 30 + (Agility - 2100) / 45
+		Percent = 30 + (Agility - 2100) / 60
 	end
 	
 	return Percent
@@ -252,10 +252,10 @@ function StatSpec_MagicPowerInc_Gladiator(Energy)
 	
 	if (Energy > 1 and Energy < 1801) then
 		Percent = Energy / 180
-	elseif (Energy >= 1801 and Energy < 2101) then
-		Percent = 10 + (Energy - 1500) / 15
-	elseif (Energy >= 2101 and Energy < 3000) then
-		Percent = 30 + (Energy - 2000) / 45
+	elseif (Energy >= 1801 and Energy < 2501) then
+		Percent = 10 + (Energy - 1800) / 35
+	elseif (Energy >= 2501 and Energy < 3000) then
+		Percent = 30 + (Energy - 2500) / 33
 	end
 	
 	return Percent
