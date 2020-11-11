@@ -267,9 +267,7 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_AttackDamageMinRight += Right->m_DamageMin * (1.0f - Right->m_CurrentDurabilityState);
 		lpObj->m_AttackDamageMaxRight += Right->m_DamageMax * (1.0f - Right->m_CurrentDurabilityState);
 		if (Right->m_Magic > 0) {
-			lpObj->m_MagicDamageMin += lpObj->m_MagicDamageMin * 2 * Right->m_Level / 100;
-			lpObj->m_MagicDamageMax += lpObj->m_MagicDamageMax * 2 * Right->m_Level / 100;
-			lpObj->m_Magic += Right->m_Magic * (1.0f - Right->m_CurrentDurabilityState) / 2;
+			lpObj->m_Magic += Right->m_Magic * (1.0f - Right->m_CurrentDurabilityState);
 		}
 		Right->PlusSpecial(&lpObj->m_AttackDamageMinRight, 80);
 		Right->PlusSpecial(&lpObj->m_AttackDamageMaxRight, 80);
@@ -283,9 +281,7 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 		lpObj->m_AttackDamageMinLeft += Left->m_DamageMin * (1.0f - Left->m_CurrentDurabilityState);
 		lpObj->m_AttackDamageMaxLeft += Left->m_DamageMax * (1.0f - Left->m_CurrentDurabilityState);
 		if (Left->m_CurseSpell > 0) {
-			lpObj->m_CurseDamageMin += lpObj->m_CurseDamageMin * 2 * Left->m_Level / 100;
-			lpObj->m_CurseDamageMax += lpObj->m_CurseDamageMax * 2 * Left->m_Level / 100;
-			lpObj->m_Curse += Left->m_CurseSpell * (1.0f - Left->m_CurrentDurabilityState) / 2;
+			lpObj->m_Curse += Left->m_CurseSpell * (1.0f - Left->m_CurrentDurabilityState);
 		}
 		Left->PlusSpecial(&lpObj->m_AttackDamageMinLeft, 80);
 		Left->PlusSpecial(&lpObj->m_AttackDamageMaxLeft, 80);

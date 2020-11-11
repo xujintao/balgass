@@ -533,7 +533,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	{
 		if ( this->m_SetOption != 0 && ItemLevel != 0 )
 		{
-			this->m_Magic += (this->m_Magic * 25) / p->Level + 5;
+			this->m_Magic += this->m_Magic * 25 / p->Level + 5;
 			this->m_Magic += ItemLevel / 60 + 2;
 		}
 		else if ( (Attribute2 & 0x3F)  > 0 )
@@ -544,7 +544,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			}
 			else if ( p->Level != 0 )
 			{
-				this->m_Magic += (this->m_Magic * 25) / p->Level + 5;
+				this->m_Magic += this->m_Magic * 25 / p->Level + 5;
 			}
 		}
 
@@ -554,13 +554,15 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		{
 			this->m_Magic += (this->m_Level - 9) * (this->m_Level - 8) / 2;
 		}
+
+		this->m_Magic = this->m_Magic/2 + this->m_Level*2;
 	}
 
 	if( this->m_CurseSpell > 0) //Season3 Summoner
 	{
 		if ( this->m_SetOption != 0 && ItemLevel != 0 )
 		{
-			this->m_CurseSpell += (this->m_CurseSpell * 25) / p->Level + 5;
+			this->m_CurseSpell += this->m_CurseSpell * 25 / p->Level + 5;
 			this->m_CurseSpell += ItemLevel / 60 + 2;
 		}
 		else
@@ -573,7 +575,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 				}
 				else if ( p->Level != 0 )
 				{
-					this->m_CurseSpell += (this->m_CurseSpell * 25) / p->Level + 5;
+					this->m_CurseSpell += this->m_CurseSpell * 25 / p->Level + 5;
 				}
 			}
 		}
@@ -584,6 +586,8 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		{
 			this->m_CurseSpell += (this->m_Level - 9) * (this->m_Level - 8) / 2;
 		}
+
+		this->m_CurseSpell = this->m_CurseSpell/2 + this->m_Level*2;
 	}
 
 	if ( p->SuccessfulBlocking > 0 )	
