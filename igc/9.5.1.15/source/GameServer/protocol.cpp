@@ -6268,6 +6268,14 @@ void GameProtocol::CGSellRequestRecv(PMSG_SELLREQUEST * lpMsg, int aIndex)
 		return;
 	}
 
+	if (lpMsg->Pos == lpObj->m_btInvenPetPos
+	&& lpObj->m_btInvenPetPos != 0
+	&& lpObj->m_wInvenPet != (WORD)-1) {
+		MsgOutput(aIndex, Lang.GetText(0,615));
+		IOCP.DataSend(aIndex, (LPBYTE)&pResult, pResult.h.size);
+		return;
+	}
+
 	if ( gObjCheckSerial0ItemList(&lpObj->pInventory[lpMsg->Pos]) != FALSE )
 	{
 		MsgOutput(aIndex, Lang.GetText(0,259));
