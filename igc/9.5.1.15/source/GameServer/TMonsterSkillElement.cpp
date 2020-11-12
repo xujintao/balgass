@@ -371,19 +371,17 @@ BOOL TMonsterSkillElement::ApplyElementMP(int iIndex, int iTargetIndex)
 
 	lpTargetObj->Mana += iIncDecValue;
 
-	if ( lpTargetObj->Mana < 0 )
+	if (lpTargetObj->Mana < 0)
 	{
 		lpTargetObj->Mana = 0;
 		GSProtocol.GCManaSend(lpTargetObj->m_Index, lpTargetObj->Mana, 0xFF, 0, lpTargetObj->BP);
-
 		return TRUE;
 	}
 
-	if ( (lpTargetObj->MaxMana + lpTargetObj->AddMana) < lpTargetObj->Mana )
+	if (lpTargetObj->MaxMana + lpTargetObj->AddMana < lpTargetObj->Mana)
 	{
 		lpTargetObj->Mana = lpTargetObj->MaxMana + lpTargetObj->AddMana;
 		GSProtocol.GCManaSend(lpTargetObj->m_Index, lpTargetObj->Mana, 0xFF, 0, lpTargetObj->BP);
-
 		return TRUE;
 	}
 
@@ -420,24 +418,21 @@ BOOL TMonsterSkillElement::ApplyElementAG(int iIndex, int iTargetIndex)
 
 	lpTargetObj->BP += iIncDecValue;
 
-	if ( lpTargetObj->BP < 0 )
+	if (lpTargetObj->BP < 0)
 	{
 		lpTargetObj->BP = 0;
 		GSProtocol.GCManaSend(lpTargetObj->m_Index, lpTargetObj->Mana, 0xFF, 0, lpTargetObj->BP);
-
 		return TRUE;
 	}
 
-	if ( (lpTargetObj->MaxBP + lpTargetObj->AddBP) < lpTargetObj->BP )
+	if (lpTargetObj->MaxBP + lpTargetObj->AddBP < lpTargetObj->BP)
 	{
 		lpTargetObj->BP = lpTargetObj->MaxBP + lpTargetObj->AddBP;
 		GSProtocol.GCManaSend(lpTargetObj->m_Index, lpTargetObj->Mana, 0xFF, 0, lpTargetObj->BP);
-
 		return TRUE;
 	}
 
 	GSProtocol.GCManaSend(lpTargetObj->m_Index, lpTargetObj->Mana, 0xFF, 0, lpTargetObj->BP);
-
 	return FALSE;
 }
 

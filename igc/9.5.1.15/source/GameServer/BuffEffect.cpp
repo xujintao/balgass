@@ -59,12 +59,12 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 	case EFFECTTYPE_HP:
 	case EFFECTTYPE_MONK_VITALITY:
 		lpObj->AddLife += EffectValue;	
-		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife+lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
+		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife + lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield + lpObj->iMaxShield);
 		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		break;
 	case EFFECTTYPE_MANA:
 		lpObj->AddMana += EffectValue;	
-		GSProtocol.GCManaSend(lpObj->m_Index, (lpObj->MaxMana + lpObj->AddMana), 0xFE, 0, (lpObj->MaxBP+lpObj->AddBP));
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
 		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		break;
 	case EFFECTTYPE_STRENGTH:
@@ -114,7 +114,7 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 		break;
 	case EFFECTTYPE_BERSERKER_UP:
 		lpObj->AddMana += (int)( (((float)(EffectValue) * (float)(lpObj->MaxMana))) / 100.0f);		
-		GSProtocol.GCManaSend(lpObj->m_Index, (lpObj->MaxMana + lpObj->AddMana), 0xFE, 0, (lpObj->MaxBP+lpObj->AddBP));
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
 		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		break;
 	case EFFECTTYPE_BERSERKER_DOWN:
@@ -128,7 +128,7 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 			lpObj->AddLife -= (int)((float)(fAddLife));
 			lpObj->Life = ( (float)(lpObj->Life) < ( (float)(lpObj->AddLife) + (float)(lpObj->MaxLife) ) )?( (float)(lpObj->Life) ):( ( (float)(lpObj->AddLife) + (float)(lpObj->MaxLife) ) );
 
-			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife+lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
+			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife + lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield + lpObj->iMaxShield);
 			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		}
 		break;
@@ -157,23 +157,23 @@ void CBuffEffect::SetBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Effec
 		break;
 	case EFFECTTYPE_AG_UP:
 		lpObj->AddBP += EffectValue * (lpObj->Level + lpObj->m_PlayerData->MasterLevel);
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)(lpObj->MaxMana + lpObj->AddMana), 0xFE, 0, (WORD)(lpObj->MaxBP+lpObj->AddBP));
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)lpObj->Mana, 0xFF, 0, (WORD)lpObj->BP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		break;
 	case EFFECTTYPE_SD_UP:
 		lpObj->iAddShield += EffectValue * (lpObj->Level + lpObj->m_PlayerData->MasterLevel);
-		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife+lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
+		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife + lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield + lpObj->iMaxShield);
 		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		break;
 	case EFFECTTYPE_SD_UP_VALUE:
 		lpObj->iAddShield += EffectValue;
-		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife+lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
+		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife + lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield + lpObj->iMaxShield);
 		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		break;
 	case EFFECTTYPE_AG_UP_VALUE:
 		lpObj->AddBP += EffectValue;
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)(lpObj->MaxMana + lpObj->AddMana), 0xFE, 0, (WORD)(lpObj->MaxBP+lpObj->AddBP));
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)lpObj->Mana, 0xFF, 0, (WORD)lpObj->BP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		break;
 	case EFFECTTYPE_IMPROVE_DEFENSE_RATE:
 		lpObj->m_DefenseRate += EffectValue;
@@ -231,15 +231,15 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 		lpObj->AddLife -= EffectValue;
 		if(lpObj->AddLife <= 0.0)
 			lpObj->AddLife = 0.0;
-		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife+lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
+		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife + lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield + lpObj->iMaxShield);
 		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		break;
 	case EFFECTTYPE_MANA:
 		lpObj->AddMana -= EffectValue;
 		if(lpObj->AddMana <= 0.0)
 			lpObj->AddMana = 0.0;
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)(lpObj->MaxMana + lpObj->AddMana), 0xFE, 0, (WORD)(lpObj->MaxBP+lpObj->AddBP));
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)lpObj->Mana, 0xFF, 0, (WORD)lpObj->BP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		break;
 	case EFFECTTYPE_STRENGTH:
 		lpObj->AddStrength -= EffectValue;
@@ -292,8 +292,8 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 			lpObj->AddMana = 0.0;
 		lpObj->Mana = ( (float)(lpObj->Mana) < ( (float)(lpObj->AddMana) + (float)(lpObj->MaxMana) ) )?( (float)(lpObj->Mana) ):( ( (float)(lpObj->AddMana) + (float)(lpObj->MaxMana) ) );
 		
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)(lpObj->MaxMana + lpObj->AddMana), 0xFE, 0, (WORD)(lpObj->MaxBP+lpObj->AddBP));
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)lpObj->Mana, 0xFF, 0, (WORD)lpObj->BP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		break;
 	case EFFECTTYPE_BERSERKER_DOWN:
 		{
@@ -305,7 +305,7 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 
 			lpObj->AddLife += (int)(fAddLife);
 
-			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife+lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
+			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife + lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield + lpObj->iMaxShield);
 			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		}
 		break;
@@ -334,23 +334,23 @@ void CBuffEffect::ClearBuffEffect(LPOBJECTSTRUCT lpObj, BYTE EffectType, int Eff
 		break;
 	case EFFECTTYPE_AG_UP:
 		lpObj->AddBP -= EffectValue * (lpObj->Level + lpObj->m_PlayerData->MasterLevel);
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)(lpObj->MaxMana + lpObj->AddMana), 0xFE, 0, (WORD)(lpObj->MaxBP+lpObj->AddBP));
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)lpObj->Mana, 0xFF, 0, (WORD)lpObj->BP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		break;
 	case EFFECTTYPE_SD_UP:
 		lpObj->iAddShield -= EffectValue * (lpObj->Level + lpObj->m_PlayerData->MasterLevel);
-		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife+lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
+		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife + lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield + lpObj->iMaxShield);
 		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		break;
 	case EFFECTTYPE_SD_UP_VALUE:
 		lpObj->iAddShield -= EffectValue;
-		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife+lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
+		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife + lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
 		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		break;
 	case EFFECTTYPE_AG_UP_VALUE:
 		lpObj->AddBP -= EffectValue;
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)(lpObj->MaxMana + lpObj->AddMana), 0xFE, 0, (WORD)(lpObj->MaxBP+lpObj->AddBP));
-		GSProtocol.GCManaSend(lpObj->m_Index, (WORD)lpObj->Mana, 0xFF, 0, (WORD)lpObj->BP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		break;
 	case EFFECTTYPE_IMPROVE_DEFENSE_RATE:
 		lpObj->m_DefenseRate -= EffectValue;

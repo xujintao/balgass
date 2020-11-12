@@ -637,7 +637,7 @@ void CNewPVP::ReFill(OBJECTSTRUCT &obj)
 
 	obj.BP = obj.MaxBP + obj.AddBP;
 	obj.Mana = obj.MaxMana + obj.AddMana;
-	GSProtocol.GCManaSend(obj.m_Index, (WORD)obj.Mana, 0xFF, 0, (WORD)obj.BP);
+	GSProtocol.GCManaSend(obj.m_Index, obj.Mana, 0xFF, 0, obj.BP);
 
 	obj.Life = obj.MaxLife + obj.AddLife;
 	obj.iShield = obj.iMaxShield + obj.iAddShield;

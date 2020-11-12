@@ -1851,7 +1851,7 @@ void JGGetCharacterInfo(SDHP_DBCHAR_INFORESULT * lpMsg)
 	GSProtocol.GCReFillSend(aIndex, gObj[aIndex].AddLife + gObj[aIndex].MaxLife, 0xFE, 0, gObj[aIndex].iAddShield + gObj[aIndex].iMaxShield);
 
 	GSProtocol.GCManaSend(aIndex, gObj[aIndex].Mana, 0xFF, 0, gObj[aIndex].BP);
-	GSProtocol.GCManaSend(aIndex, gObj[aIndex].MaxMana, 0xFE, 0, gObj[aIndex].MaxBP);
+	GSProtocol.GCManaSend(aIndex, gObj[aIndex].MaxMana + gObj[aIndex].AddMana, 0xFE, 0, gObj[aIndex].MaxBP + gObj[aIndex].AddBP);
 
 	GSProtocol.GCResSendExpEventInfo(aIndex);
 	g_QuestExpUserMng.DB_ReqUserQuestInfo(aIndex);

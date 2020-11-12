@@ -1220,16 +1220,16 @@ void CItemSocketOptionSystem::_SetWindEffect(LPOBJECTSTRUCT lpObj, BYTE btEffect
 		{
 			iAddValue = CalcEffectValue(lpObj->MaxLife, wEffectValue, btEffectValueType);
 			lpObj->AddLife += iAddValue;
-			GSProtocol.GCReFillSend(lpObj->m_Index,(lpObj->AddLife+lpObj->MaxLife),0xFE,0,(lpObj->iMaxShield+lpObj->iAddShield));
-			GSProtocol.GCReFillSend(lpObj->m_Index,lpObj->Life,0xFF,0,lpObj->iShield);
+			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->MaxLife + lpObj->AddLife, 0xFE, 0, lpObj->iMaxShield + lpObj->iAddShield);
+			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		}
 		break;
 	case SEED_EFFECT_TYPE_MAX_MP_INC:
 		{
 			iAddValue = CalcEffectValue(lpObj->MaxMana, wEffectValue, btEffectValueType);
 			lpObj->AddMana += iAddValue;
-			GSProtocol.GCManaSend(lpObj->m_Index,(lpObj->AddMana+lpObj->MaxMana),0xFE,0,(lpObj->MaxBP+lpObj->AddBP));
-			GSProtocol.GCManaSend(lpObj->m_Index,lpObj->Mana,0xFF,0,lpObj->BP);
+			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
+			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF,0 , lpObj->BP);
 		}
 		break;
 	case SEED_EFFECT_TYPE_REFILL_MP_INC:
@@ -1242,8 +1242,8 @@ void CItemSocketOptionSystem::_SetWindEffect(LPOBJECTSTRUCT lpObj, BYTE btEffect
 		{
 			iAddValue = CalcEffectValue(lpObj->MaxBP, wEffectValue, btEffectValueType);
 			lpObj->AddBP += iAddValue;
-			GSProtocol.GCManaSend(lpObj->m_Index,(lpObj->AddMana+lpObj->MaxMana),0xFE,0,(lpObj->MaxBP+lpObj->AddBP));
-			GSProtocol.GCManaSend(lpObj->m_Index,lpObj->Mana,0xFF,0,lpObj->BP);
+			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
+			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		}
 		break;
 	case SEED_EFFECT_TYPE_REFILL_AG_INC:

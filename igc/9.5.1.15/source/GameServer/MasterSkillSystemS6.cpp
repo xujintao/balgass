@@ -599,7 +599,7 @@ void CMasterSkillSystemS6::CalcEffect(OBJECTSTRUCT * lpObj)
 				case 600:
 					lpObj->AddLife += this->GetEffectValue(lpObj, 334);
 					lpObj->AddLife += this->GetEffectValue(lpObj, 600);
-					GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->AddLife+lpObj->MaxLife, 0xFE, 0, lpObj->iAddShield+lpObj->iMaxShield);
+					GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->MaxLife + lpObj->AddLife, 0xFE, 0, lpObj->iMaxShield + lpObj->iAddShield);
 					GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 					break;
 				case 335:
@@ -622,8 +622,8 @@ void CMasterSkillSystemS6::CalcEffect(OBJECTSTRUCT * lpObj)
 				case 601:
 					lpObj->AddMana += this->GetEffectValue(lpObj, 338);
 					lpObj->AddMana += this->GetEffectValue(lpObj, 601);
-					GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana+lpObj->AddMana, -2, 0, lpObj->MaxBP+lpObj->AddBP);
-					GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, -1, 0, lpObj->BP);
+					GSProtocol.GCManaSend(lpObj->m_Index, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
+					GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 					break;
 				case 348:
 					if(lpObj->pInventory[0].IsItem() == TRUE && lpObj->pInventory[0].m_TwoHand == TRUE)

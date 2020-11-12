@@ -1112,56 +1112,45 @@ void CObjCalCharacter::CalcCharacter(int aIndex)
 	}
 
 	this->CalcShieldPoint(lpObj);
-
-	if ( lpObj->iShield > ( lpObj->iMaxShield + lpObj->iAddShield ) )
-	{
+	if (lpObj->iShield > lpObj->iMaxShield + lpObj->iAddShield)
 		lpObj->iShield = lpObj->iMaxShield + lpObj->iAddShield ;
-		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
-	}
-
+	gObjSetBP(lpObj->m_Index);
+	if (lpObj->BP > lpObj->MaxBP + lpObj->AddBP)
+		lpObj->BP = lpObj->MaxBP + lpObj->AddBP ;
 	int nEffectValue = 0;
+	int iTotalMaxLife = lpObj->MaxLife + lpObj->AddLife;
 	int iTotalMaxShield = lpObj->iMaxShield + lpObj->iAddShield;
 	int iTotalMaxMana = lpObj->MaxMana + lpObj->AddMana;
-	int iTotalMaxLife = lpObj->MaxLife + lpObj->AddLife;
+	int iTotalMaxAG = lpObj->MaxBP + lpObj->AddBP;
 
 	if (gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_ACHERON_FIRE, &nEffectValue, 0))
 	{
 		iTotalMaxShield /= 2.0;
 		lpObj->iAddShield -= iTotalMaxShield;
-
-		if ( lpObj->iShield > ( lpObj->iMaxShield + lpObj->iAddShield ) )
-		{
+		if (lpObj->iShield > lpObj->iMaxShield + lpObj->iAddShield)
 			lpObj->iShield = lpObj->iMaxShield + lpObj->iAddShield ;
-			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
-		}
 	}
 
 	if (gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_ACHERON_FROST, &nEffectValue, 0))
 	{
 		iTotalMaxMana /= 2.0;
 		lpObj->AddMana -= iTotalMaxMana;
-
-		if ( (lpObj->MaxMana + lpObj->AddMana ) < lpObj->Mana )
-		{
+		if (lpObj->MaxMana + lpObj->AddMana < lpObj->Mana)
 			lpObj->Mana = lpObj->MaxMana + lpObj->AddMana;
-			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
-		}
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 	}
 
 	if (gObjGetValueOfBuffIndex(lpObj, BUFFTYPE_ACHERON_BIND, &nEffectValue, 0))
 	{
 		iTotalMaxLife /= 2.0;
 		lpObj->AddLife -= iTotalMaxLife;
-
-		if ( (lpObj->MaxLife + lpObj->AddLife ) < lpObj->Life )
-		{
+		if (lpObj->MaxLife + lpObj->AddLife < lpObj->Life)
 			lpObj->Life = lpObj->MaxLife + lpObj->AddLife;
-			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
-		}
+		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 	}
 
 	GSProtocol.GCReFillSend(lpObj->m_Index, iTotalMaxLife, 0xFE, 0, iTotalMaxShield);
-	GSProtocol.GCManaSend(lpObj->m_Index, iTotalMaxMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
+	GSProtocol.GCManaSend(lpObj->m_Index, iTotalMaxMana, 0xFE, 0, iTotalMaxAG);
 	g_StatSpec.SendOptionList(lpObj);
 	GSProtocol.GCSendAttackSpeed(lpObj->m_Index);
 }
@@ -1585,18 +1574,14 @@ void CObjCalCharacter::SetItemApply(LPOBJ lpObj)
 		}
 	}
 
-	if ( (lpObj->MaxLife + lpObj->AddLife ) < lpObj->Life )
+	if (lpObj->MaxLife + lpObj->AddLife < lpObj->Life)
 	{
 		lpObj->Life = lpObj->MaxLife + lpObj->AddLife;
-		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 	}
 
-	gObjSetBP(lpObj->m_Index);
-
-	if ( (lpObj->MaxMana + lpObj->AddMana ) < lpObj->Mana )
+	if (lpObj->MaxMana + lpObj->AddMana < lpObj->Mana)
 	{
 		lpObj->Mana = lpObj->MaxMana + lpObj->AddMana;
-		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 	}
 
 	lpObj->m_Defense += lpObj->m_PlayerData->SetOpAddDefence * 10 / 20;

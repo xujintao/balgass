@@ -12462,7 +12462,7 @@ void GameProtocol::CGTeleportRecv(PMSG_TELEPORT* lpMsg, int aIndex)
 					gObjTeleportMagicUse(aIndex, x, y);
 					gObj[aIndex].Mana = usemana;
 					gObj[aIndex].BP = usebp;
-					GCManaSend(gObj[aIndex].m_Index, gObj[aIndex].Mana, -1, 0, gObj[aIndex].BP);
+					GCManaSend(gObj[aIndex].m_Index, gObj[aIndex].Mana, 0xFF, 0, gObj[aIndex].BP);
 				}
 			}
 		}
@@ -12690,7 +12690,7 @@ void GameProtocol::CGTargetTeleportRecv(PMSG_TARGET_TELEPORT * lpMsg, int aIndex
 				gObjTeleportMagicUse(iTargetIndex, x, y);
 				gObj[aIndex].Mana = usemana;
 				gObj[aIndex].BP = usebp;
-				GCManaSend(gObj[aIndex].m_Index, gObj[aIndex].Mana, -1, 0, gObj[aIndex].BP);
+				GCManaSend(gObj[aIndex].m_Index, gObj[aIndex].Mana, 0xFF, 0, gObj[aIndex].BP);
 				
 				return;
 			}

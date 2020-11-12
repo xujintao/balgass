@@ -2390,8 +2390,8 @@ void CPentagramSystem::DBANS_GetPentagramJewel(LPBYTE lpRecv)
 		if (lpObj->pInventory[236].IsItem() == TRUE)
 		{
 			this->CalcPentagramItem(aIndex, &lpObj->pInventory[236]);
-			GSProtocol.GCReFillSend(aIndex, lpObj->MaxLife + lpObj->AddLife, 0xFE, 0, lpObj->iAddShield + lpObj->iMaxShield);
-			GSProtocol.GCManaSend(aIndex, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->AddBP + lpObj->MaxBP);
+			GSProtocol.GCReFillSend(aIndex, lpObj->MaxLife + lpObj->AddLife, 0xFE, 0, lpObj->iMaxShield + lpObj->iAddShield);
+			GSProtocol.GCManaSend(aIndex, lpObj->MaxMana + lpObj->AddMana, 0xFE, 0, lpObj->MaxBP + lpObj->AddBP);
 		}
 	}
 

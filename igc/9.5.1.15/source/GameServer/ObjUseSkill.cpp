@@ -954,7 +954,7 @@ void CObjUseSkill::UseSkill(int aIndex, int aTargetIndex, CMagicInf * lpMagic)
 				lpObj->Mana = usemana;
 				lpObj->BP = usebp;
 
-				GSProtocol.GCManaSend(aIndex,lpObj->Mana,0xFF,0,lpObj->BP);
+				GSProtocol.GCManaSend(aIndex, lpObj->Mana, 0xFF, 0, lpObj->BP);
 			}
 		}
 	}
@@ -3731,7 +3731,7 @@ void CObjUseSkill::SkillElectricSpark(int aIndex, CMagicInf * lpMagic, BYTE x, B
 
 
 
-int  DecPartyMemberHPandMP(LPOBJ lpObj)
+int DecPartyMemberHPandMP(LPOBJ lpObj)
 {
 	LPOBJ lpPartyObj;
 	int partynum = lpObj->PartyNumber;
@@ -3766,7 +3766,7 @@ int  DecPartyMemberHPandMP(LPOBJ lpObj)
 					lpPartyObj->Mana = lpPartyObj->Mana - decmana;
 
 					GSProtocol.GCReFillSend(lpPartyObj->m_Index, lpPartyObj->Life, 0xFF, 0, lpPartyObj->iShield);
-					GSProtocol.GCManaSend(lpPartyObj->m_Index,lpPartyObj->Mana,0xFF,0,lpPartyObj->BP);
+					GSProtocol.GCManaSend(lpPartyObj->m_Index, lpPartyObj->Mana, 0xFF, 0, lpPartyObj->BP);
 					retcount++;
 				}
 			}

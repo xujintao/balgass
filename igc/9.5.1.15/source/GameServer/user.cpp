@@ -556,7 +556,7 @@ void gObjSkillUseProcTime500(LPOBJ lpObj)
 					lpObj->Mana = 0.0f;
 				}
 
-				GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, -1, 0, lpObj->BP);
+				GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 				PMSG_EX_SKILL_COUNT pMsg;
 				PHeadSetB( (LPBYTE)&pMsg, 0xBA, sizeof(pMsg));
 				pMsg.Type = 40;
@@ -654,7 +654,7 @@ void gObjSkillUseProcTime500(LPOBJ lpObj)
 					lpObj->Mana = 0.0f;
 				}
 
-				GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, -1, 0, lpObj->BP);
+				GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 				PMSG_EX_SKILL_COUNT pMsg;
 				PHeadSetB((LPBYTE)&pMsg, 0xBA, sizeof(pMsg));
 				pMsg.Type = 392;
@@ -5474,15 +5474,15 @@ void gObjStateProc(LPOBJ lpObj, int aMsgCode, int aIndex, int SubCode)
 			break;
 		case 13:
 			lpObj->Life = lpObj->MaxLife + lpObj->AddLife;
-			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 			break;
 		case 14:
 			lpObj->Mana = lpObj->MaxMana + lpObj->AddMana;
-			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, -1, 0, lpObj->BP);
+			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 			break;
 		case 15:
 			lpObj->iShield = lpObj->iMaxShield + lpObj->iAddShield;
-			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 			break;
 		case 16:
 			lpObj->Life += SubCode;
@@ -6083,32 +6083,19 @@ bool gObjLevelUp(LPOBJ lpObj, UINT64 addexp, int iMonsterType, const char * szEv
 	lpObj->m_PlayerData->Experience = lpObj->m_PlayerData->NextExp;
 	lpObj->Level ++;
 
-	if ( g_ConfigRead.data.reset.iBlockLevelUpPointAfterResets == -1 || lpObj->m_PlayerData->m_iResets < g_ConfigRead.data.reset.iBlockLevelUpPointAfterResets )
+	if (g_ConfigRead.data.reset.iBlockLevelUpPointAfterResets == -1
+	|| lpObj->m_PlayerData->m_iResets < g_ConfigRead.data.reset.iBlockLevelUpPointAfterResets)
 	{
 		if ( lpObj->Class == 4 )
-		{
 			lpObj->m_PlayerData->LevelUpPoint += gLevelUpPointMGDL;
-		}
-
 		else if ( lpObj->Class == 3 )
-		{
 			lpObj->m_PlayerData->LevelUpPoint += gLevelUpPointMGDL;
-		}
-
 		else if ( lpObj->Class == 6 )
-		{
 			lpObj->m_PlayerData->LevelUpPoint += gLevelUpPointMGDL;
-		}
-
 		else if ( lpObj->Class == 7 )
-		{
 			lpObj->m_PlayerData->LevelUpPoint += gLevelUpPointMGDL;
-		}
-
 		else
-		{	
 			lpObj->m_PlayerData->LevelUpPoint += gLevelUpPointNormal;
-		}
 
 		if ( lpObj->m_PlayerData->PlusStatQuestClear != false )
 		{	
@@ -6117,50 +6104,41 @@ bool gObjLevelUp(LPOBJ lpObj, UINT64 addexp, int iMonsterType, const char * szEv
 				lpObj->AccountID, lpObj->Name, lpObj->m_PlayerData->LevelUpPoint);
 		}
 	}
-
-	gObjCalCharacter.CalcCharacter(lpObj->m_Index);
+	
 	g_CMuunSystem.CheckMuunItemConditionLevelUp(lpObj);
 	lpObj->MaxLife += DCInfo.DefClass[ lpObj->Class ].LevelLife;
 	lpObj->MaxMana += DCInfo.DefClass[ lpObj->Class ].LevelMana;
-	lpObj->Life = lpObj->MaxLife;
-	lpObj->Mana = lpObj->MaxMana;
-
+	gObjCalCharacter.CalcCharacter(lpObj->m_Index);
 	lpObj->Life = lpObj->MaxLife + lpObj->AddLife;
 	lpObj->Mana = lpObj->MaxMana + lpObj->AddMana;
-	
-	gObjCalCharacter.CalcShieldPoint(lpObj);
 	lpObj->iShield = lpObj->iMaxShield + lpObj->iAddShield;
-	GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+	lpObj->BP = lpObj->MaxBP + lpObj->AddBP;
+	GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
+	GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 
 	gObjNextExpCal(lpObj);	
 	g_Log.Add("Level Up [%s][%s][%d]", lpObj->AccountID, lpObj->Name, lpObj->Level);
 
-	if(lpObj->Class == CLASS_ELF)
+	if(lpObj->Class == CLASS_ELF
+	&& lpObj->Level >= g_SkillAdditionInfo.GetInfinityArrowUseLevel()
+	&& lpObj->m_PlayerData->ChangeUP >= 1)
 	{
-		if(lpObj->Level >= g_SkillAdditionInfo.GetInfinityArrowUseLevel() && lpObj->m_PlayerData->ChangeUP >= 1)
+		int iAddSkillPosition = gObjMagicAdd(lpObj,0x4D,0);
+		if(iAddSkillPosition >= 0)
 		{
-			int iAddSkillPosition = gObjMagicAdd(lpObj,0x4D,0);
-
-			if(iAddSkillPosition >= 0)
-			{
-				GSProtocol.GCMagicListOneSend(lpObj->m_Index,iAddSkillPosition,0x4D,0xDC,0,0);
-				g_Log.Add("[%s][%s] Add Infinity Arrow Skill (Character Level : %d)(ChangeUp: %d)",
-					lpObj->AccountID,lpObj->Name,lpObj->Level,lpObj->m_PlayerData->ChangeUP);
-			}
-			else
-			{
-				g_Log.Add("[%s][%s] Fail - Add Infinity Arrow Skill (Character Level : %d)(ChangeUp: %d)",
-					lpObj->AccountID,lpObj->Name,lpObj->Level,lpObj->m_PlayerData->ChangeUP);
-			}
+			GSProtocol.GCMagicListOneSend(lpObj->m_Index,iAddSkillPosition,0x4D,0xDC,0,0);
+			g_Log.Add("[%s][%s] Add Infinity Arrow Skill (Character Level : %d)(ChangeUp: %d)",
+				lpObj->AccountID,lpObj->Name,lpObj->Level,lpObj->m_PlayerData->ChangeUP);
+		}
+		else
+		{
+			g_Log.Add("[%s][%s] Fail - Add Infinity Arrow Skill (Character Level : %d)(ChangeUp: %d)",
+				lpObj->AccountID,lpObj->Name,lpObj->Level,lpObj->m_PlayerData->ChangeUP);
 		}
 	}
 
-
-	//GJSetCharacterInfo(lpObj, lpObj->m_Index, 0);
-	gObjSetBP(lpObj->m_Index);
 	GSProtocol.GCLevelUpMsgSend(lpObj->m_Index, 1);
 	gObjCalcMaxLifePower(lpObj->m_Index);
-	
 	return false;
 }
 
@@ -10124,7 +10102,7 @@ void gObjMonsterDieLifePlus(LPOBJ lpObj, LPOBJ lpTartObj)
 		lpObj->iShield = lpObj->iMaxShield + lpObj->iAddShield;
 	}
 
-	GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+	GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 
 	if (lpObj->MonsterDieGetMana != 0
 	|| lpObj->m_PlayerData->m_wSocketOptionMonsterDieGetMana != 0
@@ -10135,7 +10113,7 @@ void gObjMonsterDieLifePlus(LPOBJ lpObj, LPOBJ lpTartObj)
 			lpObj->Mana = lpObj->MaxMana + lpObj->AddMana;
 		}
 
-		GSProtocol.GCManaSend(lpObj->m_Index,lpObj->Mana,255,0,lpObj->BP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 	}
 }
 
@@ -18898,7 +18876,7 @@ void gObjManaPotionFill(LPOBJ lpObj)
 		BYTE MapAttr;
 		int rBP,CurBP;
 
-		if(lpObj->MaxMana + lpObj->AddMana > lpObj->Mana)
+		if(lpObj->Mana < lpObj->MaxMana + lpObj->AddMana)
 		{
 			float percent = 3.7f;
 
@@ -18944,7 +18922,6 @@ void gObjManaPotionFill(LPOBJ lpObj)
 		}
 
 		BP = lpObj->MaxBP + lpObj->AddBP;
-
 		if(lpObj->BP < BP)
 		{
 			MapAttr = MapC[lpObj->MapNumber].GetAttr((short &)lpObj->X,(short &)lpObj->Y);
@@ -19005,7 +18982,7 @@ void gObjManaPotionFill(LPOBJ lpObj)
 
 		if(ChangeMana != 0)
 		{
-			GSProtocol.GCManaSend(lpObj->m_Index,lpObj->Mana,255,0,lpObj->BP);
+			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		}
 	}
 }
@@ -19080,7 +19057,7 @@ void gObjRestPotionFill(LPOBJ lpObj)
 
 			lpObj->Life = tlife;
 
-			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		}
 
 		percent = 3.0f;
@@ -19097,7 +19074,7 @@ void gObjRestPotionFill(LPOBJ lpObj)
 
 		lpObj->Mana = tmana;
 
-		GSProtocol.GCManaSend(lpObj->m_Index,lpObj->Mana,255,0,lpObj->BP);
+		GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 	}
 
 	else
@@ -19185,7 +19162,7 @@ void gObjRestPotionFill(LPOBJ lpObj)
 
 				lpObj->Life = tlife;
 
-				GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+				GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 			}
 		}
 	}
@@ -19223,7 +19200,7 @@ void gObjRestPotionFill(LPOBJ lpObj)
 			lpObj->iFillShieldMax = 0;
 		}
 
-		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 	}
 
 	if(lpObj->FillLife > 0)
@@ -19263,7 +19240,7 @@ void gObjRestPotionFill(LPOBJ lpObj)
 			lpObj->FillLife = 0;
 		}
 
-		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+		GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 	}
 }
 
@@ -24169,13 +24146,13 @@ void gObjUseCircle(int aIndex, int pos)
 	case 1:
 		gObj[aIndex].m_PlayerData->Vitality += incvalue;
 		gObj[aIndex].MaxLife += gObj[aIndex].VitalityToLife * incvalue;
-		GSProtocol.GCReFillSend(aIndex,gObj[aIndex].MaxLife+gObj[aIndex].AddLife,0xFE,0,gObj[aIndex].iAddShield+gObj[aIndex].iMaxShield);
+		GSProtocol.GCReFillSend(aIndex,gObj[aIndex].MaxLife + gObj[aIndex].AddLife, 0xFE, 0, gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield);
 		break;
 	case 0:
 		gObj[aIndex].m_PlayerData->Energy += incvalue;
 		gObj[aIndex].MaxMana += gObj[aIndex].EnergyToMana * incvalue;
 		gObjSetBP(aIndex);
-		GSProtocol.GCManaSend(gObj[aIndex].m_Index,gObj[aIndex].MaxMana + gObj[aIndex].AddMana,0xFE,0,gObj[aIndex].MaxBP);
+		GSProtocol.GCManaSend(gObj[aIndex].m_Index,gObj[aIndex].MaxMana + gObj[aIndex].AddMana, 0xFE, 0, gObj[aIndex].MaxBP + gObj[aIndex].AddBP);
 		break;
 	default: break;
 	}
@@ -24355,9 +24332,9 @@ void gObjUsePlusStatFruit(int aIndex,int pos)
 	}
 
 	gObjCalCharacter.CalcCharacter(aIndex);
-	GSProtocol.GCReFillSend(aIndex,gObj[aIndex].MaxLife+gObj[aIndex].AddLife,0xFE,0,gObj[aIndex].iAddShield+gObj[aIndex].iMaxShield);
+	GSProtocol.GCReFillSend(aIndex, gObj[aIndex].MaxLife + gObj[aIndex].AddLife, 0xFE, 0, gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield);
 	gObjSetBP(aIndex);
-	GSProtocol.GCManaSend(gObj[aIndex].m_Index,gObj[aIndex].MaxMana + gObj[aIndex].AddMana,0xFE,0,gObj[aIndex].MaxBP + gObj[aIndex].AddBP);
+	GSProtocol.GCManaSend(gObj[aIndex].m_Index,gObj[aIndex].MaxMana + gObj[aIndex].AddMana, 0xFE, 0, gObj[aIndex].MaxBP + gObj[aIndex].AddBP);
 }
 
 
@@ -24601,9 +24578,9 @@ void gObjUseMinusStatFruit(int aIndex, int pos)
 		gObj[aIndex].AccountID,gObj[aIndex].Name,iDecStat,iOldLevelUpPoint,gObj[aIndex].m_PlayerData->LevelUpPoint,iOldFruitPoint,gObj[aIndex].m_PlayerData->iFruitPoint);
 
 	gObjCalCharacter.CalcCharacter(aIndex);
-	GSProtocol.GCReFillSend(aIndex,gObj[aIndex].MaxLife+gObj[aIndex].AddLife,0xFE,0,gObj[aIndex].iAddShield+gObj[aIndex].iMaxShield);
+	GSProtocol.GCReFillSend(aIndex, gObj[aIndex].MaxLife + gObj[aIndex].AddLife, 0xFE, 0, gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield);
 	gObjSetBP(aIndex);
-	GSProtocol.GCManaSend(gObj[aIndex].m_Index,gObj[aIndex].MaxMana + gObj[aIndex].AddMana,0xFE,0,gObj[aIndex].MaxBP);
+	GSProtocol.GCManaSend(gObj[aIndex].m_Index, gObj[aIndex].MaxMana + gObj[aIndex].AddMana, 0xFE, 0, gObj[aIndex].MaxBP + gObj[aIndex].AddBP);
 }
 
 void CashShopExMinusStatFruit(int aIndex, int pos) //GS-CS Need Decompile
@@ -24774,9 +24751,9 @@ void CashShopExMinusStatFruit(int aIndex, int pos) //GS-CS Need Decompile
 		gObj[aIndex].AccountID,gObj[aIndex].Name,iStatPoint);
 
 		gObjCalCharacter.CalcCharacter(aIndex);
-		GSProtocol.GCReFillSend(aIndex,gObj[aIndex].MaxLife+gObj[aIndex].AddLife,0xFE,0,gObj[aIndex].iAddShield+gObj[aIndex].iMaxShield);
+		GSProtocol.GCReFillSend(aIndex, gObj[aIndex].MaxLife + gObj[aIndex].AddLife, 0xFE, 0, gObj[aIndex].iMaxShield + gObj[aIndex].iAddShield);
 		gObjSetBP(aIndex);
-		GSProtocol.GCManaSend(gObj[aIndex].m_Index,gObj[aIndex].MaxMana + gObj[aIndex].AddMana,0xFE,0,gObj[aIndex].MaxBP);
+		GSProtocol.GCManaSend(gObj[aIndex].m_Index, gObj[aIndex].MaxMana + gObj[aIndex].AddMana, 0xFE, 0, gObj[aIndex].MaxBP + gObj[aIndex].AddBP);
 	}
 }
 
@@ -26203,7 +26180,7 @@ void gProcessAutoRecuperation(LPOBJ lpObj)
 				lpObj->Life = lpObj->MaxLife + lpObj->AddLife;
 			}
 
-			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		}
 
 		if(lpObj->Mana < ( lpObj->MaxMana + lpObj->AddMana ) || lpObj->BP < ( lpObj->MaxBP + lpObj->AddBP) )
@@ -26222,7 +26199,7 @@ void gProcessAutoRecuperation(LPOBJ lpObj)
 				lpObj->BP = lpObj->MaxBP + lpObj->AddBP;
 			}
 
-			GSProtocol.GCManaSend(lpObj->m_Index,lpObj->Mana,0xFF,0,lpObj->BP);
+			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		}
 	}
 	else if(( GetTickCount() - lpObj->m_iAutoRecuperationTime ) >= 15000 && ( GetTickCount() - lpObj->m_iAutoRecuperationTime ) < 25000)
@@ -26236,7 +26213,7 @@ void gProcessAutoRecuperation(LPOBJ lpObj)
 				lpObj->Life = lpObj->MaxLife + lpObj->AddLife;
 			}
 
-			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		}
 
 		if(lpObj->Mana < ( lpObj->MaxMana + lpObj->AddMana ) || lpObj->BP < ( lpObj->MaxBP + lpObj->AddBP) )
@@ -26255,7 +26232,7 @@ void gProcessAutoRecuperation(LPOBJ lpObj)
 				lpObj->BP = lpObj->MaxBP + lpObj->AddBP;
 			}
 
-			GSProtocol.GCManaSend(lpObj->m_Index,lpObj->Mana,0xFF,0,lpObj->BP);
+			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		}
 	}
 	else if(( GetTickCount() - lpObj->m_iAutoRecuperationTime ) >= 25000)
@@ -26269,7 +26246,7 @@ void gProcessAutoRecuperation(LPOBJ lpObj)
 				lpObj->Life = lpObj->MaxLife + lpObj->AddLife;
 			}
 
-			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+			GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 		}
 
 		if(lpObj->Mana < ( lpObj->MaxMana + lpObj->AddMana ) || lpObj->BP < ( lpObj->MaxBP + lpObj->AddBP) )
@@ -26288,7 +26265,7 @@ void gProcessAutoRecuperation(LPOBJ lpObj)
 				lpObj->BP = lpObj->MaxBP + lpObj->AddBP;
 			}
 
-			GSProtocol.GCManaSend(lpObj->m_Index,lpObj->Mana,0xFF,0,lpObj->BP);
+			GSProtocol.GCManaSend(lpObj->m_Index, lpObj->Mana, 0xFF, 0, lpObj->BP);
 		}
 	}
 }
@@ -26379,7 +26356,7 @@ void gObjShieldAutoRefill(LPOBJ lpObj)
 		lpObj->iShield = lpObj->iMaxShield + lpObj->iAddShield;
 	} 
 
-	GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, -1, 0, lpObj->iShield);
+	GSProtocol.GCReFillSend(lpObj->m_Index, lpObj->Life, 0xFF, 0, lpObj->iShield);
 }
 
 int gObjCheckOverlapItemUsingDur(int iUserIndex, int iMaxOverlapped, int iItemType, int iItemLevel)

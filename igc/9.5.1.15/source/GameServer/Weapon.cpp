@@ -456,7 +456,7 @@ BOOL CWeapon::Attack(LPOBJ lpObj, LPOBJ lpTargetObj, CMagicInf * lpMagic, int iC
 
 	if ( ManaChange != FALSE )
 	{
-		GSProtocol.GCManaSend(lpTargetObj->m_Index, lpTargetObj->Mana, (BYTE)-1, 0, lpTargetObj->BP);
+		GSProtocol.GCManaSend(lpTargetObj->m_Index, lpTargetObj->Mana, 0xFF, 0, lpTargetObj->BP);
 	}
 
 	lpObj->m_Rest = 0;
