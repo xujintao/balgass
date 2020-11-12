@@ -146,17 +146,6 @@ DWORD CIOCP::IocpServerWorker(void * p)
 			}
 
 			EnterCriticalSection(&criti);
-			
-			// set linger
-			/*LINGER l;
-			l.l_onoff = 0;
-			l.l_linger = 0;
-			if (SOCKET_ERROR == setsockopt(fd, SOL_SOCKET, SO_LINGER, (char*)&l, sizeof(LINGER))) {
-				g_Log.Add("setsockopt failed with error %d", WSAGetLastError() );
-				closesocket(fd);
-				LeaveCriticalSection(&criti);
-				continue;
-			}*/
 
 			in_addr cInAddr;
 			memcpy(&cInAddr, &cAddr.sin_addr  , sizeof(cInAddr) );
@@ -687,7 +676,10 @@ bool CIOCP::DataSend(int aIndex, unsigned char* lpMsg, DWORD dwSize, bool Encryp
 		{
 			g_Log.Add("the second send buffer is full %d + %d [%d][%s]",
 				lpIoCtxt->nSecondOfs, dwSize, aIndex, gObj[aIndex].AccountID);
-			shutdown_no_lock(aIndex);
+			// in this case, we use closesocket instead of shutdown for the network
+			// current is unreliable, such as underlying tcp re-transmission too
+			// many times
+			CloseClient(aIndex, 1);
 			LeaveCriticalSection(&criti);
 			return false;
 		}
@@ -830,11 +822,21 @@ void CIOCP::CloseClient(int index, int err)
 	}
 
 	_PER_SOCKET_CONTEXT* lpPerSocketContext = gObj[index].PerSocketContext;
-	if (lpPerSocketContext->m_socket != INVALID_SOCKET)
+	SOCKET fd = lpPerSocketContext->m_socket;
+	if (fd != INVALID_SOCKET)
 	{
 		g_Log.AddC(TColor::Orange, "connection closed [err:%d] [%d][%s]",
 			err, index, gObj[index].m_PlayerData->Ip_addr);
-		if (closesocket(lpPerSocketContext->m_socket) == SOCKET_ERROR)
+		if (err != 0) {
+			// set linger
+			LINGER l;
+			l.l_onoff = 1;
+			l.l_linger = 0;
+			if (SOCKET_ERROR == setsockopt(fd, SOL_SOCKET, SO_LINGER, (char*)&l, sizeof(LINGER))) {
+				g_Log.Add("setsockopt failed with error %d", WSAGetLastError() );
+			}
+		}
+		if (closesocket(fd) == SOCKET_ERROR)
 		{
 			g_Log.AddC(TColor::Red, "close socket error:%d [%d][%s]",
 				WSAGetLastError(), index, gObj[index].m_PlayerData->Ip_addr);
