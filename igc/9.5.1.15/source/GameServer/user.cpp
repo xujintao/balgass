@@ -18821,7 +18821,7 @@ void gObjSecondProc()
 				{
 					g_Log.AddC(TColor::Red, "connect timeout [%d] [%ds] [%d][%s][%s][%s]",
 						lpObj->Connected, timeout/1000, lpObj->m_Index, lpObj->AccountID, lpObj->Name, lpObj->m_PlayerData->Ip_addr);
-					IOCP.CloseClient(lpObj->m_Index);
+					IOCP.CloseClientHard(lpObj->m_Index);
 				}
 			}
 

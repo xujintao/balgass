@@ -202,8 +202,9 @@ DWORD CIOCP::IocpServerWorker(void * p)
 			{
 				int err = WSAGetLastError();
 				if (err != WSA_IO_PENDING) {
-					g_Log.AddC(TColor::Azure, "error-L1 : WSARecv() failed with error %d", err);
-					CloseClient(ClientIndex, err);
+					g_Log.AddC(TColor::Azure, "WSARecv() failed with error:%d [%d][%s]",
+						err, ClientIndex, gObj[ClientIndex].m_PlayerData->Ip_addr);
+					close_no_lock(ClientIndex, err);
 					LeaveCriticalSection(&criti);
 					continue;
 				}
@@ -293,7 +294,7 @@ DWORD CIOCP::ServerWorkerThread()
 		if (dwIoSize == 0)
 		{
 			// handle remote close connection
-			CloseClient(ClientIndex, 0);
+			close_no_lock(ClientIndex, 0);
 			LeaveCriticalSection(&criti);
 			continue;
 		}
@@ -331,8 +332,9 @@ DWORD CIOCP::ServerWorkerThread()
 			lpIOContext->nSentBytes += dwIoSize;
 			if (RecvDataParse(lpIOContext, lpPerSocketContext->nIndex ) == 0)
 			{
-				g_Log.Add("error-L1 : RecvDataParse error %d", lpPerSocketContext->nIndex);
-				shutdown_no_lock(ClientIndex);
+				g_Log.Add("RecvDataParse error [%d][%s]",
+					ClientIndex, gObj[ClientIndex].m_PlayerData->Ip_addr);
+				close_no_lock(ClientIndex, 2);
 				LeaveCriticalSection(&criti);
 				continue;
 			}
@@ -357,7 +359,7 @@ DWORD CIOCP::ServerWorkerThread()
 					// So we have to close client here.
 					g_Log.Add("WSARecv() failed with error:%d [%d][%s]",
 						err, ClientIndex, gObj[ClientIndex].m_PlayerData->Ip_addr);
-					CloseClient(ClientIndex, err);
+					close_no_lock(ClientIndex, err);
 					LeaveCriticalSection(&criti);
 					continue;
 				}
@@ -403,7 +405,7 @@ bool CIOCP::RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex)
 		}
 		else
 		{
-			g_Log.Add("error-L1 : Header error (%s %d) lOfs:%d size:%d", __FILE__, __LINE__, lOfs, lpIOContext->nSentBytes);
+			g_Log.Add("Header error lOfs:%d size:%d", lOfs, lpIOContext->nSentBytes);
 			return false;
 		}
 
@@ -422,6 +424,7 @@ bool CIOCP::RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex)
 				if ( ret < 0 )
 				{
 					g_Log.AddC(TColor::Red, "[%s][Packet-Decrypt BYTE] Error: ret < 0 %x/%x/%x)", gObj[uIndex].m_PlayerData->Ip_addr,recvbuf[lOfs], recvbuf[lOfs+1], recvbuf[lOfs+2]);
+					return false;
 				}
 				else
 				{
@@ -433,9 +436,7 @@ bool CIOCP::RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex)
 					if(gObj[uIndex].m_PlayerData->PacketsPerSecond >= g_ConfigRead.data.common.PacketLimit)
 					{
 						g_Log.AddC(TColor::Red, "[ANTI-HACK] Packets Per Second: %d / %d", gObj[uIndex].m_PlayerData->PacketsPerSecond, g_ConfigRead.data.common.PacketLimit);
-						GSProtocol.GCSendDisableReconnect(uIndex);
-						//IOCP.shutdown_no_lock(uIndex);
-						return 0;
+						return false;
 					}
 
 					CStreamPacketEngine_Server PacketStream;
@@ -448,13 +449,13 @@ bool CIOCP::RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex)
 							headcode,
 							__FILE__, __LINE__,
 							gObj[uIndex].Connected);
-						return 0;
+						return false;
 					}
 					if ( PacketStream.ExtractPacket(byDec) != 0 )
 					{
 						g_Log.AddC(TColor::Red,  "error-L1 : CStreamPacketEngine ExtractPacket Error : ip = %s account:%s name:%s HEAD:%x (%s,%d) State:%d",
 							gObj[uIndex].m_PlayerData->Ip_addr, gObj[uIndex].AccountID, gObj[uIndex].Name, headcode, __FILE__, __LINE__, gObj[uIndex].Connected);
-						return 0;
+						return false;
 					}
 					GSProtocol.ProtocolCore(headcode, byDec, ret, uIndex, 1);
 				}
@@ -465,6 +466,7 @@ bool CIOCP::RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex)
 				if ( ret < 0 )
 				{
 					g_Log.AddC(TColor::Red, "[Packet-Decrypt WORD] Error: ret < 0 %x/%x/%x)", recvbuf[lOfs], recvbuf[lOfs+1], recvbuf[lOfs+2]);
+					return false;
 				}
 				else
 				{
@@ -479,9 +481,7 @@ bool CIOCP::RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex)
 					if(gObj[uIndex].m_PlayerData->PacketsPerSecond >= g_ConfigRead.data.common.PacketLimit)
 					{
 						g_Log.AddC(TColor::Red, "[ANTI-HACK] Packets Per Second: %d / %d", gObj[uIndex].m_PlayerData->PacketsPerSecond, g_ConfigRead.data.common.PacketLimit);
-						GSProtocol.GCSendDisableReconnect(uIndex);
-						//IOCP.shutdown_no_lock(uIndex);
-						return 0;
+						return false;
 					}
 
 					CStreamPacketEngine_Server PacketStream;
@@ -510,25 +510,22 @@ bool CIOCP::RecvDataParse(_PER_IO_CONTEXT * lpIOContext, int uIndex)
 				{
 					g_Log.AddC(TColor::Red,  "error-L1 : CStreamPacketEngine Adding Error : ip = %s account:%s name:%s HEAD:%x (%s,%d) State:%d",
 						gObj[uIndex].m_PlayerData->Ip_addr, gObj[uIndex].AccountID, gObj[uIndex].Name, headcode, __FILE__, __LINE__, gObj[uIndex].Connected);
-					return 0;
+					return false;
 				}
 
 				if ( ps.ExtractPacket(byDec) != 0 )
 				{
 					g_Log.AddC(TColor::Red,  "error-L1 : CStreamPacketEngine ExtractPacket Error : ip = %s account:%s name:%s HEAD:%x (%s,%d) State:%d",
 						gObj[uIndex].m_PlayerData->Ip_addr, gObj[uIndex].AccountID, gObj[uIndex].Name, headcode, __FILE__, __LINE__, gObj[uIndex].Connected);
-					return 0;
+					return false;
 				}
 
 				gObj[uIndex].m_PlayerData->PacketsPerSecond++;
 				if(gObj[uIndex].m_PlayerData->PacketsPerSecond >= g_ConfigRead.data.common.PacketLimit)
 				{
 					g_Log.AddC(TColor::Red, "[ANTI-HACK] Packets Per Second: %d / %d", gObj[uIndex].m_PlayerData->PacketsPerSecond, g_ConfigRead.data.common.PacketLimit);
-					GSProtocol.GCSendDisableReconnect(uIndex);
-					//IOCP.shutdown_no_lock(uIndex);
-					return 0;
+					return false;
 				}
-
 				GSProtocol.ProtocolCore(headcode, byDec, size, uIndex, 0); // here
 			}
 
@@ -679,7 +676,7 @@ bool CIOCP::DataSend(int aIndex, unsigned char* lpMsg, DWORD dwSize, bool Encryp
 			// in this case, we use closesocket instead of shutdown for the network
 			// current is unreliable, such as underlying tcp re-transmission too
 			// many times
-			CloseClient(aIndex, 1);
+			close_no_lock(aIndex, 1);
 			LeaveCriticalSection(&criti);
 			return false;
 		}
@@ -814,7 +811,7 @@ bool CIOCP::UpdateCompletionPort(SOCKET sd, int ClientIndex, BOOL bAddToList)
 }
 
 // no lock
-void CIOCP::CloseClient(int index, int err)
+void CIOCP::close_no_lock(int index, int err)
 {
 	if (index < g_ConfigRead.server.GetObjectStartUserIndex()
 	|| index >= g_ConfigRead.server.GetObjectMax()) {
@@ -868,12 +865,14 @@ void CIOCP::shutdown_no_lock(int index) // go to game
 
 void CIOCP::CloseClient(int index) // go to game
 {
-	if (index < g_ConfigRead.server.GetObjectStartUserIndex()
-	|| index >= g_ConfigRead.server.GetObjectMax()) {
-		return;
-	}
-
 	EnterCriticalSection(&criti);
 	shutdown_no_lock(index);
+	LeaveCriticalSection(&criti);
+}
+
+void CIOCP::CloseClientHard(int index) // go to game
+{
+	EnterCriticalSection(&criti);
+	close_no_lock(index, 3);
 	LeaveCriticalSection(&criti);
 }
