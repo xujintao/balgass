@@ -14123,12 +14123,7 @@ void GameProtocol::CGUseItemRecv(PMSG_USEITEM* lpMsg, int aIndex)
 			GCReFillSend(aIndex, gObj[aIndex].Life, 0xFD, 1, gObj[aIndex].iShield);
 		}
 	}
-	else if (citem->m_Type >= ITEMGET(15, 0) ||	// Group 15 - Scrolls
-		citem->m_Type == ITEMGET(12, 7) || // Orb of Twisting Slash
-		(citem->m_Type >= ITEMGET(12, 8) && citem->m_Type <= ITEMGET(12, 24)) ||	// Orbs
-		citem->m_Type == ITEMGET(12, 35) ||
-		(citem->m_Type >= ITEMGET(12, 44) && citem->m_Type <= ITEMGET(12, 48)) ||	// Scroll of Fire Scream
-		(citem->m_Type >= ITEMGET(12,271) && citem->m_Type <= ITEMGET(12, 277))) // Grow Lancer Skills
+	else if (GetItemKindA(citem->m_Type) == ITEM_KIND_A_SKILL_ITEM)
 	{
 		if ((gObj[aIndex].m_PlayerData->Strength + gObj[aIndex].AddStrength) < citem->m_RequireStrength)
 		{
@@ -14169,7 +14164,6 @@ void GameProtocol::CGUseItemRecv(PMSG_USEITEM* lpMsg, int aIndex)
 		else
 		{
 			int addskill = gObjMagicAdd(&gObj[aIndex], ITEM_GET_TYPE(citem->m_Type), ITEM_GET_INDEX(citem->m_Type), citem->m_Level, skillnumber);
-
 			if (addskill >= 0)
 			{
 				gObjInventoryItemSet(aIndex, pos, -1);

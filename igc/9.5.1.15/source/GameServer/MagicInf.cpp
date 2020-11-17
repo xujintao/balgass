@@ -411,14 +411,12 @@ void MagicByteConvert(unsigned char* buf, CMagicInf* const Magici, int maxmagic)
 			iExpendSkillCount = 3;
 			iExpendSkillExtraNumber = Magici[index].m_Skill - 765;
 		}
-
 		else if ( Magici[index].m_Skill > 510 )
 		{
 			iExpendSkillNumber = -1;
 			iExpendSkillCount = 2;
 			iExpendSkillExtraNumber = Magici[index].m_Skill - 510;
 		}
-
 		else if ( Magici[index].m_Skill > 255 )
 		{
 			iExpendSkillNumber = -1;

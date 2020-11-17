@@ -2728,27 +2728,40 @@ bool gObjSetCharacter(LPBYTE lpdata, int aIndex)
 						g_MasterLevelSkillTreeSystem.CalcPassiveSkillData(lpObj, itype, level);
 					}
 				}
-
 				else
 				{
-
 					if (itype == 17)
 					{
 						bEnergyBall = FALSE;
 					}
-
 					if (itype == 60)
 					{
 						bForceSkill = FALSE;
 					}
-
 					if (itype == 77)
 					{
 						IsGetInitinityArrowSkill = 1;
 						gObjMagicAdd(lpObj, itype, lpMsg->dbMagicList[n * MAX_MAGIC_INFO + DBM_LEVEL] & 0xF);
 					}
-
-					else if (itype != 18 && itype != 19 && itype != 20 && itype != 21 && itype != 22 && itype != 23 && itype != 24 && itype != 25 && itype != 49 && itype != 56 && itype != 62 && itype != 76 && itype != 54 && itype != 223 && itype != 224 && itype != 225 && itype != 260 && itype != 261 && itype != 270)
+					else if (itype != 18
+					&& itype != 19
+					&& itype != 20
+					&& itype != 21
+					&& itype != 22
+					&& itype != 23
+					&& itype != 24
+					&& itype != 25
+					&& itype != 49
+					&& itype != 54
+					&& itype != 56
+					&& itype != 62
+					&& itype != 76
+					&& itype != 223
+					&& itype != 224
+					&& itype != 225
+					&& itype != 260
+					&& itype != 261
+					&& itype != 270)
 					{
 						gObjMagicAdd(lpObj, itype, lpMsg->dbMagicList[n * MAX_MAGIC_INFO + DBM_LEVEL] & 0xF);
 					}
@@ -2808,18 +2821,15 @@ bool gObjSetCharacter(LPBYTE lpdata, int aIndex)
 			gObjMagicAdd(lpObj, 57, 0);
 			gObjMagicAdd(lpObj, 73, 0);
 		}
-
 		else if (lpObj->Class == CLASS_DARKLORD)	// Dark Lord
 		{
 			gObjMagicAdd(lpObj, 74, 0);	// Fire Blast
 			//gObjMagicAdd(lpObj, 75, 0);	// Sacrifice - BUG Apply Fix in Skill.vtm coz is not created
 		}
-
 		else if (lpObj->Class == CLASS_RAGEFIGHTER)
 		{
 			gObjMagicAdd(lpObj, 269, 0);
 		}
-
 		else if (lpObj->Class == CLASS_GROWLANCER)
 		{
 			gObjMagicAdd(lpObj, 275, 0);
@@ -6123,7 +6133,7 @@ bool gObjLevelUp(LPOBJ lpObj, UINT64 addexp, int iMonsterType, const char * szEv
 	&& lpObj->Level >= g_SkillAdditionInfo.GetInfinityArrowUseLevel()
 	&& lpObj->m_PlayerData->ChangeUP >= 1)
 	{
-		int iAddSkillPosition = gObjMagicAdd(lpObj,0x4D,0);
+		int iAddSkillPosition = gObjMagicAdd(lpObj, 77, 0);
 		if(iAddSkillPosition >= 0)
 		{
 			GSProtocol.GCMagicListOneSend(lpObj->m_Index,iAddSkillPosition,0x4D,0xDC,0,0);
