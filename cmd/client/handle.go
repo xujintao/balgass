@@ -1779,20 +1779,20 @@ func f0075CB02handleF4(code uint8, buf []uint8, len int, enc bool) {
 			// 0x1C局部变量
 			// ebp10buf := buf
 			ebp4 := 5 // sizeof(frameHead)
-			// f00AF7DC3getServerListManager().f00AF7E20()
+			// f00AF7DC3serverList().f00AF7E20()
 			count := int(binary.BigEndian.Uint16(buf[ebp4:]))
 			ebp4 += 2
-			f00AF7DC3getServerListManager().f00AF883FsetCount(count)
+			f00AF7DC3serverList().f00AF883FsetCount(count)
 			ebp14 := 0
 			for {
 				// 0x006BFAAD
-				if ebp14 >= f00AF7DC3getServerListManager().f00AF8853getCount() {
+				if ebp14 >= f00AF7DC3serverList().f00AF8853getCount() {
 					break // 0x006BFAED
 				}
 				ebp18server := buf[ebp4:]
 				code := int(binary.LittleEndian.Uint16(ebp18server[:]))
 				percent := int(ebp18server[2])
-				f00AF7DC3getServerListManager().f00AF81FF(code, percent) // so, what about the server.type field?
+				f00AF7DC3serverList().f00AF81FF(code, percent) // so, what about the server.type field?
 				ebp4 += 4
 				ebp14++
 			}

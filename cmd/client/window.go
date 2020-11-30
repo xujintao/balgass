@@ -1726,7 +1726,7 @@ func (t *windowgameMainFrame) f00AAB731drawExpMultiple() {
 	}
 
 	// 黄金频道 (%d.%d倍)
-	if f00AF7DC3getServerListManager().f00AF8862isGoldLine() {
+	if f00AF7DC3serverList().f00AF8862isGoldLine() {
 		ebp338 := t.m33EexpMultipleGoldLine + 100
 		ebp330 := ebp338 / 100
 		ebp334 := ebp338 % 100 / 10

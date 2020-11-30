@@ -15,11 +15,11 @@ var v0131A240 uint32
 var v0131A250 uint32
 var v0131A26C bool
 var v0131A26D bool
-var v0131A270 int
+var v0131A270 uint32
 
-var v08C88AB8 [100]uint8
+var v08C88AB8snapshot [100]uint8
 var v08C88C69 bool
-var v08C88C6A bool
+var v08C88C6AprintScreen bool
 var v08C88C74 uint32
 
 // var v086A3B94 func()
@@ -71,7 +71,7 @@ type t7 struct {
 
 var v08C86C50 = [10]t7{}
 
-var v0114EC40 float64
+const v0114EC40 float64 = 200.0
 
 var v012E234C = "data\\music\\mutheme.mp3"
 var v012E239C = "data\\music\\main_theme.mp3"
@@ -413,18 +413,19 @@ type server struct { // 0x54
 func (s *server) f00AF88D8server()           {}
 func (s *server) f00AF8903server(s1 *server) {}
 
-func f00AF7DC3getServerListManager() *serverListManager {
+func f00AF7DC3serverList() *serverListManager {
 	v09D96728.Do(func() {
-		v09D965B0serverListManager.f00AF7CC6()
+		v09D965B0serverList.f00AF7CC6()
 	})
-	return &v09D965B0serverListManager
+	return &v09D965B0serverList
 }
 
-var v09D965B0serverListManager serverListManager
+var v09D965B0serverList serverListManager
 var v09D96728 sync.Once
 
 type serverListManager struct {
 	m2Ccount int
+	m30name  [10]uint8
 
 	// 结构
 	m138code uint8
@@ -521,6 +522,10 @@ func (t *serverListManager) f00AF8862isGoldLine() bool {
 		return true
 	}
 	return false
+}
+
+func (t *serverListManager) f00AF87BAserverName() []uint8 {
+	return t.m30name[:]
 }
 
 var v012E31B0 int = 0
@@ -1163,17 +1168,16 @@ func (t *t0114AE34edit) do3initDC(width, height int) {
 
 }
 
-func f008AEFAD(p1 int) bool {
-	return true //f008AF00Dget().f008AF156(p1)
-}
-
 // f004524CC
 func f004524CCeditWndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr) uintptr {
 	ebp4window := (*t0114AE34edit)(unsafe.Pointer(win.GetWindowLongPtr(hWnd, win.GWL_USERDATA)))
 	if ebp4window == nil {
 		return 0
 	}
-	if f008AEFAD(0x25) || f008AEFAD(0x26) || f008AEFAD(0x27) || f008AEFAD(0x28) {
+	if f008AEFAD(0x25) == 1 || // VK_LEFT
+		f008AEFAD(0x26) == 1 || // VK_UP
+		f008AEFAD(0x27) == 1 || // VK_RIGHT
+		f008AEFAD(0x28) == 1 { // VK_DOWN
 		ebp4window.m70 = 0
 	}
 	switch message {
@@ -1189,8 +1193,8 @@ func f004524CCeditWndProc(hWnd win.HWND, message uint32, wParam, lParam uintptr)
 	case 0x10F, 0x282: // WM_IME_COMPOSITION, WM_IME_NOTIFY
 		// 0x0045277C:
 	default:
-		// 0x004527C4:
-		// if f005A4BC5(0x74) {
+		// 0x004527C4: VK_F4
+		// if f005A4BC5queryHotKey(0x74) {
 		// 	f008D6008().f004BF36C(1)
 		// }
 	}
@@ -1796,8 +1800,8 @@ func f0090E94C() *t09D8CFD0 {
 	return &v09D8CFD0
 }
 
-var v09D8D080once sync.Once
 var v09D8CFD0 t09D8CFD0
+var v09D8D080once sync.Once
 
 type t09D8CFD0 struct {
 }

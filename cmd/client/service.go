@@ -613,7 +613,7 @@ func (s *service3) f0043E9B6() {
 	// ebp4 = 1
 	// ebp14FC.f00406FC0stdstring(&v0114A327)
 	// ebp4 = 2
-	// f00A49798ui().f0043EE21().f00A9FB38(&ebp14FC, &ebp14E0, 3, 0)
+	// f00A49798ui().f0043EE21().f00A9FB38print(&ebp14FC, &ebp14E0, 3, 0)
 	// ebp4 = 1
 	// ebp14FC.f00407B10()
 	// ebp4 = 0
@@ -622,7 +622,7 @@ func (s *service3) f0043E9B6() {
 	// ebp1518.f00406FC0stdstring(v08610600textManager.f00436DA8(0x1D9))
 	// ebp4 = 3
 	// ebp1534.f00406FC0stdstring(&v0114A33E)
-	// f00A49798ui().f0043EE21().f00A9FB38(&ebp1534, &ebp1518, 3, 0)
+	// f00A49798ui().f0043EE21().f00A9FB38print(&ebp1534, &ebp1518, 3, 0)
 	// ebp4 = 3
 	// ebp1534.f00407B10()
 	// ebp4 = 0
@@ -737,7 +737,7 @@ func (s *service4) do13(unk float64) {
 				// ebp4 = 2
 				// ebp2964.f00406FC0stdstring(&v0114A5FF)
 				// ebp4 = 3
-				// f00A49798ui().f0043EE21().f00A9FB38(&ebp2964, &ebp2948, 3, 0)
+				// f00A49798ui().f0043EE21().f00A9FB38print(&ebp2964, &ebp2948, 3, 0)
 				// ebp4 = 2
 				// ebp2964.f00407B10()
 				// ebp4 = 1
@@ -746,7 +746,7 @@ func (s *service4) do13(unk float64) {
 				// ebp4 = 4
 				// ebp299C.f00406FC0stdstring(&v0114A600)
 				// ebp4 = 5
-				// f00A49798ui().f0043EE21().f00A9FB38(&ebp299C, &ebp2980, 3, 0)
+				// f00A49798ui().f0043EE21().f00A9FB38print(&ebp299C, &ebp2980, 3, 0)
 				// ebp4 = 4
 				// ebp299C.f00407B10()
 				// ebp4 = 1
@@ -986,16 +986,15 @@ func (t *list) f004452A7getFirstNodeValue() interface{} {
 
 // serviceManager
 func f004A7D34getWindowManager() *serviceManager {
-	if v01319730once&1 == 0 {
-		v01319730once |= 1
+	v01319730once.Do(func() {
 		v0130F728.f004A7A82()
 		// f00DE8BF6atexit(f0114817A)
-	}
+	})
 	return &v0130F728
 }
 
 var v0130F728 serviceManager
-var v01319730once uint32 // sync.Once
+var v01319730once sync.Once
 
 type serviceManager struct {
 	s001 service1 // v0130F730
@@ -1355,7 +1354,7 @@ func f004DD578handleState1(hDC win.HDC) {
 			// "Data/Macro.txt"
 			// ...
 			// 0x006B81F8
-			f00AF7DC3getServerListManager().f00AF7F07load() // v09D965B0.f00AF7F07()
+			f00AF7DC3serverList().f00AF7F07load() // v09D965B0.f00AF7F07()
 
 			println(ebp4)
 		}()
@@ -1423,9 +1422,9 @@ func f004E1E1EhandleState2() {
 }
 
 // s9 f004DEDAD
-func f004E46B3handleState2(hDC win.HDC) {
+func f004E46B3handleState2(hDC win.HDC) bool {
 	if v0131A26C == false {
-		return
+		return false
 	}
 	// ...
 	// 1.04R location: 0x004E4819
@@ -1678,11 +1677,11 @@ func f004E46B3handleState2(hDC win.HDC) {
 			}
 		}()
 	}()
-	// ...
+	return true
 }
 func f004DDD4FhandleState4() {}
 
-func f004E17B9handleState4(hDC win.HDC) {
+func f004E17B9handleState4(hDC win.HDC) bool {
 	// 0x0ADB3664 hook to hide f09EBC65D, disable anti-temper with backup code
 	var label1 uint32 = 0x0091AD10
 	// push label1
@@ -1828,6 +1827,7 @@ func f004E17B9handleState4(hDC win.HDC) {
 	// label1(0x09EBC65D)
 
 	// f09EBC65D 隐藏函数
+	return true
 }
 
 // s9 f004E14D3
@@ -1835,11 +1835,11 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 	// SEH
 	// f00552D0D()
 	ebp178 := v0131A270 // 0, 0x28, 0x44
-	for ebp178 >= 0x28 {
-		// f008AF00D().f008AF06A() // v09D24B80.f008AF06A()
+	for ebp178 >= 40 {
+		f008AF00D().f008AF06ArecordKey()
 		if v012E2340state == 2 || v012E2340state == 4 {
-			// v01319D8C.f00A08B5D()
-			var ebp184, ebp408 float64
+			var ebp184 float64 // v01319D8C.f00A08B5D()
+			var ebp408 float64
 			if v0114EC40-ebp184 == 0x41 {
 				ebp408 = ebp184
 			} else {
@@ -1867,7 +1867,13 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 			ebp188++
 		}
 		// f005AC5A0()
-		// f005A4BC5(0x2C)
+		if f005A4BC5queryHotKey(0x2C) { // VK_SNAPSHOT(0x2C): PRINT SCREEN key
+			if !v08C88C6AprintScreen {
+				v08C88C6AprintScreen = true
+			} else {
+				v08C88C6AprintScreen = false
+			}
+		}
 		if v08C88F88 > 0 {
 			v08C88F88--
 		}
@@ -1877,7 +1883,7 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 		// v08C7CC18++
 		// v08C7CC18 %= 32
 		v0131A240++
-		ebp178 -= 0x28
+		ebp178 -= 40
 	}
 	// 0x004E50FB
 	if v01319D65 != 0 {
@@ -1885,6 +1891,7 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 	}
 	// v09D24A20.f00514F8F()
 	// f007DB28F()
+	// 0x004E511A:
 	systime := struct {
 		wYear         uint16
 		wMonth        uint16
@@ -1894,30 +1901,102 @@ func f004E4F1ChandleState245(hDC win.HDC) {
 		wMinute       uint16
 		wSecond       uint16
 		wMilliseconds uint16
-	}{}
-	// GetLocalTime(&ebp64)
-	f00DE817Asprintf(v08C88AB8[:], "Screen(%02d_%02d-%02d_%02d)-%04d.jpg", systime.wMonth, systime.wDay, systime.wHour, systime.wMinute, v08C88C74)
-	// ebp220 := v08610600textManager.f00436DF1findstdstring(0x1CB)
-	// var ebp410 uint32
-	// if ebp220.m18 >= 0x10 {
-	// 	ebp410 = ebp220.m04
-	// } else {
-	// 	ebp410 = &ebp220.m04 // [25 73 3A BB AD C3 E6 D2 D1 B4 A2 B4 E6 00] -> gbk "%s:画面已储存" https://r12a.github.io/app-encodings/
-	// }
-	// var ebp174 [100]uint8
-	// f00DE817Asprintf(ebp174[:], ebp410, v08C88AB8[:])
-	// ...
-	// 0x004E5529
+	}{} // GetLocalTime(&ebp64)
+	f00DE817Asprintf(v08C88AB8snapshot[:], "Screen(%02d_%02d-%02d_%02d)-%04d.jpg", systime.wMonth, systime.wDay, systime.wHour, systime.wMinute, v08C88C74)
+	ebp220 := v08610600textManager.f00436DF1findstdstring(459)
+	ebp410 := string(ebp220.m04data) // [25 73 3A BB AD C3 E6 D2 D1 B4 A2 B4 E6] -> gbk "%s:画面已储存" https://r12a.github.io/app-encodings/
+	var ebp174 [100]uint8
+	f00DE817Asprintf(ebp174[:], ebp410, v08C88AB8snapshot[:])
+	var ebp54 [100]uint8
+	// dll.user32.wsprintfA(ebp54[:], " [%s / %s]", f00AF7DC3serverList().f00AF87BAserverName(), v0805BBACobjectself.m38name[:])
+	f00DE8010strcat(ebp174[:], string(ebp54[:]))
+	ebp10 := 1
+	if f008AEFC1(0x10) == 1 { // VK_SHIFT
+		ebp10 = 0
+	}
+	if v08C88C6AprintScreen && ebp10 == 1 {
+		var ebp1AC, ebp1C8 stdstring
+		ebp1AC.f00406FC0stdstring(ebp174[:])
+		ebp1C8.f00406FC0stdstring(nil)
+		// f00A49798ui().m124ChatWindow.f00A9FB38print(ebp1C8, ebp1AC, 3, 0)
+		// ebp1C8.f00407AC0(1, 0)
+		// ebp1AC.f00407AC0(1, 0)
+	}
+	// 0x004E52A8:
+	switch {
+	case v012E3EC8mapNumber == 10: // 天空之城
+	case v012E3EC8mapNumber == 30: // 罗兰峡谷
+	case v012E3EC8mapNumber >= 45 && v012E3EC8mapNumber < 50: // 幻影寺院1～6
+	case v012E3EC8mapNumber == 51: // 幻术园
+	case v012E3EC8mapNumber == 73:
+	case v012E3EC8mapNumber == 74:
+	default:
+		// dll.opengl32.glClearColor(...)
+	}
+	// 0x004E5503:
+	// dll.opengl32.glClear(0x4100)
+	ebp74 := v0131A250
+	v0131A250 = win.GetTickCount()
+	ebp6D := false
+	// 0x004E5529:
 	switch v012E2340state {
 	case 2:
-		f004E46B3handleState2(hDC)
+		ebp6D = f004E46B3handleState2(hDC)
 	case 4:
-		f004E17B9handleState4(hDC)
+		ebp6D = f004E17B9handleState4(hDC)
 	case 5:
-		// f004E0E03handleState5(hDC)
+		// ebp6D = f004E0E03handleState5(hDC)
 	}
-	// ...
-	ebp6C := 0x28
+	// v0131A27C.f00534BE8()
+	if v08C88C6AprintScreen {
+		// f006B93DFsnapshot()
+	}
+	if v08C88C6AprintScreen && ebp10 == 0 {
+		var ebp1E4, ebp200 stdstring
+		ebp1E4.f00406FC0stdstring(ebp174[:])
+		ebp200.f00406FC0stdstring(nil)
+		// f00A49798ui().m124ChatWindow.f00A9FB38print(ebp200, ebp1E4, 3, 0)
+		// ebp1C8.f00407AC0(1, 0)
+		// ebp1AC.f00407AC0(1, 0)
+	}
+	v08C88C6AprintScreen = false
+	if ebp6D {
+		win.SwapBuffers(hDC) // dll.gdi32.SwapBuffers(hDC)
+	}
+	ebp68 := v0131A250 - ebp74
+	if ebp68 < 40 {
+		offset := 40 - ebp68
+		// dll.kernel32.Sleep(offset)
+		v0131A250 += offset
+		ebp68 = 40
+	}
+	ebp6C := ebp178 + ebp68
+	/*if v0131A23F &&
+		v012E2340state == 5 &&
+		v08C88FF0conn.f006BD6F9fd() == syscall.Handle(^uint(0)) &&
+		v0131A2B4 == false {
+		v0131A2B4 = true
+		v01319E08log.f00B38AE4printf("> Connection closed.")
+		v01319E08log.f00B38D49(1)
+		ebp39C := v08610600textManager.f00436DF1findstdstring(381) // "结束游戏"
+		ebp41C := string(ebp39C.m04data)
+		ebp3E8 := v08610600textManager.f00436DF1findstdstring(402) // "和服务器的连接中断"
+		ebp420 := string(ebp3E8.m04data)
+		w := f00A49798ui().m88caution
+		w.f00A9B633(w, 48, ebp420, ebp41C, 0, 0, 1)
+	}*/
+	switch v012E2340state {
+	case 2:
+		// f004D4FB9(v012E23C8, 0) // "data/music/login_theme.mp3"
+	case 4:
+		// f004D4F77(v012E23C8, 0) // "data/music/login_theme.mp3"
+	}
+	if v012E2340state == 5 {
+		switch v012E3EC8mapNumber {
+
+		}
+	}
+	// 0x004E621F:
 	v0131A270 = ebp6C
 }
 

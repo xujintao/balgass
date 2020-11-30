@@ -319,6 +319,10 @@ func (t *conn) f006BD5BBclose() bool {
 	return true
 }
 
+func (t *conn) f006BD6F9fd() syscall.Handle {
+	return t.fd
+}
+
 func (t *conn) f006BD708dial(ip string, port int, x int) {
 
 }
