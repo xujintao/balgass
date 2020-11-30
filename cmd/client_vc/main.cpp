@@ -1,4 +1,6 @@
 #include <windows.h>
+#include <imm.h>
+#pragma comment(lib, "imm32.lib")
 
 WNDPROC wndProcEditOrigin;
 
@@ -13,7 +15,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		hInstance,			// hInstance
 		LoadIcon((HINSTANCE)NULL, IDI_APPLICATION),	// hIcon
 		LoadCursor((HINSTANCE)NULL, IDC_ARROW),		// hCursor
-		HBRUSH(GetStockObject(BLACK_BRUSH)),		// hBrushBackgroud
+		HBRUSH(GetStockObject(GRAY_BRUSH)),		// hBrushBackgroud
 		0,					// menuName
 		"main",				// className
 		0					// hIconSmall
@@ -70,15 +72,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 			switch (msg) {}
 			return CallWindowProc(wndProcEditOrigin, hWnd, msg, wParam, lParam);
 		});
-	ShowWindow(hWndEdit, SW_HIDE);
+	ShowWindow(hWndEdit, SW_SHOWDEFAULT); // SW_HIDE
 	SetFocus(hWndEdit);
-	
 
 	// msg loop
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
+	DWORD tick = GetTickCount();
 	while(1){
 		if (PeekMessage(&msg, 0, 0, 0, PM_NOREMOVE)) {
+			BOOL bUIMsg = ImmIsUIMessage(NULL, msg.message, msg.wParam, msg.lParam);
+			if (bUIMsg // Returns a nonzero value if the message is processed by the IME window
+			|| msg.message == WM_KEYDOWN
+			|| msg.message == WM_KEYUP
+			|| msg.message == WM_LBUTTONDOWN
+			|| msg.message == WM_LBUTTONUP) {
+				
+			}
 			BOOL bRet = GetMessage(&msg, 0, 0, 0);
 			if (bRet == FALSE) {
 				break; // WM_QUIT
@@ -91,6 +101,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		}
 		else {
 			// do others
+			DWORD tickLast = tick;
+			tick = GetTickCount();
+			DWORD delta = tick - tickLast;
+			if (delta < 40) {
+				DWORD wait = 40 - delta;
+				Sleep(wait);
+				delta = 40;
+			}
+			for (int i = 0; i < 256; i++) {
+				GetAsyncKeyState(i);
+			}
 		}
 		// realtime handle
 	}
