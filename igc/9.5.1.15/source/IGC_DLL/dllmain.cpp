@@ -220,6 +220,22 @@ void __declspec(naked) RewriteVersion() {
 	}
 }
 
+void __declspec(naked) RecordKey() {
+	__asm {
+		call dword ptr ds : [0x01149744] // GetActiveWindow
+		cmp dword ptr ds : [0x01319D6C], eax
+		jne skip
+		mov eax, 0x008AF00D
+		call eax
+		mov ecx, eax
+		mov eax, 0x008AF06A
+		call eax
+skip:
+		mov eax, 0x004E4F63
+		jmp eax
+	}
+}
+
 void SetValues()
 {
 	DWORD OldProtect;
@@ -276,6 +292,7 @@ void SetValues()
 	MemAssign(0x0067760B + 1, (BYTE)0x2C); // fixed item with socket show excellent
 	MemAssign(0x0AF7F02D + 1, (DWORD)0xC8); // modify max speed limit of death stab from 300ms to 200ms per attack
 	MemSet(CTRL_FREEZE_FIX, 0x02, 1);
+	HookThis(0x004E4F57, 5, (DWORD)&RecordKey);
 /*
 	MemSet(0x00AF4B68+3, 7, 1); // 1.04R, Option +28
 	// GCSetCharSet(g_ServerInfo->GetCharset());
