@@ -20,11 +20,15 @@ func f00433461memcmp(dst []uint8, src []uint8, size int) int {
 	return 0
 }
 
-func f00449EEAmfcAfxWinMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCmdLine string, iCmdShow int) int {
+func f00417837AfxGetApp() *muApp {
+	return &theApp
+}
+
+func f00449EEAmfcAfxWinMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, lpCmdLine string, nCmdShow int) int {
 	retCode := -1
 
 	// f004209C7mfcAfxGetThread
-	v004632B8app := func() winThread {
+	thread := func() winThread {
 		// 	// check for current thread in module thread state
 		// 	AFX_MODULE_THREAD_STATE* pState = AfxGetModuleThreadState();
 		// 	CWinThread* pThread = pState->m_pCurrentWinThread;
@@ -34,17 +38,25 @@ func f00449EEAmfcAfxWinMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE
 		// 	return pThread;
 		return &theApp
 	}()
-	// f00417837mfcAfxGetModuleState()
-	// f0042778AmfcAfxWinInit()
-	v004632B8app.InitApplication()    // f90()
-	if !v004632B8app.InitInstance() { // f50()
-		// if v004632B8app.mainWnd != 0 {
-		// 	v004632B8app.OnIdel() // f60
-		// }
-		// v004632B8app.ExitInstance() // f68
-	} else {
-		// v004632B8app.Run()             // f54
+
+	app := f00417837AfxGetApp()
+
+	// f0042778AmfcAfxWinInit(hInstance, hPrevInstance, lpCmdLine, nCmdShow)
+
+	if app != nil && !app.InitApplication() { // f90()
+		goto InitFailure
 	}
+
+	if !thread.InitInstance() { // f50()
+		// if thread.mainWnd != 0 {
+		// 	thread.OnIdel() // f60
+		// }
+		// thread.ExitInstance() // f68
+		goto InitFailure
+	}
+	// thread.Run()             // f54
+
+InitFailure:
 	// f00426598mfcAfxWinTerm()
 	return retCode
 }

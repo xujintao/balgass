@@ -127,7 +127,7 @@ func (t *t0018FC8C) f00403F80close() {
 	t.m108.Close()
 }
 
-type t0018FDB0 struct {
+type partitionManager struct {
 	// partitions
 	partitions        []*partition
 	m0CpartitionsHead *partition // head
@@ -135,7 +135,7 @@ type t0018FDB0 struct {
 	m14partitionsSafe *partition // safe
 }
 
-func (t *t0018FDB0) f0040ADF0(p *partition) {
+func (t *partitionManager) f0040ADF0(p *partition) {
 	t.partitions = append(t.partitions, p)
 }
 
@@ -248,22 +248,23 @@ type muDlg struct {
 	dialogEx
 	blocks [10]block // 0x00 0x98 0xEC
 	// ...
-	pathName [256]uint8 // 0x3F96C
-	major    uint8      // 0x3FAFC
-	minor    uint8      // 0x3FAFD
-	patch    uint8      // 0x3FAFE
-	name     [256]uint8 // 0x44928, "奇迹("
-	dir      [260]uint8 // 0x44A28
-	block2   [100]block // 0x44B40 0x44B94 0x44BEC 0x44C60 0x44CD4
-	// m44E30btnStart      button     // 0x44E30, 0x0018FAB8
+	pathName       [256]uint8 // 0x3F96C
+	major          uint8      // 0x3FAFC
+	minor          uint8      // 0x3FAFD
+	patch          uint8      // 0x3FAFE
+	name           [256]uint8 // 0x44928, "奇迹("
+	dir            [260]uint8 // 0x44A28
+	block2         [100]block // 0x44B40 0x44B94 0x44BEC 0x44C60 0x44CD4
+	m44E30btnStart button     // 0x44E30, 0x0018FAB8
 	// m44F18
-	lParam         uint      // 0x44FE4
-	m44FE8partiSum int       // 0x44FE8
-	m44FEC         struct{}  // 0x44FEC, 0x0018FC74
-	m44FF8btns     []*button // m44FF8 0x0018FC80, m44FFC 0x0018FC84
-	m45004         t0018FC8C // 0x45004, 0x0018FC8C
-	m45110         struct{}  // 0x45110, 0x0018FD98
-	m45128         t0018FDB0 // 0x45128, 0x0018FDB0
+	m44FE0                 int
+	lParam                 uint             // 0x44FE4
+	m44FE8partiSum         int              // 0x44FE8
+	m44FEC                 struct{}         // 0x44FEC, 0x0018FC74
+	m44FF8btns             []*button        // m44FF8 0x0018FC80, m44FFC 0x0018FC84
+	m45004                 t0018FC8C        // 0x45004, 0x0018FC8C
+	m45110                 struct{}         // 0x45110, 0x0018FD98
+	m45128partitionManager partitionManager // 0x45128, 0x0018FDB0
 }
 
 func (d *muDlg) f0040AEC0construct(x uint) {
@@ -459,13 +460,13 @@ func (d *muDlg) f0040CA40OnInitDialog() {
 					p.m7AIP = partiIP
 					p.mBCPort = partiPort
 					p.m08Site = partiSite
-					d.m45128.f0040ADF0(p)
+					d.m45128partitionManager.f0040ADF0(p)
 					d.m44FE8partiSum++
 				}
 				d.m45004.f00403F80close()
 			}()
 		}()
-		pSum := len(d.m45128.partitions)
+		pSum := len(d.m45128partitionManager.partitions)
 		if pSum == 0 {
 			return
 		}
@@ -474,7 +475,7 @@ func (d *muDlg) f0040CA40OnInitDialog() {
 		// 渲染按钮
 		i := 0
 		for i < pSum {
-			p := d.m45128.partitions[i]
+			p := d.m45128partitionManager.partitions[i]
 			if p == nil {
 				continue
 			}
@@ -499,11 +500,13 @@ func (d *muDlg) f00408AA0active() {
 	index := 0
 
 	// 拿到分区
-	parti := d.m45128.partitions[index]
+	parti := d.m45128partitionManager.partitions[index]
 
-	// disable window
-	// d.m44E30.f004164F0()
-	// d.m44E30.f0041650B()
+	// disable start button
+	/*if d.m44E30btnStart.f004164F0isButtonEnable() {
+		d.m44E30btnStart.f0041650BenableButton(false)
+	}*/
+
 	v00463280IP = parti.m7AIP
 	v004632B4port = uint16(parti.mBCPort)
 	// d.f004084B0()
@@ -511,10 +514,10 @@ func (d *muDlg) f00408AA0active() {
 		// d.f00408410() // disable all active buttons
 		// d.f00406330() // disable ?
 		v004633D0conn.f0040CB70()
-		// f00434570delete("mu.tmp")
-		// f00434A24create("Temp")
-		// dll.user32.SetTimer(d.m_hWnd, 10, 500, 0)
-		// dll.user32.SetTimer(d.m_hWnd, 1, 100, 0)
+		// f00434570deleteFile("mu.tmp")
+		// f00434A24createDir("Temp")
+		// dll.user32.SetTimer(d.m_hWnd, 10, 500, 0) // 500ms
+		// dll.user32.SetTimer(d.m_hWnd, 1, 100, 0) // 100ms
 	}()
 }
 
@@ -522,7 +525,7 @@ func (d *muDlg) f0040A900onTimer(nIDEvent int) {
 	switch nIDEvent {
 	case 1:
 		// dll.user32.KillTimer(d.m_hWnd, 1)
-		msg := v0046F448msg.Get(0x66) // "连接服务器"
+		msg := v0046F448msg.Get(102) // "连接服务器"
 		// d.f00408D80(msg)
 		func(msg string) {
 			// 渲染界面
@@ -542,16 +545,59 @@ func (d *muDlg) f0040A900onTimer(nIDEvent int) {
 	}()
 }
 
+func f00402C90handle(d *muDlg) {
+	for {
+		buf := v004633D0conn.f0040CEE0getPacket()
+		if buf == nil {
+			return
+		}
+		var code uint8
+		switch buf[0] {
+		case 0xC1:
+			code = buf[2]
+		case 0xC2:
+			code = buf[3]
+		}
+		switch code {
+		case 0x00: // connect result C1 04 00 01
+			// f00402B10(buf)
+			func(buf []uint8) {
+				if buf[3] != 1 {
+					return
+				}
+				var code uint8 = 5
+				if d.m44FE0 == 1 { // d := f00417837AfxGetApp().m20
+					code = 4
+				}
+				// f00402AB0(code, d.major, d.minor, d.patch)
+				func(code, major, minor, patch uint8) {
+					buf := [6]uint8{0xC1, 0x06, code, major, minor, patch}
+					v004633D0conn.f0040CF30write(buf[:], len(buf))
+				}(code, d.major, d.minor, d.patch)
+			}(buf)
+		case 0x02: // version match
+			// f00402C20()
+		case 0x04: // auto update 4
+			// f00402C30(buf)
+		case 0x05: // auto update 5
+			// f00402B60(buf)
+		}
+	}
+}
+
 func (d *muDlg) f0040A9A0net(wParam, lParam uint) {
 	switch lParam {
 	case 1: // FD_READ
 		v004633D0conn.f0040D090read()
-		// v004633D0conn.f00402C90write()
+		f00402C90handle(d)
 	case 2: // FD_WRITE
 		v004633D0conn.f0040D010write()
 	case 8: // FD_ACCEPT
 	case 16: // FD_CONNECT
-		// dll.ws2_32.WSAAsyncSelect(v004633D0conn.fd, d.m_hWnd, 0x7E8, 0x23)
+		// dll.ws2_32.WSAAsyncSelect(v004633D0conn.fd, d.m_hWnd, 0x7E8, FD_READ|FD_WRITE|FD_CLOSE)
+		if win.WSAGetLastError() == ^uint32(0) {
+			v004633D0conn.f0040CCE0close()
+		}
 	case 32: // FD_CLOSE
 	}
 }
