@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"sync"
 
 	"github.com/xujintao/balgass/cmd/client_mu/mumsg"
@@ -236,3 +237,5 @@ func (t *card) f00403C20() bool {
 	}
 	return false
 }
+
+var v004633CCfd os.File

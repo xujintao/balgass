@@ -248,15 +248,24 @@ type muDlg struct {
 	dialogEx
 	blocks [10]block // 0x00 0x98 0xEC
 	// ...
-	pathName       [256]uint8 // 0x3F96C
-	major          uint8      // 0x3FAFC
-	minor          uint8      // 0x3FAFD
-	patch          uint8      // 0x3FAFE
-	name           [256]uint8 // 0x44928, "奇迹("
-	dir            [260]uint8 // 0x44A28
-	block2         [100]block // 0x44B40 0x44B94 0x44BEC 0x44C60 0x44CD4
-	m44E30btnStart button     // 0x44E30, 0x0018FAB8
+	m88bindStatusCallback func()
+	m140                  int
+	verfile               [60]uint8  // 0x3F930
+	host                  [256]uint8 // 0x3F96C
+	port                  uint16     // 0x3FA6C
+	user                  [50]uint8  // 0x3FA6E
+	passwd                [50]uint8  // 0x3FAA0
+	m3FAF0                int
+	major                 uint8 // 0x3FAFC
+	minor                 uint8 // 0x3FAFD
+	patch                 uint8 // 0x3FAFE
+	m44924                int
+	name                  [256]uint8 // 0x44928, "奇迹("
+	dir                   [260]uint8 // 0x44A28
+	block2                [100]block // 0x44B40 0x44B94 0x44BEC 0x44C60 0x44CD4
+	m44E30btnStart        button     // 0x44E30
 	// m44F18
+	// m44FAC
 	m44FE0                 int
 	lParam                 uint             // 0x44FE4
 	m44FE8partiSum         int              // 0x44FE8
@@ -351,9 +360,9 @@ func (d *muDlg) f0040AEC0construct(x uint) {
 		// fileName := path.Join(filepath.Dir(os.Args[0]), "config.ini")
 		// var version [10]uint8
 		// dll.kernel32.GetPrivateProfileString("LOGIN", "Version", "0.0.0", version[:], 10, fileName[:])
-		var minor, major, patch uint8
-		minor = 4
+		var major, minor, patch uint8
 		major = 1
+		minor = 4
 		patch = 44
 
 		// dll.kernel32.GetPrivateProfileString("LOGIN", "TestVersion", "0.0.0", version[:], 10, fileName[:])
@@ -368,7 +377,7 @@ func (d *muDlg) f0040AEC0construct(x uint) {
 	}()
 	println(v0014AAC4state)
 	// memcpy(d.name[:], textcode(81)) // "奇迹(MU)"
-	// f00433360memset(d.pathName, 0, 256)
+	// f00433360memset(d.host, 0, 256)
 }
 
 // MESSAGE_MAP
@@ -511,8 +520,8 @@ func (d *muDlg) f00408AA0active() {
 	v004632B4port = uint16(parti.mBCPort)
 	// d.f004084B0()
 	func() {
-		// d.f00408410() // disable all active buttons
-		// d.f00406330() // disable ?
+		// d.f00408410(false) // disable all active buttons
+		// d.f00406330(false) // disable ?
 		v004633D0conn.f0040CB70()
 		// f00434570deleteFile("mu.tmp")
 		// f00434A24createDir("Temp")
@@ -525,11 +534,7 @@ func (d *muDlg) f0040A900onTimer(nIDEvent int) {
 	switch nIDEvent {
 	case 1:
 		// dll.user32.KillTimer(d.m_hWnd, 1)
-		msg := v0046F448msg.Get(102) // "连接服务器"
-		// d.f00408D80(msg)
-		func(msg string) {
-			// 渲染界面
-		}(msg)
+		// d.f00408D80(v0046F448msg.Get(102)) // "连接服务器"
 		v004633D0conn.f0040CC30socket(d.m_hWnd)
 		v004633D0conn.f0040CD00dial(v00463280IP, v004632B4port, 0x7E8)
 	default:
@@ -543,6 +548,62 @@ func (d *muDlg) f0040A900onTimer(nIDEvent int) {
 		// }
 		// d.f118(v009CDE08.m5C, v009CDE08.m60, v009CDE08.m64) // d.f00418DDF(), CWnd::DefWindowProc(WM_TIMER, 10, 0)
 	}()
+}
+
+func f0040CAF0xor(s []uint8, l int) {
+	var keys = [3]uint8{0xFC, 0xCF, 0xAB}
+	for i, c := range s {
+		s[i] = c ^ keys[i%3]
+	}
+}
+
+func (d *muDlg) f004066F0setVersionInfo(host []uint8, port uint16, user, passwd, verfile []uint8) {
+	f0040CAF0xor(host, 100)
+	f0040CAF0xor(user, 20)
+	f0040CAF0xor(passwd, 20)
+	f0040CAF0xor(verfile, 20)
+	copy(d.host[:], host)
+	d.port = port
+	copy(d.user[:], user)
+	copy(d.passwd[:], passwd)
+	copy(d.verfile[:], verfile)
+}
+
+func f0040AB70(d *muDlg) {
+	/*
+		var url [256]uint8
+		dll.user32.wsprintfA(url[:], "http://%s/%s", d.host[:], d.verfile[:])
+		d.f00409AD0()
+		func() {
+			d.f00408D80(v0046F448msg.Get(112)) // 分析更新信息
+			d.m44924 = 0
+			v004633CCfd = fopen(d.verfile[:], "r")
+			if v004633CCfd == 0 {
+				d.f00408D80(v0046F448msg.Get(113)) // 更新信息读入失败
+				return
+			}
+			for {
+				v := f00405E50()
+				if v == 2 {
+					break
+				}
+				if v == 0 {
+
+				}
+			}
+			fclose(v004633CCfd)
+		}()
+	*/
+}
+
+func (d *muDlg) f0040C3C0reqVersionFile() bool {
+	// f00434570deleteFile(string(d.verfile))
+	// d.f00408D80(v0046F448msg.Get(109)) // 正在接收更新信息
+	// d.f0041A502(1)
+	// d.m44FAC.f0040F480(100)
+	// d.m44E30btnStart.f0041650BenableButton(false)
+	// f0042145B(f0040AB70, d, 0, 0, 0, 0)
+	return false
 }
 
 func f00402C90handle(d *muDlg) {
@@ -575,11 +636,33 @@ func f00402C90handle(d *muDlg) {
 					v004633D0conn.f0040CF30write(buf[:], len(buf))
 				}(code, d.major, d.minor, d.patch)
 			}(buf)
-		case 0x02: // version match
+		case 0x02: // version match C1 04 02 01
 			// f00402C20()
-		case 0x04: // auto update 4
+			func() {
+				// d.f00408410(true) // enable all active buttons
+				// d.f00406330(true) // enable ? buttons
+				// d.f00408D80(v0046F448msg.Get(126)) // 选择“服务器”后，点击“游戏开始”进入游戏
+				d.m140 = 1
+				d.m3FAF0 = 1
+				// d.m44E30btnStart.f0041650BenableButton(true)
+			}()
+		case 0x04: // auto update with http
 			// f00402C30(buf)
-		case 0x05: // auto update 5
+			func(buf []uint8) {
+				info := struct {
+					version [3]uint8
+					host    [100]uint8
+					port    uint16
+					user    [20]uint8
+					passwd  [20]uint8
+					verfile [20]uint8
+				}{}
+				d.f004066F0setVersionInfo(info.host[:], info.port, info.user[:], info.passwd[:], info.verfile[:])
+				if d.f0040C3C0reqVersionFile() == false {
+					// d.f00408D80(v0046F448msg.Get(138)) // 下载失败。请重新安装。
+				}
+			}(buf)
+		case 0x05: // auto update with ftp
 			// f00402B60(buf)
 		}
 	}
