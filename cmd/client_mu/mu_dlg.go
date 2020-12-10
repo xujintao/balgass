@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/xujintao/balgass/win"
 )
@@ -255,16 +258,24 @@ type muDlg struct {
 	port                  uint16     // 0x3FA6C
 	user                  [50]uint8  // 0x3FA6E
 	passwd                [50]uint8  // 0x3FAA0
+	m3FAEC                int
 	m3FAF0                int
+	m3FAF8verCur          int
 	major                 uint8 // 0x3FAFC
 	minor                 uint8 // 0x3FAFD
 	patch                 uint8 // 0x3FAFE
-	m44924                int
-	name                  [256]uint8 // 0x44928, "奇迹("
-	dir                   [260]uint8 // 0x44A28
-	block2                [100]block // 0x44B40 0x44B94 0x44BEC 0x44C60 0x44CD4
-	m44E30btnStart        button     // 0x44E30
+	m3FB00vers            [1000]struct {
+		m00done int
+		m04     [16]uint8
+		m14     int
+	}
+	m44924vernum   int
+	name           [256]uint8 // 0x44928, "奇迹("
+	dir            [260]uint8 // 0x44A28
+	block2         [100]block // 0x44B40 0x44B94 0x44BEC 0x44C60 0x44CD4
+	m44E30btnStart button     // 0x44E30
 	// m44F18
+	// m44F84 label
 	// m44FAC
 	m44FE0                 int
 	lParam                 uint             // 0x44FE4
@@ -523,7 +534,7 @@ func (d *muDlg) f00408AA0active() {
 		// d.f00408410(false) // disable all active buttons
 		// d.f00406330(false) // disable ?
 		v004633D0conn.f0040CB70()
-		// f00434570deleteFile("mu.tmp")
+		// f00434570remove("mu.tmp")
 		// f00434A24createDir("Temp")
 		// dll.user32.SetTimer(d.m_hWnd, 10, 500, 0) // 500ms
 		// dll.user32.SetTimer(d.m_hWnd, 1, 100, 0) // 100ms
@@ -569,35 +580,113 @@ func (d *muDlg) f004066F0setVersionInfo(host []uint8, port uint16, user, passwd,
 	copy(d.verfile[:], verfile)
 }
 
+// var v00463368 [100]uint8
+var v00463368buf bytes.Buffer
+
+func f00405E50readOne() int {
+	var c uint8
+	var buf [1]uint8
+	for {
+		v004633CCfd.Read(buf[:]) // f0043446Cfgetc(v004633CCfd)
+		c = buf[0]
+		if c == 0xFF {
+			return 2
+		}
+		if c == '/' {
+			// ...
+		}
+		// if !f00434197(int(c)) {
+		// 	break
+		// }
+	}
+	switch c {
+	case '"':
+		// 0x0040601C:
+		v004633CCfd.Read(buf[:]) // f0043446Cfgetc(v004633CCfd)
+		c = buf[0]
+		for c != 0xFF {
+			if c == '"' {
+				return 0
+			}
+			v00463368buf.WriteByte(c)
+			v004633CCfd.Read(buf[:]) // f0043446Cfgetc(v004633CCfd)
+			c = buf[0]
+		}
+	case '#':
+	case '$':
+	case '%':
+	case '&':
+	case '*':
+	}
+	return 0
+}
+
+func (d *muDlg) f00409AD0parseVersionFile() int {
+	// d.f00408D80(v0046F448msg.Get(112)) // 分析更新信息
+	d.m44924vernum = 0
+	v004633CCfd, _ = os.Open(string(d.verfile[:])) // = f00432686fopen(d.verfile[:], "r")
+	if v004633CCfd == nil {
+		// d.f00408D80(v0046F448msg.Get(113)) // 更新信息读入失败
+		return 0
+	}
+	for {
+		v := f00405E50readOne()
+		if v == 2 { // EOF
+			break
+		}
+		if v == 0 {
+			copy(d.m3FB00vers[d.m44924vernum].m04[:], v00463368buf.Bytes())
+			subs := strings.Split(v00463368buf.String(), ".") // f00433E3Estrtok(v00463368buf.Bytes(), '.')
+			major, _ := strconv.Atoi(subs[0])
+			minor, _ := strconv.Atoi(subs[1])
+			patch, _ := strconv.Atoi(subs[2])
+			d.m3FB00vers[d.m44924vernum].m14 = major<<16 | minor<<8 | patch
+			d.m44924vernum++
+			if d.m44924vernum > 999 {
+				// ...
+			}
+		}
+	}
+	v004633CCfd.Close() //f00432546fclose(v004633CCfd)
+	return d.m44924vernum
+}
+
 func f0040AB70(d *muDlg) {
 	/*
 		var url [256]uint8
 		dll.user32.wsprintfA(url[:], "http://%s/%s", d.host[:], d.verfile[:])
-		d.f00409AD0()
-		func() {
-			d.f00408D80(v0046F448msg.Get(112)) // 分析更新信息
-			d.m44924 = 0
-			v004633CCfd = fopen(d.verfile[:], "r")
-			if v004633CCfd == 0 {
-				d.f00408D80(v0046F448msg.Get(113)) // 更新信息读入失败
-				return
-			}
-			for {
-				v := f00405E50()
-				if v == 2 {
-					break
-				}
-				if v == 0 {
-
-				}
-			}
-			fclose(v004633CCfd)
-		}()
+		if dll.urlmon.URLDownloadToFileA(0, url[:], d.verfile[:], 0, d.m88bindStatusCallback) != S_OK {
+			d.f00408D80(v0046F448msg.Get(116)) // 列表信息接收失败！#2
+			return
+		}
 	*/
+	if d.f00409AD0parseVersionFile() == 0 {
+		return
+	}
+	d.m3FAF8verCur = int(d.major)<<16 | int(d.minor)<<8 | int(d.patch)
+	d.m3FB00vers[0].m00done = 0
+	for num := d.m44924vernum; num > 0; num-- {
+		if d.m3FB00vers[num-1].m14 <= d.m3FAF8verCur {
+			break
+		}
+	}
+	// draw
+	os.Remove(string(d.verfile[:])) // f00434570remove(d.verfile)
+	d.m3FAF0 = 1
+	d.m3FAEC = 1
+	// d.f0040A4A0()
+	func() {
+		// d.f00408410(true) // enable all active buttons
+		// d.f00406330(true) // enable xx
+		// d.f00408D80(v0046F448msg.Get(126)) // 选择“服务器”后，点击“游戏开始”进入游戏。
+		d.m140 = 1
+		d.m3FAF0 = 1
+		// d.m44E30btnStart.f0041650BenableButton(true)
+	}()
 }
 
 func (d *muDlg) f0040C3C0reqVersionFile() bool {
-	// f00434570deleteFile(string(d.verfile))
+	// f00434570remove(string(d.verfile))
 	// d.f00408D80(v0046F448msg.Get(109)) // 正在接收更新信息
 	// d.f0041A502(1)
 	// d.m44FAC.f0040F480(100)
@@ -627,7 +716,7 @@ func f00402C90handle(d *muDlg) {
 					return
 				}
 				var code uint8 = 5
-				if d.m44FE0 == 1 { // d := f00417837AfxGetApp().m20
+				if d.m44FE0 == 1 { // d := f00417837AfxGetApp().m_hWnd
 					code = 4
 				}
 				// f00402AB0(code, d.major, d.minor, d.patch)

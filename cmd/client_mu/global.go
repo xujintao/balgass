@@ -238,4 +238,4 @@ func (t *card) f00403C20() bool {
 	return false
 }
 
-var v004633CCfd os.File
+var v004633CCfd *os.File
