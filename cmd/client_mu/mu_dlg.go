@@ -253,21 +253,22 @@ type muDlg struct {
 	// ...
 	m88bindStatusCallback func()
 	m140                  int
-	verfile               [60]uint8  // 0x3F930
+	progress              string     // 0x3F8EC
+	tagsfile              [60]uint8  // 0x3F930
 	host                  [256]uint8 // 0x3F96C
 	port                  uint16     // 0x3FA6C
 	user                  [50]uint8  // 0x3FA6E
 	passwd                [50]uint8  // 0x3FAA0
 	m3FAEC                int
 	m3FAF0                int
-	m3FAF8verCur          int
+	m3FAF8tagCur          int
 	major                 uint8 // 0x3FAFC
 	minor                 uint8 // 0x3FAFD
 	patch                 uint8 // 0x3FAFE
-	m3FB00vers            [1000]struct {
-		m00done int
-		m04     [16]uint8
-		m14     int
+	m3FB00                int
+	m3FB04tags            [1000]struct {
+		m00 [16]uint8 // tag string e.g. "0.1.5"
+		m10 int       // tag integer e.g. 0x000105
 	}
 	m44924vernum   int
 	name           [256]uint8 // 0x44928, "奇迹("
@@ -285,6 +286,7 @@ type muDlg struct {
 	m45004                 t0018FC8C        // 0x45004, 0x0018FC8C
 	m45110                 struct{}         // 0x45110, 0x0018FD98
 	m45128partitionManager partitionManager // 0x45128, 0x0018FDB0
+	m45140                 int
 }
 
 func (d *muDlg) f0040AEC0construct(x uint) {
@@ -568,22 +570,23 @@ func f0040CAF0xor(s []uint8, l int) {
 	}
 }
 
-func (d *muDlg) f004066F0setVersionInfo(host []uint8, port uint16, user, passwd, verfile []uint8) {
+func (d *muDlg) f004066F0setVersionInfo(host []uint8, port uint16, user, passwd, tagsfile []uint8) {
 	f0040CAF0xor(host, 100)
 	f0040CAF0xor(user, 20)
 	f0040CAF0xor(passwd, 20)
-	f0040CAF0xor(verfile, 20)
+	f0040CAF0xor(tagsfile, 20)
 	copy(d.host[:], host)
 	d.port = port
 	copy(d.user[:], user)
 	copy(d.passwd[:], passwd)
-	copy(d.verfile[:], verfile)
+	copy(d.tagsfile[:], tagsfile)
 }
 
 // var v00463368 [100]uint8
 var v00463368buf bytes.Buffer
 
 func f00405E50readOne() int {
+	v00463368buf.Reset()
 	var c uint8
 	var buf [1]uint8
 	for {
@@ -621,13 +624,13 @@ func f00405E50readOne() int {
 	return 0
 }
 
-func (d *muDlg) f00409AD0parseVersionFile() int {
+func (d *muDlg) f00409AD0parseTagsFile() bool {
 	// d.f00408D80(v0046F448msg.Get(112)) // 分析更新信息
 	d.m44924vernum = 0
-	v004633CCfd, _ = os.Open(string(d.verfile[:])) // = f00432686fopen(d.verfile[:], "r")
+	v004633CCfd, _ = os.Open(string(d.tagsfile[:])) // = f00432686fopen(d.tagsfile[:], "r")
 	if v004633CCfd == nil {
 		// d.f00408D80(v0046F448msg.Get(113)) // 更新信息读入失败
-		return 0
+		return false
 	}
 	for {
 		v := f00405E50readOne()
@@ -635,12 +638,12 @@ func (d *muDlg) f00409AD0parseVersionFile() int {
 			break
 		}
 		if v == 0 {
-			copy(d.m3FB00vers[d.m44924vernum].m04[:], v00463368buf.Bytes())
+			copy(d.m3FB04tags[d.m44924vernum].m00[:], v00463368buf.Bytes())
 			subs := strings.Split(v00463368buf.String(), ".") // f00433E3Estrtok(v00463368buf.Bytes(), '.')
 			major, _ := strconv.Atoi(subs[0])
 			minor, _ := strconv.Atoi(subs[1])
 			patch, _ := strconv.Atoi(subs[2])
-			d.m3FB00vers[d.m44924vernum].m14 = major<<16 | minor<<8 | patch
+			d.m3FB04tags[d.m44924vernum].m10 = major<<16 | minor<<8 | patch
 			d.m44924vernum++
 			if d.m44924vernum > 999 {
 				// ...
@@ -648,32 +651,59 @@ func (d *muDlg) f00409AD0parseVersionFile() int {
 		}
 	}
 	v004633CCfd.Close() //f00432546fclose(v004633CCfd)
-	return d.m44924vernum
+	return true
 }
 
-func f0040AB70(d *muDlg) {
+func (d *muDlg) f00409420updateSpecifiedTag(host, ver []uint8) {
+
+}
+
+func f0040AB70update(d *muDlg) {
 	/*
 		var url [256]uint8
-		dll.user32.wsprintfA(url[:], "http://%s/%s", d.host[:], d.verfile[:])
-		if dll.urlmon.URLDownloadToFileA(0, url[:], d.verfile[:], 0, d.m88bindStatusCallback) != S_OK {
+		dll.user32.wsprintfA(url[:], "http://%s/%s", d.host[:], d.tagsfile[:])
+		// request tags file from the latest release branch
+		// http://patch.mu.zhaouc.net/version.wvd
+		// http://192.168.0.101/patches/tags.wvd
+		if dll.urlmon.hostDownloadToFileA(0, url[:], d.tagsfile[:], 0, d.m88bindStatusCallback) != S_OK {
 			d.f00408D80(v0046F448msg.Get(116)) // 列表信息接收失败！#2
 			return
 		}
 	*/
-	if d.f00409AD0parseVersionFile() == 0 {
+	if !d.f00409AD0parseTagsFile() {
 		return
 	}
-	d.m3FAF8verCur = int(d.major)<<16 | int(d.minor)<<8 | int(d.patch)
-	d.m3FB00vers[0].m00done = 0
-	for num := d.m44924vernum; num > 0; num-- {
-		if d.m3FB00vers[num-1].m14 <= d.m3FAF8verCur {
+	d.m3FB00 = 0
+	d.m3FAF8tagCur = int(d.major)<<16 | int(d.minor)<<8 | int(d.patch)
+	i := d.m44924vernum
+	// reverse find the minimum version
+	for i > 0 {
+		i--
+		if d.m3FB04tags[i].m10 <= d.m3FAF8tagCur {
 			break
 		}
 	}
-	// draw
-	os.Remove(string(d.verfile[:])) // f00434570remove(d.verfile)
-	d.m3FAF0 = 1
-	d.m3FAEC = 1
+	i++
+	num := d.m44924vernum - i
+	// d.m44F84lable.f0040F480(i)
+	if num <= 0 {
+		// ...draw
+		os.Remove(string(d.tagsfile[:])) // f00434570remove(d.tagsfile)
+		d.m3FAF0 = 1
+		d.m3FAEC = 1
+	} else {
+		for i < d.m44924vernum {
+			ii := 1
+			// dll.user32.wsprintfA(d.progress[:], "%s %d/%d", v0046F448msg.Get(13), ii, num) // 总计： 1/1
+			d.progress = fmt.Sprintf("%s %d/%d", v0046F448msg.Get(13), ii, num) // 总计： 1/1
+			d.m45140 = d.m3FB04tags[i].m10
+			d.f00409420updateSpecifiedTag(d.host[:], d.m3FB04tags[i].m00[:])
+			i++
+			ii++
+		}
+		os.Remove(string(d.tagsfile[:])) // f00434570remove(d.tagsfile)
+		// d.f00408D80(v0046F448msg.Get(123)) // 更新顺利完成了
+	}
 	// d.f0040A4A0()
 	func() {
 		// d.f00408410(true) // enable all active buttons
@@ -685,13 +715,13 @@ func f0040AB70(d *muDlg) {
 	}()
 }
 
-func (d *muDlg) f0040C3C0reqVersionFile() bool {
-	// f00434570remove(string(d.verfile))
+func (d *muDlg) f0040C3C0update() bool {
+	// f00434570remove(string(d.tagsfile))
 	// d.f00408D80(v0046F448msg.Get(109)) // 正在接收更新信息
 	// d.f0041A502(1)
 	// d.m44FAC.f0040F480(100)
 	// d.m44E30btnStart.f0041650BenableButton(false)
-	// f0042145B(f0040AB70, d, 0, 0, 0, 0)
+	// f0042145B(f0040AB70update, d, 0, 0, 0, 0)
 	return false
 }
 
@@ -739,15 +769,15 @@ func f00402C90handle(d *muDlg) {
 			// f00402C30(buf)
 			func(buf []uint8) {
 				info := struct {
-					version [3]uint8
-					host    [100]uint8
-					port    uint16
-					user    [20]uint8
-					passwd  [20]uint8
-					verfile [20]uint8
+					version  [3]uint8
+					host     [100]uint8
+					port     uint16
+					user     [20]uint8
+					passwd   [20]uint8
+					tagsfile [20]uint8
 				}{}
-				d.f004066F0setVersionInfo(info.host[:], info.port, info.user[:], info.passwd[:], info.verfile[:])
-				if d.f0040C3C0reqVersionFile() == false {
+				d.f004066F0setVersionInfo(info.host[:], info.port, info.user[:], info.passwd[:], info.tagsfile[:])
+				if d.f0040C3C0update() == false {
 					// d.f00408D80(v0046F448msg.Get(138)) // 下载失败。请重新安装。
 				}
 			}(buf)
