@@ -37,6 +37,8 @@ hook hooks[] = {
 	// { DIR_MEMASSIGN, 0x0040309D + 3, 0x30, 1, 0 }, // dmDisplayFrequency limit to >= 48
 	// { DIR_MEMASSIGN, 0x004030A6 + 1, 0x8C, 1, 0 }, // dmDisplayFrequency jne -> jl
 	// { DIR_MEMASSIGN, 0x0040314C + 0, 0xEB, 1, 0 }, // discard high dmDisplayFrequency, fixed resolution mismatching
+	{ DIR_MEMASSIGN, 0x0040AC4A + 1, 0x17, 1, 0 }, // do not discard the first tag when version tags are all higher then current
+	{ DIR_MEMASSIGN, 0x0040AC60, 0xE8EB, 2, 0 }, // do not discard the first tag when version tags are all higher then current
 };
 
 void handleHooks() {
@@ -82,6 +84,7 @@ void handleHooks() {
 				break;
 			default:__asm int 3;
 			}
+			break;
 		default:
 			break;
 		}

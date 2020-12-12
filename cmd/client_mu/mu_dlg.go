@@ -665,7 +665,7 @@ func f0040AB70update(d *muDlg) {
 		// request tags file from the latest release branch
 		// http://patch.mu.zhaouc.net/version.wvd
 		// http://192.168.0.101/patches/tags.wvd
-		if dll.urlmon.hostDownloadToFileA(0, url[:], d.tagsfile[:], 0, d.m88bindStatusCallback) != S_OK {
+		if dll.urlmon.URLDownloadToFileA(0, url[:], d.tagsfile[:], 0, d.m88bindStatusCallback) != S_OK {
 			d.f00408D80(v0046F448msg.Get(116)) // 列表信息接收失败！#2
 			return
 		}
@@ -680,10 +680,11 @@ func f0040AB70update(d *muDlg) {
 	for i > 0 {
 		i--
 		if d.m3FB04tags[i].m10 <= d.m3FAF8tagCur {
+			i++
 			break
 		}
 	}
-	i++
+	// i++ // move i++ before break. Do not discard the first tag when version tags are all higher then current.
 	num := d.m44924vernum - i
 	// d.m44F84lable.f0040F480(i)
 	if num <= 0 {
