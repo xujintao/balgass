@@ -575,7 +575,7 @@ func (s *service3) f0043E9B6() {
 
 	v08C88F74 = 1
 	f00DE8000strcpy(v08C88F78username[:], ebp18[:])
-	v08C88E08 = 13
+	v08C88E08 = 19
 
 	// 构造登录报文
 	var ebp14BClogin pb
@@ -595,7 +595,7 @@ func (s *service3) f0043E9B6() {
 	ebp14BClogin.f00439298writeBuf(ebp3C[:], 10, true)    // 写pwd
 	ebp14BClogin.f0043EDF5writeUint32(win.GetTickCount()) // 写时间戳
 	ebp14C0 := 0
-	for ebp14C0 < 5 {
+	for ebp14C0 < 5 { // hook to 8
 		ebp14BClogin.f004397B1writeUint8(v012E4018versionDLL[ebp14C0] - byte(ebp14C0+1)) // 写版本 VERSION_HOOK1
 		ebp14C0++
 	}
@@ -607,27 +607,19 @@ func (s *service3) f0043E9B6() {
 
 	// 发送登录报文
 	ebp14BClogin.f004393EAsend(true, false)
-
-	// var ebp4 int
-	// ebp14E0.f00406FC0stdstring(v08610600textManager.f00436DA8(0x1D8))
-	// ebp4 = 1
-	// ebp14FC.f00406FC0stdstring(&v0114A327)
-	// ebp4 = 2
+	var ebp14E0, ebp14FC stdstring
+	ebp14E0.f00406FC0stdstring(v08610600textManager.f00436DA8findcstr(0x1D8)) // "正在确认帐号"
+	ebp14FC.f00406FC0stdstring(nil)                                           // ""
 	// f00A49798ui().f0043EE21().f00A9FB38print(&ebp14FC, &ebp14E0, 3, 0)
-	// ebp4 = 1
-	// ebp14FC.f00407B10()
-	// ebp4 = 0
-	// ebp14E0.f00407B10()
+	ebp14FC.f00407B10free()
+	ebp14E0.f00407B10free()
 
-	// ebp1518.f00406FC0stdstring(v08610600textManager.f00436DA8(0x1D9))
-	// ebp4 = 3
-	// ebp1534.f00406FC0stdstring(&v0114A33E)
+	var ebp1518, ebp1534 stdstring
+	ebp1518.f00406FC0stdstring(v08610600textManager.f00436DA8findcstr(0x1D9)) // "请稍候片刻."
+	ebp1534.f00406FC0stdstring(nil)                                           // ""
 	// f00A49798ui().f0043EE21().f00A9FB38print(&ebp1534, &ebp1518, 3, 0)
-	// ebp4 = 3
-	// ebp1534.f00407B10()
-	// ebp4 = 0
-	// ebp1518.f00407B10()
-	// ebp4 = -1
+	ebp1534.f00407B10free()
+	ebp1518.f00407B10free()
 
 	ebp14BClogin.f004391CF()
 }
@@ -1013,7 +1005,7 @@ type serviceManager struct {
 	s4 service4 // offset:0x1070, v01310798
 	// v013107D8 v013108B8 v01310998 ... 64个
 
-	s3 service3 // v01313FA8
+	s3 service3 // offset:0x4880, v01313FA8
 	// v01313FE8
 	// v013140C8
 

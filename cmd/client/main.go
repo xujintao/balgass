@@ -859,8 +859,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 
 	// 0x004D80A8: read config.ini
 	v01319E08log.f00B38AE4printf("> To read config.ini.\r\n")
-	// f004D7281函数被花了
-	f004D7281 := func() bool {
+	f004D7281readConfig := func() bool {
 		// 348h个字节的局部变量
 
 		// config file version
@@ -878,9 +877,6 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		win.GetPrivateProfileStringA("LOGIN", "Version", "", v01319A44versionFile[:], 8, string(buf[:])) // 1.04.44写到全局变量中
 
 		// 0x004D7338: exe file version
-		var ebp338 struct {
-			patch [3]uint8
-		}
 		var ebp334 version
 		var ebp328cmd []string
 		ebp8cmd := os.Args // GetCommandLine()
@@ -892,6 +888,9 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		}
 		f00DE817Asprintf(v01319A38version[:], "%d.%02d", ebp334.major, ebp334.minor)
 		if ebp334.patch > 0 { // jle 0x004D7419
+			var ebp338 struct {
+				patch [3]uint8
+			}
 			*(*uint16)(unsafe.Pointer(&ebp338)) = v0114DD64
 			ebp338.patch[2] = 0
 
@@ -972,7 +971,7 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		// }
 		return true
 	}
-	if f004D7281() == true {
+	if f004D7281readConfig() == true {
 		v01319E08log.f00B38AE4printf("config.ini read error\r\n")
 		ebp1A30 := 0
 		f004D9F88()

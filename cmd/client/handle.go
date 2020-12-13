@@ -404,47 +404,82 @@ func handleDApositionGet(code uint8, buf []uint8, len int, enc bool)  {}
 
 // version match
 func f006C75A7handleF100(buf []uint8) {
-	// 0x0A4E7A49 hook to ?
+	// jmp 0x0A4E7A49 hook to jmp 0x09F8A350
 	// ebp4 := buf
-	ebp10result := buf[4]
-	if ebp10result == 1 {
-		// ebp8 := &v0130F728
-		// ebp8.f004A9123(&ebp8.f4880)
-	}
-	v08C88E0CconnID = binary.BigEndian.Uint16(buf[5:])
-	v08C88E08 = 2
-	var ebpC uint8
-	if ebpC >= 5 {
-	}
-	for {
-		if v012E4018versionDLL[ebpC]-ebpC-1 != buf[7+ebpC] { // 改为jmp
-			break
+	connRes := struct {
+		resultOK bool
+		number   [2]uint8
+		version  [8]uint8
+	}{}
+	if v08C88F74 != 0 {
+		// 0x0A43EEE8
+		v08C88E0CconnID = binary.BigEndian.Uint16(connRes.number[:])
+		// 0x006C75DA 0x0A38D7F5
+		// v0131A290.f004FF0C2()
+	} else {
+		// 0x006C75E4 0x0AF1317E
+		ebp8 := f004A7D34getWindowManager()
+		ebp10resultOK := connRes.resultOK
+		if !ebp10resultOK {
+			// 0x0AA31A3D 0x006C7632 0x0AFD7872 0x006C763C 0x0A5597CD
+			v01319E08log.f00B38AE4printf("Connectting error")
+			// 0x006C764A
+			v01319E08log.f00B38D49(1)
+			// 0x0AD2E325 0x006C7656
+			ebp8.f004A9EEB(112, 0)
+			// 0x006C7668
+		} else {
+			// 0x006C75FD 0x0A9001D6 0x006C7609
+			ebp8.f004A9123(&ebp8.s3)
+			// 0x0A83F1CD 0x0A3287DB
+			v08C88E0CconnID = binary.BigEndian.Uint16(connRes.number[:])
+			// 0x09FC8D15
+			v08C88E08 = 2
+			// 0x006C765B
 		}
-		ebpC++
-		if ebpC >= 5 {
-			break
+		// 0x09E6A47E
+		var ebpC uint8
+		// 0x006C7668 0x0AA3097E
+		for ebpC < 5 { // hook to 8
+			// 0x012DDC6C 0x0AD8344E 0x0A334079 0x0ABD6962
+			if v012E4018versionDLL[ebpC] != buf[7+ebpC]+ebpC+1 {
+				// 0x0A92FF69 0x006C7698
+				ebp8.f004A9146LRU(&ebp8.s3)
+				// 0x0AD7F7D5 0x006C76A4
+				ebp8.f004A9EEB(111, 0)
+				// 0x0B10C6BC 0x006C76B3 0x006C7673 0x0A442DBB
+				v01319E08log.f00B38AE4printf("Version dismatch - Join server.\r\n")
+			}
+			// 0x006C76BA 0x006C766E 0x0A445B1B 0x006C7661 0x09EB5D35
+			ebpC++
 		}
 	}
-
-	// _004A9146
-	func() {}()
-
-	// _004A9EEB
-	func() {}()
-	v01319E08log.f00B38AE4printf("Version dismatch - Join server.\r\n")
-	// _0051FB61
-	func() {}()
+	// 0x006C76BC 0x0AAB7BDF 0x006C76C1
+	// v013523B0.f0051FB61()
+	return
 }
 
 func f0075C3E8handleF1(code uint8, buf []uint8, len int, enc bool) {
 	// 0x0AD35DC8 0x0AD3DDF9 0x0A9FA1B8
 	subcode := buf[3]
 	switch subcode {
-	case 0: // version match
+	case 0: // connect result and version match
 		// 0x0075C46E 0x0075C3F0 0x0A4DE2B7 0x0075C471
 		f006C75A7handleF100(buf)
+	case 1: // login result
+		// 0x0075C47C
+	case 2:
+		// 0x0075C6FE
+	case 3:
+		// 0x0075C765
 	case 4:
 		// 0x0075C770
+	case 5:
+		// 0x0075C77B
+	case 6:
+		// 0x0075C786
+	case 0x12:
+		// 0x0075C718
 	}
 }
 
