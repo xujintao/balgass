@@ -39,6 +39,7 @@ hook hooks[] = {
 	// { DIR_MEMASSIGN, 0x0040314C + 0, 0xEB, 1, 0 }, // discard high dmDisplayFrequency, fixed resolution mismatching
 	{ DIR_MEMASSIGN, 0x0040AC4A + 1, 0x17, 1, 0 }, // do not discard the first tag when version tags are all higher then current
 	{ DIR_MEMASSIGN, 0x0040AC60, 0xE8EB, 2, 0 }, // do not discard the first tag when version tags are all higher then current
+	{ DIR_MEMASSIGN, 0x0040AA07, 0x05EB, 2, 0 }, // keep status of failure on connecting failed
 };
 
 void handleHooks() {

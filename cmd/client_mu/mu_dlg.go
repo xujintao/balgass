@@ -370,6 +370,10 @@ func (d *muDlg) f0040AEC0construct(x uint) {
 	// d.f00406920()
 	func() {
 		// read config.ini
+		// var fileName [280]uint8
+		// f00433360memset(fileName[:], 0, 280)
+		// dll.kernel32.GetCurrentDIrectoryA(260, d.dir[:])
+		// copy(fileName[:], d.dir[:])
 		// fileName := path.Join(filepath.Dir(os.Args[0]), "config.ini")
 		// var version [10]uint8
 		// dll.kernel32.GetPrivateProfileString("LOGIN", "Version", "0.0.0", version[:], 10, fileName[:])
@@ -797,6 +801,15 @@ func (d *muDlg) f0040A9A0net(wParam, lParam uint) {
 		v004633D0conn.f0040D010write()
 	case 8: // FD_ACCEPT
 	case 16: // FD_CONNECT
+		errcode := lParam >> 16
+		if errcode != 0 { // 10060 WSAETIMEDOUT
+			// d.f00408410(true)
+			// d.f00406330(true)
+			// d.f00408D80(v0046F448msg.Get(107)) // 连接失败
+			// d.f0041A502(1)
+			// dll.kernel32.Sleep(500) // 500ms
+			// d.f0040A4F0() // jmp, keep status of failure on connecting failed
+		}
 		// dll.ws2_32.WSAAsyncSelect(v004633D0conn.fd, d.m_hWnd, 0x7E8, FD_READ|FD_WRITE|FD_CLOSE)
 		if win.WSAGetLastError() == ^uint32(0) {
 			v004633D0conn.f0040CCE0close()

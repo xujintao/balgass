@@ -35,10 +35,28 @@ func (c *conn) f0040CC30socket(hWnd win.HWND) {
 
 }
 
-func (c *conn) f0040CD00dial(ip string, port uint16, msg uint) {
-	// ...
-	// dll.ws2_32.WSAAsyncSelect(c.fd, c.hWnd, msg, FD_CONNECT)
-	// ...
+func (c *conn) f0040CD00dial(ip string, port uint16, msg uint) int {
+	/*
+		if c.hWnd == 0 {
+			dll.user32.MessageBoxA(0, v0046F448msg.Get(144), "Error", d.hWnd) // 错误的窗口句柄
+			return 0
+		}
+		if c.fd == -1 {
+			v004633D0conn.f0040CC30socket(d.hWnd)
+		}
+		dll.ws2_32.htons()
+		if dll.ws2_32.inet_addr() == -1 {
+			dll.ws2_32.gethostbyname()
+		}
+		dll.ws2_32.WSAAsyncSelect(c.fd, c.hWnd, msg, FD_CONNECT)
+		if SOCKET_ERROR == dll.ws2_32.connect(c.fd) {
+			if dll.ws2_32.WSAGetLastError() != 10035 {
+				dll.ws2_32.closesocket(d.fd)
+				return 0
+			}
+		}
+	*/
+	return 1
 }
 
 func (c *conn) f0040D010write() {
