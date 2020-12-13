@@ -210,7 +210,9 @@ void SCSendNews(int aIndex)
 
 void SCSendAutoUpdateData(int aIndex, PMSG_CLIENTVERSION *aRecv)
 {
-	unsigned int MainVersion, HeadVersion, SubVersion;
+	unsigned char MainVersion = 0;
+	unsigned char HeadVersion = 0;
+	unsigned char SubVersion = 0;
 
 	sscanf_s(g_ClientVersion, "%u.%u.%u", &MainVersion, &HeadVersion, &SubVersion);
 
@@ -231,17 +233,8 @@ void SCSendAutoUpdateData(int aIndex, PMSG_CLIENTVERSION *aRecv)
 		PMSG_AUTOUPDATE pMsg;
 
 		pMsg.h.c = 0xC1;
-		if (HeadVersion == 4) {
-			pMsg.h.headcode = 0x04;
-		}
-		else if (HeadVersion == 5) {
-			pMsg.h.headcode = 0x05;
-		}
-		else {
-			pMsg.h.headcode = 0x05;
-		}
+		pMsg.h.headcode = 0x04; // 0x04:http, 0x05:ftp
 		pMsg.h.size = sizeof(pMsg);
-
 		pMsg.MainVersion = MainVersion;
 		pMsg.HeadVersion = HeadVersion;
 		pMsg.SubVersion = SubVersion;
