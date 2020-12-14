@@ -2542,7 +2542,7 @@ struct PMSG_JOINRESULT
 	BYTE result;	// 4
 	BYTE NumberH;	// 5
 	BYTE NumberL;	// 6
-	BYTE CliVersion[5];	// 7
+	BYTE CliVersion[8];	// 7
 };
 #pragma pack ()
 
@@ -2560,11 +2560,7 @@ void GameProtocol::SCPJoinResultSend(int aIndex, BYTE result)
 	pResult.result = result;
 	pResult.NumberH = SET_NUMBERH(aIndex);
 	pResult.NumberL = SET_NUMBERL(aIndex);
-	pResult.CliVersion[0] = szClientVersion[0];
-	pResult.CliVersion[1] = szClientVersion[1];
-	pResult.CliVersion[2] = szClientVersion[2];
-	pResult.CliVersion[3] = szClientVersion[3];
-	pResult.CliVersion[4] = szClientVersion[4];
+	strcpy((char*)&pResult.CliVersion[0], szClientVersion);
 
 	IOCP.DataSend(aIndex, (unsigned char*)&pResult, pResult.h.size);
 	gObj[aIndex].ConnectCheckTime = GetTickCount();
@@ -2586,11 +2582,7 @@ void GameProtocol::CSPJoinIdPassRequest(PMSG_IDPASS* lpMsg, int aIndex)
 	char id[11];
 	char hwid[25];
 
-	if ( lpMsg->CliVersion[0] != szClientVersion[0] ||
-		 lpMsg->CliVersion[1] != szClientVersion[1] ||
-		 lpMsg->CliVersion[2] != szClientVersion[2] ||
-		 lpMsg->CliVersion[3] != szClientVersion[3] ||
-		 lpMsg->CliVersion[4] != szClientVersion[4] )
+	if (strcmp((char*)&lpMsg->CliVersion[0], szClientVersion))
 	{
 		GCJoinResult(JS_BAD_CLIENT_VERSION, aIndex);
 		IOCP.CloseClient(aIndex);

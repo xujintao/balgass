@@ -105,20 +105,8 @@ BOOL CMapServerManager::LoadData(char* lpszFileName)
 	pugi::xml_node serverinfo = mapserver.child("ServerInfo");
 	pugi::xml_node serverlist = mapserver.child("ServerList");
 	pugi::xml_node servermapping = mapserver.child("ServerMapping");
-	char *cvstr;
-	char szTemp[128];
-
 	strcpy(szGameServerExeSerial, serverinfo.attribute("Serial").as_string());
-	strcpy(szTemp, serverinfo.attribute("Version").as_string());
-
-	cvstr = strtok(szTemp, ".");
-	szClientVersion[0] = cvstr[0];
-	cvstr = strtok(NULL, ".");
-	szClientVersion[1] = cvstr[0];
-	szClientVersion[2] = cvstr[1];
-	cvstr = strtok(NULL, ".");
-	szClientVersion[3] = cvstr[0];
-	szClientVersion[4] = cvstr[1];
+	strcpy_s(szClientVersion, 8, serverinfo.attribute("Version").as_string());
 
 	for (pugi::xml_node server = serverlist.child("Server"); server; server = server.next_sibling())
 	{

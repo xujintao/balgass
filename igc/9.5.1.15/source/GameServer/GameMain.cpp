@@ -325,7 +325,7 @@ int g_iShieldGageConstB;
 ////////////////////////////////////////////////////////////////////
 
 
-char szClientVersion[8]="000000";
+char szClientVersion[8]={0};
 BOOL bCanTrade=1;
 BOOL bCanChaosBox=1;
 BOOL bCanWarehouseLock=1;
@@ -1426,42 +1426,18 @@ void ReadCommonServerInfo()
 	g_iShieldGageConstA = GetPrivateProfileInt("GameServerInfo","ShieldGageConstA", 12, gDirPath.GetNewPath("commonserver.cfg"));
 	g_iShieldGageConstB = GetPrivateProfileInt("GameServerInfo","ShieldGageConstB", 30, gDirPath.GetNewPath("commonserver.cfg"));
 
-	char szName[100];
-	char szServer[100];
 
-
-	strcpy(szName, "Ragezone");
-	strcpy(szServer, "Public VERSION");
-
-
-		wsprintf(szTemp, "[%s] [%d] [%s] [%d] [%c.%c%c.%c%c] [%s] [%s][%s]", GAMESERVER_VERSION, g_ConfigRead.server.GetGameServerCode(), g_ConfigRead.server.GetServerName(), Lang.GetDefaultLangID(), ::szClientVersion[0], szClientVersion[1], szClientVersion[2], szClientVersion[3], szClientVersion[4], szGameServerExeSerial, szName, szServer);
-
-		if (g_ConfigRead.server.GetServerType() == SERVER_CASTLE)
-		{
-			strcat(szTemp, " [ Siege Server]");
-		}
-
-		else if (g_ConfigRead.server.GetServerType() == SERVER_ARCA)
-		{
-			strcat(szTemp, " [Arca War]");
-		}
-
-		else if (g_ConfigRead.server.GetServerType() == SERVER_MARKET)
-		{
-			strcat(szTemp, " [Market Server]");
-		}
-		
-		g_Log.Add("User Object Size = %d", sizeof(OBJECTSTRUCT));
-
-		SetWindowText(ghWnd, szTemp);
-
-
-	
-
-
+	wsprintf(szTemp, "[%s] [%d] [%s] [%d] [v%s] [%s]",
+		GAMESERVER_VERSION,
+		g_ConfigRead.server.GetGameServerCode(),
+		g_ConfigRead.server.GetServerName(),
+		Lang.GetCodePage(0),
+		szClientVersion,
+		szGameServerExeSerial);
+	SetWindowText(ghWnd, szTemp);
+	g_Log.Add("User Object Size = %d", sizeof(OBJECTSTRUCT));
 
 	// Item Bag Load
-
 
 	// Eledorado Event Start
 	gEledoradoEvent.Init();

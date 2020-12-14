@@ -294,7 +294,7 @@ struct PMSG_IDPASS
 	char Pass[20];	// E
 	char HWID[100]; // NEW
 	DWORD TickCount;	// 18
-	BYTE CliVersion[5];	// 1C
+	BYTE CliVersion[8];	// 1C
 	BYTE CliSerial[16];	// 21  
 	DWORD ServerSeason;
 };
@@ -1483,7 +1483,7 @@ struct PMSG_REQ_MAPSERVERAUTH
 	int iJoinAuthCode3;	// 24
 	int iJoinAuthCode4;	// 28
 	int iTickCount;	// 2C
-	BYTE btCliVersion[5];	// 30
+	BYTE btCliVersion[8];	// 30
 	BYTE btCliSerial[16];	// 35
 
 };
