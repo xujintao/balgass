@@ -201,11 +201,10 @@ void __declspec(naked) LoginHook3() {
 
 void rewriteVersion() {
 	char* src = (char*)0x01319A44; // 1.04R, "1.xx.xx"
-	char ver[5] = { 0 };
-	sscanf(src, "%c.%c%c.%c%c", &ver[0], &ver[1], &ver[2], &ver[3], &ver[4]);
 	char* dst = (char*)0x012E4018; // 1.04R
-	for (int i = 0; i < 5; i++) {
-		dst[i] = ver[i] + i + 1;
+	// marshal version string
+	for (int i = 0; i < 8; i++) {
+		dst[i] = src[i] + i + 1;
 	}
 }
 
@@ -257,6 +256,9 @@ void SetValues()
 	MemAssign(0x00E1A4AC, (WORD)0x90C3); // 1.04R, 6A 02->C3 90, push 02->ret, fix r6602 floating point support not loaded, search cmd "mov dword ptr ds:[ebx+0xC], esi"
 	//MemSet(0x0ABD696B, 0xEB, 1); // 1.04R, 74->EB, je->jmp, disable main.exe version match
 	HookManager.MakeJmpHook(0x004D80ED, 7, RewriteVersion); // rewrite version
+	MemAssign(0x0AA3097E + 3, (BYTE)8); // handle version matching 5->8 characters
+	MemAssign(0x0043EBFA + 6, (BYTE)8); // login send version 5->8 characters
+	MemAssign(0x004FF24C + 6, (BYTE)8); // map server send version 5->8 characters
 	MemSet(0x0AD33703, 0xC3, 1); // 1.04R, 55->C3, push ebp->ret, disable some encode
 	HookThis(0x0043EA4C, 7, (DWORD)&LoginHook1); // 1.04R, extend pwd length, fill pwd buf
 	HookThis(0x0043EAA2, 9, (DWORD)&LoginHook2); // 1.04R, extend pwd length, validate pwd length

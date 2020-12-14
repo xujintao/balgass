@@ -265,7 +265,7 @@ struct PMSG_IDPASS_OLD
 	char Id[10];	// 4
 	char Pass[20];	// E
 	DWORD TickCount;	// 18
-	BYTE CliVersion[5];	// 1C
+	BYTE CliVersion[8];	// 1C
 	BYTE CliSerial[16];	// 21
 };
 
@@ -277,7 +277,7 @@ struct PMSG_IDPASS_NEW
 	char Pass[20];	// E
 	char HWID[100];
 	DWORD TickCount;	// 18
-	BYTE CliVersion[5];	// 1C
+	BYTE CliVersion[8];	// 1C
 	BYTE CliSerial[16];	// 21
 	DWORD ServerSeason;
 };

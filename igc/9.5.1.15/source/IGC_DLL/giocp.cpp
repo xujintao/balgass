@@ -165,7 +165,7 @@ void SendPacket(BYTE* buff, int len, int enc, int unk1)
 		memcpy(lpMsg2->Id, lpMsg1->Id, 10);
 		memcpy(lpMsg2->Pass, lpMsg1->Pass, 20);
 		memcpy(lpMsg2->CliSerial, lpMsg1->CliSerial, 16);
-		memcpy(lpMsg2->CliVersion, lpMsg1->CliVersion, 5);
+		memcpy(lpMsg2->CliVersion, lpMsg1->CliVersion, 8);
 		lpMsg2->ServerSeason = 0x40;
 
 		memcpy(Login, buff, buff[1]);
