@@ -1,0 +1,94 @@
+:root {
+    --color-nav-text: black;
+    --color-nav-search-bg: #F4F4F4;
+    --color-nav-search-bd: #E7E7E7;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 24px;
+    font: 14px -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial, PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif;
+    box-shadow: 0 -3px 10px 1px rgba(0, 0, 0, .2);
+    line-height: 36px;
+}
+
+.nav-link ul {
+    /* background-color: pink; */
+    display: flex;
+}
+
+.nav-link li {
+    margin-right: 12px;
+}
+
+.nav-link a {
+    display: flex;
+    color: var(--color-nav-text);
+    /* background-color: skyblue; */
+}
+
+.nav-link a:hover {
+    cursor: pointer;
+}
+
+.nav-link-logo {
+    height: 36px;
+    margin-right: 12px;
+    background-color: black;
+}
+
+.nav-search {
+    position: relative;
+    width: 500px;
+}
+
+.nav-search-form {
+    border: 1px solid var(--color-nav-search-bd);
+    padding: 0 38px 0 16px;
+    background-color: var(--color-nav-search-bg);
+    line-height: 34px;
+}
+
+.nav-search-text {
+    width: 100%;
+    height: 34px;
+    border: none;
+    background-color: transparent;
+    font-size: 14px;
+}
+
+.nav-search-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 48px;
+    height: 36px;
+    border: none;
+    background-color: var(--color-nav-search-bd);
+}
+
+.nav-user ul {
+    display: flex;
+}
+
+.nav-user li {
+    margin-left: 12px;
+}
+
+.nav-user a {
+    display: flex;
+}
+
+.nav-user-avatar {
+    height: 36px;
+    border-radius: 50%;
+}
+
+.nav-user-login {
+    display: none;
+}
+
+.nav-user-logout {
+    /* display: none; */
+}
