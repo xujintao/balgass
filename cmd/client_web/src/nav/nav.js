@@ -1,6 +1,4 @@
 import React from 'react'
-import '../base.css'
-import '../common.css'
 import './nav.css'
 import logo from './images/logo.png'
 import './fonts/iconfont.css'

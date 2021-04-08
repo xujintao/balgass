@@ -1,6 +1,4 @@
 import React from 'react'
-import '../base.css'
-import '../common.css'
 import './main.css'
 
 class Main extends React.Component {
