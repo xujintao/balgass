@@ -4,6 +4,10 @@ import logo from './images/logo.png'
 import './fonts/iconfont.css'
 
 class Nav extends React.Component {
+    refInput = React.createRef()
+    search = ()=>{
+        console.log(this.refInput.current.value)
+    }
     render() {
         return (
             <div className="nav">
@@ -19,9 +23,9 @@ class Nav extends React.Component {
                     </ul>
                 </div>
                 <div className="nav-search">
-                    <form className="nav-search-form" action="">
-                        <input className="nav-search-text" type="text" placeholder="我的发明可以让整个小区停电"/>
-                        <button className="nav-search-btn iconfont icon-search"></button>
+                    <form className="nav-search-form" action="/search">
+                        <input className="nav-search-text" type="text" placeholder="我的发明可以让整个小区停电" name="keyword" ref={this.refInput}/>
+                        <button className="nav-search-btn iconfont icon-search" onClick={this.search}></button>
                     </form>
                 </div>
                 <div className="nav-user">

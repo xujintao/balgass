@@ -1,16 +1,19 @@
+import React from 'react'
 import Nav from './nav/nav'
-import Main from './main/main'
+import Search from './search/search'
 import Footer from './footer/footer'
 import  './App.css'
 
-function App() {
-  return (
-    <div>
-      <Nav/>
-      <Main/>
-      <Footer/>
-    </div>
-  );
+class App extends React.Component {
+  render() {
+    return (
+      <div>
+        <Nav/>
+        <Search/>
+        <Footer/>
+      </div>
+    )
+  }
 }
 
-export default App;
+export default App
