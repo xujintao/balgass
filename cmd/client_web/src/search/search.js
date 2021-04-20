@@ -1,4 +1,5 @@
 import React from 'react'
+import qs from 'querystring'
 import axios from 'axios'
 import './search.css'
 
@@ -10,14 +11,13 @@ class Search extends React.Component {
         err: ''
     }
 
-    refInput = React.createRef()
-    handleSearch = (event)=>{
-        event.preventDefault()
+    componentDidMount() {
         this.setState({
             isFirst: false,
             isLoading: true
         })
-        const keyword = this.refInput.current.value
+        const {search} = this.props.location
+        const {keyword} = qs.parse(search.slice(1))
         axios.get(`/api1/search/users?q=${keyword}`).then(
             response=>{
                 this.setState({
@@ -37,18 +37,12 @@ class Search extends React.Component {
         const {users,isFirst,isLoading,err} = this.state
         return (
             <div className="w">
-                <div className="search-head">
-                    <form action="/search" onSubmit={this.handleSearch}>
-                        <input type="text" placeholder="我的发明可以让整个小区停电" name="keyword" ref={this.refInput}/>
-                        <button>搜索</button>
-                    </form>
-                </div>
                 <ul className="search-result">
                 {
                     isFirst ? <h2>欢迎使用，输入关键字，随后点击搜索</h2> :
                     isLoading ? <h2>Loading...</h2> :
                     err ? <h2>{err}</h2> :
-                    users.map((u)=>{
+                    users ? users.map((u)=>{
                         return (
                             <li key={u.id} className="card">
                                 <a href={u.html_url} target="_blank" rel="noreferrer">
@@ -57,7 +51,7 @@ class Search extends React.Component {
                                 <p className="card-text">{u.login}</p>
                             </li>
                         )
-                    })
+                    }) : {}
                 }
                 </ul>
             </div>

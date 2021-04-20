@@ -1,12 +1,15 @@
 import React from 'react'
+import {Link,withRouter} from 'react-router-dom'
 import './nav.css'
 import logo from './images/logo.png'
 import './fonts/iconfont.css'
 
 class Nav extends React.Component {
     refInput = React.createRef()
-    search = ()=>{
-        console.log(this.refInput.current.value)
+    search = (event)=>{
+        event.preventDefault()
+        const keyword = this.refInput.current.value
+        this.props.history.push(`/search?keyword=${keyword}`)
     }
     render() {
         return (
@@ -14,12 +17,12 @@ class Nav extends React.Component {
                 <div className="nav-link">
                     <ul>
                         <li>
-                            <a href="index.html">
+                            <Link to="/main">
                                 <img className="nav-link-logo" src={logo} alt=""/>首页
-                            </a>
+                            </Link>
                         </li>
-                        <li><a href="#">bug报告</a></li>
-                        <li><a href="#">游戏下载</a></li>
+                        <li><Link to="/bugs">bug报告</Link></li>
+                        <li><Link to="/download">游戏下载</Link></li>
                     </ul>
                 </div>
                 <div className="nav-search">
@@ -53,4 +56,4 @@ class Nav extends React.Component {
     }
 }
 
-export default Nav
+export default withRouter(Nav)
