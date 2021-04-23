@@ -9,7 +9,7 @@ class Nav extends React.Component {
     search = (event)=>{
         event.preventDefault()
         const keyword = this.refInput.current.value
-        this.props.history.push(`/search?keyword=${keyword}`)
+        this.props.history.push(`/search?q=${keyword}`)
     }
     render() {
         return (
@@ -17,7 +17,7 @@ class Nav extends React.Component {
                 <div className="nav-link">
                     <ul>
                         <li>
-                            <Link to="/main">
+                            <Link to="/">
                                 <img className="nav-link-logo" src={logo} alt=""/>首页
                             </Link>
                         </li>
@@ -27,8 +27,8 @@ class Nav extends React.Component {
                 </div>
                 <div className="nav-search">
                     <form className="nav-search-form" action="/search">
-                        <input className="nav-search-text" type="text" placeholder="我的发明可以让整个小区停电" name="keyword" ref={this.refInput}/>
-                        <button className="nav-search-btn iconfont icon-search" onClick={this.search}></button>
+                        <input className="nav-search-text" type="text" placeholder="我的发明可以让整个小区停电" name="q" ref={this.refInput}/>
+                        <button className="nav-search-btn iconfont icon-search" onClick={this.search}/>
                     </form>
                 </div>
                 <div className="nav-user">

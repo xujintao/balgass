@@ -17,7 +17,7 @@ class Search extends React.Component {
             isLoading: true
         })
         const {search} = this.props.location
-        const {keyword} = qs.parse(search.slice(1))
+        const {q:keyword} = qs.parse(search.slice(1))
         axios.get(`/api1/search/users?q=${keyword}`).then(
             response=>{
                 this.setState({
