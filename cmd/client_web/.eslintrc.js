@@ -1,6 +1,7 @@
 module.exports = {
   env: {
     browser: true,
+    commonjs: true,
     es2021: true,
   },
   extends: ["eslint:recommended", "plugin:react/recommended"],
@@ -12,5 +13,6 @@ module.exports = {
     sourceType: "module",
   },
   plugins: ["react"],
+  parser: "babel-eslint",
   rules: {},
 };
