@@ -1,41 +1,11 @@
 import React from "react";
-import qs from "querystring";
-import axios from "axios";
+import { connect } from "react-redux";
 import "./search.css";
 
 class Search extends React.Component {
-  state = {
-    isFirst: true,
-    isLoading: false,
-    users: [],
-    err: "",
-  };
-
-  componentDidMount() {
-    this.setState({
-      isFirst: false,
-      isLoading: true,
-    });
-    const { search } = this.props.location;
-    const { q: keyword } = qs.parse(search.slice(1));
-    axios.get(`/api1/search/users?q=${keyword}`).then(
-      (response) => {
-        this.setState({
-          isLoading: false,
-          users: response.data.items,
-        });
-      },
-      (error) => {
-        this.setState({
-          isLoading: false,
-          err: error.message,
-        });
-      }
-    );
-  }
-
   render() {
-    const { users, isFirst, isLoading, err } = this.state;
+    console.log(this.props);
+    const { users, isFirst, isLoading, err } = this.props.search;
     return (
       <div className="w">
         <ul className="search-result">
@@ -65,4 +35,4 @@ class Search extends React.Component {
   }
 }
 
-export default Search;
+export default connect((state) => ({ search: state.search }))(Search);

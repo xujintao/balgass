@@ -14,6 +14,7 @@ class App extends React.Component {
         <Switch>
           {/* https://stackoverflow.com/questions/49162311/react-difference-between-route-exact-path-and-route-path */}
           <Route exact path="/" component={Home} />
+          {/* https://stackoverflow.com/questions/50667609/react-router-component-not-updating-on-url-search-param-change */}
           <Route path="/search" component={Search} />
           {/* <Route path="/bugs" component={Bugs}/> */}
           {/* <Route path="/download" component={Download}/> */}
