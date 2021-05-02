@@ -5,7 +5,8 @@
 }
 
 /* 斜体文字不倾斜 */
-em,i {
+em,
+i {
   font-style: normal;
 }
 
@@ -23,7 +24,8 @@ a {
   color: #333;
 }
 
-input,textarea {
+input,
+textarea {
   outline: none;
 }
 
