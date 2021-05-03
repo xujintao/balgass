@@ -4,7 +4,6 @@ import "./search.css";
 
 class Search extends React.Component {
   render() {
-    console.log(this.props);
     const { users, isFirst, isLoading, err } = this.props.search;
     return (
       <div className="w">

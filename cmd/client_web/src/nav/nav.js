@@ -3,6 +3,7 @@ import { Link, withRouter } from "react-router-dom";
 import { connect } from "react-redux";
 import { searchLoading, searchUsers, searchErr } from "../redux/action";
 import axios from "axios";
+import qs from "querystring";
 import "./nav.css";
 import logo from "./images/logo.png";
 import "./fonts/iconfont.css";
@@ -19,6 +20,24 @@ class Nav extends React.Component {
     );
     this.props.history.push(`/search?q=${keyword}`);
   };
+
+  componentDidMount() {
+    const { pathname, search } = this.props.location;
+    if (pathname == "/search") {
+      this.props.searchLoading();
+      if (search.match(/\?q=/)) {
+        const { q: keyword } = qs.parse(search.slice(1));
+        this.refInput.current.value = keyword;
+        axios.get(`/api1/search/users?q=${keyword}`).then(
+          (response) => this.props.searchUsers(response.data.items),
+          (error) => this.props.searchErr(error.message)
+        );
+      } else {
+        this.props.searchUsers([]);
+      }
+    }
+  }
+
   render() {
     return (
       <div className="nav">
