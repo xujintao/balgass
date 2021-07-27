@@ -1,7 +1,16 @@
-import { SEARCH_LOADING, SEARCH_USERS, SEARCH_ERR } from "./const";
+import {
+  SEARCH_LOADING,
+  SEARCH_USERS,
+  SEARCH_ERR,
+  MODAL_JOIN,
+  MODAL_LOGIN,
+  MODAL_PASSWORD_VALIDATE_EMAIL,
+  MODAL_PASSWORD_NEW_PASSWORD,
+  MODAL_PASSWORD_RESULT,
+  MODAL_CLOSE,
+} from "./const";
 
 const initState = { isFirst: true, isLoading: false, users: [], err: "" };
-
 export function searchReducer(preState = initState, action) {
   const { type, data } = action;
   switch (type) {
@@ -11,6 +20,78 @@ export function searchReducer(preState = initState, action) {
       return { isFirst: false, isLoading: false, users: data, err: "" };
     case SEARCH_ERR:
       return { isFirst: false, isLoading: false, users: [], err: data };
+    default:
+      return preState;
+  }
+}
+
+const initModal = {
+  isModalJoin: false,
+  isModalLogin: false,
+  isModalPassword: false,
+  isModalValidateEmail: false,
+  isModalNewPassword: false,
+  isModalPasswordResult: false,
+};
+export function modalReducer(preState = initModal, action) {
+  const { type } = action;
+  switch (type) {
+    case MODAL_JOIN:
+      return {
+        isModalJoin: true,
+        isModalLogin: false,
+        isModalPassword: false,
+        isModalValidateEmail: false,
+        isModalNewPassword: false,
+        isModalPasswordResult: false,
+      };
+    case MODAL_LOGIN:
+      return {
+        isModalJoin: false,
+        isModalLogin: true,
+        isModalPassword: false,
+        isModalValidateEmail: false,
+        isModalNewPassword: false,
+        isModalPasswordResult: false,
+      };
+    case MODAL_PASSWORD_VALIDATE_EMAIL:
+      return {
+        isModalJoin: false,
+        isModalLogin: false,
+        isModalPassword: true,
+        isModalValidateEmail: true,
+        isModalNewPassword: false,
+        isModalPasswordResult: false,
+      };
+    case MODAL_PASSWORD_NEW_PASSWORD:
+      return {
+        isModalJoin: false,
+        isModalLogin: false,
+        isModalPassword: true,
+        isModalValidateEmail: false,
+        isModalNewPassword: true,
+        isModalPasswordResult: false,
+      };
+    case MODAL_PASSWORD_RESULT:
+      return {
+        isModalJoin: false,
+        isModalLogin: false,
+        isModalPassword: true,
+        isModalValidateEmail: false,
+        isModalNewPassword: false,
+        isModalPasswordResult: true,
+      };
+    case MODAL_CLOSE:
+      return initModal;
+    default:
+      return preState;
+  }
+}
+
+const initLogin = { isLogin: false };
+export function loginReducer(preState = initLogin, action) {
+  const { type } = action;
+  switch (type) {
     default:
       return preState;
   }

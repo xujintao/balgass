@@ -1,11 +1,18 @@
 import React from "react";
 import { Link, withRouter } from "react-router-dom";
 import { connect } from "react-redux";
-import { searchLoading, searchUsers, searchErr } from "../redux/action";
+import {
+  searchLoading,
+  searchUsers,
+  searchErr,
+  modalJoin,
+  modalLogin,
+} from "../redux/action";
 import axios from "axios";
 import qs from "querystring";
 import "./nav.css";
 import logo from "./images/logo.png";
+import avatar from "./images/avatar.webp";
 import "./fonts/iconfont.css";
 
 class Nav extends React.Component {
@@ -38,7 +45,18 @@ class Nav extends React.Component {
     }
   }
 
+  Join = (event) => {
+    event.preventDefault();
+    this.props.modalJoin();
+  };
+
+  Login = (event) => {
+    event.preventDefault();
+    this.props.modalLogin();
+  };
+
   render() {
+    const { isLogin } = this.props.login;
     return (
       <div className="nav">
         <div className="nav-link">
@@ -50,7 +68,7 @@ class Nav extends React.Component {
               </Link>
             </li>
             <li>
-              <Link to="/bugs">bug报告</Link>
+              <Link to="/issues">bug报告</Link>
             </li>
             <li>
               <Link to="/download">游戏下载</Link>
@@ -73,38 +91,43 @@ class Nav extends React.Component {
           </form>
         </div>
         <div className="nav-user">
-          <div className="nav-user-login">
-            <ul>
-              <li>
-                <a href="#">
-                  <img
-                    className="nav-user-avatar"
-                    src="images/avatar.webp"
-                    alt=""
-                  />
-                </a>
-              </li>
-              <li>
-                <a href="#">消息</a>
-              </li>
-              <li>
-                <a href="#">动态</a>
-              </li>
-              <li>
-                <a href="#">收藏</a>
-              </li>
-            </ul>
-          </div>
-          <div className="nav-user-logout">
-            <ul>
-              <li>
-                <a href="login.html">登录</a>
-              </li>
-              <li>
-                <a href="register.html">注册</a>
-              </li>
-            </ul>
-          </div>
+          {isLogin ? (
+            <div className="nav-user-login">
+              <ul>
+                <li>
+                  <a href="#">
+                    <img className="nav-user-avatar" src={avatar} alt="" />
+                  </a>
+                </li>
+                <li>
+                  <a href="#">消息</a>
+                </li>
+                <li>
+                  <a href="#">动态</a>
+                </li>
+                <li>
+                  <a href="#">收藏</a>
+                </li>
+              </ul>
+            </div>
+          ) : (
+            <div className="nav-user-logout">
+              <ul>
+                {/* <li>
+                  <a onClick={this.Join}>注册</a>
+                </li> */}
+                <li>
+                  <a onClick={this.Login}>登录</a>
+                </li>
+                {/* <li>
+                  <Link to="/login">登录</Link>
+                </li>
+                <li>
+                  <Link to="/join">注册</Link>
+                </li> */}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -112,9 +135,17 @@ class Nav extends React.Component {
 }
 
 export default withRouter(
-  connect((state) => ({ search: state.search }), {
-    searchLoading,
-    searchUsers,
-    searchErr,
-  })(Nav)
+  connect(
+    (state) => ({
+      search: state.search,
+      login: state.login,
+    }),
+    {
+      searchLoading,
+      searchUsers,
+      searchErr,
+      modalJoin,
+      modalLogin,
+    }
+  )(Nav)
 );

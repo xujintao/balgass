@@ -1,0 +1,79 @@
+.join {
+  padding: 20px;
+  background-color: #fff;
+}
+
+.join-title {
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+  font-weight: normal;
+  font-size: 38px;
+}
+
+.join-form {
+  margin-top: 40px;
+}
+
+.join-form li {
+  position: relative;
+  width: 400px;
+  margin: 0 auto 20px;
+}
+
+.join-form-input,
+.join-form-submit {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  padding: 0 15px;
+}
+
+.join-form-submit {
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.error-message {
+  position: absolute;
+  top: 12px;
+  right: -20px;
+  color: #f45d90;
+  font-size: 12px;
+  transform: translate3d(100%, 0, 0);
+}
+
+.safe {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  font-size: 12px;
+  color: green;
+}
+
+.join-form-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 100px;
+  height: 36px;
+  border: none;
+  border-radius: 4px;
+  background-color: #00a1d6;
+  color: #fff;
+}
+
+.join-form-agree {
+  /* line-height: 20px; */
+  font-size: 12px;
+}
+
+[type="checkbox"] {
+  /* https://stackoverflow.com/a/2806786/11120912 */
+  vertical-align: -2px;
+}
+
+.join-form-login {
+  font-size: 12px;
+  text-align: right;
+}
