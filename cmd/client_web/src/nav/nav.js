@@ -5,7 +5,6 @@ import {
   searchLoading,
   searchUsers,
   searchErr,
-  modalJoin,
   modalLogin,
 } from "../redux/action";
 import axios from "axios";
@@ -137,14 +136,12 @@ class Nav extends React.Component {
 export default withRouter(
   connect(
     (state) => ({
-      search: state.search,
       login: state.login,
     }),
     {
       searchLoading,
       searchUsers,
       searchErr,
-      modalJoin,
       modalLogin,
     }
   )(Nav)
