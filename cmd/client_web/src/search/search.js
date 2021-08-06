@@ -25,9 +25,7 @@ class Search extends React.Component {
                 </li>
               );
             })
-          ) : (
-            {}
-          )}
+          ) : null}
         </ul>
       </div>
     );

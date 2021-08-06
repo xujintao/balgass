@@ -29,17 +29,22 @@
   padding: 0 15px;
 }
 
+.login-form-input:focus {
+  border-color: #00a1d6;
+}
+
 .input-border-red {
   border-color: #f45d90;
 }
 
-.error-message {
+.login-error-message {
   position: absolute;
-  top: 12px;
-  right: -20px;
+  left: 10px;
+  top: 40px;
   color: #f45d90;
   font-size: 12px;
-  transform: translate3d(100%, 0, 0);
+  line-height: 20px;
+  /* transform: translate3d(100%, 0, 0); */
 }
 
 .login-form-remember {

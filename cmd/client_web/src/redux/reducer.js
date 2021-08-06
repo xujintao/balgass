@@ -4,9 +4,7 @@ import {
   SEARCH_ERR,
   MODAL_JOIN,
   MODAL_LOGIN,
-  MODAL_PASSWORD_VALIDATE_EMAIL,
-  MODAL_PASSWORD_NEW_PASSWORD,
-  MODAL_PASSWORD_RESULT,
+  MODAL_PASSWORD,
   MODAL_CLOSE,
 } from "./const";
 
@@ -29,9 +27,6 @@ const initModal = {
   isModalJoin: false,
   isModalLogin: false,
   isModalPassword: false,
-  isModalValidateEmail: false,
-  isModalNewPassword: false,
-  isModalPasswordResult: false,
 };
 export function modalReducer(preState = initModal, action) {
   const { type } = action;
@@ -41,45 +36,18 @@ export function modalReducer(preState = initModal, action) {
         isModalJoin: true,
         isModalLogin: false,
         isModalPassword: false,
-        isModalValidateEmail: false,
-        isModalNewPassword: false,
-        isModalPasswordResult: false,
       };
     case MODAL_LOGIN:
       return {
         isModalJoin: false,
         isModalLogin: true,
         isModalPassword: false,
-        isModalValidateEmail: false,
-        isModalNewPassword: false,
-        isModalPasswordResult: false,
       };
-    case MODAL_PASSWORD_VALIDATE_EMAIL:
+    case MODAL_PASSWORD:
       return {
         isModalJoin: false,
         isModalLogin: false,
         isModalPassword: true,
-        isModalValidateEmail: true,
-        isModalNewPassword: false,
-        isModalPasswordResult: false,
-      };
-    case MODAL_PASSWORD_NEW_PASSWORD:
-      return {
-        isModalJoin: false,
-        isModalLogin: false,
-        isModalPassword: true,
-        isModalValidateEmail: false,
-        isModalNewPassword: true,
-        isModalPasswordResult: false,
-      };
-    case MODAL_PASSWORD_RESULT:
-      return {
-        isModalJoin: false,
-        isModalLogin: false,
-        isModalPassword: true,
-        isModalValidateEmail: false,
-        isModalNewPassword: false,
-        isModalPasswordResult: true,
       };
     case MODAL_CLOSE:
       return initModal;

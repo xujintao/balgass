@@ -1,10 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import {
-  modalJoin,
-  modalPasswordValidateEmail,
-  modalClose,
-} from "../redux/action";
+import { modalJoin, modalPassword, modalClose } from "../redux/action";
 // import { Link } from "react-router-dom";
 import "./login.css";
 
@@ -32,7 +28,7 @@ class Login extends React.Component {
 
   resetPassword = (event) => {
     event.preventDefault();
-    this.props.modalPasswordValidateEmail();
+    this.props.modalPassword();
   };
 
   modalJoin = (event) => {
@@ -56,13 +52,15 @@ class Login extends React.Component {
             <li>
               <input
                 className={`login-form-input ${
-                  emailErr ? "input-border-red" : null
+                  emailErr ? "input-border-red" : ""
                 }`}
                 type="text"
                 placeholder="邮箱"
                 onChange={this.checkEmail}
               />
-              {emailErr ? <p className="error-message">{emailErr}</p> : null}
+              {emailErr ? (
+                <p className="login-error-message">{emailErr}</p>
+              ) : null}
             </li>
             <li>
               <input
@@ -74,7 +72,7 @@ class Login extends React.Component {
                 onChange={this.checkPassword}
               />
               {passwordErr ? (
-                <p className="error-message">{passwordErr}</p>
+                <p className="login-error-message">{passwordErr}</p>
               ) : null}
             </li>
             <li className="login-form-remember">
@@ -106,6 +104,6 @@ class Login extends React.Component {
 
 export default connect(() => ({}), {
   modalJoin,
-  modalPasswordValidateEmail,
+  modalPassword,
   modalClose,
 })(Login);
