@@ -1,170 +1,170 @@
 import React from "react";
 import { connect } from "react-redux";
 import { modalLogin } from "../redux/action";
+import {
+  Breadcrumb,
+  Steps,
+  Form,
+  Input,
+  Button,
+  Result,
+  Modal,
+  Row,
+  Col,
+} from "antd";
 import "./password.css";
+
+const { Step } = Steps;
 
 class Password extends React.Component {
   state = {
-    isVerifyEmail: true,
-    isNewPassword: false,
-    isPasswordResult: false,
-    email: "",
-    emailErr: "",
+    code: false,
+    current: 0,
   };
 
-  validateEmail = (event) => {
-    const email = event.target.value;
-    event.preventDefault();
-    if (email == "") {
-      this.setState({ emailErr: "请输入注册时用的邮箱" });
-      return;
+  handleChangeStep = (current) => {
+    if (current === 2) {
+      current = 3;
     }
-    // validate
-    this.setState({ email, emailErr: "" });
+    // console.log(current);
+    this.setState({ current });
   };
 
-  verifyEmail = (event) => {
-    event.preventDefault();
-    // this.props.modalPasswordNewPassword();
-    this.setState({
-      isVerifyEmail: false,
-      isNewPassword: true,
-      isPasswordResult: false,
-    });
+  handleFinishVerifyEmail = (value) => {
+    console.log(value);
+    this.setState({ code: true });
   };
 
-  newPassword = (event) => {
-    event.preventDefault();
-    // this.props.modalPasswordResult();
-    this.setState({
-      isVerifyEmail: false,
-      isNewPassword: false,
-      isPasswordResult: true,
-    });
+  handleFinishFailedVerifyEmail = (err) => {
+    console.log(err);
   };
 
-  modalLogin = (event) => {
-    event.preventDefault();
+  handleLogin = () => {
     this.props.modalLogin();
   };
 
+  handleCancel = () => {
+    this.setState({ code: false, current: 1 });
+  };
+
   render() {
-    const { email, emailErr, isVerifyEmail, isNewPassword, isPasswordResult } =
-      this.state;
+    const { current } = this.state;
     return (
-      <div className="password">
-        <h1 className="password-title">忘记密码</h1>
-        <div className="password-steps">
-          <ul>
-            <li>
-              <a
-                className={`password-step-verify-email ${
-                  isVerifyEmail ? "password-step-active" : ""
-                }`}
-              >
-                确认账号
-              </a>
-            </li>
-            <li>
-              <a
-                className={`password-step-new-password ${
-                  isNewPassword ? "password-step-active" : ""
-                }`}
-              >
-                重置密码
-              </a>
-            </li>
-            <li>
-              <a
-                className={`password-step-result ${
-                  isPasswordResult ? "password-step-active" : ""
-                }`}
-              >
-                重置成功
-              </a>
-            </li>
-          </ul>
+      <>
+        <div className="password-header">
+          <Breadcrumb separator=">">
+            <Breadcrumb.Item>用户</Breadcrumb.Item>
+            <Breadcrumb.Item>忘记密码</Breadcrumb.Item>
+          </Breadcrumb>
         </div>
-        {isVerifyEmail ? (
-          <form className="password-form-verify-email">
-            <ul>
-              <li>
-                <input
-                  className={`password-form-input ${
-                    emailErr ? "input-border-red" : ""
-                  }`}
-                  type="text"
-                  placeholder="请输入绑定的邮箱"
-                  onChange={this.validateEmail}
-                  // onBlur={this.validateEmail}
-                />
-                {emailErr ? (
-                  <p className="password-verify-email-message">注意邮箱格式</p>
-                ) : null}
-              </li>
-              <li>
-                <button
-                  className={`password-form-submit ${
-                    emailErr || !email ? "" : "btn-active"
-                  }`}
-                  disabled={emailErr ? true : false}
-                  onClick={this.verifyEmail}
-                >
+
+        <div className="password-steps">
+          <Steps current={current} onChange={this.handleChangeStep}>
+            <Step title="确认账号" />
+            <Step title="重置密码" />
+            <Step title="重置成功" />
+          </Steps>
+        </div>
+
+        <div className="password-form">
+          {current === 0 ? (
+            <Form
+              size="large"
+              onFinish={this.handleFinishVerifyEmail}
+              onFinishFailed={this.handleFinishFailedVerifyEmail}
+              // validateMessages={this.validateMessages}
+            >
+              <Form.Item
+                name="email"
+                rules={[
+                  { type: "email", message: "无效的邮箱" },
+                  { required: true, message: "邮箱不能为空" },
+                ]}
+              >
+                <Input placeholder="请输入绑定的邮箱" />
+              </Form.Item>
+              <Form.Item noStyle>
+                <Button type="primary" htmlType="submit" block>
                   确认
-                </button>
-              </li>
-            </ul>
-          </form>
-        ) : isNewPassword ? (
-          <form className="password-form-new-password" action="">
-            <ul>
-              <li>
-                <input
-                  className="password-form-input"
-                  type="password"
-                  placeholder="新密码（6-16个字符组成，区分大小写）"
-                />
-                <p className="password-error-message">密码不能少于6个字符</p>
-                <span className="password-safe">安全</span>
-              </li>
-              <li>
-                <input
-                  className="password-form-input"
-                  type="password"
-                  placeholder="确认密码"
-                />
-              </li>
-              <li>
-                <input
-                  className="password-form-input"
-                  type="text"
-                  placeholder="请输入邮件验证码"
-                />
-                <button className="password-form-btn">点击获取</button>
-              </li>
-              <li>
-                <button
-                  className="password-form-submit"
-                  onClick={this.newPassword}
-                >
-                  确认修改
-                </button>
-              </li>
-            </ul>
-          </form>
-        ) : isPasswordResult ? (
-          <h4 className="password-form-result">更改密码成功，请牢记新密码</h4>
-        ) : null}
-        {isVerifyEmail || isNewPassword ? (
+                </Button>
+              </Form.Item>
+            </Form>
+          ) : current === 1 ? (
+            <Form size="large" validateMessages={this.validateMessages}>
+              <Form.Item
+                name="password"
+                hasFeedback
+                rules={[{ required: true, message: "新密码不能为空" }]}
+              >
+                <Input.Password placeholder="新密码（6-16个字符组成，区分大小写）" />
+              </Form.Item>
+              <Form.Item
+                name="confirm"
+                dependencies={["password"]}
+                hasFeedback
+                rules={[
+                  { required: true, message: "确认密码不能为空" },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue("password") === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error(
+                          "The two passwords that you entered do not match!"
+                        )
+                      );
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password placeholder="确认密码" />
+              </Form.Item>
+              <Form.Item>
+                <Row gutter={8}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="captcha"
+                      noStyle
+                      rules={[{ required: true, message: "验证码不能为空" }]}
+                    >
+                      <Input placeholder="验证码" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Button>获取验证码</Button>
+                  </Col>
+                </Row>
+              </Form.Item>
+              <Form.Item noStyle>
+                <Button type="primary" htmlType="submit" block>
+                  确认
+                </Button>
+              </Form.Item>
+            </Form>
+          ) : current === 2 || current === 3 ? (
+            <Result status="success" title="更改密码成功，请牢记新密码" />
+          ) : null}
+        </div>
+        {current === 0 || current === 1 ? (
           <div className="password-login">
-            <a onClick={this.modalLogin}>已有账号，直接登录&gt;</a>
+            <Button size="small" type="link" onClick={this.handleLogin}>
+              已有账号，直接登录&gt;
+            </Button>
           </div>
         ) : null}
-      </div>
+        <Modal
+          visible={this.state.code}
+          onCancel={this.handleCancel}
+          footer={null}
+          maskClosable={false}
+          destroyOnClose={true}
+        >
+          <div></div>
+        </Modal>
+      </>
     );
   }
 }
 
-export default connect(() => ({}), {
-  modalLogin,
-})(Password);
+export default connect(() => ({}), { modalLogin })(Password);

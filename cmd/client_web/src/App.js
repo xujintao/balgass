@@ -1,30 +1,32 @@
 import React from "react";
 import { Route, BrowserRouter, Switch, Redirect } from "react-router-dom";
+import { connect } from "react-redux";
+import { modalClose } from "./redux/action";
+import { Layout, Modal } from "antd";
 import Nav from "./nav/nav";
 import Home from "./home/home";
 import Search from "./search/search";
-import Footer from "./footer/footer";
-import { connect } from "react-redux";
-import { modalClose } from "./redux/action";
 import Join from "./user/join";
 import Login from "./user/login";
 import Password from "./user/password";
 import "./App.css";
-import "./fonts/iconfont.css";
+
+const { Header, Content, Footer } = Layout;
 
 class App extends React.Component {
-  closeAuth = (event) => {
-    event.preventDefault();
+  handleCancel = () => {
     this.props.modalClose();
   };
 
   render() {
     const { isModalJoin, isModalLogin, isModalPassword } = this.props.modal;
     return (
-      <div>
-        <div className="view-box">
-          <BrowserRouter>
+      <BrowserRouter>
+        <Layout>
+          <Header className="header">
             <Nav />
+          </Header>
+          <Content className="main">
             <Switch>
               {/* https://stackoverflow.com/questions/49162311/react-difference-between-route-exact-path-and-route-path */}
               <Route exact path="/" component={Home} />
@@ -37,31 +39,32 @@ class App extends React.Component {
               {/* <Route path="/password" component={Password} /> */}
               <Redirect to="/" />
             </Switch>
-            <Footer />
-          </BrowserRouter>
-        </div>
-        {isModalJoin || isModalLogin || isModalPassword ? (
-          <div className="modal-box">
-            <div className="auth-box">
-              {isModalJoin ? (
-                <Join />
-              ) : isModalLogin ? (
-                <Login />
-              ) : isModalPassword ? (
-                <Password />
-              ) : null}
-              <button
-                className="auth-close-btn iconfont icon-close"
-                onClick={this.closeAuth}
-              />
-            </div>
-          </div>
-        ) : null}
-      </div>
+          </Content>
+          <Footer></Footer>
+        </Layout>
+        <Modal
+          visible={isModalJoin || isModalLogin || isModalPassword}
+          onCancel={this.handleCancel}
+          footer={null}
+          maskClosable={false}
+          destroyOnClose={true}
+        >
+          {isModalJoin ? (
+            <Join />
+          ) : isModalLogin ? (
+            <Login />
+          ) : isModalPassword ? (
+            <Password />
+          ) : null}
+        </Modal>
+      </BrowserRouter>
     );
   }
 }
 
-export default connect((state) => ({ modal: state.modal }), { modalClose })(
-  App
-);
+export default connect(
+  (state) => ({
+    modal: state.modal,
+  }),
+  { modalClose }
+)(App);

@@ -1,72 +1,24 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* 斜体文字不倾斜 */
-em,
-i {
-  font-style: normal;
-}
-
-img {
-  border: 0;
-  vertical-align: middle;
-}
-
-button {
-  cursor: pointer;
-}
-
-a {
-  cursor: pointer;
-  text-decoration: none;
-  color: #333;
-}
-
-input,
-textarea {
-  outline: none;
-}
-
-textarea {
-  resize: none;
-}
-
-li {
-  /* 去除item的小圆点 */
-  list-style: none;
-}
+@import "~antd/dist/antd.css";
 
 .w {
   width: 1200px;
   margin: 0 auto;
 }
 
-.modal-box {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.3);
-  /* z-index: 1; */
+.header {
+  padding: 10px 24px;
+  font: 14px -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial,
+    PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif;
+  box-shadow: 0 -3px 10px 1px rgba(0, 0, 0, 0.2);
+  line-height: 36px;
+  background-color: #fff;
+  height: auto;
 }
 
-.auth-box {
-  position: relative;
+.main {
+  padding-top: 16px;
 }
 
-.auth-close-btn {
-  position: absolute;
-  top: 8px;
-  right: -60px;
-  padding: 12px;
-  border: none;
-  background-color: transparent;
-  color: #fff;
+.footer {
+  padding-top: 16px;
 }

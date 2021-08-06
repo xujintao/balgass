@@ -1,109 +1,88 @@
 import React from "react";
 import { connect } from "react-redux";
-import { modalJoin, modalPassword, modalClose } from "../redux/action";
-// import { Link } from "react-router-dom";
+import { modalPassword, modalJoin } from "../redux/action";
+import { Breadcrumb, Form, Input, Checkbox, Button } from "antd";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import "antd/dist/antd.css";
 import "./login.css";
 
-class Login extends React.Component {
-  state = { email: "", emailErr: "", password: "", passwordErr: "" };
-
-  checkEmail = (event) => {
-    const email = event.target.value;
-    if (email == "") {
-      this.setState({ emailErr: "请输入注册时用的邮箱" });
-      return;
-    }
-    // validate
-    this.setState({ email, emailErr: "" });
+function Login(props) {
+  const handlePassword = () => {
+    props.modalPassword();
   };
 
-  checkPassword = (event) => {
-    const password = event.target.value;
-    if (password == "") {
-      this.setState({ passwordErr: "喵，你没输入密码么？" });
-      return;
-    }
-    this.setState({ password, passwordErr: "" });
+  const onFinish = (values) => {
+    console.log(values);
   };
 
-  resetPassword = (event) => {
-    event.preventDefault();
-    this.props.modalPassword();
+  const handleJoin = () => {
+    props.modalJoin();
   };
 
-  modalJoin = (event) => {
-    event.preventDefault();
-    this.props.modalJoin();
-  };
-
-  login = (event) => {
-    event.preventDefault();
-    // validate
-    this.props.modalClose();
-  };
-
-  render() {
-    const { emailErr, passwordErr } = this.state;
-    return (
-      <div className="login">
-        <h1 className="login-title">登录</h1>
-        <form className="login-form" action="">
-          <ul>
-            <li>
-              <input
-                className={`login-form-input ${
-                  emailErr ? "input-border-red" : ""
-                }`}
-                type="text"
-                placeholder="邮箱"
-                onChange={this.checkEmail}
-              />
-              {emailErr ? (
-                <p className="login-error-message">{emailErr}</p>
-              ) : null}
-            </li>
-            <li>
-              <input
-                className={`login-form-input ${
-                  passwordErr ? "input-border-red" : null
-                }`}
-                type="password"
-                placeholder="社区密码（6-16个字符组成，区分大小写）"
-                onChange={this.checkPassword}
-              />
-              {passwordErr ? (
-                <p className="login-error-message">{passwordErr}</p>
-              ) : null}
-            </li>
-            <li className="login-form-remember">
-              <div className="left">
-                <input type="checkbox" />
-                记住我
-                <span>(不是自己的电脑不要勾选此项)</span>
-              </div>
-              <div className="right">
-                {/* <Link to="/password">忘记密码？</Link> */}
-                <a onClick={this.resetPassword}>忘记密码？</a>
-              </div>
-            </li>
-            <li className="login-form-submit">
-              <button className="login-form-submit-btn" onClick={this.login}>
-                登录
-              </button>
-              {/* <Link className="login-form-join" to="/join">没有账号，这里注册&gt;</Link> */}
-              <a className="login-form-join" onClick={this.modalJoin}>
-                没有账号，这里注册&gt;
-              </a>
-            </li>
-          </ul>
-        </form>
+  return (
+    <>
+      <div className="login-header">
+        <Breadcrumb separator=">">
+          <Breadcrumb.Item>用户</Breadcrumb.Item>
+          <Breadcrumb.Item>登录</Breadcrumb.Item>
+        </Breadcrumb>
       </div>
-    );
-  }
+      <div className="login-form">
+        <Form
+          size="large"
+          initialValues={{ remember: true }}
+          onFinish={onFinish}
+        >
+          <Form.Item
+            name="email"
+            rules={[
+              { type: "email", message: "无效的邮箱" },
+              { required: true, message: "邮箱不能为空" },
+            ]}
+          >
+            <Input
+              prefex={<UserOutlined className="site-form-item-icon" />}
+              placeholder="邮箱"
+            />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: "密码不能为空" }]}
+          >
+            <Input
+              prefex={<LockOutlined className="site-form-item-icon" />}
+              type="password"
+              placeholder="社区密码"
+            />
+          </Form.Item>
+          <Form.Item>
+            <Form.Item name="remember" valuePropName="checked" noStyle>
+              <Checkbox>记住我(不是自己的电脑不要勾选此项)</Checkbox>
+            </Form.Item>
+            <Button
+              size="small"
+              type="link"
+              className="login-form-password"
+              onClick={handlePassword}
+            >
+              忘记密码？
+            </Button>
+          </Form.Item>
+
+          <Form.Item noStyle>
+            <Button type="primary" htmlType="submit" block>
+              登录
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
+      <div className="login-join">
+        <Button size="small" type="link" onClick={handleJoin}>
+          没有账号，这里注册&gt;
+        </Button>
+      </div>
+    </>
+  );
 }
 
-export default connect(() => ({}), {
-  modalJoin,
-  modalPassword,
-  modalClose,
-})(Login);
+export default connect(() => ({}), { modalPassword, modalJoin })(Login);
