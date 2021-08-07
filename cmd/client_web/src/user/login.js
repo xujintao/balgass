@@ -2,8 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import { modalPassword, modalJoin } from "../redux/action";
 import { Breadcrumb, Form, Input, Checkbox, Button } from "antd";
-import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import "antd/dist/antd.css";
+import { MailOutlined, LockOutlined } from "@ant-design/icons";
 import "./login.css";
 
 function Login(props) {
@@ -40,17 +39,14 @@ function Login(props) {
               { required: true, message: "邮箱不能为空" },
             ]}
           >
-            <Input
-              prefex={<UserOutlined className="site-form-item-icon" />}
-              placeholder="邮箱"
-            />
+            <Input prefix={<MailOutlined />} placeholder="邮箱" />
           </Form.Item>
           <Form.Item
             name="password"
             rules={[{ required: true, message: "密码不能为空" }]}
           >
             <Input
-              prefex={<LockOutlined className="site-form-item-icon" />}
+              prefix={<LockOutlined />}
               type="password"
               placeholder="社区密码"
             />
