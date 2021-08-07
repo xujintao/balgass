@@ -9,7 +9,7 @@ import Search from "./search/search";
 import Join from "./user/join";
 import Login from "./user/login";
 import Password from "./user/password";
-import "./App.css";
+import "./App.less";
 
 const { Header, Content, Footer } = Layout;
 

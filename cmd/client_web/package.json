@@ -18,9 +18,9 @@
     "web-vitals": "^1.1.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -42,6 +42,8 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^6.2.0",
+    "craco-less": "^1.18.0",
     "eslint": "^7.25.0",
     "eslint-plugin-react": "^7.23.2",
     "redux-devtools-extension": "^2.13.9"
