@@ -1,5 +1,9 @@
 @import "~antd/dist/antd.css";
 
+input:-internal-autofill-selected {
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
 .w {
   width: 1200px;
   margin: 0 auto;
