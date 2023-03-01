@@ -103,15 +103,15 @@
 		<Map Number="80" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Karutan 1 -->
 		<Map Number="81" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Karutan 2 -->
 	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-		<Map Number="91" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Acheron -->
-		<Map Number="92" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Acheron (Arca Battle) -->
-		<Map Number="95" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Debenter -->
-		<Map Number="96" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Debenter (ArcaBattle) -->
+		<Map Number="91" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="2.0" MasterExpBonus="2.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Acheron -->
+		<Map Number="92" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="2.0" MasterExpBonus="2.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Acheron (Arca Battle) -->
+		<Map Number="95" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="2.0" MasterExpBonus="2.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Debenter -->
+		<Map Number="96" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="2.0" MasterExpBonus="2.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Debenter (ArcaBattle) -->
 		<Map Number="97" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- ChaosCastleSurvival -->
 		<Map Number="98" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- IllusionTempleLeague -->
 		<Map Number="99" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- IllusionTempleLeague -->
-		<Map Number="100" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Urk Mountain -->
-		<Map Number="101" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Urk Mountain Event -->
+		<Map Number="100" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="2.0" MasterExpBonus="2.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Urk Mountain -->
+		<Map Number="101" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="2.0" MasterExpBonus="2.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Urk Mountain Event -->
 		<Map Number="102" PvPConfig="0" ItemDropRateBonus="0" ExpBonus="0.0" MasterExpBonus="0.0" VipLevel="0" PkLevelIncrease="1" RegenOnSamePlace="0" BlockEntry="0" /> <!-- Tormented Square -->
 	</Config>
 </MapAttribute>

@@ -31,6 +31,9 @@ FuncItem funcItem[] = {
 	{ TEXT("wtf -> xml"),			wtfDec,		0,	false,	NULL },
 	{ TEXT("xml -> wtf"),			wtfEnc,		0,	false,	NULL },
 	{ TEXT("---"),					nullptr,	0,	false,	NULL },
+	{ TEXT("text.bmd -> text.xml"),	textDec,	0,	false,	NULL },
+	{ TEXT("xml.xml -> text.bmd"),	textEnc,	0,	false,	NULL },
+	{ TEXT("---"),					nullptr,	0,	false,	NULL },
 	{ TEXT("about"),				about,		0,	false,	NULL },
 };
 
@@ -280,6 +283,116 @@ void wtfDec() {
 }
 
 void wtfEnc() {
+	// validate file extension
+	TCHAR fileName[MAX_PATH] = { 0 };
+	::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)fileName);
+	TCHAR* ext = wcsrchr(fileName, TEXT('.'));
+	if (ext == nullptr || wcscmp(ext, TEXT(".xml")) != 0) {
+		tstring text = TEXT("[");
+		text += fileName;
+		text += TEXT("]");
+		text += TEXT(" is not a [*.xml]");
+		::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	// Get the current scintilla
+	int which = -1;
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+	if (which == -1)
+		return;
+	HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+
+	// get current text
+	int lenPlain = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
+	if (lenPlain == 0) {
+		tstring text = TEXT("[");
+		text += fileName;
+		text += TEXT("] is empty");
+		::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
+		return;
+	}
+	auto bufPlain = std::make_unique<unsigned char[]>(lenPlain + 1);
+	::SendMessage(curScintilla, SCI_GETTEXT, lenPlain + 1, (LPARAM)bufPlain.get());
+
+	// encrypt
+	size_t lenCipher = WTFCipher::encrypt(nullptr, bufPlain.get(), lenPlain);
+	if (lenCipher == 0) {
+		tstring text = TEXT("convert failed\r\n[");
+		text += fileName;
+		text += TEXT("] is not a valid [*.xml]");
+		::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK | MB_ICONWARNING);
+		return;
+	}
+	auto bufCipher = std::make_unique<unsigned char[]>(lenCipher);
+	WTFCipher::encrypt(bufCipher.get(), bufPlain.get(), lenPlain);
+
+	// write
+	::SendMessageW(nppData._nppHandle, NPPM_MENUCOMMAND, 0, IDM_FILE_NEW);
+	which = -1;
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+	if (which == -1)
+		return;
+	curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+	::SendMessage(curScintilla, SCI_ADDTEXT, lenCipher, (LPARAM)bufCipher.get());
+}
+
+void textDec() {
+	// validate file extension
+	TCHAR fileName[MAX_PATH] = { 0 };
+	::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)fileName);
+	TCHAR* ext = wcsrchr(fileName, TEXT('.'));
+	if (ext == nullptr || wcscmp(ext, TEXT(".bmd")) != 0) {
+		tstring text = TEXT("[");
+		text += fileName;
+		text += TEXT("]");
+		text += TEXT(" is not a [*.bmd]");
+		::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	// Get the current scintilla
+	int which = -1;
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+	if (which == -1)
+		return;
+	HWND curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+
+	// get current text
+	int lenCipher = ::SendMessage(curScintilla, SCI_GETLENGTH, 0, 0);
+	if (lenCipher == 0) {
+		tstring text = TEXT("[");
+		text += fileName;
+		text += TEXT("] is empty");
+		::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK);
+		return;
+	}
+	auto bufCipher = std::make_unique<unsigned char[]>(lenCipher + 1);
+	::SendMessage(curScintilla, SCI_GETTEXT, lenCipher + 1, (LPARAM)bufCipher.get());
+
+	// decrypt
+	size_t lenPlain = WTFCipher::decrypt(nullptr, bufCipher.get(), lenCipher);
+	if (lenPlain == 0) {
+		tstring text = TEXT("convert failed\r\n[");
+		text += fileName;
+		text += TEXT("] is not a valid [*.wtf]");
+		::MessageBox(nppData._nppHandle, text.c_str(), TEXT("mu editor"), MB_OK | MB_ICONWARNING);
+		return;
+	}
+	auto bufPlain = std::make_unique<unsigned char[]>(lenPlain);
+	WTFCipher::decrypt(bufPlain.get(), bufCipher.get(), lenCipher);
+
+	// write
+	::SendMessageW(nppData._nppHandle, NPPM_MENUCOMMAND, 0, IDM_FILE_NEW);
+	which = -1;
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+	if (which == -1)
+		return;
+	curScintilla = (which == 0) ? nppData._scintillaMainHandle : nppData._scintillaSecondHandle;
+	::SendMessage(curScintilla, SCI_ADDTEXT, lenPlain, (LPARAM)bufPlain.get());
+}
+
+void textEnc() {
 	// validate file extension
 	TCHAR fileName[MAX_PATH] = { 0 };
 	::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)fileName);

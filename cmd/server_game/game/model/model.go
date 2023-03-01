@@ -1,10 +1,10 @@
 package model
 
 type MsgConnectResult struct {
-	CBIAlign int      `cbi:"1"`
-	Result   int      `cbi:"byte"`
-	ID       int      `cbi:"uint16,big"`
-	Version  [5]uint8 `cbi:"bytes"`
+	CBIPack struct{} `cbi:"1"`
+	Result  int      `cbi:"byte"`
+	ID      int      `cbi:"word,big"`
+	Version [5]uint8 `cbi:"byte"`
 }
 
 type MsgItemUse struct {

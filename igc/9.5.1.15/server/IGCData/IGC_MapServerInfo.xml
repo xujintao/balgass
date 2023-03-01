@@ -36,7 +36,7 @@
 -->
 
 <MapServer>
- <ServerInfo Version="1.04.44" Serial="M7B4VM4C5i8BC49b" /> <!-- Version Format: n.nn.nn, Serial format: 16 alphanumerical characters -->
+ <ServerInfo Version="0.1.5" Serial="M7B4VM4C5i8BC49b" /> <!-- Version Format: n.nn.nn, Serial format: 16 alphanumerical characters -->
 	<ServerList>
 		<Server Code="0"  Group="1" Initiation="1" IP="192.168.0.103" Port="56900" Name="Regular" />
 		<Server Code="1"  Group="1" Initiation="1" IP="192.168.0.103" Port="56901" Name="Regular" />

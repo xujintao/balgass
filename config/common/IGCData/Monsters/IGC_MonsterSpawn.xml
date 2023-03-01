@@ -4769,14 +4769,14 @@
 			<Spawn Index="590" Distance="10" StartX="201" StartY="54" EndX="209" EndY="62" Dir="-1" Count="1" Element="5" /> <!-- 野兽-->
 
 			<!-- 包间17(240,50) 混8-->
-			<Spawn Index="589" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 佩里-->
-			<Spawn Index="589" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 佩里-->
-			<Spawn Index="589" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 佩里-->
-			<Spawn Index="590" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 野兽-->
-			<Spawn Index="590" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 野兽-->
-			<Spawn Index="590" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 野兽-->
-			<Spawn Index="591" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 骑士-->
-			<Spawn Index="591" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="6" /> <!-- 骑士-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="1" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="2" /> <!-- 佩里-->
+			<Spawn Index="589" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="3" /> <!-- 佩里-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="4" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="5" /> <!-- 野兽-->
+			<Spawn Index="590" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="1" /> <!-- 野兽-->
+			<Spawn Index="591" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="2" /> <!-- 骑士-->
+			<Spawn Index="591" Distance="10" StartX="237" StartY="47" EndX="243" EndY="53" Dir="-1" Count="1" Element="3" /> <!-- 骑士-->
 		</Spot>
 		<Spot Type="3" Description="Multi-Spot Acheron">
 			<Spawn Index="586" Distance="30" StartX="152" StartY="137" EndX="158" EndY="143" Dir="-1" Count="1" Element="1" /> <!-- -->
@@ -4908,7 +4908,7 @@
 			<!-- <Spawn Index="594" Distance="30" StartX="178" StartY="180" EndX="196" EndY="189" Dir="-1" Count="1" Element="4" /> --> <!-- -->
 			<!-- <Spawn Index="595" Distance="30" StartX="228" StartY="110" EndX="234" EndY="133" Dir="-1" Count="1" Element="3" /> --> <!-- -->
 			<!-- <Spawn Index="596" Distance="30" StartX="179" StartY="90" EndX="198" EndY="107" Dir="-1" Count="1" Element="5" /> --> <!-- -->
-		<!-- xx -->
+		<!-- boss -->
 			<Spawn Index="596" Distance="30" StartX="93" StartY="7" EndX="246" EndY="188" Dir="-1" Count="1" Element="5" /> <!-- -->
 			<Spawn Index="595" Distance="30" StartX="56" StartY="14" EndX="239" EndY="158" Dir="-1" Count="1" Element="3" /> <!-- -->
 			<Spawn Index="594" Distance="30" StartX="99" StartY="10" EndX="248" EndY="248" Dir="-1" Count="1" Element="4" /> <!-- -->
@@ -4925,6 +4925,43 @@
 	</Map>
 
 	<Map Number="95" Name="Debenter" annotation="德班泰尔">
+		<Spot Type="3" Description="Multi~Spawn Debenter">
+			<!-- (36,60) 火8-->
+			<Spawn Index="608" Distance="30" StartX="33" StartY="57" EndX="39" EndY="63" Dir="-1" Count="1" Element="1" /> <!-- 佩里 -->
+			<Spawn Index="608" Distance="30" StartX="33" StartY="57" EndX="39" EndY="63" Dir="-1" Count="1" Element="1" /> <!-- 佩里 -->
+			<Spawn Index="608" Distance="30" StartX="33" StartY="57" EndX="39" EndY="63" Dir="-1" Count="1" Element="1" /> <!-- 佩里 -->
+			<Spawn Index="609" Distance="30" StartX="33" StartY="57" EndX="39" EndY="63" Dir="-1" Count="1" Element="1" /> <!-- 野兽 -->
+			<Spawn Index="609" Distance="30" StartX="33" StartY="57" EndX="39" EndY="63" Dir="-1" Count="1" Element="1" /> <!-- 野兽 -->
+			<Spawn Index="609" Distance="30" StartX="33" StartY="57" EndX="39" EndY="63" Dir="-1" Count="1" Element="1" /> <!-- 野兽 -->
+			<Spawn Index="610" Distance="30" StartX="33" StartY="57" EndX="39" EndY="63" Dir="-1" Count="1" Element="1" /> <!-- 骑士 -->
+			<Spawn Index="610" Distance="30" StartX="33" StartY="57" EndX="39" EndY="63" Dir="-1" Count="1" Element="1" /> <!-- 骑士 -->
+
+			<!-- (32,24) 水8-->
+
+			<!-- (61,16) 风8-->
+			
+			<!-- (84,30) 风8-->
+
+			<!-- (118,12) 暗8-->
+
+			<!-- (86,60) 土8 -->
+
+			<!-- (177,17) 暗8 -->
+
+			<!-- (206,12) 暗8-->
+
+			<!-- (224,15) 风8 -->
+
+			<!-- (238,40) 土8-->
+
+			<!-- (206,74) 水8-->
+
+			<!-- (236,82) 水8-->
+			
+			<!-- (190,98) 火8-->
+
+			<!-- (79,93) 土6-->
+		</Spot>
 		<Spot Type="3" Description="Multi~Spawn Debenter">
 			<Spawn Index="608" Distance="30" StartX="27" StartY="52" EndX="33" EndY="60" Dir="-1" Count="1" Element="1" /> <!-- -->
 			<Spawn Index="608" Distance="30" StartX="31" StartY="62" EndX="39" EndY="70" Dir="-1" Count="1" Element="2" /> <!-- -->
