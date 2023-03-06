@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/xujintao/balgass/cmd/server_game/game/item"
-	"github.com/xujintao/balgass/cmd/server_game/game/skill"
+	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
 const (

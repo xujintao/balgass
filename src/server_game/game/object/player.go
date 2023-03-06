@@ -4,22 +4,22 @@ import (
 	"log"
 	"time"
 
-	"github.com/xujintao/balgass/cmd/server_game/conf"
-	"github.com/xujintao/balgass/cmd/server_game/game/guild"
-	"github.com/xujintao/balgass/cmd/server_game/game/item"
-	"github.com/xujintao/balgass/cmd/server_game/game/model"
-	"github.com/xujintao/balgass/cmd/server_game/game/skill"
-	"github.com/xujintao/balgass/network"
+	"github.com/xujintao/balgass/src/c1c2"
+	"github.com/xujintao/balgass/src/server_game/conf"
+	"github.com/xujintao/balgass/src/server_game/game/guild"
+	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
 type Pusher interface {
-	Push(network.ConnWriter, interface{})
+	Push(c1c2.ConnWriter, interface{})
 }
 
 type Player struct {
 	Object
 	Addr                          string
-	Conn                          network.ConnWriter
+	Conn                          c1c2.ConnWriter
 	pusher                        Pusher
 	AccountID                     string
 	AuthLevel                     int

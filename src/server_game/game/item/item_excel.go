@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"path"
 
-	"github.com/xujintao/balgass/cmd/server_game/conf"
+	"github.com/xujintao/balgass/src/server_game/conf"
 )
 
 const (

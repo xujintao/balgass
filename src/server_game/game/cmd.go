@@ -1,13 +1,13 @@
 package game
 
 import (
-	"github.com/xujintao/balgass/cmd/server_game/game/item"
-	"github.com/xujintao/balgass/cmd/server_game/game/model"
-	"github.com/xujintao/balgass/cmd/server_game/game/object"
-	"github.com/xujintao/balgass/network"
+	"github.com/xujintao/balgass/src/c1c2"
+	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/game/object"
 )
 
-func OnConn(addr string, conn network.ConnWriter, pusher interface{}) (interface{}, error) {
+func OnConn(addr string, conn c1c2.ConnWriter, pusher interface{}) (interface{}, error) {
 	index, err := object.PlayerAdd(addr, conn, pusher)
 	if err != nil {
 		return nil, err

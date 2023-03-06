@@ -7,9 +7,9 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/xujintao/balgass/cmd/server_game/game"
-	"github.com/xujintao/balgass/cmd/server_game/game/model"
-	"github.com/xujintao/balgass/network"
+	"github.com/xujintao/balgass/src/c1c2"
+	"github.com/xujintao/balgass/src/server_game/game"
+	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
 func init() {
@@ -44,8 +44,8 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	}
 }
 
-// Handle *apiHandle implements network.Handler
-func (h *apiHandle) Handle(ctx interface{}, req *network.Request) {
+// Handle *apiHandle implements c1c2.Handler
+func (h *apiHandle) Handle(ctx interface{}, req *c1c2.Request) {
 	var api *apiIn
 	var ok bool
 	code := int(req.Body[0])
@@ -76,7 +76,7 @@ func (h *apiHandle) Handle(ctx interface{}, req *network.Request) {
 	// api.handle(obj, api.msg) // reflect call
 }
 
-func (h *apiHandle) Push(w network.ConnWriter, msg interface{}) {
+func (h *apiHandle) Push(w c1c2.ConnWriter, msg interface{}) {
 	t := reflect.TypeOf(msg)
 	api, ok := h.apiOuts[t]
 	if !ok {
@@ -93,13 +93,13 @@ func (h *apiHandle) Push(w network.ConnWriter, msg interface{}) {
 		buf.WriteByte(uint8(api.code))
 	}
 	buf.Write(data)
-	res := &network.Response{}
+	res := &c1c2.Response{}
 	res.WriteHead(uint8(api.flag)).Write(buf.Bytes())
 	w.Write(res)
 }
 
-// OnConn implements network.Handler.OnConn
-func (h *apiHandle) OnConn(addr string, conn network.ConnWriter) (ctx interface{}, err error) {
+// OnConn implements c1c2.Handler.OnConn
+func (h *apiHandle) OnConn(addr string, conn c1c2.ConnWriter) (ctx interface{}, err error) {
 	msg := model.MsgConnectResult{}
 	ctx, err = game.OnConn(addr, conn, h)
 	if err != nil {
@@ -111,7 +111,7 @@ func (h *apiHandle) OnConn(addr string, conn network.ConnWriter) (ctx interface{
 	return
 }
 
-// OnClose implements network.Handler.OnConn
+// OnClose implements c1c2.Handler.OnConn
 func (apiHandle) OnClose(ctx interface{}) {
 	game.OnClose(ctx)
 }
@@ -157,7 +157,7 @@ var apiOuts = [...]*apiOut{
 }
 
 /*
-var apis = map[int]func(req *network.Request, res *network.Response) bool{
+var apis = map[int]func(req *c1c2.Request, res *c1c2.Response) bool{
 	0x00:   chatProc,
 	0x01:   chatGet,
 	0x02:   chatWhisperGet,

@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/xujintao/balgass/cmd/server_game/conf"
-	"github.com/xujintao/balgass/cmd/server_game/handle"
-	"github.com/xujintao/balgass/network"
+	"github.com/xujintao/balgass/src/c1c2"
+	"github.com/xujintao/balgass/src/server_game/conf"
+	"github.com/xujintao/balgass/src/server_game/handle"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
 
 	// start tcp server
-	server := network.Server{
+	server := c1c2.Server{
 		Addr:    fmt.Sprintf(":%d", conf.Server.Port),
 		Handler: &handle.APIHandleDefault,
 		NeedXor: true,

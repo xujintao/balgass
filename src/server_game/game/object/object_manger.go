@@ -3,8 +3,8 @@ package object
 import (
 	"sync"
 
-	"github.com/xujintao/balgass/cmd/server_game/conf"
-	"github.com/xujintao/balgass/network"
+	"github.com/xujintao/balgass/src/c1c2"
+	"github.com/xujintao/balgass/src/server_game/conf"
 )
 
 var (
@@ -45,7 +45,7 @@ func MonsterAdd(class int) {
 }
 
 // PlayerAdd add a player
-func PlayerAdd(addr string, conn network.ConnWriter, pusher interface{}) (int, error) {
+func PlayerAdd(addr string, conn c1c2.ConnWriter, pusher interface{}) (int, error) {
 	return objectManagerDefault.playerAdd(addr, conn, pusher)
 }
 
@@ -78,7 +78,7 @@ func (m *objectManager) find(id int) interface{} {
 	return m.objects[id]
 }
 
-func (m *objectManager) playerAdd(addr string, conn network.ConnWriter, pusher interface{}) (int, error) {
+func (m *objectManager) playerAdd(addr string, conn c1c2.ConnWriter, pusher interface{}) (int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	// 判断当前玩家数
