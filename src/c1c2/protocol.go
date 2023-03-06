@@ -1,4 +1,4 @@
-package network
+package c1c2
 
 import (
 	"bufio"
@@ -7,8 +7,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/xujintao/balgass/aes"
-	"github.com/xujintao/balgass/xor"
+	"github.com/xujintao/balgass/src/c1c2/aes"
+	"github.com/xujintao/balgass/src/c1c2/xor"
 )
 
 func Hex2string(src []byte) string {

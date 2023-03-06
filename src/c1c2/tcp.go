@@ -1,4 +1,4 @@
-package network
+package c1c2
 
 import (
 	"bufio"
