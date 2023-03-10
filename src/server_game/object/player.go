@@ -6,10 +6,10 @@ import (
 
 	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server_game/conf"
-	"github.com/xujintao/balgass/src/server_game/game/guild"
-	"github.com/xujintao/balgass/src/server_game/game/item"
-	"github.com/xujintao/balgass/src/server_game/game/model"
-	"github.com/xujintao/balgass/src/server_game/game/skill"
+	"github.com/xujintao/balgass/src/server_game/guild"
+	"github.com/xujintao/balgass/src/server_game/item"
+	"github.com/xujintao/balgass/src/server_game/model"
+	"github.com/xujintao/balgass/src/server_game/skill"
 )
 
 type Pusher interface {

@@ -30,9 +30,9 @@ func (k *contextKey) String() string { return "net/http context value " + k.name
 
 // Handler callback user to handle request
 type Handler interface {
-	Handle(interface{}, *Request)
-	OnConn(string, ConnWriter) (interface{}, error)
-	OnClose(interface{})
+	Handle(context.Context, *Request)
+	OnConn(context.Context)
+	OnClose(context.Context)
 }
 
 // ConnWriter pass to user on connect accpet
@@ -113,8 +113,6 @@ type conn struct {
 
 	bufr *bufio.Reader
 	bufw *bufio.Writer
-
-	userData interface{}
 }
 
 func (c *conn) finalFlush() {
@@ -176,8 +174,8 @@ func (c *conn) serve(ctx context.Context) {
 	}()
 	defer func() {
 		// callback OnClose
-		if h := c.server.Handler; h != nil && c.userData != nil {
-			h.OnClose(c.userData)
+		if h := c.server.Handler; h != nil {
+			h.OnClose(ctx)
 		}
 
 		c.close()
@@ -193,12 +191,7 @@ func (c *conn) serve(ctx context.Context) {
 
 	// callback OnConn
 	if h := c.server.Handler; h != nil {
-		v, err := h.OnConn(c.remoteAddr, c)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		c.userData = v
+		h.OnConn(ctx)
 	}
 
 	for {
@@ -212,7 +205,7 @@ func (c *conn) serve(ctx context.Context) {
 
 		// callback Handle
 		if h := c.server.Handler; h != nil {
-			h.Handle(c.userData, req)
+			h.Handle(ctx, req)
 		}
 	}
 }

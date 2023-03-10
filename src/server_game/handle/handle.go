@@ -2,26 +2,32 @@ package handle
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/json"
 	"log"
 	"reflect"
 
 	"github.com/xujintao/balgass/src/c1c2"
-	"github.com/xujintao/balgass/src/server_game/game"
-	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/item"
+	"github.com/xujintao/balgass/src/server_game/model"
+	"github.com/xujintao/balgass/src/server_game/object"
 )
 
 func init() {
 	APIHandleDefault.init(apiIns[:], apiOuts[:])
+	APIHandleDefault.start()
 }
 
 // APIHandleDefault default api handle
 var APIHandleDefault apiHandle
 
 type apiHandle struct {
-	apiIns  map[int]*apiIn
-	apiOuts map[interface{}]*apiOut
+	apiIns      map[int]*apiIn
+	apiOuts     map[interface{}]*apiOut
+	onConnChan  chan context.Context
+	onCloseChan chan context.Context
+	apiChan     chan context.Context
 }
 
 func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
@@ -42,10 +48,32 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 		}
 		h.apiOuts[t] = v
 	}
+
+	h.onConnChan = make(chan context.Context, 100)
+	h.onCloseChan = make(chan context.Context, 100)
+	h.apiChan = make(chan context.Context, 1000)
+}
+
+func (h *apiHandle) start() {
+	go func() {
+		for {
+			select {
+			case ctx := <-h.onConnChan:
+				object.AddPlayer(ctx)
+			case ctx := <-h.onCloseChan:
+				object.DeletePlayer(ctx)
+			case ctx := <-h.apiChan:
+				api := ctx.Value(nil).(*apiIn)
+				obj := ctx.Value(nil)
+				handle := reflect.ValueOf(api.handle)
+				handle.Call([]reflect.Value{reflect.ValueOf(obj), reflect.ValueOf(api.msg)})
+			}
+		}
+	}()
 }
 
 // Handle *apiHandle implements c1c2.Handler
-func (h *apiHandle) Handle(ctx interface{}, req *c1c2.Request) {
+func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 	var api *apiIn
 	var ok bool
 	code := int(req.Body[0])
@@ -67,13 +95,15 @@ func (h *apiHandle) Handle(ctx interface{}, req *c1c2.Request) {
 	}
 
 	// authenticate/authorize
-	if game.GetAuthLevel(ctx) < int(api.level) {
-		log.Printf("[%d][%s] not authrized", api.code, api.name)
-		return
-	}
+	// if game.GetAuthLevel(ctx) < int(api.level) {
+	// 	log.Printf("[%d][%s] not authrized", api.code, api.name)
+	// 	return
+	// }
 
 	// cbi.Unmarshal(req.Body, api.msg)
 	// api.handle(obj, api.msg) // reflect call
+	ctx = context.WithValue(ctx, "msg", api.msg)
+	h.apiChan <- ctx
 }
 
 func (h *apiHandle) Push(w c1c2.ConnWriter, msg interface{}) {
@@ -99,21 +129,22 @@ func (h *apiHandle) Push(w c1c2.ConnWriter, msg interface{}) {
 }
 
 // OnConn implements c1c2.Handler.OnConn
-func (h *apiHandle) OnConn(addr string, conn c1c2.ConnWriter) (ctx interface{}, err error) {
-	msg := model.MsgConnectResult{}
-	ctx, err = game.OnConn(addr, conn, h)
-	if err != nil {
-		msg.Result = 0
-	} else {
-		msg.Result = ctx.(int)
-	}
-	h.Push(conn, &msg)
-	return
+func (h *apiHandle) OnConn(ctx context.Context) {
+	// msg := model.MsgConnectResult{}
+	// ctx, err = game.OnConn(addr, conn, h)
+	// if err != nil {
+	// 	msg.Result = 0
+	// } else {
+	// 	msg.Result = ctx.(int)
+	// }
+	// h.Push(conn, &msg)
+	// return
+	h.onConnChan <- ctx
 }
 
 // OnClose implements c1c2.Handler.OnConn
-func (apiHandle) OnClose(ctx interface{}) {
-	game.OnClose(ctx)
+func (h *apiHandle) OnClose(ctx context.Context) {
+	h.onCloseChan <- ctx
 }
 
 type AuthLevel int
@@ -126,13 +157,13 @@ const (
 )
 
 type apiIn struct {
-	id         int
-	enc        bool
-	level      AuthLevel
-	name       string
-	code       int
-	handle     interface{}
-	middleware interface{}
+	id     int
+	enc    bool
+	level  AuthLevel
+	name   string
+	code   int
+	handle interface{}
+	msg    interface{}
 }
 
 type apiOut struct {
@@ -146,14 +177,80 @@ type apiOut struct {
 }
 
 var apiIns = [...]*apiIn{
-	{0, false, Player, "in_use_item", 0x26, game.ItemUse, nil},
-	{0, false, Player, "in_masterskill_learn", 0xF352, game.MasterSkillLearn, nil},
+	{0, false, Player, "in_use_item", 0x26, useItem, (*model.MsgUseItem)(nil)},
+	{0, false, Player, "in_learn_master_skill", 0xF352, learnMasterSkill, (*model.MsgLearnMasterSkill)(nil)},
 	// {0, false, Guest, "in_login", 0xF101, game.Login, game.Login, game.SetAuthLevel},
 }
 
 var apiOuts = [...]*apiOut{
 	{0, false, "out_connect_result", 0xC1, 0xF100, true, (*model.MsgConnectResult)(nil)},
 	{0, false, "out_skill_list", 0xC1, 0xF311, true, (*model.MsgSkillList)(nil)},
+}
+
+func useItem(player *object.Player, msg *model.MsgUseItem) {
+	// validate the position
+
+	it := &player.Inventory[msg.InventoryPos]
+	it2 := &player.Inventory[msg.InventoryPosTarget]
+	// validate item serial/id
+	if player.LimitUseItem(it) {
+		return
+	}
+	switch {
+	case it.Code == item.Code(12, 30): // Bundle Jewel of Bless
+	case it.Code == item.Code(13, 15): // Fruits 果实
+	case it.Code >= item.Code(13, 43) && it.Code <= item.Code(13, 45): // Seal 印章
+	case it.Code == item.Code(13, 48): // Kalima Ticket 卡利玛自由入场券
+	case it.Code >= item.Code(13, 54) && it.Code <= item.Code(13, 58): // Reset Fruit 洗点果实
+	case it.Code == item.Code(13, 60): // Indulgence 免罪符
+	case it.Code == item.Code(13, 66): // Invitation to Santa Village 圣诞之地入场券
+	case it.Code == item.Code(13, 69): // Talisman of Resurrection 复活符咒
+	case it.Code == item.Code(13, 70): // Talisman of Mobility 移动符咒
+	case it.Code == item.Code(13, 82): // Talisman of Item Protection 装备保护符咒
+	case it.Code >= item.Code(13, 152) && it.Code <= item.Code(13, 159): // Scroll of Oblivion 忘却卷轴
+	case it.Code >= item.Code(14, 0) && it.Code <= item.Code(14, 3): // HP Potion
+	case it.Code >= item.Code(14, 4) && it.Code <= item.Code(14, 6): // MP Potion
+	case it.Code == item.Code(14, 7): // Siege Potion 攻城药水
+	case it.Code == item.Code(14, 8): // Antidote 解毒剂
+	case it.Code == item.Code(14, 9) || it.Code == item.Code(14, 20): // Ale 酒 / Remedy of Love 爱情的魔力
+	case it.Code == item.Code(14, 10): // Town Portal Scroll 回城卷轴
+	case it.Code == item.Code(14, 13): // Jewel of Bless
+	case it.Code == item.Code(14, 14): // Jewel of Soul
+	case it.Code == item.Code(14, 16): // Jewel of Life
+	case it.Code >= item.Code(14, 38) && it.Code <= item.Code(14, 40): // comples/compound Potion
+	case it.Code >= item.Code(14, 35) && it.Code <= item.Code(14, 37): // SD Potion
+	case it.Code == item.Code(14, 42) && it2.Type != item.TypeSocket: // 再生强化
+	case it.Code >= item.Code(14, 43) && it.Code <= item.Code(14, 44): // 进化道具
+	case it.Code >= item.Code(14, 46) && it.Code <= item.Code(14, 50): // Jack O'Lantern 南瓜灯饮料
+	case it.Code == item.Code(14, 70): // Elite HP Potion 精华HP药水
+	case it.Code == item.Code(14, 71): // Elite MP Potion 精华MP药水
+	case it.Code >= item.Code(14, 78) && it.Code <= item.Code(14, 82): // kindBPremiumElixir 会员圣水
+	case it.Code >= item.Code(14, 85) && it.Code <= item.Code(14, 87): // Cherry Blossom 樱花
+	case it.Code == item.Code(14, 133): // Elite SD Potion 精华防护值药水
+	case it.Code == item.Code(14, 160): // Jewel of Extension 延长宝石
+	case it.Code == item.Code(14, 161): // Jewel of Elevation 提高宝石
+	case it.Code == item.Code(14, 162): // Magic Backpack 魔法背书
+	case it.Code == item.Code(14, 163): // Vault Expansion Certificate 仓库拓展证书
+	case it.Code == item.Code(14, 209): // Tradeable Seal 交易印章
+	case it.Code == item.Code(14, 224): // Bless of Light (Greater) 光的祝福
+	case it.Code >= item.Code(14, 263) && it.Code <= item.Code(14, 264): // Bless of Light 光之祝福
+	case it.KindA == item.KindASkill:
+		// (15, 18) // Scroll of Nova 星辰一怒术
+		skillIndex := it.SkillIndex
+		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
+			skillIndex += it.Level
+		}
+		if player.SkillLearn(skillIndex) {
+			player.PushSkillOne()
+		}
+
+	}
+}
+
+func learnMasterSkill(player *object.Player, msg *model.MsgLearnMasterSkill) {
+	if player.SkillLearn(msg.SkillIndex) {
+
+	}
 }
 
 /*

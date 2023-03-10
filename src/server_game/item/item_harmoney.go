@@ -5,8 +5,8 @@ import (
 	"path"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
-	"github.com/xujintao/balgass/src/server_game/game/random"
 	"github.com/xujintao/balgass/src/server_game/lang"
+	"github.com/xujintao/balgass/src/server_game/random"
 )
 
 type JewelHarmonyItemEffect struct {

@@ -7,13 +7,13 @@ type MsgConnectResult struct {
 	Version [5]uint8 `cbi:"byte"`
 }
 
-type MsgItemUse struct {
+type MsgUseItem struct {
 	InventoryPos       int `cbi:"byte"`
 	InventoryPosTarget int `cbi:"byte"`
 	ItemUseType        int `cbi:"byte"`
 }
 
-type MsgMasterSkillLearn struct {
+type MsgLearnMasterSkill struct {
 	SkillIndex int `cbi:"dword"`
 }
 
