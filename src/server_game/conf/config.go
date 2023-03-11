@@ -125,10 +125,10 @@ type configServer struct {
 	ExDBPort            int    `ini:"ExDBPort"`
 	MaxConnectCount     int    `ini:"MachineIDConnectionLimitCount"`
 	// Log
-	MaxObjectUserCount          int `ini:"PlayerCount"`
-	MaxObjectMonsterCount       int `ini:"MonsterCount"`
-	MaxObjectSummonMonsterCount int `ini:"SummonMonsterCount"`
-	MaxObjectItemCount          int `ini:"MapItemCount"`
+	MaxPlayerCount        int `ini:"PlayerCount"`
+	MaxMonsterCount       int `ini:"MonsterCount"`
+	MaxSummonMonsterCount int `ini:"SummonMonsterCount"`
+	MaxObjectItemCount    int `ini:"MapItemCount"`
 }
 
 type configConnectMember struct {

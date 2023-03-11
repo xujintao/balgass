@@ -59,9 +59,9 @@ func (h *apiHandle) start() {
 		for {
 			select {
 			case ctx := <-h.onConnChan:
-				object.AddPlayer(ctx)
+				object.ObjectManager.AddPlayer(ctx)
 			case ctx := <-h.onCloseChan:
-				object.DeletePlayer(ctx)
+				object.ObjectManager.DeletePlayer(ctx)
 			case ctx := <-h.apiChan:
 				api := ctx.Value(nil).(*apiIn)
 				obj := ctx.Value(nil)
