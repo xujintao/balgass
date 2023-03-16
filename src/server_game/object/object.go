@@ -1,13 +1,10 @@
 package object
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"sync"
 	"time"
 
-	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/item"
 	"github.com/xujintao/balgass/src/server_game/skill"
 )
@@ -481,124 +478,12 @@ func (obj *Object) Reset() {
 
 }
 
-// SkillAdd  object add skill
-func (obj *Object) SkillAdd(skillIndex, level int) bool {
+// AddSkill  object add skill
+func (obj *Object) AddSkill(skillIndex, level int) bool {
 	if _, ok := obj.Skills[skillIndex]; ok {
 		log.Printf("object[%s] skill[%s] already exists", obj.Name, skill.SkillTable[skillIndex].Name)
 		return false
 	}
 	obj.Skills[skillIndex] = skill.Get(skillIndex, level)
 	return true
-}
-
-// AddMonster add a monster
-func AddMonster(class int) {
-	// return objectManagerDefault.monsterAdd(class)
-}
-
-// DeleteMonster delete a monster
-func DeleteMonster(id int) {
-	// objectManagerDefault.monsterDelete(id)
-}
-
-var poolPlayer = sync.Pool{
-	New: func() interface{} {
-		return &Player{}
-	},
-}
-
-var ObjectManager objectManager
-
-type objectManager struct {
-	maxObjectCount   int
-	playerStartIndex int
-	lastPlayerIndex  int
-	objectMap        []bool
-
-	monsterCount       int
-	summonMonsterCount int
-	playerCount        int
-	players            map[int]*Player
-}
-
-func (m *objectManager) init() {
-	m.maxObjectCount = conf.Server.MaxMonsterCount + conf.Server.MaxSummonMonsterCount + conf.Server.MaxPlayerCount
-	m.objectMap = make([]bool, m.maxObjectCount)
-	// objectBills = make([]bill, conf.Server.MaxPlayerCount)
-	// 先有怪后有玩家
-	m.playerStartIndex = conf.Server.MaxMonsterCount + conf.Server.MaxSummonMonsterCount
-	m.lastPlayerIndex = m.playerStartIndex
-}
-
-func (m *objectManager) objectMaxRange(index int) bool {
-	if index < 0 || index >= m.maxObjectCount {
-		return false
-	}
-	return true
-}
-
-func (m *objectManager) AddPlayer(ctx context.Context) {
-	// limit max player count
-	if len(m.players) >= conf.Server.MaxPlayerCount {
-		// reply
-		// res := &network.Response{}
-		// body := []byte{0x04}
-		// res.WriteHead2(0xC1, 0xF1, 0x01).Write(body)
-		// conn.Write(res)
-		return
-	}
-
-	// get unified object index
-	index := m.lastPlayerIndex
-	cnt := conf.Server.MaxPlayerCount
-	for cnt > 0 {
-		if m.objectMap[index] {
-			break
-		}
-		index++
-		if index >= m.maxObjectCount {
-			index = m.playerStartIndex
-		}
-		cnt--
-	}
-	if cnt == 0 {
-		panic(fmt.Errorf("have no free index"))
-	}
-	m.lastPlayerIndex = index
-	m.objectMap[index] = false
-
-	// create a new player
-	player := poolPlayer.Get().(*Player)
-	player.LoginMsgSend = false
-	player.LoginMsgCount = 0
-	player.index = index
-	// player.conn = conn
-	player.ConnectCheckTime = time.Now()
-	player.AutoSaveTime = player.ConnectCheckTime
-	player.Connected = PlayerConnected
-	player.CheckSpeedHack = false
-	player.EnableCharacterCreate = false
-	player.Type = ObjectUser
-	// player.Addr = addr
-	// player.Conn = conn
-	// player.pusher = pusher.(Pusher)
-
-	// register the new player to object manager
-	m.players[index] = player
-
-	// reply
-	// msg := model.MsgConnectResult{}
-	// ctx, err = game.OnConn(addr, conn, h)
-	// if err != nil {
-	// 	msg.Result = 0
-	// } else {
-	// 	msg.Result = ctx.(int)
-	// }
-	// h.Push(conn, &msg)
-	// return
-}
-
-func (m *objectManager) DeletePlayer(ctx context.Context) {
-
-	// poolPlayer.Put(obj)
 }
