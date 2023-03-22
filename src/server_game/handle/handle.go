@@ -114,7 +114,7 @@ func (h *apiHandle) Push(ctx context.Context, msg interface{}) {
 	}
 	data, _ := json.Marshal(msg)
 	var buf bytes.Buffer
-	if api.subcode {
+	if api.code>>8 != 0 {
 		var codes [2]uint8
 		binary.BigEndian.PutUint16(codes[:], uint16(api.code))
 		buf.Write(codes[:])
@@ -159,31 +159,47 @@ type apiIn struct {
 	id     int
 	enc    bool
 	level  AuthLevel
-	name   string
 	code   int
+	name   string
 	handle interface{}
 	msg    interface{}
 }
 
 type apiOut struct {
-	id      int
-	enc     bool
-	name    string
-	flag    int // 0xC1 or 0xC2
-	code    int
-	subcode bool
-	msg     interface{}
+	id   int
+	enc  bool
+	flag int // 0xC1 or 0xC2
+	code int
+	name string
+	msg  interface{}
 }
 
 var apiIns = [...]*apiIn{
-	{0, false, Player, "in_use_item", 0x26, useItem, (*model.MsgUseItem)(nil)},
-	{0, false, Player, "in_learn_master_skill", 0xF352, learnMasterSkill, (*model.MsgLearnMasterSkill)(nil)},
+	{0, false, Player, 0x00, "in_chat", chat, (*model.MsgChat)(nil)},
+	{0, false, Player, 0x02, "in_whisper", whisper, (*model.MsgWhisper)(nil)},
+	{0, false, Player, 0x0E, "in_live", live, (*model.MsgLive)(nil)},
+	{0, false, Player, 0x26, "in_use_item", useItem, (*model.MsgUseItem)(nil)},
+	{0, false, Player, 0xF352, "in_learn_master_skill", learnMasterSkill, (*model.MsgLearnMasterSkill)(nil)},
 	// {0, false, Guest, "in_login", 0xF101, game.Login, game.Login, game.SetAuthLevel},
+
 }
 
 var apiOuts = [...]*apiOut{
-	{0, false, "out_connect_result", 0xC1, 0xF100, true, (*model.MsgConnectResult)(nil)},
-	{0, false, "out_skill_list", 0xC1, 0xF311, true, (*model.MsgSkillList)(nil)},
+	{0, false, 0xC1, 0x02, "out_chat_whisper", (*model.MsgWhisper)(nil)},
+	{0, false, 0xC1, 0xF100, "out_connect_result", (*model.MsgConnectResult)(nil)},
+	{0, false, 0xC1, 0xF311, "out_skill_list", (*model.MsgSkillList)(nil)},
+}
+
+func chat(player *object.Player, msg *model.MsgChat) {
+	player.Chat(msg)
+}
+
+func whisper(player *object.Player, msg *model.MsgWhisper) {
+	player.Whisper(msg)
+}
+
+func live(player *object.Player, msg *model.MsgLive) {
+	player.Live(msg)
 }
 
 func useItem(player *object.Player, msg *model.MsgUseItem) {
