@@ -1,5 +1,24 @@
 package model
 
+type MsgChat struct {
+	Name string
+	Msg  string
+}
+
+type MsgWhisper struct {
+	Name string
+	Msg  string
+}
+
+type MsgLive struct {
+	Time         int
+	AttackSpeed  int
+	Agility      int
+	MagicSpeed   int
+	Version      string
+	ServerSeason int
+}
+
 type MsgConnectResult struct {
 	CBIPack struct{} `cbi:"1"`
 	Result  int      `cbi:"byte"`

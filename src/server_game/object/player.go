@@ -378,6 +378,18 @@ func (player *Player) Calc380Item() {
 	player.AddSD += player.item380Effect.Item380EffectIncMaxSD
 }
 
+func (player *Player) Chat(msg *model.MsgChat) {
+
+}
+
+func (player *Player) Whisper(msg *model.MsgWhisper) {
+
+}
+
+func (player *Player) Live(msg *model.MsgLive) {
+
+}
+
 func (player *Player) UseItem(msg *model.MsgUseItem) {
 	// validate the position
 
