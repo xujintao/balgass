@@ -18,6 +18,9 @@ var (
 
 	// LocalAddrContextKey is a context key.
 	LocalAddrContextKey = &contextKey{"local-addr"}
+
+	// player id
+	PlayerIDContextKey = &contextKey{"player-id"}
 )
 
 // contextKey is a value for use with context.WithValue. It's used as
@@ -31,7 +34,7 @@ func (k *contextKey) String() string { return "net/http context value " + k.name
 // Handler callback user to handle request
 type Handler interface {
 	Handle(context.Context, *Request)
-	OnConn(context.Context)
+	OnConn(context.Context, string, func(*Response)) (int, error)
 	OnClose(context.Context)
 }
 
@@ -111,8 +114,9 @@ type conn struct {
 	// This is the value of a Handler's (*Request).RemoteAddr.
 	remoteAddr string
 
-	bufr *bufio.Reader
-	bufw *bufio.Writer
+	bufr         *bufio.Reader
+	bufw         *bufio.Writer
+	responseChan chan *Response
 }
 
 func (c *conn) finalFlush() {
@@ -189,9 +193,33 @@ func (c *conn) serve(ctx context.Context) {
 	c.bufr = newBufioReader(c.rwc)
 	c.bufw = newBufioWriteSize(c.rwc, 4<<10)
 
+	c.responseChan = make(chan *Response, 100)
+	go func() {
+		for {
+			select {
+			case r := <-c.responseChan:
+				frame, err := newFrame(r)
+				if err != nil {
+					log.Printf("newFrame failed [err]%v", err)
+				}
+				if _, err := c.bufw.Write(frame); err != nil {
+					log.Printf("c.bufw.Write failed [err]%v", err)
+				}
+				c.bufw.Flush()
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
 	// callback OnConn
 	if h := c.server.Handler; h != nil {
-		h.OnConn(ctx)
+		id, err := h.OnConn(ctx, c.remoteAddr, c.Write)
+		if err != nil {
+			log.Printf("OnConn failed [err]%v", err)
+			return
+		}
+		ctx = context.WithValue(ctx, PlayerIDContextKey, id)
 	}
 
 	for {
@@ -211,15 +239,8 @@ func (c *conn) serve(ctx context.Context) {
 }
 
 // write
-func (c *conn) Write(r *Response) error {
-	frame, err := newFrame(r)
-	if err != nil {
-		return err
-	}
-	if _, err := c.bufw.Write(frame); err != nil {
-		return err
-	}
-	return c.bufw.Flush()
+func (c *conn) Write(r *Response) {
+	c.responseChan <- r
 }
 
 // Server implements the specified protocol

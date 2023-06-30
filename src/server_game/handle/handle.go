@@ -15,18 +15,17 @@ import (
 
 func init() {
 	APIHandleDefault.init(apiIns[:], apiOuts[:])
-	APIHandleDefault.start()
 }
 
 // APIHandleDefault default api handle
 var APIHandleDefault apiHandle
 
 type apiHandle struct {
-	apiIns      map[int]*apiIn
-	apiOuts     map[interface{}]*apiOut
-	onConnChan  chan context.Context
-	onCloseChan chan context.Context
-	apiChan     chan context.Context
+	apiIns               map[int]*apiIn
+	apiOuts              map[interface{}]*apiOut
+	connRequestChan      chan *connRequest
+	closeConnRequestChan chan context.Context
+	apiChan              chan context.Context
 }
 
 func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
@@ -48,24 +47,38 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 		h.apiOuts[t] = v
 	}
 
-	h.onConnChan = make(chan context.Context, 100)
-	h.onCloseChan = make(chan context.Context, 100)
+	h.connRequestChan = make(chan *connRequest, 100)
+	h.closeConnRequestChan = make(chan context.Context, 100)
 	h.apiChan = make(chan context.Context, 1000)
 }
 
-func (h *apiHandle) start() {
+func (h *apiHandle) Start(ctx context.Context) {
 	go func() {
 		for {
 			select {
-			case ctx := <-h.onConnChan:
-				object.AddPlayer(ctx, h)
-			case ctx := <-h.onCloseChan:
+			case connReq := <-h.connRequestChan:
+				// object.AddPlayer(ctx, h)
+				// msg := model.MsgConnectResult{}
+				// ctx, err = game.OnConn(addr, conn, h)
+				// if err != nil {
+				// 	msg.Result = 0
+				// } else {
+				// 	msg.Result = ctx.(int)
+				// }
+				// h.Push(conn, &msg)
+
+				connResp := connResponse{id: 1, err: nil}
+				connReq.connResponseChan <- &connResp
+			case ctx := <-h.closeConnRequestChan:
 				object.DeletePlayer(ctx, false)
 			case ctx := <-h.apiChan:
 				api := ctx.Value(nil).(*apiIn)
 				obj := ctx.Value(nil)
 				handle := reflect.ValueOf(api.handle)
 				handle.Call([]reflect.Value{reflect.ValueOf(obj), reflect.ValueOf(api.msg)})
+			case <-ctx.Done():
+				// todo
+				return
 			}
 		}
 	}()
@@ -127,23 +140,39 @@ func (h *apiHandle) Push(ctx context.Context, msg interface{}) {
 	// w.Write(res)
 }
 
+type connRequest struct {
+	remoteAddr       string
+	w                func(*c1c2.Response)
+	connResponseChan chan *connResponse
+}
+
+type connResponse struct {
+	err error
+	id  int
+}
+
 // OnConn implements c1c2.Handler.OnConn
-func (h *apiHandle) OnConn(ctx context.Context) {
-	// msg := model.MsgConnectResult{}
-	// ctx, err = game.OnConn(addr, conn, h)
-	// if err != nil {
-	// 	msg.Result = 0
-	// } else {
-	// 	msg.Result = ctx.(int)
-	// }
-	// h.Push(conn, &msg)
-	// return
-	h.onConnChan <- ctx
+func (h *apiHandle) OnConn(ctx context.Context, remoteAddr string, w func(*c1c2.Response)) (int, error) {
+	connReq := connRequest{
+		remoteAddr:       remoteAddr,
+		w:                w,
+		connResponseChan: make(chan *connResponse),
+	}
+
+	for {
+		select {
+		case h.connRequestChan <- &connReq:
+		case connResp := <-connReq.connResponseChan:
+			return connResp.id, connResp.err
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		}
+	}
 }
 
 // OnClose implements c1c2.Handler.OnConn
 func (h *apiHandle) OnClose(ctx context.Context) {
-	h.onCloseChan <- ctx
+	h.closeConnRequestChan <- ctx
 }
 
 type AuthLevel int
