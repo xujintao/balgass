@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"log"
 	"reflect"
 
@@ -57,20 +58,11 @@ func (h *apiHandle) Start(ctx context.Context) {
 		for {
 			select {
 			case connReq := <-h.connRequestChan:
-				// object.AddPlayer(ctx, h)
-				// msg := model.MsgConnectResult{}
-				// ctx, err = game.OnConn(addr, conn, h)
-				// if err != nil {
-				// 	msg.Result = 0
-				// } else {
-				// 	msg.Result = ctx.(int)
-				// }
-				// h.Push(conn, &msg)
-
-				connResp := connResponse{id: 1, err: nil}
+				id, err := object.ObjectManager.AddPlayer(ctx, connReq.ConnRequest, h)
+				connResp := connResponse{id: id, err: err}
 				connReq.connResponseChan <- &connResp
 			case ctx := <-h.closeConnRequestChan:
-				object.DeletePlayer(ctx, false)
+				object.ObjectManager.DeletePlayer(ctx)
 			case ctx := <-h.apiChan:
 				api := ctx.Value(nil).(*apiIn)
 				obj := ctx.Value(nil)
@@ -118,12 +110,12 @@ func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 	h.apiChan <- ctx
 }
 
-func (h *apiHandle) Push(ctx context.Context, msg interface{}) {
+func (h *apiHandle) Marshal(id int, msg interface{}) (*c1c2.Response, error) {
 	t := reflect.TypeOf(msg)
 	api, ok := h.apiOuts[t]
 	if !ok {
-		log.Printf("%s has not yet be registered to api table", t.String())
-		return
+		err := fmt.Errorf("%s has not yet be registered to api table", t.String())
+		return nil, err
 	}
 	data, _ := json.Marshal(msg)
 	var buf bytes.Buffer
@@ -135,14 +127,12 @@ func (h *apiHandle) Push(ctx context.Context, msg interface{}) {
 		buf.WriteByte(uint8(api.code))
 	}
 	buf.Write(data)
-	res := &c1c2.Response{}
-	res.WriteHead(uint8(api.flag)).Write(buf.Bytes())
-	// w.Write(res)
+	var resp c1c2.Response
+	return resp.WriteHead(uint8(api.flag)).Write(buf.Bytes()), nil
 }
 
 type connRequest struct {
-	remoteAddr       string
-	w                func(*c1c2.Response)
+	*c1c2.ConnRequest
 	connResponseChan chan *connResponse
 }
 
@@ -152,10 +142,9 @@ type connResponse struct {
 }
 
 // OnConn implements c1c2.Handler.OnConn
-func (h *apiHandle) OnConn(ctx context.Context, remoteAddr string, w func(*c1c2.Response)) (int, error) {
+func (h *apiHandle) OnConn(ctx context.Context, cr *c1c2.ConnRequest) (any, error) {
 	connReq := connRequest{
-		remoteAddr:       remoteAddr,
-		w:                w,
+		ConnRequest:      cr,
 		connResponseChan: make(chan *connResponse),
 	}
 
@@ -165,7 +154,7 @@ func (h *apiHandle) OnConn(ctx context.Context, remoteAddr string, w func(*c1c2.
 		case connResp := <-connReq.connResponseChan:
 			return connResp.id, connResp.err
 		case <-ctx.Done():
-			return 0, ctx.Err()
+			return -1, ctx.Err()
 		}
 	}
 }

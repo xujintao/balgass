@@ -12,16 +12,17 @@ import (
 	"github.com/xujintao/balgass/src/server_game/skill"
 )
 
-type Pusher interface {
-	Push(c1c2.ConnWriter, interface{})
+type MsgMarshaller interface {
+	Marshal(int, any) (*c1c2.Response, error)
 }
 
 type Player struct {
 	Object
 	Addr                          string
-	Conn                          c1c2.ConnWriter
-	pusher                        Pusher
-	pushChan                      chan interface{}
+	writeConn                     func(*c1c2.Response) error
+	closeConn                     func() error
+	msgMarshaller                 MsgMarshaller
+	msgChan                       chan any
 	AccountID                     string
 	AuthLevel                     int
 	hwid                          string
@@ -120,6 +121,18 @@ type Player struct {
 	excelWingEffectRecoveryHP    int
 	excelWingEffectRecoveryMP    int
 	excelWingEffectDoubleDamage  int
+}
+
+func (player *Player) Push(msg any) {
+	player.msgChan <- msg
+}
+
+func (player *Player) Write(msg any) {
+	resp, err := player.msgMarshaller.Marshal(player.index, msg)
+	if err != nil {
+		log.Println(err)
+	}
+	player.writeConn(resp)
 }
 
 func (player *Player) MasterLevel() bool {
@@ -515,10 +528,10 @@ func (player *Player) LearnSkill(skillIndex int) bool {
 
 func (player *Player) PushSkillOne() {
 	var msg model.MsgSkillList
-	player.pusher.Push(player.Conn, &msg)
+	player.Push(&msg)
 }
 
 func (player *Player) PushSkillAll() {
 	var msg model.MsgSkillList
-	player.pusher.Push(player.Conn, &msg)
+	player.Push(&msg)
 }

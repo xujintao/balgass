@@ -6,39 +6,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server_game/conf"
 )
 
-type object interface{}
-
-// AddMonster add a monster
-func AddMonster(class int) {
-	// objectManagerDefault.monsterAdd(class)
-}
-
-// DeleteMonster delete a monster
-func DeleteMonster(id int) {
-	// objectManagerDefault.monsterDelete(id)
-}
-
-type pusher interface {
-	Push(context.Context, interface{})
-}
-
-// AddPlayer add a player
-func AddPlayer(ctx context.Context, pusher pusher) {
-	objectManagerDefault.AddPlayer(ctx, pusher)
-}
-
-// DeletePlayer delete a player
-func DeletePlayer(ctx context.Context, force bool) {
-	objectManagerDefault.DeletePlayer(ctx)
-	if force {
-		// close connection
-	}
-}
-
-var objectManagerDefault objectManager
+var ObjectManager objectManager
 
 type objectManager struct {
 	maxObjectCount   int
@@ -50,6 +22,8 @@ type objectManager struct {
 	summonMonsterCount int
 	playerCount        int
 }
+
+type object any
 
 func (m *objectManager) init() {
 	m.maxObjectCount = conf.Server.MaxMonsterCount + conf.Server.MaxSummonMonsterCount + conf.Server.MaxPlayerCount
@@ -73,7 +47,7 @@ var poolPlayer = sync.Pool{
 	},
 }
 
-func (m *objectManager) AddPlayer(ctx context.Context, pusher pusher) {
+func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, marshaller MsgMarshaller) (int, error) {
 	// limit max player count
 	if m.playerCount >= conf.Server.MaxPlayerCount {
 		// reply
@@ -81,7 +55,7 @@ func (m *objectManager) AddPlayer(ctx context.Context, pusher pusher) {
 		// body := []byte{0x04}
 		// res.WriteHead2(0xC1, 0xF1, 0x01).Write(body)
 		// conn.Write(res)
-		return
+		return -1, fmt.Errorf("over max player count")
 	}
 
 	// get unified object index
@@ -108,7 +82,9 @@ func (m *objectManager) AddPlayer(ctx context.Context, pusher pusher) {
 	player.LoginMsgSend = false
 	player.LoginMsgCount = 0
 	player.index = index
-	// player.conn = conn
+	player.closeConn = cr.CloseConn
+	player.writeConn = cr.WriteConn
+	player.msgMarshaller = marshaller
 	player.ConnectCheckTime = time.Now()
 	player.AutoSaveTime = player.ConnectCheckTime
 	player.Connected = PlayerConnected
@@ -123,8 +99,8 @@ func (m *objectManager) AddPlayer(ctx context.Context, pusher pusher) {
 	go func() {
 		for {
 			select {
-			case msg := <-player.pushChan:
-				pusher.Push(ctx, msg)
+			case msg := <-player.msgChan:
+				player.Write(msg)
 			case <-ctx.Done():
 				return // return ctx.Err()
 			}
@@ -143,7 +119,7 @@ func (m *objectManager) AddPlayer(ctx context.Context, pusher pusher) {
 	// 	msg.Result = ctx.(int)
 	// }
 	// h.Push(conn, &msg)
-	// return
+	return index, nil
 }
 
 func (m *objectManager) DeletePlayer(ctx context.Context) {

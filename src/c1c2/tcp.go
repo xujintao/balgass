@@ -19,8 +19,8 @@ var (
 	// LocalAddrContextKey is a context key.
 	LocalAddrContextKey = &contextKey{"local-addr"}
 
-	// player id
-	PlayerIDContextKey = &contextKey{"player-id"}
+	// user data
+	UserContextKey = &contextKey{"user"}
 )
 
 // contextKey is a value for use with context.WithValue. It's used as
@@ -31,16 +31,17 @@ type contextKey struct {
 
 func (k *contextKey) String() string { return "net/http context value " + k.name }
 
+type ConnRequest struct {
+	RemoteAddr string
+	WriteConn  func(*Response) error
+	CloseConn  func() error
+}
+
 // Handler callback user to handle request
 type Handler interface {
 	Handle(context.Context, *Request)
-	OnConn(context.Context, string, func(*Response)) (int, error)
+	OnConn(context.Context, *ConnRequest) (any, error)
 	OnClose(context.Context)
-}
-
-// ConnWriter pass to user on connect accpet
-type ConnWriter interface {
-	Write(*Response) error
 }
 
 // pool
@@ -106,7 +107,8 @@ type conn struct {
 	// This is never wrapped by other types and is the value given out
 	// to CloseNotifier callers. It is usually of type *net.TCPConn or
 	// *tls.Conn.
-	rwc net.Conn
+	rwc       net.Conn
+	closeOnce sync.Once
 
 	// remoteAddr is rwc.RemoteAddr().String(). It is not populated synchronously
 	// inside the Listener's Accept goroutine, as some implementations block.
@@ -131,9 +133,13 @@ func (c *conn) finalFlush() {
 	}
 }
 
-func (c *conn) close() {
-	c.finalFlush()
-	c.rwc.Close()
+func (c *conn) close() error {
+	c.closeOnce.Do(func() {
+		c.finalFlush()
+		c.rwc.Close()
+		c.server.trackConn(c, false)
+	})
+	return nil
 }
 
 func (c *conn) readRequest(ctx context.Context) (req *Request, err error) {
@@ -181,9 +187,7 @@ func (c *conn) serve(ctx context.Context) {
 		if h := c.server.Handler; h != nil {
 			h.OnClose(ctx)
 		}
-
 		c.close()
-		c.server.trackConn(c, false)
 	}()
 
 	ctx, cancelCtx := context.WithCancel(ctx)
@@ -193,33 +197,19 @@ func (c *conn) serve(ctx context.Context) {
 	c.bufr = newBufioReader(c.rwc)
 	c.bufw = newBufioWriteSize(c.rwc, 4<<10)
 
-	c.responseChan = make(chan *Response, 100)
-	go func() {
-		for {
-			select {
-			case r := <-c.responseChan:
-				frame, err := newFrame(r)
-				if err != nil {
-					log.Printf("newFrame failed [err]%v", err)
-				}
-				if _, err := c.bufw.Write(frame); err != nil {
-					log.Printf("c.bufw.Write failed [err]%v", err)
-				}
-				c.bufw.Flush()
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-
 	// callback OnConn
 	if h := c.server.Handler; h != nil {
-		id, err := h.OnConn(ctx, c.remoteAddr, c.Write)
+		cr := ConnRequest{
+			RemoteAddr: c.remoteAddr,
+			WriteConn:  c.write,
+			CloseConn:  c.close,
+		}
+		id, err := h.OnConn(ctx, &cr)
 		if err != nil {
 			log.Printf("OnConn failed [err]%v", err)
 			return
 		}
-		ctx = context.WithValue(ctx, PlayerIDContextKey, id)
+		ctx = context.WithValue(ctx, UserContextKey, id)
 	}
 
 	for {
@@ -239,8 +229,15 @@ func (c *conn) serve(ctx context.Context) {
 }
 
 // write
-func (c *conn) Write(r *Response) {
-	c.responseChan <- r
+func (c *conn) write(r *Response) error {
+	frame, err := newFrame(r)
+	if err != nil {
+		return err
+	}
+	if _, err := c.bufw.Write(frame); err != nil {
+		return err
+	}
+	return c.bufw.Flush()
 }
 
 // Server implements the specified protocol
@@ -316,7 +313,7 @@ func (s *Server) getDoneChanLocked() chan struct{} {
 
 // ErrServerClosed is returned by the Server's Serve, ServeTLS, ListenAndServe,
 // and ListenAndServeTLS methods after a call to Shutdown or Close.
-var ErrServerClosed = errors.New("http: Server closed")
+var ErrServerClosed = errors.New("tcp Server closed")
 
 // Close immediately closes all active net.Listeners and any
 // connections in state StateNew, StateActive, or StateIdle.
