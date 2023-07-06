@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block page_header%}
+<h3>Track your database</h3>
+{% endblock page_header%}
+
+{% block content %}
+<p>users</p>
+<ul>
+    {% for user in users %}
+    <li>
+        <p>{{user.id}} {{user.username}}</p>
+    </li>
+    {% endfor %}
+</ul>
+<p>topics</p>
+<ul>
+    {% for topic in topics %}
+    <li>
+        <p>{{topic.id}} {{topic.owner}} {{topic.text}}</p>
+    </li>
+    {% endfor %}
+</ul>
+<p>entries</p>
+<ul>
+    {% for entry in entries %}
+    <li>
+        <p>{{entry.id}} {{entry.topic}}. {{entry.text}}</p>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock content %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block page_header %}
+<h3>Welcome to GitHub!</h3>
+{% endblock page_header %}
+
+{% block content %}
+<form action="{% url 'signup' %}" method="post" class="form">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    <button name="submit" class="btn btn-primary">Sign up</button>
+    <input type="hidden" name="next" value="{% url 'home' %}">
+</form>
+{% endblock content %}
