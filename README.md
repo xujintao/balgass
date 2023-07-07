@@ -4,8 +4,8 @@
 
 ```
 # git clone
-git clone git@github.com:xujintao/py-web.git ~/github.com/xujintao/py-web
-cd ~/github.com/xujintao/py-web
+git clone git@github.com:xujintao/py-web.git py-web
+cd py-web
 
 # docker build
 docker build -t py-web:0.1 .
