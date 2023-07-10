@@ -13,7 +13,7 @@ import (
 )
 
 type MsgMarshaller interface {
-	Marshal(int, any) (*c1c2.Response, error)
+	Marshal(any) (*c1c2.Response, error)
 }
 
 type Player struct {
@@ -21,7 +21,6 @@ type Player struct {
 	Addr                          string
 	writeConn                     func(*c1c2.Response) error
 	closeConn                     func() error
-	msgMarshaller                 MsgMarshaller
 	msgChan                       chan any
 	AccountID                     string
 	AuthLevel                     int
@@ -125,14 +124,6 @@ type Player struct {
 
 func (player *Player) Push(msg any) {
 	player.msgChan <- msg
-}
-
-func (player *Player) Write(msg any) {
-	resp, err := player.msgMarshaller.Marshal(player.index, msg)
-	if err != nil {
-		log.Println(err)
-	}
-	player.writeConn(resp)
 }
 
 func (player *Player) MasterLevel() bool {

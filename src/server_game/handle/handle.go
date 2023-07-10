@@ -110,7 +110,7 @@ func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 	h.apiChan <- ctx
 }
 
-func (h *apiHandle) Marshal(id int, msg interface{}) (*c1c2.Response, error) {
+func (h *apiHandle) Marshal(msg interface{}) (*c1c2.Response, error) {
 	t := reflect.TypeOf(msg)
 	api, ok := h.apiOuts[t]
 	if !ok {
@@ -204,7 +204,8 @@ var apiIns = [...]*apiIn{
 
 var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x02, "out_chat_whisper", (*model.MsgWhisper)(nil)},
-	{0, false, 0xC1, 0xF100, "out_connect_result", (*model.MsgConnectResult)(nil)},
+	{0, false, 0xC1, 0xF100, "out_connect_success", (*model.MsgConnectSuccess)(nil)},
+	{0, false, 0xC1, 0xF101, "out_connect_failed", (*model.MsgConnectFailed)(nil)},
 	{0, false, 0xC1, 0xF311, "out_skill_list", (*model.MsgSkillList)(nil)},
 }
 

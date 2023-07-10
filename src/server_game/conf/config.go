@@ -49,6 +49,9 @@ var (
 
 	// Events represents event config for every server
 	Events configEvents
+
+	// MapServer
+	MapServers configMapServer
 )
 
 func init() {
@@ -73,6 +76,8 @@ func init() {
 	XML(path.Join(PathCommon, "IGC_PlayerKillSystem.xml"), &PK)
 	INISection(path.Join(PathCommon, "IGC_PriceSettings.ini"), "Value", &Price)
 	XML(path.Join(PathCommon, "events.xml"), &Events)
+	// XML(PathCommon, "IGC_MapServerInfo.xml", &MapServers)
+	XML(path.Join(PathCommon, "IGC_MapServerInfo.xml"), &MapServers)
 }
 
 func INI(file string, v interface{}) {
@@ -794,4 +799,38 @@ type configEvents struct {
 	LastManStanding struct {
 		Servers []eventServer `xml:"server"`
 	} `xml:"LastManStanding"`
+}
+
+// MapServer was generated 2023-07-10 22:54:22 by https://xml-to-go.github.io/ in Ukraine.
+type configMapServer struct {
+	XMLName    xml.Name `xml:"MapServer"`
+	Text       string   `xml:",chardata"`
+	ServerInfo struct {
+		Text    string `xml:",chardata"`
+		Version string `xml:"Version,attr"`
+		Serial  string `xml:"Serial,attr"`
+	} `xml:"ServerInfo"`
+	ServerList struct {
+		Text   string `xml:",chardata"`
+		Server []struct {
+			Text       string `xml:",chardata"`
+			Code       string `xml:"Code,attr"`
+			Group      string `xml:"Group,attr"`
+			Initiation string `xml:"Initiation,attr"`
+			IP         string `xml:"IP,attr"`
+			Port       string `xml:"Port,attr"`
+			Name       string `xml:"Name,attr"`
+		} `xml:"Server"`
+	} `xml:"ServerList"`
+	ServerMapping struct {
+		Text   string `xml:",chardata"`
+		Server []struct {
+			Text           string `xml:",chardata"`
+			Code           string `xml:"Code,attr"`
+			MoveAble       string `xml:"MoveAble,attr"`
+			MapNumber      string `xml:"MapNumber,attr"`
+			DestServerCode string `xml:"DestServerCode,attr"`
+			Name           string `xml:"Name,attr"`
+		} `xml:"Server"`
+	} `xml:"ServerMapping"`
 }

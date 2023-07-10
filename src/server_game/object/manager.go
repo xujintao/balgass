@@ -3,11 +3,13 @@ package object
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
 	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server_game/conf"
+	"github.com/xujintao/balgass/src/server_game/model"
 )
 
 var ObjectManager objectManager
@@ -55,6 +57,13 @@ func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, mar
 		// body := []byte{0x04}
 		// res.WriteHead2(0xC1, 0xF1, 0x01).Write(body)
 		// conn.Write(res)
+		// cr.WriteConn()
+		msg := model.MsgConnectFailed{Result: 4}
+		resp, err := marshaller.Marshal(msg)
+		if err != nil {
+			log.Println(err)
+		}
+		cr.WriteConn(resp)
 		return -1, fmt.Errorf("over max player count")
 	}
 
@@ -84,7 +93,6 @@ func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, mar
 	player.index = index
 	player.closeConn = cr.CloseConn
 	player.writeConn = cr.WriteConn
-	player.msgMarshaller = marshaller
 	player.ConnectCheckTime = time.Now()
 	player.AutoSaveTime = player.ConnectCheckTime
 	player.Connected = PlayerConnected
@@ -100,7 +108,12 @@ func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, mar
 		for {
 			select {
 			case msg := <-player.msgChan:
-				player.Write(msg)
+				// player.Write(msg)
+				resp, err := marshaller.Marshal(msg)
+				if err != nil {
+					log.Printf("marshaller.Marshal [index]%d [err]%v", index, err)
+				}
+				player.writeConn(resp)
 			case <-ctx.Done():
 				return // return ctx.Err()
 			}
@@ -111,14 +124,12 @@ func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, mar
 	m.objects[index] = player
 
 	// reply
-	// msg := model.MsgConnectResult{}
-	// ctx, err = game.OnConn(addr, conn, h)
-	// if err != nil {
-	// 	msg.Result = 0
-	// } else {
-	// 	msg.Result = ctx.(int)
-	// }
-	// h.Push(conn, &msg)
+	msg := model.MsgConnectSuccess{
+		Result:  1,
+		ID:      index,
+		Version: conf.MapServers.ServerInfo.Version,
+	}
+	player.Push(&msg)
 	return index, nil
 }
 

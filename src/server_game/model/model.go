@@ -19,21 +19,44 @@ type MsgLive struct {
 	ServerSeason int
 }
 
-type MsgConnectResult struct {
-	CBIPack struct{} `cbi:"1"`
-	Result  int      `cbi:"byte"`
-	ID      int      `cbi:"word,big"`
-	Version [5]uint8 `cbi:"byte"`
+// struct PMSG_RESULT
+//
+//	{
+//		PBMSG_HEAD h;
+//		unsigned char subcode;	// 3
+//		unsigned char result;	// 4
+//	};
+type MsgConnectFailed struct {
+	Result int
+}
+
+// #pragma pack (1)
+// struct PMSG_JOINRESULT
+//
+//	{
+//		PBMSG_HEAD h;	// C1:F1
+//		BYTE scode;	// 3
+//		BYTE result;	// 4
+//		BYTE NumberH;	// 5
+//		BYTE NumberL;	// 6
+//		BYTE CliVersion[8];	// 7
+//	};
+//
+// #pragma pack ()
+type MsgConnectSuccess struct {
+	Result  int
+	ID      int
+	Version string
 }
 
 type MsgUseItem struct {
-	InventoryPos       int `cbi:"byte"`
-	InventoryPosTarget int `cbi:"byte"`
-	ItemUseType        int `cbi:"byte"`
+	InventoryPos       int
+	InventoryPosTarget int
+	ItemUseType        int
 }
 
 type MsgLearnMasterSkill struct {
-	SkillIndex int `cbi:"dword"`
+	SkillIndex int
 }
 
 type MsgSkillList struct {
