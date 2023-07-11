@@ -1,8 +1,6 @@
 package item
 
 import (
-	"path"
-
 	"github.com/xujintao/balgass/src/server_game/conf"
 )
 
@@ -107,7 +105,7 @@ func init() {
 		} `xml:"ItemOption"`
 	}
 	var item380Xml Item380Xml
-	conf.XML(path.Join(conf.PathCommon, "Items/IGC_Item380Option.xml"), &item380Xml)
+	conf.XML(conf.PathCommon, "Items/IGC_Item380Option.xml", &item380Xml)
 	// convert
 	Item380Manager.items = make(map[int]map[int]*item380)
 	for _, item := range item380Xml.ItemOption.Items {

@@ -2,7 +2,6 @@ package item
 
 import (
 	"math/rand"
-	"path"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 )
@@ -110,7 +109,7 @@ func (o *excelManager) CommonEffect(id int) {}
 var ExcelManager excelManager
 
 func init() {
-	conf.XML(path.Join(conf.PathCommon, "Items/IGC_ExcellentOptions.xml"), &ExcelManager)
+	conf.XML(conf.PathCommon, "Items/IGC_ExcellentOptions.xml", &ExcelManager)
 }
 
 func dropRate(rates ...int) int {

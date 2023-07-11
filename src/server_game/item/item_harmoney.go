@@ -2,7 +2,6 @@ package item
 
 import (
 	"math/rand"
-	"path"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/lang"
@@ -97,13 +96,14 @@ type harmonyManager struct {
 	// harmonyJewelCode      int // 再生宝石
 	// refineStoneLowerCode  int // 低级进化宝石
 	// refineStoneHigherCode int // 高级进化宝石
-	Config struct {
+	HarmonySystem struct {
 		EnableHarmonyJewelMix bool `ini:"HarmonyJewelMix"`       // 合成再生宝石
 		EnableRefineStoneMix  bool `ini:"RefiningStoneMix"`      // 合成进化宝石
 		EnableStrengthenItem  bool `ini:"StrengthenItem"`        // 强化道具
 		EnableRestoreItem     bool `ini:"RestoreStrengthenItem"` // 还原道具
 		EnableRefineItem      bool `ini:"SmeltItem"`             // 进化道具
-
+	} `ini:"HarmonySystem"`
+	HarmonyMix struct {
 		HarmonyJewelMixSuccessRate      int `ini:"JewelOfHarmonyMixSuccessRate"` // 合成再生宝石
 		HarmonyJewelMixReqMoney         int `ini:"JewelOfHarmonyMixReqMoney"`
 		RefineStoneLowerMixSuccessRate  int `ini:"LowerRefiningStoneMixSuccessRate"` // 合成进化宝石
@@ -112,7 +112,7 @@ type harmonyManager struct {
 		StrengthenItemSuccessRate       int `ini:"StrengthenItemSuccessRate"`      // 强化道具
 		RefineItemLowerSuccessRate      int `ini:"SmeltingItemSuccessRate_Normal"` // 进化道具
 		RefineItemHigherSuccessRate     int `ini:"SmeltingItemSuccessRate_Enhanced"`
-	}
+	} `ini:"HarmonyMix"`
 	harmonys [][]harmony
 	items    []map[int]int
 }
@@ -163,7 +163,7 @@ func (o *harmonyManager) StrengthenItem(item *Item) (bool, error) {
 	if itemKind == harmonyItemNull {
 		return false, lang.MsgStrengthenFailed // invalid harmony item
 	}
-	if rand.Intn(100)+1 > o.Config.StrengthenItemSuccessRate {
+	if rand.Intn(100)+1 > o.HarmonyMix.StrengthenItemSuccessRate {
 		return true, lang.MsgStrengthenFailed // strengthen failed
 	}
 	o.addRandEffect(item, itemKind)
@@ -174,9 +174,7 @@ func (o *harmonyManager) StrengthenItem(item *Item) (bool, error) {
 var HarmonyManager harmonyManager
 
 func init() {
-	conf.INISection(path.Join(conf.PathCommon, "IGC_HarmonySystem.ini"), "HarmonySystem", &HarmonyManager.Config)
-	conf.INISection(path.Join(conf.PathCommon, "IGC_HarmonySystem.ini"), "HarmonyMix", &HarmonyManager.Config)
-	// conf.INI(path.Join(conf.PathCommon, "IGC_HarmonySystem.ini"), &HarmonyManager.config)
+	conf.INI(conf.PathCommon, "IGC_HarmonySystem.ini", &HarmonyManager)
 	type HarmonySystem struct {
 		Type []struct {
 			// ID          int    `xml:"ID,attr"`
@@ -195,7 +193,7 @@ func init() {
 		} `xml:"Type"`
 	}
 	var harmonySystem HarmonySystem
-	conf.XML(path.Join(conf.PathCommon, "Items/IGC_HarmonyItem_Option.xml"), &harmonySystem)
+	conf.XML(conf.PathCommon, "Items/IGC_HarmonyItem_Option.xml", &harmonySystem)
 	// convert
 	for _, harmonyType := range harmonySystem.Type {
 		var harmonys []harmony
@@ -220,7 +218,7 @@ func init() {
 		} `xml:"Section"`
 	}
 	var smeltItem SmeltItem
-	conf.XML(path.Join(conf.PathCommon, "Items/IGC_HarmonyItem_Smelt.xml"), &smeltItem)
+	conf.XML(conf.PathCommon, "Items/IGC_HarmonyItem_Smelt.xml", &smeltItem)
 	// convert
 	HarmonyManager.items = make([]map[int]int, len(smeltItem.Section))
 	for _, section := range smeltItem.Section {

@@ -28,11 +28,11 @@ type objectManager struct {
 type object any
 
 func (m *objectManager) init() {
-	m.maxObjectCount = conf.Server.MaxMonsterCount + conf.Server.MaxSummonMonsterCount + conf.Server.MaxPlayerCount
+	m.maxObjectCount = conf.Server.GameServerInfo.MaxMonsterCount + conf.Server.GameServerInfo.MaxSummonMonsterCount + conf.Server.GameServerInfo.MaxPlayerCount
 	m.objects = make([]object, m.maxObjectCount)
 	// objectBills = make([]bill, conf.Server.MaxPlayerCount)
 	// 先有怪后有玩家
-	m.playerStartIndex = conf.Server.MaxMonsterCount + conf.Server.MaxSummonMonsterCount
+	m.playerStartIndex = conf.Server.GameServerInfo.MaxMonsterCount + conf.Server.GameServerInfo.MaxSummonMonsterCount
 	m.lastPlayerIndex = m.playerStartIndex
 }
 
@@ -51,7 +51,7 @@ var poolPlayer = sync.Pool{
 
 func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, marshaller MsgMarshaller) (int, error) {
 	// limit max player count
-	if m.playerCount >= conf.Server.MaxPlayerCount {
+	if m.playerCount >= conf.Server.GameServerInfo.MaxPlayerCount {
 		// reply
 		// res := &network.Response{}
 		// body := []byte{0x04}
@@ -69,7 +69,7 @@ func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, mar
 
 	// get unified object index
 	index := m.lastPlayerIndex
-	cnt := conf.Server.MaxPlayerCount
+	cnt := conf.Server.GameServerInfo.MaxPlayerCount
 	for cnt > 0 {
 		if m.objects[index] == nil {
 			break

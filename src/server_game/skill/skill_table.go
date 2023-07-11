@@ -1,8 +1,6 @@
 package skill
 
 import (
-	"path"
-
 	"github.com/xujintao/balgass/src/server_game/class"
 	"github.com/xujintao/balgass/src/server_game/conf"
 )
@@ -14,7 +12,7 @@ func init() {
 		Skills []*SkillBase `xml:"Skill"`
 	}
 	var skillList skillListConfig
-	conf.XML(path.Join(conf.PathCommon, "Skills/IGC_SkillList.xml"), &skillList)
+	conf.XML(conf.PathCommon, "Skills/IGC_SkillList.xml", &skillList)
 
 	// array -> map
 	SkillTable = make(map[int]*SkillBase)

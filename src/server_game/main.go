@@ -26,7 +26,7 @@ func main() {
 	// start tcp server
 	log.Printf("start tcp server")
 	server := c1c2.Server{
-		Addr:    fmt.Sprintf(":%d", conf.Server.Port),
+		Addr:    fmt.Sprintf(":%d", conf.Server.GameServerInfo.Port),
 		Handler: &handle.APIHandleDefault,
 		NeedXor: true,
 	}

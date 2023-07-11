@@ -1,8 +1,6 @@
 package skill
 
 import (
-	"path"
-
 	"github.com/xujintao/balgass/src/server_game/conf"
 )
 
@@ -27,7 +25,7 @@ func init() {
 		} `xml:"Class"`
 	}
 	var skillMasterTree skillMasterTreeConfig
-	conf.XML(path.Join(conf.PathCommon, "IGC_MasterSkillTree.xml"), &skillMasterTree)
+	conf.XML(conf.PathCommon, "IGC_MasterSkillTree.xml", &skillMasterTree)
 	SkillMasterTable = make(skillMasterTable)
 	for _, v := range skillMasterTree.Class {
 		for _, v := range v.Tree {

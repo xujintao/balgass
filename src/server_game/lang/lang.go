@@ -3,7 +3,6 @@ package lang
 import (
 	"fmt"
 	"log"
-	"path"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 )
@@ -19,7 +18,7 @@ func init() {
 		} `xml:"Lang"`
 	}
 	var langBase langBaseConfig
-	conf.XML(path.Join(conf.PathCommon, "IGC_LangBase.xml"), &langBase)
+	conf.XML(conf.PathCommon, "IGC_LangBase.xml", &langBase)
 	var valid bool
 	for _, lang := range langBase.Lang {
 		if lang.Enable {
@@ -38,7 +37,7 @@ func init() {
 				} `xml:"Map"`
 			}
 			var language languageConfig
-			conf.XML(path.Join(conf.PathCommon, fmt.Sprintf("Langs/%s", lang.FileName)), &language)
+			conf.XML(conf.PathCommon, fmt.Sprintf("Langs/%s", lang.FileName), &language)
 			// msg
 			textManagerDefault.textMsgs = make(map[int]string)
 			for _, msg := range language.Message.Msg {

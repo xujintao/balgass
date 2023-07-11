@@ -66,22 +66,22 @@ func init() {
 		PathCommon = "../../config/common/IGCData"
 		log.Printf("$COMMON_PATH is %q, use default %q", "", PathCommon)
 	}
-	INISection(path.Join(PathConfig, "GameServer.ini"), "GameServerInfo", &Server)
-	XML(path.Join(PathConfig, "IGC_ConnectMember.xml"), &ConnectMember)
-	XML(path.Join(PathConfig, "IGC_VipSettings.xml"), &VipSystem)
-	INI(path.Join(PathCommon, "IGC_Common.ini"), &Common)
-	XML(path.Join(PathCommon, "IGC_ChaosBox.xml"), &ChaosBox)
-	XML(path.Join(PathCommon, "IGC_PetSettings.xml"), &PetRing)
-	XML(path.Join(PathCommon, "IGC_OffTrade.xml"), &OffTrade)
-	XML(path.Join(PathCommon, "IGC_CalcCharacter.xml"), &CalcChar)
-	XML(path.Join(PathCommon, "IGC_PlayerKillSystem.xml"), &PK)
-	INISection(path.Join(PathCommon, "IGC_PriceSettings.ini"), "Value", &Price)
-	XML(path.Join(PathCommon, "events.xml"), &Events)
-	// XML(PathCommon, "IGC_MapServerInfo.xml", &MapServers)
-	XML(path.Join(PathCommon, "IGC_MapServerInfo.xml"), &MapServers)
+	INI(PathConfig, "GameServer.ini", &Server)
+	XML(PathConfig, "IGC_ConnectMember.xml", &ConnectMember)
+	XML(PathConfig, "IGC_VipSettings.xml", &VipSystem)
+	INI(PathCommon, "IGC_Common.ini", &Common)
+	XML(PathCommon, "IGC_ChaosBox.xml", &ChaosBox)
+	XML(PathCommon, "IGC_PetSettings.xml", &PetRing)
+	XML(PathCommon, "IGC_OffTrade.xml", &OffTrade)
+	XML(PathCommon, "IGC_CalcCharacter.xml", &CalcChar)
+	XML(PathCommon, "IGC_PlayerKillSystem.xml", &PK)
+	INI(PathCommon, "IGC_PriceSettings.ini", &Price)
+	XML(PathCommon, "events.xml", &Events)
+	XML(PathCommon, "IGC_MapServerInfo.xml", &MapServers)
 }
 
-func INI(file string, v interface{}) {
+func INI(dir, file string, v interface{}) {
+	file = path.Join(dir, file)
 	log.Printf("Load %s", file)
 	f, err := ini.Load(file)
 	if err != nil {
@@ -92,18 +92,8 @@ func INI(file string, v interface{}) {
 	}
 }
 
-func INISection(file, section string, v interface{}) {
-	log.Printf("Load %s[%s]", file, section)
-	f, err := ini.Load(file)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if err := f.Section(section).MapTo(v); err != nil {
-		log.Fatalln(err)
-	}
-}
-
-func XML(file string, v interface{}) {
+func XML(dir, file string, v interface{}) {
+	file = path.Join(dir, file)
 	log.Printf("Load %s", file)
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -115,26 +105,28 @@ func XML(file string, v interface{}) {
 }
 
 type configServer struct {
-	Name                string `ini:"ServerName"`
-	Code                int    `ini:"ServerCode"`
-	NonPVP              bool   `ini:"NonPK"`
-	EnableConnectMember bool   `ini:"ConnectMemberLoad"`
-	Type                int    `ini:"ServerType"`
-	Port                int    `ini:"GameServerPort"`
-	ConnectServerIP     string `ini:"ConnectServerIP"`
-	ConnectServerPort   int    `ini:"ConnectServerPort"`
-	JoinServerIP        string `ini:"JoinServerIP"`
-	JoinServerPort      int    `ini:"JoinServerPort"`
-	DataServerIP        string `ini:"DataServerIP"`
-	DataServerPort      int    `ini:"DataServerPort"`
-	ExDBIP              string `ini:"ExDBIP"`
-	ExDBPort            int    `ini:"ExDBPort"`
-	MaxConnectCount     int    `ini:"MachineIDConnectionLimitCount"`
-	// Log
-	MaxPlayerCount        int `ini:"PlayerCount"`
-	MaxMonsterCount       int `ini:"MonsterCount"`
-	MaxSummonMonsterCount int `ini:"SummonMonsterCount"`
-	MaxObjectItemCount    int `ini:"MapItemCount"`
+	GameServerInfo struct {
+		Name                string `ini:"ServerName"`
+		Code                int    `ini:"ServerCode"`
+		NonPVP              bool   `ini:"NonPK"`
+		EnableConnectMember bool   `ini:"ConnectMemberLoad"`
+		Type                int    `ini:"ServerType"`
+		Port                int    `ini:"GameServerPort"`
+		ConnectServerIP     string `ini:"ConnectServerIP"`
+		ConnectServerPort   int    `ini:"ConnectServerPort"`
+		JoinServerIP        string `ini:"JoinServerIP"`
+		JoinServerPort      int    `ini:"JoinServerPort"`
+		DataServerIP        string `ini:"DataServerIP"`
+		DataServerPort      int    `ini:"DataServerPort"`
+		ExDBIP              string `ini:"ExDBIP"`
+		ExDBPort            int    `ini:"ExDBPort"`
+		MaxConnectCount     int    `ini:"MachineIDConnectionLimitCount"`
+		// Log
+		MaxPlayerCount        int `ini:"PlayerCount"`
+		MaxMonsterCount       int `ini:"MonsterCount"`
+		MaxSummonMonsterCount int `ini:"SummonMonsterCount"`
+		MaxObjectItemCount    int `ini:"MapItemCount"`
+	} `ini:"configServer"`
 }
 
 type configConnectMember struct {
@@ -727,16 +719,18 @@ type configPK struct {
 }
 
 type configItemPrice struct {
-	ItemSellPriceDivisor int `ini:"ItemSellPriceDivisor"`
-	JewelOfBlessPrice    int `ini:"JewelOfBlessPrice"`
-	JewelOfSoulPrice     int `ini:"JewelOfSoulPrice"`
-	JewelOfChaosPrice    int `ini:"JewelOfChaosPrice"`
-	JewelOfLifePrice     int `ini:"JewelOfLifePrice"`
-	JewelOfCreationPrice int `ini:"JewelOfCreationPrice"`
-	CrestOfMonarchPrice  int `ini:"CrestOfMonarchPrice"`
-	LochFeatherPrice     int `ini:"LochFeatherPrice"`
-	JewelOfGuardianPrice int `ini:"JewelOfGuardianPrice"`
-	WereRabbitEggPrice   int `ini:"WereRabbitEggPrice"`
+	Value struct {
+		ItemSellPriceDivisor int `ini:"ItemSellPriceDivisor"`
+		JewelOfBlessPrice    int `ini:"JewelOfBlessPrice"`
+		JewelOfSoulPrice     int `ini:"JewelOfSoulPrice"`
+		JewelOfChaosPrice    int `ini:"JewelOfChaosPrice"`
+		JewelOfLifePrice     int `ini:"JewelOfLifePrice"`
+		JewelOfCreationPrice int `ini:"JewelOfCreationPrice"`
+		CrestOfMonarchPrice  int `ini:"CrestOfMonarchPrice"`
+		LochFeatherPrice     int `ini:"LochFeatherPrice"`
+		JewelOfGuardianPrice int `ini:"JewelOfGuardianPrice"`
+		WereRabbitEggPrice   int `ini:"WereRabbitEggPrice"`
+	} `ini:"Value"`
 }
 
 type eventServer struct {

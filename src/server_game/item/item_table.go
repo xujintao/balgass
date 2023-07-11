@@ -2,7 +2,6 @@ package item
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/xujintao/balgass/src/server_game/class"
 	"github.com/xujintao/balgass/src/server_game/conf"
@@ -17,7 +16,7 @@ func init() {
 		} `xml:"Section"`
 	}
 	var itemList itemListConfig
-	conf.XML(path.Join(conf.PathCommon, "Items/IGC_ItemList.xml"), &itemList)
+	conf.XML(conf.PathCommon, "Items/IGC_ItemList.xml", &itemList)
 
 	// [][]array -> []map
 	ItemTable = make(itemTable, len(itemList.Sections))

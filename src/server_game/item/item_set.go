@@ -1,8 +1,6 @@
 package item
 
 import (
-	"path"
-
 	"github.com/xujintao/balgass/src/server_game/conf"
 )
 
@@ -119,7 +117,7 @@ func init() {
 		} `xml:"Section"`
 	}
 	var setItemXml SetItemXml
-	conf.XML(path.Join(conf.PathCommon, "Items/IGC_ItemSetType.xml"), &setItemXml)
+	conf.XML(conf.PathCommon, "Items/IGC_ItemSetType.xml", &setItemXml)
 	// convert
 	SetManager.items = make([]map[int]*setItem, len(setItemXml.Sections))
 	for _, section := range setItemXml.Sections {
@@ -189,7 +187,7 @@ func init() {
 		} `xml:"SetItem"`
 	}
 	var setXml SetXml
-	conf.XML(path.Join(conf.PathCommon, "Items/IGC_ItemSetOption.xml"), &setXml)
+	conf.XML(conf.PathCommon, "Items/IGC_ItemSetOption.xml", &setXml)
 	// convert
 	SetManager.sets = make(map[int]*set)
 	for _, s := range setXml.Sets {
