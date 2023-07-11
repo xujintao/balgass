@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
@@ -39,7 +38,7 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 		h.apiIns[v.code] = v
 	}
 	// egress
-	h.apiOuts = make(map[interface{}]*apiOut)
+	h.apiOuts = make(map[any]*apiOut)
 	for _, v := range apiOuts {
 		t := reflect.TypeOf(v.msg)
 		if t.Kind() != reflect.Ptr {
@@ -110,14 +109,28 @@ func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 	h.apiChan <- ctx
 }
 
-func (h *apiHandle) Marshal(msg interface{}) (*c1c2.Response, error) {
-	t := reflect.TypeOf(msg)
+func (h *apiHandle) Marshal(msg any) (*c1c2.Response, error) {
+	v := reflect.ValueOf(msg)
+	t := v.Type()
 	api, ok := h.apiOuts[t]
 	if !ok {
 		err := fmt.Errorf("%s has not yet be registered to api table", t.String())
 		return nil, err
 	}
-	data, _ := json.Marshal(msg)
+	if _, ok := t.MethodByName("Marshal"); !ok {
+		err := fmt.Errorf("%s has no Marshal Method", t.String())
+		return nil, err
+	}
+	rets := v.MethodByName("Marshal").Call(nil)
+	if len(rets) != 2 {
+		err := fmt.Errorf("%s Marshal Method signature is invalid", t.String())
+		return nil, err
+	}
+	data := rets[0].Bytes()
+	err := rets[1].Interface()
+	if err != nil {
+		return nil, err.(error)
+	}
 	var buf bytes.Buffer
 	if api.code>>8 != 0 {
 		var codes [2]uint8
@@ -127,8 +140,11 @@ func (h *apiHandle) Marshal(msg interface{}) (*c1c2.Response, error) {
 		buf.WriteByte(uint8(api.code))
 	}
 	buf.Write(data)
+
 	var resp c1c2.Response
-	return resp.WriteHead(uint8(api.flag)).Write(buf.Bytes()), nil
+	resp.WriteHead(uint8(api.flag))
+	resp.Write(buf.Bytes())
+	return &resp, nil
 }
 
 type connRequest struct {
@@ -189,7 +205,7 @@ type apiOut struct {
 	flag int // 0xC1 or 0xC2
 	code int
 	name string
-	msg  interface{}
+	msg  any
 }
 
 var apiIns = [...]*apiIn{

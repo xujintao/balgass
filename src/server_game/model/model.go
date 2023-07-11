@@ -1,5 +1,9 @@
 package model
 
+import (
+	"bytes"
+)
+
 type MsgChat struct {
 	Name string
 	Msg  string
@@ -28,6 +32,12 @@ type MsgLive struct {
 //	};
 type MsgConnectFailed struct {
 	Result int
+}
+
+func (msg *MsgConnectFailed) Marshal() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteByte(byte(msg.Result))
+	return buf.Bytes(), nil
 }
 
 // #pragma pack (1)
