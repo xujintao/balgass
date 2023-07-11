@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -17,11 +16,6 @@ import (
 func main() {
 	exit := make(chan os.Signal)
 	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
-
-	// start handle
-	log.Printf("start handle")
-	ctx, cancel := context.WithCancel(context.Background())
-	handle.APIHandleDefault.Start(ctx)
 
 	// start tcp server
 	log.Printf("start tcp server")
@@ -44,7 +38,6 @@ func main() {
 	server.Close()
 
 	// close handle
-	log.Printf("close handle")
-	cancel()
+	handle.APIHandleDefault.Close()
 	time.Sleep(2 * time.Second)
 }

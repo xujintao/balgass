@@ -12,6 +12,10 @@ import (
 	"github.com/xujintao/balgass/src/server_game/model"
 )
 
+func init() {
+	ObjectManager.init()
+}
+
 var ObjectManager objectManager
 
 type objectManager struct {
@@ -49,7 +53,7 @@ var poolPlayer = sync.Pool{
 	},
 }
 
-func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, marshaller MsgMarshaller) (int, error) {
+func (m *objectManager) AddPlayer(cr *c1c2.ConnRequest, marshaller MsgMarshaller) (int, error) {
 	// limit max player count
 	if m.playerCount >= conf.Server.GameServerInfo.MaxPlayerCount {
 		// reply
@@ -59,9 +63,9 @@ func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, mar
 		// conn.Write(res)
 		// cr.WriteConn()
 		msg := model.MsgConnectFailed{Result: 4}
-		resp, err := marshaller.Marshal(msg)
+		resp, err := marshaller.Marshal(&msg)
 		if err != nil {
-			log.Println(err)
+			return -1, err
 		}
 		cr.WriteConn(resp)
 		return -1, fmt.Errorf("over max player count")
@@ -91,8 +95,12 @@ func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, mar
 	player.LoginMsgSend = false
 	player.LoginMsgCount = 0
 	player.index = index
+	player.addr = cr.RemoteAddr
 	player.closeConn = cr.CloseConn
 	player.writeConn = cr.WriteConn
+	player.msgChan = make(chan any, 100)
+	ctx, cancel := context.WithCancel(context.Background())
+	player.cancel = cancel
 	player.ConnectCheckTime = time.Now()
 	player.AutoSaveTime = player.ConnectCheckTime
 	player.Connected = PlayerConnected
@@ -108,7 +116,6 @@ func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, mar
 		for {
 			select {
 			case msg := <-player.msgChan:
-				// player.Write(msg)
 				resp, err := marshaller.Marshal(msg)
 				if err != nil {
 					log.Printf("marshaller.Marshal [index]%d [err]%v", index, err)
@@ -130,14 +137,22 @@ func (m *objectManager) AddPlayer(ctx context.Context, cr *c1c2.ConnRequest, mar
 		Version: conf.MapServers.ServerInfo.Version,
 	}
 	player.Push(&msg)
+	log.Printf("player online [id]%d [addr]%s", player.index, player.addr)
 	return index, nil
 }
 
-func (m *objectManager) DeletePlayer(ctx context.Context) {
-	player := ctx.Value(nil).(*Player)
+func (m *objectManager) DeletePlayer(id int) {
+	player := m.objects[id].(*Player)
+	player.cancel()
+
+	log.Printf("player offline [id]%d [addr]%s", player.index, player.addr)
 	poolPlayer.Put(player)
 
 	// unregister player from object manager
 	m.objects[player.index] = nil
 	m.playerCount--
+}
+
+func (m *objectManager) GetPlayer(id int) *Player {
+	return m.objects[id].(*Player)
 }

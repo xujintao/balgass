@@ -113,7 +113,7 @@ type Object struct {
 	LoginMsgSend               bool
 	LoginMsgCount              byte
 	CloseCount                 byte
-	CloseTYpe                  byte
+	CloseType                  byte
 	EnableCharacterDel         bool
 	UserNumber                 int
 	DBNumber                   int

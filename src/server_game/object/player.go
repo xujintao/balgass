@@ -1,6 +1,7 @@
 package object
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -18,10 +19,11 @@ type MsgMarshaller interface {
 
 type Player struct {
 	Object
-	Addr                          string
+	addr                          string
 	writeConn                     func(*c1c2.Response) error
 	closeConn                     func() error
 	msgChan                       chan any
+	cancel                        context.CancelFunc
 	AccountID                     string
 	AuthLevel                     int
 	hwid                          string
@@ -124,6 +126,10 @@ type Player struct {
 
 func (player *Player) Push(msg any) {
 	player.msgChan <- msg
+}
+
+func (player *Player) Test(msg *model.MsgTest) {
+	player.Push(msg)
 }
 
 func (player *Player) MasterLevel() bool {
@@ -383,7 +389,7 @@ func (player *Player) Calc380Item() {
 }
 
 func (player *Player) Chat(msg *model.MsgChat) {
-
+	log.Println(msg.Name, msg.Msg)
 }
 
 func (player *Player) Whisper(msg *model.MsgWhisper) {

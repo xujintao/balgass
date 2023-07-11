@@ -126,7 +126,7 @@ type configServer struct {
 		MaxMonsterCount       int `ini:"MonsterCount"`
 		MaxSummonMonsterCount int `ini:"SummonMonsterCount"`
 		MaxObjectItemCount    int `ini:"MapItemCount"`
-	} `ini:"configServer"`
+	} `ini:"GameServerInfo"`
 }
 
 type configConnectMember struct {

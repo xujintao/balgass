@@ -2,11 +2,38 @@ package model
 
 import (
 	"bytes"
+	"encoding/binary"
 )
+
+type MsgTest struct{}
+
+func (msg *MsgTest) Marshal() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteByte(0x01)
+	return buf.Bytes(), nil
+}
+
+func (msg *MsgTest) Unmarshal([]byte) error {
+	return nil
+}
 
 type MsgChat struct {
 	Name string
 	Msg  string
+}
+
+func (*MsgChat) Unmarshal([]byte) error {
+	// var buf bytes.Buffer
+	// buf.WriteByte(byte(msg.Result))
+	// var ids [2]uint8
+	// binary.BigEndian.PutUint16(ids[:], uint16(msg.ID))
+	// buf.Write(ids[:])
+	// buf.WriteString(msg.Version)
+	// return buf.Bytes(), nil
+	var msg MsgChat
+	msg.Name = "api"
+	msg.Msg = "hello world"
+	return nil
 }
 
 type MsgWhisper struct {
@@ -57,6 +84,16 @@ type MsgConnectSuccess struct {
 	Result  int
 	ID      int
 	Version string
+}
+
+func (msg *MsgConnectSuccess) Marshal() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteByte(byte(msg.Result))
+	var ids [2]uint8
+	binary.BigEndian.PutUint16(ids[:], uint16(msg.ID))
+	buf.Write(ids[:])
+	buf.WriteString(msg.Version)
+	return buf.Bytes(), nil
 }
 
 type MsgUseItem struct {

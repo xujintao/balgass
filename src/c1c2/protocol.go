@@ -50,6 +50,10 @@ func (r *Response) Write(buf []byte) *Response {
 	return r
 }
 
+func (r *Response) Body() []byte {
+	return r.body
+}
+
 // readFrame read frame from bufio.Reader
 func readFrame(br *bufio.Reader) ([]byte, error) {
 	for {

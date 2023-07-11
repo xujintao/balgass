@@ -22,10 +22,11 @@ var APIHandleDefault apiHandle
 
 type apiHandle struct {
 	apiIns               map[int]*apiIn
-	apiOuts              map[interface{}]*apiOut
+	apiOuts              map[any]*apiOut
 	connRequestChan      chan *connRequest
-	closeConnRequestChan chan context.Context
-	apiChan              chan context.Context
+	closeConnRequestChan chan *closeConnRequest
+	apiChan              chan *apiRequest
+	cancel               context.CancelFunc
 }
 
 func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
@@ -33,7 +34,7 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	h.apiIns = make(map[int]*apiIn)
 	for _, v := range apiIns {
 		if vv, ok := h.apiIns[v.code]; ok {
-			log.Printf("duplicated api code[%d] name[%s] with code[%d] name[%s]", v.code, v.name, vv.code, vv.name)
+			log.Printf("duplicated api code[%d] handle[%s] with code[%d] handle[%s]", v.code, v.handle, vv.code, vv.handle)
 		}
 		h.apiIns[v.code] = v
 	}
@@ -48,25 +49,36 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	}
 
 	h.connRequestChan = make(chan *connRequest, 100)
-	h.closeConnRequestChan = make(chan context.Context, 100)
-	h.apiChan = make(chan context.Context, 1000)
+	h.closeConnRequestChan = make(chan *closeConnRequest, 100)
+	h.apiChan = make(chan *apiRequest, 1000)
+
+	// start handle
+	log.Printf("start handle")
+	ctx, cancel := context.WithCancel(context.Background())
+	h.cancel = cancel
+	h.start(ctx)
 }
 
-func (h *apiHandle) Start(ctx context.Context) {
+func (h *apiHandle) start(ctx context.Context) {
 	go func() {
 		for {
 			select {
 			case connReq := <-h.connRequestChan:
-				id, err := object.ObjectManager.AddPlayer(ctx, connReq.ConnRequest, h)
+				id, err := object.ObjectManager.AddPlayer(connReq.ConnRequest, h)
 				connResp := connResponse{id: id, err: err}
 				connReq.connResponseChan <- &connResp
-			case ctx := <-h.closeConnRequestChan:
-				object.ObjectManager.DeletePlayer(ctx)
-			case ctx := <-h.apiChan:
-				api := ctx.Value(nil).(*apiIn)
-				obj := ctx.Value(nil)
-				handle := reflect.ValueOf(api.handle)
-				handle.Call([]reflect.Value{reflect.ValueOf(obj), reflect.ValueOf(api.msg)})
+			case closeConnReq := <-h.closeConnRequestChan:
+				id := closeConnReq.id
+				object.ObjectManager.DeletePlayer(id)
+				closeConnReq.closeConnResponseChan <- &closeConnResponse{}
+			case apiReq := <-h.apiChan:
+				id := apiReq.id
+				handle := apiReq.handle
+				msg := apiReq.msg
+				player := object.ObjectManager.GetPlayer(id)
+				// player.Chat(msg)
+				in := []reflect.Value{reflect.ValueOf(msg)}
+				reflect.ValueOf(player).MethodByName(handle).Call(in)
 			case <-ctx.Done():
 				// todo
 				return
@@ -75,8 +87,25 @@ func (h *apiHandle) Start(ctx context.Context) {
 	}()
 }
 
+func (h *apiHandle) Close() {
+	log.Printf("close handle")
+	h.cancel()
+}
+
+type apiRequest struct {
+	id     int
+	handle string
+	msg    any
+}
+
 // Handle *apiHandle implements c1c2.Handler
 func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
+	v := ctx.Value(c1c2.UserContextKey)
+	if v == nil {
+		return
+	}
+	id := v.(int)
+
 	var api *apiIn
 	var ok bool
 	code := int(req.Body[0])
@@ -93,7 +122,7 @@ func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 
 	// validate encrypt
 	if api.enc && !req.Encrypt {
-		log.Printf("[%d][%s] not encrypt", api.code, api.name)
+		log.Printf("[%d][%s] not encrypt", api.code, api.handle)
 		// return
 	}
 
@@ -104,9 +133,21 @@ func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 	// }
 
 	// cbi.Unmarshal(req.Body, api.msg)
-	// api.handle(obj, api.msg) // reflect call
-	ctx = context.WithValue(ctx, "msg", api.msg)
-	h.apiChan <- ctx
+	in := []reflect.Value{reflect.ValueOf(req.Body)}
+	msg := reflect.New(reflect.TypeOf(api.msg).Elem())
+	out := msg.MethodByName("Unmarshal").Call(in)
+	err := out[0].Interface()
+	if err != nil {
+		log.Printf("%s UnMarshal failed", msg.String())
+		return
+	}
+
+	apiReq := apiRequest{
+		id:     id,
+		handle: api.handle,
+		msg:    msg.Interface(),
+	}
+	h.apiChan <- &apiReq
 }
 
 func (h *apiHandle) Marshal(msg any) (*c1c2.Response, error) {
@@ -163,21 +204,32 @@ func (h *apiHandle) OnConn(ctx context.Context, cr *c1c2.ConnRequest) (any, erro
 		ConnRequest:      cr,
 		connResponseChan: make(chan *connResponse),
 	}
+	h.connRequestChan <- &connReq
+	connResp := <-connReq.connResponseChan
+	return connResp.id, connResp.err
+}
 
-	for {
-		select {
-		case h.connRequestChan <- &connReq:
-		case connResp := <-connReq.connResponseChan:
-			return connResp.id, connResp.err
-		case <-ctx.Done():
-			return -1, ctx.Err()
-		}
-	}
+type closeConnRequest struct {
+	id                    int
+	closeConnResponseChan chan *closeConnResponse
+}
+
+type closeConnResponse struct {
 }
 
 // OnClose implements c1c2.Handler.OnConn
 func (h *apiHandle) OnClose(ctx context.Context) {
-	h.closeConnRequestChan <- ctx
+	v := ctx.Value(c1c2.UserContextKey)
+	if v == nil {
+		return
+	}
+	id := v.(int)
+	closeConnReq := closeConnRequest{
+		id:                    id,
+		closeConnResponseChan: make(chan *closeConnResponse),
+	}
+	h.closeConnRequestChan <- &closeConnReq
+	<-closeConnReq.closeConnResponseChan
 }
 
 type AuthLevel int
@@ -194,9 +246,8 @@ type apiIn struct {
 	enc    bool
 	level  AuthLevel
 	code   int
-	name   string
-	handle interface{}
-	msg    interface{}
+	handle string
+	msg    any
 }
 
 type apiOut struct {
@@ -209,13 +260,13 @@ type apiOut struct {
 }
 
 var apiIns = [...]*apiIn{
-	{0, false, Player, 0x00, "in_chat", chat, (*model.MsgChat)(nil)},
-	{0, false, Player, 0x02, "in_whisper", whisper, (*model.MsgWhisper)(nil)},
-	{0, false, Player, 0x0E, "in_live", live, (*model.MsgLive)(nil)},
-	{0, false, Player, 0x26, "in_use_item", useItem, (*model.MsgUseItem)(nil)},
-	{0, false, Player, 0xF352, "in_learn_master_skill", learnMasterSkill, (*model.MsgLearnMasterSkill)(nil)},
+	{0, false, Player, 0x00, "Chat", (*model.MsgChat)(nil)},
+	{0, false, Player, 0x02, "Whisper", (*model.MsgWhisper)(nil)},
+	{0, false, Player, 0x0E, "Live", (*model.MsgLive)(nil)},
+	{0, false, Player, 0x26, "UseItem", (*model.MsgUseItem)(nil)},
+	{0, false, Player, 0xF352, "LearnMasterSkill", (*model.MsgLearnMasterSkill)(nil)},
 	// {0, false, Guest, "in_login", 0xF101, game.Login, game.Login, game.SetAuthLevel},
-
+	{0, false, Player, 0xFFFF, "Test", (*model.MsgTest)(nil)},
 }
 
 var apiOuts = [...]*apiOut{
@@ -223,26 +274,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0xF100, "out_connect_success", (*model.MsgConnectSuccess)(nil)},
 	{0, false, 0xC1, 0xF101, "out_connect_failed", (*model.MsgConnectFailed)(nil)},
 	{0, false, 0xC1, 0xF311, "out_skill_list", (*model.MsgSkillList)(nil)},
-}
-
-func chat(player *object.Player, msg *model.MsgChat) {
-	player.Chat(msg)
-}
-
-func whisper(player *object.Player, msg *model.MsgWhisper) {
-	player.Whisper(msg)
-}
-
-func live(player *object.Player, msg *model.MsgLive) {
-	player.Live(msg)
-}
-
-func useItem(player *object.Player, msg *model.MsgUseItem) {
-	player.UseItem(msg)
-}
-
-func learnMasterSkill(player *object.Player, msg *model.MsgLearnMasterSkill) {
-	player.LearnMasterSkill(msg)
+	{0, false, 0xC1, 0xFFFF, "out_test", (*model.MsgTest)(nil)},
 }
 
 /*
