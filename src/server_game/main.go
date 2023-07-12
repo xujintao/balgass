@@ -10,12 +10,17 @@ import (
 
 	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server_game/conf"
+	"github.com/xujintao/balgass/src/server_game/game"
 	"github.com/xujintao/balgass/src/server_game/handle"
 )
 
 func main() {
 	exit := make(chan os.Signal)
 	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
+
+	// start game
+	log.Println("start game")
+	game.Start()
 
 	// start tcp server
 	log.Printf("start tcp server")
@@ -34,10 +39,11 @@ func main() {
 	log.Println("SIGINT or SIGTERM")
 
 	// close tcp server
-	log.Printf("close tcp server")
+	log.Println("close tcp server")
 	server.Close()
 
 	// close handle
-	handle.APIHandleDefault.Close()
+	log.Println("close game")
+	game.Close()
 	time.Sleep(2 * time.Second)
 }

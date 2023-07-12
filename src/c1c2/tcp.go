@@ -31,17 +31,17 @@ type contextKey struct {
 
 func (k *contextKey) String() string { return "net/http context value " + k.name }
 
-type ConnRequest struct {
+type Conn struct {
 	RemoteAddr string
-	WriteConn  func(*Response) error
-	CloseConn  func() error
+	Write      func(*Response) error
+	Close      func() error
 }
 
 // Handler callback user to handle request
 type Handler interface {
-	Handle(context.Context, *Request)
-	OnConn(context.Context, *ConnRequest) (any, error)
+	OnConn(*Conn) (any, error)
 	OnClose(context.Context)
+	Handle(context.Context, *Request)
 }
 
 // pool
@@ -199,12 +199,12 @@ func (c *conn) serve(ctx context.Context) {
 
 	// callback OnConn
 	if h := c.server.Handler; h != nil {
-		cr := ConnRequest{
+		conn := Conn{
 			RemoteAddr: c.remoteAddr,
-			WriteConn:  c.write,
-			CloseConn:  c.close,
+			Write:      c.write,
+			Close:      c.close,
 		}
-		id, err := h.OnConn(ctx, &cr)
+		id, err := h.OnConn(&conn)
 		if err != nil {
 			log.Printf("OnConn failed [err]%v", err)
 			return

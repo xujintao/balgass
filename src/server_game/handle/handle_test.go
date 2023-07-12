@@ -7,7 +7,8 @@ import (
 	"testing"
 
 	"github.com/xujintao/balgass/src/c1c2"
-	"github.com/xujintao/balgass/src/server_game/model"
+	"github.com/xujintao/balgass/src/server_game/game"
+	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
 func TestMarshal(t *testing.T) {
@@ -19,11 +20,12 @@ func TestMarshal(t *testing.T) {
 }
 
 func TestHandle(t *testing.T) {
+	game.Start()
 	testData := []byte{0xFF, 0xFF, 0x01}
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
-	cr := c1c2.ConnRequest{RemoteAddr: "test"}
-	cr.WriteConn = func(resp *c1c2.Response) error {
+	conn := c1c2.Conn{RemoteAddr: "test"}
+	conn.Write = func(resp *c1c2.Response) error {
 		buf := resp.Body()
 		if buf[0] != 0xF1 {
 			if !reflect.DeepEqual(buf, testData) {
@@ -33,11 +35,11 @@ func TestHandle(t *testing.T) {
 		}
 		return nil
 	}
-	cr.CloseConn = func() error {
+	conn.Close = func() error {
 		log.Println("CloseConn is called")
 		return nil
 	}
-	id, err := APIHandleDefault.OnConn(ctx, &cr)
+	id, err := APIHandleDefault.OnConn(&conn)
 	if err != nil {
 		t.Error(err)
 	}
@@ -48,5 +50,5 @@ func TestHandle(t *testing.T) {
 	APIHandleDefault.Handle(ctx, &req)
 	<-ctx.Done()
 	APIHandleDefault.OnClose(ctx)
-	APIHandleDefault.Close()
+	game.Close()
 }

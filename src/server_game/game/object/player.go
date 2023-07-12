@@ -5,23 +5,22 @@ import (
 	"log"
 	"time"
 
-	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server_game/conf"
-	"github.com/xujintao/balgass/src/server_game/guild"
-	"github.com/xujintao/balgass/src/server_game/item"
-	"github.com/xujintao/balgass/src/server_game/model"
-	"github.com/xujintao/balgass/src/server_game/skill"
+	"github.com/xujintao/balgass/src/server_game/game/guild"
+	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
-type MsgMarshaller interface {
-	Marshal(any) (*c1c2.Response, error)
+type Conn interface {
+	Addr() string
+	Write(any) error
+	Close() error
 }
 
 type Player struct {
 	Object
-	addr                          string
-	writeConn                     func(*c1c2.Response) error
-	closeConn                     func() error
+	conn                          Conn
 	msgChan                       chan any
 	cancel                        context.CancelFunc
 	AccountID                     string

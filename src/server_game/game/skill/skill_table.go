@@ -1,8 +1,8 @@
 package skill
 
 import (
-	"github.com/xujintao/balgass/src/server_game/class"
 	"github.com/xujintao/balgass/src/server_game/conf"
+	"github.com/xujintao/balgass/src/server_game/game/class"
 )
 
 var SkillTable map[int]*SkillBase

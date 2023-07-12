@@ -9,8 +9,8 @@ import (
 	"reflect"
 
 	"github.com/xujintao/balgass/src/c1c2"
-	"github.com/xujintao/balgass/src/server_game/model"
-	"github.com/xujintao/balgass/src/server_game/object"
+	"github.com/xujintao/balgass/src/server_game/game"
+	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
 func init() {
@@ -21,12 +21,8 @@ func init() {
 var APIHandleDefault apiHandle
 
 type apiHandle struct {
-	apiIns               map[int]*apiIn
-	apiOuts              map[any]*apiOut
-	connRequestChan      chan *connRequest
-	closeConnRequestChan chan *closeConnRequest
-	apiChan              chan *apiRequest
-	cancel               context.CancelFunc
+	apiIns  map[int]*apiIn
+	apiOuts map[any]*apiOut
 }
 
 func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
@@ -34,7 +30,8 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	h.apiIns = make(map[int]*apiIn)
 	for _, v := range apiIns {
 		if vv, ok := h.apiIns[v.code]; ok {
-			log.Printf("duplicated api code[%d] handle[%s] with code[%d] handle[%s]", v.code, v.handle, vv.code, vv.handle)
+			log.Printf("duplicated api code[%d] handle[%s] with code[%d] handle[%s]",
+				v.code, v.action, vv.code, vv.action)
 		}
 		h.apiIns[v.code] = v
 	}
@@ -43,53 +40,11 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	for _, v := range apiOuts {
 		t := reflect.TypeOf(v.msg)
 		if t.Kind() != reflect.Ptr {
-			log.Printf("api code[%d] name[%s] msg field must be a pointer", v.code, v.name)
+			log.Printf("api code[%d] name[%s] msg field must be a pointer",
+				v.code, v.name)
 		}
 		h.apiOuts[t] = v
 	}
-
-	h.connRequestChan = make(chan *connRequest, 100)
-	h.closeConnRequestChan = make(chan *closeConnRequest, 100)
-	h.apiChan = make(chan *apiRequest, 1000)
-
-	// start handle
-	log.Printf("start handle")
-	ctx, cancel := context.WithCancel(context.Background())
-	h.cancel = cancel
-	h.start(ctx)
-}
-
-func (h *apiHandle) start(ctx context.Context) {
-	go func() {
-		for {
-			select {
-			case connReq := <-h.connRequestChan:
-				id, err := object.ObjectManager.AddPlayer(connReq.ConnRequest, h)
-				connResp := connResponse{id: id, err: err}
-				connReq.connResponseChan <- &connResp
-			case closeConnReq := <-h.closeConnRequestChan:
-				id := closeConnReq.id
-				object.ObjectManager.DeletePlayer(id)
-				closeConnReq.closeConnResponseChan <- &closeConnResponse{}
-			case apiReq := <-h.apiChan:
-				id := apiReq.id
-				handle := apiReq.handle
-				msg := apiReq.msg
-				player := object.ObjectManager.GetPlayer(id)
-				// player.Chat(msg)
-				in := []reflect.Value{reflect.ValueOf(msg)}
-				reflect.ValueOf(player).MethodByName(handle).Call(in)
-			case <-ctx.Done():
-				// todo
-				return
-			}
-		}
-	}()
-}
-
-func (h *apiHandle) Close() {
-	log.Printf("close handle")
-	h.cancel()
 }
 
 type apiRequest struct {
@@ -122,7 +77,7 @@ func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 
 	// validate encrypt
 	if api.enc && !req.Encrypt {
-		log.Printf("[%d][%s] not encrypt", api.code, api.handle)
+		log.Printf("[%d][%s] not encrypt", api.code, api.action)
 		// return
 	}
 
@@ -141,13 +96,7 @@ func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 		log.Printf("%s UnMarshal failed", msg.String())
 		return
 	}
-
-	apiReq := apiRequest{
-		id:     id,
-		handle: api.handle,
-		msg:    msg.Interface(),
-	}
-	h.apiChan <- &apiReq
+	game.PlayerAction(id, api.action, msg.Interface())
 }
 
 func (h *apiHandle) Marshal(msg any) (*c1c2.Response, error) {
@@ -188,33 +137,30 @@ func (h *apiHandle) Marshal(msg any) (*c1c2.Response, error) {
 	return &resp, nil
 }
 
-type connRequest struct {
-	*c1c2.ConnRequest
-	connResponseChan chan *connResponse
+type conn struct {
+	*c1c2.Conn
 }
 
-type connResponse struct {
-	err error
-	id  int
+func (c *conn) Addr() string {
+	return c.RemoteAddr
+}
+
+func (c *conn) Write(msg any) error {
+	resp, err := APIHandleDefault.Marshal(msg)
+	if err != nil {
+		return err
+	}
+	return c.Conn.Write(resp)
+}
+
+func (c *conn) Close() error {
+	return c.Conn.Close()
 }
 
 // OnConn implements c1c2.Handler.OnConn
-func (h *apiHandle) OnConn(ctx context.Context, cr *c1c2.ConnRequest) (any, error) {
-	connReq := connRequest{
-		ConnRequest:      cr,
-		connResponseChan: make(chan *connResponse),
-	}
-	h.connRequestChan <- &connReq
-	connResp := <-connReq.connResponseChan
-	return connResp.id, connResp.err
-}
-
-type closeConnRequest struct {
-	id                    int
-	closeConnResponseChan chan *closeConnResponse
-}
-
-type closeConnResponse struct {
+func (h *apiHandle) OnConn(c *c1c2.Conn) (any, error) {
+	conn := conn{c}
+	return game.Conn(&conn)
 }
 
 // OnClose implements c1c2.Handler.OnConn
@@ -224,12 +170,7 @@ func (h *apiHandle) OnClose(ctx context.Context) {
 		return
 	}
 	id := v.(int)
-	closeConnReq := closeConnRequest{
-		id:                    id,
-		closeConnResponseChan: make(chan *closeConnResponse),
-	}
-	h.closeConnRequestChan <- &closeConnReq
-	<-closeConnReq.closeConnResponseChan
+	game.CloseConn(id)
 }
 
 type AuthLevel int
@@ -246,7 +187,7 @@ type apiIn struct {
 	enc    bool
 	level  AuthLevel
 	code   int
-	handle string
+	action string
 	msg    any
 }
 
