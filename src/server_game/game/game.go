@@ -2,8 +2,11 @@ package game
 
 import (
 	"context"
+	"log"
 	"reflect"
+	"time"
 
+	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/object"
 )
 
@@ -49,6 +52,8 @@ func (g *game) Start() {
 				// player.Chat(msg)
 				in := []reflect.Value{reflect.ValueOf(msg)}
 				reflect.ValueOf(player).MethodByName(action).Call(in)
+			case <-time.Tick(time.Second):
+				maps.MapManager.ProcessWeather(g)
 			case <-ctx.Done():
 				// todo
 				return
@@ -108,4 +113,10 @@ func (g *game) PlayerAction(id int, action string, msg any) {
 		msg:    msg,
 	}
 	g.playerActionChan <- &playerAction
+}
+
+func (g *game) SendWeather(number, weather int) {
+	if number == 0 {
+		log.Println(number, weather)
+	}
 }

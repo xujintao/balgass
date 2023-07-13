@@ -3,6 +3,7 @@ package maps
 import (
 	"encoding/xml"
 	"log"
+	"math/rand"
 	"os"
 	"path"
 
@@ -44,35 +45,113 @@ func init() {
 	var mapList MapList
 	conf.XML(conf.PathCommon, "IGC_MapList.xml", &mapList)
 
-	MapTable = make(mapTable)
+	rects := map[int]*Rect{
+		Lorencia:    {130, 116, 151, 137},
+		Dungeon:     {106, 236, 112, 243},
+		Devias:      {197, 35, 218, 50},
+		Noria:       {174, 101, 187, 125},
+		LostTower:   {201, 70, 213, 81},
+		Exile:       {89, 135, 90, 136},
+		Arena:       {89, 135, 90, 136},
+		Atlans:      {14, 11, 27, 23},
+		Tarkan:      {187, 54, 203, 69},
+		Aida:        {82, 8, 87, 14},
+		Crywolf:     {133, 41, 140, 44},
+		Elbeland:    {40, 214, 43, 224},
+		LorenMarket: {126, 142, 129, 148},
+	}
+	MapManager = make(mapManager)
 	for _, v := range mapList.DefaultMaps.Map {
 		number := v.Number
 		file := path.Join(conf.PathCommon, "MapTerrains", v.File)
-		m := Map{}
+		rect, ok := rects[number]
+		if !ok {
+			rect = rects[Lorencia]
+		}
+		m := _map{regenRect: rect}
 		m.init(number, file)
-		MapTable[v.Number] = &m
+		MapManager[v.Number] = &m
 	}
 }
 
-var MapTable mapTable
-
-type mapTable map[int]*Map
-
-type Map struct {
-	number   int
-	width    int
-	height   int
-	buf      []byte
-	mapItems []mapItem
+type Rect struct {
+	left   int
+	top    int
+	right  int
+	bottom int
 }
 
-const (
-	MAX_WIDTH  = 255
-	MAX_HEIGHT = 255
-)
+type sender interface {
+	SendWeather(int, int)
+}
 
-func (m *Map) init(number int, file string) {
+var MapManager mapManager
+
+type mapManager map[int]*_map
+
+func (m mapManager) GetMapAttr(number, x, y int) int {
+	return m[number].getAttr(x, y)
+}
+
+func (m mapManager) CheckMapAttrStand(number, x, y int) bool {
+	return m[number].checkAttrStand(x, y)
+}
+
+func (m mapManager) SetMapAttrStand(number, x, y int) {
+	m[number].setAttrStand(x, y)
+}
+
+func (m mapManager) ClearMapAttrStand(number, x, y int) {
+	m[number].clearAttrStand(x, y)
+}
+
+func (m mapManager) GetMapRegenPos(number int) (int, int) {
+	return m[number].getRegenPos()
+}
+
+func (m mapManager) CheckMapNoWall(number, x1, y1, x2, y2 int) bool {
+	return m[number].checkNoWall(x1, y1, x2, y2)
+}
+
+type Path []struct {
+	X int
+	Y int
+}
+
+func (m mapManager) FindMapPath(number, x1, y1, x2, y2 int) (Path, bool) {
+	return m[number].findPath(x1, y1, x2, y2)
+}
+
+func (m mapManager) GetMapWeather(number int) int {
+	return m[number].getWeather()
+}
+
+func (m mapManager) ProcessWeather(sender sender) {
+	for _, v := range m {
+		v.processWeather(sender)
+	}
+}
+
+// x + y<<8
+func pos2index(x, y int) int {
+	return x + y<<8
+}
+
+type _map struct {
+	number    int
+	file      string
+	width     int
+	height    int
+	buf       []byte
+	regenRect *Rect
+	mapItems  []mapItem
+	cnt       int
+	weather   int
+}
+
+func (m *_map) init(number int, file string) {
 	m.number = number
+	m.file = file
 	buf, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatalf("read file failed [file]%s [err]%v", file, err)
@@ -81,12 +160,118 @@ func (m *Map) init(number int, file string) {
 	m.height = int(buf[2])
 	m.buf = buf[3:]
 	m.mapItems = make([]mapItem, conf.Server.GameServerInfo.MaxObjectItemCount)
+	m.cnt = 1
 }
 
-func (m *Map) GetAttr(x, y int) int {
-	if !(x >= 0 && x <= MAX_WIDTH &&
-		y >= 0 && y <= MAX_HEIGHT) {
+func (m *_map) valid(x, y int) bool {
+	return x >= 0 && x <= m.width && y >= 0 && y <= m.height
+}
+
+func (m *_map) getAttr(x, y int) int {
+	if !m.valid(x, y) {
 		return 4
 	}
-	return int(m.buf[x+y<<8])
+	return int(m.buf[pos2index(x, y)])
+}
+
+func (m *_map) checkAttrStand(x, y int) bool {
+	if !m.valid(x, y) {
+		return false
+	}
+	attr := m.buf[pos2index(x, y)]
+	if attr&2 != 0 || attr&4 != 0 || attr&8 != 0 {
+		return false
+	}
+	return true
+}
+
+func (m *_map) setAttrStand(x, y int) {
+	if !m.valid(x, y) {
+		return
+	}
+	m.buf[pos2index(x, y)] |= 2
+}
+
+func (m *_map) clearAttrStand(x, y int) {
+	if !m.valid(x, y) {
+		return
+	}
+	if m.buf[pos2index(x, y)]&2 != 0 {
+		m.buf[pos2index(x, y)] &^= 2
+	}
+}
+
+func (m *_map) getRegenPos() (int, int) {
+	left := m.regenRect.left
+	top := m.regenRect.top
+	right := m.regenRect.right
+	bottom := m.regenRect.bottom
+	for cnt := 50; cnt >= 0; cnt-- {
+		w := right - left
+		h := bottom - top
+		var x, y int
+		if w <= 0 {
+			x = left
+		} else {
+			x = left + rand.Intn(w)%w
+		}
+		if h <= 0 {
+			y = top
+		} else {
+			y = top + rand.Intn(h)%h
+		}
+		attr := m.getAttr(x, y)
+		if attr&4 != 0 && attr&8 != 0 {
+			return x, y
+		}
+	}
+	log.Printf("cannot find position [file]%s", m.file)
+	return left, top
+}
+
+func (m *_map) checkNoWall(x1, y1, x2, y2 int) bool {
+	w, h, x, y := x2-x1, y2-y1, 1, 256
+	if w < 0 {
+		w, x = -w, -1
+	}
+	if h < 0 {
+		h, y = -h, -256
+	}
+	len1, len2, d1, d2 := w, h, x, y
+	if w <= h {
+		len1, len2, d1, d2 = h, w, y, x
+	}
+	factor := 0
+	index := pos2index(x1, y1)
+	for i := 0; i <= len1; i++ {
+		if m.buf[index]&4 != 0 {
+			return false
+		}
+		index += d2
+		factor += len2
+		if factor > len1>>1 {
+			factor -= len1
+			index += d1
+		}
+	}
+	return true
+}
+
+func (m *_map) findPath(x1, y1, x2, y2 int) (Path, bool) {
+	return nil, false
+}
+
+func (m *_map) getWeather() int {
+	return m.weather
+}
+
+func (m *_map) processWeather(sender sender) {
+	m.cnt--
+	if m.cnt <= 0 {
+		m.cnt = rand.Intn(10) + 10
+		weather1 := rand.Intn(3)
+		weather2 := rand.Intn(10)
+		m.weather = weather1<<4 | weather2
+		sender.SendWeather(m.number, m.weather)
+	}
 }
