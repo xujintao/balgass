@@ -20,7 +20,7 @@ func TestMarshal(t *testing.T) {
 }
 
 func TestHandle(t *testing.T) {
-	game.Start()
+	game.Game.Start()
 	testData := []byte{0xFF, 0xFF, 0x01}
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -50,5 +50,5 @@ func TestHandle(t *testing.T) {
 	APIHandleDefault.Handle(ctx, &req)
 	<-ctx.Done()
 	APIHandleDefault.OnClose(ctx)
-	game.Close()
+	game.Game.Close()
 }

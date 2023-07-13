@@ -96,7 +96,7 @@ func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 		log.Printf("%s UnMarshal failed", msg.String())
 		return
 	}
-	game.PlayerAction(id, api.action, msg.Interface())
+	game.Game.PlayerAction(id, api.action, msg.Interface())
 }
 
 func (h *apiHandle) Marshal(msg any) (*c1c2.Response, error) {
@@ -160,7 +160,7 @@ func (c *conn) Close() error {
 // OnConn implements c1c2.Handler.OnConn
 func (h *apiHandle) OnConn(c *c1c2.Conn) (any, error) {
 	conn := conn{c}
-	return game.Conn(&conn)
+	return game.Game.Conn(&conn)
 }
 
 // OnClose implements c1c2.Handler.OnConn
@@ -170,7 +170,7 @@ func (h *apiHandle) OnClose(ctx context.Context) {
 		return
 	}
 	id := v.(int)
-	game.CloseConn(id)
+	game.Game.CloseConn(id)
 }
 
 type AuthLevel int

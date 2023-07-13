@@ -20,7 +20,7 @@ func main() {
 
 	// start game
 	log.Println("start game")
-	game.Start()
+	game.Game.Start()
 
 	// start tcp server
 	log.Printf("start tcp server")
@@ -44,6 +44,6 @@ func main() {
 
 	// close handle
 	log.Println("close game")
-	game.Close()
+	game.Game.Close()
 	time.Sleep(2 * time.Second)
 }

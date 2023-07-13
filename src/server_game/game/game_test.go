@@ -36,7 +36,7 @@ func (c *conn) Close() error {
 }
 
 func TestGame(t *testing.T) {
-	Start()
+	Game.Start()
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -44,15 +44,15 @@ func TestGame(t *testing.T) {
 		t:      t,
 		cancel: cancel,
 	}
-	id, err := Conn(&conn)
+	id, err := Game.Conn(&conn)
 	if err != nil {
 		t.Error(err)
 	}
 
 	msg := model.MsgTest{}
-	PlayerAction(id, "Test", &msg)
+	Game.PlayerAction(id, "Test", &msg)
 	<-ctx.Done()
-	CloseConn(id)
+	Game.CloseConn(id)
 
-	Close()
+	Game.Close()
 }

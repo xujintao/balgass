@@ -7,35 +7,41 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/object"
 )
 
-var (
+func init() {
+	Game.init()
+}
+
+var Game game
+
+type game struct {
 	connRequestChan      chan *connRequest
 	closeConnRequestChan chan *closeConnRequest
 	playerActionChan     chan *playerAction
 	cancel               context.CancelFunc
-)
-
-func init() {
-	connRequestChan = make(chan *connRequest, 100)
-	closeConnRequestChan = make(chan *closeConnRequest, 100)
-	playerActionChan = make(chan *playerAction, 1000)
 }
 
-func Start() {
-	ctx, cancel2 := context.WithCancel(context.Background())
-	cancel = cancel2
+func (g *game) init() {
+	g.connRequestChan = make(chan *connRequest, 100)
+	g.closeConnRequestChan = make(chan *closeConnRequest, 100)
+	g.playerActionChan = make(chan *playerAction, 1000)
+}
+
+func (g *game) Start() {
+	ctx, cancel := context.WithCancel(context.Background())
+	g.cancel = cancel
 	go func() {
 		for {
 			select {
-			case connReq := <-connRequestChan:
+			case connReq := <-g.connRequestChan:
 				conn := connReq.Conn
 				id, err := object.ObjectManager.AddPlayer(conn)
 				connResp := connResponse{id: id, err: err}
 				connReq.connResponseChan <- &connResp
-			case closeConnReq := <-closeConnRequestChan:
+			case closeConnReq := <-g.closeConnRequestChan:
 				id := closeConnReq.id
 				object.ObjectManager.DeletePlayer(id)
 				closeConnReq.closeConnResponseChan <- struct{}{}
-			case playerAction := <-playerActionChan:
+			case playerAction := <-g.playerActionChan:
 				id := playerAction.id
 				action := playerAction.action
 				msg := playerAction.msg
@@ -51,8 +57,8 @@ func Start() {
 	}()
 }
 
-func Close() {
-	cancel()
+func (g *game) Close() {
+	g.cancel()
 }
 
 type connRequest struct {
@@ -65,12 +71,12 @@ type connResponse struct {
 	err error
 }
 
-func Conn(conn object.Conn) (int, error) {
+func (g *game) Conn(conn object.Conn) (int, error) {
 	connReq := connRequest{
 		Conn:             conn,
 		connResponseChan: make(chan *connResponse),
 	}
-	connRequestChan <- &connReq
+	g.connRequestChan <- &connReq
 	connResp := <-connReq.connResponseChan
 	return connResp.id, connResp.err
 }
@@ -80,12 +86,12 @@ type closeConnRequest struct {
 	closeConnResponseChan chan struct{}
 }
 
-func CloseConn(id int) {
+func (g *game) CloseConn(id int) {
 	closeConnReq := closeConnRequest{
 		id:                    id,
 		closeConnResponseChan: make(chan struct{}),
 	}
-	closeConnRequestChan <- &closeConnReq
+	g.closeConnRequestChan <- &closeConnReq
 	<-closeConnReq.closeConnResponseChan
 }
 
@@ -95,11 +101,11 @@ type playerAction struct {
 	msg    any
 }
 
-func PlayerAction(id int, action string, msg any) {
+func (g *game) PlayerAction(id int, action string, msg any) {
 	playerAction := playerAction{
 		id:     id,
 		action: action,
 		msg:    msg,
 	}
-	playerActionChan <- &playerAction
+	g.playerActionChan <- &playerAction
 }
