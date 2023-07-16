@@ -113,11 +113,6 @@ func (m mapManager) CheckMapNoWall(number, x1, y1, x2, y2 int) bool {
 	return m[number].checkNoWall(x1, y1, x2, y2)
 }
 
-type Path []struct {
-	X int
-	Y int
-}
-
 func (m mapManager) FindMapPath(number, x1, y1, x2, y2 int) (Path, bool) {
 	return m[number].findPath(x1, y1, x2, y2)
 }
@@ -130,11 +125,6 @@ func (m mapManager) ProcessWeather(sender sender) {
 	for _, v := range m {
 		v.processWeather(sender)
 	}
-}
-
-// x + y<<8
-func pos2index(x, y int) int {
-	return x + y<<8
 }
 
 type _map struct {
@@ -156,29 +146,34 @@ func (m *_map) init(number int, file string) {
 	if err != nil {
 		log.Fatalf("read file failed [file]%s [err]%v", file, err)
 	}
-	m.width = int(buf[1])
-	m.height = int(buf[2])
+	m.width = int(buf[1]) + 1
+	m.height = int(buf[2]) + 1
 	m.buf = buf[3:]
 	m.mapItems = make([]mapItem, conf.Server.GameServerInfo.MaxObjectItemCount)
 	m.cnt = 1
 }
 
 func (m *_map) valid(x, y int) bool {
-	return x >= 0 && x <= m.width && y >= 0 && y <= m.height
+	return x >= 0 && x < m.width && y >= 0 && y < m.height
+}
+
+// x + y<<8
+func (m *_map) pos2index(x, y int) int {
+	return x + y*m.width
 }
 
 func (m *_map) getAttr(x, y int) int {
 	if !m.valid(x, y) {
 		return 4
 	}
-	return int(m.buf[pos2index(x, y)])
+	return int(m.buf[m.pos2index(x, y)])
 }
 
 func (m *_map) checkAttrStand(x, y int) bool {
 	if !m.valid(x, y) {
 		return false
 	}
-	attr := m.buf[pos2index(x, y)]
+	attr := m.buf[m.pos2index(x, y)]
 	if attr&2 != 0 || attr&4 != 0 || attr&8 != 0 {
 		return false
 	}
@@ -189,15 +184,15 @@ func (m *_map) setAttrStand(x, y int) {
 	if !m.valid(x, y) {
 		return
 	}
-	m.buf[pos2index(x, y)] |= 2
+	m.buf[m.pos2index(x, y)] |= 2
 }
 
 func (m *_map) clearAttrStand(x, y int) {
 	if !m.valid(x, y) {
 		return
 	}
-	if m.buf[pos2index(x, y)]&2 != 0 {
-		m.buf[pos2index(x, y)] &^= 2
+	if m.buf[m.pos2index(x, y)]&2 != 0 {
+		m.buf[m.pos2index(x, y)] &^= 2
 	}
 }
 
@@ -221,7 +216,7 @@ func (m *_map) getRegenPos() (int, int) {
 			y = top + rand.Intn(h)%h
 		}
 		attr := m.getAttr(x, y)
-		if attr&4 != 0 && attr&8 != 0 {
+		if attr&4 == 0 && attr&8 == 0 {
 			return x, y
 		}
 	}
@@ -230,6 +225,9 @@ func (m *_map) getRegenPos() (int, int) {
 }
 
 func (m *_map) checkNoWall(x1, y1, x2, y2 int) bool {
+	if !m.valid(x1, y1) || !m.valid(x2, y2) {
+		return false
+	}
 	w, h, x, y := x2-x1, y2-y1, 1, 256
 	if w < 0 {
 		w, x = -w, -1
@@ -242,7 +240,7 @@ func (m *_map) checkNoWall(x1, y1, x2, y2 int) bool {
 		len1, len2, d1, d2 = h, w, y, x
 	}
 	factor := 0
-	index := pos2index(x1, y1)
+	index := m.pos2index(x1, y1)
 	for i := 0; i <= len1; i++ {
 		if m.buf[index]&4 != 0 {
 			return false
@@ -257,8 +255,18 @@ func (m *_map) checkNoWall(x1, y1, x2, y2 int) bool {
 	return true
 }
 
+func (m *_map) canMoveForward(pos int) bool {
+	return !(m.buf[pos] > 1)
+}
+
 func (m *_map) findPath(x1, y1, x2, y2 int) (Path, bool) {
-	return nil, false
+	path := _path{
+		validator: m,
+		width:     m.width,
+		height:    m.height,
+		hits:      make([]bool, m.width*m.height),
+	}
+	return path.findPath(x1, y1, x2, y2)
 }
 
 func (m *_map) getWeather() int {
