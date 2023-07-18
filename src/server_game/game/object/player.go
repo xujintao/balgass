@@ -19,7 +19,7 @@ type Conn interface {
 }
 
 type Player struct {
-	Object
+	object
 	conn                          Conn
 	msgChan                       chan any
 	cancel                        context.CancelFunc

@@ -1,13 +1,281 @@
 package object
 
 import (
+	"context"
+	"encoding/xml"
+	"fmt"
 	"log"
+	"math/rand"
 	"sync"
 	"time"
 
+	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/maps"
+	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
+
+func init() {
+	ObjectManager.init()
+}
+
+var ObjectManager objectManager
+
+type objectManager struct {
+	maxObjectCount int
+	objects        []iobject
+	// monsterStartIndex int
+	// lastMonsterIndex  int
+	monsterCount int
+	// summonMonsterCount int
+	playerStartIndex int
+	lastPlayerIndex  int
+	playerCount      int
+}
+
+type iobject interface {
+	Reset()
+	AddSkill(int, int) bool
+}
+
+func (m *objectManager) init() {
+	m.maxObjectCount = conf.Server.GameServerInfo.MaxMonsterCount +
+		conf.Server.GameServerInfo.MaxSummonMonsterCount +
+		conf.Server.GameServerInfo.MaxPlayerCount
+	m.objects = make([]iobject, m.maxObjectCount)
+	// objectBills = make([]bill, conf.Server.MaxPlayerCount)
+	m.playerStartIndex = conf.Server.GameServerInfo.MaxMonsterCount +
+		conf.Server.GameServerInfo.MaxSummonMonsterCount
+	m.lastPlayerIndex = m.playerStartIndex
+	// 先有怪后有玩家
+	m.spawnMonster()
+}
+
+func (m *objectManager) objectMaxRange(index int) bool {
+	if index < 0 || index >= m.maxObjectCount {
+		return false
+	}
+	return true
+}
+
+func (m *objectManager) spawnMonster() {
+	// MonsterSpawn was generated 2023-07-17 16:05:41 by https://xml-to-go.github.io/ in Ukraine.
+	type MonsterSpawn struct {
+		XMLName xml.Name `xml:"MonsterSpawn"`
+		Text    string   `xml:",chardata"`
+		Map     []*struct {
+			Text       string `xml:",chardata"`
+			Number     int    `xml:"Number,attr"`
+			Name       string `xml:"Name,attr"`
+			Annotation string `xml:"annotation,attr"`
+			Spot       []*struct {
+				Text        string `xml:",chardata"`
+				Type        int    `xml:"Type,attr"`
+				Description string `xml:"Description,attr"`
+				Spawn       []struct {
+					Text     string `xml:",chardata"`
+					Index    int    `xml:"Index,attr"`
+					Distance int    `xml:"Distance,attr"`
+					StartX   int    `xml:"StartX,attr"`
+					StartY   int    `xml:"StartY,attr"`
+					Dir      int    `xml:"Dir,attr"`
+					EndX     int    `xml:"EndX,attr"`
+					EndY     int    `xml:"EndY,attr"`
+					Count    int    `xml:"Count,attr"`
+					Element  int    `xml:"Element,attr"`
+				} `xml:"Spawn"`
+			} `xml:"Spot"`
+		} `xml:"Map"`
+	}
+	var monsterSpawn MonsterSpawn
+	conf.XML(conf.PathCommon, "Monsters/IGC_MonsterSpawn.xml", &monsterSpawn)
+
+	randPosition := func(number, x1, y1, x2, y2 int) (int, int) {
+		w := x2 - x1
+		if w <= 0 {
+			w = 1
+		}
+		h := y2 - y1
+		if h <= 0 {
+			h = 1
+		}
+		for i := 0; i < 100; i++ {
+			x := x1 + rand.Intn(w)
+			y := y1 + rand.Intn(h)
+			attr := maps.MapManager.GetMapAttr(number, x, y)
+			if attr&1 == 0 && attr&4 == 0 && attr&8 == 0 {
+				return x, y
+			}
+		}
+		panic(fmt.Sprintf("randPosition failed [number]%d", number))
+	}
+	for _, _map := range monsterSpawn.Map {
+		for _, spot := range _map.Spot {
+			for _, spawn := range spot.Spawn {
+				cnt := spawn.Count
+				if cnt == 0 {
+					cnt = 1
+				}
+				for i := 0; i < cnt; i++ {
+					// wrong
+					if _map.Number == maps.Atlans && spawn.StartX == 251 && spawn.StartY == 51 ||
+						_map.Number == maps.Atlans && spawn.StartX == 7 && spawn.StartY == 52 ||
+						_map.Number == maps.LandOfTrial && spawn.StartX == 14 && spawn.StartY == 43 ||
+						_map.Number == maps.KanturuBoss && spawn.Index == 106 {
+						continue
+					}
+					monster, err := m.AddMonster(spawn.Index)
+					if err != nil {
+						log.Fatalf("AddMonster failed err[%v]", err)
+					}
+					monster.MapNumber = _map.Number
+					switch spot.Type {
+					case 0: // npc
+						monster.StartX, monster.StartY = spawn.StartX, spawn.StartY
+					case 1, 3: // multiple
+						monster.StartX, monster.StartY = randPosition(_map.Number, spawn.StartX, spawn.StartY, spawn.EndX, spawn.EndY)
+					case 2: // single
+						monster.StartX, monster.StartY = randPosition(_map.Number, spawn.StartX-3, spawn.StartY-3, spawn.StartX+3, spawn.StartY+3)
+					}
+					monster.X, monster.Y = monster.StartX, monster.StartY
+					monster.Dir = spawn.Dir
+					if monster.Dir < 0 {
+						monster.Dir = rand.Intn(8)
+					}
+					if spot.Type == 3 {
+						monster.PentagramMainAttrib = spawn.Element
+					}
+				}
+			}
+		}
+	}
+}
+
+func (m *objectManager) regenMonster() {
+
+}
+
+func (m *objectManager) AddMonster(kind int) (*Monster, error) {
+	if m.monsterCount >= conf.Server.GameServerInfo.MaxMonsterCount {
+		return nil, fmt.Errorf("over max monster count")
+	}
+	index := m.monsterCount
+	cnt := conf.Server.GameServerInfo.MaxMonsterCount
+	for cnt > 0 {
+		if m.objects[index] == nil {
+			break
+		}
+		index++
+		if index >= conf.Server.GameServerInfo.MaxMonsterCount {
+			index = 0
+		}
+		cnt--
+	}
+	if cnt == 0 {
+		panic(fmt.Errorf("have no free monster index"))
+	}
+	m.monsterCount++
+	monster := NewMonster(kind)
+	monster.index = index
+	m.objects[index] = monster
+	return monster, nil
+}
+
+var poolPlayer = sync.Pool{
+	New: func() any {
+		return &Player{}
+	},
+}
+
+func (m *objectManager) AddPlayer(conn Conn) (int, error) {
+	// limit max player count
+	if m.playerCount >= conf.Server.GameServerInfo.MaxPlayerCount {
+		// reply
+		msg := model.MsgConnectFailed{Result: 4}
+		conn.Write(&msg)
+		return -1, fmt.Errorf("over max player count")
+	}
+
+	// get unified object index
+	index := m.lastPlayerIndex
+	cnt := conf.Server.GameServerInfo.MaxPlayerCount
+	for cnt > 0 {
+		if m.objects[index] == nil {
+			break
+		}
+		index++
+		if index >= m.maxObjectCount {
+			index = m.playerStartIndex
+		}
+		cnt--
+	}
+	if cnt == 0 {
+		panic(fmt.Errorf("have no free player index"))
+	}
+	m.lastPlayerIndex = index
+	m.playerCount++
+
+	// create a new player
+	player := poolPlayer.Get().(*Player)
+	player.LoginMsgSend = false
+	player.LoginMsgCount = 0
+	player.index = index
+	player.conn = conn
+	player.msgChan = make(chan any, 100)
+	ctx, cancel := context.WithCancel(context.Background())
+	player.cancel = cancel
+	player.ConnectCheckTime = time.Now()
+	player.AutoSaveTime = player.ConnectCheckTime
+	player.Connected = PlayerConnected
+	player.CheckSpeedHack = false
+	player.EnableCharacterCreate = false
+	player.Type = ObjectUser
+	// player.Addr = addr
+	// player.Conn = conn
+	// player.pusher = pusher.(Pusher)
+
+	// new a new goroutine to reply message
+	go func() {
+		for {
+			select {
+			case msg := <-player.msgChan:
+				player.conn.Write(msg)
+			case <-ctx.Done():
+				return // return ctx.Err()
+			}
+		}
+	}()
+
+	// register the new player to object manager
+	m.objects[index] = player
+
+	// reply
+	msg := model.MsgConnectSuccess{
+		Result:  1,
+		ID:      index,
+		Version: conf.MapServers.ServerInfo.Version,
+	}
+	player.Push(&msg)
+	log.Printf("player online [id]%d [addr]%s", player.index, player.conn.Addr())
+	return index, nil
+}
+
+func (m *objectManager) DeletePlayer(id int) {
+	player := m.objects[id].(*Player)
+	player.cancel()
+
+	log.Printf("player offline [id]%d [addr]%s", player.index, player.conn.Addr())
+	poolPlayer.Put(player)
+
+	// unregister player from object manager
+	m.objects[player.index] = nil
+	m.playerCount--
+}
+
+func (m *objectManager) GetPlayer(id int) *Player {
+	return m.objects[id].(*Player)
+}
 
 const (
 	MaxMonsterSendMsg       = 20
@@ -107,7 +375,7 @@ type skillInfo struct {
 	circleShieldRate     float32
 }
 
-type Object struct {
+type object struct {
 	index                      int
 	Connected                  PlayerState
 	LoginMsgSend               bool
@@ -164,10 +432,10 @@ type Object struct {
 	PKLevel                    byte
 	PKTime                     int
 	PKTotalCount               int
-	X                          uint16
-	Y                          uint16
-	Dir                        byte
-	MapNumber                  byte
+	X                          int // x坐标
+	Y                          int // y坐标
+	Dir                        int // 方向
+	MapNumber                  int
 	XSave                      uint16
 	YSave                      uint16
 	MapNumberSave              byte
@@ -184,12 +452,12 @@ type Object struct {
 	MonsterDieGetLife          byte // 杀怪回生
 	MonsterDieGetMana          byte // 杀怪回蓝
 	AutoHPRecovery             byte // 自动生命恢复
-	XStart                     byte
-	YStart                     byte
-	XOld                       uint16
-	YOld                       uint16
-	TX                         uint16
-	TY                         uint16
+	StartX                     int
+	StartY                     int
+	OldX                       int
+	OldY                       int
+	TX                         int
+	TY                         int
 	MTX                        uint16
 	MTY                        uint16
 	PathCount                  int
@@ -251,7 +519,7 @@ type Object struct {
 	kalimaGateExist            byte
 	kalimaGateIndex            int
 	kalimaGateEnterCount       byte
-	AttackObj                  *Object
+	AttackObj                  *object
 	skillNumber                uint16
 	skillTime                  time.Duration
 	attackerKilled             bool
@@ -474,12 +742,12 @@ type Object struct {
 	offLevelTime            int
 }
 
-func (obj *Object) Reset() {
+func (obj *object) Reset() {
 
 }
 
 // AddSkill  object add skill
-func (obj *Object) AddSkill(skillIndex, level int) bool {
+func (obj *object) AddSkill(skillIndex, level int) bool {
 	if _, ok := obj.Skills[skillIndex]; ok {
 		log.Printf("object[%s] skill[%s] already exists", obj.Name, skill.SkillTable[skillIndex].Name)
 		return false
