@@ -139,12 +139,15 @@ func (m *objectManager) spawnMonster() {
 						monster.StartX, monster.StartY = randPosition(_map.Number, spawn.StartX-3, spawn.StartY-3, spawn.StartX+3, spawn.StartY+3)
 					}
 					monster.X, monster.Y = monster.StartX, monster.StartY
+					maps.MapManager.SetMapAttrStand(monster.MapNumber, monster.X, monster.Y)
+					monster.OldX = monster.X
+					monster.OldY = monster.Y
 					monster.Dir = spawn.Dir
 					if monster.Dir < 0 {
 						monster.Dir = rand.Intn(8)
 					}
 					if spot.Type == 3 {
-						monster.PentagramMainAttrib = spawn.Element
+						monster.pentagramMainAttribute = spawn.Element
 					}
 				}
 			}
@@ -227,10 +230,10 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 	player.cancel = cancel
 	player.ConnectCheckTime = time.Now()
 	player.AutoSaveTime = player.ConnectCheckTime
-	player.Connected = PlayerConnected
+	player.ConnectState = ConnectStateConnected
 	player.CheckSpeedHack = false
 	player.EnableCharacterCreate = false
-	player.Type = ObjectUser
+	player.Type = ObjectPlayer
 	// player.Addr = addr
 	// player.Conn = conn
 	// player.pusher = pusher.(Pusher)
@@ -295,9 +298,9 @@ const (
 	PShopRangeEnd           = 236
 	MaxSelfDefense          = 5
 	MaxBuffEffect           = 32
-	MaxResistanceType       = 7
-	MaxViewPort             = 75
-	MaxArrayFrustrum        = 4
+	// MaxResistanceType = 7
+	MaxViewPort      = 75
+	MaxArrayFrustrum = 4
 )
 
 type ActionState struct {
@@ -344,18 +347,18 @@ type ObjectType int
 
 const (
 	ObjectEmpty ObjectType = iota - 1
-	ObjectUser
+	ObjectPlayer
 	ObjectMonster
 	ObjectNPC
 )
 
-type PlayerState int
+type ConnectState int
 
 const (
-	PlayerEmpty PlayerState = iota
-	PlayerConnected
-	PlayerLogged
-	PlayerPlaying
+	ConnectStateEmpty ConnectState = iota
+	ConnectStateConnected
+	ConnectStateLogged
+	ConnectStatePlaying
 )
 
 type skillInfo struct {
@@ -376,8 +379,86 @@ type skillInfo struct {
 }
 
 type object struct {
-	index                      int
-	Connected                  PlayerState
+	index                     int
+	ConnectState              ConnectState
+	Live                      bool
+	State                     int
+	StartX                    int
+	StartY                    int
+	X                         int // x坐标
+	Y                         int // y坐标
+	OldX                      int
+	OldY                      int
+	Dir                       int        // 方向
+	MapNumber                 int        // 地图号
+	Type                      ObjectType // 对象种类：玩家，怪物，NPC
+	Class                     int        // 对象类别。怪物和玩家都有类别
+	Name                      string     // 对象名称
+	Level                     int
+	HP                        int // HP
+	MaxHP                     int // MaxHP
+	AddHP                     int
+	ScriptMaxHP               int
+	FillHP                    int
+	FillHPMax                 int
+	MP                        int // MP
+	MaxMP                     int // MaxMP
+	AddMP                     int
+	SD                        int // SD
+	MaxSD                     int
+	AddSD                     int
+	AG                        int // AG
+	MaxAG                     int
+	AddAG                     int
+	attackDamageMin           int // 物攻min
+	attackDamageMax           int // 物攻max
+	attackSpeed               int // 物攻速度
+	attackRate                int // 攻击率
+	defense                   int // 防御力
+	defenseRate               int // 防御率
+	successfulBlocking        int // 防御率
+	magicDefense              int // 魔法防御率
+	moveSpeed                 int // 移动速度
+	moveRange                 int // 移动范围
+	attackRange               int // 攻击范围
+	attackType                int // 攻击类型
+	viewRange                 int // 视野范围
+	itemDropRate              int // 道具掉落率
+	moneyDropRate             int // 金钱掉落率
+	attribute                 int
+	maxRegenTime              int // 最大重生时间
+	pentagramMainAttribute    int
+	pentagramAttributePattern int
+	pentagramAttackMin        int
+	pentagramAttackMax        int
+	pentagramAttackRate       int
+	pentagramDefense          int
+
+	basicAI         int
+	currentAI       int
+	currentAIState  int
+	lastAIRunTime   time.Duration
+	groupNumber     int
+	subGroupNumber  int
+	groupMemberGUID int
+	regenType       int
+	// argo                    *monster.MonsterAIAgro
+	lastAutoRunTime time.Time
+	lastAutoDelay   time.Duration
+	expType         int
+
+	attackDamageLeft           int // 物攻左
+	attackDamageRight          int // 物攻右
+	attackDamageLeftMin        int // 物攻左min
+	attackDamageLeftMax        int // 物攻左min
+	attackDamageRightMin       int // 物攻右min
+	attackDamageRightMax       int // 物攻右max
+	magicDamageMin             int // 魔攻min
+	magicDamageMax             int // 魔攻max
+	magicSpeed                 int // 魔攻速度
+	curseDamageMin             int // 诅咒min
+	curseDamageMax             int // 诅咒max
+	curseSpell                 int
 	LoginMsgSend               bool
 	LoginMsgCount              byte
 	CloseCount                 byte
@@ -397,26 +478,6 @@ type object struct {
 	PKTimer                    *time.Timer
 	CheckSumTableNum           uint16
 	CheckSumTime               uint
-	Type                       ObjectType
-	Live                       byte
-	Name                       string
-	Class                      int
-	Level                      int
-	HP                         int // HP
-	MaxHP                      int
-	AddHP                      int
-	ScriptMaxHP                int
-	FillHP                     int
-	FillHPMax                  int
-	MP                         int // MP
-	MaxMP                      int
-	AddMP                      int
-	SD                         int // SD
-	MaxSD                      int
-	AddSD                      int
-	AG                         int // AG
-	MaxAG                      int
-	AddAG                      int
 	Leadership                 int
 	AddLeadership              int
 	ChatLimitTime              uint16
@@ -432,10 +493,6 @@ type object struct {
 	PKLevel                    byte
 	PKTime                     int
 	PKTotalCount               int
-	X                          int // x坐标
-	Y                          int // y坐标
-	Dir                        int // 方向
-	MapNumber                  int
 	XSave                      uint16
 	YSave                      uint16
 	MapNumberSave              byte
@@ -452,10 +509,6 @@ type object struct {
 	MonsterDieGetLife          byte // 杀怪回生
 	MonsterDieGetMana          byte // 杀怪回蓝
 	AutoHPRecovery             byte // 自动生命恢复
-	StartX                     int
-	StartY                     int
-	OldX                       int
-	OldY                       int
 	TX                         int
 	TY                         int
 	MTX                        uint16
@@ -481,7 +534,6 @@ type object struct {
 	ActionCount                byte
 	ChatFloodTime              uint
 	ChatFloodCount             byte
-	State                      uint
 	Rest                       byte
 	viewState                  byte
 	buffEffectCount            byte
@@ -536,52 +588,25 @@ type object struct {
 	LoseDuels                  int
 	MarryRequestIndex          uint16
 	MarryRequestTime           time.Duration
-	recallmon                  int
+	RecallMon                  int
 	change                     int
-	TargetNumber               uint16
-	TargetNpcNumber            uint16
-	LastAttackerID             uint16
-	attackDamageMin            int
-	attackDamageMax            int
-	magicDamageMin             int // 魔攻min
-	magicDamageMax             int // 魔攻max
-	curseDamageMin             int // 诅咒min
-	curseDamageMax             int // 诅咒max
-	attackDamageLeft           int
-	attackDamageRight          int
-	attackDamageLeftMin        int // 物攻左min
-	attackDamageLeftMax        int // 物攻左min
-	attackDamageRightMin       int // 物攻右min
-	attackDamageRightMax       int // 物攻右max
-	attackRating               int
-	attackSpeed                int // 物攻速度
-	magicSpeed                 int // 魔攻速度
-	defense                    int
-	magicDefense               int
-	successfulBlocking         int
-	curseSpell                 int
-	moveSpeed                  uint16
-	moveRange                  uint16
-	attackRange                uint16
-	attackType                 uint16
-	viewRange                  uint16
-	attribute                  uint16
-	itemRate                   uint16
-	moneyRate                  uint16
+	TargetNumber               int
+	TargetNpcNumber            int
+	LastAttackerID             int
 	criticalDamage             int
 	excellentDamage            int // 卓越一击概率
 	// magicBack                   *skill.MagicInfo
 	// Magic                       *skill.MagicInfo
-	Skills                   map[int]*skill.Skill
-	UseMagicNumber           byte
-	UseMagicTime             time.Duration
-	UseMagicCount            byte
-	OSAttackSerial           uint16
-	SASCount                 byte
-	SkillAttackTime          time.Duration
-	CharSet                  string
-	resistance               [MaxResistanceType]byte
-	addResistance            [MaxResistanceType]byte
+	Skills          map[int]*skill.Skill
+	UseMagicNumber  byte
+	UseMagicTime    time.Duration
+	UseMagicCount   byte
+	OSAttackSerial  uint16
+	SASCount        byte
+	SkillAttackTime time.Duration
+	CharSet         string
+	// resistance               [MaxResistanceType]byte
+	// addResistance            [MaxResistanceType]byte
 	FrustrumX                [MaxArrayFrustrum]int
 	FrustrumY                [MaxArrayFrustrum]int
 	VPPlayer                 *ViewPort
@@ -714,17 +739,6 @@ type object struct {
 	createdActiviationTime      int
 	accumulatedCrownAccessTime  int
 	// monsterSkillElementInfo     monster.MonsterSkillElementInfo
-	basicAI         int
-	currentAI       int
-	currentAIState  int
-	lastAIRunTime   time.Duration
-	groupNumber     int
-	subGroupNumber  int
-	groupMemberGUID int
-	regenType       int
-	// argo                    *monster.MonsterAIAgro
-	lastAutoRunTime         time.Time
-	lastAutoDelay           time.Duration
 	crywolfMVPScore         int
 	lastCheckTick           time.Time
 	autoRecuperationTime    time.Time

@@ -30,51 +30,160 @@ type MonsterConfig struct {
 	Text                   string `xml:",chardata"`
 	Index                  int    `xml:"Index,attr"`
 	ExpType                string `xml:"ExpType,attr"`
-	Level                  string `xml:"Level,attr"`
-	HP                     string `xml:"HP,attr"`
-	MP                     string `xml:"MP,attr"`
-	DamageMin              string `xml:"DamageMin,attr"`
-	DamageMax              string `xml:"DamageMax,attr"`
-	Defense                string `xml:"Defense,attr"`
-	MagicDefense           string `xml:"MagicDefense,attr"`
-	AttackRate             string `xml:"AttackRate,attr"`
-	BlockRate              string `xml:"BlockRate,attr"`
-	MoveRange              string `xml:"MoveRange,attr"`
-	AttackType             string `xml:"AttackType,attr"`
-	AttackRange            string `xml:"AttackRange,attr"`
-	ViewRange              string `xml:"ViewRange,attr"`
-	MoveSpeed              string `xml:"MoveSpeed,attr"`
-	AttackSpeed            string `xml:"AttackSpeed,attr"`
-	RegenTime              string `xml:"RegenTime,attr"`
-	Attribute              string `xml:"Attribute,attr"`
-	ItemDropRate           string `xml:"ItemDropRate,attr"`
-	MoneyDropRate          string `xml:"MoneyDropRate,attr"`
+	Level                  int    `xml:"Level,attr"`
+	HP                     int    `xml:"HP,attr"`
+	MP                     int    `xml:"MP,attr"`
+	DamageMin              int    `xml:"DamageMin,attr"`
+	DamageMax              int    `xml:"DamageMax,attr"`
+	Defense                int    `xml:"Defense,attr"`
+	MagicDefense           int    `xml:"MagicDefense,attr"`
+	AttackRate             int    `xml:"AttackRate,attr"`
+	BlockRate              int    `xml:"BlockRate,attr"`
+	MoveRange              int    `xml:"MoveRange,attr"`
+	AttackType             int    `xml:"AttackType,attr"`
+	AttackRange            int    `xml:"AttackRange,attr"`
+	ViewRange              int    `xml:"ViewRange,attr"`
+	MoveSpeed              int    `xml:"MoveSpeed,attr"`
+	AttackSpeed            int    `xml:"AttackSpeed,attr"`
+	RegenTime              int    `xml:"RegenTime,attr"`
+	Attribute              int    `xml:"Attribute,attr"`
+	ItemDropRate           int    `xml:"ItemDropRate,attr"`
+	MoneyDropRate          int    `xml:"MoneyDropRate,attr"`
 	MaxItemLevel           string `xml:"MaxItemLevel,attr"`
 	MonsterSkill           string `xml:"MonsterSkill,attr"`
-	IceRes                 string `xml:"IceRes,attr"`
-	PoisonRes              string `xml:"PoisonRes,attr"`
-	LightRes               string `xml:"LightRes,attr"`
-	FireRes                string `xml:"FireRes,attr"`
+	IceRes                 int    `xml:"IceRes,attr"`
+	PoisonRes              int    `xml:"PoisonRes,attr"`
+	LightRes               int    `xml:"LightRes,attr"`
+	FireRes                int    `xml:"FireRes,attr"`
 	PentagramMainAttrib    int    `xml:"PentagramMainAttrib,attr"`
-	PentagramAttribPattern string `xml:"PentagramAttribPattern,attr"`
-	PentagramDamageMin     string `xml:"PentagramDamageMin,attr"`
-	PentagramDamageMax     string `xml:"PentagramDamageMax,attr"`
-	PentagramAttackRate    string `xml:"PentagramAttackRate,attr"`
-	PentagramDefenseRate   string `xml:"PentagramDefenseRate,attr"`
-	PentagramDefense       string `xml:"PentagramDefense,attr"`
+	PentagramAttribPattern int    `xml:"PentagramAttribPattern,attr"`
+	PentagramDamageMin     int    `xml:"PentagramDamageMin,attr"`
+	PentagramDamageMax     int    `xml:"PentagramDamageMax,attr"`
+	PentagramAttackRate    int    `xml:"PentagramAttackRate,attr"`
+	PentagramDefenseRate   int    `xml:"PentagramDefenseRate,attr"`
+	PentagramDefense       int    `xml:"PentagramDefense,attr"`
 	Name                   string `xml:"Name,attr"`
 	Annotation             string `xml:"annotation,attr"`
 }
 
-func NewMonster(kind int) *Monster {
-	mc, ok := MonsterTable[kind]
+func NewMonster(class int) *Monster {
+	mc, ok := MonsterTable[class]
 	if !ok {
-		panic(fmt.Sprintf("monster invalid [kind]%d", kind))
+		panic(fmt.Sprintf("monster invalid [class]%d", class))
 	}
-	return &Monster{MonsterConfig: *mc}
+	monster := Monster{}
+	monster.ConnectState = ConnectStatePlaying
+	monster.Live = true
+	monster.State = 1
+	switch class {
+	case 240: // 仓库使者塞弗特
+		monster.NpcType = NpcTypeWarehouse
+	case 238, 368, 369, 370, 452, 453, 478, 450:
+		monster.NpcType = NpcTypeChaosMix
+	case 236:
+		monster.NpcType = NpcTypeGoldarcher
+	case 582:
+		monster.NpcType = NpcTypePentagramMix
+	default:
+		monster.NpcType = NpcTypeNone
+	}
+	switch {
+	case class >= 204 && class <= 259 ||
+		class >= 367 && class <= 385 ||
+		class >= 406 && class <= 408 ||
+		class >= 414 && class <= 417 ||
+		class >= 450 && class <= 453 ||
+		class >= 464 && class <= 475 && class != 466 ||
+		class == 478 || class == 479 ||
+		class == 492 ||
+		class == 522 ||
+		class >= 540 && class <= 547 ||
+		class >= 566 && class <= 568 ||
+		class >= 577 && class <= 584 ||
+		class == 603 || class == 604 ||
+		class == 643 ||
+		class == 651 ||
+		class >= 658 && class <= 668 ||
+		class >= 682 && class <= 688:
+		monster.Type = ObjectNPC
+	default:
+		monster.Type = ObjectMonster
+	}
+	monster.Class = class
+	monster.Level = mc.Level
+	monster.attackDamageMin = mc.DamageMin
+	monster.attackDamageMax = mc.DamageMax
+	monster.attackRate = mc.AttackRate
+	monster.attackSpeed = mc.AttackSpeed
+	monster.defense = mc.Defense
+	monster.magicDefense = mc.MagicDefense
+	monster.defenseRate = mc.BlockRate
+	monster.HP = mc.HP
+	monster.MaxHP = mc.HP
+	monster.MP = mc.MP
+	monster.MaxMP = mc.MP
+	monster.moveRange = mc.MoveRange
+	monster.moveSpeed = mc.MoveSpeed
+	monster.attackRange = mc.AttackRange
+	monster.attackType = mc.AttackType
+	monster.viewRange = mc.ViewRange
+	monster.attribute = mc.Attribute
+	monster.itemDropRate = mc.ItemDropRate
+	monster.moneyDropRate = mc.MoneyDropRate
+	monster.maxRegenTime = mc.RegenTime
+	monster.pentagramAttributePattern = mc.PentagramAttribPattern
+	monster.pentagramAttackMin = mc.PentagramDamageMin
+	monster.pentagramAttackMax = mc.PentagramDamageMax
+	monster.pentagramAttackRate = mc.PentagramAttackRate
+	monster.pentagramDefense = mc.PentagramDefense
+	switch {
+	case monster.attackType >= 100:
+		monster.AddSkill(monster.attackType-100, 1)
+	case monster.attackType >= 1:
+		monster.AddSkill(monster.attackType, 1)
+	}
+	switch class {
+	case 161, 181, 189, 197, 267, 275: // 昆顿
+		monster.AddSkill(1, 1)   // 毒咒
+		monster.AddSkill(17, 1)  // 能量球
+		monster.AddSkill(55, 1)  // 玄月斩
+		monster.AddSkill(200, 1) // 召唤怪
+		monster.AddSkill(201, 1) // 免疫魔攻
+		monster.AddSkill(202, 1) // 免疫物攻
+	case 149, 179, 187, 195, 265, 273, 335: // 暗黑巫师
+		monster.AddSkill(1, 1)  // 毒咒
+		monster.AddSkill(17, 1) // 能量球
+	case 66, 73, 77: // 诅咒之王 蓝魔龙 天魔菲尼斯
+		// 163, 165, 167, 171, 173, 427: // 赤色要塞
+		monster.AddSkill(17, 1) // 能量球
+	case 89, 95, 112, 118, 124, 130, 143: // 骷灵巫师
+		monster.AddSkill(3, 1)  // 掌心雷
+		monster.AddSkill(17, 1) // 能量球
+	case 433: // 骷髅法师
+		monster.AddSkill(3, 1) // 掌心雷
+	case 561: // 美杜莎
+		monster.AddSkill(9, 1)   // 黑龙波
+		monster.AddSkill(38, 1)  // 单毒炎
+		monster.AddSkill(237, 1) // 闪电轰顶
+		monster.AddSkill(238, 1) // 黑暗之力
+	case 673: // 辛维斯特
+		monster.AddSkill(622, 1) // ?
+	}
+	return &monster
 }
+
+type NpcType int
+
+const (
+	NpcTypeNone = iota
+	NpcTypeShop
+	NpcTypeWarehouse
+	NpcTypeChaosMix
+	NpcTypeGoldarcher
+	NpcTypePentagramMix
+)
 
 type Monster struct {
 	object
-	MonsterConfig
+	NpcType int
 }
