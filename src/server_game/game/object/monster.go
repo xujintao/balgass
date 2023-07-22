@@ -3,6 +3,7 @@ package object
 import (
 	"encoding/xml"
 	"fmt"
+	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 )
@@ -72,6 +73,7 @@ func NewMonster(class int) *Monster {
 		panic(fmt.Sprintf("monster invalid [class]%d", class))
 	}
 	monster := Monster{}
+	monster.init()
 	monster.ConnectState = ConnectStatePlaying
 	monster.Live = true
 	monster.State = 1
@@ -110,6 +112,8 @@ func NewMonster(class int) *Monster {
 		monster.Type = ObjectMonster
 	}
 	monster.Class = class
+	monster.Name = mc.Name
+	monster.Annotation = mc.Annotation
 	monster.Level = mc.Level
 	monster.attackDamageMin = mc.DamageMin
 	monster.attackDamageMax = mc.DamageMax
@@ -130,7 +134,7 @@ func NewMonster(class int) *Monster {
 	monster.attribute = mc.Attribute
 	monster.itemDropRate = mc.ItemDropRate
 	monster.moneyDropRate = mc.MoneyDropRate
-	monster.maxRegenTime = mc.RegenTime
+	monster.maxRegenTime = time.Duration(mc.RegenTime)
 	monster.pentagramAttributePattern = mc.PentagramAttribPattern
 	monster.pentagramAttackMin = mc.PentagramDamageMin
 	monster.pentagramAttackMax = mc.PentagramDamageMax
@@ -138,36 +142,36 @@ func NewMonster(class int) *Monster {
 	monster.pentagramDefense = mc.PentagramDefense
 	switch {
 	case monster.attackType >= 100:
-		monster.AddSkill(monster.attackType-100, 1)
+		monster.addSkill(monster.attackType-100, 1)
 	case monster.attackType >= 1:
-		monster.AddSkill(monster.attackType, 1)
+		monster.addSkill(monster.attackType, 1)
 	}
 	switch class {
 	case 161, 181, 189, 197, 267, 275: // 昆顿
-		monster.AddSkill(1, 1)   // 毒咒
-		monster.AddSkill(17, 1)  // 能量球
-		monster.AddSkill(55, 1)  // 玄月斩
-		monster.AddSkill(200, 1) // 召唤怪
-		monster.AddSkill(201, 1) // 免疫魔攻
-		monster.AddSkill(202, 1) // 免疫物攻
+		monster.addSkill(1, 1)   // 毒咒
+		monster.addSkill(17, 1)  // 能量球
+		monster.addSkill(55, 1)  // 玄月斩
+		monster.addSkill(200, 1) // 召唤怪
+		monster.addSkill(201, 1) // 免疫魔攻
+		monster.addSkill(202, 1) // 免疫物攻
 	case 149, 179, 187, 195, 265, 273, 335: // 暗黑巫师
-		monster.AddSkill(1, 1)  // 毒咒
-		monster.AddSkill(17, 1) // 能量球
+		monster.addSkill(1, 1)  // 毒咒
+		monster.addSkill(17, 1) // 能量球
 	case 66, 73, 77: // 诅咒之王 蓝魔龙 天魔菲尼斯
 		// 163, 165, 167, 171, 173, 427: // 赤色要塞
-		monster.AddSkill(17, 1) // 能量球
+		monster.addSkill(17, 1) // 能量球
 	case 89, 95, 112, 118, 124, 130, 143: // 骷灵巫师
-		monster.AddSkill(3, 1)  // 掌心雷
-		monster.AddSkill(17, 1) // 能量球
+		monster.addSkill(3, 1)  // 掌心雷
+		monster.addSkill(17, 1) // 能量球
 	case 433: // 骷髅法师
-		monster.AddSkill(3, 1) // 掌心雷
+		monster.addSkill(3, 1) // 掌心雷
 	case 561: // 美杜莎
-		monster.AddSkill(9, 1)   // 黑龙波
-		monster.AddSkill(38, 1)  // 单毒炎
-		monster.AddSkill(237, 1) // 闪电轰顶
-		monster.AddSkill(238, 1) // 黑暗之力
+		monster.addSkill(9, 1)   // 黑龙波
+		monster.addSkill(38, 1)  // 单毒炎
+		monster.addSkill(237, 1) // 闪电轰顶
+		monster.addSkill(238, 1) // 黑暗之力
 	case 673: // 辛维斯特
-		monster.AddSkill(622, 1) // ?
+		// monster.addSkill(622, 1) // ?
 	}
 	return &monster
 }
@@ -186,4 +190,16 @@ const (
 type Monster struct {
 	object
 	NpcType int
+}
+
+func (m *Monster) processRegen() {
+	if m.ConnectState < ConnectStatePlaying {
+		return
+	}
+	if time.Now().Unix()-int64(m.regenTime) < int64(m.maxRegenTime) {
+		return
+	}
+
+	m.dieRegen = false
+	m.State = 1
 }

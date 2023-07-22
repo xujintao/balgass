@@ -3,6 +3,7 @@ package object
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
@@ -16,6 +17,42 @@ type Conn interface {
 	Addr() string
 	Write(any) error
 	Close() error
+}
+
+var poolPlayer = sync.Pool{
+	New: func() any {
+		return &Player{}
+	},
+}
+
+func NewPlayer(conn Conn) *Player {
+	// create a new player
+	player := poolPlayer.Get().(*Player)
+	player.LoginMsgSend = false
+	player.LoginMsgCount = 0
+	player.conn = conn
+	player.msgChan = make(chan any, 100)
+	ctx, cancel := context.WithCancel(context.Background())
+	player.cancel = cancel
+	player.ConnectCheckTime = time.Now()
+	player.AutoSaveTime = player.ConnectCheckTime
+	player.ConnectState = ConnectStateConnected
+	player.CheckSpeedHack = false
+	player.EnableCharacterCreate = false
+	player.Type = ObjectPlayer
+
+	// new a new goroutine to reply message
+	go func() {
+		for {
+			select {
+			case msg := <-player.msgChan:
+				player.conn.Write(msg)
+			case <-ctx.Done():
+				return // return ctx.Err()
+			}
+		}
+	}()
+	return player
 }
 
 type Player struct {
@@ -121,6 +158,12 @@ type Player struct {
 	excelWingEffectRecoveryHP    int
 	excelWingEffectRecoveryMP    int
 	excelWingEffectDoubleDamage  int
+}
+
+func (player *Player) delete() {
+	player.cancel()
+	player.reset()
+	poolPlayer.Put(player)
 }
 
 func (player *Player) Push(msg any) {
@@ -490,7 +533,7 @@ func (player *Player) LearnSkill(skillIndex int) bool {
 		return false
 	}
 	if skillBase.STID == 0 && skillBase.UseType == 0 {
-		return player.AddSkill(skillIndex, 0)
+		return player.addSkill(skillIndex, 0)
 	}
 
 	// validate player level
@@ -530,4 +573,16 @@ func (player *Player) PushSkillOne() {
 func (player *Player) PushSkillAll() {
 	var msg model.MsgSkillList
 	player.Push(&msg)
+}
+
+func (p *Player) processRegen() {
+	if p.ConnectState < ConnectStatePlaying {
+		return
+	}
+	if time.Now().Unix()-int64(p.regenTime) < int64(p.maxRegenTime) {
+		return
+	}
+
+	p.dieRegen = false
+	p.State = 1
 }

@@ -2,7 +2,6 @@ package game
 
 import (
 	"context"
-	"log"
 	"reflect"
 	"time"
 
@@ -33,6 +32,8 @@ func (g *game) Start() {
 	ctx, cancel := context.WithCancel(context.Background())
 	g.cancel = cancel
 	go func() {
+		t1 := time.NewTicker(time.Second)
+		t10 := time.NewTicker(time.Second * 10)
 		for {
 			select {
 			case connReq := <-g.connRequestChan:
@@ -52,8 +53,10 @@ func (g *game) Start() {
 				// player.Chat(msg)
 				in := []reflect.Value{reflect.ValueOf(msg)}
 				reflect.ValueOf(player).MethodByName(action).Call(in)
-			case <-time.Tick(time.Second):
+			case <-t1.C:
 				maps.MapManager.ProcessWeather(g)
+				object.ObjectManager.ProcessRegen()
+			case <-t10.C:
 			case <-ctx.Done():
 				// todo
 				return
@@ -116,7 +119,7 @@ func (g *game) PlayerAction(id int, action string, msg any) {
 }
 
 func (g *game) SendWeather(number, weather int) {
-	if number == 0 {
-		log.Println(number, weather)
-	}
+	// if number == 0 {
+	// 	log.Println(number, weather)
+	// }
 }

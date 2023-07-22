@@ -1,7 +1,6 @@
 package object
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
 	"log"
@@ -35,8 +34,9 @@ type objectManager struct {
 }
 
 type iobject interface {
-	Reset()
-	AddSkill(int, int) bool
+	reset()
+	addSkill(int, int) bool
+	processRegen()
 }
 
 func (m *objectManager) init() {
@@ -155,10 +155,6 @@ func (m *objectManager) spawnMonster() {
 	}
 }
 
-func (m *objectManager) regenMonster() {
-
-}
-
 func (m *objectManager) AddMonster(kind int) (*Monster, error) {
 	if m.monsterCount >= conf.Server.GameServerInfo.MaxMonsterCount {
 		return nil, fmt.Errorf("over max monster count")
@@ -183,12 +179,6 @@ func (m *objectManager) AddMonster(kind int) (*Monster, error) {
 	monster.index = index
 	m.objects[index] = monster
 	return monster, nil
-}
-
-var poolPlayer = sync.Pool{
-	New: func() any {
-		return &Player{}
-	},
 }
 
 func (m *objectManager) AddPlayer(conn Conn) (int, error) {
@@ -218,38 +208,8 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 	}
 	m.lastPlayerIndex = index
 	m.playerCount++
-
-	// create a new player
-	player := poolPlayer.Get().(*Player)
-	player.LoginMsgSend = false
-	player.LoginMsgCount = 0
+	player := NewPlayer(conn)
 	player.index = index
-	player.conn = conn
-	player.msgChan = make(chan any, 100)
-	ctx, cancel := context.WithCancel(context.Background())
-	player.cancel = cancel
-	player.ConnectCheckTime = time.Now()
-	player.AutoSaveTime = player.ConnectCheckTime
-	player.ConnectState = ConnectStateConnected
-	player.CheckSpeedHack = false
-	player.EnableCharacterCreate = false
-	player.Type = ObjectPlayer
-	// player.Addr = addr
-	// player.Conn = conn
-	// player.pusher = pusher.(Pusher)
-
-	// new a new goroutine to reply message
-	go func() {
-		for {
-			select {
-			case msg := <-player.msgChan:
-				player.conn.Write(msg)
-			case <-ctx.Done():
-				return // return ctx.Err()
-			}
-		}
-	}()
-
 	// register the new player to object manager
 	m.objects[index] = player
 
@@ -266,18 +226,36 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 
 func (m *objectManager) DeletePlayer(id int) {
 	player := m.objects[id].(*Player)
-	player.cancel()
-
-	log.Printf("player offline [id]%d [addr]%s", player.index, player.conn.Addr())
-	poolPlayer.Put(player)
-
 	// unregister player from object manager
-	m.objects[player.index] = nil
+	m.objects[id] = nil
 	m.playerCount--
+	player.delete()
+	log.Printf("player offline [id]%d [addr]%s", player.index, player.conn.Addr())
 }
 
 func (m *objectManager) GetPlayer(id int) *Player {
 	return m.objects[id].(*Player)
+}
+
+func (m *objectManager) object(v iobject) *object {
+	var obj *object
+	if monster, ok := v.(*Monster); ok {
+		obj = &monster.object
+	} else if player, ok := v.(*Player); ok {
+		obj = &player.object
+	} else {
+		panic(fmt.Sprintf("object failed [err]%v", v))
+	}
+	return obj
+}
+
+func (m *objectManager) ProcessRegen() {
+	for _, v := range m.objects {
+		if v == nil {
+			continue
+		}
+		v.processRegen()
+	}
 }
 
 const (
@@ -379,9 +357,10 @@ type skillInfo struct {
 }
 
 type object struct {
-	index                     int
-	ConnectState              ConnectState
-	Live                      bool
+	index        int
+	ConnectState ConnectState
+	Live         bool
+	// 4:等待重生
 	State                     int
 	StartX                    int
 	StartY                    int
@@ -394,6 +373,7 @@ type object struct {
 	Type                      ObjectType // 对象种类：玩家，怪物，NPC
 	Class                     int        // 对象类别。怪物和玩家都有类别
 	Name                      string     // 对象名称
+	Annotation                string     // 对象备注
 	Level                     int
 	HP                        int // HP
 	MaxHP                     int // MaxHP
@@ -426,7 +406,10 @@ type object struct {
 	itemDropRate              int // 道具掉落率
 	moneyDropRate             int // 金钱掉落率
 	attribute                 int
-	maxRegenTime              int // 最大重生时间
+	dieRegen                  bool
+	regenOK                   byte
+	regenTime                 time.Duration // 重生时间
+	maxRegenTime              time.Duration // 最大重生时间
 	pentagramMainAttribute    int
 	pentagramAttributePattern int
 	pentagramAttackMin        int
@@ -554,13 +537,9 @@ type object struct {
 	TeleportTIme               time.Duration
 	Teleport                   byte
 	KillerType                 byte
-	DieRegen                   byte
-	RegenOK                    byte
 	MapNumberRegen             byte
 	XRegen                     byte
 	YRegen                     byte
-	RegenTime                  time.Duration
-	RegenTimeMax               time.Duration
 	posNum                     uint16
 	LifeRefillTimer            *time.Timer
 	ActionTimeCur              time.Time
@@ -756,12 +735,16 @@ type object struct {
 	offLevelTime            int
 }
 
-func (obj *object) Reset() {
+func (obj *object) init() {
+	obj.Skills = make(map[int]*skill.Skill)
+}
 
+func (obj *object) reset() {
+	obj.Skills = nil
 }
 
 // AddSkill  object add skill
-func (obj *object) AddSkill(skillIndex, level int) bool {
+func (obj *object) addSkill(skillIndex, level int) bool {
 	if _, ok := obj.Skills[skillIndex]; ok {
 		log.Printf("object[%s] skill[%s] already exists", obj.Name, skill.SkillTable[skillIndex].Name)
 		return false
