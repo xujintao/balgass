@@ -3,9 +3,12 @@ package object
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
+	"math/rand"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
+	"github.com/xujintao/balgass/src/server_game/game/maps"
 )
 
 func init() {
@@ -189,17 +192,72 @@ const (
 
 type Monster struct {
 	object
-	NpcType int
+	NpcType     int
+	spawnStartX int
+	spawnStartY int
+	spawnEndX   int
+	spawnEndY   int
+	spawnDir    int
+}
+
+func (m *Monster) randPosition(number, x1, y1, x2, y2 int) (int, int) {
+	w := x2 - x1
+	if w <= 0 {
+		w = 1
+	}
+	h := y2 - y1
+	if h <= 0 {
+		h = 1
+	}
+	if w == 1 && h == 1 {
+		return x1, y1
+	}
+	for i := 0; i < 100; i++ {
+		x := x1 + rand.Intn(w)
+		y := y1 + rand.Intn(h)
+		attr := maps.MapManager.GetMapAttr(number, x, y)
+		if attr&1 == 0 && attr&4 == 0 && attr&8 == 0 {
+			return x, y
+		}
+	}
+	// panic(fmt.Sprintf("randPosition failed [number]%d", number))
+	log.Printf("randPosition failed [map]%d [start](%d,%d) [end](%d,%d)\n", number, x1, y1, x2, y2)
+	return x1, y1
+}
+
+func (m *Monster) spawnPosition() {
+	// // wrong
+	// if _map.Number == maps.Atlans && spawn.StartX == 251 && spawn.StartY == 51 ||
+	// 	_map.Number == maps.Atlans && spawn.StartX == 7 && spawn.StartY == 52 ||
+	// 	_map.Number == maps.LandOfTrial && spawn.StartX == 14 && spawn.StartY == 43 ||
+	// 	_map.Number == maps.KanturuBoss && spawn.Index == 106 {
+	// 	continue
+	// }
+	m.StartX, m.StartY = m.randPosition(m.MapNumber, m.spawnStartX, m.spawnStartY, m.spawnEndX, m.spawnEndY)
+	maps.MapManager.SetMapAttrStand(m.MapNumber, m.StartX, m.StartY)
+	m.X, m.Y = m.StartX, m.StartY
+	m.OldX = m.X
+	m.OldY = m.Y
+	m.Dir = m.spawnDir
+	if m.Dir < 0 {
+		m.Dir = rand.Intn(8)
+	}
 }
 
 func (m *Monster) processRegen() {
+	if !m.dieRegen {
+		return
+	}
 	if m.ConnectState < ConnectStatePlaying {
 		return
 	}
 	if time.Now().Unix()-int64(m.regenTime) < int64(m.maxRegenTime) {
 		return
 	}
-
+	m.HP = m.MaxHP + m.AddHP
+	m.MP = m.MaxMP + m.AddMP
+	m.Live = true
+	m.spawnPosition()
 	m.dieRegen = false
 	m.State = 1
 }

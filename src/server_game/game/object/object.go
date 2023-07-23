@@ -4,13 +4,11 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
-	"math/rand"
 	"sync"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
-	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
@@ -73,7 +71,7 @@ func (m *objectManager) spawnMonster() {
 				Text        string `xml:",chardata"`
 				Type        int    `xml:"Type,attr"`
 				Description string `xml:"Description,attr"`
-				Spawn       []struct {
+				Spawn       []*struct {
 					Text     string `xml:",chardata"`
 					Index    int    `xml:"Index,attr"`
 					Distance int    `xml:"Distance,attr"`
@@ -90,26 +88,6 @@ func (m *objectManager) spawnMonster() {
 	}
 	var monsterSpawn MonsterSpawn
 	conf.XML(conf.PathCommon, "Monsters/IGC_MonsterSpawn.xml", &monsterSpawn)
-
-	randPosition := func(number, x1, y1, x2, y2 int) (int, int) {
-		w := x2 - x1
-		if w <= 0 {
-			w = 1
-		}
-		h := y2 - y1
-		if h <= 0 {
-			h = 1
-		}
-		for i := 0; i < 100; i++ {
-			x := x1 + rand.Intn(w)
-			y := y1 + rand.Intn(h)
-			attr := maps.MapManager.GetMapAttr(number, x, y)
-			if attr&1 == 0 && attr&4 == 0 && attr&8 == 0 {
-				return x, y
-			}
-		}
-		panic(fmt.Sprintf("randPosition failed [number]%d", number))
-	}
 	for _, _map := range monsterSpawn.Map {
 		for _, spot := range _map.Spot {
 			for _, spawn := range spot.Spawn {
@@ -118,13 +96,6 @@ func (m *objectManager) spawnMonster() {
 					cnt = 1
 				}
 				for i := 0; i < cnt; i++ {
-					// wrong
-					if _map.Number == maps.Atlans && spawn.StartX == 251 && spawn.StartY == 51 ||
-						_map.Number == maps.Atlans && spawn.StartX == 7 && spawn.StartY == 52 ||
-						_map.Number == maps.LandOfTrial && spawn.StartX == 14 && spawn.StartY == 43 ||
-						_map.Number == maps.KanturuBoss && spawn.Index == 106 {
-						continue
-					}
 					monster, err := m.AddMonster(spawn.Index)
 					if err != nil {
 						log.Fatalf("AddMonster failed err[%v]", err)
@@ -132,20 +103,23 @@ func (m *objectManager) spawnMonster() {
 					monster.MapNumber = _map.Number
 					switch spot.Type {
 					case 0: // npc
-						monster.StartX, monster.StartY = spawn.StartX, spawn.StartY
+						monster.spawnStartX = spawn.StartX
+						monster.spawnStartY = spawn.StartY
+						monster.spawnEndX = spawn.StartX
+						monster.spawnEndY = spawn.StartY
 					case 1, 3: // multiple
-						monster.StartX, monster.StartY = randPosition(_map.Number, spawn.StartX, spawn.StartY, spawn.EndX, spawn.EndY)
+						monster.spawnStartX = spawn.StartX
+						monster.spawnStartY = spawn.StartY
+						monster.spawnEndX = spawn.EndX
+						monster.spawnEndY = spawn.EndY
 					case 2: // single
-						monster.StartX, monster.StartY = randPosition(_map.Number, spawn.StartX-3, spawn.StartY-3, spawn.StartX+3, spawn.StartY+3)
+						monster.spawnStartX = spawn.StartX - 3
+						monster.spawnStartY = spawn.StartY - 3
+						monster.spawnEndX = spawn.StartX + 3
+						monster.spawnEndY = spawn.StartY + 3
 					}
-					monster.X, monster.Y = monster.StartX, monster.StartY
-					maps.MapManager.SetMapAttrStand(monster.MapNumber, monster.X, monster.Y)
-					monster.OldX = monster.X
-					monster.OldY = monster.Y
-					monster.Dir = spawn.Dir
-					if monster.Dir < 0 {
-						monster.Dir = rand.Intn(8)
-					}
+					monster.spawnDir = spawn.Dir
+					monster.spawnPosition()
 					if spot.Type == 3 {
 						monster.pentagramMainAttribute = spawn.Element
 					}
