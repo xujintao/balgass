@@ -718,11 +718,11 @@ func (obj *object) reset() {
 }
 
 // AddSkill  object add skill
-func (obj *object) addSkill(skillIndex, level int) bool {
-	if _, ok := obj.Skills[skillIndex]; ok {
-		log.Printf("object[%s] skill[%s] already exists", obj.Name, skill.SkillTable[skillIndex].Name)
+func (obj *object) addSkill(index, level int) bool {
+	if _, ok := obj.Skills[index]; ok {
+		log.Printf("[object]%s [skill]%d already exists", obj.Name, index)
 		return false
 	}
-	obj.Skills[skillIndex] = skill.Get(skillIndex, level)
+	obj.Skills[index] = skill.SkillManager.Get(index, level, obj.Skills)
 	return true
 }

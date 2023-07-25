@@ -10,7 +10,6 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/guild"
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/model"
-	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
 type Conn interface {
@@ -526,41 +525,41 @@ func (player *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
 
 // LearnSkill object learn skill from skill stone or master point
 func (player *Player) LearnSkill(skillIndex int) bool {
-	// validate skillIndex
-	skillBase, ok := skill.SkillTable[skillIndex]
-	if !ok {
-		log.Printf("player[%s] learn invalid skill index[%d]", player.Name, skillIndex)
-		return false
-	}
-	if skillBase.STID == 0 && skillBase.UseType == 0 {
-		return player.addSkill(skillIndex, 0)
-	}
+	// // validate skillIndex
+	// skillBase, ok := skill.SkillTable[skillIndex]
+	// if !ok {
+	// 	log.Printf("player[%s] learn invalid skill index[%d]", player.Name, skillIndex)
+	// 	return false
+	// }
+	// if skillBase.STID == 0 && skillBase.UseType == 0 {
+	// 	return player.addSkill(skillIndex, 0)
+	// }
 
-	// validate player level
-	if !player.MasterLevel() {
-		return false // 2
-	}
+	// // validate player level
+	// if !player.MasterLevel() {
+	// 	return false // 2
+	// }
 
-	// validate skill level
-	level := 0
-	if skill, ok := player.Skills[skillIndex]; ok {
-		level = skill.Level
-	}
-	level += skillBase.ReqMLPoint
-	skillMaster, _ := skill.SkillMasterTable[skillIndex]
-	if level > skillMaster.MaxPoint {
-		return false // 4
-	}
+	// // validate skill level
+	// level := 0
+	// if skill, ok := player.Skills[skillIndex]; ok {
+	// 	level = skill.Level
+	// }
+	// level += skillBase.ReqMLPoint
+	// skillMaster, _ := skill.SkillMasterTable[skillIndex]
+	// if level > skillMaster.MaxPoint {
+	// 	return false // 4
+	// }
 
-	// validate master point
-	if player.MasterPoint < skillBase.ReqMLPoint {
-		return false // 4
-	}
+	// // validate master point
+	// if player.MasterPoint < skillBase.ReqMLPoint {
+	// 	return false // 4
+	// }
 
-	// validate new skill
-	if level == 1 {
+	// // validate new skill
+	// if level == 1 {
 
-	}
+	// }
 
 	return true
 }
@@ -576,6 +575,9 @@ func (player *Player) PushSkillAll() {
 }
 
 func (p *Player) processRegen() {
+	if !p.dieRegen {
+		return
+	}
 	if p.ConnectState < ConnectStatePlaying {
 		return
 	}
