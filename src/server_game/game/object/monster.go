@@ -158,8 +158,8 @@ func NewMonster(class int) *Monster {
 		monster.addSkill(201, 1) // 免疫魔攻
 		monster.addSkill(202, 1) // 免疫物攻
 	case 149, 179, 187, 195, 265, 273, 335: // 暗黑巫师
-		monster.addSkill(1, 1)  // 毒咒
-		monster.addSkill(17, 1) // 能量球
+		monster.addSkill(1, 1) // 毒咒
+		// monster.addSkill(17, 1) // 能量球
 	case 66, 73, 77: // 诅咒之王 蓝魔龙 天魔菲尼斯
 		// 163, 165, 167, 171, 173, 427: // 赤色要塞
 		monster.addSkill(17, 1) // 能量球
