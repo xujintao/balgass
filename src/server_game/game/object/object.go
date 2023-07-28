@@ -32,8 +32,8 @@ type objectManager struct {
 }
 
 type iobject interface {
-	reset()
-	addSkill(int, int) bool
+	// reset()
+	// addSkill(int, int) bool
 	processRegen()
 }
 
@@ -223,6 +223,19 @@ func (m *objectManager) object(v iobject) *object {
 	return obj
 }
 
+func (m *objectManager) ProcessViewport() {
+	for _, v := range m.objects {
+		if v == nil {
+			continue
+		}
+		obj := m.object(v)
+		if obj.State == 1 {
+			// create viewport
+			obj.State = 2
+		}
+	}
+}
+
 func (m *objectManager) ProcessRegen() {
 	for _, v := range m.objects {
 		if v == nil {
@@ -230,6 +243,21 @@ func (m *objectManager) ProcessRegen() {
 		}
 		v.processRegen()
 	}
+}
+
+func (m *objectManager) ProcessMonster() {
+	// maxMonsterCount := conf.Server.GameServerInfo.MaxMonsterCount
+	// for _, v := range m.objects[:maxMonsterCount] {
+	// 	if v == nil {
+	// 		continue
+	// 	}
+	// 	monster := v.(*Monster)
+	// 	monster.processMonster()
+	// }
+}
+
+func (m *objectManager) ProcessMonsterMove() {
+
 }
 
 const (
@@ -331,11 +359,10 @@ type skillInfo struct {
 }
 
 type object struct {
-	index        int
-	ConnectState ConnectState
-	Live         bool
-	// 4:等待重生
-	State                     int
+	index                     int
+	ConnectState              ConnectState
+	Live                      bool
+	State                     int // 1:初始 2:视野 4:死亡
 	StartX                    int
 	StartY                    int
 	X                         int // x坐标

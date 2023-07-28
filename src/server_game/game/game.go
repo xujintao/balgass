@@ -32,8 +32,8 @@ func (g *game) Start() {
 	ctx, cancel := context.WithCancel(context.Background())
 	g.cancel = cancel
 	go func() {
-		t1 := time.NewTicker(time.Second)
-		t10 := time.NewTicker(time.Second * 10)
+		t100ms := time.NewTicker(time.Millisecond * 100)
+		cnt := 0
 		for {
 			select {
 			case connReq := <-g.connRequestChan:
@@ -53,10 +53,19 @@ func (g *game) Start() {
 				// player.Chat(msg)
 				in := []reflect.Value{reflect.ValueOf(msg)}
 				reflect.ValueOf(player).MethodByName(action).Call(in)
-			case <-t1.C:
-				maps.MapManager.ProcessWeather(g)
-				object.ObjectManager.ProcessRegen()
-			case <-t10.C:
+			case <-t100ms.C:
+				cnt++
+				if cnt%3 == 0 { // 300ms
+					object.ObjectManager.ProcessMonsterMove()
+				}
+				if cnt%5 == 0 { // 500ms
+					object.ObjectManager.ProcessMonster()
+				}
+				if cnt%10 == 0 { // 1s
+					maps.MapManager.ProcessWeather(g)
+					object.ObjectManager.ProcessViewport() // 1->2
+					object.ObjectManager.ProcessRegen()    // 4->1
+				}
 			case <-ctx.Done():
 				// todo
 				return
