@@ -9,19 +9,22 @@ import (
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/math2"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
 func init() {
+	InitFrustrum()
 	ObjectManager.init()
 }
 
 var ObjectManager objectManager
 
 type objectManager struct {
-	maxObjectCount int
-	objects        []iobject
+	maxObjectCount  int
+	objects         []iobject
+	maxMonsterCount int
 	// monsterStartIndex int
 	// lastMonsterIndex  int
 	monsterCount int
@@ -42,6 +45,7 @@ func (m *objectManager) init() {
 		conf.Server.GameServerInfo.MaxSummonMonsterCount +
 		conf.Server.GameServerInfo.MaxPlayerCount
 	m.objects = make([]iobject, m.maxObjectCount)
+	m.maxMonsterCount = conf.Server.GameServerInfo.MaxMonsterCount
 	// objectBills = make([]bill, conf.Server.MaxPlayerCount)
 	m.playerStartIndex = conf.Server.GameServerInfo.MaxMonsterCount +
 		conf.Server.GameServerInfo.MaxSummonMonsterCount
@@ -217,20 +221,119 @@ func (m *objectManager) object(v iobject) *object {
 		obj = &monster.object
 	} else if player, ok := v.(*Player); ok {
 		obj = &player.object
-	} else {
-		panic(fmt.Sprintf("object failed [err]%v", v))
 	}
 	return obj
 }
 
-func (m *objectManager) ProcessViewport() {
+func (m *objectManager) CreateViewport() {
 	for _, v := range m.objects {
 		if v == nil {
 			continue
 		}
 		obj := m.object(v)
+		if obj.ConnectState != ConnectStatePlaying {
+			continue
+		}
+		start := 0
+		// create viewport
+		switch obj.Type {
+		case ObjectTypePlayer:
+			start = 0 // 玩家能看到所有对象
+		case ObjectTypeMonster, ObjectTypeNPC:
+			start = m.maxMonsterCount // 怪物看不见怪物
+		}
+		for _, v := range m.objects[start:] {
+			if v == nil {
+				continue
+			}
+			tobj := m.object(v)
+			if tobj.ConnectState < ConnectStatePlaying ||
+				tobj.index == obj.index ||
+				(tobj.State != 1 && tobj.State != 2) ||
+				tobj.MapNumber != obj.MapNumber {
+				continue
+			}
+			if !obj.checkViewport(tobj.X, tobj.Y) {
+				continue
+			}
+			obj.addViewport(tobj)
+			tobj.addViewport2(obj)
+		}
+	}
+}
+
+func (m *objectManager) DestroyViewport() {
+	for _, v := range m.objects {
+		if v == nil {
+			continue
+		}
+		obj := m.object(v)
+		if obj.ConnectState != ConnectStatePlaying {
+			continue
+		}
+		// remove viewport
+		for i, vp := range obj.viewports {
+			if vp.state != 1 && vp.state != 2 {
+				continue
+			}
+			tnum := vp.number
+			switch vp.type_ {
+			case 5: // items
+			default: // objects
+				tobj := m.object(m.objects[tnum])
+				if tobj == nil {
+					obj.viewports[i].state = 3
+				}
+				if tobj.ConnectState < ConnectStatePlaying ||
+					tobj.index == obj.index ||
+					(tobj.State != 1 && tobj.State != 2) ||
+					tobj.MapNumber != obj.MapNumber {
+					obj.viewports[i].state = 3
+				}
+				if !obj.checkViewport(tobj.X, tobj.Y) {
+					obj.viewports[i].state = 3
+				}
+			}
+		}
+		for i, vp := range obj.viewports2 {
+			if vp.state != 1 && vp.state != 2 {
+				continue
+			}
+			tobj := m.object(m.objects[vp.number])
+			remove := false
+			if tobj == nil {
+				remove = true
+			}
+			if tobj.ConnectState < ConnectStatePlaying ||
+				tobj.index == obj.index ||
+				(tobj.State != 1 && tobj.State != 2) ||
+				tobj.MapNumber != obj.MapNumber {
+				remove = true
+			}
+			if !obj.checkViewport(tobj.X, tobj.Y) {
+				remove = true
+			}
+			if remove {
+				obj.viewports2[i].state = 0
+				obj.viewports2[i].number = -1
+				obj.viewportNum2--
+			}
+		}
+	}
+}
+
+func (m *objectManager) ProcessViewport() {
+	m.DestroyViewport()
+	m.CreateViewport()
+	for _, v := range m.objects {
+		if v == nil {
+			continue
+		}
+		obj := m.object(v)
+		if obj.ConnectState != ConnectStatePlaying {
+			continue
+		}
 		if obj.State == 1 {
-			// create viewport
 			obj.State = 2
 		}
 	}
@@ -303,12 +406,16 @@ type EffectList struct {
 	EffectDuration int
 }
 
-type ViewPort struct {
-	State  uint8
-	Number uint16
-	Type   uint8
-	Index  uint16
-	Dis    int
+const (
+	MaxViewportNum = 75
+)
+
+type viewport struct {
+	state  int // 3消失
+	number int
+	type_  int
+	index  int
+	dis    int
 }
 
 type HitDamage struct {
@@ -326,10 +433,10 @@ type InterfaceState struct {
 type ObjectType int
 
 const (
-	ObjectEmpty ObjectType = iota - 1
-	ObjectPlayer
-	ObjectMonster
-	ObjectNPC
+	ObjectTypeEmpty ObjectType = iota
+	ObjectTypePlayer
+	ObjectTypeMonster
+	ObjectTypeNPC
 )
 
 type ConnectState int
@@ -417,6 +524,12 @@ type object struct {
 	pentagramAttackMax        int
 	pentagramAttackRate       int
 	pentagramDefense          int
+	FrustrumX                 [MaxArrayFrustrum]int
+	FrustrumY                 [MaxArrayFrustrum]int
+	viewports                 [MaxViewportNum]*viewport // 主动视野
+	viewports2                [MaxViewportNum]*viewport // 被动视野
+	viewportNum               int
+	viewportNum2              int
 
 	basicAI         int
 	currentAI       int
@@ -587,12 +700,6 @@ type object struct {
 	CharSet         string
 	// resistance               [MaxResistanceType]byte
 	// addResistance            [MaxResistanceType]byte
-	FrustrumX                [MaxArrayFrustrum]int
-	FrustrumY                [MaxArrayFrustrum]int
-	VPPlayer                 *ViewPort
-	VPPlayer2                *ViewPort
-	VPCount                  int
-	VPCount2                 int
 	HD                       *HitDamage
 	HDCount                  uint16
 	ifState                  InterfaceState
@@ -738,6 +845,12 @@ type object struct {
 
 func (obj *object) init() {
 	obj.Skills = make(map[int]*skill.Skill)
+	for i := range obj.viewports {
+		obj.viewports[i] = &viewport{}
+	}
+	for i := range obj.viewports2 {
+		obj.viewports2[i] = &viewport{}
+	}
 }
 
 func (obj *object) reset() {
@@ -752,4 +865,99 @@ func (obj *object) addSkill(index, level int) bool {
 	}
 	obj.Skills[index] = skill.SkillManager.Get(index, level, obj.Skills)
 	return true
+}
+
+var (
+	FrustrumX [MaxArrayFrustrum]int
+	FrustrumY [MaxArrayFrustrum]int
+)
+
+func InitFrustrum() {
+	var cameraViewFar float32 = 3200.0
+	var cameraviewNear float32 = cameraViewFar * 0.19
+	var cameraViewTarget float32 = cameraViewFar * 0.53
+	var widthFar float32 = 1390.0
+	var widthNear float32 = 750.0
+
+	p := [4][3]float32{
+		{-widthFar, cameraViewFar - cameraViewTarget, 0.0},
+		{widthFar, cameraViewFar - cameraViewTarget, 0.0},
+		{widthNear, cameraviewNear - cameraViewTarget, 0.0},
+		{-widthNear, cameraviewNear - cameraViewTarget, 0.0},
+	}
+	angle := [3]float32{0.0, 0.0, 45.0}
+	matrix := math2.Angle2Matrix(angle)
+	var frustrum [4][3]float32
+	for i := 0; i < 4; i++ {
+		frustrum[i] = math2.VectorRotate(p[i], matrix)
+		FrustrumX[i] = int(frustrum[i][0] * 0.01)
+		FrustrumY[i] = int(frustrum[i][1] * 0.01)
+	}
+}
+
+func (obj *object) createFrustrum() {
+	for i := 0; i < MaxArrayFrustrum; i++ {
+		obj.FrustrumX[i] = FrustrumX[i] + obj.X
+		obj.FrustrumY[i] = FrustrumY[i] + obj.Y
+	}
+}
+
+func (obj *object) checkViewport(x, y int) bool {
+	if x < obj.X-15 ||
+		x > obj.X+15 ||
+		y < obj.Y-15 ||
+		y > obj.Y+15 {
+		return false
+	}
+	for i, j := 0, 3; i < MaxArrayFrustrum; j, i = i, i+1 {
+		frustrum := (obj.FrustrumX[i]-x)*(obj.FrustrumY[i]-y) -
+			(obj.FrustrumX[j]-x)*(obj.FrustrumY[j]-y)
+		if frustrum < 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func (obj *object) addViewport(tobj *object) {
+	if tobj.Class == 523 ||
+		tobj.Class == 603 {
+		return
+	}
+	// type_ := tobj.Type
+	// index := tobj.index
+	// k := int(type_)<<16 + index
+	// if _, ok := obj.viewports[k]; !ok {
+	// 	v := &viewport{
+	// 		state:  1,
+	// 		number: index,
+	// 		type_:  int(type_),
+	// 	}
+	// 	obj.viewports[k] = v
+	// }
+	for _, vp := range obj.viewports {
+		if vp.state == 0 {
+			vp.state = 1
+			vp.number = tobj.index
+			vp.type_ = int(tobj.Type)
+			obj.viewportNum++
+			break
+		}
+	}
+}
+
+func (obj *object) addViewport2(tobj *object) {
+	if tobj.Class == 523 ||
+		tobj.Class == 603 {
+		return
+	}
+	for _, vp := range obj.viewports2 {
+		if vp.state == 0 {
+			vp.state = 1
+			vp.number = tobj.index
+			vp.type_ = int(tobj.Type)
+			obj.viewportNum2++
+			break
+		}
+	}
 }

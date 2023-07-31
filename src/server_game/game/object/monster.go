@@ -110,9 +110,9 @@ func NewMonster(class int) *Monster {
 		class == 651 ||
 		class >= 658 && class <= 668 ||
 		class >= 682 && class <= 688:
-		monster.Type = ObjectNPC
+		monster.Type = ObjectTypeNPC
 	default:
-		monster.Type = ObjectMonster
+		monster.Type = ObjectTypeMonster
 	}
 	monster.Class = class
 	monster.Name = mc.Name
@@ -242,6 +242,7 @@ func (m *Monster) spawnPosition() {
 	if m.Dir < 0 {
 		m.Dir = rand.Intn(8)
 	}
+	m.createFrustrum()
 }
 
 func (m *Monster) processRegen() {
