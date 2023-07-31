@@ -22,16 +22,27 @@ func init() {
 var ObjectManager objectManager
 
 type objectManager struct {
-	maxObjectCount  int
-	objects         []iobject
-	maxMonsterCount int
-	// monsterStartIndex int
-	// lastMonsterIndex  int
-	monsterCount int
-	// summonMonsterCount int
+	// monster
+	maxMonsterCount   int
+	monsterStartIndex int
+	lastMonsterIndex  int
+	monsterCount      int
+
+	// call monster
+	maxCallMonsterCount   int
+	callMonsterStartIndex int
+	lastCallMonsterIndex  int
+	callMonsterCount      int
+
+	// player
+	maxPlayerCount   int
 	playerStartIndex int
 	lastPlayerIndex  int
 	playerCount      int
+
+	// objects
+	maxObjectCount int
+	objects        []iobject
 }
 
 type iobject interface {
@@ -41,15 +52,25 @@ type iobject interface {
 }
 
 func (m *objectManager) init() {
-	m.maxObjectCount = conf.Server.GameServerInfo.MaxMonsterCount +
-		conf.Server.GameServerInfo.MaxSummonMonsterCount +
-		conf.Server.GameServerInfo.MaxPlayerCount
-	m.objects = make([]iobject, m.maxObjectCount)
+	// monster
 	m.maxMonsterCount = conf.Server.GameServerInfo.MaxMonsterCount
-	// objectBills = make([]bill, conf.Server.MaxPlayerCount)
-	m.playerStartIndex = conf.Server.GameServerInfo.MaxMonsterCount +
-		conf.Server.GameServerInfo.MaxSummonMonsterCount
-	m.lastPlayerIndex = m.playerStartIndex
+	m.monsterStartIndex = 0
+	m.lastMonsterIndex = m.monsterStartIndex - 1
+
+	// call monster
+	m.maxCallMonsterCount = conf.Server.GameServerInfo.MaxSummonMonsterCount
+	m.callMonsterStartIndex = m.maxMonsterCount
+	m.lastCallMonsterIndex = m.callMonsterStartIndex - 1
+
+	// player
+	m.maxPlayerCount = conf.Server.GameServerInfo.MaxPlayerCount
+	m.playerStartIndex = m.maxMonsterCount + m.maxCallMonsterCount
+	m.lastPlayerIndex = m.playerStartIndex - 1
+
+	// objects
+	m.maxObjectCount = m.maxMonsterCount + m.maxCallMonsterCount + m.maxPlayerCount
+	m.objects = make([]iobject, m.maxObjectCount)
+
 	// 先有怪后有玩家
 	m.spawnMonster()
 }
@@ -134,25 +155,53 @@ func (m *objectManager) spawnMonster() {
 }
 
 func (m *objectManager) AddMonster(kind int) (*Monster, error) {
-	if m.monsterCount >= conf.Server.GameServerInfo.MaxMonsterCount {
+	if m.monsterCount > m.maxMonsterCount {
 		return nil, fmt.Errorf("over max monster count")
 	}
-	index := m.monsterCount
-	cnt := conf.Server.GameServerInfo.MaxMonsterCount
+	index := m.lastMonsterIndex
+	cnt := m.maxMonsterCount
 	for cnt > 0 {
+		index++
+		if index >= m.maxMonsterCount {
+			index = m.monsterStartIndex
+		}
 		if m.objects[index] == nil {
 			break
-		}
-		index++
-		if index >= conf.Server.GameServerInfo.MaxMonsterCount {
-			index = 0
 		}
 		cnt--
 	}
 	if cnt == 0 {
 		panic(fmt.Errorf("have no free monster index"))
 	}
+	m.lastMonsterIndex = index
 	m.monsterCount++
+	monster := NewMonster(kind)
+	monster.index = index
+	m.objects[index] = monster
+	return monster, nil
+}
+
+func (m *objectManager) AddCallMonster(kind int) (*Monster, error) {
+	if m.callMonsterCount > m.maxCallMonsterCount {
+		return nil, fmt.Errorf("over max call monster count")
+	}
+	index := m.lastCallMonsterIndex
+	cnt := m.maxCallMonsterCount
+	for cnt > 0 {
+		index++
+		if index >= m.playerStartIndex {
+			index = m.callMonsterStartIndex
+		}
+		if m.objects[index] == nil {
+			break
+		}
+		cnt--
+	}
+	if cnt == 0 {
+		panic(fmt.Errorf("have no free call monster index"))
+	}
+	m.lastCallMonsterIndex = index
+	m.callMonsterCount++
 	monster := NewMonster(kind)
 	monster.index = index
 	m.objects[index] = monster
@@ -161,7 +210,7 @@ func (m *objectManager) AddMonster(kind int) (*Monster, error) {
 
 func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 	// limit max player count
-	if m.playerCount >= conf.Server.GameServerInfo.MaxPlayerCount {
+	if m.playerCount > m.maxPlayerCount {
 		// reply
 		msg := model.MsgConnectFailed{Result: 4}
 		conn.Write(&msg)
@@ -170,14 +219,14 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 
 	// get unified object index
 	index := m.lastPlayerIndex
-	cnt := conf.Server.GameServerInfo.MaxPlayerCount
+	cnt := m.maxPlayerCount
 	for cnt > 0 {
-		if m.objects[index] == nil {
-			break
-		}
 		index++
 		if index >= m.maxObjectCount {
 			index = m.playerStartIndex
+		}
+		if m.objects[index] == nil {
+			break
 		}
 		cnt--
 	}
