@@ -3,6 +3,8 @@ package model
 import (
 	"bytes"
 	"encoding/binary"
+
+	"github.com/xujintao/balgass/src/server_game/game/maps"
 )
 
 type MsgTest struct{}
@@ -107,4 +109,52 @@ type MsgLearnMasterSkill struct {
 }
 
 type MsgSkillList struct {
+}
+
+// struct PMSG_MOVE
+//
+//	{
+//		PBMSG_HEAD h;	// C1:1D
+//		BYTE X;	// 3
+//		BYTE Y;	// 4
+//		BYTE Path[8];	// 5
+//	};
+type MsgMove struct {
+	Path maps.Path
+}
+
+func (msg *MsgMove) Unmarshal([]byte) error {
+	var x, y int
+	var bufDir [8]int
+
+	size := bufDir[0] & 0x0F
+	path := make(maps.Path, size)
+	for i := 0; i < size; i++ {
+		if i == 0 {
+			dir := bufDir[i] >> 4 & 0x0F
+			dirPot := maps.Dirs[dir]
+			path[i].X = x + dirPot.X
+			path[i].Y = y + dirPot.Y
+			continue
+		}
+		dir := bufDir[i] >> 4 & 0x0F
+		dirPot := maps.Dirs[dir]
+		path[i].X = path[i-1].X + dirPot.X
+		path[i].Y = path[i-1].Y + dirPot.Y
+		dir = bufDir[i] & 0x0F
+		dirPot = maps.Dirs[dir]
+		path[i+1].X = x + dirPot.X
+		path[i+1].Y = y + dirPot.Y
+	}
+	msg.Path = path
+	return nil
+}
+
+type MsgAttack struct {
+	Target int
+}
+
+type MsgSkillAttack struct {
+	Target int
+	Skill  int
 }

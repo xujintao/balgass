@@ -56,10 +56,10 @@ func (g *game) Start() {
 			case <-t100ms.C:
 				cnt++
 				if cnt%3 == 0 { // 300ms
-					object.ObjectManager.ProcessMonsterMove()
+					object.ObjectManager.Process300ms()
 				}
 				if cnt%5 == 0 { // 500ms
-					object.ObjectManager.ProcessMonster()
+					object.ObjectManager.Process500ms()
 				}
 				if cnt%10 == 0 { // 1s
 					maps.MapManager.ProcessWeather(g)

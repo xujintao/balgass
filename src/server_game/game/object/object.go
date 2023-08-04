@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
+	"math"
 	"sync"
 	"time"
 
@@ -46,8 +47,7 @@ type objectManager struct {
 }
 
 type iobject interface {
-	// reset()
-	// addSkill(int, int) bool
+	process500ms()
 	processRegen()
 }
 
@@ -73,13 +73,6 @@ func (m *objectManager) init() {
 
 	// 先有怪后有玩家
 	m.spawnMonster()
-}
-
-func (m *objectManager) objectMaxRange(index int) bool {
-	if index < 0 || index >= m.maxObjectCount {
-		return false
-	}
-	return true
 }
 
 func (m *objectManager) spawnMonster() {
@@ -144,6 +137,7 @@ func (m *objectManager) spawnMonster() {
 						monster.spawnEndY = spawn.StartY + 3
 					}
 					monster.spawnDir = spawn.Dir
+					monster.spawnDis = spawn.Distance
 					monster.spawnPosition()
 					if spot.Type == 3 {
 						monster.pentagramMainAttribute = spawn.Element
@@ -176,6 +170,7 @@ func (m *objectManager) AddMonster(kind int) (*Monster, error) {
 	m.lastMonsterIndex = index
 	m.monsterCount++
 	monster := NewMonster(kind)
+	monster.objectManager = m
 	monster.index = index
 	m.objects[index] = monster
 	return monster, nil
@@ -203,6 +198,7 @@ func (m *objectManager) AddCallMonster(kind int) (*Monster, error) {
 	m.lastCallMonsterIndex = index
 	m.callMonsterCount++
 	monster := NewMonster(kind)
+	monster.objectManager = m
 	monster.index = index
 	m.objects[index] = monster
 	return monster, nil
@@ -236,6 +232,7 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 	m.lastPlayerIndex = index
 	m.playerCount++
 	player := NewPlayer(conn)
+	player.objectManager = m
 	player.index = index
 	// register the new player to object manager
 	m.objects[index] = player
@@ -272,6 +269,34 @@ func (m *objectManager) object(v iobject) *object {
 		obj = &player.object
 	}
 	return obj
+}
+
+func (m *objectManager) ProcessRegen() {
+	for _, v := range m.objects {
+		if v == nil {
+			continue
+		}
+		v.processRegen()
+	}
+}
+
+func (m *objectManager) Process300ms() {
+	for _, v := range m.objects {
+		obj := m.object(v)
+		if obj == nil {
+			continue
+		}
+
+	}
+}
+
+func (m *objectManager) Process500ms() {
+	for _, v := range m.objects {
+		if v == nil {
+			continue
+		}
+		v.process500ms()
+	}
 }
 
 func (m *objectManager) CreateViewport() {
@@ -332,15 +357,16 @@ func (m *objectManager) DestroyViewport() {
 				tobj := m.object(m.objects[tnum])
 				if tobj == nil {
 					obj.viewports[i].state = 3
-				}
-				if tobj.ConnectState < ConnectStatePlaying ||
-					tobj.index == obj.index ||
-					(tobj.State != 1 && tobj.State != 2) ||
-					tobj.MapNumber != obj.MapNumber {
-					obj.viewports[i].state = 3
-				}
-				if !obj.checkViewport(tobj.X, tobj.Y) {
-					obj.viewports[i].state = 3
+				} else {
+					if tobj.ConnectState < ConnectStatePlaying ||
+						tobj.index == obj.index ||
+						(tobj.State != 1 && tobj.State != 2) ||
+						tobj.MapNumber != obj.MapNumber {
+						obj.viewports[i].state = 3
+					}
+					if !obj.checkViewport(tobj.X, tobj.Y) {
+						obj.viewports[i].state = 3
+					}
 				}
 			}
 		}
@@ -352,15 +378,16 @@ func (m *objectManager) DestroyViewport() {
 			remove := false
 			if tobj == nil {
 				remove = true
-			}
-			if tobj.ConnectState < ConnectStatePlaying ||
-				tobj.index == obj.index ||
-				(tobj.State != 1 && tobj.State != 2) ||
-				tobj.MapNumber != obj.MapNumber {
-				remove = true
-			}
-			if !obj.checkViewport(tobj.X, tobj.Y) {
-				remove = true
+			} else {
+				if tobj.ConnectState < ConnectStatePlaying ||
+					tobj.index == obj.index ||
+					(tobj.State != 1 && tobj.State != 2) ||
+					tobj.MapNumber != obj.MapNumber {
+					remove = true
+				}
+				if !obj.checkViewport(tobj.X, tobj.Y) {
+					remove = true
+				}
 			}
 			if remove {
 				obj.viewports2[i].state = 0
@@ -388,30 +415,6 @@ func (m *objectManager) ProcessViewport() {
 	}
 }
 
-func (m *objectManager) ProcessRegen() {
-	for _, v := range m.objects {
-		if v == nil {
-			continue
-		}
-		v.processRegen()
-	}
-}
-
-func (m *objectManager) ProcessMonster() {
-	// maxMonsterCount := conf.Server.GameServerInfo.MaxMonsterCount
-	// for _, v := range m.objects[:maxMonsterCount] {
-	// 	if v == nil {
-	// 		continue
-	// 	}
-	// 	monster := v.(*Monster)
-	// 	monster.processMonster()
-	// }
-}
-
-func (m *objectManager) ProcessMonsterMove() {
-
-}
-
 const (
 	MaxMonsterSendMsg       = 20
 	MaxMonsterSendAttackMsg = 100
@@ -435,15 +438,6 @@ const (
 	MaxArrayFrustrum = 4
 )
 
-type ActionState struct {
-	Rest         byte
-	Attack       byte
-	Move         byte
-	Escape       byte
-	Emotion      byte
-	EmotionCount byte
-}
-
 type EffectList struct {
 	BuffIndex      byte
 	EffectCategory byte
@@ -463,8 +457,8 @@ type viewport struct {
 	state  int // 3消失
 	number int
 	type_  int
-	index  int
-	dis    int
+	// index  int
+	dis int
 }
 
 type HitDamage struct {
@@ -514,7 +508,15 @@ type skillInfo struct {
 	circleShieldRate     float32
 }
 
+type messageStateMachine struct {
+	code    int
+	subcode int
+	sender  int
+	time    time.Duration
+}
+
 type object struct {
+	*objectManager
 	index                     int
 	ConnectState              ConnectState
 	Live                      bool
@@ -556,7 +558,6 @@ type object struct {
 	successfulBlocking        int // 防御率
 	magicDefense              int // 魔法防御率
 	moveSpeed                 int // 移动速度
-	moveRange                 int // 移动范围
 	attackRange               int // 攻击范围
 	attackType                int // 攻击类型
 	viewRange                 int // 视野范围
@@ -573,17 +574,18 @@ type object struct {
 	pentagramAttackMax        int
 	pentagramAttackRate       int
 	pentagramDefense          int
+	skills                    map[int]*skill.Skill
 	FrustrumX                 [MaxArrayFrustrum]int
 	FrustrumY                 [MaxArrayFrustrum]int
 	viewports                 [MaxViewportNum]*viewport // 主动视野
 	viewports2                [MaxViewportNum]*viewport // 被动视野
 	viewportNum               int
 	viewportNum2              int
+	msgs                      [20]*messageStateMachine
+	pathX                     [15]int
+	pathY                     [15]int
+	pathDir                   [15]int
 
-	basicAI         int
-	currentAI       int
-	currentAIState  int
-	lastAIRunTime   time.Duration
 	groupNumber     int
 	subGroupNumber  int
 	groupMemberGUID int
@@ -593,79 +595,76 @@ type object struct {
 	lastAutoDelay   time.Duration
 	expType         int
 
-	attackDamageLeft           int // 物攻左
-	attackDamageRight          int // 物攻右
-	attackDamageLeftMin        int // 物攻左min
-	attackDamageLeftMax        int // 物攻左min
-	attackDamageRightMin       int // 物攻右min
-	attackDamageRightMax       int // 物攻右max
-	magicDamageMin             int // 魔攻min
-	magicDamageMax             int // 魔攻max
-	magicSpeed                 int // 魔攻速度
-	curseDamageMin             int // 诅咒min
-	curseDamageMax             int // 诅咒max
-	curseSpell                 int
-	LoginMsgSend               bool
-	LoginMsgCount              byte
-	CloseCount                 byte
-	CloseType                  byte
-	EnableCharacterDel         bool
-	UserNumber                 int
-	DBNumber                   int
-	EnableCharacterCreate      bool
-	AutoSaveTime               time.Time
-	ConnectCheckTime           time.Time
-	CheckTick                  uint
-	CheckSpeedHack             bool
-	CheckTick2                 uint
-	CheckTickCount             byte
-	PintTime                   int
-	TimeCount                  byte
-	PKTimer                    *time.Timer
-	CheckSumTableNum           uint16
-	CheckSumTime               uint
-	Leadership                 int
-	AddLeadership              int
-	ChatLimitTime              uint16
-	ChatLimitTimeSec           byte
-	FillLifeCount              byte
-	AddStrength                int
-	AddDexterity               int
-	AddVitality                int
-	AddEnergy                  int
-	VitalityToLife             float32
-	EnergyToMana               float32
-	PKCount                    int
-	PKLevel                    byte
-	PKTime                     int
-	PKTotalCount               int
-	XSave                      uint16
-	YSave                      uint16
-	MapNumberSave              byte
-	XDie                       uint16
-	YDie                       uint16
-	MapNumberDie               byte
-	IFillShieldMax             int
-	IFillShield                int
-	IFillShieldCount           int
-	ShieldAutoRefillTimer      *time.Timer
-	DamageMinus                int  // 伤害减少
-	DamageReflect              int  // 伤害反射
-	MonsterDieGetMoney         int  // 杀怪加钱
-	MonsterDieGetLife          byte // 杀怪回生
-	MonsterDieGetMana          byte // 杀怪回蓝
-	AutoHPRecovery             byte // 自动生命恢复
-	TX                         int
-	TY                         int
-	MTX                        uint16
-	MTY                        uint16
-	PathCount                  int
-	PathCur                    int
-	PathStartEnd               byte
-	PathOri                    [15]uint16
-	PathX                      [15]uint16
-	PathY                      [15]uint16
-	PathDir                    [15]byte
+	attackDamageLeft      int // 物攻左
+	attackDamageRight     int // 物攻右
+	attackDamageLeftMin   int // 物攻左min
+	attackDamageLeftMax   int // 物攻左min
+	attackDamageRightMin  int // 物攻右min
+	attackDamageRightMax  int // 物攻右max
+	magicDamageMin        int // 魔攻min
+	magicDamageMax        int // 魔攻max
+	magicSpeed            int // 魔攻速度
+	curseDamageMin        int // 诅咒min
+	curseDamageMax        int // 诅咒max
+	curseSpell            int
+	LoginMsgSend          bool
+	LoginMsgCount         byte
+	CloseCount            byte
+	CloseType             byte
+	EnableCharacterDel    bool
+	UserNumber            int
+	DBNumber              int
+	EnableCharacterCreate bool
+	AutoSaveTime          time.Time
+	ConnectCheckTime      time.Time
+	CheckTick             uint
+	CheckSpeedHack        bool
+	CheckTick2            uint
+	CheckTickCount        byte
+	PintTime              int
+	TimeCount             byte
+	PKTimer               *time.Timer
+	CheckSumTableNum      uint16
+	CheckSumTime          uint
+	Leadership            int
+	AddLeadership         int
+	ChatLimitTime         uint16
+	ChatLimitTimeSec      byte
+	FillLifeCount         byte
+	AddStrength           int
+	AddDexterity          int
+	AddVitality           int
+	AddEnergy             int
+	VitalityToLife        float32
+	EnergyToMana          float32
+	PKCount               int
+	PKLevel               byte
+	PKTime                int
+	PKTotalCount          int
+	XSave                 uint16
+	YSave                 uint16
+	MapNumberSave         byte
+	XDie                  uint16
+	YDie                  uint16
+	MapNumberDie          byte
+	IFillShieldMax        int
+	IFillShield           int
+	IFillShieldCount      int
+	ShieldAutoRefillTimer *time.Timer
+	DamageMinus           int  // 伤害减少
+	DamageReflect         int  // 伤害反射
+	MonsterDieGetMoney    int  // 杀怪加钱
+	MonsterDieGetLife     byte // 杀怪回生
+	MonsterDieGetMana     byte // 杀怪回蓝
+	AutoHPRecovery        byte // 自动生命恢复
+	TX                    int
+	TY                    int
+
+	PathCount    int
+	PathCur      int
+	PathStartEnd byte
+	PathOri      [15]uint16
+
 	PathTime                   uint
 	Authority                  uint
 	AuthorityCode              uint
@@ -674,7 +673,6 @@ type object struct {
 	PenaltyMask                uint
 	ChatBlockTime              time.Time
 	AccountItemBlock           byte
-	ActState                   ActionState
 	ActionNumber               byte
 	ActionTime                 uint
 	ActionCount                byte
@@ -732,14 +730,13 @@ type object struct {
 	MarryRequestTime           time.Duration
 	RecallMon                  int
 	change                     int
-	TargetNumber               int
+	targetNumber               int
 	TargetNpcNumber            int
 	LastAttackerID             int
 	criticalDamage             int
 	excellentDamage            int // 卓越一击概率
 	// magicBack                   *skill.MagicInfo
 	// Magic                       *skill.MagicInfo
-	Skills          map[int]*skill.Skill
 	UseMagicNumber  byte
 	UseMagicTime    time.Duration
 	UseMagicCount   byte
@@ -893,27 +890,32 @@ type object struct {
 }
 
 func (obj *object) init() {
-	obj.Skills = make(map[int]*skill.Skill)
-	for i := range obj.viewports {
-		obj.viewports[i] = &viewport{}
-	}
-	for i := range obj.viewports2 {
-		obj.viewports2[i] = &viewport{}
-	}
+	obj.initSkill()
+	obj.initViewport()
+	obj.initMessage()
 }
 
 func (obj *object) reset() {
-	obj.Skills = nil
+	obj.clearSkill()
+	obj.clearViewport()
+}
+
+func (obj *object) initSkill() {
+	obj.skills = make(map[int]*skill.Skill)
 }
 
 // AddSkill  object add skill
 func (obj *object) addSkill(index, level int) bool {
-	if _, ok := obj.Skills[index]; ok {
+	if _, ok := obj.skills[index]; ok {
 		log.Printf("[object]%s [skill]%d already exists", obj.Name, index)
 		return false
 	}
-	obj.Skills[index] = skill.SkillManager.Get(index, level, obj.Skills)
+	obj.skills[index] = skill.SkillManager.Get(index, level, obj.skills)
 	return true
+}
+
+func (obj *object) clearSkill() {
+	obj.skills = nil
 }
 
 var (
@@ -948,6 +950,15 @@ func (obj *object) createFrustrum() {
 	for i := 0; i < MaxArrayFrustrum; i++ {
 		obj.FrustrumX[i] = FrustrumX[i] + obj.X
 		obj.FrustrumY[i] = FrustrumY[i] + obj.Y
+	}
+}
+
+func (obj *object) initViewport() {
+	for i := range obj.viewports {
+		obj.viewports[i] = &viewport{number: -1}
+	}
+	for i := range obj.viewports2 {
+		obj.viewports2[i] = &viewport{number: -1}
 	}
 }
 
@@ -1009,4 +1020,47 @@ func (obj *object) addViewport2(tobj *object) {
 			break
 		}
 	}
+}
+
+func (obj *object) clearViewport() {
+	for i := range obj.viewports {
+		obj.viewports[i].state = 0
+		obj.viewports[i].number = -1
+	}
+	obj.viewportNum = 0
+
+	for i := range obj.viewports2 {
+		obj.viewports2[i].state = 0
+		obj.viewports2[i].number = -1
+	}
+	obj.viewportNum2 = 0
+}
+
+func (obj *object) initMessage() {
+	for i := range obj.msgs {
+		obj.msgs[i] = &messageStateMachine{
+			code: -1,
+		}
+	}
+}
+
+func (obj *object) calcDistance(tobj *object) int {
+	x := obj.X - tobj.X
+	y := obj.Y - tobj.Y
+	if x == 0 && y == 0 {
+		return 0
+	}
+	return int(math.Sqrt(float64(x*x + y*y)))
+}
+
+func (obj *object) Move(msg *model.MsgMove) {
+
+}
+
+func (obj *object) Attack(msg *model.MsgAttack) {
+
+}
+
+func (obj *object) SkillAttack(msg *model.MsgSkillAttack) {
+
 }

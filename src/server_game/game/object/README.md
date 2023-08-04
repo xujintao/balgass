@@ -1,0 +1,1 @@
+分别编写monster和player的行为，公共部分交给object

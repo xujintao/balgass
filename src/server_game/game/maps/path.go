@@ -19,7 +19,7 @@ func dist(x1, y1, x2, y2 int) int {
 
 type Path []*Pot
 
-var dirs = [8]*Pot{
+var Dirs = [8]*Pot{
 	{-1, -1},
 	{0, -1},
 	{1, -1},
@@ -28,6 +28,31 @@ var dirs = [8]*Pot{
 	{0, 1},
 	{-1, 1},
 	{-1, 0},
+}
+
+func CalcDir(sx, sy, tx, ty int) int {
+	x := tx - sx
+	y := ty - sy
+	dir := 0
+	switch {
+	case x <= -1 && y <= -1:
+		dir = 0
+	case x == 0 && y <= -1:
+		dir = 1
+	case x >= 1 && y <= -1:
+		dir = 2
+	case x >= 1 && y == 0:
+		dir = 3
+	case x >= 1 && y >= 1:
+		dir = 4
+	case x == 0 && y >= 1:
+		dir = 5
+	case x <= -1 && y >= 1:
+		dir = 6
+	case x <= -1 && y == 0:
+		dir = 7
+	}
+	return dir
 }
 
 type _path struct {
@@ -56,7 +81,7 @@ func (p *_path) posOK(x, y int) bool {
 func (p *_path) findNexDir(x1, y1, x2, y2 int) int {
 	mindist := 100000000
 	nextdir := 0
-	for i, pot := range dirs {
+	for i, pot := range Dirs {
 		x := x1 + pot.X
 		y := y1 + pot.Y
 		if p.posOK(x, y) {
@@ -84,8 +109,8 @@ func (p *_path) findPath(x1, y1, x2, y2 int) (Path, bool) {
 				return nil, false
 			}
 			p.path = append(p.path, &Pot{x1, y1})
-			x1 += dirs[dir].X
-			y1 += dirs[dir].Y
+			x1 += Dirs[dir].X
+			y1 += Dirs[dir].Y
 		} else {
 			// backward
 			cnt--

@@ -38,7 +38,7 @@ func NewPlayer(conn Conn) *Player {
 	player.ConnectState = ConnectStateConnected
 	player.CheckSpeedHack = false
 	player.EnableCharacterCreate = false
-	player.Type = ObjectPlayer
+	player.Type = ObjectTypePlayer
 
 	// new a new goroutine to reply message
 	go func() {
@@ -542,7 +542,7 @@ func (player *Player) LearnSkill(skillIndex int) bool {
 
 	// // validate skill level
 	// level := 0
-	// if skill, ok := player.Skills[skillIndex]; ok {
+	// if skill, ok := player.skills[skillIndex]; ok {
 	// 	level = skill.Level
 	// }
 	// level += skillBase.ReqMLPoint
@@ -587,4 +587,8 @@ func (p *Player) processRegen() {
 
 	p.dieRegen = false
 	p.State = 1
+}
+
+func (p *Player) process500ms() {
+
 }

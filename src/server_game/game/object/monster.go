@@ -4,11 +4,13 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
+	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
 func init() {
@@ -144,7 +146,7 @@ func NewMonster(class int) *Monster {
 	monster.pentagramAttackRate = mc.PentagramAttackRate
 	monster.pentagramDefense = mc.PentagramDefense
 	switch {
-	case monster.attackType >= 100:
+	case monster.attackType == 150:
 		monster.addSkill(monster.attackType-100, 1)
 	case monster.attackType >= 1:
 		monster.addSkill(monster.attackType, 1)
@@ -190,14 +192,31 @@ const (
 	NpcTypePentagramMix
 )
 
+type actionState struct {
+	rest         bool
+	attack       bool
+	move         bool
+	escape       int
+	emotion      int
+	emotionCount int
+}
+
 type Monster struct {
 	object
-	NpcType     int
-	spawnStartX int
-	spawnStartY int
-	spawnEndX   int
-	spawnEndY   int
-	spawnDir    int
+	NpcType         int
+	moveRange       int // 移动范围
+	spawnStartX     int
+	spawnStartY     int
+	spawnEndX       int
+	spawnEndY       int
+	spawnDir        int
+	spawnDis        int
+	actionState     actionState
+	curActionTime   int64
+	nextActionTime  int64
+	delayActionTime int64
+	MTX             int
+	MTY             int
 }
 
 func (m *Monster) randPosition(number, x1, y1, x2, y2 int) (int, int) {
@@ -261,4 +280,270 @@ func (m *Monster) processRegen() {
 	m.spawnPosition()
 	m.dieRegen = false
 	m.State = 1
+}
+
+func (m *Monster) overDis(tx, ty int) bool {
+	if m.spawnDis < 1 {
+		return false
+	}
+	x := tx - m.StartX
+	y := ty - m.StartY
+	dis := int(math.Sqrt(float64(x*x + y*y)))
+	return dis < m.spawnDis
+}
+
+func (m *Monster) roamMove() {
+	maxMoveRange := m.moveRange << 1
+	m.nextActionTime = 1000
+	x := 0
+	y := 0
+	cnt := 10
+	for cnt > 0 {
+		cnt--
+		x = m.X + rand.Intn(maxMoveRange+1) - m.moveRange
+		y = m.Y + rand.Intn(maxMoveRange+1) - m.moveRange
+		if !m.overDis(x, y) {
+			continue
+		}
+		attr := maps.MapManager.GetMapAttr(m.MapNumber, x, y)
+		if (m.Class == 249 || m.Class == 247) && attr&2 == 0 { // Guard
+			m.MTX = x
+			m.MTY = y
+			m.actionState.move = true
+			m.nextActionTime = 3000
+			return
+		} else if attr&15 == 0 {
+			m.MTX = x
+			m.MTY = y
+			m.actionState.move = true
+			m.nextActionTime = 500
+			return
+		}
+	}
+}
+
+func (m *Monster) searchEnemy() int {
+	mindis := m.viewRange
+	target := -1
+	for _, vp := range m.viewports2 {
+		tnum := vp.number
+		if tnum < 0 {
+			continue
+		}
+		om := m.objectManager
+		tobj := om.object(om.objects[tnum])
+		if (m.Class == 247 || m.Class == 249) &&
+			tobj.PKLevel <= 4 {
+			continue
+		}
+		attr := maps.MapManager.GetMapAttr(tobj.MapNumber, tobj.X, tobj.Y)
+		if attr&1 == 0 {
+			x := m.X - tobj.X
+			y := m.Y - tobj.Y
+			dis := int(math.Sqrt(float64(x*x + y*y)))
+			vp.dis = dis
+			if dis < mindis {
+				mindis = dis
+				target = tnum
+			}
+		}
+	}
+	return target
+}
+
+func (m *Monster) chaseMove(tobj *object) bool {
+	mtx := tobj.X
+	mty := tobj.Y
+	tx := mtx
+	ty := mty
+	dis := 0
+	if m.attackType >= 100 {
+		dis = m.attackRange + 2
+	} else {
+		dis = m.attackRange
+	}
+	if m.X < mtx {
+		tx -= dis
+	} else {
+		tx += dis
+	}
+	if m.Y < mty {
+		ty -= dis
+	} else {
+		ty += dis
+	}
+	if maps.MapManager.CheckMapAttrStand(m.MapNumber, tx, ty) {
+		dir := maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
+		cnt := len(maps.Dirs)
+		for cnt > 0 {
+			cnt--
+			mtx = tobj.X + maps.Dirs[dir].X
+			mty = tobj.Y + maps.Dirs[dir].Y
+			attr := maps.MapManager.GetMapAttr(m.MapNumber, mtx, mty)
+			if ((m.Class == 247 || m.Class == 249) && attr&2 == 0) ||
+				attr&15 == 0 {
+				m.MTX = mtx
+				m.MTY = mty
+				return true
+			}
+			if dir == len(maps.Dirs) {
+				dir = 0
+			}
+		}
+	}
+	attr := maps.MapManager.GetMapAttr(m.MapNumber, tx, ty)
+	if ((m.Class == 247 || m.Class == 249) && attr&2 == 0) ||
+		attr&15 == 0 {
+		m.MTX = tx
+		m.MTY = ty
+		return true
+	}
+	return false
+}
+
+func (m *Monster) baseAction() {
+	var tobj *object
+	if m.targetNumber >= 0 {
+		tnum := m.targetNumber
+		om := m.objectManager
+		tobj = om.object(om.objects[tnum])
+	} else {
+		m.actionState.emotion = 0
+	}
+	switch m.actionState.emotion {
+	case 0: // 寻找目标
+		if m.attribute == 0 {
+			return
+		}
+		if m.actionState.attack {
+			m.actionState.attack = false
+			m.targetNumber = -1
+			m.nextActionTime = 500
+		}
+		rn := rand.Intn(2)
+		if rn == 0 {
+			m.actionState.rest = true
+			m.nextActionTime = 500
+		}
+		if m.moveRange > 0 {
+			m.roamMove()
+		}
+		m.targetNumber = m.searchEnemy()
+		if m.targetNumber >= 0 {
+			m.actionState.emotion = 1
+			m.actionState.emotionCount = 30
+		}
+	case 1: // 移动及攻击
+		if m.actionState.emotionCount > 0 {
+			m.actionState.emotionCount--
+		} else {
+			m.actionState.emotion = 0
+		}
+		if m.targetNumber < 0 {
+			return
+		}
+		dis := m.calcDistance(tobj)
+		attackRange := m.attackRange
+		if m.attackType >= 100 {
+			attackRange = m.attackRange + 2
+		}
+		if dis <= attackRange {
+			if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, tobj.X, tobj.Y) {
+				attr := maps.MapManager.GetMapAttr(m.MapNumber, tobj.X, tobj.Y)
+				if attr&1 == 0 {
+					m.actionState.attack = true
+				} else {
+					m.targetNumber = -1
+					m.actionState.emotion = 1
+					m.actionState.emotionCount = 30 // 30*500ms=15s
+				}
+				m.Dir = maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
+				m.nextActionTime = int64(m.attackSpeed)
+			}
+		} else {
+			if m.chaseMove(tobj) {
+				if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, m.MTX, m.MTY) {
+					m.actionState.move = true
+					m.nextActionTime = 400
+					m.Dir = maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
+				} else {
+					m.roamMove()
+					m.actionState.emotion = 3
+					m.actionState.emotionCount = 10
+				}
+			} else {
+				m.roamMove()
+			}
+		}
+	case 2:
+		if m.actionState.emotionCount > 0 {
+			m.actionState.emotionCount--
+		} else {
+			m.actionState.emotion = 0
+		}
+		m.actionState.move = false
+		m.actionState.attack = false
+		m.nextActionTime = 800
+
+	case 3:
+		if m.actionState.emotionCount > 0 {
+			m.actionState.emotionCount--
+		} else {
+			m.actionState.emotion = 0
+		}
+		m.actionState.move = false
+		m.actionState.attack = false
+		m.nextActionTime = 400
+	}
+}
+
+func (m *Monster) process500ms() {
+	if m.ConnectState < ConnectStatePlaying ||
+		!m.Live {
+		return
+	}
+	curActionTime := time.Now().UnixMilli()
+	if curActionTime-m.curActionTime < m.nextActionTime+m.delayActionTime {
+		return
+	}
+	m.curActionTime = curActionTime
+	m.baseAction()
+	if m.actionState.move {
+		m.actionState.move = false
+		path, ok := maps.MapManager.FindMapPath(m.MapNumber, m.X, m.Y, m.MTX, m.MTY)
+		if !ok {
+			return
+		}
+		msg := model.MsgMove{Path: path}
+		m.Move(&msg)
+		return
+	}
+	if m.actionState.attack {
+		m.actionState.attack = false
+		// 将普通攻击等效成一种技能
+		// 技能数越多则普通攻击的概率越低
+		n := len(m.skills)
+		if rand.Intn(n+1) == 0 {
+			msg := model.MsgAttack{
+				Target: m.targetNumber,
+			}
+			m.Attack(&msg)
+		} else {
+			// 从map中随机获取一个元素
+			cnt := rand.Intn(n) + 1
+			skillNumber := 0
+			for i := range m.skills {
+				cnt--
+				if cnt == 0 {
+					skillNumber = i
+					break
+				}
+			}
+			msg := model.MsgSkillAttack{
+				Target: m.targetNumber,
+				Skill:  skillNumber,
+			}
+			m.SkillAttack(&msg)
+		}
+	}
 }
