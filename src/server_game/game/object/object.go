@@ -10,6 +10,7 @@ import (
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/math2"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
@@ -47,6 +48,7 @@ type objectManager struct {
 }
 
 type iobject interface {
+	process300ms()
 	process500ms()
 	processRegen()
 }
@@ -282,11 +284,10 @@ func (m *objectManager) ProcessRegen() {
 
 func (m *objectManager) Process300ms() {
 	for _, v := range m.objects {
-		obj := m.object(v)
-		if obj == nil {
+		if v == nil {
 			continue
 		}
-
+		v.process300ms()
 	}
 }
 
@@ -517,55 +518,66 @@ type messageStateMachine struct {
 
 type object struct {
 	*objectManager
-	index                     int
-	ConnectState              ConnectState
-	Live                      bool
-	State                     int // 1:初始 2:视野 4:死亡
-	StartX                    int
-	StartY                    int
-	X                         int // x坐标
-	Y                         int // y坐标
-	OldX                      int
-	OldY                      int
-	Dir                       int        // 方向
-	MapNumber                 int        // 地图号
-	Type                      ObjectType // 对象种类：玩家，怪物，NPC
-	Class                     int        // 对象类别。怪物和玩家都有类别
-	Name                      string     // 对象名称
-	Annotation                string     // 对象备注
-	Level                     int
-	HP                        int // HP
-	MaxHP                     int // MaxHP
-	AddHP                     int
-	ScriptMaxHP               int
-	FillHP                    int
-	FillHPMax                 int
-	MP                        int // MP
-	MaxMP                     int // MaxMP
-	AddMP                     int
-	SD                        int // SD
-	MaxSD                     int
-	AddSD                     int
-	AG                        int // AG
-	MaxAG                     int
-	AddAG                     int
-	attackDamageMin           int // 物攻min
-	attackDamageMax           int // 物攻max
-	attackSpeed               int // 物攻速度
-	attackRate                int // 攻击率
-	defense                   int // 防御力
-	defenseRate               int // 防御率
-	successfulBlocking        int // 防御率
-	magicDefense              int // 魔法防御率
-	moveSpeed                 int // 移动速度
-	attackRange               int // 攻击范围
-	attackType                int // 攻击类型
-	viewRange                 int // 视野范围
-	itemDropRate              int // 道具掉落率
-	moneyDropRate             int // 金钱掉落率
-	attribute                 int
-	dieRegen                  bool
-	regenOK                   byte
+	index        int
+	ConnectState ConnectState
+	Live         bool
+	State        int // 1:初始 2:视野 4:死亡
+
+	StartX    int
+	StartY    int
+	X         int // x坐标
+	Y         int // y坐标
+	Dir       int // 方向
+	TX        int // 目标x坐标
+	TY        int // 目标y坐标
+	pathX     [15]int
+	pathY     [15]int
+	pathDir   [15]int
+	pathCount int
+	pathCur   int
+	pathTime  int64
+	// pathStartEnd              byte
+	delayLevel int
+	// PathOri            [15]uint16
+
+	MapNumber          int        // 地图号
+	Type               ObjectType // 对象种类：玩家，怪物，NPC
+	Class              int        // 对象类别。怪物和玩家都有类别
+	Name               string     // 对象名称
+	Annotation         string     // 对象备注
+	Level              int
+	HP                 int // HP
+	MaxHP              int // MaxHP
+	AddHP              int
+	ScriptMaxHP        int
+	FillHP             int
+	FillHPMax          int
+	MP                 int // MP
+	MaxMP              int // MaxMP
+	AddMP              int
+	SD                 int // SD
+	MaxSD              int
+	AddSD              int
+	AG                 int // AG
+	MaxAG              int
+	AddAG              int
+	attackDamageMin    int // 物攻min
+	attackDamageMax    int // 物攻max
+	attackSpeed        int // 物攻速度
+	attackRate         int // 攻击率
+	defense            int // 防御力
+	defenseRate        int // 防御率
+	successfulBlocking int // 防御率
+	magicDefense       int // 魔法防御率
+	moveSpeed          int // 移动速度
+	attackRange        int // 攻击范围
+	attackType         int // 攻击类型
+	viewRange          int // 视野范围
+	itemDropRate       int // 道具掉落率
+	moneyDropRate      int // 金钱掉落率
+	attribute          int
+	dieRegen           bool
+	// regenOK                   byte
 	regenTime                 time.Duration // 重生时间
 	maxRegenTime              time.Duration // 最大重生时间
 	pentagramMainAttribute    int
@@ -582,90 +594,77 @@ type object struct {
 	viewportNum               int
 	viewportNum2              int
 	msgs                      [20]*messageStateMachine
-	pathX                     [15]int
-	pathY                     [15]int
-	pathDir                   [15]int
 
 	groupNumber     int
 	subGroupNumber  int
 	groupMemberGUID int
 	regenType       int
 	// argo                    *monster.MonsterAIAgro
-	lastAutoRunTime time.Time
-	lastAutoDelay   time.Duration
-	expType         int
-
-	attackDamageLeft      int // 物攻左
-	attackDamageRight     int // 物攻右
-	attackDamageLeftMin   int // 物攻左min
-	attackDamageLeftMax   int // 物攻左min
-	attackDamageRightMin  int // 物攻右min
-	attackDamageRightMax  int // 物攻右max
-	magicDamageMin        int // 魔攻min
-	magicDamageMax        int // 魔攻max
-	magicSpeed            int // 魔攻速度
-	curseDamageMin        int // 诅咒min
-	curseDamageMax        int // 诅咒max
-	curseSpell            int
-	LoginMsgSend          bool
-	LoginMsgCount         byte
-	CloseCount            byte
-	CloseType             byte
-	EnableCharacterDel    bool
-	UserNumber            int
-	DBNumber              int
-	EnableCharacterCreate bool
-	AutoSaveTime          time.Time
-	ConnectCheckTime      time.Time
-	CheckTick             uint
-	CheckSpeedHack        bool
-	CheckTick2            uint
-	CheckTickCount        byte
-	PintTime              int
-	TimeCount             byte
-	PKTimer               *time.Timer
-	CheckSumTableNum      uint16
-	CheckSumTime          uint
-	Leadership            int
-	AddLeadership         int
-	ChatLimitTime         uint16
-	ChatLimitTimeSec      byte
-	FillLifeCount         byte
-	AddStrength           int
-	AddDexterity          int
-	AddVitality           int
-	AddEnergy             int
-	VitalityToLife        float32
-	EnergyToMana          float32
-	PKCount               int
-	PKLevel               byte
-	PKTime                int
-	PKTotalCount          int
-	XSave                 uint16
-	YSave                 uint16
-	MapNumberSave         byte
-	XDie                  uint16
-	YDie                  uint16
-	MapNumberDie          byte
-	IFillShieldMax        int
-	IFillShield           int
-	IFillShieldCount      int
-	ShieldAutoRefillTimer *time.Timer
-	DamageMinus           int  // 伤害减少
-	DamageReflect         int  // 伤害反射
-	MonsterDieGetMoney    int  // 杀怪加钱
-	MonsterDieGetLife     byte // 杀怪回生
-	MonsterDieGetMana     byte // 杀怪回蓝
-	AutoHPRecovery        byte // 自动生命恢复
-	TX                    int
-	TY                    int
-
-	PathCount    int
-	PathCur      int
-	PathStartEnd byte
-	PathOri      [15]uint16
-
-	PathTime                   uint
+	lastAutoRunTime            time.Time
+	lastAutoDelay              time.Duration
+	expType                    int
+	attackDamageLeft           int // 物攻左
+	attackDamageRight          int // 物攻右
+	attackDamageLeftMin        int // 物攻左min
+	attackDamageLeftMax        int // 物攻左min
+	attackDamageRightMin       int // 物攻右min
+	attackDamageRightMax       int // 物攻右max
+	magicDamageMin             int // 魔攻min
+	magicDamageMax             int // 魔攻max
+	magicSpeed                 int // 魔攻速度
+	curseDamageMin             int // 诅咒min
+	curseDamageMax             int // 诅咒max
+	curseSpell                 int
+	LoginMsgSend               bool
+	LoginMsgCount              byte
+	CloseCount                 byte
+	CloseType                  byte
+	EnableCharacterDel         bool
+	UserNumber                 int
+	DBNumber                   int
+	EnableCharacterCreate      bool
+	AutoSaveTime               time.Time
+	ConnectCheckTime           time.Time
+	CheckTick                  uint
+	CheckSpeedHack             bool
+	CheckTick2                 uint
+	CheckTickCount             byte
+	PintTime                   int
+	TimeCount                  byte
+	PKTimer                    *time.Timer
+	CheckSumTableNum           uint16
+	CheckSumTime               uint
+	Leadership                 int
+	AddLeadership              int
+	ChatLimitTime              uint16
+	ChatLimitTimeSec           byte
+	FillLifeCount              byte
+	AddStrength                int
+	AddDexterity               int
+	AddVitality                int
+	AddEnergy                  int
+	VitalityToLife             float32
+	EnergyToMana               float32
+	PKCount                    int
+	PKLevel                    byte
+	PKTime                     int
+	PKTotalCount               int
+	XSave                      uint16
+	YSave                      uint16
+	MapNumberSave              byte
+	XDie                       uint16
+	YDie                       uint16
+	MapNumberDie               byte
+	IFillShieldMax             int
+	IFillShield                int
+	IFillShieldCount           int
+	ShieldAutoRefillTimer      *time.Timer
+	DamageMinus                int  // 伤害减少
+	DamageReflect              int  // 伤害反射
+	MonsterDieGetMoney         int  // 杀怪加钱
+	MonsterDieGetLife          byte // 杀怪回生
+	MonsterDieGetMana          byte // 杀怪回蓝
+	AutoHPRecovery             byte // 自动生命恢复
 	Authority                  uint
 	AuthorityCode              uint
 	Penalty                    uint
@@ -706,7 +705,6 @@ type object struct {
 	ActionTimeCur              time.Time
 	ActionTimeNext             time.Time
 	ActionTimeDelay            time.Duration
-	DelayLevel                 byte
 	monsterBattleDelay         byte
 	kalimaGateExist            byte
 	kalimaGateIndex            int
@@ -890,6 +888,7 @@ type object struct {
 }
 
 func (obj *object) init() {
+	obj.targetNumber = -1
 	obj.initSkill()
 	obj.initViewport()
 	obj.initMessage()
@@ -1053,8 +1052,101 @@ func (obj *object) calcDistance(tobj *object) int {
 	return int(math.Sqrt(float64(x*x + y*y)))
 }
 
-func (obj *object) Move(msg *model.MsgMove) {
+func (obj *object) process300ms() {
+	if obj.ConnectState < ConnectStatePlaying ||
+		!obj.Live ||
+		obj.State != 2 ||
+		obj.pathCount == 0 {
+		return
+	}
+	moveTime := obj.moveSpeed
+	if obj.delayLevel != 0 {
+		moveTime += 300
+	}
+	pathTime := time.Now().UnixMilli()
+	if pathTime-obj.pathTime+1 < int64(moveTime) {
+		return
+	}
+	obj.pathTime = pathTime
+	x := obj.pathX[obj.pathCur]
+	y := obj.pathY[obj.pathCur]
+	dir := obj.pathDir[obj.pathCur]
+	attr := maps.MapManager.GetMapAttr(obj.MapNumber, x, y)
+	if attr&4 != 0 && attr&8 != 0 {
+		log.Printf("process300ms object move check [index]%d [class]%d [map]%d [position](%d,%d)",
+			obj.index, obj.Class, obj.MapNumber, x, y)
+		for i := 0; i < len(obj.pathDir); i++ {
+			obj.pathX[i] = 0
+			obj.pathY[i] = 0
+			obj.pathDir[i] = 0
+		}
+		obj.pathCount = 0
+		obj.pathCur = 0
+		return
+	}
+	obj.X = x
+	obj.Y = y
+	obj.Dir = dir
+	obj.pathCur++
+	if obj.pathCur >= obj.pathCount {
+		for i := 0; i < len(obj.pathDir); i++ {
+			obj.pathX[i] = 0
+			obj.pathY[i] = 0
+			obj.pathDir[i] = 0
+		}
+		obj.pathCount = 0
+		obj.pathCur = 0
+	}
+	obj.createFrustrum()
+}
 
+func (obj *object) Move(msg *model.MsgMove) {
+	n := len(msg.Path)
+	if n < 1 || n > 15 {
+		return
+	}
+	for i := range msg.Path {
+		obj.pathX[i] = msg.Path[i].X
+		obj.pathY[i] = msg.Path[i].Y
+		obj.pathDir[i] = msg.Dirs[i]
+	}
+	obj.pathCount = n
+	obj.pathCur = 0
+	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.TX, obj.TX)
+	obj.TX = msg.Path[n-1].X
+	obj.TY = msg.Path[n-1].Y
+	maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
+
+	msgRelpy := model.MsgMoveReply{
+		Number: obj.index,
+		X:      obj.TX,
+		Y:      obj.TY,
+		Dir:    msg.Dirs[0] << 4,
+	}
+	if obj.Type == ObjectTypePlayer {
+		om := obj.objectManager
+		tobj := om.objects[obj.index]
+		p := tobj.(*Player)
+		p.Push(&msgRelpy)
+	}
+	for _, vp := range obj.viewports2 {
+		if vp.state != 1 && vp.state != 2 {
+			continue
+		}
+		tnum := vp.number
+		if tnum < 0 {
+			continue
+		}
+		om := obj.objectManager
+		tobj := om.objects[tnum]
+		p, ok := tobj.(*Player)
+		if !ok {
+			continue
+		}
+		if p.ConnectState == ConnectStatePlaying && p.Live {
+			p.Push(&msgRelpy)
+		}
+	}
 }
 
 func (obj *object) Attack(msg *model.MsgAttack) {

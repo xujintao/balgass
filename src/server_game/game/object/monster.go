@@ -255,8 +255,6 @@ func (m *Monster) spawnPosition() {
 	m.StartX, m.StartY = m.randPosition(m.MapNumber, m.spawnStartX, m.spawnStartY, m.spawnEndX, m.spawnEndY)
 	maps.MapManager.SetMapAttrStand(m.MapNumber, m.StartX, m.StartY)
 	m.X, m.Y = m.StartX, m.StartY
-	m.OldX = m.X
-	m.OldY = m.Y
 	m.Dir = m.spawnDir
 	if m.Dir < 0 {
 		m.Dir = rand.Intn(8)
@@ -402,6 +400,10 @@ func (m *Monster) chaseMove(tobj *object) bool {
 }
 
 func (m *Monster) baseAction() {
+	if m.attribute == 0 {
+		// attribute为0的怪物没有行为
+		return
+	}
 	var tobj *object
 	if m.targetNumber >= 0 {
 		tnum := m.targetNumber
@@ -412,26 +414,22 @@ func (m *Monster) baseAction() {
 	}
 	switch m.actionState.emotion {
 	case 0: // 寻找目标
-		if m.attribute == 0 {
-			return
-		}
 		if m.actionState.attack {
 			m.actionState.attack = false
 			m.targetNumber = -1
 			m.nextActionTime = 500
 		}
-		rn := rand.Intn(2)
-		if rn == 0 {
-			m.actionState.rest = true
-			m.nextActionTime = 500
-		}
-		if m.moveRange > 0 {
-			m.roamMove()
-		}
+		// rn := rand.Intn(2)
+		// if rn == 0 {
+		// 	m.actionState.rest = true
+		// 	m.nextActionTime = 500
+		// }
 		m.targetNumber = m.searchEnemy()
 		if m.targetNumber >= 0 {
 			m.actionState.emotion = 1
 			m.actionState.emotionCount = 30
+		} else if m.moveRange > 0 {
+			m.roamMove()
 		}
 	case 1: // 移动及攻击
 		if m.actionState.emotionCount > 0 {
@@ -484,7 +482,6 @@ func (m *Monster) baseAction() {
 		m.actionState.move = false
 		m.actionState.attack = false
 		m.nextActionTime = 800
-
 	case 3:
 		if m.actionState.emotionCount > 0 {
 			m.actionState.emotionCount--
@@ -503,18 +500,30 @@ func (m *Monster) process500ms() {
 		return
 	}
 	curActionTime := time.Now().UnixMilli()
-	if curActionTime-m.curActionTime < m.nextActionTime+m.delayActionTime {
+	if curActionTime-m.curActionTime+1 < m.nextActionTime+m.delayActionTime {
 		return
 	}
 	m.curActionTime = curActionTime
 	m.baseAction()
 	if m.actionState.move {
 		m.actionState.move = false
+		// start := time.Now()
 		path, ok := maps.MapManager.FindMapPath(m.MapNumber, m.X, m.Y, m.MTX, m.MTY)
+		// fmt.Println("0500ms", time.Since(start).Microseconds())
 		if !ok {
 			return
 		}
-		msg := model.MsgMove{Path: path}
+		dirs := make([]int, len(path))
+		x, y := 0, 0
+		for i := range path {
+			if i == 0 {
+				x, y = m.X, m.Y
+			} else {
+				x, y = path[i-1].X, path[i-1].Y
+			}
+			dirs[i] = maps.CalcDir(x, y, path[i].X, path[i].Y)
+		}
+		msg := model.MsgMove{Dirs: dirs, Path: path}
 		m.Move(&msg)
 		return
 	}

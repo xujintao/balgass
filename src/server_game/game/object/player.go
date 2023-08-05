@@ -437,9 +437,9 @@ func (player *Player) Whisper(msg *model.MsgWhisper) {
 
 }
 
-func (player *Player) Live(msg *model.MsgLive) {
+// func (player *Player) Live(msg *model.MsgLive) {
 
-}
+// }
 
 func (player *Player) UseItem(msg *model.MsgUseItem) {
 	// validate the position

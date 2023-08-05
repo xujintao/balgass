@@ -55,16 +55,21 @@ func (g *game) Start() {
 				reflect.ValueOf(player).MethodByName(action).Call(in)
 			case <-t100ms.C:
 				cnt++
+				// fmt.Println(time.Now().Format("2006-01-02 15:04:05.999999"))
 				if cnt%3 == 0 { // 300ms
 					object.ObjectManager.Process300ms()
 				}
 				if cnt%5 == 0 { // 500ms
+					// start := time.Now()
 					object.ObjectManager.Process500ms()
+					// fmt.Println("0500ms", time.Since(start).Milliseconds())
 				}
 				if cnt%10 == 0 { // 1s
+					// start := time.Now()
 					maps.MapManager.ProcessWeather(g)
 					object.ObjectManager.ProcessViewport() // 1->2
 					object.ObjectManager.ProcessRegen()    // 4->1
+					// fmt.Println("1000ms", time.Since(start).Milliseconds())
 				}
 			case <-ctx.Done():
 				// todo

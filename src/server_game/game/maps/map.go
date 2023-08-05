@@ -89,9 +89,9 @@ var MapManager mapManager
 
 type mapManager map[int]*_map
 
-// bit0: 安全标志
-// bit1:
-// bit2: 障碍物标志
+// bit0(1): 安全标志
+// bit1(2): 被对象站立
+// bit2(4): 障碍物标志
 func (m mapManager) GetMapAttr(number, x, y int) int {
 	return m[number].getAttr(x, y)
 }

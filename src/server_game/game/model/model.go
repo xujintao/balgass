@@ -120,6 +120,7 @@ type MsgSkillList struct {
 //		BYTE Path[8];	// 5
 //	};
 type MsgMove struct {
+	Dirs []int
 	Path maps.Path
 }
 
@@ -128,26 +129,55 @@ func (msg *MsgMove) Unmarshal([]byte) error {
 	var bufDir [8]int
 
 	size := bufDir[0] & 0x0F
+	dirs := make([]int, size)
 	path := make(maps.Path, size)
 	for i := 0; i < size; i++ {
 		if i == 0 {
 			dir := bufDir[i] >> 4 & 0x0F
+			dirs[i] = dir
 			dirPot := maps.Dirs[dir]
 			path[i].X = x + dirPot.X
 			path[i].Y = y + dirPot.Y
 			continue
 		}
 		dir := bufDir[i] >> 4 & 0x0F
+		dirs[i] = dir
 		dirPot := maps.Dirs[dir]
 		path[i].X = path[i-1].X + dirPot.X
 		path[i].Y = path[i-1].Y + dirPot.Y
+
 		dir = bufDir[i] & 0x0F
+		dirs[i+1] = dir
 		dirPot = maps.Dirs[dir]
-		path[i+1].X = x + dirPot.X
-		path[i+1].Y = y + dirPot.Y
+		path[i+1].X = path[i].X + dirPot.X
+		path[i+1].Y = path[i].Y + dirPot.Y
 	}
+	msg.Dirs = dirs
 	msg.Path = path
 	return nil
+}
+
+// struct PMSG_RECVMOVE
+//
+//	{
+//		PBMSG_HEAD h;
+//		BYTE NumberH;	// 3
+//		BYTE NumberL;	// 4
+//		BYTE X;	// 5
+//		BYTE Y;	// 6
+//		BYTE Path;	// 7
+//	};
+type MsgMoveReply struct {
+	Number int
+	X      int
+	Y      int
+	Dir    int
+}
+
+func (msg *MsgMoveReply) Marshal() ([]byte, error) {
+	var buf bytes.Buffer
+	// buf.WriteByte(byte(msg.Result))
+	return buf.Bytes(), nil
 }
 
 type MsgAttack struct {

@@ -205,6 +205,8 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x02, "Whisper", (*model.MsgWhisper)(nil)},
 	{0, false, Player, 0x0E, "Live", (*model.MsgLive)(nil)},
 	{0, false, Player, 0x26, "UseItem", (*model.MsgUseItem)(nil)},
+	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)}, // s9
+	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)}, // 1.04R
 	{0, false, Player, 0xF352, "LearnMasterSkill", (*model.MsgLearnMasterSkill)(nil)},
 	// {0, false, Guest, "in_login", 0xF101, game.Login, game.Login, game.SetAuthLevel},
 	{0, false, Player, 0xFFFF, "Test", (*model.MsgTest)(nil)},
@@ -212,6 +214,7 @@ var apiIns = [...]*apiIn{
 
 var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x02, "out_chat_whisper", (*model.MsgWhisper)(nil)},
+	{0, false, 0xC1, 0xD4, "out_move_reply", (*model.MsgMoveReply)(nil)},
 	{0, false, 0xC1, 0xF100, "out_connect_success", (*model.MsgConnectSuccess)(nil)},
 	{0, false, 0xC1, 0xF101, "out_connect_failed", (*model.MsgConnectFailed)(nil)},
 	{0, false, 0xC1, 0xF311, "out_skill_list", (*model.MsgSkillList)(nil)},

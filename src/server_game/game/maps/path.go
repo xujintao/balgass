@@ -105,7 +105,7 @@ func (p *_path) findPath(x1, y1, x2, y2 int) (Path, bool) {
 		dir := p.findNexDir(x1, y1, x2, y2)
 		if dir >= 0 {
 			// forward
-			if len(p.path) >= 15 {
+			if len(p.path) > 15 {
 				return nil, false
 			}
 			p.path = append(p.path, &Pot{x1, y1})
@@ -126,5 +126,6 @@ func (p *_path) findPath(x1, y1, x2, y2 int) (Path, bool) {
 			p.path = p.path[:l-1]
 		}
 	}
-	return p.path, true
+	p.path = append(p.path, &Pot{x2, y2})
+	return p.path[1:], true
 }
