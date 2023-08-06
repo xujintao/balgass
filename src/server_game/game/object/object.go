@@ -50,6 +50,7 @@ type objectManager struct {
 type iobject interface {
 	process300ms()
 	process500ms()
+	process1000ms()
 	processRegen()
 }
 
@@ -273,15 +274,6 @@ func (m *objectManager) object(v iobject) *object {
 	return obj
 }
 
-func (m *objectManager) ProcessRegen() {
-	for _, v := range m.objects {
-		if v == nil {
-			continue
-		}
-		v.processRegen()
-	}
-}
-
 func (m *objectManager) Process300ms() {
 	for _, v := range m.objects {
 		if v == nil {
@@ -300,119 +292,12 @@ func (m *objectManager) Process500ms() {
 	}
 }
 
-func (m *objectManager) CreateViewport() {
+func (m *objectManager) Process1000ms() {
 	for _, v := range m.objects {
 		if v == nil {
 			continue
 		}
-		obj := m.object(v)
-		if obj.ConnectState != ConnectStatePlaying {
-			continue
-		}
-		start := 0
-		// create viewport
-		switch obj.Type {
-		case ObjectTypePlayer:
-			start = 0 // 玩家能看到所有对象
-		case ObjectTypeMonster, ObjectTypeNPC:
-			start = m.maxMonsterCount // 怪物看不见怪物
-		}
-		for _, v := range m.objects[start:] {
-			if v == nil {
-				continue
-			}
-			tobj := m.object(v)
-			if tobj.ConnectState < ConnectStatePlaying ||
-				tobj.index == obj.index ||
-				(tobj.State != 1 && tobj.State != 2) ||
-				tobj.MapNumber != obj.MapNumber {
-				continue
-			}
-			if !obj.checkViewport(tobj.X, tobj.Y) {
-				continue
-			}
-			obj.addViewport(tobj)
-			tobj.addViewport2(obj)
-		}
-	}
-}
-
-func (m *objectManager) DestroyViewport() {
-	for _, v := range m.objects {
-		if v == nil {
-			continue
-		}
-		obj := m.object(v)
-		if obj.ConnectState != ConnectStatePlaying {
-			continue
-		}
-		// remove viewport
-		for i, vp := range obj.viewports {
-			if vp.state != 1 && vp.state != 2 {
-				continue
-			}
-			tnum := vp.number
-			switch vp.type_ {
-			case 5: // items
-			default: // objects
-				tobj := m.object(m.objects[tnum])
-				if tobj == nil {
-					obj.viewports[i].state = 3
-				} else {
-					if tobj.ConnectState < ConnectStatePlaying ||
-						tobj.index == obj.index ||
-						(tobj.State != 1 && tobj.State != 2) ||
-						tobj.MapNumber != obj.MapNumber {
-						obj.viewports[i].state = 3
-					}
-					if !obj.checkViewport(tobj.X, tobj.Y) {
-						obj.viewports[i].state = 3
-					}
-				}
-			}
-		}
-		for i, vp := range obj.viewports2 {
-			if vp.state != 1 && vp.state != 2 {
-				continue
-			}
-			tobj := m.object(m.objects[vp.number])
-			remove := false
-			if tobj == nil {
-				remove = true
-			} else {
-				if tobj.ConnectState < ConnectStatePlaying ||
-					tobj.index == obj.index ||
-					(tobj.State != 1 && tobj.State != 2) ||
-					tobj.MapNumber != obj.MapNumber {
-					remove = true
-				}
-				if !obj.checkViewport(tobj.X, tobj.Y) {
-					remove = true
-				}
-			}
-			if remove {
-				obj.viewports2[i].state = 0
-				obj.viewports2[i].number = -1
-				obj.viewportNum2--
-			}
-		}
-	}
-}
-
-func (m *objectManager) ProcessViewport() {
-	m.DestroyViewport()
-	m.CreateViewport()
-	for _, v := range m.objects {
-		if v == nil {
-			continue
-		}
-		obj := m.object(v)
-		if obj.ConnectState != ConnectStatePlaying {
-			continue
-		}
-		if obj.State == 1 {
-			obj.State = 2
-		}
+		v.process1000ms()
 	}
 }
 
@@ -1098,6 +983,93 @@ func (obj *object) process300ms() {
 		obj.pathCur = 0
 	}
 	obj.createFrustrum()
+}
+
+func (obj *object) createViewport() {
+	if obj.ConnectState != ConnectStatePlaying {
+		return
+	}
+	start := 0
+	// create viewport
+	switch obj.Type {
+	case ObjectTypePlayer:
+		start = 0 // 玩家能看到所有对象
+	case ObjectTypeMonster, ObjectTypeNPC:
+		start = obj.objectManager.maxMonsterCount // 怪物看不见怪物
+	}
+	for _, v := range obj.objectManager.objects[start:] {
+		if v == nil {
+			continue
+		}
+		tobj := obj.objectManager.object(v)
+		if tobj.ConnectState < ConnectStatePlaying ||
+			tobj.index == obj.index ||
+			(tobj.State != 1 && tobj.State != 2) ||
+			tobj.MapNumber != obj.MapNumber {
+			continue
+		}
+		if !obj.checkViewport(tobj.X, tobj.Y) {
+			continue
+		}
+		obj.addViewport(tobj)
+		tobj.addViewport2(obj)
+	}
+}
+
+func (obj *object) destoryViewport() {
+	if obj.ConnectState != ConnectStatePlaying {
+		return
+	}
+	// remove viewport
+	for i, vp := range obj.viewports {
+		if vp.state != 1 && vp.state != 2 {
+			continue
+		}
+		tnum := vp.number
+		switch vp.type_ {
+		case 5: // items
+		default: // objects
+			tobj := obj.objectManager.object(obj.objectManager.objects[tnum])
+			if tobj == nil {
+				obj.viewports[i].state = 3
+			} else {
+				if tobj.ConnectState < ConnectStatePlaying ||
+					tobj.index == obj.index ||
+					(tobj.State != 1 && tobj.State != 2) ||
+					tobj.MapNumber != obj.MapNumber {
+					obj.viewports[i].state = 3
+				}
+				if !obj.checkViewport(tobj.X, tobj.Y) {
+					obj.viewports[i].state = 3
+				}
+			}
+		}
+	}
+	for i, vp := range obj.viewports2 {
+		if vp.state != 1 && vp.state != 2 {
+			continue
+		}
+		tobj := obj.objectManager.object(obj.objectManager.objects[vp.number])
+		remove := false
+		if tobj == nil {
+			remove = true
+		} else {
+			if tobj.ConnectState < ConnectStatePlaying ||
+				tobj.index == obj.index ||
+				(tobj.State != 1 && tobj.State != 2) ||
+				tobj.MapNumber != obj.MapNumber {
+				remove = true
+			}
+			if !obj.checkViewport(tobj.X, tobj.Y) {
+				remove = true
+			}
+		}
+		if remove {
+			obj.viewports2[i].state = 0
+			obj.viewports2[i].number = -1
+			obj.viewportNum2--
+		}
+	}
 }
 
 func (obj *object) Move(msg *model.MsgMove) {

@@ -67,8 +67,7 @@ func (g *game) Start() {
 				if cnt%10 == 0 { // 1s
 					// start := time.Now()
 					maps.MapManager.ProcessWeather(g)
-					object.ObjectManager.ProcessViewport() // 1->2
-					object.ObjectManager.ProcessRegen()    // 4->1
+					object.ObjectManager.Process1000ms()
 					// fmt.Println("1000ms", time.Since(start).Milliseconds())
 				}
 			case <-ctx.Done():

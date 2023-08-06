@@ -574,6 +574,19 @@ func (player *Player) PushSkillAll() {
 	player.Push(&msg)
 }
 
+// 玩家基本行为由客户端发出指令
+func (p *Player) process500ms() {
+
+}
+
+func (p *Player) processViewport() {
+	p.destoryViewport()
+	p.createViewport()
+	if p.State == 1 {
+		p.State = 2
+	}
+}
+
 func (p *Player) processRegen() {
 	if !p.dieRegen {
 		return
@@ -589,6 +602,7 @@ func (p *Player) processRegen() {
 	p.State = 1
 }
 
-func (p *Player) process500ms() {
-
+func (p *Player) process1000ms() {
+	p.processViewport() // 1->2
+	p.processRegen()    // 4->1
 }

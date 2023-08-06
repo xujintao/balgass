@@ -215,8 +215,8 @@ type Monster struct {
 	curActionTime   int64
 	nextActionTime  int64
 	delayActionTime int64
-	MTX             int
-	MTY             int
+	// MTX             int
+	// MTY             int
 }
 
 func (m *Monster) randPosition(number, x1, y1, x2, y2 int) (int, int) {
@@ -262,24 +262,6 @@ func (m *Monster) spawnPosition() {
 	m.createFrustrum()
 }
 
-func (m *Monster) processRegen() {
-	if !m.dieRegen {
-		return
-	}
-	if m.ConnectState < ConnectStatePlaying {
-		return
-	}
-	if time.Now().Unix()-int64(m.regenTime) < int64(m.maxRegenTime) {
-		return
-	}
-	m.HP = m.MaxHP + m.AddHP
-	m.MP = m.MaxMP + m.AddMP
-	m.Live = true
-	m.spawnPosition()
-	m.dieRegen = false
-	m.State = 1
-}
-
 func (m *Monster) overDis(tx, ty int) bool {
 	if m.spawnDis < 1 {
 		return false
@@ -304,15 +286,10 @@ func (m *Monster) roamMove() {
 			continue
 		}
 		attr := maps.MapManager.GetMapAttr(m.MapNumber, x, y)
-		if (m.Class == 249 || m.Class == 247) && attr&2 == 0 { // Guard
-			m.MTX = x
-			m.MTY = y
-			m.actionState.move = true
-			m.nextActionTime = 3000
-			return
-		} else if attr&15 == 0 {
-			m.MTX = x
-			m.MTY = y
+		if ((m.Class == 249 || m.Class == 247) && attr&2 == 0) || // Guard
+			attr&15 == 0 {
+			m.TX = x
+			m.TY = y
 			m.actionState.move = true
 			m.nextActionTime = 500
 			return
@@ -380,8 +357,8 @@ func (m *Monster) chaseMove(tobj *object) bool {
 			attr := maps.MapManager.GetMapAttr(m.MapNumber, mtx, mty)
 			if ((m.Class == 247 || m.Class == 249) && attr&2 == 0) ||
 				attr&15 == 0 {
-				m.MTX = mtx
-				m.MTY = mty
+				m.TX = mtx
+				m.TY = mty
 				return true
 			}
 			if dir == len(maps.Dirs) {
@@ -392,8 +369,8 @@ func (m *Monster) chaseMove(tobj *object) bool {
 	attr := maps.MapManager.GetMapAttr(m.MapNumber, tx, ty)
 	if ((m.Class == 247 || m.Class == 249) && attr&2 == 0) ||
 		attr&15 == 0 {
-		m.MTX = tx
-		m.MTY = ty
+		m.TX = tx
+		m.TY = ty
 		return true
 	}
 	return false
@@ -414,11 +391,11 @@ func (m *Monster) baseAction() {
 	}
 	switch m.actionState.emotion {
 	case 0: // 寻找目标
-		if m.actionState.attack {
-			m.actionState.attack = false
-			m.targetNumber = -1
-			m.nextActionTime = 500
-		}
+		// if m.actionState.attack {
+		// 	m.actionState.attack = false
+		// 	m.targetNumber = -1
+		// 	m.nextActionTime = 500
+		// }
 		// rn := rand.Intn(2)
 		// if rn == 0 {
 		// 	m.actionState.rest = true
@@ -427,7 +404,7 @@ func (m *Monster) baseAction() {
 		m.targetNumber = m.searchEnemy()
 		if m.targetNumber >= 0 {
 			m.actionState.emotion = 1
-			m.actionState.emotionCount = 30
+			m.actionState.emotionCount = 30 // 30*500ms=15s
 		} else if m.moveRange > 0 {
 			m.roamMove()
 		}
@@ -451,25 +428,32 @@ func (m *Monster) baseAction() {
 				if attr&1 == 0 {
 					m.actionState.attack = true
 				} else {
+					// 目标在安全区，傻看15s
 					m.targetNumber = -1
 					m.actionState.emotion = 1
 					m.actionState.emotionCount = 30 // 30*500ms=15s
 				}
 				m.Dir = maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
 				m.nextActionTime = int64(m.attackSpeed)
+			} else {
+				// 隔着障碍物，傻看最多15s
 			}
 		} else {
+			// 目标不在攻击范围
 			if m.chaseMove(tobj) {
-				if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, m.MTX, m.MTY) {
+				// 可以寻路
+				if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, m.TX, m.TY) {
 					m.actionState.move = true
 					m.nextActionTime = 400
 					m.Dir = maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
 				} else {
+					// 隔着障碍物，进入状态3，原地傻等10s
 					m.roamMove()
 					m.actionState.emotion = 3
 					m.actionState.emotionCount = 10
 				}
 			} else {
+				// 不可以寻路
 				m.roamMove()
 			}
 		}
@@ -494,7 +478,11 @@ func (m *Monster) baseAction() {
 	}
 }
 
+// 模拟怪物基本行为
 func (m *Monster) process500ms() {
+	// if m.Class != 249 {
+	// 	return
+	// }
 	if m.ConnectState < ConnectStatePlaying ||
 		!m.Live {
 		return
@@ -508,7 +496,7 @@ func (m *Monster) process500ms() {
 	if m.actionState.move {
 		m.actionState.move = false
 		// start := time.Now()
-		path, ok := maps.MapManager.FindMapPath(m.MapNumber, m.X, m.Y, m.MTX, m.MTY)
+		path, ok := maps.MapManager.FindMapPath(m.MapNumber, m.X, m.Y, m.TX, m.TY)
 		// fmt.Println("0500ms", time.Since(start).Microseconds())
 		if !ok {
 			return
@@ -555,4 +543,35 @@ func (m *Monster) process500ms() {
 			m.SkillAttack(&msg)
 		}
 	}
+}
+
+func (m *Monster) processViewport() {
+	m.destoryViewport()
+	m.createViewport()
+	if m.State == 1 {
+		m.State = 2
+	}
+}
+
+func (m *Monster) processRegen() {
+	if !m.dieRegen {
+		return
+	}
+	if m.ConnectState < ConnectStatePlaying {
+		return
+	}
+	if time.Now().Unix()-int64(m.regenTime) < int64(m.maxRegenTime) {
+		return
+	}
+	m.HP = m.MaxHP + m.AddHP
+	m.MP = m.MaxMP + m.AddMP
+	m.Live = true
+	m.spawnPosition()
+	m.dieRegen = false
+	m.State = 1
+}
+
+func (m *Monster) process1000ms() {
+	m.processViewport() // 1->2
+	m.processRegen()    // 4->1
 }
