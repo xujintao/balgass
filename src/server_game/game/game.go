@@ -56,14 +56,9 @@ func (g *game) Start() {
 			case <-t100ms.C:
 				cnt++
 				// fmt.Println(time.Now().Format("2006-01-02 15:04:05.999999"))
-				if cnt%3 == 0 { // 300ms
-					object.ObjectManager.Process300ms()
-				}
-				if cnt%5 == 0 { // 500ms
-					// start := time.Now()
-					object.ObjectManager.Process500ms()
-					// fmt.Println("0500ms", time.Since(start).Milliseconds())
-				}
+				// start := time.Now()
+				object.ObjectManager.Process100ms()
+				// fmt.Println("100ms", time.Since(start).Milliseconds())
 				if cnt%10 == 0 { // 1s
 					// start := time.Now()
 					maps.MapManager.ProcessWeather(g)

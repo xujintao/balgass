@@ -48,10 +48,8 @@ type objectManager struct {
 }
 
 type iobject interface {
-	process300ms()
-	process500ms()
+	process100ms()
 	process1000ms()
-	processRegen()
 }
 
 func (m *objectManager) init() {
@@ -274,21 +272,12 @@ func (m *objectManager) object(v iobject) *object {
 	return obj
 }
 
-func (m *objectManager) Process300ms() {
+func (m *objectManager) Process100ms() {
 	for _, v := range m.objects {
 		if v == nil {
 			continue
 		}
-		v.process300ms()
-	}
-}
-
-func (m *objectManager) Process500ms() {
-	for _, v := range m.objects {
-		if v == nil {
-			continue
-		}
-		v.process500ms()
+		v.process100ms()
 	}
 }
 
@@ -1022,7 +1011,7 @@ func (obj *object) destoryViewport() {
 	}
 }
 
-func (obj *object) process300ms() {
+func (obj *object) processMove() {
 	if obj.ConnectState < ConnectStatePlaying ||
 		!obj.Live ||
 		obj.State != 2 ||

@@ -470,7 +470,7 @@ func (m *Monster) baseAction() {
 }
 
 // 模拟怪物基本行为
-func (m *Monster) process500ms() {
+func (m *Monster) generateAction() {
 	if m.ConnectState < ConnectStatePlaying ||
 		!m.Live {
 		return
@@ -531,6 +531,11 @@ func (m *Monster) process500ms() {
 			m.SkillAttack(&msg)
 		}
 	}
+}
+
+func (m *Monster) process100ms() {
+	m.processMove()
+	m.generateAction()
 }
 
 func (m *Monster) processViewport() {

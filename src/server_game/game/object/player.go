@@ -575,8 +575,8 @@ func (player *Player) PushSkillAll() {
 }
 
 // 玩家基本行为由客户端发出指令
-func (p *Player) process500ms() {
-
+func (p *Player) process100ms() {
+	p.processMove()
 }
 
 func (p *Player) processViewport() {
