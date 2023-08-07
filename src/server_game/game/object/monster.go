@@ -269,7 +269,7 @@ func (m *Monster) overDis(tx, ty int) bool {
 	x := tx - m.StartX
 	y := ty - m.StartY
 	dis := int(math.Sqrt(float64(x*x + y*y)))
-	return dis < m.spawnDis
+	return dis > m.spawnDis
 }
 
 func (m *Monster) roamMove() {
@@ -282,7 +282,7 @@ func (m *Monster) roamMove() {
 		cnt--
 		x = m.X + rand.Intn(maxMoveRange+1) - m.moveRange
 		y = m.Y + rand.Intn(maxMoveRange+1) - m.moveRange
-		if !m.overDis(x, y) {
+		if m.overDis(x, y) {
 			continue
 		}
 		attr := maps.MapManager.GetMapAttr(m.MapNumber, x, y)
@@ -381,14 +381,7 @@ func (m *Monster) baseAction() {
 		// attribute为0的怪物没有行为
 		return
 	}
-	var tobj *object
-	if m.targetNumber >= 0 {
-		tnum := m.targetNumber
-		om := m.objectManager
-		tobj = om.object(om.objects[tnum])
-	} else {
-		m.actionState.emotion = 0
-	}
+
 	switch m.actionState.emotion {
 	case 0: // 寻找目标
 		// if m.actionState.attack {
@@ -404,59 +397,53 @@ func (m *Monster) baseAction() {
 		m.targetNumber = m.searchEnemy()
 		if m.targetNumber >= 0 {
 			m.actionState.emotion = 1
-			m.actionState.emotionCount = 30 // 30*500ms=15s
-		} else if m.moveRange > 0 {
+		} else if m.moveRange > 0 && !m.pathMoving {
 			m.roamMove()
 		}
 	case 1: // 移动及攻击
-		if m.actionState.emotionCount > 0 {
-			m.actionState.emotionCount--
-		} else {
-			m.actionState.emotion = 0
-		}
 		if m.targetNumber < 0 {
+			m.actionState.emotion = 3
+			m.actionState.emotionCount = 10 // 10*500ms=5s
 			return
 		}
+		if m.pathMoving {
+			return
+		}
+		tnum := m.targetNumber
+		om := m.objectManager
+		tobj := om.object(om.objects[tnum])
 		dis := m.calcDistance(tobj)
 		attackRange := m.attackRange
 		if m.attackType >= 100 {
 			attackRange = m.attackRange + 2
 		}
 		if dis <= attackRange {
+			// 目标在攻击范围内
 			if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, tobj.X, tobj.Y) {
 				attr := maps.MapManager.GetMapAttr(m.MapNumber, tobj.X, tobj.Y)
 				if attr&1 == 0 {
 					m.actionState.attack = true
-				} else {
-					// 目标在安全区，傻看15s
-					m.targetNumber = -1
-					m.actionState.emotion = 1
-					m.actionState.emotionCount = 30 // 30*500ms=15s
+					m.Dir = maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
+					m.nextActionTime = int64(m.attackSpeed)
+					return
 				}
-				m.Dir = maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
-				m.nextActionTime = int64(m.attackSpeed)
-			} else {
-				// 隔着障碍物，傻看最多15s
 			}
 		} else {
-			// 目标不在攻击范围
+			// 目标不在攻击范围内
 			if m.chaseMove(tobj) {
 				// 可以寻路
 				if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, m.TX, m.TY) {
 					m.actionState.move = true
-					m.nextActionTime = 400
 					m.Dir = maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
-				} else {
-					// 隔着障碍物，进入状态3，原地傻等10s
-					m.roamMove()
-					m.actionState.emotion = 3
-					m.actionState.emotionCount = 10
+					m.nextActionTime = 400
+					return
 				}
-			} else {
-				// 不可以寻路
-				m.roamMove()
 			}
 		}
+		// 进入状态3，原地傻等5s
+		m.targetNumber = -1
+		m.actionState.emotion = 3
+		m.actionState.emotionCount = 10 // 10*500ms=5s
 	case 2:
 		if m.actionState.emotionCount > 0 {
 			m.actionState.emotionCount--
@@ -470,6 +457,10 @@ func (m *Monster) baseAction() {
 		if m.actionState.emotionCount > 0 {
 			m.actionState.emotionCount--
 		} else {
+			if m.overDis(m.X, m.Y) {
+				m.StartX = m.X
+				m.StartY = m.Y
+			}
 			m.actionState.emotion = 0
 		}
 		m.actionState.move = false
@@ -480,9 +471,6 @@ func (m *Monster) baseAction() {
 
 // 模拟怪物基本行为
 func (m *Monster) process500ms() {
-	// if m.Class != 249 {
-	// 	return
-	// }
 	if m.ConnectState < ConnectStatePlaying ||
 		!m.Live {
 		return

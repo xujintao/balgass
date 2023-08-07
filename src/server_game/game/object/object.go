@@ -408,23 +408,21 @@ type object struct {
 	Live         bool
 	State        int // 1:初始 2:视野 4:死亡
 
-	StartX    int
-	StartY    int
-	X         int // x坐标
-	Y         int // y坐标
-	Dir       int // 方向
-	TX        int // 目标x坐标
-	TY        int // 目标y坐标
-	pathX     [15]int
-	pathY     [15]int
-	pathDir   [15]int
-	pathCount int
-	pathCur   int
-	pathTime  int64
-	// pathStartEnd              byte
-	delayLevel int
-	// PathOri            [15]uint16
-
+	StartX             int
+	StartY             int
+	X                  int // x坐标
+	Y                  int // y坐标
+	Dir                int // 方向
+	TX                 int // 目标x坐标
+	TY                 int // 目标y坐标
+	pathX              [15]int
+	pathY              [15]int
+	pathDir            [15]int
+	pathCount          int
+	pathCur            int
+	pathTime           int64
+	pathMoving         bool
+	delayLevel         int
 	MapNumber          int        // 地图号
 	Type               ObjectType // 对象种类：玩家，怪物，NPC
 	Class              int        // 对象类别。怪物和玩家都有类别
@@ -937,54 +935,6 @@ func (obj *object) calcDistance(tobj *object) int {
 	return int(math.Sqrt(float64(x*x + y*y)))
 }
 
-func (obj *object) process300ms() {
-	if obj.ConnectState < ConnectStatePlaying ||
-		!obj.Live ||
-		obj.State != 2 ||
-		obj.pathCount == 0 {
-		return
-	}
-	moveTime := obj.moveSpeed
-	if obj.delayLevel != 0 {
-		moveTime += 300
-	}
-	pathTime := time.Now().UnixMilli()
-	if pathTime-obj.pathTime+1 < int64(moveTime) {
-		return
-	}
-	obj.pathTime = pathTime
-	x := obj.pathX[obj.pathCur]
-	y := obj.pathY[obj.pathCur]
-	dir := obj.pathDir[obj.pathCur]
-	attr := maps.MapManager.GetMapAttr(obj.MapNumber, x, y)
-	if attr&4 != 0 && attr&8 != 0 {
-		log.Printf("process300ms object move check [index]%d [class]%d [map]%d [position](%d,%d)",
-			obj.index, obj.Class, obj.MapNumber, x, y)
-		for i := 0; i < len(obj.pathDir); i++ {
-			obj.pathX[i] = 0
-			obj.pathY[i] = 0
-			obj.pathDir[i] = 0
-		}
-		obj.pathCount = 0
-		obj.pathCur = 0
-		return
-	}
-	obj.X = x
-	obj.Y = y
-	obj.Dir = dir
-	obj.pathCur++
-	if obj.pathCur >= obj.pathCount {
-		for i := 0; i < len(obj.pathDir); i++ {
-			obj.pathX[i] = 0
-			obj.pathY[i] = 0
-			obj.pathDir[i] = 0
-		}
-		obj.pathCount = 0
-		obj.pathCur = 0
-	}
-	obj.createFrustrum()
-}
-
 func (obj *object) createViewport() {
 	if obj.ConnectState != ConnectStatePlaying {
 		return
@@ -1072,6 +1022,59 @@ func (obj *object) destoryViewport() {
 	}
 }
 
+func (obj *object) process300ms() {
+	if obj.ConnectState < ConnectStatePlaying ||
+		!obj.Live ||
+		obj.State != 2 ||
+		obj.pathCount == 0 {
+		return
+	}
+	moveTime := obj.moveSpeed
+	if obj.delayLevel != 0 {
+		moveTime += 300
+	}
+	pathTime := time.Now().UnixMilli()
+	if pathTime-obj.pathTime+1 < int64(moveTime) {
+		return
+	}
+	obj.pathTime = pathTime
+	x := obj.pathX[obj.pathCur]
+	y := obj.pathY[obj.pathCur]
+	dir := obj.pathDir[obj.pathCur]
+	attr := maps.MapManager.GetMapAttr(obj.MapNumber, x, y)
+	if attr&4 != 0 && attr&8 != 0 {
+		log.Printf("process300ms object move check [index]%d [class]%d [map]%d [position](%d,%d)",
+			obj.index, obj.Class, obj.MapNumber, x, y)
+		for i := 0; i < len(obj.pathDir); i++ {
+			obj.pathX[i] = 0
+			obj.pathY[i] = 0
+			obj.pathDir[i] = 0
+		}
+		obj.pathCount = 0
+		obj.pathCur = 0
+		obj.pathMoving = false
+		return
+	}
+	obj.X = x
+	obj.Y = y
+	// if obj.index == 6 && obj.pathMoving {
+	// 	fmt.Println(obj.X, obj.Y)
+	// }
+	obj.Dir = dir
+	obj.createFrustrum()
+	obj.pathCur++
+	if obj.pathCur >= obj.pathCount {
+		for i := 0; i < len(obj.pathDir); i++ {
+			obj.pathX[i] = 0
+			obj.pathY[i] = 0
+			obj.pathDir[i] = 0
+		}
+		obj.pathCount = 0
+		obj.pathCur = 0
+		obj.pathMoving = false
+	}
+}
+
 func (obj *object) Move(msg *model.MsgMove) {
 	n := len(msg.Path)
 	if n < 1 || n > 15 {
@@ -1084,10 +1087,14 @@ func (obj *object) Move(msg *model.MsgMove) {
 	}
 	obj.pathCount = n
 	obj.pathCur = 0
+	obj.pathMoving = true
 	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.TX, obj.TX)
 	obj.TX = msg.Path[n-1].X
 	obj.TY = msg.Path[n-1].Y
 	maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
+	// if obj.index == 6 {
+	// 	fmt.Printf("(%d,%d)->(%d,%d)\n", obj.X, obj.Y, obj.TX, obj.TY)
+	// }
 
 	msgRelpy := model.MsgMoveReply{
 		Number: obj.index,
