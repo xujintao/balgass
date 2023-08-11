@@ -262,6 +262,20 @@ func (m *objectManager) GetPlayer(id int) *Player {
 	return m.objects[id].(*Player)
 }
 
+func (m *objectManager) GetObjectsByMapNumber(number int) []*maps.Pot {
+	var pots []*maps.Pot
+	for _, v := range m.objects {
+		if v == nil {
+			continue
+		}
+		obj := m.object(v)
+		if obj.MapNumber == number {
+			pots = append(pots, &maps.Pot{X: obj.X, Y: obj.Y})
+		}
+	}
+	return pots
+}
+
 func (m *objectManager) object(v iobject) *object {
 	var obj *object
 	if monster, ok := v.(*Monster); ok {
@@ -1077,7 +1091,7 @@ func (obj *object) Move(msg *model.MsgMove) {
 	obj.pathCount = n
 	obj.pathCur = 0
 	obj.pathMoving = true
-	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.TX, obj.TX)
+	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
 	obj.TX = msg.Path[n-1].X
 	obj.TY = msg.Path[n-1].Y
 	maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)

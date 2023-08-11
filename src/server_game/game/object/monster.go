@@ -275,13 +275,11 @@ func (m *Monster) overDis(tx, ty int) bool {
 func (m *Monster) roamMove() {
 	maxMoveRange := m.moveRange << 1
 	m.nextActionTime = 1000
-	x := 0
-	y := 0
 	cnt := 10
 	for cnt > 0 {
 		cnt--
-		x = m.X + rand.Intn(maxMoveRange+1) - m.moveRange
-		y = m.Y + rand.Intn(maxMoveRange+1) - m.moveRange
+		x := m.X + rand.Intn(maxMoveRange+1) - m.moveRange
+		y := m.Y + rand.Intn(maxMoveRange+1) - m.moveRange
 		if m.overDis(x, y) {
 			continue
 		}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/game/maps"
+	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/object"
 )
 
@@ -19,6 +20,7 @@ type game struct {
 	connRequestChan      chan *connRequest
 	closeConnRequestChan chan *closeConnRequest
 	playerActionChan     chan *playerAction
+	commandRequestChan   chan *commandRequest
 	cancel               context.CancelFunc
 }
 
@@ -26,6 +28,7 @@ func (g *game) init() {
 	g.connRequestChan = make(chan *connRequest, 100)
 	g.closeConnRequestChan = make(chan *closeConnRequest, 100)
 	g.playerActionChan = make(chan *playerAction, 1000)
+	g.commandRequestChan = make(chan *commandRequest, 100)
 }
 
 func (g *game) Start() {
@@ -53,6 +56,18 @@ func (g *game) Start() {
 				// player.Chat(msg)
 				in := []reflect.Value{reflect.ValueOf(msg)}
 				reflect.ValueOf(player).MethodByName(action).Call(in)
+			case commandReq := <-g.commandRequestChan:
+				name := commandReq.name
+				msg := commandReq.msg
+				in := []reflect.Value{reflect.ValueOf(msg)}
+				out := reflect.ValueOf(g).MethodByName(name).Call(in)
+				commandResp := commandResponse{
+					data: out[0].Interface(),
+				}
+				if ierr := out[1].Interface(); ierr != nil {
+					commandResp.err = ierr.(error)
+				}
+				commandReq.commandResponseChan <- &commandResp
 			case <-t100ms.C:
 				cnt++
 				// fmt.Println(time.Now().Format("2006-01-02 15:04:05.999999"))
@@ -124,6 +139,37 @@ func (g *game) PlayerAction(id int, action string, msg any) {
 		msg:    msg,
 	}
 	g.playerActionChan <- &playerAction
+}
+
+type commandRequest struct {
+	name                string
+	msg                 any
+	commandResponseChan chan *commandResponse
+}
+
+type commandResponse struct {
+	data any
+	err  error
+}
+
+func (g *game) Command(name string, msg any) (any, error) {
+	commandReq := commandRequest{
+		name:                name,
+		msg:                 msg,
+		commandResponseChan: make(chan *commandResponse),
+	}
+	g.commandRequestChan <- &commandReq
+	commandResp := <-commandReq.commandResponseChan
+	return commandResp.data, commandResp.err
+}
+
+func (g *game) GetObjectsByMapNumber(msg *model.MsgGetObjectsByMapNumber) (*model.MsgGetObjectsByMapNumberReply, error) {
+	number := msg.Number
+	pots := object.ObjectManager.GetObjectsByMapNumber(number)
+	return &model.MsgGetObjectsByMapNumberReply{
+		Name: "object",
+		Data: pots,
+	}, nil
 }
 
 func (g *game) SendWeather(number, weather int) {

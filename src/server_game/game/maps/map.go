@@ -89,6 +89,10 @@ var MapManager mapManager
 
 type mapManager map[int]*_map
 
+func (m mapManager) GetMapPots(number int) []*Pot {
+	return m[number].getPots()
+}
+
 // bit0(1): 安全标志
 // bit1(2): 被对象站立
 // bit2(4): 障碍物标志
@@ -136,6 +140,7 @@ type _map struct {
 	width     int
 	height    int
 	buf       []byte
+	pots      []*Pot
 	regenRect *Rect
 	mapItems  []mapItem
 	cnt       int
@@ -152,6 +157,14 @@ func (m *_map) init(number int, file string) {
 	m.width = int(buf[1]) + 1
 	m.height = int(buf[2]) + 1
 	m.buf = buf[3:]
+	for i := range m.buf {
+		p := Pot{}
+		p.X = i % 256
+		p.Y = i >> 8
+		if m.buf[i]&4 != 0 {
+			m.pots = append(m.pots, &p)
+		}
+	}
 	m.mapItems = make([]mapItem, conf.Server.GameServerInfo.MaxObjectItemCount)
 	m.cnt = 1
 }
@@ -163,6 +176,10 @@ func (m *_map) valid(x, y int) bool {
 // x + y<<8
 func (m *_map) pos2index(x, y int) int {
 	return x + y*m.width
+}
+
+func (m *_map) getPots() []*Pot {
+	return m.pots
 }
 
 func (m *_map) getAttr(x, y int) int {

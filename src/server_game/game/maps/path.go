@@ -7,8 +7,8 @@ type validator interface {
 }
 
 type Pot struct {
-	X int
-	Y int
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 func dist(x1, y1, x2, y2 int) int {
