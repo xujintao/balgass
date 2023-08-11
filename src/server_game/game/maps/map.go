@@ -60,7 +60,7 @@ func init() {
 		Elbeland:    {40, 214, 43, 224},
 		LorenMarket: {126, 142, 129, 148},
 	}
-	MapManager = make(mapManager)
+	// MapManager = make(mapManager)
 	for _, v := range mapList.DefaultMaps.Map {
 		number := v.Number
 		file := path.Join(conf.PathCommon, "MapTerrains", v.File)
@@ -87,7 +87,7 @@ type sender interface {
 
 var MapManager mapManager
 
-type mapManager map[int]*_map
+type mapManager [MAX_MAP_NUMBER]*_map
 
 func (m mapManager) GetMapPots(number int) []*Pot {
 	return m[number].getPots()

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -32,6 +33,13 @@ func main() {
 	go func() {
 		err := server.ListenAndServe()
 		log.Fatal(err)
+	}()
+
+	// start http server
+	go func() {
+		http.HandleFunc("/api/map", handle.Map)
+		http.HandleFunc("/", handle.Home)
+		log.Fatal(http.ListenAndServe(":8080", nil))
 	}()
 
 	// wait

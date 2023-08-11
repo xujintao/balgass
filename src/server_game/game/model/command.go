@@ -7,4 +7,5 @@ type MsgGetObjectsByMapNumber struct {
 type MsgGetObjectsByMapNumberReply struct {
 	Name string `json:"name"`
 	Data any    `json:"data"`
+	Err  string `json:"err"`
 }
