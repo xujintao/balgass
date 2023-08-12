@@ -47,12 +47,6 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	}
 }
 
-type apiRequest struct {
-	id     int
-	handle string
-	msg    any
-}
-
 // Handle *apiHandle implements c1c2.Handler
 func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 	v := ctx.Value(c1c2.UserContextKey)
@@ -68,7 +62,7 @@ func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 		codes := []byte{req.Body[0], req.Body[1]}
 		code = int(binary.BigEndian.Uint16(codes))
 		if api, ok = h.apiIns[code]; !ok {
-			log.Printf("invalid api, body: %v", req.Body)
+			log.Printf("invalid api [body]%v\n", req.Body)
 			return
 		}
 		req.Body = req.Body[1:]

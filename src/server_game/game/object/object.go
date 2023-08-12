@@ -45,6 +45,14 @@ type objectManager struct {
 	// objects
 	maxObjectCount int
 	objects        []iobject
+
+	// users
+	maxUserCount      int
+	userStartIndex    int
+	lastUserIndex     int
+	userCount         int
+	users             []*user
+	mapSubscribeTable map[int]map[*user]struct{}
 }
 
 type iobject interface {
@@ -71,6 +79,13 @@ func (m *objectManager) init() {
 	// objects
 	m.maxObjectCount = m.maxMonsterCount + m.maxCallMonsterCount + m.maxPlayerCount
 	m.objects = make([]iobject, m.maxObjectCount)
+
+	// users
+	m.maxUserCount = 1000
+	m.userStartIndex = 0
+	m.lastUserIndex = m.userStartIndex - 1
+	m.users = make([]*user, m.maxUserCount)
+	m.mapSubscribeTable = make(map[int]map[*user]struct{})
 
 	// 先有怪后有玩家
 	m.spawnMonster()
@@ -262,18 +277,46 @@ func (m *objectManager) GetPlayer(id int) *Player {
 	return m.objects[id].(*Player)
 }
 
-func (m *objectManager) GetObjectsByMapNumber(number int) []*maps.Pot {
-	var pots []*maps.Pot
-	for _, v := range m.objects {
-		if v == nil {
-			continue
+func (m *objectManager) AddUser(conn Conn) (int, error) {
+	if m.userCount > m.maxUserCount {
+		return -1, fmt.Errorf("over max user count")
+	}
+	index := m.lastUserIndex
+	cnt := m.maxUserCount
+	for cnt > 0 {
+		cnt--
+		index++
+		if index >= m.maxUserCount {
+			index = m.userStartIndex
 		}
-		obj := m.object(v)
-		if obj.MapNumber == number {
-			pots = append(pots, &maps.Pot{X: obj.X, Y: obj.Y})
+		if m.users[index] == nil {
+			break
 		}
 	}
-	return pots
+	if cnt == 0 {
+		panic(fmt.Errorf("have no free user index"))
+	}
+	m.lastUserIndex = index
+	m.userCount++
+	u := NewUser(conn)
+	u.objectManager = m
+	u.index = index
+	m.users[index] = u
+	log.Printf("user online [id]%d [addr]%s", u.index, u.conn.Addr())
+	return index, nil
+}
+
+func (m *objectManager) DeleteUser(id int) {
+	u := m.users[id]
+	// unregister user from object manager
+	m.users[id] = nil
+	m.userCount--
+	u.delete()
+	log.Printf("user offline [id]%d [addr]%s", u.index, u.conn.Addr())
+}
+
+func (m *objectManager) GetUser(id int) *user {
+	return m.users[id]
 }
 
 func (m *objectManager) object(v iobject) *object {
@@ -296,11 +339,26 @@ func (m *objectManager) Process100ms() {
 }
 
 func (m *objectManager) Process1000ms() {
+	table := make(map[int][]*maps.Pot)
 	for _, v := range m.objects {
 		if v == nil {
 			continue
 		}
 		v.process1000ms()
+
+		// process map subscripion
+		obj := m.object(v)
+		if _, ok := m.mapSubscribeTable[obj.MapNumber]; ok {
+			table[obj.MapNumber] = append(table[obj.MapNumber], &maps.Pot{
+				X: obj.X,
+				Y: obj.Y,
+			})
+		}
+	}
+	for n, users := range m.mapSubscribeTable {
+		for u := range users {
+			u.publishMap(table[n])
+		}
 	}
 }
 

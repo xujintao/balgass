@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/game/maps"
-	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/object"
 )
 
@@ -17,17 +16,23 @@ func init() {
 var Game game
 
 type game struct {
-	connRequestChan      chan *connRequest
-	closeConnRequestChan chan *closeConnRequest
-	playerActionChan     chan *playerAction
-	commandRequestChan   chan *commandRequest
-	cancel               context.CancelFunc
+	connRequestChan        chan *connRequest
+	closeConnRequestChan   chan *closeConnRequest
+	playerActionChan       chan *playerAction
+	wsConnRequestChan      chan *wsConnRequest
+	closeWSConnRequestChan chan *closeWSConnRequest
+	userActionChan         chan *userAction
+	commandRequestChan     chan *commandRequest
+	cancel                 context.CancelFunc
 }
 
 func (g *game) init() {
 	g.connRequestChan = make(chan *connRequest, 100)
 	g.closeConnRequestChan = make(chan *closeConnRequest, 100)
 	g.playerActionChan = make(chan *playerAction, 1000)
+	g.wsConnRequestChan = make(chan *wsConnRequest, 100)
+	g.closeWSConnRequestChan = make(chan *closeWSConnRequest, 100)
+	g.userActionChan = make(chan *userAction, 1000)
 	g.commandRequestChan = make(chan *commandRequest, 100)
 }
 
@@ -39,6 +44,7 @@ func (g *game) Start() {
 		cnt := 0
 		for {
 			select {
+			// c1c2
 			case connReq := <-g.connRequestChan:
 				conn := connReq.Conn
 				id, err := object.ObjectManager.AddPlayer(conn)
@@ -56,6 +62,25 @@ func (g *game) Start() {
 				// player.Chat(msg)
 				in := []reflect.Value{reflect.ValueOf(msg)}
 				reflect.ValueOf(player).MethodByName(action).Call(in)
+			// websocket
+			case wsConnReq := <-g.wsConnRequestChan:
+				conn := wsConnReq.Conn
+				id, err := object.ObjectManager.AddUser(conn)
+				wsConnResp := wsConnResponse{id: id, err: err}
+				wsConnReq.wsConnResponseChan <- &wsConnResp
+			case closeWSConnReq := <-g.closeWSConnRequestChan:
+				id := closeWSConnReq.id
+				object.ObjectManager.DeleteUser(id)
+				closeWSConnReq.closeWSConnResponseChan <- struct{}{}
+			case userAction := <-g.userActionChan:
+				id := userAction.id
+				action := userAction.action
+				msg := userAction.msg
+				user := object.ObjectManager.GetUser(id)
+				// user.Subscribe(msg)
+				in := []reflect.Value{reflect.ValueOf(msg)}
+				reflect.ValueOf(user).MethodByName(action).Call(in)
+			// command
 			case commandReq := <-g.commandRequestChan:
 				name := commandReq.name
 				msg := commandReq.msg
@@ -141,6 +166,56 @@ func (g *game) PlayerAction(id int, action string, msg any) {
 	g.playerActionChan <- &playerAction
 }
 
+// websocket
+type wsConnRequest struct {
+	object.Conn
+	wsConnResponseChan chan *wsConnResponse
+}
+
+type wsConnResponse struct {
+	id  int
+	err error
+}
+
+func (g *game) WSConn(conn object.Conn) (int, error) {
+	wsConnReq := wsConnRequest{
+		Conn:               conn,
+		wsConnResponseChan: make(chan *wsConnResponse),
+	}
+	g.wsConnRequestChan <- &wsConnReq
+	wsConnResp := <-wsConnReq.wsConnResponseChan
+	return wsConnResp.id, wsConnResp.err
+}
+
+type closeWSConnRequest struct {
+	id                      int
+	closeWSConnResponseChan chan struct{}
+}
+
+func (g *game) CloseWSConn(id int) {
+	closeWSConnReq := closeWSConnRequest{
+		id:                      id,
+		closeWSConnResponseChan: make(chan struct{}),
+	}
+	g.closeWSConnRequestChan <- &closeWSConnReq
+	<-closeWSConnReq.closeWSConnResponseChan
+}
+
+type userAction struct {
+	id     int
+	action string
+	msg    any
+}
+
+func (g *game) UserAction(id int, action string, msg any) {
+	userAction := userAction{
+		id:     id,
+		action: action,
+		msg:    msg,
+	}
+	g.userActionChan <- &userAction
+}
+
 type commandRequest struct {
 	name                string
 	msg                 any
@@ -163,14 +238,14 @@ func (g *game) Command(name string, msg any) (any, error) {
 	return commandResp.data, commandResp.err
 }
 
-func (g *game) GetObjectsByMapNumber(msg *model.MsgGetObjectsByMapNumber) (*model.MsgGetObjectsByMapNumberReply, error) {
-	number := msg.Number
-	pots := object.ObjectManager.GetObjectsByMapNumber(number)
-	return &model.MsgGetObjectsByMapNumberReply{
-		Name: "object",
-		Data: pots,
-	}, nil
-}
+// func (g *game) GetObjectsByMapNumber(msg *model.MsgSubscribeMap) (*model.MsgSubscribeMapReply, error) {
+// 	number := msg.Number
+// 	pots := object.ObjectManager.GetObjectsByMapNumber(number)
+// 	return &model.MsgSubscribeMapReply{
+// 		Name: "object",
+// 		Data: pots,
+// 	}, nil
+// }
 
 func (g *game) SendWeather(number, weather int) {
 	// if number == 0 {

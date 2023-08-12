@@ -37,7 +37,7 @@ func main() {
 
 	// start http server
 	go func() {
-		http.HandleFunc("/api/map", handle.Map)
+		http.HandleFunc("/api/game", handle.Game)
 		http.HandleFunc("/", handle.Home)
 		log.Fatal(http.ListenAndServe(":8080", nil))
 	}()

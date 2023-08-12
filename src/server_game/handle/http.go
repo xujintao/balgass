@@ -1,96 +1,20 @@
 package handle
 
 import (
-	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 	"text/template"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/xujintao/balgass/src/server_game/game"
-	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
-func Map(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Print("upgrade:", err)
-		return
-	}
-	defer c.Close()
-	ctx, cancel := context.WithCancel(context.Background())
-	t1s := time.NewTicker(time.Second)
-	t1s.Stop()
-	numberChan := make(chan int)
-	go func() {
-		defer cancel()
-		for {
-			var req model.MsgGetObjectsByMapNumber
-			err := c.ReadJSON(&req)
-			if err != nil {
-				if websocket.IsCloseError(err, websocket.CloseNoStatusReceived) {
-					log.Printf("[addr]%s closed.\n", c.RemoteAddr().String())
-				} else {
-					log.Printf("ReadJSON failed [err]%v\n", err)
-				}
-				return
-			}
-			number := req.Number
-			if number < 0 || number >= maps.MAX_MAP_NUMBER {
-				resp := model.MsgGetObjectsByMapNumberReply{Err: "invalid map number"}
-				err = c.WriteJSON(&resp)
-				if err != nil {
-					log.Printf("WriteJSON failed [err]%v\n", err)
-					return
-				}
-				continue
-			}
-			t1s.Stop()
-			data := maps.MapManager.GetMapPots(number)
-			resp := model.MsgGetObjectsByMapNumberReply{Name: "map", Data: data}
-			err = c.WriteJSON(&resp)
-			if err != nil {
-				log.Printf("WriteJSON failed [err]%v\n", err)
-				return
-			}
-			numberChan <- number
-		}
-	}()
-
-	number := 0
-	for {
-		select {
-		case number = <-numberChan:
-			t1s.Reset(time.Second)
-		case <-t1s.C:
-			var req model.MsgGetObjectsByMapNumber
-			req.Number = number
-			data, err := game.Game.Command("GetObjectsByMapNumber", &req)
-			if err != nil {
-				log.Printf("Command failed [err]%v\n", err)
-				return
-			}
-			err = c.WriteJSON(data)
-			if err != nil {
-				log.Printf("WriteJSON failed [err]%v\n", err)
-				return
-			}
-		case <-ctx.Done():
-			return
-		}
-	}
-}
-
 func Home(w http.ResponseWriter, r *http.Request) {
-	homeTemplate.Execute(w, "ws://"+r.Host+"/api/map")
+	homeTemplate.Execute(w, "ws://"+r.Host+"/api/game")
 }
 
 var homeTemplate = template.Must(template.New("").Parse(`
@@ -121,7 +45,12 @@ var homeTemplate = template.Must(template.New("").Parse(`
             ws = new WebSocket("{{.}}")
             ws.onopen = () => {
                 print("websocket open")
-                ws.send(JSON.stringify({ number: 0 }))
+                ws.send(JSON.stringify({
+                    action: "SubscribeMap",
+                    in: {
+                        number: 0
+                    }
+                }))
             }
             ws.onclose = () => {
                 print("websocket close")
@@ -129,21 +58,25 @@ var homeTemplate = template.Must(template.New("").Parse(`
             }
             ws.onmessage = (e) => {
                 var resp = JSON.parse(e.data)
-                if (resp.err) {
-                    print(resp.err)
+                if (resp.action != "SubscribeMapReply") {
                     return
                 }
-                if (resp.name == "map") {
-                    bg = resp.data
+                var out = resp.out
+                if (out.err) {
+                    print(out.err)
+                    return
                 }
-                if (resp.name == "object") {
+                if (out.name == "map") {
+                    bg = out.data
+                }
+                if (out.name == "object") {
                     ctx.clearRect(0, 0, 512, 512)
                     ctx.fillStyle = "black"
                     bg.map((p) => {
                         drawPoint(p.x, p.y)
                     })
                     ctx.fillStyle = "red"
-                    resp.data.map((p) => {
+                    out.data.map((p) => {
                         drawPoint(p.x, p.y)
                     })
                 }
@@ -156,7 +89,12 @@ var homeTemplate = template.Must(template.New("").Parse(`
                     return false
                 }
                 const number = parseInt(input.value, 10)
-                ws.send(JSON.stringify({ number }))
+                ws.send(JSON.stringify({
+                    action: "SubscribeMap",
+                    in: {
+                        number,
+                    }
+                }))
                 return false
             }
         })
@@ -180,3 +118,167 @@ var homeTemplate = template.Must(template.New("").Parse(`
 
 </html>
 `))
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+type wsconn struct {
+	*websocket.Conn
+}
+
+func (c *wsconn) Addr() string {
+	return c.RemoteAddr().String()
+}
+
+func (c *wsconn) Write(msg any) error {
+	reply, err := wsHandleDefault.addAction(msg)
+	if err != nil {
+		log.Printf("addAction failed [err]%v\n", err)
+		return err
+	}
+	err = c.WriteJSON(reply)
+	if err != nil {
+		log.Printf("WriteJSON failed [err]%v\n", err)
+		return err
+	}
+	return nil
+}
+
+func Game(w http.ResponseWriter, r *http.Request) {
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
+	}
+	defer c.Close()
+	conn := wsconn{c}
+	id, err := game.Game.WSConn(&conn)
+	if err != nil {
+		c.WriteMessage(websocket.TextMessage, []byte("over max connection number"))
+		return
+	}
+	defer game.Game.CloseWSConn(id)
+	writeMessage := func(s string) {
+		c.WriteMessage(websocket.TextMessage, []byte(s))
+	}
+	for {
+		var req map[string]any
+		err := c.ReadJSON(&req)
+		if err != nil {
+			if ce := err.(*websocket.CloseError); ce != nil {
+				log.Printf("[addr]%s closed [err]%v\n", c.RemoteAddr().String(), err)
+				return
+			}
+			log.Printf("ReadJSON failed [err]%v\n", err)
+			continue
+		}
+		actionField, ok := req["action"]
+		if !ok {
+			s := "has no action field"
+			log.Printf("websocket request %s [addr]%s\n", s, c.RemoteAddr().String())
+			writeMessage(s)
+			continue
+		}
+		action, ok := actionField.(string)
+		if !ok {
+			s := "action field is not string"
+			log.Printf("websocket request %s [addr]%s\n", s, c.RemoteAddr().String())
+			writeMessage(s)
+			continue
+		}
+		inField, ok := req["in"]
+		if !ok {
+			s := "has no in field"
+			log.Printf("websocket request %s [addr]%s\n", s, c.RemoteAddr().String())
+			writeMessage(s)
+			continue
+		}
+		data, err := json.Marshal(inField)
+		if err != nil {
+			s := "json.Marshal failed"
+			log.Printf("websocket %s [addr]%s [err]%v\n", s, c.RemoteAddr().String(), err)
+			writeMessage(s)
+			continue
+		}
+		wsHandleDefault.Handle(id, action, data)
+	}
+}
+
+func init() {
+	wsHandleDefault.init()
+}
+
+var wsHandleDefault wsHandle
+
+type wsHandle struct {
+	wsIns  map[string]*wsIn
+	wsOuts map[any]*wsOut
+}
+
+func (h *wsHandle) init() {
+	// ingress
+	h.wsIns = make(map[string]*wsIn)
+	for _, v := range wsIns {
+		h.wsIns[v.action] = v
+	}
+	// egress
+	h.wsOuts = make(map[any]*wsOut)
+	for _, v := range wsOuts {
+		t := reflect.TypeOf(v.msg)
+		if t.Kind() != reflect.Ptr {
+			log.Printf("wsOuts [action]%s msg field must be a pointer\n", v.action)
+		}
+		h.wsOuts[t] = v
+	}
+}
+
+func (h *wsHandle) Handle(id int, action string, data []byte) {
+	var api *wsIn
+	var ok bool
+	if api, ok = h.wsIns[action]; !ok {
+		log.Printf("invalid websocket request [action]%s\n", action)
+		return
+	}
+	msg := reflect.New(reflect.TypeOf(api.msg).Elem()).Interface()
+	if err := json.Unmarshal(data, msg); err != nil {
+		log.Printf("json.Unmarshal failed [data]%v [msg]%v\n", data, msg)
+		return
+	}
+	game.Game.UserAction(id, api.action, msg)
+}
+
+func (h *wsHandle) addAction(msg any) (any, error) {
+	v := reflect.ValueOf(msg)
+	t := v.Type()
+	api, ok := h.wsOuts[t]
+	if !ok {
+		err := fmt.Errorf("%s has not yet be registered to wsOuts table", t.String())
+		return nil, err
+	}
+	reply := map[string]any{
+		"action": api.action,
+		"out":    msg,
+	}
+	return &reply, nil
+}
+
+type wsIn struct {
+	action string
+	msg    any
+}
+type wsOut struct {
+	action string
+	msg    any
+}
+
+var wsIns = [...]*wsIn{
+	{"SubscribeMap", (*model.MsgSubscribeMap)(nil)},
+	// {"SubscribePlayer", nil},
+}
+
+var wsOuts = [...]*wsOut{
+	{"SubscribeMapReply", (*model.MsgSubscribeMapReply)(nil)},
+}
