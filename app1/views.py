@@ -99,3 +99,7 @@ def edit_entry(request, id):
             return redirect("topic", id=topic.id)
     context = {"entry": entry, "topic": topic, "form": form}
     return render(request, "entry_edit.html", context)
+
+
+def map(request):
+    return render(request, "map.html")

@@ -21,6 +21,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'topics' %}">Topics</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'map' %}">Map</a>
+                </li>
             </ul>
             <form class="form-inline my-2 my-lg-0">
                 <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
@@ -47,7 +50,7 @@
     </nav>
 
     <main role="main" class="container">
-        <div class="pb-2 mb-2 border-bottom">
+        <div class="pb-2 mb-2">
             {% block page_header %}{% endblock page_header %}
         </div>
         <div>
