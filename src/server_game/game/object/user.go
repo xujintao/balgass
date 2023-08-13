@@ -20,6 +20,7 @@ func NewUser(conn Conn) *user {
 			case msg := <-u.msgChan:
 				u.conn.Write(msg)
 			case <-ctx.Done():
+				close(u.msgChan)
 				return // return ctx.Err()
 			}
 		}
@@ -35,7 +36,8 @@ type user struct {
 	cancel        context.CancelFunc
 }
 
-func (u *user) delete() {
+func (u *user) offline() {
+	u.unsubscribeMap()
 	u.cancel()
 }
 
@@ -79,6 +81,18 @@ func (u *user) SubscribeMap(msg *model.MsgSubscribeMap) {
 		Data: maps.MapManager.GetMapPots(number),
 	}
 	u.Push(&reply)
+}
+
+func (u *user) unsubscribeMap() {
+	table := u.objectManager.mapSubscribeTable
+	for n, users := range table {
+		if _, ok := users[u]; ok {
+			delete(users, u)
+			if len(users) == 0 {
+				delete(table, n)
+			}
+		}
+	}
 }
 
 func (u *user) publishMap(pots []*maps.Pot) {

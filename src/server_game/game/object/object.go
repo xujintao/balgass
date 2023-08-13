@@ -311,7 +311,7 @@ func (m *objectManager) DeleteUser(id int) {
 	// unregister user from object manager
 	m.users[id] = nil
 	m.userCount--
-	u.delete()
+	u.offline()
 	log.Printf("user offline [id]%d [addr]%s", u.index, u.conn.Addr())
 }
 
