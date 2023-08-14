@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block page_header %}
+<h3>{{ topic }}</h3>
+{% endblock page_header %}
+
+{% block content %}
+<div class="mb-2">
+    <a href="{% url 'new_entry' topic.id %}" class="btn btn-primary">Add a new entry</a>
+</div>
+{% for entry in entries %}
+<div class="card mb-3">
+    <div class="card-body">
+        {{ entry.text|linebreaks }}
+        <small class="text-muted">
+            {{ entry.date_added|date:'Y M d H:i' }}
+            <a href="{% url 'edit_entry' entry.id %}" class="ml-2">Edit</a>
+        </small>
+    </div>
+</div>
+{% empty %}
+<li>There are no entries for this topic yet.</li>
+{% endfor %}
+{% endblock content %}

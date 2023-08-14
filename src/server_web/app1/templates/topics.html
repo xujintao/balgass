@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block page_header %}
+<h3>My Topics</h3>
+{% endblock page_header %}
+
+{% block content %}
+<div class="mb-2">
+    <a href="{% url 'new_topic' %}" class="btn btn-primary">New topic</a>
+</div>
+<div class="list-group">
+    {% for topic in topics %}
+    <a href="{% url 'topic' topic.id %}" class="list-group-item list-group-item-action">{{ topic }}</a>
+    {% endfor %}
+</div>
+<!-- <ul>
+    {% for topic in topics %}
+    <li>
+        <a href="{% url 'topic' topic.id %}">{{ topic }}</a>
+    </li>
+    {% empty %}
+    <li>No topics have been added yet.</li>
+    {% endfor %}
+</ul> -->
+{% endblock content %}

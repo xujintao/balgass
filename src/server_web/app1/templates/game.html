@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script>
+    window.addEventListener("load", () => {
+        var input = document.getElementById("input")
+        var canvas = document.getElementById("canvas")
+        var ctx = canvas.getContext("2d")
+        ctx.transform(1, 0, 0, -1, 0, canvas.height)
+        ctx.strokeRect(0, 0, 512, 512)
+        var bg
+        var drawPoint = (x, y) => {
+            ctx.fillRect(x * 2, y * 2, 2, 2)
+        }
+        var print = function (message) {
+            var d = document.createElement("div")
+            d.textContent = message
+            output.appendChild(d)
+            output.scroll(0, output.scrollHeight)
+        }
+        ws = new WebSocket("wss://r2f2.com/api/game")
+        ws.onopen = () => {
+            print("websocket open")
+            ws.send(JSON.stringify({
+                action: "SubscribeMap",
+                in: {
+                    number: 0
+                }
+            }))
+        }
+        ws.onclose = () => {
+            print("websocket close")
+            ws = null;
+        }
+        ws.onmessage = (e) => {
+            var resp = JSON.parse(e.data)
+            if (resp.action != "SubscribeMapReply") {
+                return
+            }
+            var out = resp.out
+            if (out.err) {
+                print(out.err)
+                return
+            }
+            if (out.name == "map") {
+                bg = out.data
+            }
+            if (out.name == "object") {
+                ctx.clearRect(0, 0, 512, 512)
+                ctx.fillStyle = "black"
+                bg.map((p) => {
+                    drawPoint(p.x, p.y)
+                })
+                ctx.fillStyle = "red"
+                out.data.map((p) => {
+                    drawPoint(p.x, p.y)
+                })
+            }
+        }
+        ws.onerror = (e) => {
+            print("err:" + e.data)
+        }
+        $("form").submit((e) => {
+            // https://stackoverflow.com/questions/19233254/jquery-submit-form-without-reloading-page
+            e.preventDefault();
+            if (!ws) {
+                return false
+            }
+            var s = input.value
+            if (s == "") {
+                print("err: " + "empty map number")
+                return
+            }
+            // https://stackoverflow.com/questions/5963182/how-to-remove-spaces-from-a-string-using-javascript
+            s = s.replace(/\s/g, '');
+            const number = parseInt(s, 10)
+            if (isNaN(number)) {
+                print("err: " + "not a number")
+                return
+            }
+            ws.send(JSON.stringify({
+                action: "SubscribeMap",
+                in: {
+                    number,
+                }
+            }))
+            return false
+        })
+    })
+</script>
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <canvas id="canvas" width="512" height="512"></canvas>
+        </div>
+        <div class="col">
+            <form>
+                <div class="form-group row">
+                    <div class="col-auto">
+                        <input id="input" type="text" class="form-control mb-2" placeholder="Map Number" value="0">
+                    </div>
+                    <button type="submit" class="btn btn-primary mb-2">Send</button>
+                </div>
+                <div class="form-group">
+                    <div id="output" style="max-height: 50vh;overflow-y: scroll;"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
