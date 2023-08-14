@@ -21,6 +21,7 @@ func NewUser(conn Conn) *user {
 				u.conn.Write(msg)
 			case <-ctx.Done():
 				close(u.msgChan)
+				u.conn.Close()
 				return // return ctx.Err()
 			}
 		}
@@ -42,6 +43,10 @@ func (u *user) offline() {
 }
 
 func (u *user) Push(msg any) {
+	if len(u.msgChan) > 80 {
+		u.objectManager.DeleteUser(u.index)
+		return
+	}
 	u.msgChan <- msg
 }
 

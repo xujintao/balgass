@@ -77,6 +77,9 @@ func (g *game) Start() {
 				action := userAction.action
 				msg := userAction.msg
 				user := object.ObjectManager.GetUser(id)
+				if user == nil {
+					break
+				}
 				// user.Subscribe(msg)
 				in := []reflect.Value{reflect.ValueOf(msg)}
 				reflect.ValueOf(user).MethodByName(action).Call(in)

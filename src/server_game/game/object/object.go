@@ -81,7 +81,7 @@ func (m *objectManager) init() {
 	m.objects = make([]iobject, m.maxObjectCount)
 
 	// users
-	m.maxUserCount = 1000
+	m.maxUserCount = 10
 	m.userStartIndex = 0
 	m.lastUserIndex = m.userStartIndex - 1
 	m.users = make([]*user, m.maxUserCount)
@@ -308,11 +308,15 @@ func (m *objectManager) AddUser(conn Conn) (int, error) {
 
 func (m *objectManager) DeleteUser(id int) {
 	u := m.users[id]
+	if u == nil {
+		return
+	}
+	u.offline()
+	log.Printf("user offline [id]%d [addr]%s", u.index, u.conn.Addr())
+
 	// unregister user from object manager
 	m.users[id] = nil
 	m.userCount--
-	u.offline()
-	log.Printf("user offline [id]%d [addr]%s", u.index, u.conn.Addr())
 }
 
 func (m *objectManager) GetUser(id int) *user {
