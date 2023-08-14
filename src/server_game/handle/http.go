@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"sync"
 	"text/template"
 
 	"github.com/gorilla/websocket"
@@ -13,7 +14,13 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
-func Home(w http.ResponseWriter, r *http.Request) {
+func init() {
+	http.HandleFunc("/", handleHome)
+	http.HandleFunc("/api/game", handleGame)
+	wsHandleDefault.init()
+}
+
+func handleHome(w http.ResponseWriter, r *http.Request) {
 	homeTemplate.Execute(w, "ws://"+r.Host+"/api/game")
 }
 
@@ -127,10 +134,12 @@ var upgrader = websocket.Upgrader{
 
 type wsconn struct {
 	*websocket.Conn
+	addr string
+	once sync.Once
 }
 
 func (c *wsconn) Addr() string {
-	return c.RemoteAddr().String()
+	return c.addr
 }
 
 func (c *wsconn) Write(msg any) error {
@@ -147,14 +156,28 @@ func (c *wsconn) Write(msg any) error {
 	return nil
 }
 
-func Game(w http.ResponseWriter, r *http.Request) {
+func (c *wsconn) Close() error {
+	c.once.Do(
+		func() {
+			if err := c.Conn.Close(); err != nil {
+				log.Printf("close conn failed [err]%v\n", err)
+			}
+		})
+	return nil
+}
+
+func handleGame(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
 		return
 	}
-	defer c.Close()
-	conn := wsconn{c}
+	addr := r.RemoteAddr
+	if realIP := r.Header.Get("X-Real-IP"); realIP != "" {
+		addr = realIP
+	}
+	conn := wsconn{Conn: c, addr: addr}
+	defer conn.Close()
 	id, err := game.Game.WSConn(&conn)
 	if err != nil {
 		c.WriteMessage(websocket.TextMessage, []byte("over max connection number"))
@@ -168,12 +191,8 @@ func Game(w http.ResponseWriter, r *http.Request) {
 		var req map[string]any
 		err := c.ReadJSON(&req)
 		if err != nil {
-			if ce := err.(*websocket.CloseError); ce != nil {
-				log.Printf("[addr]%s closed [err]%v\n", c.RemoteAddr().String(), err)
-				return
-			}
-			log.Printf("ReadJSON failed [err]%v\n", err)
-			continue
+			log.Printf("ReadJSON failed [addr]%s [err]%v\n", c.RemoteAddr().String(), err)
+			return
 		}
 		actionField, ok := req["action"]
 		if !ok {
@@ -205,10 +224,6 @@ func Game(w http.ResponseWriter, r *http.Request) {
 		}
 		wsHandleDefault.Handle(id, action, data)
 	}
-}
-
-func init() {
-	wsHandleDefault.init()
 }
 
 var wsHandleDefault wsHandle

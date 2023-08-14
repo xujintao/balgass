@@ -25,32 +25,44 @@ func main() {
 
 	// start tcp server
 	log.Printf("start tcp server")
-	server := c1c2.Server{
+	tcpServer := c1c2.Server{
 		Addr:    fmt.Sprintf(":%d", conf.Server.GameServerInfo.Port),
 		Handler: &handle.APIHandleDefault,
 		NeedXor: true,
 	}
 	go func() {
-		err := server.ListenAndServe()
-		log.Fatal(err)
+		err := tcpServer.ListenAndServe()
+		if err != nil {
+			log.Printf("tcpServer.ListenAndServe failed [err]%v\n", err)
+		}
 	}()
 
 	// start http server
+	httpServer := http.Server{
+		Addr: ":8080",
+	}
 	go func() {
-		http.HandleFunc("/api/game", handle.Game)
-		http.HandleFunc("/", handle.Home)
-		log.Fatal(http.ListenAndServe(":8080", nil))
+		err := httpServer.ListenAndServe()
+		if err != nil {
+			log.Printf("httpServer.ListenAndServe failed [err]%v\n", err)
+		}
 	}()
 
 	// wait
-	<-exit
-	log.Println("SIGINT or SIGTERM")
+	s := <-exit
+	log.Printf("exit [signal]%s\n", s.String())
 
 	// close tcp server
 	log.Println("close tcp server")
-	server.Close()
+	tcpServer.Close()
 
-	// close handle
+	// close http server
+	log.Println("close http server")
+	if err := httpServer.Close(); err != nil {
+		log.Printf("httpServer.Close failed [err]%v\n", err)
+	}
+
+	// close game
 	log.Println("close game")
 	game.Game.Close()
 	time.Sleep(2 * time.Second)
