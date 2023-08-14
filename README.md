@@ -46,7 +46,7 @@ python manage.py migrate
 
 3 Run
 ```
-python manage.py runserver
+python manage.py runserver 0.0.0.0:8000
 ```
 
 ## Deploy
@@ -58,7 +58,7 @@ git clone git@github.com:xujintao/py-web.git py-web
 cd py-web
 
 # docker build
-docker build -t py-web:0.1 .
+docker build -t py-web .
 ```
 
 2 Run image
@@ -70,5 +70,5 @@ docker run \
 --name py-web \
 -e TZ=Asia/Shanghai \
 -p 8000:8000 \
-py-web:0.1
+py-web
 ```
