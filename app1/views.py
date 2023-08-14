@@ -101,5 +101,5 @@ def edit_entry(request, id):
     return render(request, "entry_edit.html", context)
 
 
-def map(request):
-    return render(request, "map.html")
+def game(request):
+    return render(request, "game.html")
