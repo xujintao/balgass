@@ -154,7 +154,7 @@ func (c *conn) Close() error {
 // OnConn implements c1c2.Handler.OnConn
 func (h *apiHandle) OnConn(c *c1c2.Conn) (any, error) {
 	conn := conn{c}
-	return game.Game.Conn(&conn)
+	return game.Game.PlayerConn(&conn)
 }
 
 // OnClose implements c1c2.Handler.OnConn
@@ -164,7 +164,7 @@ func (h *apiHandle) OnClose(ctx context.Context) {
 		return
 	}
 	id := v.(int)
-	game.Game.CloseConn(id)
+	game.Game.PlayerCloseConn(id)
 }
 
 type AuthLevel int

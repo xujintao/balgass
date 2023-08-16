@@ -16,23 +16,23 @@ func init() {
 var Game game
 
 type game struct {
-	connRequestChan        chan *connRequest
-	closeConnRequestChan   chan *closeConnRequest
-	playerActionChan       chan *playerAction
-	wsConnRequestChan      chan *wsConnRequest
-	closeWSConnRequestChan chan *closeWSConnRequest
-	userActionChan         chan *userAction
-	commandRequestChan     chan *commandRequest
-	cancel                 context.CancelFunc
+	playerConnRequestChan      chan *connRequest
+	playerCloseConnRequestChan chan *closeConnRequest
+	playerActionChan           chan *actionRequest
+	userConnRequestChan        chan *connRequest
+	userCloseConnRequestChan   chan *closeConnRequest
+	userActionChan             chan *actionRequest
+	commandRequestChan         chan *commandRequest
+	cancel                     context.CancelFunc
 }
 
 func (g *game) init() {
-	g.connRequestChan = make(chan *connRequest, 100)
-	g.closeConnRequestChan = make(chan *closeConnRequest, 100)
-	g.playerActionChan = make(chan *playerAction, 1000)
-	g.wsConnRequestChan = make(chan *wsConnRequest, 100)
-	g.closeWSConnRequestChan = make(chan *closeWSConnRequest, 100)
-	g.userActionChan = make(chan *userAction, 1000)
+	g.playerConnRequestChan = make(chan *connRequest, 100)
+	g.playerCloseConnRequestChan = make(chan *closeConnRequest, 100)
+	g.playerActionChan = make(chan *actionRequest, 1000)
+	g.userConnRequestChan = make(chan *connRequest, 100)
+	g.userCloseConnRequestChan = make(chan *closeConnRequest, 100)
+	g.userActionChan = make(chan *actionRequest, 1000)
 	g.commandRequestChan = make(chan *commandRequest, 100)
 }
 
@@ -44,13 +44,13 @@ func (g *game) Start() {
 		cnt := 0
 		for {
 			select {
-			// c1c2
-			case connReq := <-g.connRequestChan:
+			// player
+			case connReq := <-g.playerConnRequestChan:
 				conn := connReq.Conn
 				id, err := object.ObjectManager.AddPlayer(conn)
 				connResp := connResponse{id: id, err: err}
 				connReq.connResponseChan <- &connResp
-			case closeConnReq := <-g.closeConnRequestChan:
+			case closeConnReq := <-g.playerCloseConnRequestChan:
 				id := closeConnReq.id
 				object.ObjectManager.DeletePlayer(id)
 				closeConnReq.closeConnResponseChan <- struct{}{}
@@ -62,16 +62,16 @@ func (g *game) Start() {
 				// player.Chat(msg)
 				in := []reflect.Value{reflect.ValueOf(msg)}
 				reflect.ValueOf(player).MethodByName(action).Call(in)
-			// websocket
-			case wsConnReq := <-g.wsConnRequestChan:
-				conn := wsConnReq.Conn
+			// user
+			case connReq := <-g.userConnRequestChan:
+				conn := connReq.Conn
 				id, err := object.ObjectManager.AddUser(conn)
-				wsConnResp := wsConnResponse{id: id, err: err}
-				wsConnReq.wsConnResponseChan <- &wsConnResp
-			case closeWSConnReq := <-g.closeWSConnRequestChan:
-				id := closeWSConnReq.id
+				connResp := connResponse{id: id, err: err}
+				connReq.connResponseChan <- &connResp
+			case closeConnReq := <-g.userCloseConnRequestChan:
+				id := closeConnReq.id
 				object.ObjectManager.DeleteUser(id)
-				closeWSConnReq.closeWSConnResponseChan <- struct{}{}
+				closeConnReq.closeConnResponseChan <- struct{}{}
 			case userAction := <-g.userActionChan:
 				id := userAction.id
 				action := userAction.action
@@ -130,93 +130,71 @@ type connResponse struct {
 	err error
 }
 
-func (g *game) Conn(conn object.Conn) (int, error) {
-	connReq := connRequest{
-		Conn:             conn,
-		connResponseChan: make(chan *connResponse),
-	}
-	g.connRequestChan <- &connReq
-	connResp := <-connReq.connResponseChan
-	return connResp.id, connResp.err
-}
-
 type closeConnRequest struct {
 	id                    int
 	closeConnResponseChan chan struct{}
 }
 
-func (g *game) CloseConn(id int) {
+type actionRequest struct {
+	id     int
+	action string
+	msg    any
+}
+
+func (g *game) PlayerConn(conn object.Conn) (int, error) {
+	connReq := connRequest{
+		Conn:             conn,
+		connResponseChan: make(chan *connResponse),
+	}
+	g.playerConnRequestChan <- &connReq
+	connResp := <-connReq.connResponseChan
+	return connResp.id, connResp.err
+}
+
+func (g *game) PlayerCloseConn(id int) {
 	closeConnReq := closeConnRequest{
 		id:                    id,
 		closeConnResponseChan: make(chan struct{}),
 	}
-	g.closeConnRequestChan <- &closeConnReq
+	g.playerCloseConnRequestChan <- &closeConnReq
 	<-closeConnReq.closeConnResponseChan
 }
 
-type playerAction struct {
-	id     int
-	action string
-	msg    any
-}
-
 func (g *game) PlayerAction(id int, action string, msg any) {
-	playerAction := playerAction{
+	actionReq := actionRequest{
 		id:     id,
 		action: action,
 		msg:    msg,
 	}
-	g.playerActionChan <- &playerAction
+	g.playerActionChan <- &actionReq
 }
 
-// websocket
-type wsConnRequest struct {
-	object.Conn
-	wsConnResponseChan chan *wsConnResponse
-}
-
-type wsConnResponse struct {
-	id  int
-	err error
-}
-
-func (g *game) WSConn(conn object.Conn) (int, error) {
-	wsConnReq := wsConnRequest{
-		Conn:               conn,
-		wsConnResponseChan: make(chan *wsConnResponse),
+func (g *game) UserConn(conn object.Conn) (int, error) {
+	connReq := connRequest{
+		Conn:             conn,
+		connResponseChan: make(chan *connResponse),
 	}
-	g.wsConnRequestChan <- &wsConnReq
-	wsConnResp := <-wsConnReq.wsConnResponseChan
-	return wsConnResp.id, wsConnResp.err
+	g.userConnRequestChan <- &connReq
+	connResp := <-connReq.connResponseChan
+	return connResp.id, connResp.err
 }
 
-type closeWSConnRequest struct {
-	id                      int
-	closeWSConnResponseChan chan struct{}
-}
-
-func (g *game) CloseWSConn(id int) {
-	closeWSConnReq := closeWSConnRequest{
-		id:                      id,
-		closeWSConnResponseChan: make(chan struct{}),
+func (g *game) UserCloseConn(id int) {
+	closeConnReq := closeConnRequest{
+		id:                    id,
+		closeConnResponseChan: make(chan struct{}),
 	}
-	g.closeWSConnRequestChan <- &closeWSConnReq
-	<-closeWSConnReq.closeWSConnResponseChan
-}
-
-type userAction struct {
-	id     int
-	action string
-	msg    any
+	g.userCloseConnRequestChan <- &closeConnReq
+	<-closeConnReq.closeConnResponseChan
 }
 
 func (g *game) UserAction(id int, action string, msg any) {
-	userAction := userAction{
+	actionReq := actionRequest{
 		id:     id,
 		action: action,
 		msg:    msg,
 	}
-	g.userActionChan <- &userAction
+	g.userActionChan <- &actionReq
 }
 
 type commandRequest struct {

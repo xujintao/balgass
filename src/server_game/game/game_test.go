@@ -37,22 +37,30 @@ func (c *conn) Close() error {
 
 func TestGame(t *testing.T) {
 	Game.Start()
+	defer Game.Close()
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	conn := conn{
 		t:      t,
 		cancel: cancel,
 	}
-	id, err := Game.Conn(&conn)
+	msg := model.MsgTest{}
+
+	// player
+	id, err := Game.PlayerConn(&conn)
 	if err != nil {
 		t.Error(err)
 	}
-
-	msg := model.MsgTest{}
 	Game.PlayerAction(id, "Test", &msg)
 	<-ctx.Done()
-	Game.CloseConn(id)
+	Game.PlayerCloseConn(id)
 
-	Game.Close()
+	// user
+	id, err = Game.UserConn(&conn)
+	if err != nil {
+		t.Error(err)
+	}
+	Game.UserAction(id, "Test", &msg)
+	<-ctx.Done()
+	Game.UserCloseConn(id)
 }

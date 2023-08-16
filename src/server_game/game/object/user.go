@@ -62,6 +62,10 @@ func (u *user) Push(msg any) {
 	u.msgChan <- msg
 }
 
+func (u *user) Test(msg *model.MsgTest) {
+	u.Push(msg)
+}
+
 func (u *user) SubscribeMap(msg *model.MsgSubscribeMap) {
 	number := msg.Number
 	if number < 0 || number >= maps.MAX_MAP_NUMBER {

@@ -176,13 +176,13 @@ func handleGame(w http.ResponseWriter, r *http.Request) {
 		}
 		conn.Write(&msg)
 	}
-	id, err := game.Game.WSConn(&conn)
+	id, err := game.Game.UserConn(&conn)
 	if err != nil {
 		writeErr(err.Error())
 		c.Close()
 		return
 	}
-	defer game.Game.CloseWSConn(id)
+	defer game.Game.UserCloseConn(id)
 	for {
 		var req map[string]any
 		err := c.ReadJSON(&req)

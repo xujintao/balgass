@@ -27,6 +27,7 @@ var poolPlayer = sync.Pool{
 func NewPlayer(conn Conn) *Player {
 	// create a new player
 	player := poolPlayer.Get().(*Player)
+	player.init()
 	player.LoginMsgSend = false
 	player.LoginMsgCount = 0
 	player.conn = conn
