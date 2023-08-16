@@ -222,7 +222,7 @@ func (m *objectManager) AddCallMonster(kind int) (*Monster, error) {
 
 func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 	// limit max player count
-	if m.playerCount > m.maxPlayerCount {
+	if m.playerCount >= m.maxPlayerCount {
 		// reply
 		msg := model.MsgConnectFailed{Result: 4}
 		conn.Write(&msg)
@@ -278,7 +278,7 @@ func (m *objectManager) GetPlayer(id int) *Player {
 }
 
 func (m *objectManager) AddUser(conn Conn) (int, error) {
-	if m.userCount > m.maxUserCount {
+	if m.userCount >= m.maxUserCount {
 		return -1, fmt.Errorf("over max user count")
 	}
 	index := m.lastUserIndex
@@ -311,7 +311,7 @@ func (m *objectManager) DeleteUser(id int) {
 	if u == nil {
 		return
 	}
-	u.offline()
+	u.Offline()
 	log.Printf("user offline [id]%d [addr]%s", u.index, u.conn.Addr())
 
 	// unregister user from object manager

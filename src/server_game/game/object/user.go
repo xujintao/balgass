@@ -2,6 +2,7 @@ package object
 
 import (
 	"context"
+	"log"
 
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
@@ -32,19 +33,30 @@ func NewUser(conn Conn) *user {
 type user struct {
 	objectManager *objectManager
 	index         int
+	offline       bool
 	conn          Conn
 	msgChan       chan any
 	cancel        context.CancelFunc
 }
 
-func (u *user) offline() {
+func (u *user) Offline() {
+	if u.offline {
+		return
+	}
+	u.offline = true
+	// todo
 	u.unsubscribeMap()
 	u.cancel()
 }
 
 func (u *user) Push(msg any) {
+	if u.offline {
+		log.Printf("Still pushing [msg]%v to [user]%d that alread offline\n",
+			msg, u.index)
+		return
+	}
 	if len(u.msgChan) > 80 {
-		u.objectManager.DeleteUser(u.index)
+		u.Offline()
 		return
 	}
 	u.msgChan <- msg
