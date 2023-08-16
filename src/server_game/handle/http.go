@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"sync"
 	"text/template"
 
 	"github.com/gorilla/websocket"
@@ -27,102 +26,107 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 var homeTemplate = template.Must(template.New("").Parse(`
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script>
-        window.addEventListener("load", () => {
-            var input = document.getElementById("input")
-            var canvas = document.getElementById("canvas")
-            var ctx = canvas.getContext("2d")
-            ctx.transform(1, 0, 0, -1, 0, canvas.height)
-            ctx.strokeRect(0, 0, 512, 512)
-            var bg
-            var drawPoint = (x, y) => {
-                ctx.fillRect(x * 2, y * 2, 2, 2)
-            }
-            var print = function (message) {
-                var d = document.createElement("div")
-                d.textContent = message
-                output.appendChild(d)
-                output.scroll(0, output.scrollHeight)
-            }
-            ws = new WebSocket("{{.}}")
-            ws.onopen = () => {
-                print("websocket open")
-                ws.send(JSON.stringify({
-                    action: "SubscribeMap",
-                    in: {
-                        number: 0
-                    }
-                }))
-            }
-            ws.onclose = () => {
-                print("websocket close")
-                ws = null;
-            }
-            ws.onmessage = (e) => {
-                var resp = JSON.parse(e.data)
-                if (resp.action != "SubscribeMapReply") {
-                    return
-                }
-                var out = resp.out
-                if (out.err) {
-                    print(out.err)
-                    return
-                }
-                if (out.name == "map") {
-                    bg = out.data
-                }
-                if (out.name == "object") {
-                    ctx.clearRect(0, 0, 512, 512)
-                    ctx.fillStyle = "black"
-                    bg.map((p) => {
-                        drawPoint(p.x, p.y)
-                    })
-                    ctx.fillStyle = "red"
-                    out.data.map((p) => {
-                        drawPoint(p.x, p.y)
-                    })
-                }
-            }
-            ws.onerror = (e) => {
-                print("err:" + e.data)
-            }
-            document.getElementById("send").onclick = (e) => {
-                if (!ws) {
-                    return false
-                }
-                const number = parseInt(input.value, 10)
-                ws.send(JSON.stringify({
-                    action: "SubscribeMap",
-                    in: {
-                        number,
-                    }
-                }))
-                return false
-            }
-        })
+      window.addEventListener("load", () => {
+        var input = document.getElementById("input");
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        ctx.transform(1, 0, 0, -1, 0, canvas.height);
+        ctx.strokeRect(0, 0, 512, 512);
+        var bg;
+        var drawPoint = (x, y) => {
+          ctx.fillRect(x * 2, y * 2, 2, 2);
+        };
+        var print = function (message) {
+          var d = document.createElement("div");
+          d.textContent = message;
+          output.appendChild(d);
+          output.scroll(0, output.scrollHeight);
+        };
+        ws = new WebSocket("{{.}}");
+        ws.onopen = () => {
+          print("websocket open");
+          ws.send(
+            JSON.stringify({
+              action: "SubscribeMap",
+              in: { number: 0 },
+            })
+          );
+        };
+        ws.onclose = () => {
+          print("websocket close");
+          ws = null;
+        };
+        ws.onmessage = (e) => {
+          var resp = JSON.parse(e.data);
+          var out = resp.out;
+          if (out.err) {
+            print(out.err);
+            return;
+          }
+          switch (resp.action) {
+            case "HandleErrorReply":
+              break;
+            case "SubscribeMapReply":
+              if (out.name == "map") {
+                bg = out.data;
+              }
+              if (out.name == "object") {
+                ctx.clearRect(0, 0, 512, 512);
+                ctx.fillStyle = "black";
+                bg.map((p) => {
+                  drawPoint(p.x, p.y);
+                });
+                ctx.fillStyle = "red";
+                out.data.map((p) => {
+                  drawPoint(p.x, p.y);
+                });
+              }
+              break;
+            default:
+              print("unknown [action]" + resp.action);
+          }
+        };
+        ws.onerror = (e) => {
+          print("err:" + e.data);
+        };
+        document.getElementById("send").onclick = (e) => {
+          if (!ws) {
+            return false;
+          }
+          const number = parseInt(input.value, 10);
+          ws.send(
+            JSON.stringify({
+              action: "SubscribeMap",
+              in: {
+                number,
+              },
+            })
+          );
+          return false;
+        };
+      });
     </script>
-</head>
+  </head>
 
-<body>
+  <body>
     <canvas id="canvas" width="512" height="512"></canvas>
     <table>
-        <tr>
-            <td valign="top" width="50%">
-                <input id="input" type="text" value="0">
-                <button id="send">Send</button>
-            </td>
-            <td valign="top" width="50%">
-                <div id="output" style="max-height: 20vh;overflow-y: scroll;"></div>
-            </td>
-        </tr>
+      <tr>
+        <td valign="top" width="50%">
+          <input id="input" type="text" value="0" />
+          <button id="send">Send</button>
+        </td>
+        <td valign="top" width="50%">
+          <div id="output" style="max-height: 20vh; overflow-y: scroll"></div>
+        </td>
+      </tr>
     </table>
-</body>
-
+  </body>
 </html>
 `))
 
@@ -135,7 +139,6 @@ var upgrader = websocket.Upgrader{
 type wsconn struct {
 	*websocket.Conn
 	addr string
-	once sync.Once
 }
 
 func (c *wsconn) Addr() string {
@@ -156,16 +159,6 @@ func (c *wsconn) Write(msg any) error {
 	return nil
 }
 
-func (c *wsconn) Close() error {
-	c.once.Do(
-		func() {
-			if err := c.Conn.Close(); err != nil {
-				log.Printf("close conn failed [err]%v\n", err)
-			}
-		})
-	return nil
-}
-
 func handleGame(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -177,16 +170,19 @@ func handleGame(w http.ResponseWriter, r *http.Request) {
 		addr = realIP
 	}
 	conn := wsconn{Conn: c, addr: addr}
-	defer conn.Close()
+	writeErr := func(s string) {
+		msg := model.MsgHandleErrorReply{
+			Err: s,
+		}
+		conn.Write(&msg)
+	}
 	id, err := game.Game.WSConn(&conn)
 	if err != nil {
-		c.WriteMessage(websocket.TextMessage, []byte("over max connection number"))
+		writeErr(err.Error())
+		c.Close()
 		return
 	}
 	defer game.Game.CloseWSConn(id)
-	writeMessage := func(s string) {
-		c.WriteMessage(websocket.TextMessage, []byte(s))
-	}
 	for {
 		var req map[string]any
 		err := c.ReadJSON(&req)
@@ -196,30 +192,30 @@ func handleGame(w http.ResponseWriter, r *http.Request) {
 		}
 		actionField, ok := req["action"]
 		if !ok {
-			s := "has no action field"
-			log.Printf("websocket request %s [addr]%s\n", s, c.RemoteAddr().String())
-			writeMessage(s)
+			s := "websocket request has no action field"
+			log.Printf("%s [addr]%s\n", s, c.RemoteAddr().String())
+			writeErr(s)
 			continue
 		}
 		action, ok := actionField.(string)
 		if !ok {
-			s := "action field is not string"
-			log.Printf("websocket request %s [addr]%s\n", s, c.RemoteAddr().String())
-			writeMessage(s)
+			s := "websocket request action field is not a string"
+			log.Printf("%s [addr]%s\n", s, c.RemoteAddr().String())
+			writeErr(s)
 			continue
 		}
 		inField, ok := req["in"]
 		if !ok {
-			s := "has no in field"
-			log.Printf("websocket request %s [addr]%s\n", s, c.RemoteAddr().String())
-			writeMessage(s)
+			s := fmt.Sprintf("websocket request [action]%s has no in field", action)
+			log.Printf("%s [addr]%s\n", s, c.RemoteAddr().String())
+			writeErr(s)
 			continue
 		}
 		data, err := json.Marshal(inField)
 		if err != nil {
-			s := "json.Marshal failed"
-			log.Printf("websocket %s [addr]%s [err]%v\n", s, c.RemoteAddr().String(), err)
-			writeMessage(s)
+			s := fmt.Sprintf("websocket request [action]%s in field is not a valid json", action)
+			log.Printf("%s [addr]%s [err]%v\n", s, c.RemoteAddr().String(), err)
+			writeErr(s)
 			continue
 		}
 		wsHandleDefault.Handle(id, action, data)
@@ -295,5 +291,6 @@ var wsIns = [...]*wsIn{
 }
 
 var wsOuts = [...]*wsOut{
+	{"HandleErrorReply", (*model.MsgHandleErrorReply)(nil)},
 	{"SubscribeMapReply", (*model.MsgSubscribeMapReply)(nil)},
 }

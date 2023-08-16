@@ -1,5 +1,9 @@
 package model
 
+type MsgHandleErrorReply struct {
+	Err string `json:"err"`
+}
+
 type MsgSubscribeMap struct {
 	Number int `json:"number"`
 }
