@@ -14,18 +14,18 @@ import (
 )
 
 func init() {
-	APIHandleDefault.init(apiIns[:], apiOuts[:])
+	C1C2Handle.init(apiIns[:], apiOuts[:])
 }
 
-// APIHandleDefault default api handle
-var APIHandleDefault apiHandle
+// C1C2Handle a c1c2 handle
+var C1C2Handle c1c2Handle
 
-type apiHandle struct {
+type c1c2Handle struct {
 	apiIns  map[int]*apiIn
 	apiOuts map[any]*apiOut
 }
 
-func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
+func (h *c1c2Handle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	// ingress
 	h.apiIns = make(map[int]*apiIn)
 	for _, v := range apiIns {
@@ -47,8 +47,8 @@ func (h *apiHandle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	}
 }
 
-// Handle *apiHandle implements c1c2.Handler
-func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
+// *c1c2Handle.Handle implements c1c2.Handler.Handle
+func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	v := ctx.Value(c1c2.UserContextKey)
 	if v == nil {
 		return
@@ -93,7 +93,7 @@ func (h *apiHandle) Handle(ctx context.Context, req *c1c2.Request) {
 	game.Game.PlayerAction(id, api.action, msg.Interface())
 }
 
-func (h *apiHandle) Marshal(msg any) (*c1c2.Response, error) {
+func (h *c1c2Handle) marshal(msg any) (*c1c2.Response, error) {
 	v := reflect.ValueOf(msg)
 	t := v.Type()
 	api, ok := h.apiOuts[t]
@@ -140,7 +140,7 @@ func (c *conn) Addr() string {
 }
 
 func (c *conn) Write(msg any) error {
-	resp, err := APIHandleDefault.Marshal(msg)
+	resp, err := C1C2Handle.marshal(msg)
 	if err != nil {
 		return err
 	}
@@ -152,13 +152,13 @@ func (c *conn) Close() error {
 }
 
 // OnConn implements c1c2.Handler.OnConn
-func (h *apiHandle) OnConn(c *c1c2.Conn) (any, error) {
+func (h *c1c2Handle) OnConn(c *c1c2.Conn) (any, error) {
 	conn := conn{c}
 	return game.Game.PlayerConn(&conn)
 }
 
 // OnClose implements c1c2.Handler.OnConn
-func (h *apiHandle) OnClose(ctx context.Context) {
+func (h *c1c2Handle) OnClose(ctx context.Context) {
 	v := ctx.Value(c1c2.UserContextKey)
 	if v == nil {
 		return

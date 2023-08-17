@@ -261,7 +261,7 @@ func (h *wsHandle) Handle(id int, action string, data []byte) {
 	game.Game.UserAction(id, api.action, msg)
 }
 
-func (h *wsHandle) addAction(msg any) (any, error) {
+func (h *wsHandle) addAction(msg any) (map[string]any, error) {
 	v := reflect.ValueOf(msg)
 	t := v.Type()
 	api, ok := h.wsOuts[t]
@@ -273,7 +273,7 @@ func (h *wsHandle) addAction(msg any) (any, error) {
 		"action": api.action,
 		"out":    msg,
 	}
-	return &reply, nil
+	return reply, nil
 }
 
 type wsIn struct {

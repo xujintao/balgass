@@ -13,17 +13,17 @@ import (
 
 func TestMarshal(t *testing.T) {
 	tm := model.MsgConnectFailed{Result: 1}
-	_, err := APIHandleDefault.Marshal(&tm)
+	_, err := C1C2Handle.marshal(&tm)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func TestHandle(t *testing.T) {
+func TestC1C2Handle(t *testing.T) {
 	game.Game.Start()
+	defer game.Game.Close()
 	testData := []byte{0xFF, 0xFF, 0x01}
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	conn := c1c2.Conn{RemoteAddr: "test"}
 	conn.Write = func(resp *c1c2.Response) error {
 		buf := resp.Body()
@@ -39,16 +39,15 @@ func TestHandle(t *testing.T) {
 		log.Println("CloseConn is called")
 		return nil
 	}
-	id, err := APIHandleDefault.OnConn(&conn)
+	id, err := C1C2Handle.OnConn(&conn)
 	if err != nil {
 		t.Error(err)
 	}
+	defer C1C2Handle.OnClose(ctx)
 	ctx = context.WithValue(ctx, c1c2.UserContextKey, id)
 	req := c1c2.Request{
 		Body: testData,
 	}
-	APIHandleDefault.Handle(ctx, &req)
+	C1C2Handle.Handle(ctx, &req)
 	<-ctx.Done()
-	APIHandleDefault.OnClose(ctx)
-	game.Game.Close()
 }
