@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"sync"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
-	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/math2"
 	"github.com/xujintao/balgass/src/server_game/game/model"
@@ -468,11 +466,10 @@ type messageStateMachine struct {
 
 type object struct {
 	*objectManager
-	index        int
-	ConnectState ConnectState
-	Live         bool
-	State        int // 1:初始 2:视野 4:死亡
-
+	index              int
+	ConnectState       ConnectState
+	Live               bool
+	State              int // 1:初始 2:视野 4:死亡
 	StartX             int
 	StartY             int
 	X                  int // x坐标
@@ -509,6 +506,7 @@ type object struct {
 	AG                 int // AG
 	MaxAG              int
 	AddAG              int
+	targetNumber       int
 	attackDamageMin    int // 物攻min
 	attackDamageMax    int // 物攻max
 	attackSpeed        int // 物攻速度
@@ -543,296 +541,269 @@ type object struct {
 	viewportNum2              int
 	msgs                      [20]*messageStateMachine
 
-	groupNumber     int
-	subGroupNumber  int
-	groupMemberGUID int
-	regenType       int
-	// argo                    *monster.MonsterAIAgro
-	lastAutoRunTime            time.Time
-	lastAutoDelay              time.Duration
-	expType                    int
-	attackDamageLeft           int // 物攻左
-	attackDamageRight          int // 物攻右
-	attackDamageLeftMin        int // 物攻左min
-	attackDamageLeftMax        int // 物攻左min
-	attackDamageRightMin       int // 物攻右min
-	attackDamageRightMax       int // 物攻右max
-	magicDamageMin             int // 魔攻min
-	magicDamageMax             int // 魔攻max
-	magicSpeed                 int // 魔攻速度
-	curseDamageMin             int // 诅咒min
-	curseDamageMax             int // 诅咒max
-	curseSpell                 int
-	LoginMsgSend               bool
-	LoginMsgCount              byte
-	CloseCount                 byte
-	CloseType                  byte
-	EnableCharacterDel         bool
-	UserNumber                 int
-	DBNumber                   int
-	EnableCharacterCreate      bool
-	AutoSaveTime               time.Time
-	ConnectCheckTime           time.Time
-	CheckTick                  uint
-	CheckSpeedHack             bool
-	CheckTick2                 uint
-	CheckTickCount             byte
-	PintTime                   int
-	TimeCount                  byte
-	PKTimer                    *time.Timer
-	CheckSumTableNum           uint16
-	CheckSumTime               uint
-	Leadership                 int
-	AddLeadership              int
-	ChatLimitTime              uint16
-	ChatLimitTimeSec           byte
-	FillLifeCount              byte
-	AddStrength                int
-	AddDexterity               int
-	AddVitality                int
-	AddEnergy                  int
-	VitalityToLife             float32
-	EnergyToMana               float32
-	PKCount                    int
-	PKLevel                    byte
-	PKTime                     int
-	PKTotalCount               int
-	XSave                      uint16
-	YSave                      uint16
-	MapNumberSave              byte
-	XDie                       uint16
-	YDie                       uint16
-	MapNumberDie               byte
-	IFillShieldMax             int
-	IFillShield                int
-	IFillShieldCount           int
-	ShieldAutoRefillTimer      *time.Timer
-	DamageMinus                int  // 伤害减少
-	DamageReflect              int  // 伤害反射
-	MonsterDieGetMoney         int  // 杀怪加钱
-	MonsterDieGetLife          byte // 杀怪回生
-	MonsterDieGetMana          byte // 杀怪回蓝
-	AutoHPRecovery             byte // 自动生命恢复
-	Authority                  uint
-	AuthorityCode              uint
-	Penalty                    uint
-	GameMaster                 uint
-	PenaltyMask                uint
-	ChatBlockTime              time.Time
-	AccountItemBlock           byte
-	ActionNumber               byte
-	ActionTime                 uint
-	ActionCount                byte
-	ChatFloodTime              uint
-	ChatFloodCount             byte
-	Rest                       byte
-	viewState                  byte
-	buffEffectCount            byte
-	buffEffectList             [MaxBuffEffect]EffectList
-	lastMoveTime               uint
-	lastAttackTime             uint
-	friendServerOnline         byte
-	detectSpeedHackTime        time.Duration
-	sumLastAttackTime          time.Duration
-	detectCount                uint
-	detectHackKickCount        uint
-	speedHackPenalty           int
-	attackSpeedHackDetectCount uint
-	packetCheckTime            time.Duration
-	ShopTime                   time.Duration
-	totalAttackTime            time.Duration
-	totalAttackCount           uint
-	TeleportTIme               time.Duration
-	Teleport                   byte
-	KillerType                 byte
-	MapNumberRegen             byte
-	XRegen                     byte
-	YRegen                     byte
-	posNum                     uint16
-	LifeRefillTimer            *time.Timer
-	ActionTimeCur              time.Time
-	ActionTimeNext             time.Time
-	ActionTimeDelay            time.Duration
-	monsterBattleDelay         byte
-	kalimaGateExist            byte
-	kalimaGateIndex            int
-	kalimaGateEnterCount       byte
-	AttackObj                  *object
-	skillNumber                uint16
-	skillTime                  time.Duration
-	attackerKilled             bool
-	manaFillCount              byte
-	lifeFillCount              byte
-	SelfDefense                [MaxSelfDefense]int
-	SelfDefenseTime            time.Duration
-	PartyNumber                int
-	PartyTargetUser            int
-	Married                    byte
-	MarryName                  string
-	MarryRequested             byte
-	WinDuels                   int
-	LoseDuels                  int
-	MarryRequestIndex          uint16
-	MarryRequestTime           time.Duration
-	RecallMon                  int
-	change                     int
-	targetNumber               int
-	TargetNpcNumber            int
-	LastAttackerID             int
-	criticalDamage             int
-	excellentDamage            int // 卓越一击概率
+	// groupNumber     int
+	// subGroupNumber  int
+	// groupMemberGUID int
+	// regenType       int
+	// // argo                    *monster.MonsterAIAgro
+	// lastAutoRunTime            time.Time
+	// lastAutoDelay              time.Duration
+	// expType                    int
+	// LoginMsgSend               bool
+	// LoginMsgCount              byte
+	// CloseCount                 byte
+	// CloseType                  byte
+	// EnableCharacterDel         bool
+	// UserNumber                 int
+	// DBNumber                   int
+	// EnableCharacterCreate      bool
+	// AutoSaveTime               time.Time
+	// ConnectCheckTime           time.Time
+	// CheckTick                  uint
+	// CheckSpeedHack             bool
+	// CheckTick2                 uint
+	// CheckTickCount             byte
+	// PintTime                   int
+	// TimeCount                  byte
+	// PKTimer                    *time.Timer
+	// CheckSumTableNum           uint16
+	// CheckSumTime               uint
+	// ChatLimitTime              uint16
+	// ChatLimitTimeSec           byte
+	// FillLifeCount              byte
+	// VitalityToLife             float32
+	// EnergyToMana               float32
+	// PKCount                    int
+	PKLevel byte
+	// PKTime                     int
+	// PKTotalCount               int
+	// XSave                      uint16
+	// YSave                      uint16
+	// MapNumberSave              byte
+	// XDie                       uint16
+	// YDie                       uint16
+	// MapNumberDie               byte
+	// IFillShieldMax             int
+	// IFillShield                int
+	// IFillShieldCount           int
+	// ShieldAutoRefillTimer      *time.Timer
+	// AutoHPRecovery             byte // 自动生命恢复
+	// Authority                  uint
+	// AuthorityCode              uint
+	// Penalty                    uint
+	// GameMaster                 uint
+	// PenaltyMask                uint
+	// ChatBlockTime              time.Time
+	// AccountItemBlock           byte
+	// ActionNumber               byte
+	// ActionTime                 uint
+	// ActionCount                byte
+	// ChatFloodTime              uint
+	// ChatFloodCount             byte
+	// Rest                       byte
+	// viewState                  byte
+	// buffEffectCount            byte
+	// buffEffectList             [MaxBuffEffect]EffectList
+	// lastMoveTime               uint
+	// lastAttackTime             uint
+	// friendServerOnline         byte
+	// detectSpeedHackTime        time.Duration
+	// sumLastAttackTime          time.Duration
+	// detectCount                uint
+	// detectHackKickCount        uint
+	// speedHackPenalty           int
+	// attackSpeedHackDetectCount uint
+	// packetCheckTime            time.Duration
+	// ShopTime                   time.Duration
+	// totalAttackTime            time.Duration
+	// totalAttackCount           uint
+	// TeleportTIme               time.Duration
+	// Teleport                   byte
+	// KillerType                 byte
+	// MapNumberRegen             byte
+	// XRegen                     byte
+	// YRegen                     byte
+	// posNum                     uint16
+	// LifeRefillTimer            *time.Timer
+	// ActionTimeCur              time.Time
+	// ActionTimeNext             time.Time
+	// ActionTimeDelay            time.Duration
+	// monsterBattleDelay         byte
+	// kalimaGateExist            byte
+	// kalimaGateIndex            int
+	// kalimaGateEnterCount       byte
+	// AttackObj                  *object
+	// skillNumber                uint16
+	// skillTime                  time.Duration
+	// attackerKilled             bool
+	// manaFillCount              byte
+	// lifeFillCount              byte
+	// SelfDefense                [MaxSelfDefense]int
+	// SelfDefenseTime            time.Duration
+	// PartyNumber                int
+	// PartyTargetUser            int
+	// Married                    byte
+	// MarryName                  string
+	// MarryRequested             byte
+	// WinDuels                   int
+	// LoseDuels                  int
+	// MarryRequestIndex          uint16
+	// MarryRequestTime           time.Duration
+	// RecallMon                  int
+	// change                     int
+	// TargetNpcNumber            int
+	// LastAttackerID             int
 	// magicBack                   *skill.MagicInfo
 	// Magic                       *skill.MagicInfo
-	UseMagicNumber  byte
-	UseMagicTime    time.Duration
-	UseMagicCount   byte
-	OSAttackSerial  uint16
-	SASCount        byte
-	SkillAttackTime time.Duration
-	CharSet         string
+	// UseMagicNumber  byte
+	// UseMagicTime    time.Duration
+	// UseMagicCount   byte
+	// OSAttackSerial  uint16
+	// SASCount        byte
+	// SkillAttackTime time.Duration
+	// CharSet         string
 	// resistance               [MaxResistanceType]byte
 	// addResistance            [MaxResistanceType]byte
-	HD                       *HitDamage
-	HDCount                  uint16
-	ifState                  InterfaceState
-	iterfaceTime             time.Duration
-	Inventory                []item.Item
-	InventoryMap             *uint8
-	InventoryCount           *uint8
-	Transaction              uint8
-	Inventory1               *item.Item
-	InventoryMap1            *uint8
-	InventoryCount1          uint8
-	Inventory2               *item.Item
-	InventoryMap2            *uint8
-	InventoryCount2          uint8
-	Trade                    *item.Item
-	TradeMap                 *uint8
-	TradeMoney               int
-	TradeOK                  bool
-	Warehouse                *item.Item
-	WarehouseID              uint8
-	WarehouseTick            time.Time
-	WarehouseMap             *uint8
-	WarehouseCount           uint8
-	WarehousePW              uint16
-	WarehouseLock            uint8
-	WarehouseUnfailLock      uint8
-	WarehouseMoney           int
-	ChaosBox                 *item.Item
-	ChaosBoxMap              *uint8
-	ChaosMoney               int
-	ChaosSuccessRate         int
-	ChaosMassMixCurItem      uint8
-	ChaosMassMixSuccessCount uint8
-	ChaosLock                bool
-	Option                   uint
-	eventScore               int
-	eventExp                 int
-	eventMoney               int
-	devilSquareIndex         uint8
-	devilSquareAuth          bool
-	BloodCastlIndex          uint8
-	BloodCastleSubIndex      uint8
-	BloodCastleExp           int
-	BloodCastleComplete      bool
-	ChaosCastleIndex         uint8
-	ChaosCastleSubIndex      uint8
-	ChaosCastleBlowTime      time.Duration
-	isCCFUIUsing             bool
-	CCFCanEnter              uint8
-	CCFCertiTick             time.Time
-	CCFUserIndex             int
-	CCFBlowTime              time.Time
-	killUserCount            uint8
-	killMobCount             uint8
-	isCCFQuitMsg             bool
-	illusionTempleIndex      uint8
-	zoneIndex                uint8
-	ckillUserCount           uint8
-	cKillMonsterCount        uint8
-	duelUserReserved         int
-	duelUserRequested        int
-	duelUser                 int
-	duelRoom                 int
-	duelScore                uint8
-	duelTickCount            time.Duration
-	IsInBattleGround         bool
-	HaveWeaponInHand         bool
-	EventChipCount           uint16
-	LuckyCoinCount           int
-	MutoNumber               int
-	UseEventServer           bool
-	LoadWarehouseInfo        bool
-	StoneCount               int
-	maxLifePower             int
-	checkLifeTime            int
-	moveToOtherServer        uint8
-	BackName                 string
-	isPShopOpen              bool
-	isPShopTransaction       bool
-	isPShopItemChange        bool
-	isPShopRedrawABS         bool
-	PShopText                string
-	isPShopWantDeal          bool
-	PShopDealerIndex         int
-	PShopDealerName          string
-	muPShopTrade             sync.Mutex
-	VPPShopPlayer            [MaxViewPort]int
-	VPPShopPlayerCount       uint16
-	BossGoldDerconMapNumber  uint8
-	lastTeleportTime         time.Time
-	clientHackLogCount       uint8
-	isInMonsterHerd          bool
-	isMonsterAttackFirst     bool
-	// monsterHerd              *monster.MonsterHerd
-	fsKillFrustrumX [MaxArrayFrustrum]int
-	fsKillFrustrumY [MaxArrayFrustrum]int
-	// durMagicKeyChecker          *skill.DurMagicKeyChecker
-	IsChaosMixCompleted         bool
-	SkillLongSpearChange        bool
-	objectSecTimer              time.Timer
-	mapSvrMoveQuit              bool
-	mapSvrMoveReq               bool
-	mapSvrMoveReq2              bool
-	mapSvrQuitTick              time.Time
-	prevMapSvrCode              uint16
-	destMapNumber               uint16
-	destX                       uint8
-	destY                       uint8
-	csNpcExistVal               int
-	csNpcType                   uint8
-	csGateOPen                  uint8
-	csGateLeverLinkIndex        int
-	csNpcDfLevel                uint8
-	csNpcRgLevel                uint8
-	csJoinSide                  uint8
-	csGuildInvolved             bool
-	IsCastleNPCUpgradeCompleted bool
-	weaponState                 uint8
-	weaponUser                  int
-	killCount                   uint8
-	accumulatedDamage           int
-	lifeStoneCount              uint8
-	creationState               uint8
-	createdActiviationTime      int
-	accumulatedCrownAccessTime  int
+	// HD                       *HitDamage
+	// HDCount                  uint16
+	// ifState                  InterfaceState
+	// iterfaceTime             time.Duration
+	// InventoryMap             *uint8
+	// InventoryCount           *uint8
+	// Transaction              uint8
+	// Inventory1               *item.Item
+	// InventoryMap1            *uint8
+	// InventoryCount1          uint8
+	// Inventory2               *item.Item
+	// InventoryMap2            *uint8
+	// InventoryCount2          uint8
+	// Trade                    *item.Item
+	// TradeMap                 *uint8
+	// TradeMoney               int
+	// TradeOK                  bool
+	// Warehouse                *item.Item
+	// WarehouseID              uint8
+	// WarehouseTick            time.Time
+	// WarehouseMap             *uint8
+	// WarehouseCount           uint8
+	// WarehousePW              uint16
+	// WarehouseLock            uint8
+	// WarehouseUnfailLock      uint8
+	// WarehouseMoney           int
+	// ChaosBox                 *item.Item
+	// ChaosBoxMap              *uint8
+	// ChaosMoney               int
+	// ChaosSuccessRate         int
+	// ChaosMassMixCurItem      uint8
+	// ChaosMassMixSuccessCount uint8
+	// ChaosLock                bool
+	// Option                   uint
+	// eventScore               int
+	// eventExp                 int
+	// eventMoney               int
+	// devilSquareIndex         uint8
+	// devilSquareAuth          bool
+	// BloodCastlIndex          uint8
+	// BloodCastleSubIndex      uint8
+	// BloodCastleExp           int
+	// BloodCastleComplete      bool
+	// ChaosCastleIndex         uint8
+	// ChaosCastleSubIndex      uint8
+	// ChaosCastleBlowTime      time.Duration
+	// isCCFUIUsing             bool
+	// CCFCanEnter              uint8
+	// CCFCertiTick             time.Time
+	// CCFUserIndex             int
+	// CCFBlowTime              time.Time
+	// killUserCount            uint8
+	// killMobCount             uint8
+	// isCCFQuitMsg             bool
+	// illusionTempleIndex      uint8
+	// zoneIndex                uint8
+	// ckillUserCount           uint8
+	// cKillMonsterCount        uint8
+	// duelUserReserved         int
+	// duelUserRequested        int
+	// duelUser                 int
+	// duelRoom                 int
+	// duelScore                uint8
+	// duelTickCount            time.Duration
+	// IsInBattleGround         bool
+	// HaveWeaponInHand         bool
+	// EventChipCount           uint16
+	// LuckyCoinCount           int
+	// MutoNumber               int
+	// UseEventServer           bool
+	// LoadWarehouseInfo        bool
+	// StoneCount               int
+	// maxLifePower             int
+	// checkLifeTime            int
+	// moveToOtherServer        uint8
+	// BackName                 string
+	// isPShopOpen              bool
+	// isPShopTransaction       bool
+	// isPShopItemChange        bool
+	// isPShopRedrawABS         bool
+	// PShopText                string
+	// isPShopWantDeal          bool
+	// PShopDealerIndex         int
+	// PShopDealerName          string
+	// muPShopTrade             sync.Mutex
+	// VPPShopPlayer            [MaxViewPort]int
+	// VPPShopPlayerCount       uint16
+	// BossGoldDerconMapNumber  uint8
+	// lastTeleportTime         time.Time
+	// clientHackLogCount       uint8
+	// isInMonsterHerd      bool
+	// isMonsterAttackFirst bool
+	// monsterHerd          *monster.MonsterHerd
+	// fsKillFrustrumX      [MaxArrayFrustrum]int
+	// fsKillFrustrumY      [MaxArrayFrustrum]int
+	// // durMagicKeyChecker          *skill.DurMagicKeyChecker
+	// IsChaosMixCompleted         bool
+	// SkillLongSpearChange        bool
+	// objectSecTimer              time.Timer
+	// mapSvrMoveQuit              bool
+	// mapSvrMoveReq               bool
+	// mapSvrMoveReq2              bool
+	// mapSvrQuitTick              time.Time
+	// prevMapSvrCode              uint16
+	// destMapNumber               uint16
+	// destX                       uint8
+	// destY                       uint8
+	// csNpcExistVal               int
+	// csNpcType                   uint8
+	// csGateOPen                  uint8
+	// csGateLeverLinkIndex        int
+	// csNpcDfLevel                uint8
+	// csNpcRgLevel                uint8
+	// csJoinSide                  uint8
+	// csGuildInvolved             bool
+	// IsCastleNPCUpgradeCompleted bool
+	// weaponState                 uint8
+	// weaponUser                  int
+	// killCount                   uint8
+	// accumulatedDamage           int
+	// lifeStoneCount              uint8
+	// creationState               uint8
+	// createdActiviationTime      int
+	// accumulatedCrownAccessTime  int
 	// monsterSkillElementInfo     monster.MonsterSkillElementInfo
-	crywolfMVPScore         int
-	lastCheckTick           time.Time
-	autoRecuperationTime    time.Time
-	skillDistanceErrorCount int
-	skillDistanceErrorTick  time.Time
-	skillInfo               skillInfo
-	bufferIndex             int
-	buffID                  int
-	buffPlayerIndex         int
-	agiCheckTime            time.Time
-	warehouseSaveLock       uint8
-	crcCheckTime            time.Time
-	off                     bool
-	offLevel                bool
-	offLevelTime            int
+	// crywolfMVPScore             int
+	// lastCheckTick               time.Time
+	// autoRecuperationTime        time.Time
+	// skillDistanceErrorCount     int
+	// skillDistanceErrorTick      time.Time
+	// skillInfo                   skillInfo
+	// bufferIndex                 int
+	// buffID                      int
+	// buffPlayerIndex             int
+	// agiCheckTime                time.Time
+	// warehouseSaveLock           uint8
+	// crcCheckTime                time.Time
+	// off                         bool
+	// offLevel                    bool
+	// offLevelTime                int
 }
 
 func (obj *object) init() {

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
-	"github.com/xujintao/balgass/src/server_game/game/guild"
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
@@ -28,17 +27,17 @@ func NewPlayer(conn Conn) *Player {
 	// create a new player
 	player := poolPlayer.Get().(*Player)
 	player.init()
-	player.LoginMsgSend = false
-	player.LoginMsgCount = 0
+	// player.LoginMsgSend = false
+	// player.LoginMsgCount = 0
 	player.conn = conn
 	player.msgChan = make(chan any, 100)
 	ctx, cancel := context.WithCancel(context.Background())
 	player.cancel = cancel
-	player.ConnectCheckTime = time.Now()
-	player.AutoSaveTime = player.ConnectCheckTime
+	// player.ConnectCheckTime = time.Now()
+	// player.AutoSaveTime = player.ConnectCheckTime
 	player.ConnectState = ConnectStateConnected
-	player.CheckSpeedHack = false
-	player.EnableCharacterCreate = false
+	// player.CheckSpeedHack = false
+	// player.EnableCharacterCreate = false
 	player.Type = ObjectTypePlayer
 
 	// new a new goroutine to reply message
@@ -57,101 +56,127 @@ func NewPlayer(conn Conn) *Player {
 
 type Player struct {
 	object
-	conn                          Conn
-	msgChan                       chan any
-	cancel                        context.CancelFunc
-	AccountID                     string
-	AuthLevel                     int
-	hwid                          string
-	Experience                    uint
-	ExperienceNext                uint
-	ExperienceMaster              uint
-	ExperienceMasterNext          uint
-	masterLevel                   int
-	LevelUpPoint                  int
-	MasterPoint                   int
-	MasterPointUsed               int
-	FruitPoint                    int
-	Money                         int
-	Strength                      int
-	Dexterity                     int
-	Vitality                      int
-	Energy                        int
-	dbClass                       uint8
-	ChangeUP                      int // 0=1转 1=2转 2=3转
-	guild                         *guild.GuildInfo
-	guildName                     string
-	guildStatus                   int
-	guildUnionTimeStamp           int
-	guildNumber                   int
-	lastMoveTime                  time.Time
-	resets                        int
-	vipType                       uint8
-	vipEffect                     uint8
-	santaCount                    uint8
-	goblinTime                    time.Time
-	securityCheck                 bool
-	securityCode                  int
-	RegisterLMS                   uint8
-	registerLMSRoom               uint8
-	jewelHarmonyEffect            item.JewelHarmonyItemEffect
-	item380Effect                 item.Item380Effect
-	kanturuEntranceByNPC          bool
-	gensInfoLoad                  bool
-	questInfoLoad                 bool
-	wCoinP                        int
-	wCoinC                        int
-	goblinPoint                   int
-	periodItemEffectIndex         int
-	seedOptionList                [35]item.SocketOptionList
-	bonusOptionList               [7]item.SocketOptionList
-	setOptionList                 [2]item.SocketOptionList
-	refillHPSocketOption          uint16
-	refillMPSocketOption          uint16
-	socketOptionMonsterDieGetHP   uint16
-	socketOptionMonsterDieGetMana uint16
-	AGReduceRate                  uint8
-	muBotEnable                   bool
-	muBotTotalTime                time.Duration
-	muBotPayTime                  time.Duration
-	muBotTick                     time.Time
-	InventoryExpansion            int
-	WarehouseExpansion            int
-	LastAuthTime                  time.Time
-	LastXorKey1                   [4]int
-	LaskXorKey2                   [4]int
-	bot                           bool
-	botIndex                      int
-	skillHellFire2State           int
-	skillHellFire2Count           int
-	skillHellFire2Time            time.Time
-	skillStrengthenHellFire2State int
-	skillStrengthenHellFire2Count int
-	skillStrengthenHellFire2Time  time.Time
-	reqWarehouseOpen              int
+	conn      Conn
+	msgChan   chan any
+	cancel    context.CancelFunc
+	AccountID string
+	AuthLevel int
+	// hwid                 string
+	Experience           uint
+	ExperienceNext       uint
+	ExperienceMaster     uint
+	ExperienceMasterNext uint
+	masterLevel          int
+	LevelUpPoint         int
+	MasterPoint          int
+	MasterPointUsed      int
+	FruitPoint           int
+	Money                int
+	Strength             int
+	Dexterity            int
+	Vitality             int
+	Energy               int
+	Leadership           int
+	AddStrength          int
+	AddDexterity         int
+	AddVitality          int
+	AddEnergy            int
+	AddLeadership        int
+	// attackDamageLeft     int // 物攻左
+	// attackDamageRight    int // 物攻右
+	attackDamageLeftMin  int // 物攻左min
+	attackDamageLeftMax  int // 物攻左min
+	attackDamageRightMin int // 物攻右min
+	attackDamageRightMax int // 物攻右max
+	magicDamageMin       int // 魔攻min
+	magicDamageMax       int // 魔攻max
+	magicSpeed           int // 魔攻速度
+	// curseDamageMin       int // 诅咒min
+	// curseDamageMax       int // 诅咒max
+	// curseSpell           int
+	DamageMinus        int // 伤害减少
+	DamageReflect      int // 伤害反射
+	MonsterDieGetMoney int // 杀怪加钱
+	MonsterDieGetLife  int // 杀怪回生
+	MonsterDieGetMana  int // 杀怪回蓝
+	item380Effect      item.Item380Effect
+	// criticalDamage       int
+	excellentDamage int // 卓越一击概率
+	Inventory       []item.Item
+	// dbClass              uint8
+	ChangeUP int // 0=1转 1=2转 2=3转
+	// guild                *guild.GuildInfo
+	// guildName                     string
+	// guildStatus                   int
+	// guildUnionTimeStamp           int
+	// guildNumber                   int
+	// lastMoveTime                  time.Time
+	// resets                        int
+	// vipType                       uint8
+	// vipEffect                     uint8
+	// santaCount                    uint8
+	// goblinTime                    time.Time
+	// securityCheck                 bool
+	// securityCode                  int
+	// RegisterLMS                   uint8
+	// registerLMSRoom               uint8
+	// jewelHarmonyEffect            item.JewelHarmonyItemEffect
+	// kanturuEntranceByNPC          bool
+	// gensInfoLoad                  bool
+	// questInfoLoad                 bool
+	// wCoinP                        int
+	// wCoinC                        int
+	// goblinPoint                   int
+	// periodItemEffectIndex         int
+	// seedOptionList                [35]item.SocketOptionList
+	// bonusOptionList               [7]item.SocketOptionList
+	// setOptionList                 [2]item.SocketOptionList
+	// refillHPSocketOption          uint16
+	// refillMPSocketOption          uint16
+	// socketOptionMonsterDieGetHP   uint16
+	// socketOptionMonsterDieGetMana uint16
+	// AGReduceRate                  uint8
+	// muBotEnable                   bool
+	// muBotTotalTime                time.Duration
+	// muBotPayTime                  time.Duration
+	// muBotTick                     time.Time
+	// InventoryExpansion            int
+	// WarehouseExpansion            int
+	// LastAuthTime                  time.Time
+	// LastXorKey1                   [4]int
+	// LaskXorKey2                   [4]int
+	// bot                           bool
+	// botIndex                      int
+	// skillHellFire2State           int
+	// skillHellFire2Count           int
+	// skillHellFire2Time            time.Time
+	// skillStrengthenHellFire2State int
+	// skillStrengthenHellFire2Count int
+	// skillStrengthenHellFire2Time  time.Time
+	// reqWarehouseOpen              int
 	// set
-	setEffectIncSkillAttack        int
-	setEffectIncExcelDamage        int
-	setEffectIncExcelDamageRate    int
-	setEffectIncCritiDamage        int
-	setEffectIncCritiDamageRate    int
-	setEffectIncAG                 int
-	setEffectIncDamage             int
-	setEffectIncAttackMin          int
-	setEffectIncAttackMax          int
-	setEffectIncAttack             int
-	setEffectIncDefense            int
-	setEffectIncDefenseRate        int
+	setEffectIncSkillAttack     int
+	setEffectIncExcelDamage     int
+	setEffectIncExcelDamageRate int
+	setEffectIncCritiDamage     int
+	setEffectIncCritiDamageRate int
+	setEffectIncAG              int
+	setEffectIncDamage          int
+	setEffectIncAttackMin       int
+	setEffectIncAttackMax       int
+	// setEffectIncAttack             int
+	setEffectIncDefense int
+	// setEffectIncDefenseRate        int
 	setEffectIncMagicAttack        int
 	setEffectIgnoreDefense         int
 	setEffectDoubleDamage          int
 	setEffectTwoHandSwordIncDamage int
 	setEffectIncAttackRate         int
-	setEffectReflectDamage         int
-	setEffectIncShieldDefense      int
-	setEffectDecAG                 int
-	setEffectIncItemDropRate       int
-	setFull                        bool
+	// setEffectReflectDamage         int
+	setEffectIncShieldDefense int
+	// setEffectDecAG            int
+	// setEffectIncItemDropRate  int
+	setFull bool
 	// excel wing
 	excelWingEffectIgnoreDefense int
 	excelWingEffectReboundDamage int

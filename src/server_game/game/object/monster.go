@@ -467,6 +467,55 @@ func (m *Monster) baseAction() {
 	}
 }
 
+func (m *Monster) move() {
+	// start := time.Now()
+	path, ok := maps.MapManager.FindMapPath(m.MapNumber, m.X, m.Y, m.TX, m.TY)
+	// fmt.Println("0500ms", time.Since(start).Microseconds())
+	if !ok {
+		return
+	}
+	dirs := make([]int, len(path))
+	x, y := 0, 0
+	for i := range path {
+		if i == 0 {
+			x, y = m.X, m.Y
+		} else {
+			x, y = path[i-1].X, path[i-1].Y
+		}
+		dirs[i] = maps.CalcDir(x, y, path[i].X, path[i].Y)
+	}
+	msg := model.MsgMove{Dirs: dirs, Path: path}
+	m.Move(&msg)
+}
+
+func (m *Monster) attack() {
+	// 将普通攻击等效成一种技能
+	// 技能数越多则普通攻击的概率越低
+	n := len(m.skills)
+	if rand.Intn(n+1) == 0 {
+		msg := model.MsgAttack{
+			Target: m.targetNumber,
+		}
+		m.Attack(&msg)
+	} else {
+		// 从map中随机获取一个元素
+		cnt := rand.Intn(n) + 1
+		skillNumber := 0
+		for i := range m.skills {
+			cnt--
+			if cnt == 0 {
+				skillNumber = i
+				break
+			}
+		}
+		msg := model.MsgSkillAttack{
+			Target: m.targetNumber,
+			Skill:  skillNumber,
+		}
+		m.SkillAttack(&msg)
+	}
+}
+
 // 模拟怪物基本行为
 func (m *Monster) generateAction() {
 	if m.ConnectState < ConnectStatePlaying ||
@@ -481,53 +530,13 @@ func (m *Monster) generateAction() {
 	m.baseAction()
 	if m.actionState.move {
 		m.actionState.move = false
-		// start := time.Now()
-		path, ok := maps.MapManager.FindMapPath(m.MapNumber, m.X, m.Y, m.TX, m.TY)
-		// fmt.Println("0500ms", time.Since(start).Microseconds())
-		if !ok {
-			return
-		}
-		dirs := make([]int, len(path))
-		x, y := 0, 0
-		for i := range path {
-			if i == 0 {
-				x, y = m.X, m.Y
-			} else {
-				x, y = path[i-1].X, path[i-1].Y
-			}
-			dirs[i] = maps.CalcDir(x, y, path[i].X, path[i].Y)
-		}
-		msg := model.MsgMove{Dirs: dirs, Path: path}
-		m.Move(&msg)
+		m.move()
 		return
 	}
 	if m.actionState.attack {
 		m.actionState.attack = false
-		// 将普通攻击等效成一种技能
-		// 技能数越多则普通攻击的概率越低
-		n := len(m.skills)
-		if rand.Intn(n+1) == 0 {
-			msg := model.MsgAttack{
-				Target: m.targetNumber,
-			}
-			m.Attack(&msg)
-		} else {
-			// 从map中随机获取一个元素
-			cnt := rand.Intn(n) + 1
-			skillNumber := 0
-			for i := range m.skills {
-				cnt--
-				if cnt == 0 {
-					skillNumber = i
-					break
-				}
-			}
-			msg := model.MsgSkillAttack{
-				Target: m.targetNumber,
-				Skill:  skillNumber,
-			}
-			m.SkillAttack(&msg)
-		}
+		m.attack()
+		return
 	}
 }
 
