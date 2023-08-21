@@ -219,6 +219,18 @@ type Monster struct {
 	// MTY             int
 }
 
+func (m *Monster) addr() string {
+	return fmt.Sprintf("%d", m.Class)
+}
+
+func (m *Monster) Offline() {}
+
+func (m *Monster) push(msg any) {}
+
+func (m *Monster) getPKLevel() int {
+	return 0
+}
+
 func (m *Monster) randPosition(number, x1, y1, x2, y2 int) (int, int) {
 	w := x2 - x1
 	if w <= 0 {
@@ -303,9 +315,8 @@ func (m *Monster) searchEnemy() int {
 		if tnum < 0 {
 			continue
 		}
-		tobj := m.objectManager.objects[tnum].getObject()
-		if (m.Class == 247 || m.Class == 249) &&
-			tobj.PKLevel <= 4 {
+		tobj := m.objectManager.objects[tnum]
+		if (m.Class == 247 || m.Class == 249) && tobj.getPKLevel() <= 4 {
 			continue
 		}
 		attr := maps.MapManager.GetMapAttr(tobj.MapNumber, tobj.X, tobj.Y)
@@ -406,7 +417,7 @@ func (m *Monster) baseAction() {
 		if m.pathMoving {
 			return
 		}
-		tobj := m.objectManager.objects[m.targetNumber].getObject()
+		tobj := m.objectManager.objects[m.targetNumber]
 		dis := m.calcDistance(tobj)
 		attackRange := m.attackRange
 		if m.attackType >= 100 {
@@ -553,59 +564,4 @@ func (m *Monster) processRegen() {
 	m.spawnPosition()
 	m.dieRegen = false
 	m.State = 1
-}
-
-func (m *Monster) getAttackPanel() int {
-	sub := m.attackPanelMax - m.attackPanelMin
-	if sub < 0 {
-		log.Printf("attack panel is invalid [index]%d [class]%d\n", m.index, m.Class)
-		return 0
-	}
-	attackDamage := m.attackPanelMin + rand.Intn(sub+1)
-	return attackDamage
-}
-
-func (m *Monster) processAttack(tiobj objecter) {
-	// if attackDamage == 0 {
-	// 	1. think about miss
-	// 	2. rand normal/critical/excel and get object attack panel or skill attack
-	// 	3. rand ignore target defense and get target defense
-	// 	4. calc attack damage
-	// 	5. add damage
-	// 	6. decrease damage
-	// 	7. absorb damage
-	// 	8. combo damage
-	// }
-	// 9. reflect damage
-	// 10. rebound damage
-	// 11. rand double damage
-	// 12. target recover all hp/mp/sd
-	// 13. mace stun
-	// 14. decrease target hp
-	// 15. check target hp
-
-	if _, ok := tiobj.(*Player); ok {
-		// todo
-		return
-	} else if tm, ok := tiobj.(*Monster); ok {
-		attackPanel := m.getAttackPanel()
-		defense := tm.defense
-		attackDamage := attackPanel - defense
-		tm.HP -= attackDamage
-	}
-
-}
-
-func (m *Monster) Attack(msg *model.MsgAttack) {
-	tiobj := m.getiobj(msg.Target)
-	if tiobj == nil {
-		log.Printf("Attack target is invalid [index]%d->[index]%d\n", m.index, msg.Target)
-		return
-	}
-	// push attack action to viewport
-	m.processAttack(tiobj)
-}
-
-func (m *Monster) SkillAttack(msg *model.MsgSkillAttack) {
-
 }

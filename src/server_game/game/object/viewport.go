@@ -95,11 +95,10 @@ func (obj *object) createViewport() {
 	case ObjectTypeMonster, ObjectTypeNPC:
 		start = obj.objectManager.maxMonsterCount // 怪物看不见怪物
 	}
-	for _, v := range obj.objectManager.objects[start:] {
-		if v == nil {
+	for _, tobj := range obj.objectManager.objects[start:] {
+		if tobj == nil {
 			continue
 		}
-		tobj := v.getObject()
 		if tobj.ConnectState < ConnectStatePlaying ||
 			tobj.index == obj.index ||
 			(tobj.State != 1 && tobj.State != 2) ||
@@ -127,7 +126,7 @@ func (obj *object) destoryViewport() {
 		switch vp.type_ {
 		case 5: // items
 		default: // objects
-			tobj := obj.objectManager.objects[tnum].getObject()
+			tobj := obj.objectManager.objects[tnum]
 			if tobj == nil {
 				obj.viewports[i].state = 3
 			} else {
@@ -147,7 +146,7 @@ func (obj *object) destoryViewport() {
 		if vp.state != 1 && vp.state != 2 {
 			continue
 		}
-		tobj := obj.objectManager.objects[vp.number].getObject()
+		tobj := obj.objectManager.objects[vp.number]
 		remove := false
 		if tobj == nil {
 			remove = true

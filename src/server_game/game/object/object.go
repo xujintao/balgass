@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
-	"math"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
@@ -42,7 +41,7 @@ type objectManager struct {
 
 	// objects
 	maxObjectCount int
-	objects        []objecter
+	objects        []*object
 
 	// users
 	maxUserCount      int
@@ -71,7 +70,7 @@ func (m *objectManager) init() {
 
 	// objects
 	m.maxObjectCount = m.maxMonsterCount + m.maxCallMonsterCount + m.maxPlayerCount
-	m.objects = make([]objecter, m.maxObjectCount)
+	m.objects = make([]*object, m.maxObjectCount)
 
 	// users
 	m.maxUserCount = 10
@@ -182,7 +181,7 @@ func (m *objectManager) AddMonster(kind int) (*Monster, error) {
 	monster.objecter = monster
 	monster.objectManager = m
 	monster.index = index
-	m.objects[index] = monster
+	m.objects[index] = &monster.object
 	return monster, nil
 }
 
@@ -210,7 +209,7 @@ func (m *objectManager) AddCallMonster(kind int) (*Monster, error) {
 	monster := NewMonster(kind)
 	monster.objectManager = m
 	monster.index = index
-	m.objects[index] = monster
+	m.objects[index] = &monster.object
 	return monster, nil
 }
 
@@ -246,7 +245,7 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 	player.objectManager = m
 	player.index = index
 	// register the new player to object manager
-	m.objects[index] = player
+	m.objects[index] = &player.object
 
 	// reply
 	msg := model.MsgConnectSuccess{
@@ -255,21 +254,26 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 		Version: conf.MapServers.ServerInfo.Version,
 	}
 	player.push(&msg)
-	log.Printf("player online [id]%d [addr]%s", player.index, player.conn.Addr())
+	log.Printf("player online [id]%d [addr]%s", player.index, player.addr())
 	return index, nil
 }
 
 func (m *objectManager) DeletePlayer(id int) {
-	player := m.objects[id].(*Player)
+	player := m.objects[id]
+	if player == nil {
+		return
+	}
+	player.Offline()
+	log.Printf("player offline [id]%d [addr]%s", player.index, player.addr())
+
 	// unregister player from object manager
+	player.reset()
 	m.objects[id] = nil
 	m.playerCount--
-	player.delete()
-	log.Printf("player offline [id]%d [addr]%s", player.index, player.conn.Addr())
 }
 
-func (m *objectManager) GetPlayer(id int) *Player {
-	return m.objects[id].(*Player)
+func (m *objectManager) GetPlayer(id int) *object {
+	return m.objects[id]
 }
 
 func (m *objectManager) AddUser(conn Conn) (int, error) {
@@ -318,37 +322,26 @@ func (m *objectManager) GetUser(id int) *user {
 	return m.users[id]
 }
 
-// func (m *objectManager) object(v objecter) *object {
-// 	var obj *object
-// 	if monster, ok := v.(*Monster); ok {
-// 		obj = &monster.object
-// 	} else if player, ok := v.(*Player); ok {
-// 		obj = &player.object
-// 	}
-// 	return obj
-// }
-
 func (m *objectManager) Process100ms() {
-	for _, v := range m.objects {
-		if v == nil {
+	for _, obj := range m.objects {
+		if obj == nil {
 			continue
 		}
-		v.processMove()
-		v.processAction()
+		obj.processMove()
+		obj.processAction()
 	}
 }
 
 func (m *objectManager) Process1000ms() {
 	table := make(map[int][]*maps.Pot)
-	for _, v := range m.objects {
-		if v == nil {
+	for _, obj := range m.objects {
+		if obj == nil {
 			continue
 		}
-		v.processViewport() // 1->2
-		v.processRegen()    // 4->1
+		obj.processViewport() // 1->2
+		obj.processRegen()    // 4->1
 
 		// process map subscripion
-		obj := v.getObject()
 		if _, ok := m.mapSubscribeTable[obj.MapNumber]; ok {
 			table[obj.MapNumber] = append(table[obj.MapNumber], &maps.Pot{
 				X: obj.X,
@@ -464,11 +457,11 @@ type messageStateMachine struct {
 }
 
 type objecter interface {
-	getObject() *object
+	addr() string
+	Offline()
 	push(any)
-	processMove()
+	getPKLevel() int
 	processAction()
-	processViewport()
 	processRegen()
 }
 
@@ -582,10 +575,6 @@ type object struct {
 	// FillLifeCount              byte
 	// VitalityToLife             float32
 	// EnergyToMana               float32
-	// PKCount                    int
-	PKLevel byte
-	// PKTime                     int
-	// PKTotalCount               int
 	// XSave                      uint16
 	// YSave                      uint16
 	// MapNumberSave              byte
@@ -827,19 +816,6 @@ func (obj *object) reset() {
 	obj.clearViewport()
 }
 
-func (obj *object) getObject() *object {
-	return obj
-}
-
-func (obj *object) push(msg any) {}
-
-func (obj *object) getiobj(tIndex int) objecter {
-	if tIndex < 0 && tIndex >= obj.objectManager.maxObjectCount {
-		return nil
-	}
-	return obj.objectManager.objects[tIndex]
-}
-
 var (
 	FrustrumX [MaxArrayFrustrum]int
 	FrustrumY [MaxArrayFrustrum]int
@@ -883,15 +859,6 @@ func (obj *object) initMessage() {
 	}
 }
 
-func (obj *object) calcDistance(tobj *object) int {
-	x := obj.X - tobj.X
-	y := obj.Y - tobj.Y
-	if x == 0 && y == 0 {
-		return 0
-	}
-	return int(math.Sqrt(float64(x*x + y*y)))
+func (obj *object) Test(msg *model.MsgTest) {
+	obj.push(msg)
 }
-
-func (obj *object) processAction() {}
-
-func (obj *object) processRegen() {}

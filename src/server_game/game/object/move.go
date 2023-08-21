@@ -2,11 +2,21 @@ package object
 
 import (
 	"log"
+	"math"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
+
+func (obj *object) calcDistance(tobj *object) int {
+	x := obj.X - tobj.X
+	y := obj.Y - tobj.Y
+	if x == 0 && y == 0 {
+		return 0
+	}
+	return int(math.Sqrt(float64(x*x + y*y)))
+}
 
 func (obj *object) processMove() {
 	if obj.ConnectState < ConnectStatePlaying ||

@@ -3,7 +3,6 @@ package object
 import (
 	"context"
 	"log"
-	"sync"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
@@ -17,15 +16,9 @@ type Conn interface {
 	Close() error
 }
 
-var poolPlayer = sync.Pool{
-	New: func() any {
-		return &Player{}
-	},
-}
-
 func NewPlayer(conn Conn) *Player {
 	// create a new player
-	player := poolPlayer.Get().(*Player)
+	player := &Player{}
 	player.init()
 	// player.LoginMsgSend = false
 	// player.LoginMsgCount = 0
@@ -56,6 +49,7 @@ func NewPlayer(conn Conn) *Player {
 
 type Player struct {
 	object
+	offline   bool
 	conn      Conn
 	msgChan   chan any
 	cancel    context.CancelFunc
@@ -105,6 +99,10 @@ type Player struct {
 	Inventory       []item.Item
 	// dbClass              uint8
 	ChangeUP int // 0=1转 1=2转 2=3转
+	// PKCount                    int
+	PKLevel int
+	// PKTime                     int
+	// PKTotalCount               int
 	// guild                *guild.GuildInfo
 	// guildName                     string
 	// guildStatus                   int
@@ -185,22 +183,34 @@ type Player struct {
 	excelWingEffectDoubleDamage  int
 }
 
-func (player *Player) delete() {
-	player.cancel()
-	player.reset()
-	poolPlayer.Put(player)
+func (p *Player) addr() string {
+	return p.conn.Addr()
 }
 
-func (player *Player) push(msg any) {
-	if player.ConnectState != ConnectStatePlaying ||
-		!player.Live {
+func (p *Player) Offline() {
+	if p.offline {
 		return
 	}
-	player.msgChan <- msg
+	p.offline = true
+	// todo
+	p.cancel()
 }
 
-func (player *Player) Test(msg *model.MsgTest) {
-	player.push(msg)
+func (p *Player) push(msg any) {
+	if p.offline {
+		log.Printf("Still pushing [msg]%v to [user]%d that alread offline\n",
+			msg, p.index)
+		return
+	}
+	if len(p.msgChan) > 80 {
+		p.Offline()
+		return
+	}
+	p.msgChan <- msg
+}
+
+func (p *Player) getPKLevel() int {
+	return p.PKLevel
 }
 
 func (player *Player) MasterLevel() bool {
@@ -603,6 +613,8 @@ func (player *Player) PushSkillAll() {
 	var msg model.MsgSkillList
 	player.push(&msg)
 }
+
+func (p *Player) processAction() {}
 
 func (p *Player) processRegen() {
 	if !p.dieRegen {
