@@ -120,8 +120,8 @@ func NewMonster(class int) *Monster {
 	monster.Name = mc.Name
 	monster.Annotation = mc.Annotation
 	monster.Level = mc.Level
-	monster.attackDamageMin = mc.DamageMin
-	monster.attackDamageMax = mc.DamageMax
+	monster.attackPanelMin = mc.DamageMin
+	monster.attackPanelMax = mc.DamageMax
 	monster.attackRate = mc.AttackRate
 	monster.attackSpeed = mc.AttackSpeed
 	monster.defense = mc.Defense
@@ -574,4 +574,59 @@ func (m *Monster) processRegen() {
 func (m *Monster) process1000ms() {
 	m.processViewport() // 1->2
 	m.processRegen()    // 4->1
+}
+
+func (m *Monster) getAttackPanel() int {
+	sub := m.attackPanelMax - m.attackPanelMin
+	if sub < 0 {
+		log.Printf("attack panel is invalid [index]%d [class]%d\n", m.index, m.Class)
+		return 0
+	}
+	attackDamage := m.attackPanelMin + rand.Intn(sub+1)
+	return attackDamage
+}
+
+func (m *Monster) processAttack(tiobj iobject) {
+	// if attackDamage == 0 {
+	// 	1. think about miss
+	// 	2. rand normal/critical/excel and get object attack panel or skill attack
+	// 	3. rand ignore target defense and get target defense
+	// 	4. calc attack damage
+	// 	5. add damage
+	// 	6. decrease damage
+	// 	7. absorb damage
+	// 	8. combo damage
+	// }
+	// 9. reflect damage
+	// 10. rebound damage
+	// 11. rand double damage
+	// 12. target recover all hp/mp/sd
+	// 13. mace stun
+	// 14. decrease target hp
+	// 15. check target hp
+
+	if _, ok := tiobj.(*Player); ok {
+		// todo
+		return
+	} else if tm, ok := tiobj.(*Monster); ok {
+		attackPanel := m.getAttackPanel()
+		defense := tm.defense
+		attackDamage := attackPanel - defense
+		tm.HP -= attackDamage
+	}
+
+}
+
+func (m *Monster) Attack(msg *model.MsgAttack) {
+	tiobj := m.getiobj(msg.Target)
+	if tiobj == nil {
+		log.Printf("Attack target is invalid [index]%d->[index]%d\n", m.index, msg.Target)
+		return
+	}
+	// push attack action to viewport
+	m.processAttack(tiobj)
+}
+
+func (m *Monster) SkillAttack(msg *model.MsgSkillAttack) {
+
 }

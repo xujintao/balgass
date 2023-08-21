@@ -507,8 +507,8 @@ type object struct {
 	MaxAG              int
 	AddAG              int
 	targetNumber       int
-	attackDamageMin    int // 物攻min
-	attackDamageMax    int // 物攻max
+	attackPanelMin     int // 物攻min
+	attackPanelMax     int // 物攻max
 	attackSpeed        int // 物攻速度
 	attackRate         int // 攻击率
 	defense            int // 防御力
@@ -816,6 +816,13 @@ func (obj *object) init() {
 func (obj *object) reset() {
 	obj.clearSkill()
 	obj.clearViewport()
+}
+
+func (obj *object) getiobj(tIndex int) iobject {
+	if tIndex < 0 && tIndex >= obj.objectManager.maxObjectCount {
+		return nil
+	}
+	return obj.objectManager.objects[tIndex]
 }
 
 func (obj *object) initSkill() {
@@ -1162,12 +1169,4 @@ func (obj *object) Move(msg *model.MsgMove) {
 			p.Push(&msgRelpy)
 		}
 	}
-}
-
-func (obj *object) Attack(msg *model.MsgAttack) {
-
-}
-
-func (obj *object) SkillAttack(msg *model.MsgSkillAttack) {
-
 }
