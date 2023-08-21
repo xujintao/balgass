@@ -303,8 +303,7 @@ func (m *Monster) searchEnemy() int {
 		if tnum < 0 {
 			continue
 		}
-		om := m.objectManager
-		tobj := om.object(om.objects[tnum])
+		tobj := m.objectManager.objects[tnum].getObject()
 		if (m.Class == 247 || m.Class == 249) &&
 			tobj.PKLevel <= 4 {
 			continue
@@ -407,9 +406,7 @@ func (m *Monster) baseAction() {
 		if m.pathMoving {
 			return
 		}
-		tnum := m.targetNumber
-		om := m.objectManager
-		tobj := om.object(om.objects[tnum])
+		tobj := m.objectManager.objects[m.targetNumber].getObject()
 		dis := m.calcDistance(tobj)
 		attackRange := m.attackRange
 		if m.attackType >= 100 {
@@ -517,7 +514,7 @@ func (m *Monster) attack() {
 }
 
 // 模拟怪物基本行为
-func (m *Monster) generateAction() {
+func (m *Monster) processAction() {
 	if m.ConnectState < ConnectStatePlaying ||
 		!m.Live {
 		return
@@ -540,19 +537,6 @@ func (m *Monster) generateAction() {
 	}
 }
 
-func (m *Monster) process100ms() {
-	m.processMove()
-	m.generateAction()
-}
-
-func (m *Monster) processViewport() {
-	m.destoryViewport()
-	m.createViewport()
-	if m.State == 1 {
-		m.State = 2
-	}
-}
-
 func (m *Monster) processRegen() {
 	if !m.dieRegen {
 		return
@@ -571,11 +555,6 @@ func (m *Monster) processRegen() {
 	m.State = 1
 }
 
-func (m *Monster) process1000ms() {
-	m.processViewport() // 1->2
-	m.processRegen()    // 4->1
-}
-
 func (m *Monster) getAttackPanel() int {
 	sub := m.attackPanelMax - m.attackPanelMin
 	if sub < 0 {
@@ -586,7 +565,7 @@ func (m *Monster) getAttackPanel() int {
 	return attackDamage
 }
 
-func (m *Monster) processAttack(tiobj iobject) {
+func (m *Monster) processAttack(tiobj objecter) {
 	// if attackDamage == 0 {
 	// 	1. think about miss
 	// 	2. rand normal/critical/excel and get object attack panel or skill attack

@@ -191,12 +191,16 @@ func (player *Player) delete() {
 	poolPlayer.Put(player)
 }
 
-func (player *Player) Push(msg any) {
+func (player *Player) push(msg any) {
+	if player.ConnectState != ConnectStatePlaying ||
+		!player.Live {
+		return
+	}
 	player.msgChan <- msg
 }
 
 func (player *Player) Test(msg *model.MsgTest) {
-	player.Push(msg)
+	player.push(msg)
 }
 
 func (player *Player) MasterLevel() bool {
@@ -592,25 +596,12 @@ func (player *Player) LearnSkill(skillIndex int) bool {
 
 func (player *Player) PushSkillOne() {
 	var msg model.MsgSkillList
-	player.Push(&msg)
+	player.push(&msg)
 }
 
 func (player *Player) PushSkillAll() {
 	var msg model.MsgSkillList
-	player.Push(&msg)
-}
-
-// 玩家基本行为由客户端发出指令
-func (p *Player) process100ms() {
-	p.processMove()
-}
-
-func (p *Player) processViewport() {
-	p.destoryViewport()
-	p.createViewport()
-	if p.State == 1 {
-		p.State = 2
-	}
+	player.push(&msg)
 }
 
 func (p *Player) processRegen() {
@@ -626,9 +617,4 @@ func (p *Player) processRegen() {
 
 	p.dieRegen = false
 	p.State = 1
-}
-
-func (p *Player) process1000ms() {
-	p.processViewport() // 1->2
-	p.processRegen()    // 4->1
 }

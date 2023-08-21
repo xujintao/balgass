@@ -42,7 +42,7 @@ type objectManager struct {
 
 	// objects
 	maxObjectCount int
-	objects        []iobject
+	objects        []objecter
 
 	// users
 	maxUserCount      int
@@ -51,11 +51,6 @@ type objectManager struct {
 	userCount         int
 	users             []*user
 	mapSubscribeTable map[int]map[*user]struct{}
-}
-
-type iobject interface {
-	process100ms()
-	process1000ms()
 }
 
 func (m *objectManager) init() {
@@ -76,7 +71,7 @@ func (m *objectManager) init() {
 
 	// objects
 	m.maxObjectCount = m.maxMonsterCount + m.maxCallMonsterCount + m.maxPlayerCount
-	m.objects = make([]iobject, m.maxObjectCount)
+	m.objects = make([]objecter, m.maxObjectCount)
 
 	// users
 	m.maxUserCount = 10
@@ -184,6 +179,7 @@ func (m *objectManager) AddMonster(kind int) (*Monster, error) {
 	m.lastMonsterIndex = index
 	m.monsterCount++
 	monster := NewMonster(kind)
+	monster.objecter = monster
 	monster.objectManager = m
 	monster.index = index
 	m.objects[index] = monster
@@ -246,6 +242,7 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 	m.lastPlayerIndex = index
 	m.playerCount++
 	player := NewPlayer(conn)
+	player.objecter = player
 	player.objectManager = m
 	player.index = index
 	// register the new player to object manager
@@ -257,7 +254,7 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 		ID:      index,
 		Version: conf.MapServers.ServerInfo.Version,
 	}
-	player.Push(&msg)
+	player.push(&msg)
 	log.Printf("player online [id]%d [addr]%s", player.index, player.conn.Addr())
 	return index, nil
 }
@@ -321,22 +318,23 @@ func (m *objectManager) GetUser(id int) *user {
 	return m.users[id]
 }
 
-func (m *objectManager) object(v iobject) *object {
-	var obj *object
-	if monster, ok := v.(*Monster); ok {
-		obj = &monster.object
-	} else if player, ok := v.(*Player); ok {
-		obj = &player.object
-	}
-	return obj
-}
+// func (m *objectManager) object(v objecter) *object {
+// 	var obj *object
+// 	if monster, ok := v.(*Monster); ok {
+// 		obj = &monster.object
+// 	} else if player, ok := v.(*Player); ok {
+// 		obj = &player.object
+// 	}
+// 	return obj
+// }
 
 func (m *objectManager) Process100ms() {
 	for _, v := range m.objects {
 		if v == nil {
 			continue
 		}
-		v.process100ms()
+		v.processMove()
+		v.processAction()
 	}
 }
 
@@ -346,10 +344,11 @@ func (m *objectManager) Process1000ms() {
 		if v == nil {
 			continue
 		}
-		v.process1000ms()
+		v.processViewport() // 1->2
+		v.processRegen()    // 4->1
 
 		// process map subscripion
-		obj := m.object(v)
+		obj := v.getObject()
 		if _, ok := m.mapSubscribeTable[obj.MapNumber]; ok {
 			table[obj.MapNumber] = append(table[obj.MapNumber], &maps.Pot{
 				X: obj.X,
@@ -464,7 +463,17 @@ type messageStateMachine struct {
 	time    time.Duration
 }
 
+type objecter interface {
+	getObject() *object
+	push(any)
+	processMove()
+	processAction()
+	processViewport()
+	processRegen()
+}
+
 type object struct {
+	objecter
 	*objectManager
 	index              int
 	ConnectState       ConnectState
@@ -818,29 +827,17 @@ func (obj *object) reset() {
 	obj.clearViewport()
 }
 
-func (obj *object) getiobj(tIndex int) iobject {
+func (obj *object) getObject() *object {
+	return obj
+}
+
+func (obj *object) push(msg any) {}
+
+func (obj *object) getiobj(tIndex int) objecter {
 	if tIndex < 0 && tIndex >= obj.objectManager.maxObjectCount {
 		return nil
 	}
 	return obj.objectManager.objects[tIndex]
-}
-
-func (obj *object) initSkill() {
-	obj.skills = make(map[int]*skill.Skill)
-}
-
-// AddSkill  object add skill
-func (obj *object) addSkill(index, level int) bool {
-	if _, ok := obj.skills[index]; ok {
-		log.Printf("[object]%s [skill]%d already exists", obj.Name, index)
-		return false
-	}
-	obj.skills[index] = skill.SkillManager.Get(index, level, obj.skills)
-	return true
-}
-
-func (obj *object) clearSkill() {
-	obj.skills = nil
 }
 
 var (
@@ -878,89 +875,6 @@ func (obj *object) createFrustrum() {
 	}
 }
 
-func (obj *object) initViewport() {
-	for i := range obj.viewports {
-		obj.viewports[i] = &viewport{number: -1}
-	}
-	for i := range obj.viewports2 {
-		obj.viewports2[i] = &viewport{number: -1}
-	}
-}
-
-func (obj *object) checkViewport(x, y int) bool {
-	if x < obj.X-15 ||
-		x > obj.X+15 ||
-		y < obj.Y-15 ||
-		y > obj.Y+15 {
-		return false
-	}
-	for i, j := 0, 3; i < MaxArrayFrustrum; j, i = i, i+1 {
-		frustrum := (obj.FrustrumX[i]-x)*(obj.FrustrumY[i]-y) -
-			(obj.FrustrumX[j]-x)*(obj.FrustrumY[j]-y)
-		if frustrum < 0 {
-			return false
-		}
-	}
-	return true
-}
-
-func (obj *object) addViewport(tobj *object) {
-	if tobj.Class == 523 ||
-		tobj.Class == 603 {
-		return
-	}
-	// type_ := tobj.Type
-	// index := tobj.index
-	// k := int(type_)<<16 + index
-	// if _, ok := obj.viewports[k]; !ok {
-	// 	v := &viewport{
-	// 		state:  1,
-	// 		number: index,
-	// 		type_:  int(type_),
-	// 	}
-	// 	obj.viewports[k] = v
-	// }
-	for _, vp := range obj.viewports {
-		if vp.state == 0 {
-			vp.state = 1
-			vp.number = tobj.index
-			vp.type_ = int(tobj.Type)
-			obj.viewportNum++
-			break
-		}
-	}
-}
-
-func (obj *object) addViewport2(tobj *object) {
-	if tobj.Class == 523 ||
-		tobj.Class == 603 {
-		return
-	}
-	for _, vp := range obj.viewports2 {
-		if vp.state == 0 {
-			vp.state = 1
-			vp.number = tobj.index
-			vp.type_ = int(tobj.Type)
-			obj.viewportNum2++
-			break
-		}
-	}
-}
-
-func (obj *object) clearViewport() {
-	for i := range obj.viewports {
-		obj.viewports[i].state = 0
-		obj.viewports[i].number = -1
-	}
-	obj.viewportNum = 0
-
-	for i := range obj.viewports2 {
-		obj.viewports2[i].state = 0
-		obj.viewports2[i].number = -1
-	}
-	obj.viewportNum2 = 0
-}
-
 func (obj *object) initMessage() {
 	for i := range obj.msgs {
 		obj.msgs[i] = &messageStateMachine{
@@ -978,195 +892,6 @@ func (obj *object) calcDistance(tobj *object) int {
 	return int(math.Sqrt(float64(x*x + y*y)))
 }
 
-func (obj *object) createViewport() {
-	if obj.ConnectState != ConnectStatePlaying {
-		return
-	}
-	start := 0
-	// create viewport
-	switch obj.Type {
-	case ObjectTypePlayer:
-		start = 0 // 玩家能看到所有对象
-	case ObjectTypeMonster, ObjectTypeNPC:
-		start = obj.objectManager.maxMonsterCount // 怪物看不见怪物
-	}
-	for _, v := range obj.objectManager.objects[start:] {
-		if v == nil {
-			continue
-		}
-		tobj := obj.objectManager.object(v)
-		if tobj.ConnectState < ConnectStatePlaying ||
-			tobj.index == obj.index ||
-			(tobj.State != 1 && tobj.State != 2) ||
-			tobj.MapNumber != obj.MapNumber {
-			continue
-		}
-		if !obj.checkViewport(tobj.X, tobj.Y) {
-			continue
-		}
-		obj.addViewport(tobj)
-		tobj.addViewport2(obj)
-	}
-}
+func (obj *object) processAction() {}
 
-func (obj *object) destoryViewport() {
-	if obj.ConnectState != ConnectStatePlaying {
-		return
-	}
-	// remove viewport
-	for i, vp := range obj.viewports {
-		if vp.state != 1 && vp.state != 2 {
-			continue
-		}
-		tnum := vp.number
-		switch vp.type_ {
-		case 5: // items
-		default: // objects
-			tobj := obj.objectManager.object(obj.objectManager.objects[tnum])
-			if tobj == nil {
-				obj.viewports[i].state = 3
-			} else {
-				if tobj.ConnectState < ConnectStatePlaying ||
-					tobj.index == obj.index ||
-					(tobj.State != 1 && tobj.State != 2) ||
-					tobj.MapNumber != obj.MapNumber {
-					obj.viewports[i].state = 3
-				}
-				if !obj.checkViewport(tobj.X, tobj.Y) {
-					obj.viewports[i].state = 3
-				}
-			}
-		}
-	}
-	for i, vp := range obj.viewports2 {
-		if vp.state != 1 && vp.state != 2 {
-			continue
-		}
-		tobj := obj.objectManager.object(obj.objectManager.objects[vp.number])
-		remove := false
-		if tobj == nil {
-			remove = true
-		} else {
-			if tobj.ConnectState < ConnectStatePlaying ||
-				tobj.index == obj.index ||
-				(tobj.State != 1 && tobj.State != 2) ||
-				tobj.MapNumber != obj.MapNumber {
-				remove = true
-			}
-			if !obj.checkViewport(tobj.X, tobj.Y) {
-				remove = true
-			}
-		}
-		if remove {
-			obj.viewports2[i].state = 0
-			obj.viewports2[i].number = -1
-			obj.viewportNum2--
-		}
-	}
-}
-
-func (obj *object) processMove() {
-	if obj.ConnectState < ConnectStatePlaying ||
-		!obj.Live ||
-		obj.State != 2 ||
-		obj.pathCount == 0 {
-		return
-	}
-	moveTime := obj.moveSpeed
-	if obj.delayLevel != 0 {
-		moveTime += 300
-	}
-	pathTime := time.Now().UnixMilli()
-	if pathTime-obj.pathTime+1 < int64(moveTime) {
-		return
-	}
-	obj.pathTime = pathTime
-	x := obj.pathX[obj.pathCur]
-	y := obj.pathY[obj.pathCur]
-	dir := obj.pathDir[obj.pathCur]
-	attr := maps.MapManager.GetMapAttr(obj.MapNumber, x, y)
-	if attr&4 != 0 && attr&8 != 0 {
-		log.Printf("process300ms object move check [index]%d [class]%d [map]%d [position](%d,%d)",
-			obj.index, obj.Class, obj.MapNumber, x, y)
-		for i := 0; i < len(obj.pathDir); i++ {
-			obj.pathX[i] = 0
-			obj.pathY[i] = 0
-			obj.pathDir[i] = 0
-		}
-		obj.pathCount = 0
-		obj.pathCur = 0
-		obj.pathMoving = false
-		return
-	}
-	obj.X = x
-	obj.Y = y
-	// if obj.index == 6 && obj.pathMoving {
-	// 	fmt.Println(obj.X, obj.Y)
-	// }
-	obj.Dir = dir
-	obj.createFrustrum()
-	obj.pathCur++
-	if obj.pathCur >= obj.pathCount {
-		for i := 0; i < len(obj.pathDir); i++ {
-			obj.pathX[i] = 0
-			obj.pathY[i] = 0
-			obj.pathDir[i] = 0
-		}
-		obj.pathCount = 0
-		obj.pathCur = 0
-		obj.pathMoving = false
-	}
-}
-
-func (obj *object) Move(msg *model.MsgMove) {
-	n := len(msg.Path)
-	if n < 1 || n > 15 {
-		return
-	}
-	for i := range msg.Path {
-		obj.pathX[i] = msg.Path[i].X
-		obj.pathY[i] = msg.Path[i].Y
-		obj.pathDir[i] = msg.Dirs[i]
-	}
-	obj.pathCount = n
-	obj.pathCur = 0
-	obj.pathMoving = true
-	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
-	obj.TX = msg.Path[n-1].X
-	obj.TY = msg.Path[n-1].Y
-	maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
-	// if obj.index == 6 {
-	// 	fmt.Printf("(%d,%d)->(%d,%d)\n", obj.X, obj.Y, obj.TX, obj.TY)
-	// }
-
-	msgRelpy := model.MsgMoveReply{
-		Number: obj.index,
-		X:      obj.TX,
-		Y:      obj.TY,
-		Dir:    msg.Dirs[0] << 4,
-	}
-	if obj.Type == ObjectTypePlayer {
-		om := obj.objectManager
-		tobj := om.objects[obj.index]
-		p := tobj.(*Player)
-		p.Push(&msgRelpy)
-	}
-	for _, vp := range obj.viewports2 {
-		if vp.state != 1 && vp.state != 2 {
-			continue
-		}
-		tnum := vp.number
-		if tnum < 0 {
-			continue
-		}
-		om := obj.objectManager
-		tobj := om.objects[tnum]
-		p, ok := tobj.(*Player)
-		if !ok {
-			continue
-		}
-		if p.ConnectState == ConnectStatePlaying && p.Live {
-			p.Push(&msgRelpy)
-		}
-	}
-}
+func (obj *object) processRegen() {}
