@@ -72,7 +72,7 @@ type MonsterConfig struct {
 	Annotation             string `xml:"annotation,attr"`
 }
 
-func NewMonster(class int) *Monster {
+func NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) *Monster {
 	mc, ok := MonsterTable[class]
 	if !ok {
 		panic(fmt.Sprintf("monster invalid [class]%d", class))
@@ -117,6 +117,15 @@ func NewMonster(class int) *Monster {
 		monster.Type = ObjectTypeMonster
 	}
 	monster.Class = class
+	monster.MapNumber = mapNumber
+	monster.spawnStartX = startX
+	monster.spawnStartY = startY
+	monster.spawnEndX = endX
+	monster.spawnEndY = endY
+	monster.spawnDir = dir
+	monster.spawnPosition()
+	monster.spawnDis = dis
+	monster.pentagramMainAttribute = element
 	monster.Name = mc.Name
 	monster.Annotation = mc.Annotation
 	monster.Level = mc.Level
@@ -215,8 +224,6 @@ type Monster struct {
 	curActionTime   int64
 	nextActionTime  int64
 	delayActionTime int64
-	// MTX             int
-	// MTY             int
 }
 
 func (m *Monster) addr() string {

@@ -122,33 +122,45 @@ func (m *objectManager) spawnMonster() {
 					cnt = 1
 				}
 				for i := 0; i < cnt; i++ {
-					monster, err := m.AddMonster(spawn.Index)
-					if err != nil {
-						log.Fatalf("AddMonster failed err[%v]", err)
-					}
-					monster.MapNumber = _map.Number
+					spawnClass := spawn.Index
+					spawnMapNumber := _map.Number
+					spawnStartX := 0
+					spawnStartY := 0
+					spawnEndX := 0
+					spawnEndY := 0
 					switch spot.Type {
 					case 0: // npc
-						monster.spawnStartX = spawn.StartX
-						monster.spawnStartY = spawn.StartY
-						monster.spawnEndX = spawn.StartX
-						monster.spawnEndY = spawn.StartY
+						spawnStartX = spawn.StartX
+						spawnStartY = spawn.StartY
+						spawnEndX = spawn.StartX
+						spawnEndY = spawn.StartY
 					case 1, 3: // multiple
-						monster.spawnStartX = spawn.StartX
-						monster.spawnStartY = spawn.StartY
-						monster.spawnEndX = spawn.EndX
-						monster.spawnEndY = spawn.EndY
+						spawnStartX = spawn.StartX
+						spawnStartY = spawn.StartY
+						spawnEndX = spawn.EndX
+						spawnEndY = spawn.EndY
 					case 2: // single
-						monster.spawnStartX = spawn.StartX - 3
-						monster.spawnStartY = spawn.StartY - 3
-						monster.spawnEndX = spawn.StartX + 3
-						monster.spawnEndY = spawn.StartY + 3
+						spawnStartX = spawn.StartX - 3
+						spawnStartY = spawn.StartY - 3
+						spawnEndX = spawn.StartX + 3
+						spawnEndY = spawn.StartY + 3
 					}
-					monster.spawnDir = spawn.Dir
-					monster.spawnDis = spawn.Distance
-					monster.spawnPosition()
-					if spot.Type == 3 {
-						monster.pentagramMainAttribute = spawn.Element
+					spawnDir := spawn.Dir
+					spawnDis := spawn.Distance
+					spawnElement := spawn.Element
+					_, err := m.AddMonster(
+						spawnClass,
+						spawnMapNumber,
+						spawnStartX,
+						spawnStartY,
+						spawnEndX,
+						spawnEndY,
+						spawnDir,
+						spawnDis,
+						spawnElement,
+					)
+					if err != nil {
+						log.Fatalf("AddMonster failed err[%v]", err)
 					}
 				}
 			}
@@ -156,9 +168,9 @@ func (m *objectManager) spawnMonster() {
 	}
 }
 
-func (m *objectManager) AddMonster(kind int) (*Monster, error) {
+func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (int, error) {
 	if m.monsterCount > m.maxMonsterCount {
-		return nil, fmt.Errorf("over max monster count")
+		return -1, fmt.Errorf("over max monster count")
 	}
 	index := m.lastMonsterIndex
 	cnt := m.maxMonsterCount
@@ -177,17 +189,17 @@ func (m *objectManager) AddMonster(kind int) (*Monster, error) {
 	}
 	m.lastMonsterIndex = index
 	m.monsterCount++
-	monster := NewMonster(kind)
+	monster := NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element)
 	monster.objecter = monster
 	monster.objectManager = m
 	monster.index = index
 	m.objects[index] = &monster.object
-	return monster, nil
+	return index, nil
 }
 
-func (m *objectManager) AddCallMonster(kind int) (*Monster, error) {
+func (m *objectManager) AddCallMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (int, error) {
 	if m.callMonsterCount > m.maxCallMonsterCount {
-		return nil, fmt.Errorf("over max call monster count")
+		return -1, fmt.Errorf("over max call monster count")
 	}
 	index := m.lastCallMonsterIndex
 	cnt := m.maxCallMonsterCount
@@ -206,11 +218,11 @@ func (m *objectManager) AddCallMonster(kind int) (*Monster, error) {
 	}
 	m.lastCallMonsterIndex = index
 	m.callMonsterCount++
-	monster := NewMonster(kind)
+	monster := NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element)
 	monster.objectManager = m
 	monster.index = index
 	m.objects[index] = &monster.object
-	return monster, nil
+	return index, nil
 }
 
 func (m *objectManager) AddPlayer(conn Conn) (int, error) {
