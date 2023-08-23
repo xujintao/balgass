@@ -40,6 +40,8 @@ func NewPlayer(conn Conn) *Player {
 			case msg := <-player.msgChan:
 				player.conn.Write(msg)
 			case <-ctx.Done():
+				close(player.msgChan)
+				player.conn.Close()
 				return // return ctx.Err()
 			}
 		}

@@ -2,10 +2,12 @@ package game
 
 import (
 	"context"
+	"log"
 	"reflect"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/game/maps"
+	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/object"
 )
 
@@ -24,6 +26,8 @@ type game struct {
 	userActionChan             chan *actionRequest
 	commandRequestChan         chan *commandRequest
 	cancel                     context.CancelFunc
+	bots                       map[string]*bot
+	maxBotNumber               int
 }
 
 func (g *game) init() {
@@ -34,6 +38,7 @@ func (g *game) init() {
 	g.userCloseConnRequestChan = make(chan *closeConnRequest, 100)
 	g.userActionChan = make(chan *actionRequest, 1000)
 	g.commandRequestChan = make(chan *commandRequest, 100)
+	g.bots = make(map[string]*bot)
 }
 
 func (g *game) Start() {
@@ -114,9 +119,29 @@ func (g *game) Start() {
 			}
 		}
 	}()
+	g.addBot("bot1")
+	g.addBot("bot2")
+	g.addBot("bot3")
+	g.addBot("bot4")
 }
 
 func (g *game) Close() {
+	// use command to kick all players and users
+	g.Command("OfflineAllObjects", &model.MsgOfflineAllObjects{})
+	// check
+	for {
+		v, _ := g.Command("GetOnlineObjectsNumber", &model.MsgGetOnlineObjectNumber{})
+		reply := v.(*model.MsgGetOnlineObjectNumberReply)
+		playerNumber := reply.PlayerNumber
+		userNumber := reply.UserNumber
+		number := playerNumber + userNumber
+		log.Printf("online objects [player]%d [user]%d\n", playerNumber, userNumber)
+		if number == 0 {
+			break
+		}
+		time.Sleep(1 * time.Second)
+	}
+	g.deleteAllBots()
 	g.cancel()
 }
 
@@ -217,6 +242,15 @@ func (g *game) Command(name string, msg any) (any, error) {
 	g.commandRequestChan <- &commandReq
 	commandResp := <-commandReq.commandResponseChan
 	return commandResp.data, commandResp.err
+}
+
+func (g *game) OfflineAllObjects(msg any) (any, error) {
+	object.ObjectManager.OfflineAllObjects()
+	return nil, nil
+}
+
+func (g *game) GetOnlineObjectsNumber(msg any) (*model.MsgGetOnlineObjectNumberReply, error) {
+	return object.ObjectManager.GetOnlineObjectsNumber(), nil
 }
 
 // func (g *game) GetObjectsByMapNumber(msg *model.MsgSubscribeMap) (*model.MsgSubscribeMapReply, error) {

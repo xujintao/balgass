@@ -1,5 +1,19 @@
 package model
 
+type MsgOfflineAllObjects struct {
+}
+
+type MsgOfflineAllObjectsReply struct {
+}
+
+type MsgGetOnlineObjectNumber struct {
+}
+
+type MsgGetOnlineObjectNumberReply struct {
+	PlayerNumber int `json:"player_number"`
+	UserNumber   int `json:"user_number"`
+}
+
 type MsgHandleErrorReply struct {
 	Err string `json:"err"`
 }

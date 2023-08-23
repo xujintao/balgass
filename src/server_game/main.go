@@ -38,6 +38,7 @@ func main() {
 	}()
 
 	// start http server
+	log.Printf("start http server")
 	httpServer := http.Server{
 		Addr: ":8080",
 	}

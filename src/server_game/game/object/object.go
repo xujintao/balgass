@@ -288,6 +288,29 @@ func (m *objectManager) GetPlayer(id int) *object {
 	return m.objects[id]
 }
 
+func (m *objectManager) OfflineAllObjects() {
+	for _, obj := range m.objects[m.playerStartIndex:] {
+		if obj == nil {
+			continue
+		}
+		obj.Offline()
+	}
+	for _, u := range m.users[m.userStartIndex:] {
+		if u == nil {
+			continue
+		}
+		u.Offline()
+	}
+}
+
+func (m *objectManager) GetOnlineObjectsNumber() *model.MsgGetOnlineObjectNumberReply {
+	msg := model.MsgGetOnlineObjectNumberReply{
+		PlayerNumber: m.playerCount,
+		UserNumber:   m.userCount,
+	}
+	return &msg
+}
+
 func (m *objectManager) AddUser(conn Conn) (int, error) {
 	if m.userCount >= m.maxUserCount {
 		return -1, fmt.Errorf("over max user count")
