@@ -123,6 +123,8 @@ func (g *game) Start() {
 	g.addBot("bot2")
 	g.addBot("bot3")
 	g.addBot("bot4")
+	g.Command("AddBot", &model.MsgAddBot{Name: "bot5"})
+	g.Command("DeleteBot", &model.MsgDeleteBot{Name: "bot5"})
 }
 
 func (g *game) Close() {
@@ -242,6 +244,16 @@ func (g *game) Command(name string, msg any) (any, error) {
 	g.commandRequestChan <- &commandReq
 	commandResp := <-commandReq.commandResponseChan
 	return commandResp.data, commandResp.err
+}
+
+func (g *game) AddBot(msg *model.MsgAddBot) (any, error) {
+	g.addBot(msg.Name)
+	return nil, nil
+}
+
+func (g *game) DeleteBot(msg *model.MsgDeleteBot) (any, error) {
+	g.deleteBot(msg.Name)
+	return nil, nil
 }
 
 func (g *game) OfflineAllObjects(msg any) (any, error) {

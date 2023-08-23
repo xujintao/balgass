@@ -53,6 +53,10 @@ func main() {
 	s := <-exit
 	log.Printf("exit [signal]%s\n", s.String())
 
+	// close game
+	log.Println("close game")
+	game.Game.Close()
+
 	// close tcp server
 	log.Println("close tcp server")
 	tcpServer.Close()
@@ -63,8 +67,5 @@ func main() {
 		log.Printf("httpServer.Close failed [err]%v\n", err)
 	}
 
-	// close game
-	log.Println("close game")
-	game.Game.Close()
 	time.Sleep(2 * time.Second)
 }

@@ -32,20 +32,20 @@ func (g *game) deleteAllBots() {
 func newbot(name string) (*bot, error) {
 	b := &bot{name: name}
 	b.msgChan = make(chan any, 100)
-	id, err := Game.PlayerConn(b)
-	if err != nil {
-		return nil, err
-	}
 	ctx, cancel := context.WithCancel(context.Background())
 	b.cancel = cancel
 	go func() {
+		defer close(b.msgChan)
+		id, err := Game.PlayerConn(b)
+		if err != nil {
+			return
+		}
+		defer Game.PlayerCloseConn(id)
 		for {
 			select {
 			case msg := <-b.msgChan:
 				fmt.Println(msg)
 			case <-ctx.Done():
-				Game.PlayerCloseConn(id)
-				close(b.msgChan)
 				return
 			}
 		}
@@ -66,7 +66,7 @@ func (b *bot) Addr() string {
 func (b *bot) Write(msg any) error {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("*bot.Write panic %v\n", r)
+			log.Printf("*bot.Write [panic]%v [bot]%s [msg]%v\n", r, b.name, msg)
 		}
 	}()
 	b.msgChan <- msg

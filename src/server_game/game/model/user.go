@@ -1,5 +1,19 @@
 package model
 
+type MsgAddBot struct {
+	Name string `json:"name"`
+}
+
+type MsgAddBotReply struct {
+}
+
+type MsgDeleteBot struct {
+	Name string `json:"name"`
+}
+
+type MsgDeleteBotReply struct {
+}
+
 type MsgOfflineAllObjects struct {
 }
 
