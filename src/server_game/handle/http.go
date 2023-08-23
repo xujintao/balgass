@@ -179,42 +179,42 @@ func handleGame(w http.ResponseWriter, r *http.Request) {
 	id, err := game.Game.UserConn(&conn)
 	if err != nil {
 		writeErr(err.Error())
-		c.Close()
+		conn.Close()
 		return
 	}
 	defer game.Game.UserCloseConn(id)
 	for {
 		var req map[string]any
-		err := c.ReadJSON(&req)
+		err := conn.ReadJSON(&req)
 		if err != nil {
-			log.Printf("ReadJSON failed [addr]%s [err]%v\n", c.RemoteAddr().String(), err)
+			log.Printf("ReadJSON failed [addr]%s [err]%v\n", conn.Addr(), err)
 			return
 		}
 		actionField, ok := req["action"]
 		if !ok {
 			s := "websocket request has no action field"
-			log.Printf("%s [addr]%s\n", s, c.RemoteAddr().String())
+			log.Printf("%s [addr]%s\n", s, conn.Addr())
 			writeErr(s)
 			continue
 		}
 		action, ok := actionField.(string)
 		if !ok {
 			s := "websocket request action field is not a string"
-			log.Printf("%s [addr]%s\n", s, c.RemoteAddr().String())
+			log.Printf("%s [addr]%s\n", s, conn.Addr())
 			writeErr(s)
 			continue
 		}
 		inField, ok := req["in"]
 		if !ok {
 			s := fmt.Sprintf("websocket request [action]%s has no in field", action)
-			log.Printf("%s [addr]%s\n", s, c.RemoteAddr().String())
+			log.Printf("%s [addr]%s\n", s, conn.Addr())
 			writeErr(s)
 			continue
 		}
 		data, err := json.Marshal(inField)
 		if err != nil {
 			s := fmt.Sprintf("websocket request [action]%s in field is not a valid json", action)
-			log.Printf("%s [addr]%s [err]%v\n", s, c.RemoteAddr().String(), err)
+			log.Printf("%s [addr]%s [err]%v\n", s, conn.Addr(), err)
 			writeErr(s)
 			continue
 		}
