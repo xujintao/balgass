@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
@@ -225,7 +226,7 @@ func (m *objectManager) AddCallMonster(class, mapNumber, startX, startY, endX, e
 	return index, nil
 }
 
-func (m *objectManager) AddPlayer(conn Conn) (int, error) {
+func (m *objectManager) AddPlayer(conn Conn, actioner actioner) (int, error) {
 	// limit max player count
 	if m.playerCount >= m.maxPlayerCount {
 		// reply
@@ -252,7 +253,7 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 	}
 	m.lastPlayerIndex = index
 	m.playerCount++
-	player := NewPlayer(conn)
+	player := NewPlayer(conn, actioner)
 	player.objecter = player
 	player.objectManager = m
 	player.index = index
@@ -495,9 +496,15 @@ type objecter interface {
 	addr() string
 	Offline()
 	push(any)
+	CreateCharacter()
+	DeleteCharacter()
+	GetCharacterList()
+	PickCharacter(*model.MsgPickCharacter)
+	SetCharacter(*model.MsgSetCharacter)
 	getPKLevel() int
 	processAction()
-	processRegen()
+	// processRegen()
+	spawnPosition()
 }
 
 type object struct {
@@ -896,4 +903,47 @@ func (obj *object) initMessage() {
 
 func (obj *object) Test(msg *model.MsgTest) {
 	obj.push(msg)
+}
+
+func (obj *object) randPosition(number, x1, y1, x2, y2 int) (int, int) {
+	w := x2 - x1
+	if w <= 0 {
+		w = 1
+	}
+	h := y2 - y1
+	if h <= 0 {
+		h = 1
+	}
+	if w == 1 && h == 1 {
+		return x1, y1
+	}
+	for i := 0; i < 100; i++ {
+		x := x1 + rand.Intn(w)
+		y := y1 + rand.Intn(h)
+		attr := maps.MapManager.GetMapAttr(number, x, y)
+		if attr&1 == 0 && attr&4 == 0 && attr&8 == 0 {
+			return x, y
+		}
+	}
+	// panic(fmt.Sprintf("randPosition failed [number]%d", number))
+	log.Printf("randPosition failed [map]%d [start](%d,%d) [end](%d,%d)\n", number, x1, y1, x2, y2)
+	return x1, y1
+}
+
+func (obj *object) processRegen() {
+	if !obj.dieRegen {
+		return
+	}
+	if obj.ConnectState < ConnectStatePlaying {
+		return
+	}
+	if time.Now().Unix()-int64(obj.regenTime) < int64(obj.maxRegenTime) {
+		return
+	}
+	obj.HP = obj.MaxHP + obj.AddHP
+	obj.MP = obj.MaxMP + obj.AddMP
+	obj.Live = true
+	obj.spawnPosition()
+	obj.dieRegen = false
+	obj.State = 1
 }

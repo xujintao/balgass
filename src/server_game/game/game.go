@@ -52,7 +52,7 @@ func (g *game) Start() {
 			// player
 			case connReq := <-g.playerConnRequestChan:
 				conn := connReq.Conn
-				id, err := object.ObjectManager.AddPlayer(conn)
+				id, err := object.ObjectManager.AddPlayer(conn, g)
 				connResp := connResponse{id: id, err: err}
 				connReq.connResponseChan <- &connResp
 			case closeConnReq := <-g.playerCloseConnRequestChan:
@@ -64,6 +64,9 @@ func (g *game) Start() {
 				action := playerAction.action
 				msg := playerAction.msg
 				player := object.ObjectManager.GetPlayer(id)
+				if player == nil {
+					break
+				}
 				// player.Chat(msg)
 				in := []reflect.Value{reflect.ValueOf(msg)}
 				reflect.ValueOf(player).MethodByName(action).Call(in)

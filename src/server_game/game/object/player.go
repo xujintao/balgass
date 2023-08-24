@@ -3,10 +3,12 @@ package object
 import (
 	"context"
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
@@ -16,7 +18,11 @@ type Conn interface {
 	Close() error
 }
 
-func NewPlayer(conn Conn) *Player {
+type actioner interface {
+	PlayerAction(int, string, any)
+}
+
+func NewPlayer(conn Conn, actioner actioner) *Player {
 	// create a new player
 	player := &Player{}
 	player.init()
@@ -32,6 +38,7 @@ func NewPlayer(conn Conn) *Player {
 	// player.CheckSpeedHack = false
 	// player.EnableCharacterCreate = false
 	player.Type = ObjectTypePlayer
+	player.actioner = actioner
 
 	// new a new goroutine to reply message
 	go func() {
@@ -55,6 +62,7 @@ type Player struct {
 	conn      Conn
 	msgChan   chan any
 	cancel    context.CancelFunc
+	actioner  actioner
 	AccountID string
 	AuthLevel int
 	// hwid                 string
@@ -209,6 +217,48 @@ func (p *Player) push(msg any) {
 		return
 	}
 	p.msgChan <- msg
+}
+
+func (p *Player) spawnPosition() {
+	p.MapNumber = 0
+	p.StartX, p.StartY = p.randPosition(p.MapNumber, 130, 88, 135, 100)
+	maps.MapManager.SetMapAttrStand(p.MapNumber, p.StartX, p.StartY)
+	p.X, p.Y = p.StartX, p.StartY
+	p.Dir = rand.Intn(8)
+	p.createFrustrum()
+}
+
+func (p *Player) PickCharacter(msg *model.MsgPickCharacter) {
+	go func() {
+		time.Sleep(100 * time.Millisecond) // get character info
+		p.actioner.PlayerAction(p.index, "SetCharacter", &model.MsgSetCharacter{Name: msg.Name})
+	}()
+}
+
+func (p *Player) SetCharacter(msg *model.MsgSetCharacter) {
+	mc := MonsterTable[249]
+	p.Name = msg.Name
+	p.Annotation = msg.Name
+	p.Level = mc.Level
+	p.attackPanelMin = mc.DamageMin
+	p.attackPanelMax = mc.DamageMax
+	p.attackRate = mc.AttackRate
+	p.attackSpeed = mc.AttackSpeed
+	p.defense = mc.Defense
+	p.magicDefense = mc.MagicDefense
+	p.defenseRate = mc.BlockRate
+	p.HP = mc.HP
+	p.MaxHP = mc.HP
+	p.MP = mc.MP
+	p.MaxMP = mc.MP
+	p.moveSpeed = mc.MoveSpeed
+	p.attackRange = mc.AttackRange
+	p.attackType = mc.AttackType
+	p.viewRange = mc.ViewRange
+	p.spawnPosition()
+	p.ConnectState = ConnectStatePlaying
+	p.Live = true
+	p.State = 1
 }
 
 func (p *Player) getPKLevel() int {
@@ -617,18 +667,3 @@ func (player *Player) PushSkillAll() {
 }
 
 func (p *Player) processAction() {}
-
-func (p *Player) processRegen() {
-	if !p.dieRegen {
-		return
-	}
-	if p.ConnectState < ConnectStatePlaying {
-		return
-	}
-	if time.Now().Unix()-int64(p.regenTime) < int64(p.maxRegenTime) {
-		return
-	}
-
-	p.dieRegen = false
-	p.State = 1
-}

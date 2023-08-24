@@ -19,6 +19,14 @@ func (msg *MsgTest) Unmarshal([]byte) error {
 	return nil
 }
 
+type MsgPickCharacter struct {
+	Name string
+}
+
+type MsgSetCharacter struct {
+	Name string
+}
+
 type MsgChat struct {
 	Name string
 	Msg  string

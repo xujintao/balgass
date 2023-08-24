@@ -2,8 +2,10 @@ package game
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"reflect"
+
+	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
 func (g *game) addBot(name string) error {
@@ -41,10 +43,11 @@ func newbot(name string) (*bot, error) {
 			return
 		}
 		defer Game.PlayerCloseConn(id)
+		b.id = id
 		for {
 			select {
 			case msg := <-b.msgChan:
-				fmt.Println(msg)
+				b.Handle(msg)
 			case <-ctx.Done():
 				return
 			}
@@ -55,6 +58,7 @@ func newbot(name string) (*bot, error) {
 
 type bot struct {
 	name    string
+	id      int
 	cancel  context.CancelFunc
 	msgChan chan any
 }
@@ -76,4 +80,13 @@ func (b *bot) Write(msg any) error {
 func (b *bot) Close() error {
 	b.cancel()
 	return nil
+}
+
+func (b *bot) Handle(msg any) {
+	name := reflect.TypeOf(msg).String()
+	switch name {
+	case "*model.MsgConnectSuccess":
+		Game.PlayerAction(b.id, "PickCharacter", &model.MsgPickCharacter{Name: b.name})
+	default:
+	}
 }
