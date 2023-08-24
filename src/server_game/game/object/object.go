@@ -369,7 +369,16 @@ func (m *objectManager) Process100ms() {
 }
 
 func (m *objectManager) Process1000ms() {
-	table := make(map[int][]*maps.Pot)
+	type objects struct {
+		Players  []*maps.Pot `json:"players"`
+		Monsters []*maps.Pot `json:"monsters"`
+		Npcs     []*maps.Pot `json:"npcs"`
+	}
+	table := make(map[int]*objects)
+	for i := range m.mapSubscribeTable {
+		table[i] = &objects{}
+	}
+
 	for _, obj := range m.objects {
 		if obj == nil {
 			continue
@@ -379,15 +388,21 @@ func (m *objectManager) Process1000ms() {
 
 		// process map subscripion
 		if _, ok := m.mapSubscribeTable[obj.MapNumber]; ok {
-			table[obj.MapNumber] = append(table[obj.MapNumber], &maps.Pot{
-				X: obj.X,
-				Y: obj.Y,
-			})
+			p := maps.Pot{X: obj.X, Y: obj.Y}
+			switch obj.Type {
+			case ObjectTypePlayer:
+				table[obj.MapNumber].Players = append(table[obj.MapNumber].Players, &p)
+			case ObjectTypeMonster:
+				table[obj.MapNumber].Monsters = append(table[obj.MapNumber].Monsters, &p)
+			case ObjectTypeNPC:
+				table[obj.MapNumber].Npcs = append(table[obj.MapNumber].Npcs, &p)
+			default:
+			}
 		}
 	}
-	for n, users := range m.mapSubscribeTable {
+	for i, users := range m.mapSubscribeTable {
 		for u := range users {
-			u.publishMap(table[n])
+			u.publishMap(table[i])
 		}
 	}
 }

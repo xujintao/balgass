@@ -221,7 +221,7 @@ func (p *Player) push(msg any) {
 
 func (p *Player) spawnPosition() {
 	p.MapNumber = 0
-	p.StartX, p.StartY = p.randPosition(p.MapNumber, 130, 88, 135, 100)
+	p.StartX, p.StartY = p.randPosition(p.MapNumber, 200, 124, 220, 144)
 	maps.MapManager.SetMapAttrStand(p.MapNumber, p.StartX, p.StartY)
 	p.X, p.Y = p.StartX, p.StartY
 	p.Dir = rand.Intn(8)

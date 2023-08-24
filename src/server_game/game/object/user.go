@@ -116,10 +116,10 @@ func (u *user) unsubscribeMap() {
 	}
 }
 
-func (u *user) publishMap(pots []*maps.Pot) {
+func (u *user) publishMap(objects any) {
 	msg := model.MsgSubscribeMapReply{
 		Name: "object",
-		Data: pots,
+		Data: objects,
 	}
 	u.Push(&msg)
 }
