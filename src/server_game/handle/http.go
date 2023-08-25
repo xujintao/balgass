@@ -78,19 +78,19 @@ var homeTemplate = template.Must(template.New("").Parse(`
               if (out.name == "object") {
                 ctx.clearRect(0, 0, 512, 512);
                 ctx.fillStyle = "black";
-                bg.map((p) => {
+                bg?.map((p) => {
                   drawPoint(p.x, p.y, 2);
                 });
                 ctx.fillStyle = "red";
-                out.data.monsters.map((p) => {
+                out.data.monsters?.map((p) => {
                   drawPoint(p.x, p.y, 4);
                 });
                 ctx.fillStyle = "green";
-                out.data.npcs.map((p) => {
+                out.data.npcs?.map((p) => {
                   drawPoint(p.x, p.y, 4);
                 });
                 ctx.fillStyle = "blue";
-                out.data.players.map((p) => {
+                out.data.players?.map((p) => {
                   drawPoint(p.x, p.y, 4);
                 });
               }
