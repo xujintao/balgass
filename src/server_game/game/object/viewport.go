@@ -1,11 +1,45 @@
 package object
 
+import "github.com/xujintao/balgass/src/server_game/game/math2"
+
+var (
+	FrustrumX [MaxArrayFrustrum]int
+	FrustrumY [MaxArrayFrustrum]int
+)
+
+func InitFrustrum() {
+	var cameraViewFar float32 = 3200.0
+	var cameraviewNear float32 = cameraViewFar * 0.19
+	var cameraViewTarget float32 = cameraViewFar * 0.53
+	var widthFar float32 = 1390.0
+	var widthNear float32 = 750.0
+
+	p := [4][3]float32{
+		{-widthFar, cameraViewFar - cameraViewTarget, 0.0},
+		{widthFar, cameraViewFar - cameraViewTarget, 0.0},
+		{widthNear, cameraviewNear - cameraViewTarget, 0.0},
+		{-widthNear, cameraviewNear - cameraViewTarget, 0.0},
+	}
+	angle := [3]float32{0.0, 0.0, 45.0}
+	matrix := math2.Angle2Matrix(angle)
+	var frustrum [4][3]float32
+	for i := 0; i < 4; i++ {
+		frustrum[i] = math2.VectorRotate(p[i], matrix)
+		FrustrumX[i] = int(frustrum[i][0] * 0.01)
+		FrustrumY[i] = int(frustrum[i][1] * 0.01)
+	}
+}
+
+func (obj *object) createFrustrum() {
+	for i := 0; i < MaxArrayFrustrum; i++ {
+		obj.FrustrumX[i] = FrustrumX[i] + obj.X
+		obj.FrustrumY[i] = FrustrumY[i] + obj.Y
+	}
+}
+
 func (obj *object) initViewport() {
 	for i := range obj.viewports {
 		obj.viewports[i] = &viewport{number: -1}
-	}
-	for i := range obj.viewports2 {
-		obj.viewports2[i] = &viewport{number: -1}
 	}
 }
 
@@ -17,8 +51,8 @@ func (obj *object) checkViewport(x, y int) bool {
 		return false
 	}
 	for i, j := 0, 3; i < MaxArrayFrustrum; j, i = i, i+1 {
-		frustrum := (obj.FrustrumX[i]-x)*(obj.FrustrumY[i]-y) -
-			(obj.FrustrumX[j]-x)*(obj.FrustrumY[j]-y)
+		frustrum := (obj.FrustrumX[i]-x)*(obj.FrustrumY[j]-y) -
+			(obj.FrustrumX[j]-x)*(obj.FrustrumY[i]-y)
 		if frustrum < 0 {
 			return false
 		}
@@ -31,17 +65,11 @@ func (obj *object) addViewport(tobj *object) {
 		tobj.Class == 603 {
 		return
 	}
-	// type_ := tobj.Type
-	// index := tobj.index
-	// k := int(type_)<<16 + index
-	// if _, ok := obj.viewports[k]; !ok {
-	// 	v := &viewport{
-	// 		state:  1,
-	// 		number: index,
-	// 		type_:  int(type_),
-	// 	}
-	// 	obj.viewports[k] = v
-	// }
+	for _, vp := range obj.viewports {
+		if vp.number == tobj.index {
+			return
+		}
+	}
 	for _, vp := range obj.viewports {
 		if vp.state == 0 {
 			vp.state = 1
@@ -53,34 +81,12 @@ func (obj *object) addViewport(tobj *object) {
 	}
 }
 
-func (obj *object) addViewport2(tobj *object) {
-	if tobj.Class == 523 ||
-		tobj.Class == 603 {
-		return
-	}
-	for _, vp := range obj.viewports2 {
-		if vp.state == 0 {
-			vp.state = 1
-			vp.number = tobj.index
-			vp.type_ = int(tobj.Type)
-			obj.viewportNum2++
-			break
-		}
-	}
-}
-
 func (obj *object) clearViewport() {
 	for i := range obj.viewports {
 		obj.viewports[i].state = 0
 		obj.viewports[i].number = -1
 	}
 	obj.viewportNum = 0
-
-	for i := range obj.viewports2 {
-		obj.viewports2[i].state = 0
-		obj.viewports2[i].number = -1
-	}
-	obj.viewportNum2 = 0
 }
 
 func (obj *object) createViewport() {
@@ -109,7 +115,6 @@ func (obj *object) createViewport() {
 			continue
 		}
 		obj.addViewport(tobj)
-		tobj.addViewport2(obj)
 	}
 }
 
@@ -119,31 +124,7 @@ func (obj *object) destoryViewport() {
 	}
 	// remove viewport
 	for i, vp := range obj.viewports {
-		if vp.state != 1 && vp.state != 2 {
-			continue
-		}
-		tnum := vp.number
-		switch vp.type_ {
-		case 5: // items
-		default: // objects
-			tobj := obj.objectManager.objects[tnum]
-			if tobj == nil {
-				obj.viewports[i].state = 3
-			} else {
-				if tobj.ConnectState < ConnectStatePlaying ||
-					tobj.index == obj.index ||
-					(tobj.State != 1 && tobj.State != 2) ||
-					tobj.MapNumber != obj.MapNumber {
-					obj.viewports[i].state = 3
-				}
-				if !obj.checkViewport(tobj.X, tobj.Y) {
-					obj.viewports[i].state = 3
-				}
-			}
-		}
-	}
-	for i, vp := range obj.viewports2 {
-		if vp.state != 1 && vp.state != 2 {
+		if vp.state == 0 {
 			continue
 		}
 		tobj := obj.objectManager.objects[vp.number]
@@ -162,9 +143,9 @@ func (obj *object) destoryViewport() {
 			}
 		}
 		if remove {
-			obj.viewports2[i].state = 0
-			obj.viewports2[i].number = -1
-			obj.viewportNum2--
+			obj.viewports[i].state = 0
+			obj.viewports[i].number = -1
+			obj.viewportNum--
 		}
 	}
 }

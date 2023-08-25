@@ -291,7 +291,7 @@ func (m *Monster) roamMove() {
 func (m *Monster) searchEnemy() int {
 	mindis := m.viewRange
 	target := -1
-	for _, vp := range m.viewports2 {
+	for _, vp := range m.viewports {
 		tnum := vp.number
 		if tnum < 0 {
 			continue

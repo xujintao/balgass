@@ -9,7 +9,6 @@ import (
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
-	"github.com/xujintao/balgass/src/server_game/game/math2"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
@@ -446,7 +445,7 @@ const (
 )
 
 type viewport struct {
-	state  int // 3消失
+	state  int
 	number int
 	type_  int
 	// index  int
@@ -595,9 +594,7 @@ type object struct {
 	FrustrumX                 [MaxArrayFrustrum]int
 	FrustrumY                 [MaxArrayFrustrum]int
 	viewports                 [MaxViewportNum]*viewport // 主动视野
-	viewports2                [MaxViewportNum]*viewport // 被动视野
 	viewportNum               int
-	viewportNum2              int
 	msgs                      [20]*messageStateMachine
 
 	// groupNumber     int
@@ -871,41 +868,6 @@ func (obj *object) init() {
 func (obj *object) reset() {
 	obj.clearSkill()
 	obj.clearViewport()
-}
-
-var (
-	FrustrumX [MaxArrayFrustrum]int
-	FrustrumY [MaxArrayFrustrum]int
-)
-
-func InitFrustrum() {
-	var cameraViewFar float32 = 3200.0
-	var cameraviewNear float32 = cameraViewFar * 0.19
-	var cameraViewTarget float32 = cameraViewFar * 0.53
-	var widthFar float32 = 1390.0
-	var widthNear float32 = 750.0
-
-	p := [4][3]float32{
-		{-widthFar, cameraViewFar - cameraViewTarget, 0.0},
-		{widthFar, cameraViewFar - cameraViewTarget, 0.0},
-		{widthNear, cameraviewNear - cameraViewTarget, 0.0},
-		{-widthNear, cameraviewNear - cameraViewTarget, 0.0},
-	}
-	angle := [3]float32{0.0, 0.0, 45.0}
-	matrix := math2.Angle2Matrix(angle)
-	var frustrum [4][3]float32
-	for i := 0; i < 4; i++ {
-		frustrum[i] = math2.VectorRotate(p[i], matrix)
-		FrustrumX[i] = int(frustrum[i][0] * 0.01)
-		FrustrumY[i] = int(frustrum[i][1] * 0.01)
-	}
-}
-
-func (obj *object) createFrustrum() {
-	for i := 0; i < MaxArrayFrustrum; i++ {
-		obj.FrustrumX[i] = FrustrumX[i] + obj.X
-		obj.FrustrumY[i] = FrustrumY[i] + obj.Y
-	}
 }
 
 func (obj *object) initMessage() {
