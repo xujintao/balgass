@@ -17,9 +17,9 @@ func Angle2Matrix(angles [3]float32) [3][4]float32 {
 	sr := float32(math.Sin(float64(angle)))
 	cr := float32(math.Cos(float64(angle)))
 	return [3][4]float32{
-		{cp * cy, cp * sy, -sp, 0.0},
-		{sr*sp*cy + cr*(-sy), sr*sp*sy + cr*cy, sr * cp, 0.0},
-		{cr*sp*cy + (-sr)*(-sy), cr*sp*sy + (-sr)*cy, cr * cp, 0.0},
+		{cp * cy, sr*sp*cy + cr*(-sy), cr*sp*cy + (-sr)*sy, 0.0},
+		{cp * sy, sr*sp*sy + cr*cy, cr*sp*sy + (-sr)*cy, 0.0},
+		{-sp, sr * cp, cr * cp, 0.0},
 	}
 }
 
