@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/xujintao/balgass/src/server_game/game/bot"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/object"
@@ -26,8 +27,6 @@ type game struct {
 	userActionChan             chan *actionRequest
 	commandRequestChan         chan *commandRequest
 	cancel                     context.CancelFunc
-	bots                       map[string]*bot
-	maxBotNumber               int
 }
 
 func (g *game) init() {
@@ -38,7 +37,6 @@ func (g *game) init() {
 	g.userCloseConnRequestChan = make(chan *closeConnRequest, 100)
 	g.userActionChan = make(chan *actionRequest, 1000)
 	g.commandRequestChan = make(chan *commandRequest, 100)
-	g.bots = make(map[string]*bot)
 }
 
 func (g *game) Start() {
@@ -122,10 +120,10 @@ func (g *game) Start() {
 			}
 		}
 	}()
-	g.addBot("bot1")
-	g.addBot("bot2")
-	g.addBot("bot3")
-	g.addBot("bot4")
+	bot.BotManager.AddBot("bot1", g)
+	bot.BotManager.AddBot("bot2", g)
+	bot.BotManager.AddBot("bot3", g)
+	bot.BotManager.AddBot("bot4", g)
 	g.Command("AddBot", &model.MsgAddBot{Name: "bot5"})
 	g.Command("DeleteBot", &model.MsgDeleteBot{Name: "bot5"})
 }
@@ -146,7 +144,7 @@ func (g *game) Close() {
 		}
 		time.Sleep(1 * time.Second)
 	}
-	g.deleteAllBots()
+	bot.BotManager.DeleteAllBots()
 	g.cancel()
 }
 
@@ -250,12 +248,12 @@ func (g *game) Command(name string, msg any) (any, error) {
 }
 
 func (g *game) AddBot(msg *model.MsgAddBot) (any, error) {
-	g.addBot(msg.Name)
+	bot.BotManager.AddBot(msg.Name, g)
 	return nil, nil
 }
 
 func (g *game) DeleteBot(msg *model.MsgDeleteBot) (any, error) {
-	g.deleteBot(msg.Name)
+	bot.BotManager.DeleteBot(msg.Name)
 	return nil, nil
 }
 
