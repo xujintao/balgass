@@ -271,6 +271,10 @@ func (m *objectManager) AddPlayer(conn Conn, actioner actioner) (int, error) {
 }
 
 func (m *objectManager) DeletePlayer(id int) {
+	if id < m.playerStartIndex {
+		log.Printf("delete player failed [id]%d\n", id)
+		return
+	}
 	player := m.objects[id]
 	if player == nil {
 		return
