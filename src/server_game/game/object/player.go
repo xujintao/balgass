@@ -208,7 +208,7 @@ func (p *Player) Offline() {
 
 func (p *Player) push(msg any) {
 	if p.offline {
-		log.Printf("Still pushing [msg]%v to [user]%d that alread offline\n",
+		log.Printf("Still pushing [msg]%#v to [player]%d that already offline\n",
 			msg, p.index)
 		return
 	}

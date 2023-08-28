@@ -297,6 +297,9 @@ func (m *Monster) searchEnemy() int {
 			continue
 		}
 		tobj := m.objectManager.objects[tnum]
+		if tobj == nil {
+			continue
+		}
 		if (m.Class == 247 || m.Class == 249) && tobj.getPKLevel() <= 4 {
 			continue
 		}

@@ -107,8 +107,10 @@ func (obj *object) Move(msg *model.MsgMove) {
 		if tnum < 0 {
 			continue
 		}
-		om := obj.objectManager
-		tobj := om.objects[tnum]
+		tobj := obj.objectManager.objects[tnum]
+		if tobj == nil {
+			continue
+		}
 		tobj.push(&msgRelpy)
 	}
 }
