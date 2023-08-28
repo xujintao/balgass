@@ -70,16 +70,21 @@ func newbot(name string, boter boter) (*bot, error) {
 			case msg := <-b.msgChan:
 				b.handle(msg)
 			case <-b.closeConnChan:
+				if b.exit {
+					return
+				}
 				b.state = botStateOffline
 			case <-t100ms.C:
 				b.stateMachine()
 			case <-ctx.Done():
-				if b.state >= botStateOnline {
-					b.state = botStateOffline
-					b.nextTime = 0
-					b.stateMachine()
+				if b.state < botStateOnline {
+					return
 				}
-				return
+				// excute offline and wait close
+				b.state = botStateOffline
+				b.nextTime = 0
+				b.stateMachine()
+				b.exit = true
 			}
 		}
 	}()
@@ -109,6 +114,7 @@ type bot struct {
 	id            int
 	msgChan       chan any
 	closeConnChan chan struct{}
+	exit          bool
 	state         botState
 	curTime       int64
 	nextTime      int64
