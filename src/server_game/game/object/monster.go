@@ -402,6 +402,12 @@ func (m *Monster) baseAction() {
 			return
 		}
 		tobj := m.objectManager.objects[m.targetNumber]
+		if tobj == nil {
+			m.targetNumber = -1
+			m.actionState.emotion = 3
+			m.actionState.emotionCount = 10 // 10*500ms=5s
+			return
+		}
 		dis := m.calcDistance(tobj)
 		attackRange := m.attackRange
 		if m.attackType >= 100 {
