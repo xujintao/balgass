@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/game/bot"
+	"github.com/xujintao/balgass/src/server_game/game/cmd"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/object"
@@ -37,6 +38,7 @@ func (g *game) init() {
 	g.userCloseConnRequestChan = make(chan *closeConnRequest, 100)
 	g.userActionChan = make(chan *actionRequest, 1000)
 	g.commandRequestChan = make(chan *commandRequest, 100)
+	bot.BotManager.Register(g)
 }
 
 func (g *game) Start() {
@@ -94,7 +96,7 @@ func (g *game) Start() {
 				name := commandReq.name
 				msg := commandReq.msg
 				in := []reflect.Value{reflect.ValueOf(msg)}
-				out := reflect.ValueOf(g).MethodByName(name).Call(in)
+				out := reflect.ValueOf(&cmd.Command).MethodByName(name).Call(in)
 				commandResp := commandResponse{
 					data: out[0].Interface(),
 				}
@@ -120,10 +122,10 @@ func (g *game) Start() {
 			}
 		}
 	}()
-	bot.BotManager.AddBot("bot1", g)
-	bot.BotManager.AddBot("bot2", g)
-	bot.BotManager.AddBot("bot3", g)
-	bot.BotManager.AddBot("bot4", g)
+	g.Command("AddBot", &model.MsgAddBot{Name: "bot1"})
+	g.Command("AddBot", &model.MsgAddBot{Name: "bot2"})
+	g.Command("AddBot", &model.MsgAddBot{Name: "bot3"})
+	g.Command("AddBot", &model.MsgAddBot{Name: "bot4"})
 	g.Command("AddBot", &model.MsgAddBot{Name: "bot5"})
 	g.Command("DeleteBot", &model.MsgDeleteBot{Name: "bot5"})
 }
@@ -246,34 +248,6 @@ func (g *game) Command(name string, msg any) (any, error) {
 	commandResp := <-commandReq.commandResponseChan
 	return commandResp.data, commandResp.err
 }
-
-func (g *game) AddBot(msg *model.MsgAddBot) (any, error) {
-	bot.BotManager.AddBot(msg.Name, g)
-	return nil, nil
-}
-
-func (g *game) DeleteBot(msg *model.MsgDeleteBot) (any, error) {
-	bot.BotManager.DeleteBot(msg.Name)
-	return nil, nil
-}
-
-func (g *game) OfflineAllObjects(msg any) (any, error) {
-	object.ObjectManager.OfflineAllObjects()
-	return nil, nil
-}
-
-func (g *game) GetOnlineObjectsNumber(msg any) (*model.MsgGetOnlineObjectNumberReply, error) {
-	return object.ObjectManager.GetOnlineObjectsNumber(), nil
-}
-
-// func (g *game) GetObjectsByMapNumber(msg *model.MsgSubscribeMap) (*model.MsgSubscribeMapReply, error) {
-// 	number := msg.Number
-// 	pots := object.ObjectManager.GetObjectsByMapNumber(number)
-// 	return &model.MsgSubscribeMapReply{
-// 		Name: "object",
-// 		Data: pots,
-// 	}, nil
-// }
 
 func (g *game) SendWeather(number, weather int) {
 	// if number == 0 {

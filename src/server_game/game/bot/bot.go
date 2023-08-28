@@ -19,14 +19,19 @@ var BotManager botManager
 type botManager struct {
 	bots         map[string]*bot
 	maxBotNumber int
+	boter        boter
 }
 
 func (m *botManager) init() {
 	m.bots = make(map[string]*bot)
 }
 
-func (m *botManager) AddBot(name string, boter boter) error {
-	b, err := newbot(name, boter)
+func (m *botManager) Register(boter boter) {
+	m.boter = boter
+}
+
+func (m *botManager) AddBot(name string) error {
+	b, err := newbot(name, m.boter)
 	if err != nil {
 		return err
 	}
