@@ -3,7 +3,13 @@ package object
 import (
 	"fmt"
 	"log"
+
+	"github.com/xujintao/balgass/src/server_connect/service/model"
 )
+
+func init() {
+	ObjectManager.init()
+}
 
 type Conn interface {
 	Addr() string
@@ -53,6 +59,12 @@ func (m *objectManager) AddPlayer(conn Conn) (int, error) {
 	p.objectManager = m
 	p.index = index
 	m.players[index] = p
+
+	// reply
+	msg := model.MsgConnectReply{
+		Result: 1,
+	}
+	p.Push(&msg)
 	log.Printf("player online [id]%d [addr]%s\n", p.index, p.conn.Addr())
 	return index, nil
 }
@@ -67,7 +79,7 @@ func (m *objectManager) DeletePlayer(id int) {
 		return
 	}
 	p.Offline()
-	log.Printf("pplayer offline [id]%d [addr]%s\n", p.index, p.conn.Addr())
+	log.Printf("player offline [id]%d [addr]%s\n", p.index, p.conn.Addr())
 
 	// unregister player from object manager
 	m.players[id] = nil

@@ -207,6 +207,7 @@ var apiIns = [...]*apiIn{
 }
 
 var apiOuts = [...]*apiOut{
+	{0, 0xC1, 0x00, "ConnectReply", (*model.MsgConnectReply)(nil)},
 	{0, 0xC1, 0x02, "CheckVersionSuccess", (*model.MsgCheckVersionSuccess)(nil)},
 	{0, 0xC1, 0x04, "CheckVersionFailed", (*model.MsgCheckVersionFailed)(nil)},
 	{0, 0xC2, 0xF406, "GetServerListReply", (*model.MsgGetServerListReply)(nil)},

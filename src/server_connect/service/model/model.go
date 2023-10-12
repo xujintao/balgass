@@ -5,6 +5,14 @@ import (
 	"encoding/binary"
 )
 
+type MsgConnectReply struct {
+	Result int
+}
+
+func (msg *MsgConnectReply) Marshal() ([]byte, error) {
+	return []byte{1}, nil
+}
+
 type Version struct {
 	Major int
 	Minor int
