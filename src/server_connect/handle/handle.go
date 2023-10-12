@@ -2,160 +2,213 @@ package handle
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
+	"fmt"
 	"log"
+	"reflect"
 
-	"github.com/xujintao/balgass/cmd/server_connect/model"
-	"github.com/xujintao/balgass/cmd/server_connect/service"
-	"github.com/xujintao/balgass/network"
+	"github.com/xujintao/balgass/src/c1c2"
+	"github.com/xujintao/balgass/src/server_connect/service"
+	"github.com/xujintao/balgass/src/server_connect/service/model"
 )
 
-// CMDHandle tcp cmd handle
-type CMDHandle struct{}
+func init() {
+	C1C2Handle.init()
+}
 
-// HandleUDP implements network.UDPHandler
-func (CMDHandle) HandleUDP(req *network.Request, res *network.Response) bool {
-	code := req.Code
-	if h, ok := udpcmds[int(code)]; ok {
-		return h(req, res)
+var C1C2Handle c1c2Handle
+
+type c1c2Handle struct {
+	apiIns  map[int]*apiIn
+	apiOuts map[any]*apiOut
+}
+
+func (h *c1c2Handle) init() {
+	// ingress
+	h.apiIns = make(map[int]*apiIn)
+	for _, v := range apiIns {
+		if vv, ok := h.apiIns[v.code]; ok {
+			log.Fatalf("duplicated api code[%d] action[%s] with code[%d] action[%s]\n",
+				v.code, v.action, vv.code, vv.action)
+		}
+		h.apiIns[v.code] = v
 	}
-	subcode := req.Body[0]
-	codes := []byte{code, subcode}
-	code16 := binary.BigEndian.Uint16(codes)
-	if h, ok := udpcmds[int(code16)]; ok {
+
+	// egress
+	h.apiOuts = make(map[any]*apiOut)
+	for _, v := range apiOuts {
+		t := reflect.TypeOf(v.msg)
+		if t.Kind() != reflect.Ptr {
+			log.Fatalf("api code[%d] name[%s] msg field must be a pointer\n",
+				v.code, v.name)
+		}
+		h.apiOuts[t] = v
+	}
+}
+
+func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
+	v := ctx.Value(c1c2.UserContextKey)
+	if v == nil {
+		return
+	}
+	id := v.(int)
+
+	var api *apiIn
+	var ok bool
+	code := int(req.Body[0])
+	if api, ok = h.apiIns[code]; !ok {
+		codes := []byte{req.Body[0], req.Body[1]}
+		code = int(binary.BigEndian.Uint16(codes))
+		if api, ok = h.apiIns[code]; !ok {
+			log.Printf("invalid api [body]%v\n", req.Body)
+			return
+		}
 		req.Body = req.Body[1:]
-		return h(req, res)
 	}
-	log.Printf("invalid cmd, code:%02dx, body: %v", code, req.Body)
-	return false
-}
+	req.Body = req.Body[1:]
 
-var udpcmds = map[int]func(req *network.Request, res *network.Response) bool{
-	0x0100: registerServer,
-}
-
-func registerServer(req *network.Request, res *network.Response) bool {
-	// unmarshal
-	sri := model.ServerRegisterInfo{}
-	if err := sri.Unmarshal(req.Body); err != nil {
-		log.Println(err)
-		return false
+	in := []reflect.Value{reflect.ValueOf(req.Body)}
+	msg := reflect.New(reflect.TypeOf(api.msg).Elem())
+	out := msg.MethodByName("Unmarshal").Call(in)
+	err := out[0].Interface()
+	if err != nil {
+		log.Printf("%s UnMarshal failed", msg.String())
+		return
 	}
-
-	// service
-	service.ServerManager.RegisterServer(&sri)
-	return false
+	service.Service.PlayerAction(id, api.action, msg.Interface())
 }
 
-// OnConn implements network.Handler.OnConn
-func (CMDHandle) OnConn(addr string, conn network.ConnWriter) (interface{}, error) {
-	if err := service.UserManager.AddUser(addr, conn); err != nil {
-		log.Printf("[%s] add user failed, %v", addr, err)
+func (h *c1c2Handle) marshal(msg any) (*c1c2.Response, error) {
+	v := reflect.ValueOf(msg)
+	t := v.Type()
+	api, ok := h.apiOuts[t]
+	if !ok {
+		err := fmt.Errorf("%s has not yet be registered to api table", t.String())
 		return nil, err
 	}
-	log.Printf("[%s] connected", addr)
-	res := &network.Response{}
-	res.WriteHead2(0xC1, 0x00, 0x01)
-	conn.Write(res)
-	return addr, nil
+	if _, ok := t.MethodByName("Marshal"); !ok {
+		err := fmt.Errorf("%s has no Marshal Method", t.String())
+		return nil, err
+	}
+	rets := v.MethodByName("Marshal").Call(nil)
+	if len(rets) != 2 {
+		err := fmt.Errorf("%s Marshal Method signature is invalid", t.String())
+		return nil, err
+	}
+	data := rets[0].Bytes()
+	err := rets[1].Interface()
+	if err != nil {
+		return nil, err.(error)
+	}
+	var buf bytes.Buffer
+	if api.code>>8 != 0 {
+		var codes [2]uint8
+		binary.BigEndian.PutUint16(codes[:], uint16(api.code))
+		buf.Write(codes[:])
+	} else {
+		buf.WriteByte(uint8(api.code))
+	}
+	buf.Write(data)
+
+	var resp c1c2.Response
+	resp.WriteHead(uint8(api.flag))
+	resp.Write(buf.Bytes())
+	return &resp, nil
 }
 
-// OnClose implements network.Handler.OnConn
-func (CMDHandle) OnClose(v interface{}) {
-	addr := v.(string)
-	service.UserManager.DelUser(addr)
-	log.Printf("[%s] disconnected", addr)
+type conn struct {
+	*c1c2.Conn
 }
 
-// Handle *CMDHandle implements network.Handler
-func (CMDHandle) Handle(v interface{}, req *network.Request) {
-	uid := v.(string)
-	user := service.UserManager.GetUser(uid)
+func (c *conn) Addr() string {
+	return c.RemoteAddr
+}
 
-	code := req.Code
-	if h, ok := cmds[int(code)]; ok {
-		h(user, req)
+func (c *conn) Write(msg any) error {
+	resp, err := C1C2Handle.marshal(msg)
+	if err != nil {
+		return err
+	}
+	return c.Conn.Write(resp)
+}
+
+func (c *conn) Close() error {
+	return c.Conn.Close()
+}
+
+// OnConn implements c1c2.Handler.OnConn
+func (h *c1c2Handle) OnConn(c *c1c2.Conn) (any, error) {
+	conn := conn{c}
+	return service.Service.PlayerConn(&conn)
+}
+
+// OnClose implements c1c2.Handler.OnConn
+func (h *c1c2Handle) OnClose(ctx context.Context) {
+	v := ctx.Value(c1c2.UserContextKey)
+	if v == nil {
 		return
 	}
-	subcode := req.Body[0]
-	codes := []byte{code, subcode}
-	code16 := binary.BigEndian.Uint16(codes)
-	if h, ok := cmds[int(code16)]; ok {
+	id := v.(int)
+	service.Service.PlayerCloseConn(id)
+}
+
+func (h *c1c2Handle) HandleUDP(req *c1c2.Request, res *c1c2.Response) bool {
+	apiIns := map[int]*apiIn{
+		0x01: {0, 0x01, "Register", (*model.MsgRegister)(nil)},
+	}
+	var api *apiIn
+	var ok bool
+	code := int(req.Body[0])
+	if api, ok = apiIns[code]; !ok {
+		codes := []byte{req.Body[0], req.Body[1]}
+		code = int(binary.BigEndian.Uint16(codes))
+		if api, ok = h.apiIns[code]; !ok {
+			log.Printf("invalid api [body]%v\n", req.Body)
+			return false
+		}
 		req.Body = req.Body[1:]
-		h(user, req)
-		return
 	}
-	log.Printf("[%s], invalid cmd, code:[%02x], body:[%v]", uid, code, network.Hex2string(req.Body))
-}
+	req.Body = req.Body[1:]
 
-var cmds = map[int]func(user *model.User, req *network.Request){
-	0x05:   checkVersion,
-	0xf406: getServerList,
-	0xf403: getServerInfo,
-}
-
-func checkVersion(user *model.User, req *network.Request) {
-	// unmarshal
-	ver := model.Version{}
-	if err := binary.Read(bytes.NewReader(req.Body), binary.LittleEndian, &ver); err != nil {
-		log.Println(err)
-		return
-	}
-
-	// service
-	result := service.Update.CheckVersion(&ver)
-
-	// marshal
-	buf := new(bytes.Buffer)
-	if err := binary.Write(buf, binary.LittleEndian, result); err != nil {
-		log.Println(err)
-		return
-	}
-
-	// write
-	res := &network.Response{}
-	res.WriteHead(0xC1, 0x05).Write(buf.Bytes())
-	user.Conn.Write(res)
-}
-
-func getServerList(user *model.User, req *network.Request) {
-	// service
-	slis := service.ServerManager.GetServerList()
-
-	// marshal body and write
-	slr := model.ServerListRes{
-		Size: int16(len(slis)),
-		Slis: slis,
-	}
-	buf, err := slr.Marshal()
+	in := []reflect.Value{reflect.ValueOf(req.Body)}
+	msg := reflect.New(reflect.TypeOf(api.msg).Elem())
+	out := msg.MethodByName("Unmarshal").Call(in)
+	err := out[0].Interface()
 	if err != nil {
-		log.Println("Marshal failed", err)
-		return
+		log.Printf("%s UnMarshal failed", msg.String())
+		return false
 	}
+	service.Service.ServerAction(api.action, msg.Interface())
 
-	// write
-	res := &network.Response{}
-	res.WriteHead2(0xc2, 0xf4, 0x06).Write(buf)
-	user.Conn.Write(res)
+	return false
 }
 
-func getServerInfo(user *model.User, req *network.Request) {
-	// get param
-	code := binary.LittleEndian.Uint16(req.Body)
+type apiIn struct {
+	id     int
+	code   int
+	action string
+	msg    any
+}
 
-	// service
-	sci := service.ServerManager.GetServerInfo(int(code))
-	if sci == nil {
-		log.Println("GetServerInfo failed, code: %u", code)
-	}
+type apiOut struct {
+	id   int
+	flag int
+	code int
+	name string
+	msg  any
+}
 
-	// marshal body and write
-	buf, err := sci.Marshal()
-	if err != nil {
-		log.Println("Marshal failed", err)
-	}
-	// write head
-	res := &network.Response{}
-	res.WriteHead2(0xc1, 0xf4, 0x03).Write(buf)
-	user.Conn.Write(res)
+var apiIns = [...]*apiIn{
+	{0, 0x04, "CheckVersion", (*model.MsgCheckVersion)(nil)}, // 1.04.44
+	// {0, 0x05, "CheckVersion", (*model.MsgCheckVersion)(nil)}, // 1.05.25
+	{0, 0xF406, "GetServerList", (*model.MsgGetServerList)(nil)},
+	{0, 0xF403, "GetServer", (*model.MsgGetServer)(nil)},
+}
+
+var apiOuts = [...]*apiOut{
+	{0, 0xC1, 0x02, "CheckVersionSuccess", (*model.MsgCheckVersionSuccess)(nil)},
+	{0, 0xC1, 0x04, "CheckVersionFailed", (*model.MsgCheckVersionFailed)(nil)},
+	{0, 0xC2, 0xF406, "GetServerListReply", (*model.MsgGetServerListReply)(nil)},
+	{0, 0xC1, 0xF403, "GetServerReply", (*model.MsgGetServerReply)(nil)},
 }
