@@ -3,6 +3,8 @@ package model
 import (
 	"bytes"
 	"encoding/binary"
+
+	"github.com/xujintao/balgass/src/server_connect/service/utils"
 )
 
 type MsgConnectReply struct {
@@ -88,7 +90,7 @@ func (msg *MsgCheckVersionFailed) Marshal() ([]byte, error) {
 	// host
 	var host [100]byte
 	copy(host[:], msg.HostURL)
-	if _, err := bw.Write(host[:]); err != nil {
+	if _, err := bw.Write(utils.Xor(host[:])); err != nil {
 		return nil, err
 	}
 
@@ -100,21 +102,21 @@ func (msg *MsgCheckVersionFailed) Marshal() ([]byte, error) {
 	// login
 	var login [20]byte
 	copy(login[:], msg.FTPLogin)
-	if _, err := bw.Write(login[:]); err != nil {
+	if _, err := bw.Write(utils.Xor(login[:])); err != nil {
 		return nil, err
 	}
 
 	// passwd
 	var passwd [20]byte
 	copy(passwd[:], msg.FTPPasswd)
-	if _, err := bw.Write(passwd[:]); err != nil {
+	if _, err := bw.Write(utils.Xor(passwd[:])); err != nil {
 		return nil, err
 	}
 
 	// file
 	var file [20]byte
 	copy(file[:], msg.VersionFile)
-	if _, err := bw.Write(file[:]); err != nil {
+	if _, err := bw.Write(utils.Xor(file[:])); err != nil {
 		return nil, err
 	}
 
