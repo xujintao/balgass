@@ -4,7 +4,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/xujintao/balgass/cmd/client_mu/mumsg"
+	"github.com/xujintao/balgass/src/client_mu/mumsg"
 )
 
 // msg

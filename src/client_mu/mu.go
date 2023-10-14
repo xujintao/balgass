@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/xujintao/balgass/win"
+	"github.com/xujintao/balgass/src/win"
 )
 
 // winThread gui thread

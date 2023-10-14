@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/xujintao/balgass/win"
+	"github.com/xujintao/balgass/src/win"
 )
 
 func f00414B5Cnew(size int) unsafe.Pointer {

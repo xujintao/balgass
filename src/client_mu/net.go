@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"syscall"
 
-	"github.com/xujintao/balgass/win"
+	"github.com/xujintao/balgass/src/win"
 )
 
 var v004633D0conn conn

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/xujintao/balgass/win"
+	"github.com/xujintao/balgass/src/win"
 )
 
 // dialogEx base dialog
