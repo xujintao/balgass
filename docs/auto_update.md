@@ -4,7 +4,7 @@
 
 ### patches
 
-http://muonlineworlds.blogspot.com/2015/01/well-this-time-i-will-show-you-how-to.html
+https://forum.ragezone.com/threads/make-your-own-muautoupdater.183456
 
 ```
 patches/
@@ -19,7 +19,7 @@ patches/
 1, tags.wvd (NOTE: CRLF)
 
 ```
-"1.04.44"
+"0.1.4"
 "0.1.5"
 ```
 
@@ -85,6 +85,16 @@ TestVersion=1.00.05
 Version=381
 ```
 
+NOTE: The orginal client config.ini should be:
+
+```
+[LOGIN]
+Version=0.1.4
+TestVersion=1.00.05
+[PARTITION]
+Version=381
+```
+
 4, zip up_list
 
 ```
@@ -95,6 +105,11 @@ zip -rj up_list.zip up_list
 
 1, MU.exe didn't send http request to web every time, even though the version is unmatched.
 
+Disable cache.  
+https://stackoverflow.com/questions/40243633/disable-nginx-cache-for-javascript-files
+
 2, MU.exe didn't get specific tag from web to update after got the tags.wvd.
 
-3, MU.exe would create a new tcp connection without reusing or closing the old tcp connection.
+The current version tag must be lower than new version tag.
+
+3, MU.exe always create a new tcp connection without reusing or closing the old tcp connection.
