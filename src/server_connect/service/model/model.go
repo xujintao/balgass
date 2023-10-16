@@ -129,6 +129,20 @@ type ServerState struct {
 	Type_   int
 }
 
+type ServerStateSlice []*ServerState
+
+func (s ServerStateSlice) Len() int {
+	return len(s)
+}
+
+func (s ServerStateSlice) Less(i, j int) bool {
+	return s[i].Code < s[j].Code
+}
+
+func (s ServerStateSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 type ServerConfig struct {
 	Code    int    `xml:"Code,attr"`
 	IP      string `xml:"IP,attr"`

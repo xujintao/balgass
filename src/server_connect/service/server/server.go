@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/xml"
 	"log"
+	"sort"
 	"time"
 
 	"github.com/xujintao/balgass/src/server_connect/conf"
@@ -93,6 +94,7 @@ func (m *serverManager) GetServerList() []*model.ServerState {
 			list = append(list, &s.State)
 		}
 	}
+	sort.Sort(model.ServerStateSlice(list))
 	return list
 }
 
