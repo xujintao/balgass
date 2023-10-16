@@ -73,7 +73,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	out := msg.MethodByName("Unmarshal").Call(in)
 	err := out[0].Interface()
 	if err != nil {
-		log.Printf("%s UnMarshal failed", msg.String())
+		log.Printf("Unmarshal failed [msg]%s [err]%v", msg.String(), err)
 		return
 	}
 	service.Service.PlayerAction(id, api.action, msg.Interface())
