@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	conf.INI("IGCCS.ini", "AutoUpdate", &AutoUpdate)
+	conf.INI(conf.PathConfig, "IGCCS.ini", "AutoUpdate", &AutoUpdate)
 	_, err := fmt.Sscanf(AutoUpdate.VerStr, "%d.%d.%d",
 		&AutoUpdate.Ver.Major, &AutoUpdate.Ver.Minor, &AutoUpdate.Ver.Patch)
 	if err != nil {

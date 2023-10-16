@@ -4,12 +4,15 @@ import (
 	"encoding/xml"
 	"io/ioutil"
 	"log"
+	"os"
+	"path"
 
 	"gopkg.in/ini.v1"
 	"gopkg.in/yaml.v2"
 )
 
-func INI(file, section string, v interface{}) {
+func INI(dir, file, section string, v interface{}) {
+	file = path.Join(dir, file)
 	log.Printf("Load %s:%s", file, section)
 	cfg, err := ini.Load(file)
 	if err != nil {
@@ -18,7 +21,8 @@ func INI(file, section string, v interface{}) {
 	cfg.Section(section).MapTo(v)
 }
 
-func XML(file string, v interface{}) {
+func XML(dir, file string, v interface{}) {
+	file = path.Join(dir, file)
 	log.Printf("Load %s", file)
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -29,7 +33,8 @@ func XML(file string, v interface{}) {
 	}
 }
 
-func YAML(file string, v interface{}) {
+func YAML(dir, file string, v interface{}) {
+	file = path.Join(dir, file)
 	log.Printf("Load %s", file)
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -41,6 +46,8 @@ func YAML(file string, v interface{}) {
 }
 
 var (
+	PathConfig string
+
 	// Net net config
 	Net NetConfig
 
@@ -49,9 +56,14 @@ var (
 )
 
 func init() {
-	INI("IGCCS.ini", "Config", &Net)
-
-	YAML("news.yml", &New)
+	PathConfig = os.Getenv("CONFIG_PATH")
+	log.Printf("[PWD]%s", os.Getenv("PWD"))
+	if PathConfig == "" {
+		PathConfig = "."
+		log.Printf("$CONFIG_PATH is %q, use default %q", "", PathConfig)
+	}
+	INI(PathConfig, "IGCCS.ini", "Config", &Net)
+	YAML(PathConfig, "news.yml", &New)
 }
 
 // NetConfig info about listen and connect restriction

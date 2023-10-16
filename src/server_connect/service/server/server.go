@@ -15,7 +15,7 @@ func init() {
 		Servers []*model.ServerConfig `xml:"Server"`
 	}
 	var serverListConfig ServerListConfig
-	conf.XML("IGC_ServerList.xml", &serverListConfig)
+	conf.XML(conf.PathConfig, "IGC_ServerList.xml", &serverListConfig)
 	ConfigTable = make(configTable)
 	for _, c := range serverListConfig.Servers {
 		ConfigTable[c.Code] = c
