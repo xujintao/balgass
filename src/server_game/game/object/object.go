@@ -292,6 +292,10 @@ func (m *objectManager) GetPlayer(id int) *object {
 	return m.objects[id]
 }
 
+func (m *objectManager) GetPlayerPercent() int {
+	return m.playerCount / m.maxPlayerCount * 100
+}
+
 func (m *objectManager) OfflineAllObjects() {
 	for _, obj := range m.objects[m.playerStartIndex:] {
 		if obj == nil {

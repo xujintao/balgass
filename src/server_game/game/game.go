@@ -2,10 +2,13 @@ package game
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"net"
 	"reflect"
 	"time"
 
+	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/bot"
 	"github.com/xujintao/balgass/src/server_game/game/cmd"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
@@ -20,6 +23,7 @@ func init() {
 var Game game
 
 type game struct {
+	serverRegisterChan         chan *model.MsgServerRegister
 	playerConnRequestChan      chan *connRequest
 	playerCloseConnRequestChan chan *closeConnRequest
 	playerActionChan           chan *actionRequest
@@ -31,6 +35,7 @@ type game struct {
 }
 
 func (g *game) init() {
+	g.serverRegisterChan = make(chan *model.MsgServerRegister, 100)
 	g.playerConnRequestChan = make(chan *connRequest, 100)
 	g.playerCloseConnRequestChan = make(chan *closeConnRequest, 100)
 	g.playerActionChan = make(chan *actionRequest, 1000)
@@ -44,6 +49,39 @@ func (g *game) init() {
 func (g *game) Start() {
 	ctx, cancel := context.WithCancel(context.Background())
 	g.cancel = cancel
+	go func() {
+		addr := fmt.Sprintf("%s:%d",
+			conf.Server.GameServerInfo.ConnectServerIP,
+			conf.Server.GameServerInfo.ConnectServerPort)
+		c, err := net.Dial("udp", addr)
+		if err != nil {
+			log.Fatalf("net.Dial failed [err]%v", err)
+		}
+		for {
+			select {
+			case serverRegister := <-g.serverRegisterChan:
+				serverRegister.Code = conf.Server.GameServerInfo.Code
+				nonPVP := 0
+				if conf.Server.GameServerInfo.NonPVP {
+					nonPVP = 1
+				}
+				serverRegister.Type_ = nonPVP
+				data, err := serverRegister.Marshal()
+				if err != nil {
+					log.Printf("serverRegister.Marshal failed [err]%v\n", err)
+				}
+				frame := []byte{0xC1, 0x08, 0x01}
+				frame = append(frame, data...)
+				_, err = c.Write(frame)
+				if err != nil {
+					log.Printf("c.Write failed [err]%v\n", err)
+				}
+			case <-ctx.Done():
+				// todo
+				return
+			}
+		}
+	}()
 	go func() {
 		t100ms := time.NewTicker(time.Millisecond * 100)
 		cnt := 0
@@ -114,6 +152,9 @@ func (g *game) Start() {
 					// start := time.Now()
 					maps.MapManager.ProcessWeather(g)
 					object.ObjectManager.Process1000ms()
+					g.serverRegisterChan <- &model.MsgServerRegister{
+						Percent: object.ObjectManager.GetPlayerPercent(),
+					}
 					// fmt.Println("1000ms", time.Since(start).Milliseconds())
 				}
 			case <-ctx.Done():
