@@ -2,7 +2,62 @@
 
 <img src="auto_update.jpg">
 
-### patches
+### Check version
+
+#### Request
+
+```
+pack(1)
+[C1 06 04 00 01 05]
+```
+
+| Index | Element | Description          |
+| ----- | ------- | -------------------- |
+| 0     | 0xC1    | c1c2 frame flag      |
+| 1     | 0x06    | c1c2 frame size      |
+| 2     | 0xF4    | c1c2 frame code 0x04 |
+| 3     | 0x00    | client version major |
+| 4     | 0x01    | client version minor |
+| 5     | 0x05    | client version patch |
+
+#### Reply
+
+version matched
+
+```
+[C1 04 02 01]
+```
+
+| Index | Element | Description                          |
+| ----- | ------- | ------------------------------------ |
+| 0     | 0xC1    | c1c2 frame flag                      |
+| 1     | 0x04    | c1c2 frame size                      |
+| 2     | 0x02    | c1c2 frame code 0x02 version matched |
+| 3     | 0x01    | result                               |
+
+version unmatched
+
+```
+pack(1)
+[C1 A8 04 00 01 06 host[100] port login[20] passwd[20] file[20]]
+```
+
+| Index   | Element    | Description                                          |
+| ------- | ---------- | ---------------------------------------------------- |
+| 0       | 0xC1       | c1c2 frame flag                                      |
+| 1       | 0xA8       | c1c2 frame size                                      |
+| 2       | 0x04       | c1c2 frame code 0x04 version unmatched               |
+| 3       | 0x00       | server version major                                 |
+| 4       | 0x01       | server version minor                                 |
+| 5       | 0x06       | server version patch                                 |
+| 6~105   | host[100]  | host 100 bytes padding extra bytes with 0x00         |
+| 106     | 0x15       | ftp port 21(0x0015) LE low byte                      |
+| 107     | 0x00       | ftp port 21(0x0015) LE high byte                     |
+| 108~127 | login[20]  | login 20 bytes padding extra bytes with 0x00         |
+| 128~147 | passwd[20] | passwd 20 bytes padding extra bytes with 0x00        |
+| 148~167 | file[20]   | tags.wvd file 20 bytes padding extra bytes with 0x00 |
+
+### Patches
 
 https://forum.ragezone.com/threads/make-your-own-muautoupdater.183456
 
@@ -101,7 +156,7 @@ Version=381
 zip -rj up_list.zip up_list
 ```
 
-### problems
+### Problems
 
 1, MU.exe didn't send http request to web every time, even though the version is unmatched.
 
