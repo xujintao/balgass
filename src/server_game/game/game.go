@@ -72,10 +72,7 @@ func (g *game) Start() {
 				}
 				frame := []byte{0xC1, 0x08, 0x01}
 				frame = append(frame, data...)
-				_, err = c.Write(frame)
-				if err != nil {
-					log.Printf("c.Write failed [err]%v\n", err)
-				}
+				c.Write(frame)
 			case <-ctx.Done():
 				// todo
 				return
