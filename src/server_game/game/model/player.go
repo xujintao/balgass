@@ -98,11 +98,18 @@ type MsgConnectSuccess struct {
 
 func (msg *MsgConnectSuccess) Marshal() ([]byte, error) {
 	var buf bytes.Buffer
+
+	// result
 	buf.WriteByte(byte(msg.Result))
-	var ids [2]uint8
-	binary.BigEndian.PutUint16(ids[:], uint16(msg.ID))
-	buf.Write(ids[:])
-	buf.WriteString(msg.Version)
+
+	// id
+	binary.Write(&buf, binary.BigEndian, uint16(msg.ID))
+
+	// version
+	var version [8]byte
+	copy(version[:], msg.Version)
+	buf.Write(version[:])
+
 	return buf.Bytes(), nil
 }
 
