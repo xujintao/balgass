@@ -228,6 +228,10 @@ func (p *Player) spawnPosition() {
 	p.createFrustrum()
 }
 
+func (p *Player) Login(msg *model.MsgLogin) {
+
+}
+
 func (p *Player) PickCharacter(msg *model.MsgPickCharacter) {
 	go func() {
 		time.Sleep(100 * time.Millisecond) // get character info

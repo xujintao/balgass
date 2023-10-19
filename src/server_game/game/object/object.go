@@ -518,6 +518,7 @@ type objecter interface {
 	addr() string
 	Offline()
 	push(any)
+	Login(*model.MsgLogin)
 	CreateCharacter()
 	DeleteCharacter()
 	GetCharacterList()

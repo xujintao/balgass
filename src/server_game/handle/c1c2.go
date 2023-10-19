@@ -207,8 +207,9 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x26, "UseItem", (*model.MsgUseItem)(nil)},
 	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)}, // s9
 	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)}, // 1.04R
+	{0, false, Guest, 0xF101, "Login", (*model.MsgLogin)(nil)},
+	{0, false, Player, 0xF330, "DefineKey", (*model.MsgDefineKey)(nil)},
 	{0, false, Player, 0xF352, "LearnMasterSkill", (*model.MsgLearnMasterSkill)(nil)},
-	// {0, false, Guest, "in_login", 0xF101, game.Login, game.Login, game.SetAuthLevel},
 	{0, false, Player, 0xFFFF, "Test", (*model.MsgTest)(nil)},
 }
 

@@ -7,6 +7,80 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 )
 
+// invalid api [body]f101cdfd98c8faabfccfabfccdfd98c8faabfccfabfccfabfccfabfccfabfccf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007dfaa614302e312e350000004d374234564d3443356938424334396240000000
+// cdfd98c8faabfccfabfc
+// cdfd98c8faabfccfabfccfabfccfabfccfabfccf
+// 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+// 7dfaa614
+// 302e312e35000000
+// 4d374234564d34433569384243343962
+// 40000000
+type MsgLogin struct {
+	Username  string
+	Password  string
+	HWID      string
+	TickCount int
+	Version   string
+	Serial    string
+}
+
+func (msg *MsgLogin) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// username
+	var username [10]byte
+	_, err := br.Read(username[:])
+	if err != nil {
+		return err
+	}
+	msg.Username = string(username[:])
+
+	// password
+	var password [20]byte
+	_, err = br.Read(password[:])
+	if err != nil {
+		return err
+	}
+	msg.Password = string(password[:])
+
+	// hwid
+	var hwid [100]byte
+	_, err = br.Read(hwid[:])
+	if err != nil {
+		return err
+	}
+	msg.HWID = string(bytes.TrimRight(hwid[:], "\x00"))
+
+	// time
+	var tickCount uint32
+	err = binary.Read(br, binary.LittleEndian, &tickCount)
+	if err != nil {
+		return err
+	}
+	msg.TickCount = int(tickCount)
+
+	// version
+	var version [8]byte
+	_, err = br.Read(version[:])
+	if err != nil {
+		return err
+	}
+	msg.Version = string(bytes.TrimRight(version[:], "\x00"))
+
+	// serial
+	var serial [16]byte
+	_, err = br.Read(serial[:])
+	if err != nil {
+		return err
+	}
+	msg.Serial = string(serial[:])
+	return nil
+}
+
+// invalid api [body]f330ffffffffffffffffffffffffffffffffffffffff1dffffff16ff00000000
+type MsgDefineKey struct {
+}
+
 type MsgTest struct{}
 
 func (msg *MsgTest) Marshal() ([]byte, error) {
