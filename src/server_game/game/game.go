@@ -103,6 +103,11 @@ func (g *game) Start() {
 					break
 				}
 				// player.Chat(msg)
+				t := reflect.TypeOf(player)
+				if _, ok := t.MethodByName(action); !ok {
+					log.Printf("player has no [action]%s\n", action)
+					break
+				}
 				in := []reflect.Value{reflect.ValueOf(msg)}
 				reflect.ValueOf(player).MethodByName(action).Call(in)
 			// user
@@ -160,12 +165,12 @@ func (g *game) Start() {
 			}
 		}
 	}()
-	g.Command("AddBot", &model.MsgAddBot{Name: "bot1"})
-	g.Command("AddBot", &model.MsgAddBot{Name: "bot2"})
-	g.Command("AddBot", &model.MsgAddBot{Name: "bot3"})
-	g.Command("AddBot", &model.MsgAddBot{Name: "bot4"})
-	g.Command("AddBot", &model.MsgAddBot{Name: "bot5"})
-	g.Command("DeleteBot", &model.MsgDeleteBot{Name: "bot5"})
+	// g.Command("AddBot", &model.MsgAddBot{Name: "bot1"})
+	// g.Command("AddBot", &model.MsgAddBot{Name: "bot2"})
+	// g.Command("AddBot", &model.MsgAddBot{Name: "bot3"})
+	// g.Command("AddBot", &model.MsgAddBot{Name: "bot4"})
+	// g.Command("AddBot", &model.MsgAddBot{Name: "bot5"})
+	// g.Command("DeleteBot", &model.MsgDeleteBot{Name: "bot5"})
 }
 
 func (g *game) Close() {
