@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"github.com/xujintao/balgass/src/server_connect/service/utils"
+	"github.com/xujintao/balgass/src/utils"
 )
 
 type MsgConnectReply struct {

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 
 	"github.com/xujintao/balgass/src/server_game/game/maps"
+	"github.com/xujintao/balgass/src/utils"
 )
 
 // invalid api [body]f101cdfd98c8faabfccfabfccdfd98c8faabfccfabfccfabfccfabfccfabfccf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007dfaa614302e312e350000004d374234564d3443356938424334396240000000
@@ -33,7 +34,7 @@ func (msg *MsgLogin) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Username = string(username[:])
+	msg.Username = string(bytes.TrimRight(utils.Xor(username[:]), "\x00"))
 
 	// password
 	var password [20]byte
@@ -41,7 +42,7 @@ func (msg *MsgLogin) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Password = string(password[:])
+	msg.Password = string(bytes.TrimRight(utils.Xor(password[:]), "\x00"))
 
 	// hwid
 	var hwid [100]byte
