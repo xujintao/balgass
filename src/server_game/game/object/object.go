@@ -229,7 +229,7 @@ func (m *objectManager) AddPlayer(conn Conn, actioner actioner) (int, error) {
 	// limit max player count
 	if m.playerCount >= m.maxPlayerCount {
 		// reply
-		msg := model.MsgConnectFailed{Result: 4}
+		msg := model.MsgLoginReply{Result: 4}
 		conn.Write(&msg)
 		return -1, fmt.Errorf("over max player count")
 	}
@@ -260,7 +260,7 @@ func (m *objectManager) AddPlayer(conn Conn, actioner actioner) (int, error) {
 	m.objects[index] = &player.object
 
 	// reply
-	msg := model.MsgConnectSuccess{
+	msg := model.MsgConnectReply{
 		Result:  1,
 		ID:      index,
 		Version: conf.MapServers.ServerInfo.Version,

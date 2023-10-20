@@ -21,7 +21,7 @@ func (c *conn) Addr() string {
 func (c *conn) Write(msg any) error {
 	name := reflect.TypeOf(msg).String()
 	switch name {
-	case "*model.MsgConnectSuccess":
+	case "*model.MsgConnectReply":
 		fmt.Println("connect succeeded")
 	case "*model.MsgTest":
 		c.cancel()

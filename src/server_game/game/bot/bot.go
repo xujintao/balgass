@@ -146,7 +146,7 @@ func (c *botConn) Close() error {
 func (b *bot) handle(msg any) {
 	name := reflect.TypeOf(msg).String()
 	switch name {
-	case "*model.MsgConnectSuccess":
+	case "*model.MsgConnectReply":
 		b.state = botStatePickCharacter
 	default:
 	}

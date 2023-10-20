@@ -8,6 +8,44 @@ import (
 	"github.com/xujintao/balgass/src/utils"
 )
 
+// #pragma pack (1)
+// struct PMSG_JOINRESULT
+//
+//	{
+//		PBMSG_HEAD h;	// C1:F1
+//		BYTE scode;	// 3
+//		BYTE result;	// 4
+//		BYTE NumberH;	// 5
+//		BYTE NumberL;	// 6
+//		BYTE CliVersion[8];	// 7
+//	};
+//
+// #pragma pack ()
+type MsgConnectReply struct {
+	// 1: success
+	// others: failed
+	Result  int
+	ID      int
+	Version string
+}
+
+func (msg *MsgConnectReply) Marshal() ([]byte, error) {
+	var buf bytes.Buffer
+
+	// result
+	buf.WriteByte(byte(msg.Result))
+
+	// id
+	binary.Write(&buf, binary.BigEndian, uint16(msg.ID))
+
+	// version
+	var version [8]byte
+	copy(version[:], msg.Version)
+	buf.Write(version[:])
+
+	return buf.Bytes(), nil
+}
+
 // invalid api [body]f101cdfd98c8faabfccfabfccdfd98c8faabfccfabfccfabfccfabfccfabfccf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007dfaa614302e312e350000004d374234564d3443356938424334396240000000
 // cdfd98c8faabfccfabfc
 // cdfd98c8faabfccfabfccfabfccfabfccfabfccf
@@ -78,6 +116,31 @@ func (msg *MsgLogin) Unmarshal(buf []byte) error {
 	return nil
 }
 
+type MsgLoginReply struct {
+	// 0: password doesn't match 密码错误
+	// 1: success
+	// 2: username doesn't exist 账号错误
+	// 3: already online 该账号正在使用中
+	// 4: machine id limit 本服务器可容纳的人数已满
+	// 5: machine id banned 客服提示：该账号目前被禁止使用
+	// 6: version unmatched 您的游戏版本不对，请到官方网站下载最新的版本
+	// 8: login counts exceeded 3 失败3次连接中断
+	// 9: 没有付款信息
+	// 10: 本账号的使用期限已到期
+	// 11: 本账号的储值点数不足
+	// 12: 这个IP的使用期限已到期
+	// 13: 这个IP的储值点数不足
+	// 17: 是15岁以上能够使用的服务器
+	// 64: non-vip 未购买收费服务器入场券而无法进入
+	Result int
+}
+
+func (msg *MsgLoginReply) Marshal() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteByte(byte(msg.Result))
+	return buf.Bytes(), nil
+}
+
 // invalid api [body]f330ffffffffffffffffffffffffffffffffffffffff1dffffff16ff00000000
 type MsgDefineKey struct {
 }
@@ -133,59 +196,6 @@ type MsgLive struct {
 	MagicSpeed   int
 	Version      string
 	ServerSeason int
-}
-
-// struct PMSG_RESULT
-//
-//	{
-//		PBMSG_HEAD h;
-//		unsigned char subcode;	// 3
-//		unsigned char result;	// 4
-//	};
-type MsgConnectFailed struct {
-	Result int
-}
-
-func (msg *MsgConnectFailed) Marshal() ([]byte, error) {
-	var buf bytes.Buffer
-	buf.WriteByte(byte(msg.Result))
-	return buf.Bytes(), nil
-}
-
-// #pragma pack (1)
-// struct PMSG_JOINRESULT
-//
-//	{
-//		PBMSG_HEAD h;	// C1:F1
-//		BYTE scode;	// 3
-//		BYTE result;	// 4
-//		BYTE NumberH;	// 5
-//		BYTE NumberL;	// 6
-//		BYTE CliVersion[8];	// 7
-//	};
-//
-// #pragma pack ()
-type MsgConnectSuccess struct {
-	Result  int
-	ID      int
-	Version string
-}
-
-func (msg *MsgConnectSuccess) Marshal() ([]byte, error) {
-	var buf bytes.Buffer
-
-	// result
-	buf.WriteByte(byte(msg.Result))
-
-	// id
-	binary.Write(&buf, binary.BigEndian, uint16(msg.ID))
-
-	// version
-	var version [8]byte
-	copy(version[:], msg.Version)
-	buf.Write(version[:])
-
-	return buf.Bytes(), nil
 }
 
 type MsgUseItem struct {

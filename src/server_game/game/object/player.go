@@ -229,7 +229,13 @@ func (p *Player) spawnPosition() {
 }
 
 func (p *Player) Login(msg *model.MsgLogin) {
-
+	resp := model.MsgLoginReply{Result: 1}
+	if p.addr() == "test" {
+		p.push(&resp)
+		return
+	}
+	// resp.Result = 0
+	p.push(&resp)
 }
 
 func (p *Player) PickCharacter(msg *model.MsgPickCharacter) {
