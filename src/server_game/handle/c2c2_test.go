@@ -10,11 +10,27 @@ import (
 
 	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server_game/game"
+	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
 func TestMain(m *testing.M) {
 	game.Game.Start()
 	defer game.Game.Close()
+	p := model.Account{
+		Account:  "test_account",
+		Password: "test_password",
+		WebID:    1,
+	}
+	_, err := game.Game.Command("CreateAccount", &p)
+	if err != nil {
+		log.Panicf("game.Game.Command failed [err]%v\n", err)
+	}
+	defer func() {
+		_, err := game.Game.Command("DeleteAccount", p.Account)
+		if err != nil {
+			log.Panicf("game.Game.Command failed [err]%v\n", err)
+		}
+	}()
 	m.Run()
 }
 

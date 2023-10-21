@@ -37,3 +37,11 @@ func (*command) GetOnlineObjectsNumber(msg any) (*model.MsgGetOnlineObjectNumber
 // 		Data: pots,
 // 	}, nil
 // }
+
+func (*command) CreateAccount(msg *model.Account) (*model.Account, error) {
+	return model.DB.CreateAccount(msg)
+}
+
+func (*command) DeleteAccount(account string) (any, error) {
+	return nil, model.DB.DeleteAccount(account)
+}
