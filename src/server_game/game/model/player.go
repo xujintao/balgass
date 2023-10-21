@@ -55,7 +55,7 @@ func (msg *MsgConnectReply) Marshal() ([]byte, error) {
 // 4d374234564d34433569384243343962
 // 40000000
 type MsgLogin struct {
-	Username  string
+	Account   string
 	Password  string
 	HWID      string
 	TickCount int
@@ -66,13 +66,13 @@ type MsgLogin struct {
 func (msg *MsgLogin) Unmarshal(buf []byte) error {
 	br := bytes.NewReader(buf)
 
-	// username
-	var username [10]byte
-	_, err := br.Read(username[:])
+	// account
+	var account [10]byte
+	_, err := br.Read(account[:])
 	if err != nil {
 		return err
 	}
-	msg.Username = string(bytes.TrimRight(utils.Xor(username[:]), "\x00"))
+	msg.Account = string(bytes.TrimRight(utils.Xor(account[:]), "\x00"))
 
 	// password
 	var password [20]byte
@@ -119,7 +119,7 @@ func (msg *MsgLogin) Unmarshal(buf []byte) error {
 type MsgLoginReply struct {
 	// 0: password doesn't match 密码错误
 	// 1: success
-	// 2: username doesn't exist 账号错误
+	// 2: account doesn't exist 账号错误
 	// 3: already online 该账号正在使用中
 	// 4: machine id limit 本服务器可容纳的人数已满
 	// 5: machine id banned 客服提示：该账号目前被禁止使用

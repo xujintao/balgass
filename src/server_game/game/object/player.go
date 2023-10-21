@@ -10,6 +10,7 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
+	"gorm.io/gorm"
 )
 
 type Conn interface {
@@ -230,11 +231,24 @@ func (p *Player) spawnPosition() {
 
 func (p *Player) Login(msg *model.MsgLogin) {
 	resp := model.MsgLoginReply{Result: 1}
-	if p.addr() == "test" {
+	account, err := model.DB.GetAccountByAccount(msg.Account)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			resp.Result = 2
+			p.push(&resp)
+			return
+		}
+		log.Printf("model.DB.GetAccountByAccount failed [err]%v\n", err)
+		resp.Result = 7
 		p.push(&resp)
 		return
 	}
-	// resp.Result = 0
+	if account.Password != msg.Password {
+		resp.Result = 0
+		p.push(&resp)
+		return
+	}
+
 	p.push(&resp)
 }
 
