@@ -230,27 +230,55 @@ func (p *Player) spawnPosition() {
 }
 
 func (p *Player) Login(msg *model.MsgLogin) {
+	// validate msg
 	resp := model.MsgLoginReply{Result: 1}
-	account, err := model.DB.GetAccountByAccount(msg.Account)
+	defer p.push(&resp)
+	account, err := model.DB.GetAccountByName(msg.Account)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			resp.Result = 2
-			p.push(&resp)
 			return
 		}
 		log.Printf("model.DB.GetAccountByAccount failed [err]%v\n", err)
 		resp.Result = 7
-		p.push(&resp)
 		return
 	}
 	if account.Password != msg.Password {
 		resp.Result = 0
-		p.push(&resp)
 		return
 	}
 
-	p.push(&resp)
+	// async
+	// go func() {
+	// 	account, err := model.DB.GetAccountByName(msg.Account)
+	// 	p.actioner.PlayerAction(p.index, "SetAccount", &model.MsgSetAccount{
+	// 		MsgLogin: msg,
+	// 		Account:  account,
+	// 		Err:      err,
+	// 	})
+	// }()
 }
+
+// func (p *Player) SetAccount(msg *model.MsgSetAccount) {
+// 	resp := model.MsgLoginReply{Result: 1}
+// 	defer p.push(&resp)
+// 	login := msg.MsgLogin
+// 	account := msg.Account
+// 	err := msg.Err
+// 	if err != nil {
+// 		if err == gorm.ErrRecordNotFound {
+// 			resp.Result = 2
+// 			return
+// 		}
+// 		log.Printf("model.DB.GetAccountByAccount failed [err]%v\n", err)
+// 		resp.Result = 7
+// 		return
+// 	}
+// 	if account.Password != login.Password {
+// 		resp.Result = 0
+// 		return
+// 	}
+// }
 
 func (p *Player) PickCharacter(msg *model.MsgPickCharacter) {
 	go func() {

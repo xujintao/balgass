@@ -33,36 +33,50 @@ func (db *db) init() {
 }
 
 type Account struct {
-	ID        uint           `json:"id" gorm:"primarykey"`
-	Account   string         `json:"account" gorm:"unique;not null"`
+	ID        int            `json:"id,omitempty" gorm:"primarykey"`
+	Name      string         `json:"name" gorm:"unique;not null"`
 	Password  string         `json:"password,omitempty" gorm:"not null"`
-	WebID     int            `json:"web_id" gorm:"unique;not null"`
+	Mail      string         `json:"mail" gorm:"unique;not null"`
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
 }
 
+// https://stackoverflow.com/questions/66135691/automatically-delete-not-null-constraints-on-unused-columns-after-migration
 func (db *db) CreateAccount(p *Account) (*Account, error) {
 	err := db.Create(p).Error
 	if err != nil {
 		return nil, err
 	}
-	return db.GetAccountByAccount(p.Account)
+	acc, err := db.GetAccountByName(p.Name)
+	if err != nil {
+		return nil, err
+	}
+	acc.ID = 0
+	acc.Password = ""
+	return acc, nil
 }
 
-func (db *db) GetAccountByAccount(account string) (*Account, error) {
+func (db *db) GetAccountByName(name string) (*Account, error) {
 	p := Account{}
 	err := db.Where(&Account{
-		Account: account,
+		Name: name,
 	}).First(&p).Error
 	return &p, err
 }
 
-func (db *db) DeleteAccount(account string) error {
-	if account == "test_account" {
-		return db.Unscoped().Where("account = ?", account).Delete(&Account{}).Error
+func (db *db) GetAccountListByMail(mail string) ([]*Account, error) {
+	return nil, nil
+}
 
+func (db *db) GetAccountList() ([]*Account, error) {
+	return nil, nil
+}
+
+func (db *db) DeleteAccount(name string) error {
+	if name == "test" {
+		return db.Unscoped().Where("name = ?", name).Delete(&Account{}).Error
 	} else {
-		return db.Where("account = ?", account).Delete(&Account{}).Error
+		return db.Where("name = ?", name).Delete(&Account{}).Error
 	}
 }

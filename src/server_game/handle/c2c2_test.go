@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"log"
 	"testing"
-	"time"
 
 	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server_game/game"
@@ -17,16 +16,16 @@ func TestMain(m *testing.M) {
 	game.Game.Start()
 	defer game.Game.Close()
 	p := model.Account{
-		Account:  "test_account",
-		Password: "test_password",
-		WebID:    1,
+		Name:     "test",
+		Password: "test",
+		Mail:     "test@test.com",
 	}
 	_, err := game.Game.Command("CreateAccount", &p)
 	if err != nil {
 		log.Panicf("game.Game.Command failed [err]%v\n", err)
 	}
 	defer func() {
-		_, err := game.Game.Command("DeleteAccount", p.Account)
+		_, err := game.Game.Command("DeleteAccount", p.Name)
 		if err != nil {
 			log.Panicf("game.Game.Command failed [err]%v\n", err)
 		}
@@ -42,11 +41,15 @@ type item struct {
 
 var items = [...]*item{
 	{"connect", "", ""},
-	{"login", "f101cdfd98c8faabfccfabfccdfd98c8faabfccfabfccfabfccfabfccfabfccf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007dfaa614302e312e350000004d374234564d3443356938424334396240000000", "F10101"},
+	{"login1", "f10188aad888cfabfccfabfc88aad888cfabfccfabfccfabfccfabfccfabfccf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006dc70200302e312e350000004d374234564d3443356938424334396240000000", "F10101"},
+	{"login2", "f10188aad888feabfccfabfc88aad888cfabfccfabfccfabfccfabfccfabfccf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000adc0600302e312e350000004d374234564d3443356938424334396240000000", "F10102"},
+	{"login3", "f10188aad888cfabfccfabfc88aad888feabfccfabfccfabfccfabfccfabfccf00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000675b0800302e312e350000004d374234564d3443356938424334396240000000", "F10100"},
 }
 
 func TestC1C2Handle(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// panic: Fail in goroutine after TestC1C2Handle has completed
+	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	item := items[0]
 	items := items[1:]
 	// log.Println(item.id)

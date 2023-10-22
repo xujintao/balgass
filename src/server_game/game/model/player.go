@@ -141,6 +141,12 @@ func (msg *MsgLoginReply) Marshal() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+type MsgSetAccount struct {
+	*MsgLogin
+	*Account
+	Err error
+}
+
 // invalid api [body]f330ffffffffffffffffffffffffffffffffffffffff1dffffff16ff00000000
 type MsgDefineKey struct {
 }
