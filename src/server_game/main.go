@@ -40,7 +40,8 @@ func main() {
 	// start http server
 	log.Printf("start http server")
 	httpServer := http.Server{
-		Addr: ":8080",
+		Addr:    ":8080",
+		Handler: &handle.HTTPHandle,
 	}
 	go func() {
 		err := httpServer.ListenAndServe()

@@ -34,9 +34,9 @@ func (db *db) init() {
 
 type Account struct {
 	ID        int            `json:"id,omitempty" gorm:"primarykey"`
-	Name      string         `json:"name" gorm:"unique;not null"`
-	Password  string         `json:"password,omitempty" gorm:"not null"`
-	Mail      string         `json:"mail" gorm:"unique;not null"`
+	Name      string         `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique;not null"`
+	Password  string         `json:"password,omitempty" validate:"required,max=10,min=1" gorm:"not null"`
+	Mail      string         `json:"mail" validate:"required,email" gorm:"unique;not null"`
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
@@ -48,13 +48,8 @@ func (db *db) CreateAccount(p *Account) (*Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	acc, err := db.GetAccountByName(p.Name)
-	if err != nil {
-		return nil, err
-	}
-	acc.ID = 0
-	acc.Password = ""
-	return acc, nil
+	p.Password = ""
+	return p, nil
 }
 
 func (db *db) GetAccountByName(name string) (*Account, error) {
@@ -73,10 +68,6 @@ func (db *db) GetAccountList() ([]*Account, error) {
 	return nil, nil
 }
 
-func (db *db) DeleteAccount(name string) error {
-	if name == "test" {
-		return db.Unscoped().Where("name = ?", name).Delete(&Account{}).Error
-	} else {
-		return db.Where("name = ?", name).Delete(&Account{}).Error
-	}
+func (db *db) DeleteAccount(id int) error {
+	return db.Delete(&Account{ID: id}).Error
 }
