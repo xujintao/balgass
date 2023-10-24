@@ -60,12 +60,21 @@ func (db *db) GetAccountByName(name string) (*Account, error) {
 	return &p, err
 }
 
-func (db *db) GetAccountListByMail(mail string) ([]*Account, error) {
-	return nil, nil
-}
-
-func (db *db) GetAccountList() ([]*Account, error) {
-	return nil, nil
+func (db *db) GetAccountList(mail string) ([]*Account, error) {
+	var accs []*Account
+	var err error
+	if mail == "" {
+		err = db.Order("id ASC").Find(&accs).Error
+	} else {
+		err = db.Order("id ASC").Where("mail = ?", mail).Find(&accs).Error
+	}
+	if err != nil {
+		return nil, err
+	}
+	for _, acc := range accs {
+		acc.Password = ""
+	}
+	return accs, nil
 }
 
 func (db *db) DeleteAccount(id int) error {

@@ -33,8 +33,9 @@ func (h *httpHandle) init() {
 	h.validate = validator.New()
 	h.GET("/", h.handleHome)
 	h.GET("/api/game", h.handleGame)
-	h.POST("/account", h.CreateAccount, h.handleErr)
-	h.DELETE("/account/:id", h.DeleteAccount, h.handleErr)
+	h.POST("/accounts", h.CreateAccount, h.handleErr)
+	h.GET("/accounts", h.GetAccountList, h.handleErr)
+	h.DELETE("/accounts/:id", h.DeleteAccount, h.handleErr)
 }
 
 func (h *httpHandle) setErr(c *gin.Context, service int, err error) {
@@ -199,6 +200,19 @@ func (h *httpHandle) CreateAccount(c *gin.Context) {
 	}
 
 	c.JSON(200, acc)
+}
+
+func (h *httpHandle) GetAccountList(c *gin.Context) {
+	// get param
+	mail := c.Param("mail")
+
+	// db
+	accs, err := model.DB.GetAccountList(mail)
+	if err != nil {
+		h.setErr(c, GetAccountListDB, err)
+	}
+
+	c.JSON(200, accs)
 }
 
 func (h *httpHandle) DeleteAccount(c *gin.Context) {
