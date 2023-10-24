@@ -1,0 +1,35 @@
+{% extends "base.html" %} {% block page_header%}
+<h3>Game Accounts</h3>
+{% endblock page_header%} {% block content %} {% if get_account_list_message %}
+<p>message: {{get_account_list_message}}</p>
+{% else %}
+<p>accounts: {{accounts}}</p>
+<div class="row row-cols-3">
+  {% for acc in accounts %}
+  <div class="col-4 py-2">
+    <div class="card">
+      <div class="card-header">{{acc}}</div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">Role1</li>
+        <li class="list-group-item">Role2</li>
+        <li class="list-group-item">Role3</li>
+      </ul>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="col-12 py-2">
+    <div class="card">
+      <div class="card-body">
+        <p class="card-text">New a game account.</p>
+        <form action="{% url 'accounts' %}" method="post">
+          {% csrf_token %} {{ form.as_p }}
+          <button name="submit">Submit</button>
+        </form>
+        <p class="card-text">{{create_account_message}}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+<!-- <pre>{% debug %}</pre> -->
+{% endblock content %}

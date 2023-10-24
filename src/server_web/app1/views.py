@@ -4,6 +4,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from . import models
+import requests
+import json
 
 # Create your views here.
 
@@ -29,6 +31,22 @@ def signup(request):
             return redirect("home")
     context = {"form": form}
     return render(request, "registration/signup.html", context)
+
+
+@login_required
+def user(request, name):
+    context = {}
+    if request.user.username == name:
+        context["self"] = True
+    else:
+        try:
+            user = models.User.objects.get(username=name)
+        except models.User.DoesNotExist:
+            return render(request, "404.html")
+        else:
+            context["self"] = False
+            context["user"] = user
+    return render(request, "user.html", context)
 
 
 @login_required
@@ -103,3 +121,47 @@ def edit_entry(request, id):
 
 def game(request):
     return render(request, "game.html")
+
+
+@login_required
+def game_accounts(request):
+    context = {}
+    # launch api request
+    url = "http://192.168.0.23:8080/accounts"
+    try:
+        response = requests.get(url)
+    except Exception as e:
+        print(e)
+        context["get_account_list_message"] = "request server failed"
+    else:
+        result = response.json()
+        if response.status_code == 200:
+            context["accounts"] = ["acc1", "acc2", "acc3", "acc4", "acc5"]
+        else:
+            context["get_account_list_message"] = result["message"]
+    if request.method != "POST":
+        form = models.AccountForm()
+        context["form"] = form
+    else:
+        # todo
+        form = models.AccountForm(data=request.POST)
+        if form.is_valid():
+            acc = form.cleaned_data
+            headers = {"Content-type": "application/json"}
+            param = {
+                "name": acc["name"],
+                "password": acc["password1"],
+                "mail": request.user.email,
+            }
+            data = json.dumps(param)
+            try:
+                response = requests.post(url, data=data, headers=headers)
+            except Exception as e:
+                print(e)
+                context["create_account_message"] = "request server failed"
+            else:
+                result = response.json()
+                if response.status_code != 200:
+                    context["create_account_message"] = result["message"]
+            context["form"] = form
+    return render(request, "accounts.html", context)

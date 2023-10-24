@@ -41,3 +41,21 @@ class EntryForm(forms.ModelForm):
         fields = ["text"]
         labels = {"text": ""}
         widgets = {"text": forms.Textarea(attrs={"cols": 80})}
+
+
+class AccountForm(forms.Form):
+    # name = forms.CharField(label="Account name", max_length=10)
+    name = forms.CharField(
+        label="account",
+        max_length=10,
+    )
+    password1 = forms.CharField(
+        label="password",
+        widget=forms.PasswordInput(),
+        max_length=10,
+    )
+    password2 = forms.CharField(
+        label="password confirmation",
+        widget=forms.PasswordInput(),
+        max_length=10,
+    )
