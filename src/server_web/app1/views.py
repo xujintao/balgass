@@ -129,19 +129,18 @@ def game_accounts(request):
     # launch api request
     url = "http://192.168.0.23:8080/accounts"
     try:
-        response = requests.get(url)
+        response = requests.get(url, params={"user_id": request.user.id})
     except Exception as e:
         print(e)
         context["get_account_list_message"] = "request server failed"
     else:
         result = response.json()
         if response.status_code == 200:
-            context["accounts"] = ["acc1", "acc2", "acc3", "acc4", "acc5"]
+            context["accounts"] = result
         else:
             context["get_account_list_message"] = result["message"]
     if request.method != "POST":
         form = models.AccountForm()
-        context["form"] = form
     else:
         # todo
         form = models.AccountForm(data=request.POST)
@@ -151,7 +150,7 @@ def game_accounts(request):
             param = {
                 "name": acc["name"],
                 "password": acc["password1"],
-                "mail": request.user.email,
+                "user_id": request.user.id,
             }
             data = json.dumps(param)
             try:
@@ -163,5 +162,7 @@ def game_accounts(request):
                 result = response.json()
                 if response.status_code != 200:
                     context["create_account_message"] = result["message"]
-            context["form"] = form
+                else:
+                    return redirect(".")
+    context["form"] = form
     return render(request, "accounts.html", context)

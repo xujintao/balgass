@@ -1,35 +1,80 @@
-{% extends "base.html" %} {% block page_header%}
+{% extends "base.html" %} {% load bootstrap4 %} {% block page_header%}
 <h3>Game Accounts</h3>
-{% endblock page_header%} {% block content %} {% if get_account_list_message %}
-<p>message: {{get_account_list_message}}</p>
-{% else %}
-<p>accounts: {{accounts}}</p>
-<div class="row row-cols-3">
-  {% for acc in accounts %}
-  <div class="col-4 py-2">
-    <div class="card">
-      <div class="card-header">{{acc}}</div>
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item">Role1</li>
-        <li class="list-group-item">Role2</li>
-        <li class="list-group-item">Role3</li>
-      </ul>
-    </div>
+{% endblock page_header%} {% block content %}
+<div>
+  {% if get_account_list_message %}
+  <div class="alert alert-warning" role="alert">
+    {{get_account_list_message}}
   </div>
-  {% endfor %}
-  <div class="col-12 py-2">
-    <div class="card">
-      <div class="card-body">
-        <p class="card-text">New a game account.</p>
-        <form action="{% url 'accounts' %}" method="post">
-          {% csrf_token %} {{ form.as_p }}
-          <button name="submit">Submit</button>
-        </form>
-        <p class="card-text">{{create_account_message}}</p>
+  {% else %}
+  <div class="row row-cols-3">
+    {% for acc in accounts %}
+    <div class="col-4 py-2">
+      <div class="card">
+        <div class="card-header">{{acc.name}}</div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">Role1</li>
+          <li class="list-group-item">Role2</li>
+          <li class="list-group-item">Role3</li>
+        </ul>
       </div>
     </div>
+    {% endfor %}
+    <div class="col-4 py-2">
+      <div class="card">
+        <div class="card-body">
+          <p class="card-text">New a game account.</p>
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-toggle="modal"
+            data-target="#newAccountModal"
+          >
+            New
+          </button>
+          <div
+            class="modal fade"
+            id="newAccountModal"
+            tabindex="-1"
+            aria-labelledby="newAccountModalLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="card">
+                  <div class="card-body">
+                    <form action="{% url 'accounts' %}" method="post">
+                      {% csrf_token %} {% bootstrap_form form %}
+                      <button class="btn btn-primary" name="submit">
+                        Submit
+                      </button>
+                    </form>
+                    <!-- <p class="card-text">{{create_account_message}}</p> -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% if create_account_message %}
+    <div class="col-12 py-2">
+      <div class="alert alert-warning alert-dismissible" role="alert">
+        {{create_account_message}}
+        <button
+          type="button"
+          class="close"
+          data-dismiss="alert"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+    {% endif %}
   </div>
+  {% endif %}
 </div>
-{% endif %}
 <!-- <pre>{% debug %}</pre> -->
 {% endblock content %}
