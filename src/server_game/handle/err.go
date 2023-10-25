@@ -45,6 +45,7 @@ const (
 	CreateAccountBind
 	CreateAccountValidate
 	CreateAccountDB
+	GetAccountListParamInvalid
 	GetAccountListDB
 	DeleteAccountMissingParam
 	DeleteAccountDB
@@ -55,6 +56,7 @@ var configErrors = [...]*ConfigError{
 	{CreateAccountBind, 500, "create account bind body failed", nil},
 	{CreateAccountValidate, 500, "create account validate body failed", nil},
 	{CreateAccountDB, 500, "create account db failed", nil},
+	{GetAccountListParamInvalid, 500, "get account list param is invalid", nil},
 	{GetAccountListDB, 500, "get account list db failed", nil},
 	{DeleteAccountMissingParam, 500, "delete account missing param", nil},
 	{DeleteAccountDB, 500, "delete account db failed", nil},

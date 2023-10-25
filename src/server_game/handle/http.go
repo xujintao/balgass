@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 	"strconv"
 	"text/template"
@@ -29,6 +30,10 @@ type httpHandle struct {
 }
 
 func (h *httpHandle) init() {
+	gin.SetMode(gin.ReleaseMode)
+	if os.Getenv("DEBUG") == "1" {
+		gin.SetMode(gin.DebugMode)
+	}
 	h.Engine = gin.Default()
 	h.validate = validator.New()
 	h.GET("/", h.handleHome)
@@ -204,12 +209,22 @@ func (h *httpHandle) CreateAccount(c *gin.Context) {
 
 func (h *httpHandle) GetAccountList(c *gin.Context) {
 	// get param
-	mail := c.Param("mail")
+	uid := 0
+	uidStr := c.Query("user_id")
+	if uidStr != "" {
+		var err error
+		uid, err = strconv.Atoi(uidStr)
+		if err != nil {
+			h.setErr(c, GetAccountListParamInvalid, err)
+			return
+		}
+	}
 
 	// db
-	accs, err := model.DB.GetAccountList(mail)
+	accs, err := model.DB.GetAccountList(uid)
 	if err != nil {
 		h.setErr(c, GetAccountListDB, err)
+		return
 	}
 
 	c.JSON(200, accs)

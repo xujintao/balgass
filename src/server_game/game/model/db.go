@@ -2,6 +2,7 @@ package model
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -24,19 +25,23 @@ func (db *db) init() {
 	if err != nil {
 		log.Panicf("gorm.Open failed [err]%v", err)
 	}
-	if err := gdb.AutoMigrate(
+	if os.Getenv("DEBUG") == "1" {
+		db.DB = gdb.Debug()
+	} else {
+		db.DB = gdb
+	}
+	if err := db.AutoMigrate(
 		&Account{},
 	); err != nil {
 		log.Panicf("gorm.AutoMigrate failed [err]%v", err)
 	}
-	db.DB = gdb.Debug()
 }
 
 type Account struct {
 	ID        int            `json:"id,omitempty" gorm:"primarykey"`
 	Name      string         `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique;not null"`
 	Password  string         `json:"password,omitempty" validate:"required,max=10,min=1" gorm:"not null"`
-	Mail      string         `json:"mail" validate:"required,email" gorm:"unique;not null"`
+	UserID    int            `json:"user_id" validate:"required" gorm:"not null"`
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
@@ -60,13 +65,13 @@ func (db *db) GetAccountByName(name string) (*Account, error) {
 	return &p, err
 }
 
-func (db *db) GetAccountList(mail string) ([]*Account, error) {
+func (db *db) GetAccountList(uid int) ([]*Account, error) {
 	var accs []*Account
 	var err error
-	if mail == "" {
+	if uid == 0 {
 		err = db.Order("id ASC").Find(&accs).Error
 	} else {
-		err = db.Order("id ASC").Where("mail = ?", mail).Find(&accs).Error
+		err = db.Order("id ASC").Where("user_id = ?", uid).Find(&accs).Error
 	}
 	if err != nil {
 		return nil, err
