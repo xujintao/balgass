@@ -1,0 +1,126 @@
+<mxfile host="app.diagrams.net" modified="2023-10-26T10:46:56.515Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36" etag="E40qX4fgjxrZTjIJXdhJ" version="22.0.8" type="device">
+  <diagram name="Page-1" id="0_t07-CB3iW9xe6Sw4kU">
+    <mxGraphModel dx="954" dy="571" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-33" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="40" width="560" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-2" value="main" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="320" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-6" value="web" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="80" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-7" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="NgCYwbMXRVplWvnz-bBF-2" target="NgCYwbMXRVplWvnz-bBF-17">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="370" y="330" as="sourcePoint" />
+            <mxPoint x="610" y="290" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-8" value="3. login" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NgCYwbMXRVplWvnz-bBF-7">
+          <mxGeometry x="-0.325" relative="1" as="geometry">
+            <mxPoint x="13" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-9" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" edge="1" parent="1" source="NgCYwbMXRVplWvnz-bBF-17" target="NgCYwbMXRVplWvnz-bBF-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="460" y="360" as="sourcePoint" />
+            <mxPoint x="470" y="400" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-10" value="4. login reply" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NgCYwbMXRVplWvnz-bBF-9">
+          <mxGeometry x="0.3939" y="3" relative="1" as="geometry">
+            <mxPoint x="34" y="-3" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-17" value="game" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="320" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-18" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="NgCYwbMXRVplWvnz-bBF-2" target="NgCYwbMXRVplWvnz-bBF-17">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="370" y="290" as="sourcePoint" />
+            <mxPoint x="610" y="290" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="560" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-19" value="1. tcp shakehand" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NgCYwbMXRVplWvnz-bBF-18">
+          <mxGeometry x="-0.0917" y="-1" relative="1" as="geometry">
+            <mxPoint x="9" y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-20" value="game" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="240" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-21" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="NgCYwbMXRVplWvnz-bBF-6" target="NgCYwbMXRVplWvnz-bBF-20">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="710" y="140" as="sourcePoint" />
+            <mxPoint x="720" y="250" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="760" y="100" />
+              <mxPoint x="760" y="220" />
+              <mxPoint x="560" y="220" />
+              <mxPoint x="560" y="260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-22" value="new game account" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NgCYwbMXRVplWvnz-bBF-21">
+          <mxGeometry x="0.08" relative="1" as="geometry">
+            <mxPoint x="-57" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-24" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="NgCYwbMXRVplWvnz-bBF-6" target="NgCYwbMXRVplWvnz-bBF-20">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="460" y="320" as="sourcePoint" />
+            <mxPoint x="510" y="270" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="720" y="140" />
+              <mxPoint x="720" y="180" />
+              <mxPoint x="520" y="180" />
+              <mxPoint x="520" y="300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-25" value="delete game account&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NgCYwbMXRVplWvnz-bBF-24">
+          <mxGeometry x="0.5292" relative="1" as="geometry">
+            <mxPoint x="130" y="-87" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-28" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;exitX=0;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" source="NgCYwbMXRVplWvnz-bBF-17" target="NgCYwbMXRVplWvnz-bBF-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="570" y="340" as="sourcePoint" />
+            <mxPoint x="380" y="340" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-29" value="2. connect reply" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NgCYwbMXRVplWvnz-bBF-28">
+          <mxGeometry x="0.53" y="-2" relative="1" as="geometry">
+            <mxPoint x="59" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-30" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="NgCYwbMXRVplWvnz-bBF-6" target="NgCYwbMXRVplWvnz-bBF-20">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="450" y="290" as="sourcePoint" />
+            <mxPoint x="500" y="240" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="740" y="120" />
+              <mxPoint x="740" y="200" />
+              <mxPoint x="540" y="200" />
+              <mxPoint x="540" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NgCYwbMXRVplWvnz-bBF-32" value="get game account list" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="NgCYwbMXRVplWvnz-bBF-30">
+          <mxGeometry x="0.6667" y="-1" relative="1" as="geometry">
+            <mxPoint x="111" y="-60" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
