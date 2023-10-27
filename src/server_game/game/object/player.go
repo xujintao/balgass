@@ -59,13 +59,15 @@ func NewPlayer(conn Conn, actioner actioner) *Player {
 
 type Player struct {
 	object
-	offline   bool
-	conn      Conn
-	msgChan   chan any
-	cancel    context.CancelFunc
-	actioner  actioner
-	AccountID string
-	AuthLevel int
+	offline         bool
+	conn            Conn
+	msgChan         chan any
+	cancel          context.CancelFunc
+	actioner        actioner
+	AccountID       int
+	AccountName     string
+	AccountPassword string
+	AuthLevel       int
 	// hwid                 string
 	Experience           uint
 	ExperienceNext       uint
@@ -247,6 +249,9 @@ func (p *Player) Login(msg *model.MsgLogin) {
 		resp.Result = 0
 		return
 	}
+	p.AccountID = account.ID
+	p.AccountName = account.Name
+	p.AccountPassword = account.Password
 
 	// async
 	// go func() {
@@ -280,6 +285,48 @@ func (p *Player) Login(msg *model.MsgLogin) {
 // 	}
 // }
 
+func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
+	reply := model.MsgCreateCharacterReply{Result: 0}
+	defer p.push(&reply)
+
+	// validate msg
+	if msg.Name == "" || msg.Class&0x0F > 0 || msg.Class>>4 > 6 {
+		log.Printf("CreateCharacter validate msg failed [msg]%v\n", msg)
+		return
+	}
+
+	// create character
+	c := model.Character{
+		AccountID: p.AccountID,
+		Name:      msg.Name,
+		Class:     msg.Class,
+		Level:     1,
+	}
+	if err := model.DB.CreateCharacter(&c); err != nil {
+		log.Printf("model.DB.CreateCharacter failed [err]%v\n", err)
+		return
+	}
+	chars, err := model.DB.GetCharacterList(c.AccountID)
+	if err != nil {
+		log.Printf("model.DB.GetCharacterList failed [err]%v\n", err)
+		return
+	}
+
+	// reply
+	reply.Result = 1
+	reply.Name = c.Name
+	reply.Position = len(chars) - 1
+	reply.Level = c.Level
+	reply.Class = c.Class
+}
+
+func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
+	reply := model.MsgGetCharacterListReply{Result: 0}
+	defer p.push(&reply)
+
+	// get character list
+}
+
 func (p *Player) PickCharacter(msg *model.MsgPickCharacter) {
 	go func() {
 		time.Sleep(100 * time.Millisecond) // get character info
@@ -311,6 +358,40 @@ func (p *Player) SetCharacter(msg *model.MsgSetCharacter) {
 	p.ConnectState = ConnectStatePlaying
 	p.Live = true
 	p.State = 1
+}
+
+func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
+	reply := model.MsgDeleteCharacterReply{Result: 0}
+	defer p.push(&reply)
+
+	if p.ConnectState == ConnectStatePlaying {
+		return
+	}
+
+	// validate msg
+	if msg.Name == "" || msg.Password == "" {
+		log.Printf("DeleteCharacter validate msg failed [msg]%v\n", msg)
+		return
+	}
+
+	// check password
+	if msg.Password != p.AccountPassword {
+		reply.Result = 2
+		return
+	}
+
+	// delete character
+	c := model.Character{
+		AccountID: p.AccountID,
+		Name:      msg.Name,
+	}
+	if err := model.DB.DeleteCharacterByName(&c); err != nil {
+		log.Printf("model.DB.DeleteCharacterByName failed [err]%v\n", err)
+		return
+	}
+
+	// reply
+	reply.Result = 1
 }
 
 func (p *Player) getPKLevel() int {

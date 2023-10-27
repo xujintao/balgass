@@ -163,12 +163,135 @@ func (msg *MsgTest) Unmarshal([]byte) error {
 	return nil
 }
 
+type MsgCreateCharacter struct {
+	Name  string
+	Class int
+}
+
+func (msg *MsgCreateCharacter) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// name
+	var name [10]byte
+	_, err := br.Read(name[:])
+	if err != nil {
+		return err
+	}
+	msg.Name = string(bytes.TrimRight(name[:], "\x00"))
+
+	// class
+	class, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Class = int(class)
+
+	return nil
+}
+
+type MsgCreateCharacterReply struct {
+	Result    int
+	Name      string
+	Position  int
+	Level     int
+	Class     int
+	Equipment [24]byte
+}
+
+func (msg *MsgCreateCharacterReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+
+	// result
+	bw.WriteByte(byte(msg.Result))
+
+	// name
+	var name [10]byte
+	copy(name[:], msg.Name)
+	bw.Write(name[:])
+
+	// position
+	bw.WriteByte(byte(msg.Position))
+
+	// level
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Level))
+
+	// class
+	bw.WriteByte(byte(msg.Class))
+
+	// equipment
+	bw.Write(msg.Equipment[:])
+
+	bw.WriteByte(0) // padding 1 byte
+
+	return bw.Bytes(), nil
+}
+
+type MsgGetCharacterList struct{}
+
+func (msg *MsgGetCharacterList) Unmarshal(buf []byte) error {
+	return nil
+}
+
+type MsgGetCharacterListReply struct {
+	Result    int
+	Name      string
+	Position  int
+	Level     int
+	Class     int
+	Equipment [24]byte
+}
+
+func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
+	// var bw bytes.Buffer
+	return nil, nil
+}
+
 type MsgPickCharacter struct {
 	Name string
 }
 
 type MsgSetCharacter struct {
 	Name string
+}
+
+type MsgDeleteCharacter struct {
+	Name     string
+	Password string
+}
+
+func (msg *MsgDeleteCharacter) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// name
+	var name [10]byte
+	_, err := br.Read(name[:])
+	if err != nil {
+		return err
+	}
+	msg.Name = string(bytes.TrimRight(name[:], "\x00"))
+
+	// password
+	var password [20]byte
+	_, err = br.Read(password[:])
+	if err != nil {
+		return err
+	}
+	msg.Password = string(bytes.TrimRight(utils.Xor(password[:]), "\x00"))
+
+	return nil
+}
+
+type MsgDeleteCharacterReply struct {
+	// 0: failed
+	// 1: success
+	// 2: password doesn't match 密码错误
+	Result int
+}
+
+func (msg *MsgDeleteCharacterReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Result))
+	return bw.Bytes(), nil
 }
 
 type MsgChat struct {

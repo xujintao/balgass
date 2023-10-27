@@ -198,13 +198,12 @@ func (h *httpHandle) CreateAccount(c *gin.Context) {
 	}
 
 	// db
-	acc, err := model.DB.CreateAccount(&in)
-	if err != nil {
+	if err := model.DB.CreateAccount(&in); err != nil {
 		h.setErr(c, CreateAccountDB, err)
 		return
 	}
 
-	c.JSON(200, acc)
+	c.JSON(200, in)
 }
 
 func (h *httpHandle) GetAccountList(c *gin.Context) {

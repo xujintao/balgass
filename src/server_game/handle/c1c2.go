@@ -208,6 +208,9 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)}, // s9
 	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)}, // 1.04R
 	{0, false, Guest, 0xF101, "Login", (*model.MsgLogin)(nil)},
+	{0, false, Player, 0xF300, "GetCharacterList", (*model.MsgGetCharacterList)(nil)},
+	{0, false, Player, 0xF301, "CreateCharacter", (*model.MsgCreateCharacter)(nil)},
+	{0, false, Player, 0xF302, "DeleteCharacter", (*model.MsgDeleteCharacter)(nil)},
 	{0, false, Player, 0xF330, "DefineKey", (*model.MsgDefineKey)(nil)},
 	{0, false, Player, 0xF352, "LearnMasterSkill", (*model.MsgLearnMasterSkill)(nil)},
 	{0, false, Player, 0xFFFF, "Test", (*model.MsgTest)(nil)},
@@ -218,6 +221,9 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0xD4, "out_move_reply", (*model.MsgMoveReply)(nil)},
 	{0, false, 0xC1, 0xF100, "Connect Reply", (*model.MsgConnectReply)(nil)},
 	{0, false, 0xC1, 0xF101, "Login Reply", (*model.MsgLoginReply)(nil)},
+	{0, false, 0xC1, 0xF300, "GetCharacterList Reply", (*model.MsgGetCharacterListReply)(nil)},
+	{0, false, 0xC1, 0xF301, "CreateCharacter Reply", (*model.MsgCreateCharacterReply)(nil)},
+	{0, false, 0xC1, 0xF302, "DeleteCharacter Reply", (*model.MsgDeleteCharacterReply)(nil)},
 	{0, false, 0xC1, 0xF311, "out_skill_list", (*model.MsgSkillList)(nil)},
 	{0, false, 0xC1, 0xFFFF, "out_test", (*model.MsgTest)(nil)},
 }

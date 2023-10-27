@@ -520,9 +520,9 @@ type objecter interface {
 	push(any)
 	Login(*model.MsgLogin)
 	// SetAccount(*model.MsgSetAccount)
-	CreateCharacter()
-	DeleteCharacter()
-	GetCharacterList()
+	CreateCharacter(*model.MsgCreateCharacter)
+	GetCharacterList(*model.MsgGetCharacterList)
+	DeleteCharacter(*model.MsgDeleteCharacter)
 	PickCharacter(*model.MsgPickCharacter)
 	SetCharacter(*model.MsgSetCharacter)
 	getPKLevel() int
