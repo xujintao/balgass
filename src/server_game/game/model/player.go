@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 
+	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/utils"
 )
@@ -163,6 +164,151 @@ func (msg *MsgTest) Unmarshal([]byte) error {
 	return nil
 }
 
+type MsgGetCharacterList struct{}
+
+func (msg *MsgGetCharacterList) Unmarshal(buf []byte) error {
+	return nil
+}
+
+type MsgCharacter struct {
+	Index    int
+	Name     string
+	Level    int
+	CtlCode  int
+	Class    int
+	ChangeUp int
+	// CharSet     [18]byte
+	Inventory   []*item.Item
+	GuildStatus int
+	PKLevel     int
+}
+
+type MsgGetCharacterListReply struct {
+	EnableCharacter    int
+	MoveCnt            int
+	Count              int
+	WarehouseExpansion int
+	CharacterList      []*MsgCharacter
+}
+
+func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+
+	// EnableCharacter
+	bw.WriteByte(byte(msg.EnableCharacter))
+
+	// MoveCnt
+	bw.WriteByte(byte(msg.MoveCnt))
+
+	// Count
+	bw.WriteByte(byte(len(msg.CharacterList)))
+
+	// WarehouseExpansion
+	bw.WriteByte(byte(msg.WarehouseExpansion))
+
+	// CharacterList
+	for i, c := range msg.CharacterList {
+		// index
+		bw.WriteByte(byte(i))
+
+		// name
+		var name [10]byte
+		copy(name[:], c.Name)
+		bw.Write(name[:])
+
+		// level
+		binary.Write(&bw, binary.LittleEndian, uint16(c.Level))
+
+		// ctlcode
+		bw.WriteByte(byte(c.CtlCode))
+
+		var chars [18]byte
+
+		// class
+		class := byte(c.Class) << 5
+		switch c.ChangeUp {
+		case 1:
+			class |= 0x10
+		case 2:
+			class |= 0x18
+		}
+		// bw.WriteByte(class)
+		chars[0] = class
+
+		// inventory
+		inventory := make([]*item.Item, len(c.Inventory))
+		for i, v := range c.Inventory {
+			if v == nil {
+				inventory[i] = item.NewItem(0, 512)
+			} else {
+				inventory[i] = c.Inventory[i]
+			}
+		}
+		chars[1] = byte(inventory[0].Index)
+		chars[2] = byte(inventory[1].Index)
+		chars[3] = byte(inventory[2].Index&0x0F<<4 | inventory[3].Index&0x0F)
+		chars[4] = byte(inventory[4].Index&0x0F<<4 | inventory[5].Index&0x0F)
+		// slot8: 0=守护天使 1=小恶魔 3=empty
+		// slot7: 4=1D, 8=2D, 12=3D 0=empty
+		chars[5] = (byte(inventory[6].Index&0x0F<<4 | 0x03))
+		var level uint32
+		var levels [4]byte
+		for i, v := range c.Inventory {
+			if v == nil {
+				continue
+			}
+			level |= uint32(v.Level) << i * 3
+		}
+
+		binary.BigEndian.PutUint32(levels[:], level)
+		copy(chars[6:9], levels[1:])
+		extend := inventory[2].Index&0x10<<3 |
+			inventory[3].Index&0x10<<2 |
+			inventory[4].Index&0x10<<1 |
+			inventory[5].Index&0x10<<0 |
+			inventory[6].Index&0x10>>1
+		// 1=精灵之翼 1D
+		// 2=天使之翼 1D
+		// 3=恶魔之翼 1D
+		// 4=灾难之翼 1D
+
+		// 1=圣灵之翼 2D
+		// 2=魔魂之翼 2D
+		// 3=飞龙之翼 2D
+		// 4=暗黑之翼 2D
+		// 6=绝望之翼 2D
+		// 7=武者披风 2D
+
+		// 1=暴风之翼 3D
+		// 2=时空之翼 3D
+		// 3=幻影之翼 3D
+		// 4=破灭之翼 3D
+		// 5=帝王披风 3D
+		// 6=次元之翼 3D
+		// 7=斗皇披风 3D
+		wingKind := 0
+		chars[9] = (byte(extend | wingKind))
+		chars[13] |= (byte(inventory[2].Index & 0x1E0 >> 5))
+		chars[14] |= (byte(inventory[3].Index&0x1E0>>1 | inventory[4].Index&0x1E0>>5))
+		chars[15] |= (byte(inventory[5].Index&0x1E0>>1 | inventory[6].Index&0x1E0>>5))
+		bw.Write(chars[:])
+
+		bw.WriteByte(byte(c.GuildStatus))
+		bw.WriteByte(byte(c.PKLevel))
+
+		bw.WriteByte(0) // padding 1 byte
+	}
+	return bw.Bytes(), nil
+}
+
+type MsgPickCharacter struct {
+	Name string
+}
+
+type MsgSetCharacter struct {
+	Name string
+}
+
 type MsgCreateCharacter struct {
 	Name  string
 	Class int
@@ -192,7 +338,7 @@ func (msg *MsgCreateCharacter) Unmarshal(buf []byte) error {
 type MsgCreateCharacterReply struct {
 	Result    int
 	Name      string
-	Position  int
+	Index     int
 	Level     int
 	Class     int
 	Equipment [24]byte
@@ -209,8 +355,8 @@ func (msg *MsgCreateCharacterReply) Marshal() ([]byte, error) {
 	copy(name[:], msg.Name)
 	bw.Write(name[:])
 
-	// position
-	bw.WriteByte(byte(msg.Position))
+	// index
+	bw.WriteByte(byte(msg.Index))
 
 	// level
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.Level))
@@ -224,34 +370,6 @@ func (msg *MsgCreateCharacterReply) Marshal() ([]byte, error) {
 	bw.WriteByte(0) // padding 1 byte
 
 	return bw.Bytes(), nil
-}
-
-type MsgGetCharacterList struct{}
-
-func (msg *MsgGetCharacterList) Unmarshal(buf []byte) error {
-	return nil
-}
-
-type MsgGetCharacterListReply struct {
-	Result    int
-	Name      string
-	Position  int
-	Level     int
-	Class     int
-	Equipment [24]byte
-}
-
-func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
-	// var bw bytes.Buffer
-	return nil, nil
-}
-
-type MsgPickCharacter struct {
-	Name string
-}
-
-type MsgSetCharacter struct {
-	Name string
 }
 
 type MsgDeleteCharacter struct {

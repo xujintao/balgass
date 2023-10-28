@@ -285,6 +285,41 @@ func (p *Player) Login(msg *model.MsgLogin) {
 // 	}
 // }
 
+func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
+	reply := model.MsgGetCharacterListReply{}
+	defer p.push(&reply)
+
+	// get account
+	reply.EnableCharacter = 0xFF
+	reply.WarehouseExpansion = 1
+
+	// get character list
+	chars, err := model.DB.GetCharacterList(p.AccountID)
+	if err != nil {
+		log.Printf("model.DB.GetCharacterList failed [err]%v\n", err)
+		return
+	}
+
+	reply.CharacterList = make([]*model.MsgCharacter, len(chars))
+	for i, c := range chars {
+		reply.CharacterList[i] = &model.MsgCharacter{
+			Index: i,
+			Name:  c.Name,
+			Level: c.Level,
+			Class: c.Class,
+			Inventory: []*item.Item{
+				item.NewItem(0, 13), // slot0
+				item.NewItem(0, 13), // slot1
+				item.NewItem(7, 0),  // slot2
+				item.NewItem(8, 0),  // slot3
+				item.NewItem(9, 0),  // slot4
+				item.NewItem(10, 0), // slot5
+				item.NewItem(11, 0), // slot6
+			},
+		}
+	}
+}
+
 func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	reply := model.MsgCreateCharacterReply{Result: 0}
 	defer p.push(&reply)
@@ -299,7 +334,7 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	c := model.Character{
 		AccountID: p.AccountID,
 		Name:      msg.Name,
-		Class:     msg.Class,
+		Class:     msg.Class >> 4,
 		Level:     1,
 	}
 	if err := model.DB.CreateCharacter(&c); err != nil {
@@ -315,16 +350,9 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	// reply
 	reply.Result = 1
 	reply.Name = c.Name
-	reply.Position = len(chars) - 1
+	reply.Index = len(chars) - 1
 	reply.Level = c.Level
 	reply.Class = c.Class
-}
-
-func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
-	reply := model.MsgGetCharacterListReply{Result: 0}
-	defer p.push(&reply)
-
-	// get character list
 }
 
 func (p *Player) PickCharacter(msg *model.MsgPickCharacter) {
