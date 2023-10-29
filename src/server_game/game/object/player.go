@@ -308,14 +308,18 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 			Level: c.Level,
 			Class: c.Class,
 			Inventory: []*item.Item{
-				item.NewItem(0, 13), // slot0
-				item.NewItem(0, 13), // slot1
-				item.NewItem(7, 0),  // slot2
-				item.NewItem(8, 0),  // slot3
-				item.NewItem(9, 0),  // slot4
-				item.NewItem(10, 0), // slot5
-				item.NewItem(11, 0), // slot6
+				item.NewItem(0, 13),  // slot0
+				item.NewItem(0, 13),  // slot1
+				item.NewItem(7, 0),   // slot2
+				item.NewItem(8, 0),   // slot3
+				item.NewItem(9, 0),   // slot4
+				item.NewItem(10, 0),  // slot5
+				item.NewItem(11, 0),  // slot6
+				item.NewItem(12, 36), // slot7
+				item.NewItem(13, 1),  // slot8
 			},
+			GuildStatus: 0xFF,
+			PKLevel:     0,
 		}
 	}
 }

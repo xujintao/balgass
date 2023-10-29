@@ -215,6 +215,7 @@ func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
 		var name [10]byte
 		copy(name[:], c.Name)
 		bw.Write(name[:])
+		bw.WriteByte(0) // padding 1 byte
 
 		// level
 		binary.Write(&bw, binary.LittleEndian, uint16(c.Level))
@@ -225,14 +226,13 @@ func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
 		var chars [18]byte
 
 		// class
-		class := byte(c.Class) << 5
+		class := byte(c.Class << 5)
 		switch c.ChangeUp {
 		case 1:
 			class |= 0x10
 		case 2:
 			class |= 0x18
 		}
-		// bw.WriteByte(class)
 		chars[0] = class
 
 		// inventory
@@ -244,58 +244,105 @@ func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
 				inventory[i] = c.Inventory[i]
 			}
 		}
+
+		// slot0~slot6 index -> chars[1]~chars[5]
 		chars[1] = byte(inventory[0].Index)
 		chars[2] = byte(inventory[1].Index)
 		chars[3] = byte(inventory[2].Index&0x0F<<4 | inventory[3].Index&0x0F)
 		chars[4] = byte(inventory[4].Index&0x0F<<4 | inventory[5].Index&0x0F)
-		// slot8: 0=守护天使 1=小恶魔 3=empty
-		// slot7: 4=1D, 8=2D, 12=3D 0=empty
-		chars[5] = (byte(inventory[6].Index&0x0F<<4 | 0x03))
-		var level uint32
-		var levels [4]byte
-		for i, v := range c.Inventory {
-			if v == nil {
-				continue
-			}
-			level |= uint32(v.Level) << i * 3
-		}
+		chars[5] = byte(inventory[6].Index & 0x0F << 4)
 
-		binary.BigEndian.PutUint32(levels[:], level)
-		copy(chars[6:9], levels[1:])
+		// slot0~slot6 index extention1 -> chars[9] bit3~bit7
 		extend := inventory[2].Index&0x10<<3 |
 			inventory[3].Index&0x10<<2 |
 			inventory[4].Index&0x10<<1 |
 			inventory[5].Index&0x10<<0 |
 			inventory[6].Index&0x10>>1
-		// 1=精灵之翼 1D
-		// 2=天使之翼 1D
-		// 3=恶魔之翼 1D
-		// 4=灾难之翼 1D
+		chars[9] = byte(extend)
 
-		// 1=圣灵之翼 2D
-		// 2=魔魂之翼 2D
-		// 3=飞龙之翼 2D
-		// 4=暗黑之翼 2D
-		// 6=绝望之翼 2D
-		// 7=武者披风 2D
-
-		// 1=暴风之翼 3D
-		// 2=时空之翼 3D
-		// 3=幻影之翼 3D
-		// 4=破灭之翼 3D
-		// 5=帝王披风 3D
-		// 6=次元之翼 3D
-		// 7=斗皇披风 3D
-		wingKind := 0
-		chars[9] = (byte(extend | wingKind))
+		// slot0~slot6 index extention2 -> chars[12]~chars[15]
 		chars[13] |= (byte(inventory[2].Index & 0x1E0 >> 5))
 		chars[14] |= (byte(inventory[3].Index&0x1E0>>1 | inventory[4].Index&0x1E0>>5))
 		chars[15] |= (byte(inventory[5].Index&0x1E0>>1 | inventory[6].Index&0x1E0>>5))
-		bw.Write(chars[:])
 
+		// slot0~slot6 level -> chars[1]~chars[5]
+		var level uint32
+		var data [4]byte
+		for i, v := range inventory[0:7] {
+			if v.Index == 512 {
+				continue
+			}
+			level |= uint32(v.Level) << i * 3
+		}
+		binary.BigEndian.PutUint32(data[:], level)
+		copy(chars[6:9], data[1:])
+
+		// slot7 -> chars[5] bit2~bit3 4=1D, 8=2D, 12=3D 0=empty
+		// slot7 -> chars[9] bit0~bit2
+		// slot7 -> chars[16] bit2~bit4
+		switch inventory[7].Index {
+		case 0, 1, 2:
+			chars[5] |= 4                            // 1D
+			chars[9] |= byte(inventory[7].Index + 1) // 1=精灵之翼 2=天使之翼 3=恶魔之翼
+		case 41:
+			chars[5] |= 4 // 1D
+			chars[9] |= 4 // 4=灾难之翼
+		case 266, 267:
+			chars[5] |= 4                              // 1D
+			chars[9] |= byte(inventory[7].Index - 261) // 5=征服者的翅膀 6=善恶的翅膀
+		case 3, 4, 5, 6:
+			chars[5] |= 8                            // 2D
+			chars[9] |= byte(inventory[7].Index - 2) // 1=圣灵之翼 2=魔魂之翼 3=飞龙之翼 4=暗黑之翼
+		case 42:
+			chars[5] |= 8 // 2D
+			chars[9] |= 6 // 6=绝望之翼
+		case 49:
+			chars[5] |= 8 // 2D
+			chars[9] |= 7 // 7=武者披风
+		case 36, 37, 38, 39, 40:
+			chars[5] |= 12                            // 3D
+			chars[9] |= byte(inventory[7].Index - 35) // 1=暴风之翼 2=时空之翼 3=幻影之翼 4=破灭之翼 5=帝王披风
+		case 43:
+			chars[5] |= 12 // 3D
+			chars[9] |= 6  // 6=次元之翼
+		case 50:
+			chars[5] |= 12 // 3D
+			chars[9] |= 7  // 7=斗皇披风
+		case 262:
+			chars[5] |= 8  // 2.5D
+			chars[16] |= 4 // 死亡披风
+		case 263:
+			chars[5] |= 8  // 2.5D
+			chars[16] |= 8 // 混沌之翼
+		case 264:
+			chars[5] |= 8   // 2.5D
+			chars[16] |= 12 // 魔力之翼
+		case 265:
+			chars[5] |= 8   // 2.5D
+			chars[16] |= 16 // 生命之翼
+		}
+
+		// slot8 -> chars[5] bit0~bit1 0=守护天使 1=小恶魔 3=empty
+		// slot8 -> chars[16] bit5~bit7 bit0~bit1
+		switch inventory[8].Index {
+		case 0, 1, 2:
+			chars[5] |= byte(inventory[8].Index)
+		case 64:
+			chars[16] |= 0x20 // 强化恶魔
+		case 65:
+			chars[16] |= 0x40 // 强化天使
+		case 80:
+			chars[16] |= 0xE0 // 熊猫
+		case 123:
+			chars[16] |= 0x60 // 幼龙骨架
+		default:
+			chars[5] |= 3
+		}
+
+		// done
+		bw.Write(chars[:])
 		bw.WriteByte(byte(c.GuildStatus))
 		bw.WriteByte(byte(c.PKLevel))
-
 		bw.WriteByte(0) // padding 1 byte
 	}
 	return bw.Bytes(), nil
@@ -326,6 +373,14 @@ func (msg *MsgCreateCharacter) Unmarshal(buf []byte) error {
 	msg.Name = string(bytes.TrimRight(name[:], "\x00"))
 
 	// class
+	// 0x00 - Dark Wizard
+	// 0x10 - Dark Knight
+	// 0x20 - Elf
+	// 0x30 - Magic Gladiator
+	// 0x40 - Dark Lord
+	// 0x50 - Summoner
+	// 0x60 - Rage Fighter
+	// 0x70 - GrowLancer
 	class, err := br.ReadByte()
 	if err != nil {
 		return err
