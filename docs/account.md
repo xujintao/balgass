@@ -1,4 +1,4 @@
-## Game
+## Account
 
 <img src="account.jpg">
 
