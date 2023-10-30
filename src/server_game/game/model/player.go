@@ -265,7 +265,7 @@ func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
 		chars[14] |= (byte(inventory[3].Index&0x1E0>>1 | inventory[4].Index&0x1E0>>5))
 		chars[15] |= (byte(inventory[5].Index&0x1E0>>1 | inventory[6].Index&0x1E0>>5))
 
-		// slot0~slot6 level -> chars[1]~chars[5]
+		// slot0~slot6 level -> chars[6]~chars[8]
 		var level uint32
 		var data [4]byte
 		for i, v := range inventory[0:7] {
@@ -395,7 +395,7 @@ func (msg *MsgCreateCharacter) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Class = int(class)
+	msg.Class = int(class >> 4)
 
 	return nil
 }
@@ -427,7 +427,7 @@ func (msg *MsgCreateCharacterReply) Marshal() ([]byte, error) {
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.Level))
 
 	// class
-	bw.WriteByte(byte(msg.Class))
+	bw.WriteByte(byte(msg.Class << 5))
 
 	// equipment
 	bw.Write(msg.Equipment[:])

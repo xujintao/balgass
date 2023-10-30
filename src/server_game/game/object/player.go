@@ -332,7 +332,7 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	defer p.push(&reply)
 
 	// validate msg
-	if msg.Name == "" || msg.Class&0x0F > 0 || msg.Class>>4 > 6 {
+	if msg.Name == "" || msg.Class > 6 {
 		log.Printf("CreateCharacter validate msg failed [msg]%v\n", msg)
 		return
 	}
@@ -341,7 +341,7 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	c := model.Character{
 		AccountID: p.AccountID,
 		Name:      msg.Name,
-		Class:     msg.Class >> 4,
+		Class:     msg.Class,
 		Level:     1,
 	}
 	if err := model.DB.CreateCharacter(&c); err != nil {
