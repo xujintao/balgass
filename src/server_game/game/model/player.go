@@ -184,18 +184,18 @@ type MsgCharacter struct {
 }
 
 type MsgGetCharacterListReply struct {
-	EnableCharacter    int
-	MoveCnt            int
-	Count              int
-	WarehouseExpansion int
-	CharacterList      []*MsgCharacter
+	EnableCharacterClass int
+	MoveCnt              int
+	Count                int
+	WarehouseExpansion   int
+	CharacterList        []*MsgCharacter
 }
 
 func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 
 	// EnableCharacter
-	bw.WriteByte(byte(msg.EnableCharacter))
+	bw.WriteByte(byte(msg.EnableCharacterClass))
 
 	// MoveCnt
 	bw.WriteByte(byte(msg.MoveCnt))
@@ -345,6 +345,16 @@ func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
 		bw.WriteByte(byte(c.PKLevel))
 		bw.WriteByte(0) // padding 1 byte
 	}
+	return bw.Bytes(), nil
+}
+
+type MsgEnableCharacterClassReply struct {
+	Class int
+}
+
+func (msg *MsgEnableCharacterClassReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Class))
 	return bw.Bytes(), nil
 }
 

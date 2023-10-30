@@ -43,6 +43,9 @@ func TestC1C2Handle(t *testing.T) {
 	conn := c1c2.Conn{RemoteAddr: "test"}
 	conn.Write = func(resp *c1c2.Response) error {
 		buf := resp.Body()
+		if bytes.Equal(buf[0:2], []byte{0xDE, 0x00}) {
+			return nil
+		}
 
 		// compare
 		expect, err := hex.DecodeString(item.out)

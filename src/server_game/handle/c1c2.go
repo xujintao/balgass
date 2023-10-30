@@ -219,6 +219,7 @@ var apiIns = [...]*apiIn{
 var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x02, "out_chat_whisper", (*model.MsgWhisper)(nil)},
 	{0, false, 0xC1, 0xD4, "out_move_reply", (*model.MsgMoveReply)(nil)},
+	{0, false, 0xC1, 0xDE00, "EnableCharacterClass Reply", (*model.MsgEnableCharacterClassReply)(nil)},
 	{0, false, 0xC1, 0xF100, "Connect Reply", (*model.MsgConnectReply)(nil)},
 	{0, false, 0xC1, 0xF101, "Login Reply", (*model.MsgLoginReply)(nil)},
 	{0, false, 0xC1, 0xF300, "GetCharacterList Reply", (*model.MsgGetCharacterListReply)(nil)},

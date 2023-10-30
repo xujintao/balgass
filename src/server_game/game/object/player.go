@@ -290,8 +290,11 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 	defer p.push(&reply)
 
 	// get account
-	reply.EnableCharacter = 0xFF
+	reply.EnableCharacterClass = 0xFF
 	reply.WarehouseExpansion = 1
+	p.push(&model.MsgEnableCharacterClassReply{
+		Class: reply.EnableCharacterClass,
+	})
 
 	// get character list
 	chars, err := model.DB.GetCharacterList(p.AccountID)
