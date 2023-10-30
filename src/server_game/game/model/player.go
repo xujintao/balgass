@@ -207,9 +207,9 @@ func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
 	bw.WriteByte(byte(msg.WarehouseExpansion))
 
 	// CharacterList
-	for i, c := range msg.CharacterList {
+	for _, c := range msg.CharacterList {
 		// index
-		bw.WriteByte(byte(i))
+		bw.WriteByte(byte(c.Index))
 
 		// name
 		var name [10]byte

@@ -306,7 +306,7 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 	reply.CharacterList = make([]*model.MsgCharacter, len(chars))
 	for i, c := range chars {
 		reply.CharacterList[i] = &model.MsgCharacter{
-			Index: i,
+			Index: c.Position,
 			Name:  c.Name,
 			Level: c.Level,
 			Class: c.Class,
@@ -337,9 +337,28 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 		return
 	}
 
+	// try to get an empty postion
+	chars, err := model.DB.GetCharacterList(p.AccountID)
+	if err != nil {
+		log.Printf("model.DB.GetCharacterList failed [err]%v\n", err)
+		return
+	}
+	position := 0
+	for i, char := range chars {
+		if i != char.Position {
+			position = i
+			break
+		}
+		position++
+	}
+	if position > 4 {
+		log.Printf("over max character count [account]%s\n", p.AccountName)
+		return
+	}
 	// create character
 	c := model.Character{
 		AccountID: p.AccountID,
+		Position:  position,
 		Name:      msg.Name,
 		Class:     msg.Class,
 		Level:     1,
@@ -348,16 +367,10 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 		log.Printf("model.DB.CreateCharacter failed [err]%v\n", err)
 		return
 	}
-	chars, err := model.DB.GetCharacterList(c.AccountID)
-	if err != nil {
-		log.Printf("model.DB.GetCharacterList failed [err]%v\n", err)
-		return
-	}
-
 	// reply
 	reply.Result = 1
 	reply.Name = c.Name
-	reply.Index = len(chars) - 1
+	reply.Index = c.Position
 	reply.Level = c.Level
 	reply.Class = c.Class
 }
