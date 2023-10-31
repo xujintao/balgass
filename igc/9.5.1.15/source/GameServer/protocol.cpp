@@ -10859,7 +10859,20 @@ void GameProtocol::PMoveProc(PMSG_MOVE* lpMove, int aIndex)
 		lpObj->PathX[n] = ax;
 		lpObj->PathY[n] = ay;
 	}
-
+	if (aIndex == 11900) {
+		g_Log.Add("[PMoveProc] (%d,%d)(%d,%d)(%d,%d)(%d,%d)(%d,%d)(%d,%d)(%d,%d)(%d,%d)(%d,%d)(%d,%d)", 
+			lpObj->PathX[0], lpObj->PathY[0],
+			lpObj->PathX[1], lpObj->PathY[1],
+			lpObj->PathX[2], lpObj->PathY[2],
+			lpObj->PathX[3], lpObj->PathY[3],
+			lpObj->PathX[4], lpObj->PathY[4],
+			lpObj->PathX[5], lpObj->PathY[5],
+			lpObj->PathX[6], lpObj->PathY[6],
+			lpObj->PathX[7], lpObj->PathY[7],
+			lpObj->PathX[8], lpObj->PathY[8],
+			lpObj->PathX[9], lpObj->PathY[9]
+			);
+	}
 	if ( lpObj->PathCount > 0 )
 	{
 		int nextX;
@@ -11226,7 +11239,7 @@ void GameProtocol::RecvPositionSetProc(PMSG_POSISTION_SET * lpMove, int aIndex)
 	}
 
 	LPOBJ lpObj = &gObj[aIndex];
-
+	g_Log.Add("[RecvPositionSetProc] (%d,%d)", lpMove->X, lpMove->Y);
 	if ( this->PacketCheckTime(aIndex) == FALSE )
 	{
 		return;
