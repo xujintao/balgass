@@ -47,7 +47,7 @@ void ParsePacket(void* PackStream, int unk1, int unk2)
 			case 0xC3:
 				enc = 1;
 				size = buff[1];
-				DecSize = g_PacketEncrypt.Decrypt(&DecBuff[1], &buff[2], size - 2);
+				DecSize = g_PacketEncrypt.Decrypt(&DecBuff[2], &buff[2], size - 2);
 				DecBuff[0] = 0xC1;
 				DecBuff[1] = DecSize + 2;
 				size = DecSize + 2;
@@ -57,7 +57,7 @@ void ParsePacket(void* PackStream, int unk1, int unk2)
 			case 0xC4:
 				enc = 1;
 				size = MAKEWORD(buff[2], buff[1]);
-				DecSize = g_PacketEncrypt.Decrypt(&DecBuff[2], &buff[3], size - 3);
+				DecSize = g_PacketEncrypt.Decrypt(&DecBuff[3], &buff[3], size - 3);
 				DecBuff[0] = 0xC2;
 				DecBuff[2] = LOBYTE(DecSize + 3);
 				DecBuff[1] = HIBYTE(DecSize + 3);

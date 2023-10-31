@@ -33,7 +33,8 @@ int CPacketEncrypt::Decrypt(BYTE * lpDest, BYTE * lpSource, int iSize)
 	if (remainder == 1)
 	{
 		int paddingSize = lpSource[iSize - 1];
-		outLen = iSize - paddingSize - 1;
+		iSize--;
+		outLen = iSize - paddingSize;
 
 		if (lpDest != NULL)
 		{
@@ -47,7 +48,7 @@ int CPacketEncrypt::Decrypt(BYTE * lpDest, BYTE * lpSource, int iSize)
 
 				memcpy(ibuf, lpSource, iSize);
 
-				for (int i = 0; i < outLen; i += this->dec.BLOCKSIZE)
+				for (int i = 0; i < iSize; i += this->dec.BLOCKSIZE)
 				{
 					this->dec.ProcessBlock(&ibuf[i], &obuf[i]);
 				}
@@ -73,38 +74,34 @@ int CPacketEncrypt::Encrypt(BYTE * lpDest, BYTE * lpSource, int iSize)
 	int paddingSize = 0;
 	int remainder = iSize % this->enc.BLOCKSIZE;
 
-	if (remainder >= 0)
+	if (remainder > 0)
 	{
 		paddingSize = this->enc.BLOCKSIZE - remainder;
 	}
-	else
-	{
-		return iSize;
-	}
 
-	int outLen = iSize + paddingSize + 1;
+	int outLen = iSize + paddingSize;
 
 	if (lpDest != NULL)
 	{
 		BYTE padding[64];
 		BYTE obuf[16384];
-		BYTE tbuf[16384];
+		BYTE ibuf[16384];
 
 		memset(padding, 0, sizeof(padding));
-		memset(tbuf, 0, outLen);
-		memset(obuf, 0, outLen);
+		memset(ibuf, 0, outLen);
+		memset(obuf, 0, outLen+1);
 
-		memcpy(tbuf, lpSource, iSize);
-		memcpy(&tbuf[iSize], padding, paddingSize);
+		memcpy(ibuf, lpSource, iSize);
+		memcpy(&ibuf[iSize], padding, paddingSize);
 
 		for (int i = 0; i < outLen; i += this->enc.BLOCKSIZE)
 		{
-			this->enc.ProcessBlock(&tbuf[i], &obuf[i]);
+			this->enc.ProcessBlock(&ibuf[i], &obuf[i]);
 		}
 
-		obuf[outLen - 1] = paddingSize;
-		memcpy(lpDest, obuf, outLen);
+		obuf[outLen] = paddingSize;
+		memcpy(lpDest, obuf, outLen+1);
 	}
 
-	return outLen;
+	return outLen+1;
 }

@@ -629,17 +629,16 @@ bool CIOCP::DataSend(int aIndex, unsigned char* lpMsg, DWORD dwSize, bool Encryp
 		if (lpMsg[0] == 0xC3)
 		{
 			btsize = lpMsg[1];
-			ret = g_PacketEncrypt.Encrypt(&ExSendBuf[2], &lpMsg[1], dwSize - 1);
+			ret = g_PacketEncrypt.Encrypt(&ExSendBuf[2], &lpMsg[2], dwSize - 2);
 			ExSendBuf[0] = 0xC3;
 			ExSendBuf[1] = ret + 2;
 			SendBuf = ExSendBuf;
 			dwSize = ret + 2;
-			lpMsg[1] = btsize;
 		}
 		else
 		{
 			btsize = lpMsg[2];
-			ret = g_PacketEncrypt.Encrypt(&ExSendBuf[3], &lpMsg[2], dwSize - 2);
+			ret = g_PacketEncrypt.Encrypt(&ExSendBuf[3], &lpMsg[3], dwSize - 3);
 			ExSendBuf[0] = 0xC4;
 			ExSendBuf[1] = SET_NUMBERH(ret + 3);
 			ExSendBuf[2] = SET_NUMBERL(ret + 3);
