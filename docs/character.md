@@ -2,7 +2,7 @@
 
 <img src="character.jpg">
 
-### Get character list
+### Get Character List
 
 #### Request
 
@@ -17,7 +17,7 @@
 | 2     | 0xF3    | c1c2 frame code 0xF300 BE high byte |
 | 3     | 0x00    | c1c2 frame code 0xF300 BE low byte  |
 
-#### Reply
+#### Reply Enable Character Class
 
 ```
 [C1 05 DE 00 1F]
@@ -40,7 +40,22 @@ character class:
 0x10 - GrowLancer
 ```
 
-#### Reply
+#### Reply Reset Character
+
+```
+pack(1)
+[C1 n+4 FA 0A [n]byte]
+```
+
+| Index | Element | Description                         |
+| ----- | ------- | ----------------------------------- |
+| 0     | 0xC1    | c1c2 frame flag                     |
+| 1     | n+4     | c1c2 frame size                     |
+| 2     | 0xFA    | c1c2 frame code 0xFA0A BE high byte |
+| 3     | 0x0A    | c1c2 frame code 0xFA0A BE low byte  |
+| 4~n+3 | [n]byte | reset character password            |
+
+#### Reply Get Character List
 
 ```
 [C1 1C F3 00 1F 00 01 01 byte[36]]
@@ -90,7 +105,7 @@ slot8 -> chars[16] bit5~bit7 bit0~bit1
 chars[17]
 ```
 
-### Create character
+### Create Character
 
 #### Request
 
@@ -147,17 +162,17 @@ character class:
 
 ```
 pack(1)
-[C1 22 F3 02 [10]byte [20]password]
+[C1 15 F3 02 [10]byte [7]password]
 ```
 
 | Index | Element  | Description                         |
 | ----- | -------- | ----------------------------------- |
 | 0     | 0xC1     | c1c2 frame flag                     |
-| 1     | 0x22     | c1c2 frame size                     |
+| 1     | 0x15     | c1c2 frame size                     |
 | 2     | 0xF3     | c1c2 frame code 0xF302 BE high byte |
 | 3     | 0x02     | c1c2 frame code 0xF302 BE low byte  |
-| 4~13  | byte[10] | character name                      |
-| 14~33 | byte[20] | account password                    |
+| 4~13  | [10]byte | character name                      |
+| 14~20 | [7]byte  | reset password last 7 digits        |
 
 #### Reply
 
