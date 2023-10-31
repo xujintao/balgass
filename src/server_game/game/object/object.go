@@ -519,6 +519,7 @@ type objecter interface {
 	Offline()
 	push(any)
 	Login(*model.MsgLogin)
+	Logout(*model.MsgLogout)
 	// SetAccount(*model.MsgSetAccount)
 	CreateCharacter(*model.MsgCreateCharacter)
 	GetCharacterList(*model.MsgGetCharacterList)

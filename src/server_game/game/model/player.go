@@ -490,6 +490,31 @@ func (msg *MsgDeleteCharacterReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgLogout struct {
+	Flag int
+}
+
+func (msg *MsgLogout) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	// flag
+	flag, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Flag = int(flag)
+	return nil
+}
+
+type MsgLogoutReply struct {
+	Flag int
+}
+
+func (msg *MsgLogoutReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Flag))
+	return bw.Bytes(), nil
+}
+
 type MsgChat struct {
 	Name string
 	Msg  string
