@@ -178,27 +178,38 @@ func newFrame(res *Response) ([]byte, error) {
 
 	// size placehold
 	switch flag {
-	case 0xC1:
+	case 0xC1, 0xC3:
 		buf = bytes.NewBuffer(head[:2])
 		size++
-	case 0xC2:
+	case 0xC2, 0xC4:
 		buf = bytes.NewBuffer(head[:3])
 		size += 2
 	default:
-		return nil, fmt.Errorf("invalid flag: %0x2x", flag)
+		return nil, fmt.Errorf("invalid flag: %02x", flag)
 	}
 
-	// body
-	buf.Write(res.body)
-	size += len(res.body)
+	// body with aes
+	var body []byte
+	var err error
+	switch flag {
+	case 0xC1, 0xC2:
+		body = res.body
+	case 0xC3, 0xC4:
+		body, err = aes.Encrypt(res.body)
+		if err != nil {
+			return nil, err
+		}
+	}
+	buf.Write(body)
+	size += len(body)
 
 	// size
 	frame := buf.Bytes()
 	switch flag {
-	case 0xC1:
+	case 0xC1, 0xC3:
 		frame[1] = byte(size)
-	case 0xC2:
-		binary.BigEndian.PutUint16(frame[1:], uint16(size))
+	case 0xC2, 0xC4:
+		binary.BigEndian.PutUint16(frame[1:3], uint16(size))
 	}
 
 	return frame, nil

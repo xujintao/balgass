@@ -38,15 +38,16 @@ func (c *Aes) Encrypt(src []byte) ([]byte, error) {
 		padsize = aes.BlockSize - len(src)%aes.BlockSize
 	}
 	bufpad := bytes.Repeat([]byte{0}, padsize)
-	dst := append(src, bufpad...)
+	src = append(src, bufpad...)
+	dst := make([]byte, len(src)+1)
 
 	// encrypt
-	for i := 0; i < len(dst); i += aes.BlockSize {
-		c.cb.Encrypt(dst[i:], dst[i:])
+	for i := 0; i < len(src); i += aes.BlockSize {
+		c.cb.Encrypt(dst[i:], src[i:])
 	}
 
 	// fill padsize
-	dst = append(dst, uint8(padsize))
+	dst[len(dst)-1] = byte(padsize)
 	return dst, nil
 }
 

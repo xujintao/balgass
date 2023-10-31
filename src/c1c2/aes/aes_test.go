@@ -23,6 +23,10 @@ var texts = [...]text{
 		"f33c2407b727",
 		"7c1021ef7bcf7a84b8b049c130621e660a",
 	},
+	{
+		"f10202",
+		"60d231d1f04d93caaf87d9e12323fe7c0d",
+	},
 }
 
 func Test(t *testing.T) {
