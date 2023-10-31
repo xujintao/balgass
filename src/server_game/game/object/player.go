@@ -295,6 +295,9 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 	p.push(&model.MsgEnableCharacterClassReply{
 		Class: reply.EnableCharacterClass,
 	})
+	p.push(&model.MsgResetCharacterReply{
+		Reset: "012345678901234567",
+	})
 
 	// get character list
 	chars, err := model.DB.GetCharacterList(p.AccountID)
@@ -423,7 +426,7 @@ func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
 	}
 
 	// check password
-	if msg.Password != p.AccountPassword {
+	if msg.Password != "1234567" {
 		reply.Result = 2
 		return
 	}

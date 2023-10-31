@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"os"
 	"reflect"
 
 	"github.com/xujintao/balgass/src/c1c2"
@@ -69,6 +70,13 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 		req.Body = req.Body[1:]
 	}
 	req.Body = req.Body[1:]
+	if os.Getenv("DEBUG") == "1" {
+		switch api.action {
+		case "Live", "DefineKey":
+			return
+		}
+		log.Printf("[player]%d [action]%s\n", id, api.action)
+	}
 
 	// validate encrypt
 	if api.enc && !req.Encrypt {
@@ -226,6 +234,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0xF301, "CreateCharacter Reply", (*model.MsgCreateCharacterReply)(nil)},
 	{0, false, 0xC1, 0xF302, "DeleteCharacter Reply", (*model.MsgDeleteCharacterReply)(nil)},
 	{0, false, 0xC1, 0xF311, "out_skill_list", (*model.MsgSkillList)(nil)},
+	{0, false, 0xC1, 0xFA0A, "ResetCharacter Reply", (*model.MsgResetCharacterReply)(nil)},
 	{0, false, 0xC1, 0xFFFF, "out_test", (*model.MsgTest)(nil)},
 }
 

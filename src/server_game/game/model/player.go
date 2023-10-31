@@ -358,6 +358,19 @@ func (msg *MsgEnableCharacterClassReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgResetCharacterReply struct {
+	Reset string
+}
+
+func (msg *MsgResetCharacterReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+
+	// reset
+	bw.WriteString(msg.Reset)
+
+	return bw.Bytes(), nil
+}
+
 type MsgPickCharacter struct {
 	Name string
 }
@@ -454,12 +467,12 @@ func (msg *MsgDeleteCharacter) Unmarshal(buf []byte) error {
 	msg.Name = string(bytes.TrimRight(name[:], "\x00"))
 
 	// password
-	var password [20]byte
+	var password [7]byte
 	_, err = br.Read(password[:])
 	if err != nil {
 		return err
 	}
-	msg.Password = string(bytes.TrimRight(utils.Xor(password[:]), "\x00"))
+	msg.Password = string(bytes.TrimRight(password[:], "\x00"))
 
 	return nil
 }
