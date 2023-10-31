@@ -4,7 +4,7 @@
 pushd %~dp0
 
 :: Do your work
-start main.exe connect /u192.168.0.103 /p44405
+start main.exe connect /u10.0.2.15 /p44405
 
 :: Remove the temporary drive letter and return to your original location
 popd
