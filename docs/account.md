@@ -111,9 +111,9 @@ pack(1)
 | ----- | ------- | ----------------------------------- |
 | 0     | 0xC1    | c1c2 frame flag                     |
 | 1     | 0x0F    | c1c2 frame size                     |
-| 2     | 0xF1    | c1c2 frame code 0xF406 BE high byte |
-| 3     | 0x00    | c1c2 frame code 0xF406 BE low byte  |
-| 4     | 0x01    | connect result                      |
+| 2     | 0xF1    | c1c2 frame code 0xF100 BE high byte |
+| 3     | 0x00    | c1c2 frame code 0xF100 BE low byte  |
+| 4     | 0x01    | connect result: 0=failed 1=success  |
 | 5     | 0x2E    | player index 0x2E7C BE high byte    |
 | 6     | 0x7C    | player index 0x2E7C BE low byte     |
 | 7~14  | byte[8] | client version                      |
@@ -129,9 +129,9 @@ pack(1)
 | ----- | ------- | ----------------------------------- |
 | 0     | 0xC1    | c1c2 frame flag                     |
 | 1     | 0x05    | c1c2 frame size                     |
-| 2     | 0xF1    | c1c2 frame code 0xF406 BE high byte |
-| 3     | 0x01    | c1c2 frame code 0xF406 BE low byte  |
-| 4     | 0x01    | login result is 0x04                |
+| 2     | 0xF1    | c1c2 frame code 0xF101 BE high byte |
+| 3     | 0x01    | c1c2 frame code 0xF101 BE low byte  |
+| 4     | 0x04    | login result is 0x04                |
 
 ### Login
 
@@ -148,8 +148,8 @@ pack(1)
 | ------- | --------- | ----------------------------------- |
 | 0       | 0xC1      | c1c2 frame flag                     |
 | 1       | 0xA2      | c1c2 frame size                     |
-| 2       | 0xF1      | c1c2 frame code 0xF406 BE high byte |
-| 3       | 0x01      | c1c2 frame code 0xF406 BE low byte  |
+| 2       | 0xF1      | c1c2 frame code 0xF101 BE high byte |
+| 3       | 0x01      | c1c2 frame code 0xF101 BE low byte  |
 | 4~13    | byte[10]  | account name with xor               |
 | 14~33   | byte[20]  | account password with xor           |
 | 34~133  | byte[100] | hardware id                         |
@@ -171,8 +171,8 @@ pack(1)
 | ----- | ------- | ----------------------------------- |
 | 0     | 0xC1    | c1c2 frame flag                     |
 | 1     | 0x05    | c1c2 frame size                     |
-| 2     | 0xF1    | c1c2 frame code 0xF406 BE high byte |
-| 3     | 0x01    | c1c2 frame code 0xF406 BE low byte  |
+| 2     | 0xF1    | c1c2 frame code 0xF101 BE high byte |
+| 3     | 0x01    | c1c2 frame code 0xF101 BE low byte  |
 | 4     | 0x01    | login result                        |
 
 ```
@@ -191,4 +191,53 @@ pack(1)
 13: 这个 IP 的储值点数不足
 17: 是 15 岁以上能够使用的服务器
 64: non-vip 未购买收费服务器入场券而无法进入
+```
+
+### Logout
+
+Player logout
+
+#### Request
+
+```
+pack(1)
+[C1 05 F1 02 02]
+```
+
+| Index | Element | Description                         |
+| ----- | ------- | ----------------------------------- |
+| 0     | 0xC1    | c1c2 frame flag                     |
+| 1     | 0x05    | c1c2 frame size                     |
+| 2     | 0xF1    | c1c2 frame code 0xF102 BE high byte |
+| 3     | 0x02    | c1c2 frame code 0xF102 BE low byte  |
+| 4     | 0x02    | flag                                |
+
+```
+flag:
+0=close game
+1=back to pick character
+2=back to pick server
+```
+
+#### Reply
+
+```
+pack(1)
+[C1 05 F1 02 02]
+need Encrypt
+```
+
+| Index | Element | Description                         |
+| ----- | ------- | ----------------------------------- |
+| 0     | 0xC1    | c1c2 frame flag                     |
+| 1     | 0x05    | c1c2 frame size                     |
+| 2     | 0xF1    | c1c2 frame code 0xF102 BE high byte |
+| 3     | 0x02    | c1c2 frame code 0xF102 BE low byte  |
+| 4     | 0x02    | flag                                |
+
+```
+flag:
+0=close game
+1=back to pick character
+2=back to pick server
 ```
