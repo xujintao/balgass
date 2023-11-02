@@ -9,6 +9,13 @@ import (
 	"github.com/xujintao/balgass/src/utils"
 )
 
+type MsgMuunSystem struct {
+}
+
+func (msg *MsgMuunSystem) Unmarshal(buf []byte) error {
+	return nil
+}
+
 // #pragma pack (1)
 // struct PMSG_JOINRESULT
 //
@@ -146,6 +153,56 @@ type MsgSetAccount struct {
 	*MsgLogin
 	*Account
 	Err error
+}
+
+type MsgLogout struct {
+	Flag int
+}
+
+func (msg *MsgLogout) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	// flag
+	flag, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Flag = int(flag)
+	return nil
+}
+
+type MsgLogoutReply struct {
+	Flag int
+}
+
+func (msg *MsgLogoutReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Flag))
+	return bw.Bytes(), nil
+}
+
+type MsgHack struct {
+	Flag1 int
+	Flag2 int
+}
+
+func (msg *MsgHack) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// flag1
+	flag, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Flag1 = int(flag)
+
+	// flag2
+	flag2, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Flag2 = int(flag2)
+
+	return nil
 }
 
 // invalid api [body]f330ffffffffffffffffffffffffffffffffffffffff1dffffff16ff00000000
@@ -371,14 +428,6 @@ func (msg *MsgResetCharacterReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-type MsgPickCharacter struct {
-	Name string
-}
-
-type MsgSetCharacter struct {
-	Name string
-}
-
 type MsgCreateCharacter struct {
 	Name  string
 	Class int
@@ -490,28 +539,131 @@ func (msg *MsgDeleteCharacterReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-type MsgLogout struct {
-	Flag int
+type MsgLoadCharacter struct {
+	Name     string
+	Position int
 }
 
-func (msg *MsgLogout) Unmarshal(buf []byte) error {
+func (msg *MsgLoadCharacter) Unmarshal(buf []byte) error {
 	br := bytes.NewReader(buf)
-	// flag
-	flag, err := br.ReadByte()
+
+	// name
+	var name [10]byte
+	_, err := br.Read(name[:])
 	if err != nil {
 		return err
 	}
-	msg.Flag = int(flag)
+	msg.Name = string(bytes.TrimRight(name[:], "\x00"))
+
+	// position
+	position, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Position = int(position)
+
 	return nil
 }
 
-type MsgLogoutReply struct {
-	Flag int
+type MsgLoadCharacterReply struct {
+	X                  int
+	Y                  int
+	MapNumber          int
+	Dir                int
+	Experience         int
+	NextExperience     int
+	LevelUpPoint       int
+	Strength           int
+	Dexterity          int
+	Vitality           int
+	Energy             int
+	HP                 int
+	MaxHP              int
+	MP                 int
+	MaxMP              int
+	SD                 int
+	MaxSD              int
+	BP                 int
+	MaxBP              int
+	Money              int
+	PKLevel            int
+	CtlCode            int
+	AddPoint           int
+	MaxAddPoint        int
+	Leadership         int
+	MinusPoint         int
+	MaxMinusPoint      int
+	InventoryExpansion int
 }
 
-func (msg *MsgLogoutReply) Marshal() ([]byte, error) {
+func (msg *MsgLoadCharacterReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
-	bw.WriteByte(byte(msg.Flag))
+	bw.WriteByte(byte(msg.X))
+	bw.WriteByte(byte(msg.Y))
+	bw.WriteByte(byte(msg.MapNumber))
+	bw.WriteByte(byte(msg.Dir))
+	binary.Write(&bw, binary.BigEndian, uint64(msg.Experience))
+	binary.Write(&bw, binary.BigEndian, uint64(msg.NextExperience))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.LevelUpPoint))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Strength))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Dexterity))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Vitality))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Energy))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.HP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxHP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxMP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.SD))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxSD))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.BP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxBP))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.Money))
+	bw.WriteByte(byte(msg.PKLevel))
+	bw.WriteByte(byte(msg.CtlCode))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.AddPoint))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxAddPoint))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Leadership))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MinusPoint))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxMinusPoint))
+	return bw.Bytes(), nil
+}
+
+type MsgCheckCharacter struct {
+	Name string
+}
+
+func (msg *MsgCheckCharacter) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// name
+	var name [10]byte
+	_, err := br.Read(name[:])
+	if err != nil {
+		return err
+	}
+	msg.Name = string(bytes.TrimRight(name[:], "\x00"))
+
+	return nil
+}
+
+type MsgCheckCharacterReply struct {
+	Name string
+
+	// 0=success 1=failed
+	Result int
+}
+
+func (msg *MsgCheckCharacterReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+
+	// name
+	var name [10]byte
+	copy(name[:], msg.Name)
+	bw.Write(name[:])
+
+	// result
+	bw.WriteByte(byte(msg.Result))
+
 	return bw.Bytes(), nil
 }
 

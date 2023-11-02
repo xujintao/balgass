@@ -115,6 +115,18 @@ func (db *db) GetCharacterList(aid int) ([]*Character, error) {
 	return chars, nil
 }
 
-func (db *db) DeleteCharacterByName(c *Character) error {
-	return db.Delete(c, c).Error
+func (db *db) GetCharacterByName(aid int, name string) (*Character, error) {
+	c := Character{}
+	err := db.First(&c, &Character{
+		AccountID: aid,
+		Name:      name,
+	}).Error
+	return &c, err
+}
+
+func (db *db) DeleteCharacterByName(aid int, name string) error {
+	return db.Delete(&Character{}, &Character{
+		AccountID: aid,
+		Name:      name,
+	}).Error
 }

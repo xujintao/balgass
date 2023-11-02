@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"math/rand"
-	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
@@ -231,6 +230,10 @@ func (p *Player) spawnPosition() {
 	p.createFrustrum()
 }
 
+func (p *Player) MuunSystem(msg *model.MsgMuunSystem) {
+	log.Println("MuunSystem placeholder")
+}
+
 func (p *Player) Login(msg *model.MsgLogin) {
 	// validate msg
 	resp := model.MsgLoginReply{Result: 1}
@@ -297,6 +300,10 @@ func (p *Player) Logout(msg *model.MsgLogout) {
 	default:
 		log.Printf("Logout failed [flag]%d\n", msg.Flag)
 	}
+}
+
+func (p *Player) Hack(msg *model.MsgHack) {
+	log.Printf("Hack [flag1]%02x [flag2]%02x\n", msg.Flag1, msg.Flag2)
 }
 
 func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
@@ -392,39 +399,6 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	reply.Class = c.Class
 }
 
-func (p *Player) PickCharacter(msg *model.MsgPickCharacter) {
-	go func() {
-		time.Sleep(100 * time.Millisecond) // get character info
-		p.actioner.PlayerAction(p.index, "SetCharacter", &model.MsgSetCharacter{Name: msg.Name})
-	}()
-}
-
-func (p *Player) SetCharacter(msg *model.MsgSetCharacter) {
-	mc := MonsterTable[249]
-	p.Name = msg.Name
-	p.Annotation = msg.Name
-	p.Level = mc.Level
-	p.attackPanelMin = mc.DamageMin
-	p.attackPanelMax = mc.DamageMax
-	p.attackRate = mc.AttackRate
-	p.attackSpeed = mc.AttackSpeed
-	p.defense = mc.Defense
-	p.magicDefense = mc.MagicDefense
-	p.defenseRate = mc.BlockRate
-	p.HP = mc.HP
-	p.MaxHP = mc.HP
-	p.MP = mc.MP
-	p.MaxMP = mc.MP
-	p.moveSpeed = mc.MoveSpeed
-	p.attackRange = mc.AttackRange
-	p.attackType = mc.AttackType
-	p.viewRange = mc.ViewRange
-	p.spawnPosition()
-	p.ConnectState = ConnectStatePlaying
-	p.Live = true
-	p.State = 1
-}
-
 func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
 	reply := model.MsgDeleteCharacterReply{Result: 0}
 	defer p.push(&reply)
@@ -446,17 +420,95 @@ func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
 	}
 
 	// delete character
-	c := model.Character{
-		AccountID: p.AccountID,
-		Name:      msg.Name,
-	}
-	if err := model.DB.DeleteCharacterByName(&c); err != nil {
+	if err := model.DB.DeleteCharacterByName(p.AccountID, msg.Name); err != nil {
 		log.Printf("model.DB.DeleteCharacterByName failed [err]%v\n", err)
 		return
 	}
 
 	// reply
 	reply.Result = 1
+}
+
+func (p *Player) CheckCharacter(msg *model.MsgCheckCharacter) {
+	p.push(&model.MsgCheckCharacterReply{
+		Result: 0,
+	})
+}
+
+func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
+	// validate msg
+	if msg.Name == "" || msg.Position < 0 || msg.Position > 4 {
+		log.Printf("LoadCharacter validate msg failed [msg]%v [account]%s \n",
+			msg, p.AccountName)
+		return
+	}
+
+	// load character data from db
+	c, err := model.DB.GetCharacterByName(p.AccountID, msg.Name)
+	if err != nil {
+		log.Printf("model.DB.GetCharacterByName failed [err]%v\n", err)
+		return
+	}
+
+	// set player with character data
+	mc := MonsterTable[249]
+	p.Name = c.Name
+	p.Annotation = c.Name
+	p.Level = c.Level
+	p.attackPanelMin = mc.DamageMin
+	p.attackPanelMax = mc.DamageMax
+	p.attackRate = mc.AttackRate
+	p.attackSpeed = mc.AttackSpeed
+	p.defense = mc.Defense
+	p.magicDefense = mc.MagicDefense
+	p.defenseRate = mc.BlockRate
+	p.HP = mc.HP
+	p.MaxHP = mc.HP
+	p.MP = mc.MP
+	p.MaxMP = mc.MP
+	p.moveSpeed = mc.MoveSpeed
+	p.attackRange = mc.AttackRange
+	p.attackType = mc.AttackType
+	p.viewRange = mc.ViewRange
+	p.spawnPosition()
+	p.ConnectState = ConnectStatePlaying
+	p.Live = true
+	p.State = 1
+
+	// reply
+	p.push(&model.MsgLoadCharacterReply{
+		X:                  p.X,
+		Y:                  p.Y,
+		MapNumber:          p.MapNumber,
+		Dir:                p.Dir,
+		Experience:         0,
+		NextExperience:     100,
+		Strength:           100,
+		Dexterity:          100,
+		Vitality:           100,
+		Energy:             100,
+		Leadership:         100,
+		HP:                 p.HP,
+		MaxHP:              p.MaxHP,
+		MP:                 p.MP,
+		MaxMP:              p.MaxMP,
+		SD:                 100,
+		BP:                 100,
+		MaxBP:              100,
+		Money:              2000,
+		PKLevel:            p.PKLevel,
+		CtlCode:            0,
+		AddPoint:           0,
+		MaxAddPoint:        122,
+		MinusPoint:         0,
+		MaxMinusPoint:      122,
+		InventoryExpansion: 0,
+	})
+
+	// go func() {
+	// 	time.Sleep(100 * time.Millisecond) // get character info
+	// 	p.actioner.PlayerAction(p.index, "SetCharacter", &model.MsgSetCharacter{Name: msg.Name})
+	// }()
 }
 
 func (p *Player) getPKLevel() int {

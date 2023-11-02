@@ -188,7 +188,7 @@ func (b *bot) online() {
 }
 
 func (b *bot) pickCharacter() {
-	b.PlayerAction(b.id, "PickCharacter", &model.MsgPickCharacter{Name: b.name})
+	b.PlayerAction(b.id, "LoadCharacter", &model.MsgLoadCharacter{Name: b.name})
 	b.nextTime = 2000
 	b.state = botStatePlay // should be set in handle
 }
