@@ -239,7 +239,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0xF300, "GetCharacterListReply", (*model.MsgGetCharacterListReply)(nil)},
 	{0, false, 0xC1, 0xF301, "CreateCharacterReply", (*model.MsgCreateCharacterReply)(nil)},
 	{0, false, 0xC1, 0xF302, "DeleteCharacterReply", (*model.MsgDeleteCharacterReply)(nil)},
-	{0, false, 0xC1, 0xF303, "LoadCharacterReply", (*model.MsgLoadCharacterReply)(nil)},
+	{0, false, 0xC3, 0xF303, "LoadCharacterReply", (*model.MsgLoadCharacterReply)(nil)},
 	{0, false, 0xC1, 0xF311, "out_skill_list", (*model.MsgSkillList)(nil)},
 	{0, false, 0xC1, 0xF315, "CheckCharacterReply", (*model.MsgCheckCharacterReply)(nil)},
 	{0, false, 0xC1, 0xFA0A, "ResetCharacterReply", (*model.MsgResetCharacterReply)(nil)},

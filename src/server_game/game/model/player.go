@@ -617,6 +617,7 @@ func (msg *MsgLoadCharacterReply) Marshal() ([]byte, error) {
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxSD))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.BP))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxBP))
+	bw.Write([]byte{0, 0}) // padding
 	binary.Write(&bw, binary.LittleEndian, uint32(msg.Money))
 	bw.WriteByte(byte(msg.PKLevel))
 	bw.WriteByte(byte(msg.CtlCode))
@@ -625,6 +626,8 @@ func (msg *MsgLoadCharacterReply) Marshal() ([]byte, error) {
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.Leadership))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MinusPoint))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxMinusPoint))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.InventoryExpansion))
+	bw.Write([]byte{0, 0}) // padding
 	return bw.Bytes(), nil
 }
 

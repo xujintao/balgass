@@ -255,6 +255,7 @@ func (p *Player) Login(msg *model.MsgLogin) {
 	p.AccountID = account.ID
 	p.AccountName = account.Name
 	p.AccountPassword = account.Password
+	p.ConnectState = ConnectStateLogged
 
 	// async
 	// go func() {
@@ -483,6 +484,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		Dir:                p.Dir,
 		Experience:         0,
 		NextExperience:     100,
+		LevelUpPoint:       30,
 		Strength:           100,
 		Dexterity:          100,
 		Vitality:           100,
@@ -493,8 +495,9 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		MP:                 p.MP,
 		MaxMP:              p.MaxMP,
 		SD:                 100,
+		MaxSD:              200,
 		BP:                 100,
-		MaxBP:              100,
+		MaxBP:              200,
 		Money:              2000,
 		PKLevel:            p.PKLevel,
 		CtlCode:            0,
