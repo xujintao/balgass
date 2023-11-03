@@ -187,3 +187,64 @@ pack(1)
 | 2     | 0xF3    | c1c2 frame code 0xF302 BE high byte             |
 | 3     | 0x02    | c1c2 frame code 0xF302 BE low byte              |
 | 4     | 0x01    | result: 0=failed 1=success 2=password unmatched |
+
+### Load character
+
+#### Request
+
+```
+pack(1)
+[C1 0F F3 03 [10]byte 00]
+```
+
+| Index | Element  | Description                         |
+| ----- | -------- | ----------------------------------- |
+| 0     | 0xC1     | c1c2 frame flag                     |
+| 1     | 0x15     | c1c2 frame size                     |
+| 2     | 0xF3     | c1c2 frame code 0xF303 BE high byte |
+| 3     | 0x03     | c1c2 frame code 0xF303 BE low byte  |
+| 4~13  | [10]byte | character name                      |
+| 14    | 0x00     | character position: 0~4             |
+
+#### Reply
+
+```
+[C3 48 F3 03 ...]
+```
+
+| Index | Element | Description                              |
+| ----- | ------- | ---------------------------------------- |
+| 0     | 0xC3    | c1c2 frame flag                          |
+| 1     | 0x48    | c1c2 frame size                          |
+| 2     | 0xF3    | c1c2 frame code 0xF303 BE high byte      |
+| 3     | 0x03    | c1c2 frame code 0xF303 BE low byte       |
+| 4     | 0x01    | character coordinate x: 0~255            |
+| 5     | 0x01    | character coordinate y: 0~255            |
+| 6     | 0x01    | character map number                     |
+| 7     | 0x05    | character direction: 0~7                 |
+| 8~15  | [8]byte | character experience 64bit BE            |
+| 16~23 | [8]byte | character next level experience 64bit BE |
+| 24~25 | [2]byte | character level up point 16bit LE        |
+| 26~27 | [2]byte | character strength 16bit LE              |
+| 28~29 | [2]byte | character dexterity 16bit LE             |
+| 30~31 | [2]byte | character vitality 16bit LE              |
+| 32~33 | [2]byte | character energy 16bit LE                |
+| 34~35 | [2]byte | character HP 16bit LE                    |
+| 36~37 | [2]byte | character Max HP 16bit LE                |
+| 38~39 | [2]byte | character MP 16bit LE                    |
+| 40~41 | [2]byte | character Max MP 16bit LE                |
+| 42~43 | [2]byte | character SD 16bit LE                    |
+| 44~45 | [2]byte | character Max SD 16bit LE                |
+| 46~47 | [2]byte | character BP 16bit LE                    |
+| 48~49 | [2]byte | character Max BP 16bit LE                |
+| 50~51 | [2]byte | padding for alignment in C               |
+| 52~55 | [4]byte | character money                          |
+| 56    | 0x00    | character pk level                       |
+| 57    | 0x00    | character control code                   |
+| 58~59 | [2]byte | character add point                      |
+| 60~61 | [2]byte | character max add point                  |
+| 62~63 | [2]byte | character leadership                     |
+| 64~65 | [2]byte | character minus point                    |
+| 66~67 | [2]byte | character max minus point                |
+| 68~69 | [2]byte | character inventory expansion            |
+| 70~71 | [2]byte | padding for alignment in C               |
