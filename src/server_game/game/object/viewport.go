@@ -1,6 +1,9 @@
 package object
 
-import "github.com/xujintao/balgass/src/server_game/game/math2"
+import (
+	"github.com/xujintao/balgass/src/server_game/game/math2"
+	"github.com/xujintao/balgass/src/server_game/game/model"
+)
 
 var (
 	FrustrumX [MaxArrayFrustrum]int
@@ -60,14 +63,14 @@ func (obj *object) checkViewport(x, y int) bool {
 	return true
 }
 
-func (obj *object) addViewport(tobj *object) {
+func (obj *object) addViewport(tobj *object) bool {
 	if tobj.Class == 523 ||
 		tobj.Class == 603 {
-		return
+		return false
 	}
 	for _, vp := range obj.viewports {
 		if vp.number == tobj.index {
-			return
+			return false
 		}
 	}
 	for _, vp := range obj.viewports {
@@ -76,9 +79,10 @@ func (obj *object) addViewport(tobj *object) {
 			vp.number = tobj.index
 			vp.type_ = int(tobj.Type)
 			obj.viewportNum++
-			break
+			return true
 		}
 	}
+	return false
 }
 
 func (obj *object) clearViewport() {
@@ -101,6 +105,7 @@ func (obj *object) createViewport() {
 	case ObjectTypeMonster, ObjectTypeNPC:
 		start = obj.objectManager.maxMonsterCount // 怪物看不见怪物
 	}
+	var viewportMonsterReply model.MsgCreateViewportMonsterReply
 	for _, tobj := range obj.objectManager.objects[start:] {
 		if tobj == nil {
 			continue
@@ -114,15 +119,38 @@ func (obj *object) createViewport() {
 		if !obj.checkViewport(tobj.X, tobj.Y) {
 			continue
 		}
-		obj.addViewport(tobj)
+		ok := obj.addViewport(tobj)
+		if ok && obj.Type == ObjectTypePlayer {
+			switch tobj.Type {
+			case ObjectTypeMonster, ObjectTypeNPC:
+				m := model.CreateViewportMonster{
+					Index:                  tobj.index,
+					Class:                  tobj.Class,
+					X:                      tobj.X,
+					Y:                      tobj.Y,
+					TX:                     tobj.TX,
+					TY:                     tobj.TY,
+					Dir:                    tobj.Dir,
+					PentagramMainAttribute: tobj.pentagramMainAttribute,
+					Level:                  tobj.Level,
+					MaxHP:                  tobj.MaxHP,
+					HP:                     tobj.HP,
+				}
+				viewportMonsterReply.Monsters = append(viewportMonsterReply.Monsters, &m)
+			}
+		}
+	}
+	if len(viewportMonsterReply.Monsters) > 0 {
+		obj.push(&viewportMonsterReply)
 	}
 }
 
-func (obj *object) destoryViewport() {
+func (obj *object) destroyViewport() {
 	if obj.ConnectState != ConnectStatePlaying {
 		return
 	}
 	// remove viewport
+	var viewportObjectReply model.MsgDestroyViewportObjectReply
 	for i, vp := range obj.viewports {
 		if vp.state == 0 {
 			continue
@@ -143,15 +171,22 @@ func (obj *object) destoryViewport() {
 			}
 		}
 		if remove {
+			if obj.Type == ObjectTypePlayer {
+				dobj := model.DestroyViewportObject{Index: vp.number}
+				viewportObjectReply.Objects = append(viewportObjectReply.Objects, &dobj)
+			}
 			obj.viewports[i].state = 0
 			obj.viewports[i].number = -1
 			obj.viewportNum--
 		}
 	}
+	if len(viewportObjectReply.Objects) > 0 {
+		obj.push(&viewportObjectReply)
+	}
 }
 
 func (obj *object) processViewport() {
-	obj.destoryViewport()
+	obj.destroyViewport()
 	obj.createViewport()
 	if obj.State == 1 {
 		obj.State = 2

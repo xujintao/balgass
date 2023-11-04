@@ -9,6 +9,67 @@ import (
 	"github.com/xujintao/balgass/src/utils"
 )
 
+type CreateViewportMonster struct {
+	Index                  int
+	Class                  int
+	X                      int
+	Y                      int
+	TX                     int
+	TY                     int
+	Dir                    int
+	PentagramMainAttribute int
+	Level                  int
+	MaxHP                  int
+	HP                     int
+	BuffEffects            []int
+}
+
+// pack(1)
+type MsgCreateViewportMonsterReply struct {
+	Monsters []*CreateViewportMonster
+}
+
+func (msg *MsgCreateViewportMonsterReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(len(msg.Monsters)))
+	for _, monster := range msg.Monsters {
+		binary.Write(&bw, binary.BigEndian, uint16(monster.Index))
+		binary.Write(&bw, binary.BigEndian, uint16(monster.Class))
+		bw.WriteByte(byte(monster.X))
+		bw.WriteByte(byte(monster.Y))
+		bw.WriteByte(byte(monster.TX))
+		bw.WriteByte(byte(monster.TY))
+		bw.WriteByte(byte(monster.Dir << 4))
+		bw.WriteByte(byte(monster.PentagramMainAttribute))
+		binary.Write(&bw, binary.BigEndian, uint16(monster.Level))
+		binary.Write(&bw, binary.BigEndian, uint32(monster.MaxHP))
+		binary.Write(&bw, binary.BigEndian, uint32(monster.HP))
+		bw.WriteByte(byte(len(monster.BuffEffects)))
+		for _, buff := range monster.BuffEffects {
+			bw.WriteByte(byte(buff))
+		}
+	}
+	return bw.Bytes(), nil
+}
+
+type DestroyViewportObject struct {
+	Index int
+}
+
+// pack(1)
+type MsgDestroyViewportObjectReply struct {
+	Objects []*DestroyViewportObject
+}
+
+func (msg *MsgDestroyViewportObjectReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(len(msg.Objects)))
+	for _, obj := range msg.Objects {
+		binary.Write(&bw, binary.BigEndian, uint16(obj.Index))
+	}
+	return bw.Bytes(), nil
+}
+
 type MsgMuunSystem struct {
 }
 

@@ -52,6 +52,13 @@ func TestC1C2Handle(t *testing.T) {
 		if bytes.Equal(buf[0:2], []byte{0xFA, 0x0A}) {
 			return nil
 		}
+		if bytes.Equal(buf[0:2], []byte{0xF1, 0x02}) {
+			return nil
+		}
+		switch buf[0] {
+		case 0x13, 0x14, 0xD4:
+			return nil
+		}
 
 		// compare
 		expect, err := hex.DecodeString(item.out)

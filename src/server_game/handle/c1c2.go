@@ -78,8 +78,10 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 		switch api.action {
 		case "Live", "DefineKey":
 			return
+		case "Move":
+		default:
+			log.Printf("[player]%d [action]%s\n", id, api.action)
 		}
-		log.Printf("[player]%d [action]%s\n", id, api.action)
 	}
 
 	// validate encrypt
@@ -235,7 +237,9 @@ var apiIns = [...]*apiIn{
 
 var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x02, "out_chat_whisper", (*model.MsgWhisper)(nil)},
-	{0, false, 0xC1, 0xD4, "out_move_reply", (*model.MsgMoveReply)(nil)},
+	{0, false, 0xC2, 0x13, "CreateViewportMonsterReply", (*model.MsgCreateViewportMonsterReply)(nil)},
+	{0, false, 0xC1, 0x14, "DestroyViewportObjectReply", (*model.MsgDestroyViewportObjectReply)(nil)},
+	{0, false, 0xC1, 0xD4, "MoveReply", (*model.MsgMoveReply)(nil)},
 	{0, false, 0xC1, 0xDE00, "EnableCharacterClassReply", (*model.MsgEnableCharacterClassReply)(nil)},
 	{0, false, 0xC1, 0xF100, "ConnectReply", (*model.MsgConnectReply)(nil)},
 	{0, false, 0xC1, 0xF101, "LoginReply", (*model.MsgLoginReply)(nil)},
