@@ -290,12 +290,13 @@ func (p *Player) Login(msg *model.MsgLogin) {
 // }
 
 func (p *Player) Logout(msg *model.MsgLogout) {
+	defer p.push(&model.MsgLogoutReply{Flag: msg.Flag})
 	switch msg.Flag {
-	// case 0: // close game
-	// case 1: // back to pick character
-	// offline to login state.
+	case 0: // close game
+	case 1: // back to pick character
+		// offline to login state.\
+		p.ConnectState = ConnectStateLogged
 	case 2: // back to pick server
-		p.push(&model.MsgLogoutReply{Flag: msg.Flag})
 		// offline to init state.
 		// Do not close connection
 	default:
