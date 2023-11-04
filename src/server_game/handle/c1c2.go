@@ -61,6 +61,10 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	var ok bool
 	code := int(req.Body[0])
 	if api, ok = h.apiIns[code]; !ok {
+		if len(req.Body) < 2 {
+			log.Printf("invalid api [body]%s\n", hex.EncodeToString(req.Body))
+			return
+		}
 		codes := []byte{req.Body[0], req.Body[1]}
 		code = int(binary.BigEndian.Uint16(codes))
 		if api, ok = h.apiIns[code]; !ok {
