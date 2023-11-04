@@ -16,6 +16,82 @@ func (msg *MsgMuunSystem) Unmarshal(buf []byte) error {
 	return nil
 }
 
+// pack(1)
+type MsgMove struct {
+	Dirs []int
+	Path maps.Path
+}
+
+func (msg *MsgMove) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// x
+	x, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+
+	// y
+	y, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+
+	// bufDir
+	var bufDir [8]byte
+	_, err = br.Read(bufDir[:])
+	if err != nil {
+		return err
+	}
+
+	size := bufDir[0] & 0x0F
+	dirs := make([]int, size)
+	path := make(maps.Path, size)
+	for i := range path {
+		path[i] = &maps.Pot{}
+	}
+	for i := 0; i < int(size); i++ {
+		if i == 0 {
+			dir := int(bufDir[(i+1)/2] >> 4 & 0x0F)
+			dirs[i] = dir
+			dirPot := maps.Dirs[dir]
+			path[i].X = int(x) + dirPot.X
+			path[i].Y = int(y) + dirPot.Y
+			continue
+		}
+		dir := 0
+		if i%2 == 1 {
+			dir = int(bufDir[(i+1)/2] >> 4 & 0x0F)
+		} else {
+			dir = int(bufDir[(i+1)/2] & 0x0F)
+		}
+		dirs[i] = dir
+		dirPot := maps.Dirs[dir]
+		path[i].X = path[i-1].X + dirPot.X
+		path[i].Y = path[i-1].Y + dirPot.Y
+	}
+	msg.Dirs = dirs
+	msg.Path = path
+	return nil
+}
+
+// pack(1)
+type MsgMoveReply struct {
+	Number int
+	X      int
+	Y      int
+	Dir    int
+}
+
+func (msg *MsgMoveReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Number))
+	bw.WriteByte(byte(msg.X))
+	bw.WriteByte(byte(msg.Y))
+	bw.WriteByte(byte(msg.Dir))
+	return bw.Bytes(), nil
+}
+
 // #pragma pack (1)
 // struct PMSG_JOINRESULT
 //
@@ -714,75 +790,6 @@ type MsgLearnMasterSkill struct {
 }
 
 type MsgSkillList struct {
-}
-
-// struct PMSG_MOVE
-//
-//	{
-//		PBMSG_HEAD h;	// C1:1D
-//		BYTE X;	// 3
-//		BYTE Y;	// 4
-//		BYTE Path[8];	// 5
-//	};
-type MsgMove struct {
-	Dirs []int
-	Path maps.Path
-}
-
-func (msg *MsgMove) Unmarshal([]byte) error {
-	var x, y int
-	var bufDir [8]int
-
-	size := bufDir[0] & 0x0F
-	dirs := make([]int, size)
-	path := make(maps.Path, size)
-	for i := 0; i < size; i++ {
-		if i == 0 {
-			dir := bufDir[i] >> 4 & 0x0F
-			dirs[i] = dir
-			dirPot := maps.Dirs[dir]
-			path[i].X = x + dirPot.X
-			path[i].Y = y + dirPot.Y
-			continue
-		}
-		dir := bufDir[i] >> 4 & 0x0F
-		dirs[i] = dir
-		dirPot := maps.Dirs[dir]
-		path[i].X = path[i-1].X + dirPot.X
-		path[i].Y = path[i-1].Y + dirPot.Y
-
-		dir = bufDir[i] & 0x0F
-		dirs[i+1] = dir
-		dirPot = maps.Dirs[dir]
-		path[i+1].X = path[i].X + dirPot.X
-		path[i+1].Y = path[i].Y + dirPot.Y
-	}
-	msg.Dirs = dirs
-	msg.Path = path
-	return nil
-}
-
-// struct PMSG_RECVMOVE
-//
-//	{
-//		PBMSG_HEAD h;
-//		BYTE NumberH;	// 3
-//		BYTE NumberL;	// 4
-//		BYTE X;	// 5
-//		BYTE Y;	// 6
-//		BYTE Path;	// 7
-//	};
-type MsgMoveReply struct {
-	Number int
-	X      int
-	Y      int
-	Dir    int
-}
-
-func (msg *MsgMoveReply) Marshal() ([]byte, error) {
-	var buf bytes.Buffer
-	// buf.WriteByte(byte(msg.Result))
-	return buf.Bytes(), nil
 }
 
 type MsgAttack struct {

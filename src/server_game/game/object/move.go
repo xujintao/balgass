@@ -88,7 +88,7 @@ func (obj *object) Move(msg *model.MsgMove) {
 	obj.TX = msg.Path[n-1].X
 	obj.TY = msg.Path[n-1].Y
 	maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
-	// if obj.index == 6 {
+	// if obj.Name == "asdf" {
 	// 	fmt.Printf("(%d,%d)->(%d,%d)\n", obj.X, obj.Y, obj.TX, obj.TY)
 	// }
 
