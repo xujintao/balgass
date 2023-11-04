@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"reflect"
@@ -58,18 +59,27 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	var ok bool
 	code := int(req.Body[0])
 	if api, ok = h.apiIns[code]; !ok {
+		if len(req.Body) < 2 {
+			log.Printf("invalid api [body]%s\n", hex.EncodeToString(req.Body))
+			return
+		}
 		codes := []byte{req.Body[0], req.Body[1]}
 		code = int(binary.BigEndian.Uint16(codes))
 		if api, ok = h.apiIns[code]; !ok {
-			log.Printf("invalid api [body]%v\n", req.Body)
+			log.Printf("invalid api [body]%s\n", hex.EncodeToString(req.Body))
 			return
 		}
 		req.Body = req.Body[1:]
 	}
 	req.Body = req.Body[1:]
 
+	t := reflect.TypeOf(api.msg)
+	if _, ok := t.MethodByName("Unmarshal"); !ok {
+		log.Printf("can't find Unmarshal method [msg]%s\n", t.String())
+		return
+	}
+	msg := reflect.New(t.Elem())
 	in := []reflect.Value{reflect.ValueOf(req.Body)}
-	msg := reflect.New(reflect.TypeOf(api.msg).Elem())
 	out := msg.MethodByName("Unmarshal").Call(in)
 	err := out[0].Interface()
 	if err != nil {
