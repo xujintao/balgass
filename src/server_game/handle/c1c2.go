@@ -78,7 +78,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 		switch api.action {
 		case "Live", "DefineKey":
 			return
-		case "Move":
+		case "Move", "Action":
 		default:
 			log.Printf("[player]%d [action]%s\n", id, api.action)
 		}
@@ -218,10 +218,13 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x00, "Chat", (*model.MsgChat)(nil)},
 	{0, false, Player, 0x02, "Whisper", (*model.MsgWhisper)(nil)},
 	{0, false, Player, 0x0E, "Live", (*model.MsgLive)(nil)},
+	{0, false, Player, 0x11, "Attack", (*model.MsgAttack)(nil)}, // s9
+	{0, false, Player, 0x18, "Action", (*model.MsgAction)(nil)},
 	{0, false, Player, 0x26, "UseItem", (*model.MsgUseItem)(nil)},
 	{0, false, Player, 0x4E11, "MuunSystem", (*model.MsgUseItem)(nil)},
-	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)}, // s9
-	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)}, // 1.04R
+	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},     // s9
+	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)},     // 1.04R
+	{0, false, Player, 0xD9, "Attack", (*model.MsgAttack)(nil)}, // 1.04R
 	{0, false, Guest, 0xF101, "Login", (*model.MsgLogin)(nil)},
 	{0, false, Player, 0xF102, "Logout", (*model.MsgLogout)(nil)},
 	{0, false, Player, 0xF103, "Hack", (*model.MsgHack)(nil)},
@@ -239,6 +242,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x02, "out_chat_whisper", (*model.MsgWhisper)(nil)},
 	{0, false, 0xC2, 0x13, "CreateViewportMonsterReply", (*model.MsgCreateViewportMonsterReply)(nil)},
 	{0, false, 0xC1, 0x14, "DestroyViewportObjectReply", (*model.MsgDestroyViewportObjectReply)(nil)},
+	{0, false, 0xC1, 0x18, "ActionReply", (*model.MsgActionReply)(nil)},
 	{0, false, 0xC1, 0xD4, "MoveReply", (*model.MsgMoveReply)(nil)},
 	{0, false, 0xC1, 0xDE00, "EnableCharacterClassReply", (*model.MsgEnableCharacterClassReply)(nil)},
 	{0, false, 0xC1, 0xF100, "ConnectReply", (*model.MsgConnectReply)(nil)},

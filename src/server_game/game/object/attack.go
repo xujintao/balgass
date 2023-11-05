@@ -40,7 +40,18 @@ func (obj *object) attack(tobj *object) {
 	attackPanel := obj.getAttackPanel()
 	defense := tobj.defense
 	attackDamage := attackPanel - defense
+
+	// limit attack damage min
+	attackDamageMin := tobj.Level / 10
+	if attackDamageMin <= 0 {
+		attackDamageMin = 1
+	}
+	if attackDamage < attackDamageMin {
+		attackDamage = attackDamageMin
+	}
 	tobj.HP -= attackDamage
+	// log.Printf("attack [%d][%s]->[%d][%s] hp[%d]\n",
+	// 	obj.index, obj.Annotation, tobj.index, tobj.Annotation, tobj.HP)
 }
 
 func (obj *object) Attack(msg *model.MsgAttack) {
@@ -51,6 +62,13 @@ func (obj *object) Attack(msg *model.MsgAttack) {
 		return
 	}
 	// push attack action to viewport
+	reply := model.MsgActionReply{
+		Index:  obj.index,
+		Action: msg.Action,
+		Dir:    obj.Dir,
+		Target: tobj.index,
+	}
+	obj.pushViewport(&reply)
 	obj.attack(tobj)
 }
 

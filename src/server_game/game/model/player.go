@@ -70,6 +70,84 @@ func (msg *MsgDestroyViewportObjectReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+// pack(1)
+type MsgAttack struct {
+	Target int
+	Action int
+	Dir    int
+}
+
+func (msg *MsgAttack) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// target
+	var target uint16
+	err := binary.Read(br, binary.BigEndian, &target)
+	if err != nil {
+		return err
+	}
+	msg.Target = int(target)
+
+	// action
+	action, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Action = int(action)
+
+	// dir
+	dir, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Dir = int(dir)
+
+	return nil
+}
+
+// pack(1)
+type MsgAction struct {
+	Dir    int
+	Action int
+}
+
+func (msg *MsgAction) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// dir
+	dir, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Dir = int(dir)
+
+	// action
+	action, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Action = int(action)
+
+	return nil
+}
+
+// pack(1)
+type MsgActionReply struct {
+	Index  int
+	Dir    int
+	Action int
+	Target int
+}
+
+func (msg *MsgActionReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Index))
+	bw.WriteByte(byte(msg.Dir))
+	bw.WriteByte(byte(msg.Action))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Target))
+	return bw.Bytes(), nil
+}
+
 type MsgMuunSystem struct {
 }
 
@@ -851,10 +929,6 @@ type MsgLearnMasterSkill struct {
 }
 
 type MsgSkillList struct {
-}
-
-type MsgAttack struct {
-	Target int
 }
 
 type MsgSkillAttack struct {

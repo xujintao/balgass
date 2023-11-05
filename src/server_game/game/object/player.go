@@ -921,3 +921,7 @@ func (player *Player) PushSkillAll() {
 }
 
 func (p *Player) processAction() {}
+
+func (p *Player) Action(msg *model.MsgAction) {
+	p.pushViewport(msg)
+}

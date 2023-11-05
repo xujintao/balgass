@@ -192,3 +192,16 @@ func (obj *object) processViewport() {
 		obj.State = 2
 	}
 }
+
+func (obj *object) pushViewport(msg any) {
+	for _, vp := range obj.viewports {
+		if vp.state == 0 {
+			continue
+		}
+		tobj := obj.objectManager.objects[vp.number]
+		if tobj == nil {
+			continue
+		}
+		tobj.push(msg)
+	}
+}

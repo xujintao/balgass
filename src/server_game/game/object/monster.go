@@ -493,6 +493,8 @@ func (m *Monster) attack() {
 	if rand.Intn(n+1) == 0 {
 		msg := model.MsgAttack{
 			Target: m.targetNumber,
+			Action: 120,
+			Dir:    m.Dir,
 		}
 		m.Attack(&msg)
 	} else {

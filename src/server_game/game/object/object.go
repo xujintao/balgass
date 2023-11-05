@@ -528,6 +528,7 @@ type objecter interface {
 	LoadCharacter(*model.MsgLoadCharacter)
 	getPKLevel() int
 	processAction()
+	Action(*model.MsgAction)
 	// processRegen()
 	spawnPosition()
 }
