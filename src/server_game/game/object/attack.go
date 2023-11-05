@@ -3,6 +3,7 @@ package object
 import (
 	"log"
 	"math/rand"
+	"time"
 
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
@@ -50,6 +51,51 @@ func (obj *object) attack(tobj *object) {
 		attackDamage = attackDamageMin
 	}
 	tobj.HP -= attackDamage
+	if tobj.HP <= 0 {
+		tobj.HP = 0
+		tobj.Live = false
+		tobj.State = 4
+		tobj.dieRegen = true
+		tobj.regenTime = time.Duration(time.Now().Unix())
+
+		// push attack die reply
+		attackDieReply := model.MsgAttackDieReply{
+			Target: tobj.index,
+			Skill:  0,
+			Killer: obj.index,
+		}
+		tobj.pushViewport(&attackDieReply)
+	}
+
+	// push attack reply
+	attackReply := model.MsgAttackReply{
+		Index:      tobj.index,
+		Damage:     attackDamage,
+		DamageType: 0,
+		SDDamage:   0,
+	}
+	obj.push(&attackReply)
+	tobj.push(&attackReply)
+
+	// push attack effect reply
+	attackEffectReply := model.MsgAttackEffectReply{
+		Target:       tobj.index,
+		HP:           tobj.HP,
+		MaxHP:        tobj.MaxHP + tobj.AddHP,
+		Level:        tobj.Level,
+		IceEffect:    0,
+		PoisonEffect: 0,
+	}
+	tobj.pushViewport(&attackEffectReply)
+
+	// push attack hp reply
+	attackHPReply := model.MsgAttackHPReply{
+		Target: tobj.index,
+		MaxHP:  tobj.MaxHP + tobj.AddHP,
+		HP:     tobj.HP,
+	}
+	tobj.pushViewport(&attackHPReply)
+
 	// log.Printf("attack [%d][%s]->[%d][%s] hp[%d]\n",
 	// 	obj.index, obj.Annotation, tobj.index, tobj.Annotation, tobj.HP)
 }

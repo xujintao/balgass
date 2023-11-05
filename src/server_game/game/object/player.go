@@ -453,7 +453,8 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	}
 
 	// set player with character data
-	mc := MonsterTable[249]
+	// mc := MonsterTable[249]
+	mc := MonsterTable[4]
 	p.Name = c.Name
 	p.Annotation = c.Name
 	p.Level = c.Level
@@ -464,8 +465,10 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.defense = mc.Defense
 	p.magicDefense = mc.MagicDefense
 	p.defenseRate = mc.BlockRate
-	p.HP = mc.HP
-	p.MaxHP = mc.HP
+	// p.HP = mc.HP
+	// p.MaxHP = mc.HP
+	p.HP = 10000
+	p.MaxHP = 10000
 	p.MP = mc.MP
 	p.MaxMP = mc.MP
 	p.moveSpeed = mc.MoveSpeed

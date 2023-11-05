@@ -78,7 +78,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 		switch api.action {
 		case "Live", "DefineKey":
 			return
-		case "Move", "Action":
+		case "Move", "Action", "Attack":
 		default:
 			log.Printf("[player]%d [action]%s\n", id, api.action)
 		}
@@ -240,11 +240,14 @@ var apiIns = [...]*apiIn{
 
 var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x02, "out_chat_whisper", (*model.MsgWhisper)(nil)},
+	{0, false, 0xC1, 0x11, "AttackReply", (*model.MsgAttackReply)(nil)},
 	{0, false, 0xC2, 0x13, "CreateViewportMonsterReply", (*model.MsgCreateViewportMonsterReply)(nil)},
 	{0, false, 0xC1, 0x14, "DestroyViewportObjectReply", (*model.MsgDestroyViewportObjectReply)(nil)},
+	{0, false, 0xC1, 0x17, "AttackDieReply", (*model.MsgAttackDieReply)(nil)},
 	{0, false, 0xC1, 0x18, "ActionReply", (*model.MsgActionReply)(nil)},
 	{0, false, 0xC1, 0xD4, "MoveReply", (*model.MsgMoveReply)(nil)},
 	{0, false, 0xC1, 0xDE00, "EnableCharacterClassReply", (*model.MsgEnableCharacterClassReply)(nil)},
+	{0, false, 0xC1, 0xEC10, "AttackHPReply", (*model.MsgAttackHPReply)(nil)},
 	{0, false, 0xC1, 0xF100, "ConnectReply", (*model.MsgConnectReply)(nil)},
 	{0, false, 0xC1, 0xF101, "LoginReply", (*model.MsgLoginReply)(nil)},
 	{0, false, 0xC3, 0xF102, "LogoutReply", (*model.MsgLogoutReply)(nil)},
@@ -254,6 +257,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC3, 0xF303, "LoadCharacterReply", (*model.MsgLoadCharacterReply)(nil)},
 	{0, false, 0xC1, 0xF311, "out_skill_list", (*model.MsgSkillList)(nil)},
 	{0, false, 0xC1, 0xF315, "CheckCharacterReply", (*model.MsgCheckCharacterReply)(nil)},
+	{0, false, 0xC1, 0xFA05, "AttackEffectReply", (*model.MsgAttackEffectReply)(nil)},
 	{0, false, 0xC1, 0xFA0A, "ResetCharacterReply", (*model.MsgResetCharacterReply)(nil)},
 	{0, false, 0xC1, 0xFFFF, "out_test", (*model.MsgTest)(nil)},
 }

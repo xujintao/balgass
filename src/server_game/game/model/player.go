@@ -106,6 +106,74 @@ func (msg *MsgAttack) Unmarshal(buf []byte) error {
 }
 
 // pack(1)
+type MsgAttackReply struct {
+	Index      int
+	Damage     int
+	DamageType int
+	SDDamage   int
+}
+
+func (msg *MsgAttackReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Index))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Damage))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.DamageType))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.SDDamage))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgAttackDieReply struct {
+	Target int
+	Skill  int
+	Killer int
+}
+
+func (msg *MsgAttackDieReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Target))
+	bw.WriteByte(byte(msg.Skill))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Killer))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgAttackEffectReply struct {
+	Target       int
+	HP           int
+	MaxHP        int
+	Level        int
+	IceEffect    int
+	PoisonEffect int
+}
+
+func (msg *MsgAttackEffectReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Target))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.HP))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.MaxHP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Level))
+	bw.WriteByte(byte(msg.IceEffect))
+	bw.WriteByte(byte(msg.PoisonEffect))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgAttackHPReply struct {
+	Target int
+	MaxHP  int
+	HP     int
+}
+
+func (msg *MsgAttackHPReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Target))
+	binary.Write(&bw, binary.BigEndian, uint32(msg.MaxHP))
+	binary.Write(&bw, binary.BigEndian, uint32(msg.HP))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
 type MsgAction struct {
 	Dir    int
 	Action int
