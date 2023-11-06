@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
@@ -55,6 +56,7 @@ func (obj *object) attack(tobj *object) {
 		tobj.HP = 0
 		tobj.Live = false
 		tobj.State = 4
+		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.X, tobj.Y)
 		tobj.dieRegen = true
 		tobj.regenTime = time.Duration(time.Now().Unix())
 
@@ -111,7 +113,7 @@ func (obj *object) Attack(msg *model.MsgAttack) {
 	reply := model.MsgActionReply{
 		Index:  obj.index,
 		Action: msg.Action,
-		Dir:    obj.Dir,
+		Dir:    msg.Dir,
 		Target: tobj.index,
 	}
 	obj.pushViewport(&reply)
