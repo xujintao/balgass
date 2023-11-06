@@ -320,8 +320,8 @@ func (m *Monster) chaseMove(tobj *object) bool {
 	dir := maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
 	cnt := len(maps.Dirs)
 	for cnt > 0 {
-		tx := tobj.X - maps.Dirs[dir].X
-		ty := tobj.Y - maps.Dirs[dir].Y
+		tx := m.X + maps.Dirs[dir].X
+		ty := m.Y + maps.Dirs[dir].Y
 		attr := maps.MapManager.GetMapAttr(m.MapNumber, tx, ty)
 		if ((m.Class == 247 || m.Class == 249) && attr&2 == 0) ||
 			attr&15 == 0 {
@@ -386,7 +386,7 @@ func (m *Monster) baseAction() {
 		if m.attackType >= 100 {
 			attackRange = m.attackRange + 2
 		}
-		if dis > m.viewRange {
+		if dis > m.viewRange<<1 {
 			// target is too far
 		} else if dis > attackRange {
 			// 目标不在攻击范围内
@@ -395,7 +395,7 @@ func (m *Monster) baseAction() {
 				if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, m.TX, m.TY) {
 					m.actionState.move = true
 					m.Dir = maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
-					m.nextActionTime = 400
+					m.nextActionTime = 200
 					return
 				}
 			}
