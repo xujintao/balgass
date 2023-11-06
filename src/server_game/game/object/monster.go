@@ -265,29 +265,6 @@ func (m *Monster) overDis(tx, ty int) bool {
 	return dis > m.spawnDis
 }
 
-func (m *Monster) roamMove() {
-	maxMoveRange := m.moveRange << 1
-	m.nextActionTime = 1000
-	cnt := 10
-	for cnt > 0 {
-		cnt--
-		x := m.X + rand.Intn(maxMoveRange+1) - m.moveRange
-		y := m.Y + rand.Intn(maxMoveRange+1) - m.moveRange
-		if m.overDis(x, y) {
-			continue
-		}
-		attr := maps.MapManager.GetMapAttr(m.MapNumber, x, y)
-		if ((m.Class == 249 || m.Class == 247) && attr&2 == 0) || // Guard
-			attr&15 == 0 {
-			m.TX = x
-			m.TY = y
-			m.actionState.move = true
-			m.nextActionTime = 500
-			return
-		}
-	}
-}
-
 func (m *Monster) searchEnemy() int {
 	mindis := m.viewRange
 	target := -1
@@ -318,52 +295,45 @@ func (m *Monster) searchEnemy() int {
 	return target
 }
 
-func (m *Monster) chaseMove(tobj *object) bool {
-	mtx := tobj.X
-	mty := tobj.Y
-	tx := mtx
-	ty := mty
-	dis := 0
-	if m.attackType >= 100 {
-		dis = m.attackRange + 2
-	} else {
-		dis = m.attackRange
-	}
-	if m.X < mtx {
-		tx -= dis
-	} else {
-		tx += dis
-	}
-	if m.Y < mty {
-		ty -= dis
-	} else {
-		ty += dis
-	}
-	if maps.MapManager.CheckMapAttrStand(m.MapNumber, tx, ty) {
-		dir := maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
-		cnt := len(maps.Dirs)
-		for cnt > 0 {
-			cnt--
-			mtx = tobj.X + maps.Dirs[dir].X
-			mty = tobj.Y + maps.Dirs[dir].Y
-			attr := maps.MapManager.GetMapAttr(m.MapNumber, mtx, mty)
-			if ((m.Class == 247 || m.Class == 249) && attr&2 == 0) ||
-				attr&15 == 0 {
-				m.TX = mtx
-				m.TY = mty
-				return true
-			}
-			if dir == len(maps.Dirs) {
-				dir = 0
-			}
+func (m *Monster) roamMove() bool {
+	maxMoveRange := m.moveRange << 1
+	cnt := 10
+	for cnt > 0 {
+		cnt--
+		x := m.X + rand.Intn(maxMoveRange+1) - m.moveRange
+		y := m.Y + rand.Intn(maxMoveRange+1) - m.moveRange
+		if m.overDis(x, y) {
+			continue
+		}
+		attr := maps.MapManager.GetMapAttr(m.MapNumber, x, y)
+		if ((m.Class == 249 || m.Class == 247) && attr&2 == 0) || // Guard
+			attr&15 == 0 {
+			m.TX = x
+			m.TY = y
+			return true
 		}
 	}
-	attr := maps.MapManager.GetMapAttr(m.MapNumber, tx, ty)
-	if ((m.Class == 247 || m.Class == 249) && attr&2 == 0) ||
-		attr&15 == 0 {
-		m.TX = tx
-		m.TY = ty
-		return true
+	return false
+}
+
+func (m *Monster) chaseMove(tobj *object) bool {
+	dir := maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
+	cnt := len(maps.Dirs)
+	for cnt > 0 {
+		tx := tobj.X - maps.Dirs[dir].X
+		ty := tobj.Y - maps.Dirs[dir].Y
+		attr := maps.MapManager.GetMapAttr(m.MapNumber, tx, ty)
+		if ((m.Class == 247 || m.Class == 249) && attr&2 == 0) ||
+			attr&15 == 0 {
+			m.TX = tx
+			m.TY = ty
+			return true
+		}
+		cnt--
+		dir++
+		if dir == len(maps.Dirs) {
+			dir = 0
+		}
 	}
 	return false
 }
@@ -390,7 +360,10 @@ func (m *Monster) baseAction() {
 		if m.targetNumber >= 0 {
 			m.actionState.emotion = 1
 		} else if m.moveRange > 0 && !m.pathMoving {
-			m.roamMove()
+			m.nextActionTime = 500
+			if m.roamMove() {
+				m.actionState.move = true
+			}
 		}
 	case 1: // 移动及攻击
 		if m.targetNumber < 0 {
@@ -405,7 +378,7 @@ func (m *Monster) baseAction() {
 		if tobj == nil {
 			m.targetNumber = -1
 			m.actionState.emotion = 3
-			m.actionState.emotionCount = 10 // 10*500ms=5s
+			m.actionState.emotionCount = 2 // 2*500ms=1s
 			return
 		}
 		dis := m.calcDistance(tobj)
@@ -413,25 +386,27 @@ func (m *Monster) baseAction() {
 		if m.attackType >= 100 {
 			attackRange = m.attackRange + 2
 		}
-		if dis <= attackRange {
-			// 目标在攻击范围内
-			if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, tobj.X, tobj.Y) {
-				attr := maps.MapManager.GetMapAttr(m.MapNumber, tobj.X, tobj.Y)
-				if attr&1 == 0 {
-					m.actionState.attack = true
-					m.Dir = maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
-					m.nextActionTime = int64(m.attackSpeed)
-					return
-				}
-			}
-		} else {
+		if dis > m.viewRange {
+			// target is too far
+		} else if dis > attackRange {
 			// 目标不在攻击范围内
 			if m.chaseMove(tobj) {
 				// 可以寻路
 				if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, m.TX, m.TY) {
 					m.actionState.move = true
-					m.Dir = maps.CalcDir(tobj.X, tobj.Y, m.X, m.Y)
+					m.Dir = maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
 					m.nextActionTime = 400
+					return
+				}
+			}
+		} else {
+			// 目标在攻击范围内
+			if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, tobj.X, tobj.Y) {
+				attr := maps.MapManager.GetMapAttr(m.MapNumber, tobj.X, tobj.Y)
+				if attr&1 == 0 {
+					m.actionState.attack = true
+					m.Dir = maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
+					m.nextActionTime = int64(m.attackSpeed)
 					return
 				}
 			}
@@ -439,7 +414,7 @@ func (m *Monster) baseAction() {
 		// 进入状态3，原地傻等5s
 		m.targetNumber = -1
 		m.actionState.emotion = 3
-		m.actionState.emotionCount = 10 // 10*500ms=5s
+		m.actionState.emotionCount = 2 // 2*500ms=1s
 	case 2:
 		if m.actionState.emotionCount > 0 {
 			m.actionState.emotionCount--
@@ -448,7 +423,7 @@ func (m *Monster) baseAction() {
 		}
 		m.actionState.move = false
 		m.actionState.attack = false
-		m.nextActionTime = 800
+		m.nextActionTime = 500
 	case 3:
 		if m.actionState.emotionCount > 0 {
 			m.actionState.emotionCount--
@@ -461,7 +436,7 @@ func (m *Monster) baseAction() {
 		}
 		m.actionState.move = false
 		m.actionState.attack = false
-		m.nextActionTime = 400
+		m.nextActionTime = 500
 	}
 }
 
