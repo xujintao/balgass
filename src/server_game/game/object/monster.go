@@ -248,6 +248,7 @@ func (m *Monster) spawnPosition() {
 	m.StartX, m.StartY = m.randPosition(m.MapNumber, m.spawnStartX, m.spawnStartY, m.spawnEndX, m.spawnEndY)
 	maps.MapManager.SetMapAttrStand(m.MapNumber, m.StartX, m.StartY)
 	m.X, m.Y = m.StartX, m.StartY
+	m.TX, m.TY = m.X, m.Y
 	m.Dir = m.spawnDir
 	if m.Dir < 0 {
 		m.Dir = rand.Intn(8)
