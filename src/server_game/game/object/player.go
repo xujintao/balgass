@@ -45,7 +45,11 @@ func NewPlayer(conn Conn, actioner actioner) *Player {
 		for {
 			select {
 			case msg := <-player.msgChan:
-				player.conn.Write(msg)
+				err := player.conn.Write(msg)
+				if err != nil {
+					log.Printf("conn.Write failed [err]%v [player]%d [name]%s [msg]%v\n",
+						err, player.index, player.Name, msg)
+				}
 			case <-ctx.Done():
 				close(player.msgChan)
 				player.conn.Close()
@@ -223,9 +227,8 @@ func (p *Player) push(msg any) {
 
 func (p *Player) spawnPosition() {
 	p.MapNumber = 0
-	p.StartX, p.StartY = p.randPosition(p.MapNumber, 200, 124, 220, 144)
-	maps.MapManager.SetMapAttrStand(p.MapNumber, p.StartX, p.StartY)
-	p.X, p.Y = p.StartX, p.StartY
+	p.X, p.Y = maps.MapManager.GetMapRegenPos(p.MapNumber)
+	maps.MapManager.SetMapAttrStand(p.MapNumber, p.X, p.Y)
 	p.Dir = rand.Intn(8)
 	p.createFrustrum()
 }

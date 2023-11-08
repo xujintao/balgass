@@ -1,6 +1,8 @@
 package object
 
 import (
+	"log"
+
 	"github.com/xujintao/balgass/src/server_game/game/math2"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
@@ -196,6 +198,11 @@ func (obj *object) processViewport() {
 func (obj *object) pushViewport(msg any) {
 	for _, vp := range obj.viewports {
 		if vp.state == 0 {
+			continue
+		}
+		if vp.number < 0 {
+			log.Printf("pushViewport warning [obj]%d [msg]%v -> [tobj]%d\n",
+				obj.index, msg, vp.number)
 			continue
 		}
 		tobj := obj.objectManager.objects[vp.number]

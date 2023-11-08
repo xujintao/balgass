@@ -99,18 +99,5 @@ func (obj *object) Move(msg *model.MsgMove) {
 		Dir:    msg.Dirs[0] << 4,
 	}
 	obj.push(&msgRelpy)
-	for _, vp := range obj.viewports {
-		if vp.state != 1 && vp.state != 2 {
-			continue
-		}
-		tnum := vp.number
-		if tnum < 0 {
-			continue
-		}
-		tobj := obj.objectManager.objects[tnum]
-		if tobj == nil {
-			continue
-		}
-		tobj.push(&msgRelpy)
-	}
+	obj.pushViewport(&msgRelpy)
 }
