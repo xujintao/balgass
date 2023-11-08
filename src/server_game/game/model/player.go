@@ -168,8 +168,16 @@ type MsgAttackHPReply struct {
 func (msg *MsgAttackHPReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	binary.Write(&bw, binary.BigEndian, uint16(msg.Target))
-	binary.Write(&bw, binary.BigEndian, uint32(msg.MaxHP))
-	binary.Write(&bw, binary.BigEndian, uint32(msg.HP))
+	// binary.Write(&bw, binary.BigEndian, uint32(msg.MaxHP))
+	bw.WriteByte(byte(msg.MaxHP >> 24))
+	bw.WriteByte(byte(msg.MaxHP >> 8))
+	bw.WriteByte(byte(msg.MaxHP >> 16))
+	bw.WriteByte(byte(msg.MaxHP))
+	// binary.Write(&bw, binary.BigEndian, uint32(msg.HP))
+	bw.WriteByte(byte(msg.HP >> 24))
+	bw.WriteByte(byte(msg.HP >> 8))
+	bw.WriteByte(byte(msg.HP >> 16))
+	bw.WriteByte(byte(msg.HP))
 	return bw.Bytes(), nil
 }
 
