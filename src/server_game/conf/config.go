@@ -55,7 +55,7 @@ var (
 )
 
 func init() {
-	PathConfig := os.Getenv("CONFIG_PATH")
+	PathConfig = os.Getenv("CONFIG_PATH")
 	PathCommon = os.Getenv("COMMON_PATH")
 	log.Printf("[PWD]%s", os.Getenv("PWD"))
 	if PathConfig == "" {
