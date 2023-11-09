@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
+	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
@@ -532,6 +533,8 @@ type objecter interface {
 	spawnPosition()
 	Die(*object)
 	Regen()
+	GetChangeUp() int
+	GetInventory() [9]*item.Item
 }
 
 type object struct {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
+	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
@@ -523,4 +524,12 @@ func (m *Monster) Die(obj *object) {
 func (m *Monster) Regen() {
 	m.HP = m.MaxHP + m.AddHP
 	m.MP = m.MaxMP + m.AddMP
+}
+
+func (m *Monster) GetChangeUp() int {
+	return 0
+}
+
+func (m *Monster) GetInventory() [9]*item.Item {
+	return [9]*item.Item{}
 }

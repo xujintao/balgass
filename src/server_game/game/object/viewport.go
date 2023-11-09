@@ -107,6 +107,7 @@ func (obj *object) createViewport() {
 	case ObjectTypeMonster, ObjectTypeNPC:
 		start = obj.objectManager.maxMonsterCount // 怪物看不见怪物
 	}
+	var viewportPlayerReply model.MsgCreateViewportPlayerReply
 	var viewportMonsterReply model.MsgCreateViewportMonsterReply
 	for _, tobj := range obj.objectManager.objects[start:] {
 		if tobj == nil {
@@ -124,6 +125,26 @@ func (obj *object) createViewport() {
 		ok := obj.addViewport(tobj)
 		if ok && obj.Type == ObjectTypePlayer {
 			switch tobj.Type {
+			case ObjectTypePlayer:
+				p := model.CreateViewportPlayer{
+					Index:                  tobj.index,
+					X:                      tobj.X,
+					Y:                      tobj.Y,
+					Class:                  tobj.Class,
+					ChangeUp:               tobj.GetChangeUp(),
+					Inventory:              tobj.GetInventory(),
+					Name:                   tobj.Name,
+					TX:                     tobj.TX,
+					TY:                     tobj.TY,
+					Dir:                    tobj.Dir,
+					PKLevel:                tobj.getPKLevel(),
+					PentagramMainAttribute: tobj.pentagramAttributePattern,
+					Level:                  tobj.Level,
+					MaxHP:                  tobj.MaxHP,
+					HP:                     tobj.HP,
+					ServerCode:             0,
+				}
+				viewportPlayerReply.Players = append(viewportPlayerReply.Players, &p)
 			case ObjectTypeMonster, ObjectTypeNPC:
 				m := model.CreateViewportMonster{
 					Index:                  tobj.index,
@@ -141,6 +162,9 @@ func (obj *object) createViewport() {
 				viewportMonsterReply.Monsters = append(viewportMonsterReply.Monsters, &m)
 			}
 		}
+	}
+	if len(viewportPlayerReply.Players) > 0 {
+		obj.push(&viewportPlayerReply)
 	}
 	if len(viewportMonsterReply.Monsters) > 0 {
 		obj.push(&viewportMonsterReply)

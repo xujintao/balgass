@@ -228,6 +228,7 @@ func (p *Player) push(msg any) {
 func (p *Player) spawnPosition() {
 	p.MapNumber = 0
 	p.X, p.Y = maps.MapManager.GetMapRegenPos(p.MapNumber)
+	p.TX, p.TY = p.X, p.Y
 	maps.MapManager.SetMapAttrStand(p.MapNumber, p.X, p.Y)
 	p.Dir = rand.Intn(8)
 	p.createFrustrum()
@@ -339,7 +340,7 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 			Name:  c.Name,
 			Level: c.Level,
 			Class: c.Class,
-			Inventory: []*item.Item{
+			Inventory: [9]*item.Item{
 				item.NewItem(0, 13),  // slot0
 				item.NewItem(0, 13),  // slot1
 				item.NewItem(7, 0),   // slot2
@@ -964,4 +965,22 @@ func (p *Player) Regen() {
 		Money:      p.Money,
 	}
 	p.push(&reply)
+}
+
+func (p *Player) GetChangeUp() int {
+	return p.ChangeUP
+}
+
+func (m *Player) GetInventory() [9]*item.Item {
+	return [9]*item.Item{
+		item.NewItem(0, 13),  // slot0
+		item.NewItem(0, 13),  // slot1
+		item.NewItem(7, 0),   // slot2
+		item.NewItem(8, 0),   // slot3
+		item.NewItem(9, 0),   // slot4
+		item.NewItem(10, 0),  // slot5
+		item.NewItem(11, 0),  // slot6
+		item.NewItem(12, 36), // slot7
+		item.NewItem(13, 1),  // slot8
+	}
 }
