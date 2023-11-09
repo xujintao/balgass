@@ -376,7 +376,7 @@ func (m *Monster) baseAction() {
 			return
 		}
 		tobj := m.objectManager.objects[m.targetNumber]
-		if tobj == nil {
+		if tobj == nil || !tobj.Live {
 			m.targetNumber = -1
 			m.actionState.emotion = 3
 			m.actionState.emotionCount = 2 // 2*500ms=1s
@@ -514,4 +514,13 @@ func (m *Monster) processAction() {
 		m.attack()
 		return
 	}
+}
+
+func (m *Monster) Die(obj *object) {
+
+}
+
+func (m *Monster) Regen() {
+	m.HP = m.MaxHP + m.AddHP
+	m.MP = m.MaxMP + m.AddMP
 }

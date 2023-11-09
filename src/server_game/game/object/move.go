@@ -98,6 +98,5 @@ func (obj *object) Move(msg *model.MsgMove) {
 		Y:      obj.TY,
 		Dir:    msg.Dirs[0] << 4,
 	}
-	obj.push(&msgRelpy)
 	obj.pushViewport(&msgRelpy)
 }

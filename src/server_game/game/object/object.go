@@ -529,8 +529,9 @@ type objecter interface {
 	getPKLevel() int
 	processAction()
 	Action(*model.MsgAction)
-	// processRegen()
 	spawnPosition()
+	Die(*object)
+	Regen()
 }
 
 type object struct {
@@ -929,10 +930,9 @@ func (obj *object) processRegen() {
 	if time.Now().Unix()-int64(obj.regenTime) < int64(obj.maxRegenTime) {
 		return
 	}
-	obj.HP = obj.MaxHP + obj.AddHP
-	obj.MP = obj.MaxMP + obj.AddMP
-	obj.Live = true
 	obj.spawnPosition()
+	obj.Regen()
 	obj.dieRegen = false
 	obj.State = 1
+	obj.Live = true
 }

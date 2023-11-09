@@ -468,17 +468,22 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.defense = mc.Defense
 	p.magicDefense = mc.MagicDefense
 	p.defenseRate = mc.BlockRate
-	// p.HP = mc.HP
-	// p.MaxHP = mc.HP
-	p.HP = 10000
-	p.MaxHP = 10000
-	p.MP = mc.MP
-	p.MaxMP = mc.MP
+	p.HP = mc.HP + p.AddHP
+	p.MaxHP = mc.HP + p.AddHP
+	// p.HP = 10000
+	// p.MaxHP = 10000
+	p.MP = mc.MP + p.AddMP
+	p.MaxMP = mc.MP + p.AddMP
+	p.SD = 100 + p.AddSD
+	p.MaxSD = 100 + p.AddSD
+	p.AG = 200 + p.AddAG
+	p.MaxAG = 200 + p.AddAG
 	p.moveSpeed = mc.MoveSpeed
 	p.attackRange = mc.AttackRange
 	p.attackType = mc.AttackType
 	p.viewRange = mc.ViewRange
 	p.spawnPosition()
+	p.maxRegenTime = 4
 	p.ConnectState = ConnectStatePlaying
 	p.Live = true
 	p.State = 1
@@ -501,10 +506,10 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		MaxHP:              p.MaxHP,
 		MP:                 p.MP,
 		MaxMP:              p.MaxMP,
-		SD:                 100,
-		MaxSD:              200,
-		BP:                 100,
-		MaxBP:              200,
+		SD:                 p.SD,
+		MaxSD:              p.MaxSD,
+		AG:                 p.AG,
+		MaxAG:              p.MaxAG,
 		Money:              2000,
 		PKLevel:            p.PKLevel,
 		CtlCode:            0,
@@ -929,5 +934,34 @@ func (player *Player) PushSkillAll() {
 func (p *Player) processAction() {}
 
 func (p *Player) Action(msg *model.MsgAction) {
-	p.pushViewport(msg)
+	reply := model.MsgActionReply{
+		Index:  p.index,
+		Action: msg.Action,
+		Dir:    msg.Dir,
+	}
+	p.pushViewport(&reply)
+}
+
+func (p *Player) Die(obj *object) {
+
+}
+
+func (p *Player) Regen() {
+	p.HP = p.MaxHP + p.AddHP
+	p.SD = p.MaxSD + p.AddSD
+	p.MP = p.MaxMP + p.AddMP
+	p.AG = p.MaxAG + p.AddAG
+	reply := model.MsgReloadCharacterReply{
+		X:          p.X,
+		Y:          p.Y,
+		MapNumber:  p.MapNumber,
+		Dir:        p.Dir,
+		HP:         p.HP,
+		MP:         p.MP,
+		SD:         p.SD,
+		AG:         p.AG,
+		Experience: int(p.Experience),
+		Money:      p.Money,
+	}
+	p.push(&reply)
 }

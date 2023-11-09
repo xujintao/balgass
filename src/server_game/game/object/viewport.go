@@ -195,7 +195,9 @@ func (obj *object) processViewport() {
 	}
 }
 
+// pushViewport push msg to self and viewport
 func (obj *object) pushViewport(msg any) {
+	obj.push(msg)
 	for _, vp := range obj.viewports {
 		if vp.state == 0 {
 			continue

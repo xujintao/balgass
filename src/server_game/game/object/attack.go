@@ -54,19 +54,6 @@ func (obj *object) attack(tobj *object) {
 	tobj.HP -= attackDamage
 	if tobj.HP <= 0 {
 		tobj.HP = 0
-		tobj.Live = false
-		tobj.State = 4
-		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.X, tobj.Y)
-		tobj.dieRegen = true
-		tobj.regenTime = time.Duration(time.Now().Unix())
-
-		// push attack die reply
-		attackDieReply := model.MsgAttackDieReply{
-			Target: tobj.index,
-			Skill:  0,
-			Killer: obj.index,
-		}
-		tobj.pushViewport(&attackDieReply)
 	}
 
 	// push attack reply
@@ -98,6 +85,23 @@ func (obj *object) attack(tobj *object) {
 	}
 	tobj.pushViewport(&attackHPReply)
 
+	// handle target die
+	if tobj.HP == 0 {
+		tobj.Live = false
+		tobj.State = 4
+		tobj.Die(obj)
+		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.X, tobj.Y)
+		tobj.dieRegen = true
+		tobj.regenTime = time.Duration(time.Now().Unix())
+
+		// push attack die reply
+		attackDieReply := model.MsgAttackDieReply{
+			Target: tobj.index,
+			Skill:  0,
+			Killer: obj.index,
+		}
+		tobj.pushViewport(&attackDieReply)
+	}
 	// log.Printf("attack [%d][%s]->[%d][%s] hp[%d]\n",
 	// 	obj.index, obj.Annotation, tobj.index, tobj.Annotation, tobj.HP)
 }

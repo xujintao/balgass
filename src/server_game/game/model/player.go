@@ -224,6 +224,35 @@ func (msg *MsgActionReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+// pack(1)
+type MsgHPReply struct {
+	HP int
+	SD int
+}
+
+func (msg *MsgHPReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(0xFE)
+	binary.Write(&bw, binary.BigEndian, uint16(msg.HP))
+	bw.WriteByte(0)
+	binary.Write(&bw, binary.BigEndian, uint16(msg.SD))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgMPReply struct {
+	MP int
+	AG int
+}
+
+func (msg *MsgMPReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(0xFF)
+	binary.Write(&bw, binary.BigEndian, uint16(msg.MP))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.AG))
+	return bw.Bytes(), nil
+}
+
 type MsgMuunSystem struct {
 }
 
@@ -874,8 +903,8 @@ type MsgLoadCharacterReply struct {
 	MaxMP              int
 	SD                 int
 	MaxSD              int
-	BP                 int
-	MaxBP              int
+	AG                 int
+	MaxAG              int
 	Money              int
 	PKLevel            int
 	CtlCode            int
@@ -906,8 +935,8 @@ func (msg *MsgLoadCharacterReply) Marshal() ([]byte, error) {
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxMP))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.SD))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxSD))
-	binary.Write(&bw, binary.LittleEndian, uint16(msg.BP))
-	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxBP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.AG))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxAG))
 	bw.Write([]byte{0, 0}) // padding
 	binary.Write(&bw, binary.LittleEndian, uint32(msg.Money))
 	bw.WriteByte(byte(msg.PKLevel))
@@ -919,6 +948,35 @@ func (msg *MsgLoadCharacterReply) Marshal() ([]byte, error) {
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxMinusPoint))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.InventoryExpansion))
 	bw.Write([]byte{0, 0}) // padding
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgReloadCharacterReply struct {
+	X          int
+	Y          int
+	MapNumber  int
+	Dir        int
+	HP         int
+	MP         int
+	SD         int
+	AG         int
+	Experience int
+	Money      int
+}
+
+func (msg *MsgReloadCharacterReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.X))
+	bw.WriteByte(byte(msg.Y))
+	bw.WriteByte(byte(msg.MapNumber))
+	bw.WriteByte(byte(msg.Dir))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.HP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.SD))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.AG))
+	binary.Write(&bw, binary.BigEndian, uint64(msg.Experience))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.Money))
 	return bw.Bytes(), nil
 }
 
