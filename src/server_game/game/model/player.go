@@ -7,6 +7,7 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/utils"
+	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
 type CreateViewportMonster struct {
@@ -589,8 +590,12 @@ func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
 		bw.WriteByte(byte(c.Index))
 
 		// name
+		gbk, err := simplifiedchinese.GBK.NewEncoder().String(c.Name)
+		if err != nil {
+			return nil, err
+		}
 		var name [10]byte
-		copy(name[:], c.Name)
+		copy(name[:], gbk)
 		bw.Write(name[:])
 		bw.WriteByte(0) // padding 1 byte
 
@@ -762,7 +767,11 @@ func (msg *MsgCreateCharacter) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Name = string(bytes.TrimRight(name[:], "\x00"))
+	utf8, err := simplifiedchinese.GBK.NewDecoder().Bytes(name[:])
+	if err != nil {
+		return err
+	}
+	msg.Name = string(bytes.TrimRight(utf8[:], "\x00"))
 
 	// class
 	// 0x00 - Dark Wizard
@@ -798,8 +807,12 @@ func (msg *MsgCreateCharacterReply) Marshal() ([]byte, error) {
 	bw.WriteByte(byte(msg.Result))
 
 	// name
+	gbk, err := simplifiedchinese.GBK.NewEncoder().String(msg.Name)
+	if err != nil {
+		return nil, err
+	}
 	var name [10]byte
-	copy(name[:], msg.Name)
+	copy(name[:], gbk)
 	bw.Write(name[:])
 
 	// index
@@ -833,7 +846,11 @@ func (msg *MsgDeleteCharacter) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Name = string(bytes.TrimRight(name[:], "\x00"))
+	utf8, err := simplifiedchinese.GBK.NewDecoder().Bytes(name[:])
+	if err != nil {
+		return err
+	}
+	msg.Name = string(bytes.TrimRight(utf8[:], "\x00"))
 
 	// password
 	var password [7]byte
@@ -873,7 +890,11 @@ func (msg *MsgLoadCharacter) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Name = string(bytes.TrimRight(name[:], "\x00"))
+	utf8, err := simplifiedchinese.GBK.NewDecoder().Bytes(name[:])
+	if err != nil {
+		return err
+	}
+	msg.Name = string(bytes.TrimRight(utf8[:], "\x00"))
 
 	// position
 	position, err := br.ReadByte()
@@ -993,7 +1014,11 @@ func (msg *MsgCheckCharacter) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Name = string(bytes.TrimRight(name[:], "\x00"))
+	utf8, err := simplifiedchinese.GBK.NewDecoder().Bytes(name[:])
+	if err != nil {
+		return err
+	}
+	msg.Name = string(bytes.TrimRight(utf8[:], "\x00"))
 
 	return nil
 }
@@ -1009,8 +1034,12 @@ func (msg *MsgCheckCharacterReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 
 	// name
+	gbk, err := simplifiedchinese.GBK.NewEncoder().String(msg.Name)
+	if err != nil {
+		return nil, err
+	}
 	var name [10]byte
-	copy(name[:], msg.Name)
+	copy(name[:], gbk)
 	bw.Write(name[:])
 
 	// result
