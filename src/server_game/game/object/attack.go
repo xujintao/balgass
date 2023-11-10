@@ -56,15 +56,15 @@ func (obj *object) attack(tobj *object) {
 		tobj.HP = 0
 	}
 
-	// push attack reply
-	attackReply := model.MsgAttackReply{
-		Index:      tobj.index,
+	// push attack damage reply
+	attackDamageReply := model.MsgAttackDamageReply{
+		Target:     tobj.index,
 		Damage:     attackDamage,
 		DamageType: 0,
 		SDDamage:   0,
 	}
-	obj.push(&attackReply)
-	tobj.push(&attackReply)
+	obj.push(&attackDamageReply)
+	tobj.push(&attackDamageReply)
 
 	// push attack effect reply
 	attackEffectReply := model.MsgAttackEffectReply{

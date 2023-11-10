@@ -187,16 +187,16 @@ func (msg *MsgAttack) Unmarshal(buf []byte) error {
 }
 
 // pack(1)
-type MsgAttackReply struct {
-	Index      int
+type MsgAttackDamageReply struct {
+	Target     int
 	Damage     int
 	DamageType int
 	SDDamage   int
 }
 
-func (msg *MsgAttackReply) Marshal() ([]byte, error) {
+func (msg *MsgAttackDamageReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
-	binary.Write(&bw, binary.BigEndian, uint16(msg.Index))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Target))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.Damage))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.DamageType))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.SDDamage))
