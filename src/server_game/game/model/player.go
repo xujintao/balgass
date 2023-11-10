@@ -3,6 +3,7 @@ package model
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
@@ -369,6 +370,9 @@ func (msg *MsgMove) Unmarshal(buf []byte) error {
 	}
 
 	size := bufDir[0] & 0x0F
+	if size > 14 {
+		return fmt.Errorf("MsgMove size invalid [size]%d", size)
+	}
 	dirs := make([]int, size)
 	path := make(maps.Path, size)
 	for i := range path {
@@ -376,7 +380,7 @@ func (msg *MsgMove) Unmarshal(buf []byte) error {
 	}
 	for i := 0; i < int(size); i++ {
 		if i == 0 {
-			dir := int(bufDir[(i+1)/2] >> 4 & 0x0F)
+			dir := int(bufDir[(i+2)/2] >> 4 & 0x0F)
 			dirs[i] = dir
 			dirPot := maps.Dirs[dir]
 			path[i].X = int(x) + dirPot.X
@@ -384,10 +388,10 @@ func (msg *MsgMove) Unmarshal(buf []byte) error {
 			continue
 		}
 		dir := 0
-		if i%2 == 1 {
-			dir = int(bufDir[(i+1)/2] >> 4 & 0x0F)
+		if i%2 == 0 {
+			dir = int(bufDir[(i+2)/2] >> 4 & 0x0F)
 		} else {
-			dir = int(bufDir[(i+1)/2] & 0x0F)
+			dir = int(bufDir[(i+2)/2] & 0x0F)
 		}
 		dirs[i] = dir
 		dirPot := maps.Dirs[dir]

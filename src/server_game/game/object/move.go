@@ -73,7 +73,7 @@ func (obj *object) processMove() {
 
 func (obj *object) Move(msg *model.MsgMove) {
 	n := len(msg.Path)
-	if n < 1 || n > 15 {
+	if n < 1 || n > 14 {
 		return
 	}
 	for i := range msg.Path {
@@ -96,7 +96,7 @@ func (obj *object) Move(msg *model.MsgMove) {
 		Number: obj.index,
 		X:      obj.TX,
 		Y:      obj.TY,
-		Dir:    msg.Dirs[0] << 4,
+		Dir:    obj.Dir << 4,
 	}
 	obj.pushViewport(&msgRelpy)
 }
