@@ -10,12 +10,11 @@
 [C1 04 F3 00]
 ```
 
-| Index | Element | Description                         |
-| ----- | ------- | ----------------------------------- |
-| 0     | 0xC1    | c1c2 frame flag                     |
-| 1     | 0x04    | c1c2 frame size                     |
-| 2     | 0xF3    | c1c2 frame code 0xF300 BE high byte |
-| 3     | 0x00    | c1c2 frame code 0xF300 BE low byte  |
+| Index | Element | Description                |
+| ----- | ------- | -------------------------- |
+| 0     | 0xC1    | c1c2 frame flag            |
+| 1     | 0x04    | c1c2 frame size            |
+| 2~3   | 0xF300  | c1c2 frame code: 0xF300 BE |
 
 #### Reply Enable Character Class
 
@@ -23,13 +22,12 @@
 [C1 05 DE 00 1F]
 ```
 
-| Index | Element | Description                         |
-| ----- | ------- | ----------------------------------- |
-| 0     | 0xC1    | c1c2 frame flag                     |
-| 1     | 0x05    | c1c2 frame size                     |
-| 2     | 0xDE    | c1c2 frame code 0xF300 BE high byte |
-| 3     | 0x00    | c1c2 frame code 0xF300 BE low byte  |
-| 4     | 0x1F    | enable character class              |
+| Index | Element | Description                |
+| ----- | ------- | -------------------------- |
+| 0     | 0xC1    | c1c2 frame flag            |
+| 1     | 0x05    | c1c2 frame size            |
+| 2~3   | 0xDE00  | c1c2 frame code: 0xDE00 BE |
+| 4     | 0x1F    | enable character class     |
 
 ```
 character class:
@@ -47,13 +45,12 @@ pack(1)
 [C1 n+4 FA 0A [n]byte]
 ```
 
-| Index | Element | Description                         |
-| ----- | ------- | ----------------------------------- |
-| 0     | 0xC1    | c1c2 frame flag                     |
-| 1     | n+4     | c1c2 frame size                     |
-| 2     | 0xFA    | c1c2 frame code 0xFA0A BE high byte |
-| 3     | 0x0A    | c1c2 frame code 0xFA0A BE low byte  |
-| 4~n+3 | [n]byte | reset character password            |
+| Index | Element | Description                                   |
+| ----- | ------- | --------------------------------------------- |
+| 0     | 0xC1    | c1c2 frame flag                               |
+| 1     | n+4     | c1c2 frame size                               |
+| 2~3   | 0xFA0A  | c1c2 frame code: 0xFA0A BE                    |
+| 4~n+3 | [n]byte | reset character password for delete character |
 
 #### Reply Get Character List
 
@@ -65,8 +62,7 @@ pack(1)
 | ----- | -------- | ------------------------------------ |
 | 0     | 0xC1     | c1c2 frame flag                      |
 | 1     | 0x1C     | c1c2 frame size                      |
-| 2     | 0xF3     | c1c2 frame code 0xF300 BE high byte  |
-| 3     | 0x00     | c1c2 frame code 0xF300 BE low byte   |
+| 2~3   | 0xF300   | c1c2 frame code: 0xF300 BE           |
 | 4     | 0x1F     | enable character class               |
 | 5     | 0x00     | move count                           |
 | 6     | 0x01     | character list count                 |
@@ -76,12 +72,11 @@ pack(1)
 | Index | Element  | Character Description      |
 | ----- | -------- | -------------------------- |
 | 0     | 0x00     | index: 0~4                 |
-| 1~10  | [10]byte | name                       |
+| 1~10  | [10]byte | name(GBK)                  |
 | 11    | 0x00     | padding for alignment in C |
-| 12    | 0x01     | level 0x0001 LE low byte   |
-| 13    | 0x00     | level 0x0001 LE high byte  |
+| 12~13 | 0x0001   | level: 0x0001 LE           |
 | 14    | 0x00     | ctlcode                    |
-| 15~32 | byte[18] | character encode           |
+| 15~32 | byte[18] | character frame            |
 | 33    | 0xFF     | guild status               |
 | 34    | 0x00     | pk level                   |
 | 35    | 0x00     | padding for alignment in C |
@@ -114,14 +109,13 @@ pack(1)
 [C1 0F F3 01 [10]byte 10]
 ```
 
-| Index | Element  | Description                         |
-| ----- | -------- | ----------------------------------- |
-| 0     | 0xC1     | c1c2 frame flag                     |
-| 1     | 0x0F     | c1c2 frame size                     |
-| 2     | 0xF3     | c1c2 frame code 0xF301 BE high byte |
-| 3     | 0x01     | c1c2 frame code 0xF301 BE low byte  |
-| 4~13  | byte[10] | character name                      |
-| 14    | 0x10     | character class                     |
+| Index | Element  | Description                |
+| ----- | -------- | -------------------------- |
+| 0     | 0xC1     | c1c2 frame flag            |
+| 1     | 0x0F     | c1c2 frame size            |
+| 2~3   | 0xF301   | c1c2 frame code: 0xF301 BE |
+| 4~13  | byte[10] | character name(GBK)        |
+| 14    | 0x10     | character class            |
 
 ```
 character class:
@@ -141,20 +135,18 @@ character class:
 [C1 2C F3 01 01 byte[10] 00 01 00 10 byte[24] 00]
 ```
 
-| Index | Element  | Description                         |
-| ----- | -------- | ----------------------------------- |
-| 0     | 0xC1     | c1c2 frame flag                     |
-| 1     | 0x2C     | c1c2 frame size                     |
-| 2     | 0xF3     | c1c2 frame code 0xF301 BE high byte |
-| 3     | 0x01     | c1c2 frame code 0xF301 BE low byte  |
-| 4     | 0x01     | result: 0=failed 1=success          |
-| 5~14  | byte[10] | name                                |
-| 15    | 0x00     | index                               |
-| 16    | 0x01     | level 0x0001 LE low byte            |
-| 17    | 0x00     | level 0x0001 LE high byte           |
-| 18    | 0x10     | class bit5~bit7: 0~7                |
-| 19~42 | byte[24] | equipment                           |
-| 43    | 0x00     | padding for alignment in C          |
+| Index | Element  | Description                |
+| ----- | -------- | -------------------------- |
+| 0     | 0xC1     | c1c2 frame flag            |
+| 1     | 0x2C     | c1c2 frame size            |
+| 2~3   | 0xF301   | c1c2 frame code: 0xF301 BE |
+| 4     | 0x01     | result: 0=failed 1=success |
+| 5~14  | byte[10] | name(GBK)                  |
+| 15    | 0x00     | index                      |
+| 16~17 | 0x0001   | level: 0x0001 LE           |
+| 18    | 0x10     | class bit5~bit7: 0~7       |
+| 19~42 | byte[24] | equipment                  |
+| 43    | 0x00     | padding for alignment in C |
 
 ### Delete character
 
@@ -165,14 +157,13 @@ pack(1)
 [C1 15 F3 02 [10]byte [7]password]
 ```
 
-| Index | Element  | Description                         |
-| ----- | -------- | ----------------------------------- |
-| 0     | 0xC1     | c1c2 frame flag                     |
-| 1     | 0x15     | c1c2 frame size                     |
-| 2     | 0xF3     | c1c2 frame code 0xF302 BE high byte |
-| 3     | 0x02     | c1c2 frame code 0xF302 BE low byte  |
-| 4~13  | [10]byte | character name                      |
-| 14~20 | [7]byte  | reset password last 7 digits        |
+| Index | Element  | Description                  |
+| ----- | -------- | ---------------------------- |
+| 0     | 0xC1     | c1c2 frame flag              |
+| 1     | 0x15     | c1c2 frame size              |
+| 2~3   | 0xF302   | c1c2 frame code: 0xF302 BE   |
+| 4~13  | [10]byte | character name(GBK)          |
+| 14~20 | [7]byte  | reset password last 7 digits |
 
 #### Reply
 
@@ -184,8 +175,7 @@ pack(1)
 | ----- | ------- | ----------------------------------------------- |
 | 0     | 0xC1    | c1c2 frame flag                                 |
 | 1     | 0x05    | c1c2 frame size                                 |
-| 2     | 0xF3    | c1c2 frame code 0xF302 BE high byte             |
-| 3     | 0x02    | c1c2 frame code 0xF302 BE low byte              |
+| 2~3   | 0xF302  | c1c2 frame code: 0xF302 BE                      |
 | 4     | 0x01    | result: 0=failed 1=success 2=password unmatched |
 
 ### Load character
@@ -197,14 +187,17 @@ pack(1)
 [C1 0F F3 03 [10]byte 00]
 ```
 
-| Index | Element  | Description                         |
-| ----- | -------- | ----------------------------------- |
-| 0     | 0xC1     | c1c2 frame flag                     |
-| 1     | 0x15     | c1c2 frame size                     |
-| 2     | 0xF3     | c1c2 frame code 0xF303 BE high byte |
-| 3     | 0x03     | c1c2 frame code 0xF303 BE low byte  |
-| 4~13  | [10]byte | character name                      |
-| 14    | 0x00     | character position: 0~4             |
+| Index | Element  | Description                |
+| ----- | -------- | -------------------------- |
+| 0     | 0xC1     | c1c2 frame flag            |
+| 1     | 0x15     | c1c2 frame size            |
+| 2~3   | 0xF303   | c1c2 frame code: 0xF303 BE |
+| 4~13  | [10]byte | character name(GBK)        |
+| 14    | 0x00     | character position: 0~4    |
+
+#### Handle
+
+Player object will load character data from db to fill self and reply MsgLoadCharacterReply to client.
 
 #### Reply
 
@@ -216,8 +209,7 @@ pack(1)
 | ----- | ------- | ---------------------------------------- |
 | 0     | 0xC3    | c1c2 frame flag                          |
 | 1     | 0x48    | c1c2 frame size                          |
-| 2     | 0xF3    | c1c2 frame code 0xF303 BE high byte      |
-| 3     | 0x03    | c1c2 frame code 0xF303 BE low byte       |
+| 2~3   | 0xF303  | c1c2 frame code: 0xF303 BE               |
 | 4     | 0x01    | character coordinate x: 0~255            |
 | 5     | 0x01    | character coordinate y: 0~255            |
 | 6     | 0x01    | character map number                     |
@@ -248,3 +240,35 @@ pack(1)
 | 66~67 | [2]byte | character max minus point                |
 | 68~69 | [2]byte | character inventory expansion            |
 | 70~71 | [2]byte | padding for alignment in C               |
+
+### Reload character
+
+#### Request
+
+empty
+
+#### Handle
+
+Character Regen method will refill character state and push MsgReloadCharacterReply to client.
+
+#### Reply
+
+```
+[C3 1C F3 04 ...]
+```
+
+| Index | Element | Description                   |
+| ----- | ------- | ----------------------------- |
+| 0     | 0xC3    | c1c2 frame flag               |
+| 1     | 0x1C    | c1c2 frame size               |
+| 2~3   | 0xF3    | c1c2 frame code: 0xF304 BE    |
+| 4     | 0x01    | character coordinate x: 0~255 |
+| 5     | 0x01    | character coordinate y: 0~255 |
+| 6     | 0x00    | character map number          |
+| 7     | 0x05    | character direction: 0~7      |
+| 8~9   | [2]byte | character HP 16bit LE         |
+| 10~11 | [2]byte | character MP 16bit LE         |
+| 12~13 | [2]byte | character SD 16bit LE         |
+| 14~15 | [2]byte | character AG 16bit LE         |
+| 16~23 | [8]byte | character experience BE       |
+| 24~27 | [4]byte | character money LE            |
