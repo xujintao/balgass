@@ -1,0 +1,196 @@
+[
+    {
+        "annotation": "wizard",
+        "class": 0,
+        "level": 1,
+        "map_number": 0,
+        "strength": 18,
+        "dexterity": 18,
+        "vitality": 15,
+        "energy": 30,
+        "leadership": 0,
+        "inventory": [
+            {
+                "position": 0,
+                "section": 5,
+                "index": 0,
+                "durability": 20
+            }
+        ]
+    },
+    {
+        "annotation": "knight",
+        "class": 1,
+        "level": 1,
+        "map_number": 0,
+        "strength": 28,
+        "dexterity": 20,
+        "vitality": 25,
+        "energy": 10,
+        "leadership": 0,
+        "inventory": [
+            {
+                "position": 0,
+                "section": 1,
+                "index": 0,
+                "durability": 18
+            },
+            {
+                "position": 1,
+                "section": 6,
+                "index": 0,
+                "durability": 22
+            }
+        ]
+    },
+    {
+        "annotation": "elf",
+        "class": 2,
+        "level": 1,
+        "map_number": 3,
+        "strength": 22,
+        "dexterity": 25,
+        "vitality": 20,
+        "energy": 15,
+        "leadership": 0,
+        "inventory": [
+            {
+                "position": 0,
+                "section": 4,
+                "index": 15,
+                "durability": 255
+            },
+            {
+                "position": 1,
+                "section": 6,
+                "index": 0,
+                "durability": 22
+            }
+        ]
+    },
+    {
+        "annotation": "magumsa",
+        "class": 3,
+        "level": 1,
+        "map_number": 0,
+        "strength": 26,
+        "dexterity": 26,
+        "vitality": 26,
+        "energy": 26,
+        "leadership": 0,
+        "inventory": [
+            {
+                "position": 0,
+                "section": 0,
+                "index": 1,
+                "durability": 22
+            },
+            {
+                "position": 1,
+                "section": 6,
+                "index": 0,
+                "durability": 22
+            }
+        ]
+    },
+    {
+        "annotation": "darkload",
+        "class": 4,
+        "level": 1,
+        "map_number": 0,
+        "strength": 26,
+        "dexterity": 20,
+        "vitality": 20,
+        "energy": 15,
+        "leadership": 24,
+        "inventory": [
+            {
+                "position": 0,
+                "section": 0,
+                "index": 1,
+                "durability": 22
+            },
+            {
+                "position": 1,
+                "section": 6,
+                "index": 0,
+                "durability": 22
+            }
+        ]
+    },
+    {
+        "annotation": "summoner",
+        "class": 5,
+        "level": 1,
+        "map_number": 51,
+        "strength": 21,
+        "dexterity": 21,
+        "vitality": 18,
+        "energy": 23,
+        "leadership": 0,
+        "inventory": [
+            {
+                "position": 0,
+                "section": 1,
+                "index": 0,
+                "durability": 18
+            },
+            {
+                "position": 1,
+                "section": 6,
+                "index": 0,
+                "durability": 22
+            }
+        ]
+    },
+    {
+        "annotation": "ragefighter",
+        "class": 6,
+        "level": 1,
+        "map_number": 0,
+        "strength": 32,
+        "dexterity": 27,
+        "vitality": 25,
+        "energy": 20,
+        "leadership": 0,
+        "inventory": [
+            {
+                "position": 0,
+                "section": 1,
+                "index": 0,
+                "durability": 18
+            },
+            {
+                "position": 1,
+                "section": 6,
+                "index": 0,
+                "durability": 22
+            }
+        ]
+    },
+    {
+        "annotation": "growlancer",
+        "class": 7,
+        "level": 1,
+        "map_number": 0,
+        "strength": 30,
+        "dexterity": 30,
+        "vitality": 25,
+        "energy": 24,
+        "leadership": 0,
+        "inventory": [
+            {
+                "position": 0,
+                "section": 1,
+                "index": 0,
+                "durability": 18
+            },
+            {
+                "position": 1,
+                "section": 6,
+                "index": 0,
+                "durability": 22
+            }
+        ]
+    }
+]

@@ -2,31 +2,32 @@ package item
 
 // Item represents a item
 type Item struct {
-	*ItemBase
-	ID             int               `db:"item_id"`           // serial
-	Section        int               `db:"item_base_section"` // 0 ~ 15
-	Index          int               `db:"item_base_index"`   // 0 ~ 511
-	Code           int               `db:"-"`                 // section*512 + index
-	Level          int               `db:"item_level"`
-	Durability     int               `db:"item_durability"`
-	Lucky          bool              `db:"item_lucky"`
-	Skill          bool              `db:"item_skill"`
-	Addition       int               `db:"item_addition"`
-	Excel          int               `db:"item_excel"`
-	Set            int               `db:"item_set"`
-	Option380      bool              `db:"item_option380"`
-	Period         int               `db:"item_period"`
-	HarmonyEffect  harmonyEffectKind `db:"item_harmony_effect"`
-	HarmonyLevel   int               `db:"item_harmony_level"`
-	PentagramBonus int               `db:"item_pentagram_bonus"`
-	MuunRank       int               `db:"item_muun_rank"`
-	SocketBonus    int               `db:"item_socket_bonus"`
-	SocketSlots    [5]int            `db:"-"` // slot array
-	SocketSlot1    int               `db:"item_socket_slot1"`
-	SocketSlot2    int               `db:"item_socket_slot2"`
-	SocketSlot3    int               `db:"item_socket_slot3"`
-	SocketSlot4    int               `db:"item_socket_slot4"`
-	SocketSlot5    int               `db:"item_socket_slot5"`
+	*ItemBase      `json:"-"`
+	Position       int               `json:"position"`
+	ID             int               `json:"id,omitempty"` // serial
+	Section        int               `json:"section"`      // 0 ~ 15
+	Index          int               `json:"index"`        // 0 ~ 511
+	Code           int               `json:"-"`            // section*512 + index
+	Level          int               `json:"level"`
+	Durability     int               `json:"durability"`
+	Lucky          bool              `json:"lucky,omitempty"`
+	Skill          bool              `json:"skill,omitempty"`
+	Addition       int               `json:"addition,omitempty"`
+	Excel          int               `json:"excel,omitempty"`
+	Set            int               `json:"set,omitempty"`
+	Option380      bool              `json:"option380,omitempty"`
+	Period         int               `json:"period,omitempty"`
+	HarmonyEffect  harmonyEffectKind `json:"harmony_effect,omitempty"`
+	HarmonyLevel   int               `json:"harmony_level,omitempty"`
+	PentagramBonus int               `json:"pentagram_bonus,omitempty"`
+	MuunRank       int               `json:"muun_rank,omitempty"`
+	SocketBonus    int               `json:"socket_bonus,omitempty"`
+	SocketSlots    [5]int            `json:"-"` // slot array
+	SocketSlot1    int               `json:"socket_slot1,omitempty"`
+	SocketSlot2    int               `json:"socket_slot2,omitempty"`
+	SocketSlot3    int               `json:"socket_slot3,omitempty"`
+	SocketSlot4    int               `json:"socket_slot4,omitempty"`
+	SocketSlot5    int               `json:"socket_slot5,omitempty"`
 }
 
 // NewItem construct a item with section and index

@@ -1,8 +1,8 @@
 package conf
 
 import (
+	"encoding/json"
 	"encoding/xml"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -95,12 +95,26 @@ func INI(dir, file string, v interface{}) {
 func XML(dir, file string, v interface{}) {
 	file = path.Join(dir, file)
 	log.Printf("Load %s", file)
-	buf, err := ioutil.ReadFile(file)
+	buf, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	if err := xml.Unmarshal(buf, v); err != nil {
 		log.Fatalf("Failed to unmarshal %s, %v", file, err)
+	}
+}
+
+func JSON(dir, file string, v interface{}) {
+	file = path.Join(dir, file)
+	log.Printf("Load %s", file)
+	// os.ReadFile(file)
+	f, err := os.Open(file)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = json.NewDecoder(f).Decode(v)
+	if err != nil {
+		log.Fatalln(err)
 	}
 }
 

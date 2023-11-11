@@ -1,10 +1,12 @@
 package model
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"time"
 
+	"github.com/xujintao/balgass/src/server_game/game/item"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -87,18 +89,69 @@ func (db *db) DeleteAccount(id int) error {
 	return db.Delete(&Account{ID: id}).Error
 }
 
+type Inventory [237]*item.Item
+
+func (i *Inventory) Marshal() ([]byte, error) {
+	var inventory []*item.Item
+	for i, v := range i {
+		if v == nil {
+			continue
+		}
+		v.Position = i
+		inventory = append(inventory, v)
+	}
+	data, err := json.Marshal(inventory)
+	if err != nil {
+		return nil, err
+	}
+	return data, err
+}
+
+func (i *Inventory) Unmarshal(buf []byte) error {
+	var inventory []*item.Item
+	err := json.Unmarshal(buf, &inventory)
+	if err != nil {
+		return err
+	}
+	for _, v := range inventory {
+		i[v.Position] = v
+	}
+	return nil
+}
+
 type Character struct {
-	ID        int       `json:"id,omitempty" gorm:"primarykey"`
-	AccountID int       `json:"-" validate:"-" gorm:"not null"`
-	Position  int       `json:"position" validate:"-" gorm:"not null"`
-	Name      string    `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique;not null"`
-	Class     int       `json:"class" validate:"-" gorm:"not null"`
-	Level     int       `json:"level" validate:"-" gorm:"not null"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	ID                 int       `json:"id" gorm:"primarykey"`
+	AccountID          int       `json:"-" validate:"-" gorm:"not null"`
+	Position           int       `json:"position" validate:"-" gorm:"not null"`
+	Name               string    `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique;not null"`
+	Class              int       `json:"class" validate:"-" gorm:"not null"`
+	ChangeUp           int       `json:"change_up" validate:"-" gorm:"not null"`
+	Level              int       `json:"level" validate:"-" gorm:"not null"`
+	LevelUpPoint       int       `json:"level_up_point,omitempty" validate:"-" gorm:"not null"`
+	MapNumber          int       `json:"map_number,omitempty" validate:"-" gorm:"not null"`
+	X                  int       `json:"x,omitempty" validate:"-" gorm:"not null"`
+	Y                  int       `json:"y,omitempty" validate:"-" gorm:"not null"`
+	Dir                int       `json:"dir,omitempty" validate:"-" gorm:"not null"`
+	Strength           int       `json:"strength,omitempty" validate:"-" gorm:"not null"`
+	Dexterity          int       `json:"dexterity,omitempty" validate:"-" gorm:"not null"`
+	Vitality           int       `json:"vitality,omitempty" validate:"-" gorm:"not null"`
+	Energy             int       `json:"energy,omitempty" validate:"-" gorm:"not null"`
+	Leadership         int       `json:"leadership,omitempty" validate:"-" gorm:"not null"`
+	Inventory          Inventory `json:"inventory" validate:"-" gorm:"-"`
+	InventoryJSON      []byte    `json:"-" validate:"-" gorm:"not null"`
+	InventoryExpansion int       `json:"-" validate:"-" gorm:"not null"`
+	Money              int       `json:"-" validate:"-" gorm:"not null"`
+	Experience         int       `json:"-" validate:"-" gorm:"not null"`
+	CreatedAt          time.Time `json:"-"`
+	UpdatedAt          time.Time `json:"-"`
 }
 
 func (db *db) CreateCharacter(c *Character) error {
+	data, err := c.Inventory.Marshal()
+	if err != nil {
+		return err
+	}
+	c.InventoryJSON = data
 	result := db.FirstOrCreate(c, &Character{Name: c.Name})
 	if result.RowsAffected != 1 {
 		return gorm.ErrDuplicatedKey
@@ -112,6 +165,12 @@ func (db *db) GetCharacterList(aid int) ([]*Character, error) {
 	if err != nil {
 		return nil, err
 	}
+	for _, c := range chars {
+		err := c.Inventory.Unmarshal(c.InventoryJSON)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return chars, nil
 }
 
@@ -121,7 +180,14 @@ func (db *db) GetCharacterByName(aid int, name string) (*Character, error) {
 		AccountID: aid,
 		Name:      name,
 	}).Error
-	return &c, err
+	if err != nil {
+		return nil, err
+	}
+	err = c.Inventory.Unmarshal(c.InventoryJSON)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
 }
 
 func (db *db) DeleteCharacterByName(aid int, name string) error {

@@ -2,6 +2,7 @@ package object
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"math/rand"
 
@@ -11,6 +12,37 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"gorm.io/gorm"
 )
+
+func init() {
+	var characterList []*model.Character
+	conf.JSON(conf.PathCommon, "players/character.json", &characterList)
+	CharacterTable = make(characterTable)
+	for _, c := range characterList {
+		var inventory1 []*item.Item
+		for _, v := range c.Inventory {
+			if v == nil {
+				continue
+			}
+			inventory1 = append(inventory1, v)
+		}
+		data, err := json.Marshal(inventory1)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		var inventory model.Inventory
+		err = inventory.Unmarshal(data)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		c.Inventory = inventory
+		CharacterTable[c.Class] = c
+	}
+	log.Println(len(CharacterTable))
+}
+
+var CharacterTable characterTable
+
+type characterTable map[int]*model.Character
 
 type Conn interface {
 	Addr() string
@@ -72,10 +104,10 @@ type Player struct {
 	AccountPassword string
 	AuthLevel       int
 	// hwid                 string
-	Experience           uint
-	ExperienceNext       uint
-	ExperienceMaster     uint
-	ExperienceMasterNext uint
+	Experience           int
+	ExperienceNext       int
+	ExperienceMaster     int
+	ExperienceMasterNext int
 	masterLevel          int
 	LevelUpPoint         int
 	MasterPoint          int
@@ -111,10 +143,11 @@ type Player struct {
 	MonsterDieGetMana  int // 杀怪回蓝
 	item380Effect      item.Item380Effect
 	// criticalDamage       int
-	excellentDamage int // 卓越一击概率
-	Inventory       []item.Item
+	excellentDamage    int // 卓越一击概率
+	Inventory          model.Inventory
+	InventoryExpansion int
 	// dbClass              uint8
-	ChangeUP int // 0=1转 1=2转 2=3转
+	ChangeUp int // 1=1转 2=2转 3=3转
 	// PKCount                    int
 	PKLevel int
 	// PKTime                     int
@@ -154,7 +187,6 @@ type Player struct {
 	// muBotTotalTime                time.Duration
 	// muBotPayTime                  time.Duration
 	// muBotTick                     time.Time
-	// InventoryExpansion            int
 	// WarehouseExpansion            int
 	// LastAuthTime                  time.Time
 	// LastXorKey1                   [4]int
@@ -226,7 +258,6 @@ func (p *Player) push(msg any) {
 }
 
 func (p *Player) spawnPosition() {
-	p.MapNumber = 0
 	p.X, p.Y = maps.MapManager.GetMapRegenPos(p.MapNumber)
 	p.TX, p.TY = p.X, p.Y
 	maps.MapManager.SetMapAttrStand(p.MapNumber, p.X, p.Y)
@@ -314,7 +345,6 @@ func (p *Player) Hack(msg *model.MsgHack) {
 
 func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 	reply := model.MsgGetCharacterListReply{}
-	defer p.push(&reply)
 
 	// get account
 	reply.EnableCharacterClass = 0xFF
@@ -336,25 +366,16 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 	reply.CharacterList = make([]*model.MsgCharacter, len(chars))
 	for i, c := range chars {
 		reply.CharacterList[i] = &model.MsgCharacter{
-			Index: c.Position,
-			Name:  c.Name,
-			Level: c.Level,
-			Class: c.Class,
-			Inventory: [9]*item.Item{
-				item.NewItem(0, 13),  // slot0
-				item.NewItem(0, 13),  // slot1
-				item.NewItem(7, 0),   // slot2
-				item.NewItem(8, 0),   // slot3
-				item.NewItem(9, 0),   // slot4
-				item.NewItem(10, 0),  // slot5
-				item.NewItem(11, 0),  // slot6
-				item.NewItem(12, 36), // slot7
-				item.NewItem(13, 1),  // slot8
-			},
+			Index:       c.Position,
+			Name:        c.Name,
+			Level:       c.Level,
+			Class:       c.Class,
+			Inventory:   [9]*item.Item(c.Inventory[:9]),
 			GuildStatus: 0xFF,
 			PKLevel:     0,
 		}
 	}
+	p.push(&reply)
 }
 
 func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
@@ -386,14 +407,11 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 		return
 	}
 	// create character
-	c := model.Character{
-		AccountID: p.AccountID,
-		Position:  position,
-		Name:      msg.Name,
-		Class:     msg.Class,
-		Level:     1,
-	}
-	if err := model.DB.CreateCharacter(&c); err != nil {
+	c := CharacterTable[msg.Class]
+	c.AccountID = p.AccountID
+	c.Position = position
+	c.Name = msg.Name
+	if err := model.DB.CreateCharacter(c); err != nil {
 		log.Printf("model.DB.CreateCharacter failed [err]%v\n", err)
 		return
 	}
@@ -457,11 +475,28 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	}
 
 	// set player with character data
-	// mc := MonsterTable[249]
-	mc := MonsterTable[4]
 	p.Name = c.Name
 	p.Annotation = c.Name
 	p.Level = c.Level
+	p.LevelUpPoint = c.LevelUpPoint
+	p.MapNumber = c.MapNumber
+	p.X, p.TX = c.X, c.X
+	p.Y, p.TY = c.Y, c.Y
+	p.Dir = c.Dir
+	p.spawnPosition()
+	p.Strength = c.Strength
+	p.Dexterity = c.Dexterity
+	p.Vitality = c.Vitality
+	p.Energy = c.Energy
+	p.Leadership = c.Leadership
+	p.Inventory = c.Inventory
+	p.InventoryExpansion = c.InventoryExpansion
+	p.Money = c.Money
+	p.Experience = c.Experience
+
+	// calculate
+	// mc := MonsterTable[249]
+	mc := MonsterTable[4]
 	p.attackPanelMin = mc.DamageMin
 	p.attackPanelMax = mc.DamageMax
 	p.attackRate = mc.AttackRate
@@ -483,7 +518,6 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.attackRange = mc.AttackRange
 	p.attackType = mc.AttackType
 	p.viewRange = mc.ViewRange
-	p.spawnPosition()
 	p.maxRegenTime = 4
 	p.ConnectState = ConnectStatePlaying
 	p.Live = true
@@ -495,14 +529,14 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		Y:                  p.Y,
 		MapNumber:          p.MapNumber,
 		Dir:                p.Dir,
-		Experience:         0,
-		NextExperience:     100,
-		LevelUpPoint:       30,
-		Strength:           100,
-		Dexterity:          100,
-		Vitality:           100,
-		Energy:             100,
-		Leadership:         100,
+		Experience:         p.Experience,
+		NextExperience:     p.Experience + 100,
+		LevelUpPoint:       p.LevelUpPoint,
+		Strength:           p.Strength,
+		Dexterity:          p.Dexterity,
+		Vitality:           p.Vitality,
+		Energy:             p.Energy,
+		Leadership:         p.Leadership,
 		HP:                 p.HP,
 		MaxHP:              p.MaxHP,
 		MP:                 p.MP,
@@ -511,14 +545,14 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		MaxSD:              p.MaxSD,
 		AG:                 p.AG,
 		MaxAG:              p.MaxAG,
-		Money:              2000,
+		Money:              p.Money,
 		PKLevel:            p.PKLevel,
 		CtlCode:            0,
 		AddPoint:           0,
 		MaxAddPoint:        122,
 		MinusPoint:         0,
 		MaxMinusPoint:      122,
-		InventoryExpansion: 0,
+		InventoryExpansion: p.InventoryExpansion,
 	})
 
 	// go func() {
@@ -532,7 +566,7 @@ func (p *Player) getPKLevel() int {
 }
 
 func (player *Player) MasterLevel() bool {
-	return player.ChangeUP == 2 && player.Level >= conf.Common.General.MaxLevelNormal
+	return player.ChangeUp == 2 && player.Level >= conf.Common.General.MaxLevelNormal
 }
 
 func (player *Player) addExcelCommonEffect(opt *item.ExcelCommon, wItem *item.Item, position int) {
@@ -690,7 +724,7 @@ func (player *Player) CalcExcelItem() {
 			for _, opt := range item.ExcelManager.Wings.Options {
 				if wItem.KindA == opt.ItemKindA && wItem.KindB == opt.ItemKindB {
 					if wItem.Excel&opt.Number == opt.Number {
-						player.addExcelWingEffect(opt, &wItem)
+						player.addExcelWingEffect(opt, wItem)
 					}
 				}
 			}
@@ -699,7 +733,7 @@ func (player *Player) CalcExcelItem() {
 				switch wItem.KindA {
 				case opt.ItemKindA1, opt.ItemKindA2, opt.ItemKindA3:
 					if wItem.Excel&opt.Number == opt.Number {
-						player.addExcelCommonEffect(opt, &wItem, i)
+						player.addExcelCommonEffect(opt, wItem, i)
 					}
 				}
 			}
@@ -802,8 +836,8 @@ func (player *Player) Whisper(msg *model.MsgWhisper) {
 func (player *Player) UseItem(msg *model.MsgUseItem) {
 	// validate the position
 
-	it := &player.Inventory[msg.InventoryPos]
-	it2 := &player.Inventory[msg.InventoryPosTarget]
+	it := player.Inventory[msg.InventoryPos]
+	it2 := player.Inventory[msg.InventoryPosTarget]
 	// validate item serial/id
 	if player.LimitUseItem(it) {
 		return
@@ -869,7 +903,7 @@ func (player *Player) LimitUseItem(it *item.Item) bool {
 		return true
 	}
 	reqClass := it.ReqClass[player.Class]
-	if reqClass == 0 || (reqClass > player.ChangeUP+1) {
+	if reqClass == 0 || (reqClass > player.ChangeUp+1) {
 		return true
 	}
 	return false
@@ -968,19 +1002,9 @@ func (p *Player) Regen() {
 }
 
 func (p *Player) GetChangeUp() int {
-	return p.ChangeUP
+	return p.ChangeUp
 }
 
-func (m *Player) GetInventory() [9]*item.Item {
-	return [9]*item.Item{
-		item.NewItem(0, 13),  // slot0
-		item.NewItem(0, 13),  // slot1
-		item.NewItem(7, 0),   // slot2
-		item.NewItem(8, 0),   // slot3
-		item.NewItem(9, 0),   // slot4
-		item.NewItem(10, 0),  // slot5
-		item.NewItem(11, 0),  // slot6
-		item.NewItem(12, 36), // slot7
-		item.NewItem(13, 1),  // slot8
-	}
+func (p *Player) GetInventory() [9]*item.Item {
+	return [9]*item.Item(p.Inventory[:9])
 }
