@@ -661,20 +661,26 @@ func MakeCharacterFrame(Class, ChangeUp int, Inventory [9]*item.Item) [18]byte {
 	inventory := make([]*item.Item, len(Inventory))
 	for i, v := range Inventory {
 		if v == nil {
-			inventory[i] = item.NewItem(0, 512)
+			inventory[i] = &item.Item{Section: 15, Index: 511}
 		} else {
 			inventory[i] = Inventory[i]
 		}
 	}
 
-	// slot0~slot6 index -> chars[1]~chars[5]
+	// slot0~slot1 index -> chars[1]~chars[2]
 	chars[1] = byte(inventory[0].Index)
 	chars[2] = byte(inventory[1].Index)
+
+	// slot0~slot1 section -> chars[12]bit4~-bit7~chars[13]bit4~bit7
+	chars[12] = byte(inventory[0].Section << 5)
+	chars[13] = byte(inventory[1].Section << 5)
+
+	// slot2~slot6 index -> chars[3]~chars[5]
 	chars[3] = byte(inventory[2].Index&0x0F<<4 | inventory[3].Index&0x0F)
 	chars[4] = byte(inventory[4].Index&0x0F<<4 | inventory[5].Index&0x0F)
 	chars[5] = byte(inventory[6].Index & 0x0F << 4)
 
-	// slot0~slot6 index extention1 -> chars[9] bit3~bit7
+	// slot2~slot6 index extention1 -> chars[9] bit3~bit7
 	extend := inventory[2].Index&0x10<<3 |
 		inventory[3].Index&0x10<<2 |
 		inventory[4].Index&0x10<<1 |
@@ -682,7 +688,7 @@ func MakeCharacterFrame(Class, ChangeUp int, Inventory [9]*item.Item) [18]byte {
 		inventory[6].Index&0x10>>1
 	chars[9] = byte(extend)
 
-	// slot0~slot6 index extention2 -> chars[12]~chars[15]
+	// slot2~slot6 index extention2 -> chars[13]~chars[15]
 	chars[13] |= (byte(inventory[2].Index & 0x1E0 >> 5))
 	chars[14] |= (byte(inventory[3].Index&0x1E0>>1 | inventory[4].Index&0x1E0>>5))
 	chars[15] |= (byte(inventory[5].Index&0x1E0>>1 | inventory[6].Index&0x1E0>>5))
