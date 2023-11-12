@@ -35,14 +35,14 @@ func init() {
 			log.Fatalln(err)
 		}
 		c.Inventory = inventory
-		CharacterTable[c.Class] = c
+		CharacterTable[c.Class] = *c
 	}
 	log.Println(len(CharacterTable))
 }
 
 var CharacterTable characterTable
 
-type characterTable map[int]*model.Character
+type characterTable map[int]model.Character
 
 type Conn interface {
 	Addr() string
@@ -411,7 +411,7 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	c.AccountID = p.AccountID
 	c.Position = position
 	c.Name = msg.Name
-	if err := model.DB.CreateCharacter(c); err != nil {
+	if err := model.DB.CreateCharacter(&c); err != nil {
 		log.Printf("model.DB.CreateCharacter failed [err]%v\n", err)
 		return
 	}
