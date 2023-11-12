@@ -50,7 +50,7 @@ func (table itemTable) GetItemBase(i, j int) (*ItemBase, error) {
 	}
 	items := table[i]
 	item, ok := items[j]
-	if ok == false {
+	if !ok {
 		return nil, fmt.Errorf("item index over bound")
 	}
 	return item, nil

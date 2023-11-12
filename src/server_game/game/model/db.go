@@ -114,6 +114,12 @@ func (i *Inventory) Unmarshal(buf []byte) error {
 		return err
 	}
 	for _, v := range inventory {
+		v.Code = item.Code(v.Section, v.Index)
+		itemBase, err := item.ItemTable.GetItemBase(v.Section, v.Index)
+		if err != nil {
+			return err
+		}
+		v.ItemBase = itemBase
 		i[v.Position] = v
 	}
 	return nil
@@ -157,6 +163,24 @@ func (db *db) CreateCharacter(c *Character) error {
 		return gorm.ErrDuplicatedKey
 	}
 	return nil
+}
+
+func (db *db) UpdateCharacter(name string, c *Character) error {
+	data, err := c.Inventory.Marshal()
+	if err != nil {
+		return err
+	}
+	c.InventoryJSON = data
+	return db.Model(c).
+		Where("name = ?", name).
+		Select("*").Omit(
+		"ID",
+		"AccountID",
+		"Position",
+		"Name",
+		"Class",
+		"CreatedAt").
+		Updates(c).Error
 }
 
 func (db *db) GetCharacterList(aid int) ([]*Character, error) {

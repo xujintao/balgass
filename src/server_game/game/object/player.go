@@ -241,6 +241,7 @@ func (p *Player) Offline() {
 	}
 	p.offline = true
 	// todo
+	p.SaveCharacter()
 	p.cancel()
 }
 
@@ -477,6 +478,8 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// set player with character data
 	p.Name = c.Name
 	p.Annotation = c.Name
+	p.Class = c.Class
+	p.ChangeUp = c.ChangeUp
 	p.Level = c.Level
 	p.LevelUpPoint = c.LevelUpPoint
 	p.MapNumber = c.MapNumber
@@ -555,10 +558,42 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		InventoryExpansion: p.InventoryExpansion,
 	})
 
+	// reply inventory
+	// client will calculate character after receiving inventory msg
+	p.push(&model.MsgInventoryReply{
+		Inventory: p.Inventory,
+	})
+
 	// go func() {
 	// 	time.Sleep(100 * time.Millisecond) // get character info
 	// 	p.actioner.PlayerAction(p.index, "SetCharacter", &model.MsgSetCharacter{Name: msg.Name})
 	// }()
+}
+
+func (p *Player) SaveCharacter() {
+	c := model.Character{
+		ChangeUp:           p.ChangeUp,
+		Level:              p.Level,
+		LevelUpPoint:       p.LevelUpPoint,
+		MapNumber:          p.MapNumber,
+		X:                  p.X,
+		Y:                  p.Y,
+		Dir:                p.Dir,
+		Strength:           p.Strength,
+		Dexterity:          p.Dexterity,
+		Vitality:           p.Vitality,
+		Energy:             p.Energy,
+		Leadership:         p.Leadership,
+		Inventory:          p.Inventory,
+		InventoryExpansion: p.InventoryExpansion,
+		Money:              p.Money,
+		Experience:         p.Experience,
+	}
+	err := model.DB.UpdateCharacter(p.Name, &c)
+	if err != nil {
+		log.Printf("model.DB.SaveCharacter failed [err]%v\n", err)
+		return
+	}
 }
 
 func (p *Player) getPKLevel() int {

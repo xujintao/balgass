@@ -1096,6 +1096,32 @@ func (msg *MsgReloadCharacterReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+// pack(1)
+type MsgInventoryReply struct {
+	Inventory Inventory
+}
+
+func (msg *MsgInventoryReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	count := 0
+	for i, item := range msg.Inventory {
+		if item == nil {
+			continue
+		}
+		count++
+		bw.WriteByte(byte(i))
+		data, err := item.Marshal()
+		if err != nil {
+			return nil, err
+		}
+		bw.Write(data)
+	}
+	var bw2 bytes.Buffer
+	bw2.WriteByte(byte(count))
+	bw2.Write(bw.Bytes())
+	return bw2.Bytes(), nil
+}
+
 type MsgCheckCharacter struct {
 	Name string
 }
