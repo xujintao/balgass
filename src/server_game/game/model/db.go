@@ -1,7 +1,10 @@
 package model
 
 import (
+	"database/sql/driver"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -91,23 +94,11 @@ func (db *db) DeleteAccount(id int) error {
 
 type Inventory [237]*item.Item
 
-func (i *Inventory) Marshal() ([]byte, error) {
-	var inventory []*item.Item
-	for i, v := range i {
-		if v == nil {
-			continue
-		}
-		v.Position = i
-		inventory = append(inventory, v)
+func (i *Inventory) Scan(value any) error {
+	buf, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to Scan Inventory value:", value))
 	}
-	data, err := json.Marshal(inventory)
-	if err != nil {
-		return nil, err
-	}
-	return data, err
-}
-
-func (i *Inventory) Unmarshal(buf []byte) error {
 	var inventory []*item.Item
 	err := json.Unmarshal(buf, &inventory)
 	if err != nil {
@@ -123,6 +114,22 @@ func (i *Inventory) Unmarshal(buf []byte) error {
 		i[v.Position] = v
 	}
 	return nil
+}
+
+func (i Inventory) Value() (driver.Value, error) {
+	var inventory []*item.Item
+	for i, v := range i {
+		if v == nil {
+			continue
+		}
+		v.Position = i
+		inventory = append(inventory, v)
+	}
+	data, err := json.Marshal(inventory)
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
 
 type Character struct {
@@ -143,8 +150,7 @@ type Character struct {
 	Vitality           int       `json:"vitality,omitempty" validate:"-" gorm:"not null"`
 	Energy             int       `json:"energy,omitempty" validate:"-" gorm:"not null"`
 	Leadership         int       `json:"leadership,omitempty" validate:"-" gorm:"not null"`
-	Inventory          Inventory `json:"inventory" validate:"-" gorm:"-"`
-	InventoryJSON      []byte    `json:"-" validate:"-" gorm:"not null"`
+	Inventory          Inventory `json:"inventory" validate:"-" gorm:"type:jsonb;not null"`
 	InventoryExpansion int       `json:"-" validate:"-" gorm:"not null"`
 	Money              int       `json:"-" validate:"-" gorm:"not null"`
 	Experience         int       `json:"-" validate:"-" gorm:"not null"`
@@ -153,11 +159,6 @@ type Character struct {
 }
 
 func (db *db) CreateCharacter(c *Character) error {
-	data, err := c.Inventory.Marshal()
-	if err != nil {
-		return err
-	}
-	c.InventoryJSON = data
 	result := db.FirstOrCreate(c, &Character{Name: c.Name})
 	if result.RowsAffected != 1 {
 		return gorm.ErrDuplicatedKey
@@ -166,11 +167,6 @@ func (db *db) CreateCharacter(c *Character) error {
 }
 
 func (db *db) UpdateCharacter(name string, c *Character) error {
-	data, err := c.Inventory.Marshal()
-	if err != nil {
-		return err
-	}
-	c.InventoryJSON = data
 	return db.Model(c).
 		Where("name = ?", name).
 		Select("*").Omit(
@@ -186,16 +182,7 @@ func (db *db) UpdateCharacter(name string, c *Character) error {
 func (db *db) GetCharacterList(aid int) ([]*Character, error) {
 	var chars []*Character
 	err := db.Order("position ASC").Where("account_id = ?", aid).Find(&chars).Error
-	if err != nil {
-		return nil, err
-	}
-	for _, c := range chars {
-		err := c.Inventory.Unmarshal(c.InventoryJSON)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return chars, nil
+	return chars, err
 }
 
 func (db *db) GetCharacterByName(aid int, name string) (*Character, error) {
@@ -204,14 +191,7 @@ func (db *db) GetCharacterByName(aid int, name string) (*Character, error) {
 		AccountID: aid,
 		Name:      name,
 	}).Error
-	if err != nil {
-		return nil, err
-	}
-	err = c.Inventory.Unmarshal(c.InventoryJSON)
-	if err != nil {
-		return nil, err
-	}
-	return &c, nil
+	return &c, err
 }
 
 func (db *db) DeleteCharacterByName(aid int, name string) error {

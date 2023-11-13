@@ -30,7 +30,8 @@ func init() {
 			log.Fatalln(err)
 		}
 		var inventory model.Inventory
-		err = inventory.Unmarshal(data)
+		// err = inventory.Unmarshal(data)
+		err = inventory.Scan(data)
 		if err != nil {
 			log.Fatalln(err)
 		}

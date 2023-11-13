@@ -4,10 +4,10 @@ package item
 type Item struct {
 	*ItemBase      `json:"-"`
 	Position       int               `json:"position"`
-	ID             int               `json:"id,omitempty"` // serial
-	Section        int               `json:"section"`      // 0 ~ 15
-	Index          int               `json:"index"`        // 0 ~ 511
-	Code           int               `json:"-"`            // section*512 + index
+	ID             int               `json:"id"`      // serial
+	Section        int               `json:"section"` // 0 ~ 15
+	Index          int               `json:"index"`   // 0 ~ 511
+	Code           int               `json:"-"`       // section*512 + index
 	Level          int               `json:"level"`
 	Durability     int               `json:"durability"`
 	Lucky          bool              `json:"lucky,omitempty"`
