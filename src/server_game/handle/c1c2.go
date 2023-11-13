@@ -220,6 +220,7 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x0E, "Live", (*model.MsgLive)(nil)},
 	{0, false, Player, 0x11, "Attack", (*model.MsgAttack)(nil)}, // s9
 	{0, false, Player, 0x18, "Action", (*model.MsgAction)(nil)},
+	{0, false, Player, 0x24, "MoveInventoryItem", (*model.MsgMoveInventoryItem)(nil)},
 	{0, false, Player, 0x26, "UseItem", (*model.MsgUseItem)(nil)},
 	{0, false, Player, 0x4E11, "MuunSystem", (*model.MsgMuunSystem)(nil)},
 	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},     // s9
@@ -246,6 +247,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x14, "DestroyViewportObjectReply", (*model.MsgDestroyViewportObjectReply)(nil)},
 	{0, false, 0xC1, 0x17, "AttackDieReply", (*model.MsgAttackDieReply)(nil)},
 	{0, false, 0xC1, 0x18, "ActionReply", (*model.MsgActionReply)(nil)},
+	{0, false, 0xC3, 0x24, "MoveInventoryItemReply", (*model.MsgMoveInventoryItemReply)(nil)},
 	{0, false, 0xC1, 0x26, "HPReply", (*model.MsgHPReply)(nil)},
 	{0, false, 0xC1, 0x27, "MPReply", (*model.MsgMPReply)(nil)},
 	{0, false, 0xC1, 0xD4, "MoveReply", (*model.MsgMoveReply)(nil)},

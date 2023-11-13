@@ -332,6 +332,8 @@ func (p *Player) Logout(msg *model.MsgLogout) {
 	case 1: // back to pick character
 		// offline to login state.\
 		p.ConnectState = ConnectStateLogged
+		p.reset()
+		p.SaveCharacter()
 	case 2: // back to pick server
 		// offline to init state.
 		// Do not close connection
@@ -1042,4 +1044,24 @@ func (p *Player) GetChangeUp() int {
 
 func (p *Player) GetInventory() [9]*item.Item {
 	return [9]*item.Item(p.Inventory[:9])
+}
+
+func (p *Player) MoveInventoryItem(msg *model.MsgMoveInventoryItem) {
+	reply := model.MsgMoveInventoryItemReply{
+		Result: -1,
+	}
+	defer p.push(&reply)
+	if msg.SrcPosition >= len(p.Inventory) ||
+		msg.DstPosition >= len(p.Inventory) {
+		return
+	}
+	if p.Inventory[msg.SrcPosition] == nil ||
+		p.Inventory[msg.DstPosition] != nil {
+		return
+	}
+	p.Inventory[msg.DstPosition] = p.Inventory[msg.SrcPosition]
+	p.Inventory[msg.SrcPosition] = nil
+	reply.Result = 0
+	reply.Position = msg.DstPosition
+	reply.ItemFrame = msg.ItemFrame
 }

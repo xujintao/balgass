@@ -189,3 +189,7 @@ func (item *Item) Marshal() ([]byte, error) {
 	}
 	return data[:], nil
 }
+
+func (item *Item) Unmarshal(buf []byte) error {
+	return nil
+}

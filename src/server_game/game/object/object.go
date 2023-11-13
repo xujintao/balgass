@@ -535,6 +535,7 @@ type objecter interface {
 	Regen()
 	GetChangeUp() int
 	GetInventory() [9]*item.Item
+	MoveInventoryItem(*model.MsgMoveInventoryItem)
 }
 
 type object struct {

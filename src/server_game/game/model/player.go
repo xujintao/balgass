@@ -3,6 +3,7 @@ package model
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/xujintao/balgass/src/server_game/game/item"
@@ -302,6 +303,76 @@ func (msg *MsgActionReply) Marshal() ([]byte, error) {
 	bw.WriteByte(byte(msg.Dir))
 	bw.WriteByte(byte(msg.Action))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.Target))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgMoveInventoryItem struct {
+	ItemFrame   [12]byte
+	Item        *item.Item
+	SrcPosition int
+	DstPosition int
+}
+
+func (msg *MsgMoveInventoryItem) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// srcFlag
+	_, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+
+	// srcPosition
+	srcPosition, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.SrcPosition = int(srcPosition)
+
+	// itemFrame
+	var data [12]byte
+	n, err := br.Read(data[:])
+	if err != nil {
+		return err
+	}
+	if n != len(data) {
+		return fmt.Errorf("item frame invalid [frame]%s",
+			hex.EncodeToString(data[:n]))
+	}
+	msg.ItemFrame = data
+
+	// dstFlag
+	_, err = br.ReadByte()
+	if err != nil {
+		return err
+	}
+
+	// dstPosition
+	dstPosition, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.DstPosition = int(dstPosition)
+
+	return nil
+}
+
+// pack(1)
+type MsgMoveInventoryItemReply struct {
+	// -1=failed
+	// 0=success
+	Result    int
+	Position  int
+	ItemFrame [12]byte
+	Item      *item.Item
+}
+
+func (msg *MsgMoveInventoryItemReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Result))
+	bw.WriteByte(byte(msg.Position))
+	bw.Write(msg.ItemFrame[:])
 	return bw.Bytes(), nil
 }
 
