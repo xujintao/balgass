@@ -7,3 +7,7 @@
 - [Account](account.md)
 
 - [Character](character.md)
+
+- [Object](object.md)
+
+- [Item](item.md)
