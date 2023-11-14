@@ -751,32 +751,32 @@ func (player *Player) addSetEffect(index item.SetEffectType, value int) {
 }
 
 func (player *Player) CalcExcelItem() {
-	for i, wItem := range player.Inventory[0:InventoryWearSize] {
-		if wItem.Durability == 0 {
-			continue
-		}
-		if wItem.Excel == 0 {
-			continue
-		}
-		if i == 7 {
-			for _, opt := range item.ExcelManager.Wings.Options {
-				if wItem.KindA == opt.ItemKindA && wItem.KindB == opt.ItemKindB {
-					if wItem.Excel&opt.Number == opt.Number {
-						player.addExcelWingEffect(opt, wItem)
-					}
-				}
-			}
-		} else {
-			for _, opt := range item.ExcelManager.Common.Options {
-				switch wItem.KindA {
-				case opt.ItemKindA1, opt.ItemKindA2, opt.ItemKindA3:
-					if wItem.Excel&opt.Number == opt.Number {
-						player.addExcelCommonEffect(opt, wItem, i)
-					}
-				}
-			}
-		}
-	}
+	// for i, wItem := range player.Inventory[0:InventoryWearSize] {
+	// 	if wItem.Durability == 0 {
+	// 		continue
+	// 	}
+	// 	if wItem.Excel == 0 {
+	// 		continue
+	// 	}
+	// 	if i == 7 {
+	// 		for _, opt := range item.ExcelManager.Wings.Options {
+	// 			if wItem.KindA == opt.ItemKindA && wItem.KindB == opt.ItemKindB {
+	// 				if wItem.Excel&opt.Number == opt.Number {
+	// 					player.addExcelWingEffect(opt, wItem)
+	// 				}
+	// 			}
+	// 		}
+	// 	} else {
+	// 		for _, opt := range item.ExcelManager.Common.Options {
+	// 			switch wItem.KindA {
+	// 			case opt.ItemKindA1, opt.ItemKindA2, opt.ItemKindA3:
+	// 				if wItem.Excel&opt.Number == opt.Number {
+	// 					player.addExcelCommonEffect(opt, wItem, i)
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
 
 func (player *Player) CalcSetItem() {

@@ -2,32 +2,43 @@ package item
 
 // Item represents a item
 type Item struct {
-	*ItemBase      `json:"-"`
-	Position       int               `json:"position"`
-	ID             int               `json:"id"`      // serial
-	Section        int               `json:"section"` // 0 ~ 15
-	Index          int               `json:"index"`   // 0 ~ 511
-	Code           int               `json:"-"`       // section*512 + index
-	Level          int               `json:"level"`
-	Durability     int               `json:"durability"`
-	Lucky          bool              `json:"lucky,omitempty"`
-	Skill          bool              `json:"skill,omitempty"`
-	Addition       int               `json:"addition,omitempty"` // 0/4/8/12/16
-	Excel          int               `json:"excel,omitempty"`
-	Set            int               `json:"set,omitempty"`
-	Option380      bool              `json:"option380,omitempty"`
-	Period         int               `json:"period,omitempty"`
-	HarmonyEffect  harmonyEffectKind `json:"harmony_effect,omitempty"`
-	HarmonyLevel   int               `json:"harmony_level,omitempty"`
-	PentagramBonus int               `json:"pentagram_bonus,omitempty"`
-	MuunRank       int               `json:"muun_rank,omitempty"`
-	SocketBonus    int               `json:"socket_bonus,omitempty"`
-	SocketSlots    [5]int            `json:"-"` // slot array
-	SocketSlot1    int               `json:"socket_slot1,omitempty"`
-	SocketSlot2    int               `json:"socket_slot2,omitempty"`
-	SocketSlot3    int               `json:"socket_slot3,omitempty"`
-	SocketSlot4    int               `json:"socket_slot4,omitempty"`
-	SocketSlot5    int               `json:"socket_slot5,omitempty"`
+	*ItemBase                `json:"-"`
+	Position                 int               `json:"position"`
+	ID                       int               `json:"id"`      // serial
+	Section                  int               `json:"section"` // 0 ~ 15
+	Index                    int               `json:"index"`   // 0 ~ 511
+	Code                     int               `json:"-"`       // section*512 + index
+	Level                    int               `json:"level"`
+	Durability               int               `json:"durability"`
+	Lucky                    bool              `json:"lucky,omitempty"`
+	Skill                    bool              `json:"skill,omitempty"`
+	Addition                 int               `json:"addition,omitempty"` // 0/4/8/12/16
+	ExcellentAttackRate      bool              `json:"excellent_attack_rate,omitempty"`
+	ExcellentAttackLevel     bool              `json:"excellent_attack_level,omitempty"`
+	ExcellentAttackPercent   bool              `json:"excellent_attack_percent,omitempty"`
+	ExcellentAttackSpeed     bool              `json:"excellent_attack_speed,omitempty"`
+	ExcellentAttackHP        bool              `json:"excellent_attack_hp,omitempty"`
+	ExcellentAttackMP        bool              `json:"excellent_attack_mp,omitempty"`
+	ExcellentDefenseHP       bool              `json:"excellent_defense_hp,omitempty"`
+	ExcellentDefenseMP       bool              `json:"excellent_defense_mp,omitempty"`
+	ExcellentDefenseDecrease bool              `json:"excellent_defense_decrease,omitempty"`
+	ExcellentDefenseReflect  bool              `json:"excellent_defense_reflect,omitempty"`
+	ExcellentDefenseRate     bool              `json:"excellent_defense_rate,omitempty"`
+	ExcellentDefenseMoney    bool              `json:"excellent_defense_money,omitempty"`
+	Set                      int               `json:"set,omitempty"`
+	Option380                bool              `json:"option380,omitempty"`
+	Period                   int               `json:"period,omitempty"`
+	HarmonyEffect            harmonyEffectKind `json:"harmony_effect,omitempty"`
+	HarmonyLevel             int               `json:"harmony_level,omitempty"`
+	PentagramBonus           int               `json:"pentagram_bonus,omitempty"`
+	MuunRank                 int               `json:"muun_rank,omitempty"`
+	SocketBonus              int               `json:"socket_bonus,omitempty"`
+	SocketSlots              [5]int            `json:"-"` // slot array
+	SocketSlot1              int               `json:"socket_slot1,omitempty"`
+	SocketSlot2              int               `json:"socket_slot2,omitempty"`
+	SocketSlot3              int               `json:"socket_slot3,omitempty"`
+	SocketSlot4              int               `json:"socket_slot4,omitempty"`
+	SocketSlot5              int               `json:"socket_slot5,omitempty"`
 }
 
 // NewItem construct a item with section and index
@@ -55,9 +66,9 @@ func (i *Item) GetSetTierIndex() int {
 	return i.Set & 3
 }
 
-func (i *Item) GetExcelItem() int {
-	return i.Excel & 0x3F
-}
+// func (i *Item) GetExcelItem() int {
+// 	return i.Excel & 0x3F
+// }
 
 // Marshal marshal item struct to [32]byte variable
 // ----------------------------------------------
@@ -147,28 +158,39 @@ func (item *Item) Marshal() ([]byte, error) {
 	var data [12]byte
 	data[0] = byte(item.Index)
 	data[1] = byte(item.Addition & 0x0C >> 2)
-	lucky := 0
 	if item.Lucky {
-		lucky = 1
+		data[1] |= byte(1 << 2)
 	}
-	data[1] |= byte(lucky << 2)
 	data[1] |= byte(item.Level << 3)
-	skill := 0
 	if item.Skill {
-		skill = 1
+		data[1] |= byte(1 << 7)
 	}
-	data[1] |= byte(skill << 7)
 	data[2] = byte(item.Durability)
-	data[3] = byte(item.Excel)
+	if item.ExcellentAttackRate || item.ExcellentDefenseHP {
+		data[3] |= 1 << 5
+	}
+	if item.ExcellentAttackLevel || item.ExcellentDefenseMP {
+		data[3] |= 1 << 4
+	}
+	if item.ExcellentAttackPercent || item.ExcellentDefenseDecrease {
+		data[3] |= 1 << 3
+	}
+	if item.ExcellentAttackSpeed || item.ExcellentDefenseReflect {
+		data[3] |= 1 << 2
+	}
+	if item.ExcellentAttackHP || item.ExcellentDefenseRate {
+		data[3] |= 1 << 1
+	}
+	if item.ExcellentAttackMP || item.ExcellentDefenseMoney {
+		data[3] |= 1 << 0
+	}
 	data[3] |= byte(item.Addition & 0x10 << 2)
 	data[3] |= byte(item.Index & 0x100 >> 1)
 	data[4] = byte(item.Set)
 	data[5] = byte(item.Period << 1)
-	option380 := 0
 	if item.Option380 {
-		option380 = 1
+		data[5] |= byte(1 << 3)
 	}
-	data[5] |= byte(option380 << 3)
 	data[5] |= byte(item.Section << 4)
 	// harmony/socket/pentagram/muun system
 	if item.Type == TypeSocket ||
