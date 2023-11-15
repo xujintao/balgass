@@ -3,6 +3,8 @@ package object
 import (
 	"log"
 
+	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/math2"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
@@ -65,21 +67,21 @@ func (obj *object) checkViewport(x, y int) bool {
 	return true
 }
 
-func (obj *object) addViewport(tobj *object) bool {
-	if tobj.Class == 523 ||
-		tobj.Class == 603 {
-		return false
-	}
+func (obj *object) addViewport(index, type_ int) bool {
+	// if tobj.Class == 523 ||
+	// 	tobj.Class == 603 {
+	// 	return false
+	// }
 	for _, vp := range obj.viewports {
-		if vp.number == tobj.index {
+		if vp.number == index {
 			return false
 		}
 	}
 	for _, vp := range obj.viewports {
 		if vp.state == 0 {
 			vp.state = 1
-			vp.number = tobj.index
-			vp.type_ = int(tobj.Type)
+			vp.number = index
+			vp.type_ = type_
 			obj.viewportNum++
 			return true
 		}
@@ -99,8 +101,32 @@ func (obj *object) createViewport() {
 	if obj.ConnectState != ConnectStatePlaying {
 		return
 	}
+
+	if obj.Type == ObjectTypePlayer {
+		// create viewport item
+		var viewportItemReply model.MsgCreateViewportItemReply
+		maps.MapManager.MapEachItem(obj.MapNumber, func(item *item.Item, index, x, y int) {
+			if !obj.checkViewport(x, y) {
+				return
+			}
+			ok := obj.addViewport(index, 5)
+			if ok {
+				i := model.CreateViewportItem{
+					Index: index,
+					X:     x,
+					Y:     y,
+					Item:  item,
+				}
+				viewportItemReply.Items = append(viewportItemReply.Items, &i)
+			}
+		})
+		if len(viewportItemReply.Items) > 0 {
+			obj.push(&viewportItemReply)
+		}
+	}
+
+	// create viewport object
 	start := 0
-	// create viewport
 	switch obj.Type {
 	case ObjectTypePlayer:
 		start = 0 // 玩家能看到所有对象
@@ -122,7 +148,7 @@ func (obj *object) createViewport() {
 		if !obj.checkViewport(tobj.X, tobj.Y) {
 			continue
 		}
-		ok := obj.addViewport(tobj)
+		ok := obj.addViewport(tobj.index, int(tobj.Type))
 		if ok && obj.Type == ObjectTypePlayer {
 			switch tobj.Type {
 			case ObjectTypePlayer:
@@ -177,29 +203,50 @@ func (obj *object) destroyViewport() {
 	}
 	// remove viewport
 	var viewportObjectReply model.MsgDestroyViewportObjectReply
+	var viewportItemReply model.MsgDestroyViewportItemReply
 	for i, vp := range obj.viewports {
 		if vp.state == 0 {
 			continue
 		}
-		tobj := obj.objectManager.objects[vp.number]
 		remove := false
-		if tobj == nil {
-			remove = true
-		} else {
-			if tobj.ConnectState < ConnectStatePlaying ||
-				tobj.index == obj.index ||
-				(tobj.State != 1 && tobj.State != 2) ||
-				tobj.MapNumber != obj.MapNumber {
+		switch vp.type_ {
+		case 5:
+			maps.MapManager.MapItem(obj.MapNumber, vp.number, func(item *item.Item, index, x, y int) {
+				if item == nil {
+					remove = true
+					return
+				}
+				if !obj.checkViewport(x, y) {
+					remove = true
+				}
+			})
+		default:
+			tobj := obj.objectManager.objects[vp.number]
+			if tobj == nil {
 				remove = true
-			}
-			if !obj.checkViewport(tobj.X, tobj.Y) {
-				remove = true
+			} else {
+				if tobj.ConnectState < ConnectStatePlaying ||
+					tobj.index == obj.index ||
+					(tobj.State != 1 && tobj.State != 2) ||
+					tobj.MapNumber != obj.MapNumber {
+					remove = true
+				}
+				if !obj.checkViewport(tobj.X, tobj.Y) {
+					remove = true
+				}
 			}
 		}
+
 		if remove {
 			if obj.Type == ObjectTypePlayer {
-				dobj := model.DestroyViewportObject{Index: vp.number}
-				viewportObjectReply.Objects = append(viewportObjectReply.Objects, &dobj)
+				d := model.DestroyViewport{Index: vp.number}
+				switch vp.type_ {
+				case 5:
+					viewportItemReply.Items = append(viewportItemReply.Items, &d)
+				default:
+					viewportObjectReply.Objects = append(viewportObjectReply.Objects, &d)
+				}
+
 			}
 			obj.viewports[i].state = 0
 			obj.viewports[i].number = -1
@@ -208,6 +255,9 @@ func (obj *object) destroyViewport() {
 	}
 	if len(viewportObjectReply.Objects) > 0 {
 		obj.push(&viewportObjectReply)
+	}
+	if len(viewportItemReply.Items) > 0 {
+		obj.push(&viewportItemReply)
 	}
 }
 

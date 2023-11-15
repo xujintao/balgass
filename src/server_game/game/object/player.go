@@ -1047,6 +1047,43 @@ func (p *Player) GetInventory() [9]*item.Item {
 	return [9]*item.Item(p.Inventory[:9])
 }
 
+func (p *Player) GetItem(msg *model.MsgGetItem) {
+	reply := model.MsgGetItemReply{
+		Position: -1,
+	}
+	defer p.push(&reply)
+	item := maps.MapManager.PickItem(p.MapNumber, msg.Index)
+	if item == nil {
+		return
+	}
+	p.Inventory[12] = item
+	maps.MapManager.PopItem(p.MapNumber, msg.Index)
+	reply.Position = 12
+	reply.Item = item
+}
+
+func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {
+	reply := model.MsgDropInventoryItemReply{
+		Result:   0,
+		Position: msg.Position,
+	}
+	defer p.push(&reply)
+	// validate
+	if msg.Position >= len(p.Inventory) {
+		return
+	}
+	item := p.Inventory[msg.Position]
+	if item == nil {
+		return
+	}
+	ok := maps.MapManager.PushItem(p.MapNumber, msg.X, msg.Y, item)
+	if !ok {
+		return
+	}
+	p.Inventory[msg.Position] = nil
+	reply.Result = 1
+}
+
 func (p *Player) MoveInventoryItem(msg *model.MsgMoveInventoryItem) {
 	reply := model.MsgMoveInventoryItemReply{
 		Result: -1,

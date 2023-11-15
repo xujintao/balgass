@@ -142,7 +142,7 @@ type _map struct {
 	buf       []byte
 	pots      []*Pot
 	regenRect *Rect
-	mapItems  []mapItem
+	inventory []*mapItem
 	cnt       int
 	weather   int
 }
@@ -165,7 +165,7 @@ func (m *_map) init(number int, file string) {
 			m.pots = append(m.pots, &p)
 		}
 	}
-	m.mapItems = make([]mapItem, conf.Server.GameServerInfo.MaxObjectItemCount)
+	m.inventory = make([]*mapItem, conf.Server.GameServerInfo.MaxObjectItemCount)
 	m.cnt = 1
 }
 

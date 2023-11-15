@@ -134,13 +134,13 @@ func (msg *MsgCreateViewportMonsterReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-type DestroyViewportObject struct {
+type DestroyViewport struct {
 	Index int
 }
 
 // pack(1)
 type MsgDestroyViewportObjectReply struct {
-	Objects []*DestroyViewportObject
+	Objects []*DestroyViewport
 }
 
 func (msg *MsgDestroyViewportObjectReply) Marshal() ([]byte, error) {
@@ -148,6 +148,48 @@ func (msg *MsgDestroyViewportObjectReply) Marshal() ([]byte, error) {
 	bw.WriteByte(byte(len(msg.Objects)))
 	for _, obj := range msg.Objects {
 		binary.Write(&bw, binary.BigEndian, uint16(obj.Index))
+	}
+	return bw.Bytes(), nil
+}
+
+type CreateViewportItem struct {
+	Index int
+	X     int
+	Y     int
+	Item  *item.Item
+}
+
+// pack(1)
+type MsgCreateViewportItemReply struct {
+	Items []*CreateViewportItem
+}
+
+func (msg *MsgCreateViewportItemReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(len(msg.Items)))
+	for _, item := range msg.Items {
+		binary.Write(&bw, binary.BigEndian, uint16(item.Index))
+		bw.WriteByte(byte(item.X))
+		bw.WriteByte(byte(item.Y))
+		data, err := item.Item.Marshal()
+		if err != nil {
+			return nil, err
+		}
+		bw.Write(data)
+	}
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgDestroyViewportItemReply struct {
+	Items []*DestroyViewport
+}
+
+func (msg *MsgDestroyViewportItemReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(len(msg.Items)))
+	for _, item := range msg.Items {
+		binary.Write(&bw, binary.BigEndian, uint16(item.Index))
 	}
 	return bw.Bytes(), nil
 }
@@ -307,6 +349,88 @@ func (msg *MsgActionReply) Marshal() ([]byte, error) {
 }
 
 // pack(1)
+type MsgGetItem struct {
+	Index int
+}
+
+func (msg *MsgGetItem) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	var index uint16
+	err := binary.Read(br, binary.BigEndian, &index)
+	if err != nil {
+		return err
+	}
+	msg.Index = int(index)
+
+	return nil
+}
+
+// pack(1)
+type MsgGetItemReply struct {
+	Position int
+	Item     *item.Item
+}
+
+func (msg *MsgGetItemReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Position))
+	itemFrame, err := msg.Item.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	bw.Write(itemFrame)
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgDropInventoryItem struct {
+	X        int
+	Y        int
+	Position int
+}
+
+func (msg *MsgDropInventoryItem) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// x
+	x, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.X = int(x)
+
+	// y
+	y, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Y = int(y)
+
+	// position
+	position, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Position = int(position)
+
+	return nil
+}
+
+// pack(1)
+type MsgDropInventoryItemReply struct {
+	Result   int // 0=failed 1=success
+	Position int
+}
+
+func (msg *MsgDropInventoryItemReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Result))
+	bw.WriteByte(byte(msg.Position))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
 type MsgMoveInventoryItem struct {
 	ItemFrame   [12]byte
 	Item        *item.Item
@@ -360,9 +484,7 @@ func (msg *MsgMoveInventoryItem) Unmarshal(buf []byte) error {
 
 // pack(1)
 type MsgMoveInventoryItemReply struct {
-	// -1=failed
-	// 0=success
-	Result    int
+	Result    int // -1=failed 0=success
 	Position  int
 	ItemFrame [12]byte
 	Item      *item.Item

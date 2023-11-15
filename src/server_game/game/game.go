@@ -154,6 +154,7 @@ func (g *game) Start() {
 					// start := time.Now()
 					maps.MapManager.ProcessWeather(g)
 					object.ObjectManager.Process1000ms()
+					maps.MapManager.ExpireItem(time.Now())
 					g.serverRegisterChan <- &model.MsgServerRegister{
 						Percent: object.ObjectManager.GetPlayerPercent(),
 					}

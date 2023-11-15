@@ -156,6 +156,9 @@ func (i *Item) GetSetTierIndex() int {
 // socket index and socket slots
 func (item *Item) Marshal() ([]byte, error) {
 	var data [12]byte
+	if item == nil {
+		return data[:], nil
+	}
 	data[0] = byte(item.Index)
 	data[1] = byte(item.Addition & 0x0C >> 2)
 	if item.Lucky {
