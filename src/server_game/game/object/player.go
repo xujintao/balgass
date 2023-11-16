@@ -146,6 +146,7 @@ type Player struct {
 	// criticalDamage       int
 	excellentDamage    int // 卓越一击概率
 	Inventory          model.Inventory
+	InventoryFlags     [237]bool
 	InventoryExpansion int
 	// dbClass              uint8
 	ChangeUp int // 1=1转 2=2转 3=3转
@@ -496,6 +497,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Energy = c.Energy
 	p.Leadership = c.Leadership
 	p.Inventory = c.Inventory
+	p.setInventoryFlags()
 	p.InventoryExpansion = c.InventoryExpansion
 	p.Money = c.Money
 	p.Experience = c.Experience
@@ -1047,6 +1049,90 @@ func (p *Player) GetInventory() [9]*item.Item {
 	return [9]*item.Item(p.Inventory[:9])
 }
 
+func (p *Player) checkInventoryFlags(position int, item *item.Item) bool {
+	if position < 12 && p.InventoryFlags[position] {
+		return false
+	}
+	x := (position - 12) % 8
+	y := (position - 12) / 8
+	width := item.Width
+	height := item.Height
+	if x+width > 8 ||
+		y <= 7 && y+height > 8 ||
+		y > 8 && y <= 11 && y+height > 8+4 ||
+		y > 12 && y+height > 12+4 {
+		return false
+	}
+	for i := x; i < x+width; i++ {
+		for j := y; j < y+height; j++ {
+			if p.InventoryFlags[12+i+8*j] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (p *Player) clearInventoryFlagsForItem(position int, item *item.Item) {
+	if position < 12 {
+		p.InventoryFlags[position] = false
+		return
+	}
+	x := (position - 12) % 8
+	y := (position - 12) / 8
+	width := item.Width
+	height := item.Height
+	for i := x; i < x+width; i++ {
+		for j := y; j < y+height; j++ {
+			p.InventoryFlags[12+i+8*j] = false
+		}
+	}
+}
+
+func (p *Player) setInventoryFlagsForItem(position int, item *item.Item) {
+	if position < 12 {
+		p.InventoryFlags[position] = true
+		return
+	}
+	x := (position - 12) % 8
+	y := (position - 12) / 8
+	width := item.Width
+	height := item.Height
+	for i := x; i < x+width; i++ {
+		for j := y; j < y+height; j++ {
+			p.InventoryFlags[12+i+8*j] = true
+		}
+	}
+}
+
+func (p *Player) setInventoryFlags() {
+	for i := range p.InventoryFlags {
+		p.InventoryFlags[i] = false
+	}
+	for i, item := range p.Inventory {
+		if item == nil {
+			continue
+		}
+		p.setInventoryFlagsForItem(i, item)
+	}
+}
+
+func (p *Player) findInventoryFreePostion(item *item.Item) int {
+	for i, v := range p.InventoryFlags {
+		if i < 12 {
+			continue
+		}
+		if v {
+			continue
+		}
+		ok := p.checkInventoryFlags(i, item)
+		if ok {
+			return i
+		}
+	}
+	return -1
+}
+
 func (p *Player) GetItem(msg *model.MsgGetItem) {
 	reply := model.MsgGetItemReply{
 		Position: -1,
@@ -1056,9 +1142,14 @@ func (p *Player) GetItem(msg *model.MsgGetItem) {
 	if item == nil {
 		return
 	}
-	p.Inventory[12] = item
+	position := p.findInventoryFreePostion(item)
+	if position == -1 {
+		return
+	}
+	p.Inventory[position] = item
+	p.setInventoryFlagsForItem(position, item)
 	maps.MapManager.PopItem(p.MapNumber, msg.Index)
-	reply.Position = 12
+	reply.Position = position
 	reply.Item = item
 }
 
@@ -1081,6 +1172,7 @@ func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {
 		return
 	}
 	p.Inventory[msg.Position] = nil
+	p.clearInventoryFlagsForItem(msg.Position, item)
 	reply.Result = 1
 }
 
@@ -1097,8 +1189,15 @@ func (p *Player) MoveInventoryItem(msg *model.MsgMoveInventoryItem) {
 		p.Inventory[msg.DstPosition] != nil {
 		return
 	}
-	p.Inventory[msg.DstPosition] = p.Inventory[msg.SrcPosition]
+	item := p.Inventory[msg.SrcPosition]
+	// ok := p.checkInventoryFlags(msg.DstPosition, item)
+	// if !ok {
+	// 	return
+	// }
 	p.Inventory[msg.SrcPosition] = nil
+	p.clearInventoryFlagsForItem(msg.SrcPosition, item)
+	p.Inventory[msg.DstPosition] = item
+	p.setInventoryFlagsForItem(msg.DstPosition, item)
 	reply.Result = 0
 	reply.Position = msg.DstPosition
 	reply.ItemFrame = msg.ItemFrame
