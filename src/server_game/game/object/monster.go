@@ -190,17 +190,6 @@ func NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 	return &monster
 }
 
-type NpcType int
-
-const (
-	NpcTypeNone = iota
-	NpcTypeShop
-	NpcTypeWarehouse
-	NpcTypeChaosMix
-	NpcTypeGoldarcher
-	NpcTypePentagramMix
-)
-
 type actionState struct {
 	rest         bool
 	attack       bool
@@ -212,7 +201,6 @@ type actionState struct {
 
 type Monster struct {
 	object
-	NpcType         int
 	moveRange       int // 移动范围
 	spawnStartX     int
 	spawnStartY     int

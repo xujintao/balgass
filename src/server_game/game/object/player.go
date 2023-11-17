@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"math"
 	"math/rand"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/game/shop"
 	"gorm.io/gorm"
 )
 
@@ -566,7 +568,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// reply inventory
 	// client will calculate character after receiving inventory msg
 	p.push(&model.MsgInventoryReply{
-		Inventory: p.Inventory,
+		Inventory: p.Inventory[:],
 	})
 
 	// go func() {
@@ -1201,4 +1203,36 @@ func (p *Player) MoveInventoryItem(msg *model.MsgMoveInventoryItem) {
 	reply.Result = 0
 	reply.Position = msg.DstPosition
 	reply.ItemFrame = msg.ItemFrame
+}
+
+func (p *Player) Talk(msg *model.MsgTalk) {
+	reply := model.MsgTalkReply{
+		Result: 0,
+	}
+	// validate
+	if msg.Target >= len(p.objectManager.objects) {
+		return
+	}
+	tobj := p.objectManager.objects[msg.Target]
+	if tobj == nil {
+		return
+	}
+	if math.Abs(float64(p.X-tobj.X)) > 5 ||
+		math.Abs(float64(p.Y-tobj.Y)) > 5 {
+		return
+	}
+	p.push(&reply)
+	switch tobj.NpcType {
+	case NpcTypeShop:
+		inventory := shop.ShopManager.GetShopInventory(tobj.Class, tobj.MapNumber)
+		reply := model.MsgShopInventoryReply{
+			Type: 0,
+		}
+		reply.Inventory = inventory
+		p.push(&reply)
+	case NpcTypeWarehouse:
+	case NpcTypeChaosMix:
+	case NpcTypeGoldarcher:
+	case NpcTypePentagramMix:
+	}
 }

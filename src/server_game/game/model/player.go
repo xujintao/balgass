@@ -527,6 +527,51 @@ func (msg *MsgMPReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+// pack(1)
+type MsgTalk struct {
+	Target int
+}
+
+func (msg *MsgTalk) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	// target
+	var target uint16
+	err := binary.Read(br, binary.BigEndian, &target)
+	if err != nil {
+		return err
+	}
+	msg.Target = int(target)
+	return nil
+}
+
+// pack(1)
+type MsgTalkReply struct {
+	Result int
+}
+
+func (msg *MsgTalkReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Result))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgShopInventoryReply struct {
+	Type int
+	MsgInventoryReply
+}
+
+func (msg *MsgShopInventoryReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Type))
+	data, err := msg.MsgInventoryReply.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	bw.Write(data)
+	return bw.Bytes(), nil
+}
+
 type MsgMuunSystem struct {
 }
 
@@ -1291,7 +1336,7 @@ func (msg *MsgReloadCharacterReply) Marshal() ([]byte, error) {
 
 // pack(1)
 type MsgInventoryReply struct {
-	Inventory Inventory
+	Inventory []*item.Item
 }
 
 func (msg *MsgInventoryReply) Marshal() ([]byte, error) {

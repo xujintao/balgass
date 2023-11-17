@@ -173,7 +173,7 @@ func (m *objectManager) spawnMonster() {
 
 func (m *objectManager) spawnShopNPC() {
 	shop.ShopManager.ForEachShop(func(class, mapNumber, x, y, dir int) {
-		_, err := m.AddMonster(
+		monster, err := m.AddMonster(
 			class,
 			mapNumber,
 			x,
@@ -187,12 +187,13 @@ func (m *objectManager) spawnShopNPC() {
 		if err != nil {
 			log.Fatalf("spawnShopNPC AddMonster failed err[%v]", err)
 		}
+		monster.NpcType = NpcTypeShop
 	})
 }
 
-func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (int, error) {
+func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (*Monster, error) {
 	if m.monsterCount > m.maxMonsterCount {
-		return -1, fmt.Errorf("over max monster count")
+		return nil, fmt.Errorf("over max monster count")
 	}
 	index := m.lastMonsterIndex
 	cnt := m.maxMonsterCount
@@ -216,7 +217,7 @@ func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY,
 	monster.objectManager = m
 	monster.index = index
 	m.objects[index] = &monster.object
-	return index, nil
+	return monster, nil
 }
 
 func (m *objectManager) AddCallMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (int, error) {
@@ -503,6 +504,17 @@ const (
 	ObjectTypeNPC
 )
 
+type NpcType int
+
+const (
+	NpcTypeNone NpcType = iota
+	NpcTypeShop
+	NpcTypeWarehouse
+	NpcTypeChaosMix
+	NpcTypeGoldarcher
+	NpcTypePentagramMix
+)
+
 type ConnectState int
 
 const (
@@ -559,6 +571,7 @@ type objecter interface {
 	GetItem(*model.MsgGetItem)
 	DropInventoryItem(*model.MsgDropInventoryItem)
 	MoveInventoryItem(*model.MsgMoveInventoryItem)
+	Talk(*model.MsgTalk)
 }
 
 type object struct {
@@ -585,9 +598,10 @@ type object struct {
 	delayLevel         int
 	MapNumber          int        // 地图号
 	Type               ObjectType // 对象种类：玩家，怪物，NPC
-	Class              int        // 对象类别。怪物和玩家都有类别
-	Name               string     // 对象名称
-	Annotation         string     // 对象备注
+	NpcType            NpcType
+	Class              int    // 对象类别。怪物和玩家都有类别
+	Name               string // 对象名称
+	Annotation         string // 对象备注
 	Level              int
 	HP                 int // HP
 	MaxHP              int // MaxHP

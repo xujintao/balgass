@@ -2,11 +2,14 @@ package shop
 
 import (
 	"encoding/xml"
+	"log"
 	"path"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
 )
+
+const MaxShopItemCount = 120 // 8*15
 
 func init() {
 	ShopManager.init()
@@ -71,7 +74,8 @@ func (m *shopManager) init() {
 			file = path.Join("Shops", file)
 			var ShopInventory ShopInventory
 			conf.XML(conf.PathCommon, file, &ShopInventory)
-			var inventory []*item.Item
+			inventory := make([]*item.Item, MaxShopItemCount)
+			var inventoryFlags [MaxShopItemCount]bool
 			for _, sitem := range ShopInventory.Item {
 				item := item.NewItem(sitem.Cat, sitem.Index)
 				item.Level = sitem.Level
@@ -79,7 +83,14 @@ func (m *shopManager) init() {
 				item.Skill = sitem.Skill
 				item.Lucky = sitem.Luck
 				item.Addition = sitem.Option << 2
-				inventory = append(inventory, item)
+				i := findShopInventoryFreePosition(inventoryFlags[:], item)
+				if i == -1 {
+					log.Printf("[err]cannot find free position for item [name]%s [annotation]%s\n",
+						item.Name, item.Annotation)
+					continue
+				}
+				setShopInventoryFlagsForItem(i, inventoryFlags[:], item)
+				inventory[i] = item
 			}
 			shopInventory[file] = inventory
 			v = inventory
@@ -93,10 +104,52 @@ func (m *shopManager) init() {
 	}
 }
 
+func findShopInventoryFreePosition(flags []bool, item *item.Item) int {
+	maxHeight := len(flags) / 8
+	for i, v := range flags {
+		if v {
+			continue
+		}
+		x := i % 8
+		y := i / 8
+		width := item.Width
+		height := item.Height
+		if x+width > 8 ||
+			y+height > maxHeight {
+			return -1
+		}
+		for i := x; i < x+width; i++ {
+			for j := y; j < y+height; j++ {
+				if flags[i+8*j] {
+					return -1
+				}
+			}
+		}
+		return i
+	}
+	return -1
+}
+
+func setShopInventoryFlagsForItem(position int, flags []bool, item *item.Item) {
+	x := position % 8
+	y := position / 8
+	width := item.Width
+	height := item.Height
+	for i := x; i < x+width; i++ {
+		for j := y; j < y+height; j++ {
+			flags[i+8*j] = true
+		}
+	}
+}
+
 func (m *shopManager) ForEachShop(f func(int, int, int, int, int)) {
 	for _, v1 := range m.shopTable {
 		for _, v2 := range v1 {
 			f(v2.NPCIndex, v2.MapNumber, v2.PosX, v2.PosY, v2.Dir)
 		}
 	}
+}
+
+func (m *shopManager) GetShopInventory(npcIndex, mapNumber int) []*item.Item {
+	return m.shopTable[npcIndex][mapNumber].Inventory
 }
