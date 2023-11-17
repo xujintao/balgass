@@ -40,7 +40,6 @@ func init() {
 		c.Inventory = inventory
 		CharacterTable[c.Class] = *c
 	}
-	log.Println(len(CharacterTable))
 }
 
 var CharacterTable characterTable
