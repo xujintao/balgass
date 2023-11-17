@@ -11,6 +11,7 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/game/shop"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
@@ -82,6 +83,7 @@ func (m *objectManager) init() {
 
 	// 先有怪后有玩家
 	m.spawnMonster()
+	m.spawnShopNPC()
 }
 
 func (m *objectManager) spawnMonster() {
@@ -161,12 +163,31 @@ func (m *objectManager) spawnMonster() {
 						spawnElement,
 					)
 					if err != nil {
-						log.Fatalf("AddMonster failed err[%v]", err)
+						log.Fatalf("spawnMonster AddMonster failed err[%v]", err)
 					}
 				}
 			}
 		}
 	}
+}
+
+func (m *objectManager) spawnShopNPC() {
+	shop.ShopManager.ForEachShop(func(class, mapNumber, x, y, dir int) {
+		_, err := m.AddMonster(
+			class,
+			mapNumber,
+			x,
+			y,
+			x,
+			y,
+			dir,
+			0,
+			0,
+		)
+		if err != nil {
+			log.Fatalf("spawnShopNPC AddMonster failed err[%v]", err)
+		}
+	})
 }
 
 func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (int, error) {
