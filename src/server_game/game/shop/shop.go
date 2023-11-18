@@ -80,6 +80,9 @@ func (m *shopManager) init() {
 				item := item.NewItem(sitem.Cat, sitem.Index)
 				item.Level = sitem.Level
 				item.Durability = sitem.Durability
+				if item.Durability == 0 {
+					item.Durability = item.CalcMaxDurability()
+				}
 				item.Skill = sitem.Skill
 				item.Lucky = sitem.Luck
 				item.Addition = sitem.Option << 2

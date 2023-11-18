@@ -52,6 +52,62 @@ func NewItem(section, index int) *Item {
 	}
 }
 
+func (i *Item) IsExcellent() bool {
+	return i.ExcellentAttackRate ||
+		i.ExcellentAttackLevel ||
+		i.ExcellentAttackPercent ||
+		i.ExcellentAttackSpeed ||
+		i.ExcellentAttackHP ||
+		i.ExcellentAttackMP ||
+		i.ExcellentDefenseHP ||
+		i.ExcellentDefenseMP ||
+		i.ExcellentDefenseDecrease ||
+		i.ExcellentDefenseReflect ||
+		i.ExcellentDefenseRate ||
+		i.ExcellentDefenseMoney
+}
+
+func (i *Item) IsSet() bool {
+	return i.Set > 0
+}
+
+func (i *Item) CalcMaxDurability() int {
+	dur := i.ItemBase.Durability
+	if i.KindA == KindAPentagram {
+		return dur
+	}
+	switch i.Level {
+	case 0, 1, 2, 3, 4:
+		dur += i.Level
+	case 5, 6, 7, 8, 9:
+		dur += i.Level*2 - 4
+	case 10:
+		dur += i.Level*2 - 3
+	case 11:
+		dur += i.Level*2 - 1
+	case 12:
+		dur += i.Level*2 + 2
+	case 13:
+		dur += i.Level*2 + 6
+	case 14:
+		dur += i.Level*2 + 11
+	case 15:
+		dur += i.Level*2 + 17
+	}
+	if i.KindA != KindAWing && i.Type != TypeArchangel {
+		switch {
+		case i.IsExcellent():
+			dur += 15
+		case i.IsSet():
+			dur += 20
+		}
+	}
+	if dur > 255 {
+		dur = 255
+	}
+	return dur
+}
+
 func (i *Item) GetSkillIndex() int {
 	if i.Skill {
 		if i.Code == Code(12, 11) { // 召唤之石
