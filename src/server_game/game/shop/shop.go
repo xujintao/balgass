@@ -68,10 +68,9 @@ func (m *shopManager) init() {
 	shopInventory := make(map[string][]*item.Item)
 	m.shopTable = make(map[int]map[int]*Shop)
 	for _, shop := range shopList.Shop {
-		file := shop.FileName
-		v, ok := shopInventory[file]
+		v, ok := shopInventory[shop.FileName]
 		if !ok {
-			file = path.Join("Shops", file)
+			file := path.Join("Shops", shop.FileName)
 			var ShopInventory ShopInventory
 			conf.XML(conf.PathCommon, file, &ShopInventory)
 			inventory := make([]*item.Item, MaxShopItemCount)
@@ -88,14 +87,14 @@ func (m *shopManager) init() {
 				item.Addition = sitem.Option << 2
 				i := findShopInventoryFreePosition(inventoryFlags[:], item)
 				if i == -1 {
-					log.Printf("[err]cannot find free position for item [name]%s [annotation]%s\n",
-						item.Name, item.Annotation)
+					log.Printf("[err]cannot find free position for [shop]%s item [name]%s [annotation]%s\n",
+						shop.FileName, item.Name, item.Annotation)
 					continue
 				}
 				setShopInventoryFlagsForItem(i, inventoryFlags[:], item)
 				inventory[i] = item
 			}
-			shopInventory[file] = inventory
+			shopInventory[shop.FileName] = inventory
 			v = inventory
 		}
 		shop.Inventory = v
@@ -109,6 +108,7 @@ func (m *shopManager) init() {
 
 func findShopInventoryFreePosition(flags []bool, item *item.Item) int {
 	maxHeight := len(flags) / 8
+outer:
 	for i, v := range flags {
 		if v {
 			continue
@@ -119,12 +119,12 @@ func findShopInventoryFreePosition(flags []bool, item *item.Item) int {
 		height := item.Height
 		if x+width > 8 ||
 			y+height > maxHeight {
-			return -1
+			continue
 		}
 		for i := x; i < x+width; i++ {
 			for j := y; j < y+height; j++ {
 				if flags[i+8*j] {
-					return -1
+					continue outer
 				}
 			}
 		}
