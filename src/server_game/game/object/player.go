@@ -566,8 +566,8 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 
 	// reply inventory
 	// client will calculate character after receiving inventory msg
-	p.push(&model.MsgInventoryReply{
-		Inventory: p.Inventory[:],
+	p.push(&model.MsgItemListReply{
+		Items: p.Inventory[:],
 	})
 
 	// go func() {
@@ -1220,16 +1220,27 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		math.Abs(float64(p.Y-tobj.Y)) > 5 {
 		return
 	}
-	p.push(&reply)
 	switch tobj.NpcType {
 	case NpcTypeShop:
 		inventory := shop.ShopManager.GetShopInventory(tobj.Class, tobj.MapNumber)
-		reply := model.MsgShopInventoryReply{
-			Type: 0,
+		if tobj.Class == 492 {
+			reply.Result = 34
 		}
-		reply.Inventory = inventory
 		p.push(&reply)
+		shopItemListReply := model.MsgTypeItemListReply{Type: 0}
+		shopItemListReply.Items = inventory
+		p.push(&shopItemListReply)
 	case NpcTypeWarehouse:
+		account, err := model.DB.GetAccountByID(p.AccountID)
+		if err != nil {
+			log.Printf("Talk model.DB.GetAccountByID failed [err]%v\n", err)
+			return
+		}
+		reply.Result = 2
+		p.push(&reply)
+		warehouseItemListReply := model.MsgTypeItemListReply{Type: 0}
+		warehouseItemListReply.Items = account.Warehouse.Items
+		p.push(&warehouseItemListReply)
 	case NpcTypeChaosMix:
 	case NpcTypeGoldarcher:
 	case NpcTypePentagramMix:

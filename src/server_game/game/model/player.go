@@ -546,25 +546,29 @@ func (msg *MsgTalk) Unmarshal(buf []byte) error {
 
 // pack(1)
 type MsgTalkReply struct {
-	Result int
+	Result      int
+	SuccessRate [7]int
 }
 
 func (msg *MsgTalkReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	bw.WriteByte(byte(msg.Result))
+	for i := range msg.SuccessRate {
+		bw.WriteByte(byte(msg.SuccessRate[i]))
+	}
 	return bw.Bytes(), nil
 }
 
 // pack(1)
-type MsgShopInventoryReply struct {
+type MsgTypeItemListReply struct {
 	Type int
-	MsgInventoryReply
+	MsgItemListReply
 }
 
-func (msg *MsgShopInventoryReply) Marshal() ([]byte, error) {
+func (msg *MsgTypeItemListReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	bw.WriteByte(byte(msg.Type))
-	data, err := msg.MsgInventoryReply.Marshal()
+	data, err := msg.MsgItemListReply.Marshal()
 	if err != nil {
 		return nil, err
 	}
@@ -1335,14 +1339,14 @@ func (msg *MsgReloadCharacterReply) Marshal() ([]byte, error) {
 }
 
 // pack(1)
-type MsgInventoryReply struct {
-	Inventory []*item.Item
+type MsgItemListReply struct {
+	Items []*item.Item
 }
 
-func (msg *MsgInventoryReply) Marshal() ([]byte, error) {
+func (msg *MsgItemListReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	count := 0
-	for i, item := range msg.Inventory {
+	for i, item := range msg.Items {
 		if item == nil {
 			continue
 		}
