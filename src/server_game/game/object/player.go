@@ -2,7 +2,6 @@ package object
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"math"
 	"math/rand"
@@ -20,24 +19,6 @@ func init() {
 	conf.JSON(conf.PathCommon, "players/character.json", &characterList)
 	CharacterTable = make(characterTable)
 	for _, c := range characterList {
-		var inventory1 []*item.Item
-		for _, v := range c.Inventory {
-			if v == nil {
-				continue
-			}
-			inventory1 = append(inventory1, v)
-		}
-		data, err := json.Marshal(inventory1)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		var inventory model.Inventory
-		// err = inventory.Unmarshal(data)
-		err = inventory.Scan(data)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		c.Inventory = inventory
 		CharacterTable[c.Class] = *c
 	}
 }
@@ -147,7 +128,6 @@ type Player struct {
 	// criticalDamage       int
 	excellentDamage    int // 卓越一击概率
 	Inventory          model.Inventory
-	InventoryFlags     [237]bool
 	InventoryExpansion int
 	// dbClass              uint8
 	ChangeUp int // 1=1转 2=2转 3=3转
@@ -376,7 +356,7 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 			Name:        c.Name,
 			Level:       c.Level,
 			Class:       c.Class,
-			Inventory:   [9]*item.Item(c.Inventory[:9]),
+			Inventory:   [9]*item.Item(c.Inventory.Items[:9]),
 			GuildStatus: 0xFF,
 			PKLevel:     0,
 		}
@@ -498,7 +478,6 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Energy = c.Energy
 	p.Leadership = c.Leadership
 	p.Inventory = c.Inventory
-	p.setInventoryFlags()
 	p.InventoryExpansion = c.InventoryExpansion
 	p.Money = c.Money
 	p.Experience = c.Experience
@@ -567,7 +546,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// reply inventory
 	// client will calculate character after receiving inventory msg
 	p.push(&model.MsgItemListReply{
-		Items: p.Inventory[:],
+		Items: p.Inventory.Items,
 	})
 
 	// go func() {
@@ -791,7 +770,7 @@ func (player *Player) CalcSetItem() {
 
 	sameWeapon := 0
 	sameRing := 0
-	for i, wItem := range player.Inventory[0:InventoryWearSize] {
+	for i, wItem := range player.Inventory.Items[0:InventoryWearSize] {
 		if wItem.Durability == 0 {
 			continue
 		}
@@ -849,7 +828,7 @@ func (player *Player) CalcSetItem() {
 }
 
 func (player *Player) Calc380Item() {
-	for _, wItem := range player.Inventory[0:InventoryWearSize] {
+	for _, wItem := range player.Inventory.Items[0:InventoryWearSize] {
 		if wItem.Durability == 0 {
 			continue
 		}
@@ -877,8 +856,8 @@ func (player *Player) Whisper(msg *model.MsgWhisper) {
 func (player *Player) UseItem(msg *model.MsgUseItem) {
 	// validate the position
 
-	it := player.Inventory[msg.InventoryPos]
-	it2 := player.Inventory[msg.InventoryPosTarget]
+	it := player.Inventory.Items[msg.InventoryPos]
+	it2 := player.Inventory.Items[msg.InventoryPosTarget]
 	// validate item serial/id
 	if player.LimitUseItem(it) {
 		return
@@ -1047,91 +1026,7 @@ func (p *Player) GetChangeUp() int {
 }
 
 func (p *Player) GetInventory() [9]*item.Item {
-	return [9]*item.Item(p.Inventory[:9])
-}
-
-func (p *Player) checkInventoryFlags(position int, item *item.Item) bool {
-	if position < 12 && p.InventoryFlags[position] {
-		return false
-	}
-	x := (position - 12) % 8
-	y := (position - 12) / 8
-	width := item.Width
-	height := item.Height
-	if x+width > 8 ||
-		y <= 7 && y+height > 8 ||
-		y > 8 && y <= 11 && y+height > 8+4 ||
-		y > 12 && y+height > 12+4 {
-		return false
-	}
-	for i := x; i < x+width; i++ {
-		for j := y; j < y+height; j++ {
-			if p.InventoryFlags[12+i+8*j] {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func (p *Player) clearInventoryFlagsForItem(position int, item *item.Item) {
-	if position < 12 {
-		p.InventoryFlags[position] = false
-		return
-	}
-	x := (position - 12) % 8
-	y := (position - 12) / 8
-	width := item.Width
-	height := item.Height
-	for i := x; i < x+width; i++ {
-		for j := y; j < y+height; j++ {
-			p.InventoryFlags[12+i+8*j] = false
-		}
-	}
-}
-
-func (p *Player) setInventoryFlagsForItem(position int, item *item.Item) {
-	if position < 12 {
-		p.InventoryFlags[position] = true
-		return
-	}
-	x := (position - 12) % 8
-	y := (position - 12) / 8
-	width := item.Width
-	height := item.Height
-	for i := x; i < x+width; i++ {
-		for j := y; j < y+height; j++ {
-			p.InventoryFlags[12+i+8*j] = true
-		}
-	}
-}
-
-func (p *Player) setInventoryFlags() {
-	for i := range p.InventoryFlags {
-		p.InventoryFlags[i] = false
-	}
-	for i, item := range p.Inventory {
-		if item == nil {
-			continue
-		}
-		p.setInventoryFlagsForItem(i, item)
-	}
-}
-
-func (p *Player) findInventoryFreePostion(item *item.Item) int {
-	for i, v := range p.InventoryFlags {
-		if i < 12 {
-			continue
-		}
-		if v {
-			continue
-		}
-		ok := p.checkInventoryFlags(i, item)
-		if ok {
-			return i
-		}
-	}
-	return -1
+	return [9]*item.Item(p.Inventory.Items[:9])
 }
 
 func (p *Player) GetItem(msg *model.MsgGetItem) {
@@ -1143,12 +1038,11 @@ func (p *Player) GetItem(msg *model.MsgGetItem) {
 	if item == nil {
 		return
 	}
-	position := p.findInventoryFreePostion(item)
+	position := p.Inventory.FindFreePositionForItem(item)
 	if position == -1 {
 		return
 	}
-	p.Inventory[position] = item
-	p.setInventoryFlagsForItem(position, item)
+	p.Inventory.GetItem(position, item)
 	maps.MapManager.PopItem(p.MapNumber, msg.Index)
 	reply.Position = position
 	reply.Item = item
@@ -1161,10 +1055,10 @@ func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {
 	}
 	defer p.push(&reply)
 	// validate
-	if msg.Position >= len(p.Inventory) {
+	if msg.Position >= len(p.Inventory.Items) {
 		return
 	}
-	item := p.Inventory[msg.Position]
+	item := p.Inventory.Items[msg.Position]
 	if item == nil {
 		return
 	}
@@ -1172,8 +1066,7 @@ func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {
 	if !ok {
 		return
 	}
-	p.Inventory[msg.Position] = nil
-	p.clearInventoryFlagsForItem(msg.Position, item)
+	p.Inventory.DropItem(msg.Position, item)
 	reply.Result = 1
 }
 
@@ -1182,23 +1075,21 @@ func (p *Player) MoveInventoryItem(msg *model.MsgMoveInventoryItem) {
 		Result: -1,
 	}
 	defer p.push(&reply)
-	if msg.SrcPosition >= len(p.Inventory) ||
-		msg.DstPosition >= len(p.Inventory) {
+	if msg.SrcPosition >= p.Inventory.Size ||
+		msg.DstPosition >= p.Inventory.Size {
 		return
 	}
-	if p.Inventory[msg.SrcPosition] == nil ||
-		p.Inventory[msg.DstPosition] != nil {
+	if p.Inventory.Items[msg.SrcPosition] == nil ||
+		p.Inventory.Items[msg.DstPosition] != nil {
 		return
 	}
-	item := p.Inventory[msg.SrcPosition]
+	item := p.Inventory.Items[msg.SrcPosition]
 	// ok := p.checkInventoryFlags(msg.DstPosition, item)
 	// if !ok {
 	// 	return
 	// }
-	p.Inventory[msg.SrcPosition] = nil
-	p.clearInventoryFlagsForItem(msg.SrcPosition, item)
-	p.Inventory[msg.DstPosition] = item
-	p.setInventoryFlagsForItem(msg.DstPosition, item)
+	p.Inventory.DropItem(msg.SrcPosition, item)
+	p.Inventory.GetItem(msg.DstPosition, item)
 	reply.Result = 0
 	reply.Position = msg.DstPosition
 	reply.ItemFrame = msg.ItemFrame

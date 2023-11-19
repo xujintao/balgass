@@ -44,8 +44,11 @@ func (db *db) init() {
 }
 
 type PositionedItems struct {
-	size  int
-	Items []*item.Item
+	Size              int
+	Items             []*item.Item
+	Flags             []bool
+	CheckFlagsForItem func(int, *item.Item) bool
+	SetFlagsForItem   func(int, *item.Item)
 }
 
 func (pi *PositionedItems) MarshalJSON() ([]byte, error) {
@@ -70,7 +73,8 @@ func (pi *PositionedItems) UnmarshalJSON(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	pi.Items = make([]*item.Item, pi.size)
+	pi.Items = make([]*item.Item, pi.Size)
+	pi.Flags = make([]bool, pi.Size)
 	for _, v := range items {
 		v.Code = item.Code(v.Section, v.Index)
 		itemBase, err := item.ItemTable.GetItemBase(v.Section, v.Index)
@@ -78,17 +82,16 @@ func (pi *PositionedItems) UnmarshalJSON(buf []byte) error {
 			return err
 		}
 		v.ItemBase = itemBase
+		ok := pi.CheckFlagsForItem(v.Position, v)
+		if !ok {
+			log.Printf("PositionedItems UnmarshalJSON CheckPosition [err]invalid [position]%d for item [name]%s [annotation]%s\n",
+				v.Position, v.Name, v.Annotation)
+			continue
+		}
+		pi.SetFlagsForItem(v.Position, v)
 		pi.Items[v.Position] = v
 	}
 	return nil
-}
-
-func (pi *PositionedItems) Scan(value any) error {
-	buf, ok := value.([]byte)
-	if !ok {
-		return errors.New(fmt.Sprint("Failed to Scan Inventory value:", value))
-	}
-	return pi.UnmarshalJSON(buf)
 }
 
 func (pi PositionedItems) Value() (driver.Value, error) {
@@ -99,9 +102,82 @@ type Warehouse struct {
 	PositionedItems
 }
 
+func (w *Warehouse) CheckFlagsForItem(position int, item *item.Item) bool {
+	maxHeight1 := 15
+	maxHeight2 := 30
+	x := position % 8
+	y := position / 8
+	width := item.Width
+	height := item.Height
+	if x+width > 8 ||
+		y <= maxHeight1 && y+height > maxHeight1 ||
+		y > maxHeight1 && y <= maxHeight2 && y+height > maxHeight2 {
+		return false
+	}
+	for i := x; i < x+width; i++ {
+		for j := y; j < y+height; j++ {
+			if w.Flags[i+8*j] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (w *Warehouse) SetFlagsForItem(position int, item *item.Item) {
+	x := position % 8
+	y := position / 8
+	width := item.Width
+	height := item.Height
+	for i := x; i < x+width; i++ {
+		for j := y; j < y+height; j++ {
+			w.Flags[i+8*j] = true
+		}
+	}
+}
+
+func (w *Warehouse) FindFreePositionForItem(item *item.Item) int {
+	maxHeight1 := 15
+	maxHeight2 := 30
+outer:
+	for i, v := range w.Flags {
+		if v {
+			continue
+		}
+		x := i % 8
+		y := i / 8
+		width := item.Width
+		height := item.Height
+		if x+width > 8 ||
+			y <= maxHeight1 && y+height > maxHeight1 ||
+			y > maxHeight1 && y <= maxHeight2 && y+height > maxHeight2 {
+			continue
+		}
+		for i := x; i < x+width; i++ {
+			for j := y; j < y+height; j++ {
+				if w.Flags[i+8*j] {
+					continue outer
+				}
+			}
+		}
+		return i
+	}
+	return -1
+}
+
+func (w *Warehouse) UnmarshalJSON(buf []byte) error {
+	w.Size = 240
+	w.PositionedItems.CheckFlagsForItem = w.CheckFlagsForItem
+	w.PositionedItems.SetFlagsForItem = w.SetFlagsForItem
+	return w.PositionedItems.UnmarshalJSON(buf)
+}
+
 func (w *Warehouse) Scan(value any) error {
-	w.size = 240
-	return w.PositionedItems.Scan(value)
+	buf, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to Scan Inventory value:", value))
+	}
+	return w.UnmarshalJSON(buf)
 }
 
 type Account struct {
@@ -166,44 +242,104 @@ func (db *db) DeleteAccount(id int) error {
 	return db.Delete(&Account{ID: id}).Error
 }
 
-type Inventory [237]*item.Item
+type Inventory struct {
+	PositionedItems
+}
 
-func (i *Inventory) Scan(value any) error {
+func (inv *Inventory) CheckFlagsForItem(position int, item *item.Item) bool {
+	if position < 12 {
+		return !inv.Flags[position]
+	}
+	maxHeight1 := 8
+	maxHeight2 := 12
+	maxHeight3 := 16
+	position -= 12
+	flags := inv.Flags[12:]
+	x := position % 8
+	y := position / 8
+	width := item.Width
+	height := item.Height
+	if x+width > 8 ||
+		y < maxHeight1 && y+height > maxHeight1 ||
+		y >= maxHeight1 && y < maxHeight2 && y+height > maxHeight2 ||
+		y >= maxHeight2 && y < maxHeight3 && y+height > maxHeight3 {
+		return false
+	}
+	for i := x; i < x+width; i++ {
+		for j := y; j < y+height; j++ {
+			if flags[i+8*j] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (inv *Inventory) setFlagsForItem(position int, item *item.Item, v bool) {
+	if position < 12 {
+		inv.Flags[position] = v
+		return
+	}
+	position -= 12
+	flags := inv.Flags[12:]
+	x := position % 8
+	y := position / 8
+	width := item.Width
+	height := item.Height
+	for i := x; i < x+width; i++ {
+		for j := y; j < y+height; j++ {
+			flags[i+8*j] = v
+		}
+	}
+}
+
+func (inv *Inventory) SetFlagsForItem(position int, item *item.Item) {
+	inv.setFlagsForItem(position, item, true)
+}
+
+func (inv *Inventory) ClearFlagsForItem(position int, item *item.Item) {
+	inv.setFlagsForItem(position, item, false)
+}
+
+func (inv *Inventory) GetItem(position int, item *item.Item) {
+	inv.Items[position] = item
+	inv.SetFlagsForItem(position, item)
+}
+
+func (inv *Inventory) DropItem(position int, item *item.Item) {
+	inv.Items[position] = nil
+	inv.ClearFlagsForItem(position, item)
+}
+
+func (inv *Inventory) FindFreePositionForItem(item *item.Item) int {
+	for i, v := range inv.Flags {
+		if i < 12 {
+			continue
+		}
+		if v {
+			continue
+		}
+		ok := inv.CheckFlagsForItem(i, item)
+		if ok {
+			return i
+		}
+	}
+	return -1
+}
+
+func (inv *Inventory) UnmarshalJSON(buf []byte) error {
+	inv.Size = 237
+	inv.PositionedItems.CheckFlagsForItem = inv.CheckFlagsForItem
+	inv.PositionedItems.SetFlagsForItem = inv.SetFlagsForItem
+	return inv.PositionedItems.UnmarshalJSON(buf)
+}
+
+func (inv *Inventory) Scan(value any) error {
 	buf, ok := value.([]byte)
 	if !ok {
 		return errors.New(fmt.Sprint("Failed to Scan Inventory value:", value))
 	}
-	var inventory []*item.Item
-	err := json.Unmarshal(buf, &inventory)
-	if err != nil {
-		return err
-	}
-	for _, v := range inventory {
-		v.Code = item.Code(v.Section, v.Index)
-		itemBase, err := item.ItemTable.GetItemBase(v.Section, v.Index)
-		if err != nil {
-			return err
-		}
-		v.ItemBase = itemBase
-		i[v.Position] = v
-	}
-	return nil
-}
-
-func (i Inventory) Value() (driver.Value, error) {
-	var inventory []*item.Item
-	for i, v := range i {
-		if v == nil {
-			continue
-		}
-		v.Position = i
-		inventory = append(inventory, v)
-	}
-	data, err := json.Marshal(inventory)
-	if err != nil {
-		return nil, err
-	}
-	return data, err
+	return inv.UnmarshalJSON(buf)
 }
 
 type Character struct {
@@ -224,7 +360,7 @@ type Character struct {
 	Vitality           int       `json:"vitality,omitempty" validate:"-" gorm:"not null"`
 	Energy             int       `json:"energy,omitempty" validate:"-" gorm:"not null"`
 	Leadership         int       `json:"leadership,omitempty" validate:"-" gorm:"not null"`
-	Inventory          Inventory `json:"inventory" validate:"-" gorm:"type:jsonb;not null"`
+	Inventory          Inventory `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;not null"`
 	InventoryExpansion int       `json:"inventory_expansion,omitempty" validate:"-" gorm:"not null"`
 	Money              int       `json:"money,omitempty" validate:"-" gorm:"not null"`
 	Experience         int       `json:"experience,omitempty" validate:"-" gorm:"not null"`
