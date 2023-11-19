@@ -130,6 +130,7 @@ type Player struct {
 	Inventory          model.Inventory
 	InventoryExpansion int
 	Warehouse          model.Warehouse
+	WarehouseExpansion int
 	WarehouseMoney     int
 	// dbClass              uint8
 	ChangeUp int // 1=1转 2=2转 3=3转
@@ -276,6 +277,7 @@ func (p *Player) Login(msg *model.MsgLogin) {
 	p.AccountID = account.ID
 	p.AccountName = account.Name
 	p.AccountPassword = account.Password
+	p.WarehouseExpansion = account.WarehouseExpansion
 	p.ConnectState = ConnectStateLogged
 
 	// async
@@ -336,7 +338,7 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 
 	// get account
 	reply.EnableCharacterClass = 0xFF
-	reply.WarehouseExpansion = 1
+	reply.WarehouseExpansion = p.WarehouseExpansion
 	p.push(&model.MsgEnableCharacterClassReply{
 		Class: reply.EnableCharacterClass,
 	})
@@ -1072,27 +1074,95 @@ func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {
 	reply.Result = 1
 }
 
-func (p *Player) MoveInventoryItem(msg *model.MsgMoveInventoryItem) {
-	reply := model.MsgMoveInventoryItemReply{
+func (p *Player) MoveItem(msg *model.MsgMoveItem) {
+	reply := model.MsgMoveItemReply{
 		Result: -1,
 	}
 	defer p.push(&reply)
-	if msg.SrcPosition >= p.Inventory.Size ||
-		msg.DstPosition >= p.Inventory.Size {
+	// get source item
+	var sitem *item.Item
+	switch msg.SrcFlag {
+	case 0:
+		if msg.SrcPosition >= p.Inventory.Size {
+			return
+		}
+		sitem = p.Inventory.Items[msg.SrcPosition]
+	case 2:
+		if msg.SrcPosition >= p.Warehouse.Size {
+			return
+		}
+		sitem = p.Warehouse.Items[msg.SrcPosition]
+
+	}
+	if sitem == nil {
 		return
 	}
-	if p.Inventory.Items[msg.SrcPosition] == nil ||
-		p.Inventory.Items[msg.DstPosition] != nil {
+	// get destination item
+	var titem *item.Item
+	switch msg.DstFlag {
+	case 0:
+		if msg.DstPosition >= p.Inventory.Size {
+			return
+		}
+		titem = p.Inventory.Items[msg.DstPosition]
+	case 2:
+		if msg.DstPosition >= p.Warehouse.Size {
+			return
+		}
+		titem = p.Warehouse.Items[msg.DstPosition]
+	}
+
+	switch msg.SrcFlag {
+	case 0:
+		switch msg.DstFlag {
+		case 0:
+			if titem == nil {
+				ok := p.Inventory.CheckFlagsForItem(msg.DstPosition, sitem)
+				if !ok {
+					return
+				}
+				p.Inventory.DropItem(msg.SrcPosition, sitem)
+				p.Inventory.GetItem(msg.DstPosition, sitem)
+			}
+		case 2:
+			if titem == nil {
+				ok := p.Warehouse.CheckFlagsForItem(msg.DstPosition, sitem)
+				if !ok {
+					return
+				}
+				p.Inventory.DropItem(msg.SrcPosition, sitem)
+				p.Warehouse.GetItem(msg.DstPosition, sitem)
+			}
+		default:
+			return
+		}
+	case 2:
+		switch msg.DstFlag {
+		case 0:
+			if titem == nil {
+				ok := p.Inventory.CheckFlagsForItem(msg.DstPosition, sitem)
+				if !ok {
+					return
+				}
+				p.Warehouse.DropItem(msg.SrcPosition, sitem)
+				p.Inventory.GetItem(msg.DstPosition, sitem)
+			}
+		case 2:
+			if titem == nil {
+				ok := p.Warehouse.CheckFlagsForItem(msg.DstPosition, sitem)
+				if !ok {
+					return
+				}
+				p.Warehouse.DropItem(msg.SrcPosition, sitem)
+				p.Warehouse.GetItem(msg.DstPosition, sitem)
+			}
+		default:
+			return
+		}
+	default:
 		return
 	}
-	item := p.Inventory.Items[msg.SrcPosition]
-	// ok := p.checkInventoryFlags(msg.DstPosition, item)
-	// if !ok {
-	// 	return
-	// }
-	p.Inventory.DropItem(msg.SrcPosition, item)
-	p.Inventory.GetItem(msg.DstPosition, item)
-	reply.Result = 0
+	reply.Result = msg.DstFlag
 	reply.Position = msg.DstPosition
 	reply.ItemFrame = msg.ItemFrame
 }

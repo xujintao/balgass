@@ -431,21 +431,23 @@ func (msg *MsgDropInventoryItemReply) Marshal() ([]byte, error) {
 }
 
 // pack(1)
-type MsgMoveInventoryItem struct {
-	ItemFrame   [12]byte
-	Item        *item.Item
+type MsgMoveItem struct {
+	SrcFlag     int
 	SrcPosition int
+	ItemFrame   [12]byte // Item *item.Item
+	DstFlag     int
 	DstPosition int
 }
 
-func (msg *MsgMoveInventoryItem) Unmarshal(buf []byte) error {
+func (msg *MsgMoveItem) Unmarshal(buf []byte) error {
 	br := bytes.NewReader(buf)
 
 	// srcFlag
-	_, err := br.ReadByte()
+	srcFlag, err := br.ReadByte()
 	if err != nil {
 		return err
 	}
+	msg.SrcFlag = int(srcFlag)
 
 	// srcPosition
 	srcPosition, err := br.ReadByte()
@@ -467,10 +469,11 @@ func (msg *MsgMoveInventoryItem) Unmarshal(buf []byte) error {
 	msg.ItemFrame = data
 
 	// dstFlag
-	_, err = br.ReadByte()
+	dstFlag, err := br.ReadByte()
 	if err != nil {
 		return err
 	}
+	msg.DstFlag = int(dstFlag)
 
 	// dstPosition
 	dstPosition, err := br.ReadByte()
@@ -483,14 +486,13 @@ func (msg *MsgMoveInventoryItem) Unmarshal(buf []byte) error {
 }
 
 // pack(1)
-type MsgMoveInventoryItemReply struct {
-	Result    int // -1=failed 0=success
+type MsgMoveItemReply struct {
+	Result    int // -1=failed dstFlag=success
 	Position  int
-	ItemFrame [12]byte
-	Item      *item.Item
+	ItemFrame [12]byte // Item *item.Item
 }
 
-func (msg *MsgMoveInventoryItemReply) Marshal() ([]byte, error) {
+func (msg *MsgMoveItemReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	bw.WriteByte(byte(msg.Result))
 	bw.WriteByte(byte(msg.Position))

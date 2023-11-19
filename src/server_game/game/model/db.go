@@ -110,8 +110,8 @@ func (w *Warehouse) CheckFlagsForItem(position int, item *item.Item) bool {
 	width := item.Width
 	height := item.Height
 	if x+width > 8 ||
-		y <= maxHeight1 && y+height > maxHeight1 ||
-		y > maxHeight1 && y <= maxHeight2 && y+height > maxHeight2 {
+		y < maxHeight1 && y+height > maxHeight1 ||
+		y >= maxHeight1 && y < maxHeight2 && y+height > maxHeight2 {
 		return false
 	}
 	for i := x; i < x+width; i++ {
@@ -124,45 +124,47 @@ func (w *Warehouse) CheckFlagsForItem(position int, item *item.Item) bool {
 	return true
 }
 
-func (w *Warehouse) SetFlagsForItem(position int, item *item.Item) {
+func (w *Warehouse) FindFreePositionForItem(item *item.Item) int {
+	for i, v := range w.Flags {
+		if v {
+			continue
+		}
+		ok := w.CheckFlagsForItem(i, item)
+		if ok {
+			return i
+		}
+	}
+	return -1
+}
+
+func (w *Warehouse) setFlagsForItem(position int, item *item.Item, v bool) {
 	x := position % 8
 	y := position / 8
 	width := item.Width
 	height := item.Height
 	for i := x; i < x+width; i++ {
 		for j := y; j < y+height; j++ {
-			w.Flags[i+8*j] = true
+			w.Flags[i+8*j] = v
 		}
 	}
 }
 
-func (w *Warehouse) FindFreePositionForItem(item *item.Item) int {
-	maxHeight1 := 15
-	maxHeight2 := 30
-outer:
-	for i, v := range w.Flags {
-		if v {
-			continue
-		}
-		x := i % 8
-		y := i / 8
-		width := item.Width
-		height := item.Height
-		if x+width > 8 ||
-			y <= maxHeight1 && y+height > maxHeight1 ||
-			y > maxHeight1 && y <= maxHeight2 && y+height > maxHeight2 {
-			continue
-		}
-		for i := x; i < x+width; i++ {
-			for j := y; j < y+height; j++ {
-				if w.Flags[i+8*j] {
-					continue outer
-				}
-			}
-		}
-		return i
-	}
-	return -1
+func (w *Warehouse) SetFlagsForItem(position int, item *item.Item) {
+	w.setFlagsForItem(position, item, true)
+}
+
+func (w *Warehouse) ClearFlagsForItem(position int, item *item.Item) {
+	w.setFlagsForItem(position, item, false)
+}
+
+func (w *Warehouse) GetItem(position int, item *item.Item) {
+	w.Items[position] = item
+	w.SetFlagsForItem(position, item)
+}
+
+func (w *Warehouse) DropItem(position int, item *item.Item) {
+	w.Items[position] = nil
+	w.ClearFlagsForItem(position, item)
 }
 
 func (w *Warehouse) UnmarshalJSON(buf []byte) error {
@@ -281,6 +283,22 @@ func (inv *Inventory) CheckFlagsForItem(position int, item *item.Item) bool {
 	return true
 }
 
+func (inv *Inventory) FindFreePositionForItem(item *item.Item) int {
+	for i, v := range inv.Flags {
+		if i < 12 {
+			continue
+		}
+		if v {
+			continue
+		}
+		ok := inv.CheckFlagsForItem(i, item)
+		if ok {
+			return i
+		}
+	}
+	return -1
+}
+
 func (inv *Inventory) setFlagsForItem(position int, item *item.Item, v bool) {
 	if position < 12 {
 		inv.Flags[position] = v
@@ -315,22 +333,6 @@ func (inv *Inventory) GetItem(position int, item *item.Item) {
 func (inv *Inventory) DropItem(position int, item *item.Item) {
 	inv.Items[position] = nil
 	inv.ClearFlagsForItem(position, item)
-}
-
-func (inv *Inventory) FindFreePositionForItem(item *item.Item) int {
-	for i, v := range inv.Flags {
-		if i < 12 {
-			continue
-		}
-		if v {
-			continue
-		}
-		ok := inv.CheckFlagsForItem(i, item)
-		if ok {
-			return i
-		}
-	}
-	return -1
 }
 
 func (inv *Inventory) UnmarshalJSON(buf []byte) error {

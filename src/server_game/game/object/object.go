@@ -570,7 +570,7 @@ type objecter interface {
 	GetInventory() [9]*item.Item
 	GetItem(*model.MsgGetItem)
 	DropInventoryItem(*model.MsgDropInventoryItem)
-	MoveInventoryItem(*model.MsgMoveInventoryItem)
+	MoveItem(*model.MsgMoveItem)
 	Talk(*model.MsgTalk)
 	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
 }
