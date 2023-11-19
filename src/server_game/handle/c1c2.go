@@ -226,6 +226,7 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x26, "UseItem", (*model.MsgUseItem)(nil)},
 	{0, false, Player, 0x30, "Talk", (*model.MsgTalk)(nil)},
 	{0, false, Player, 0x4E11, "MuunSystem", (*model.MsgMuunSystem)(nil)},
+	{0, false, Player, 0x82, "CloseWarehouseWindow", (*model.MsgCloseWarehouseWindow)(nil)},
 	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},     // s9
 	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)},     // 1.04R
 	{0, false, Player, 0xD9, "Attack", (*model.MsgAttack)(nil)}, // 1.04R
@@ -259,6 +260,8 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x27, "MPReply", (*model.MsgMPReply)(nil)},
 	{0, false, 0xC3, 0x30, "TalkReply", (*model.MsgTalkReply)(nil)},
 	{0, false, 0xC2, 0x31, "TypeItemListReply", (*model.MsgTypeItemListReply)(nil)},
+	{0, false, 0xC1, 0x81, "WarehouseMoneyReply", (*model.MsgWarehouseMoneyReply)(nil)},
+	{0, false, 0xC1, 0x82, "CloseWarehouseWindowReply", (*model.MsgCloseWarehouseWindowReply)(nil)},
 	{0, false, 0xC1, 0xD4, "MoveReply", (*model.MsgMoveReply)(nil)},
 	{0, false, 0xC1, 0xDE00, "EnableCharacterClassReply", (*model.MsgEnableCharacterClassReply)(nil)},
 	{0, false, 0xC1, 0xEC10, "AttackHPReply", (*model.MsgAttackHPReply)(nil)},

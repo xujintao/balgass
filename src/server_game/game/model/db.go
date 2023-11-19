@@ -188,7 +188,7 @@ type Account struct {
 	UserID             int          `json:"user_id" validate:"required"`
 	Warehouse          Warehouse    `json:"warehouse,omitempty" validate:"-" gorm:"type:jsonb"`
 	WarehouseExpansion int          `json:"warehouse_expansion,omitempty" validate:"-"`
-	Money              int          `json:"money,omitempty" validate:"-"`
+	WarehouseMoney     int          `json:"warehouse_money,omitempty" validate:"-"`
 	CreatedAt          time.Time    `json:"-"`
 	UpdatedAt          time.Time    `json:"-"`
 }
@@ -201,6 +201,12 @@ func (db *db) CreateAccount(p *Account) error {
 	}
 	p.Password = ""
 	return nil
+}
+
+func (db *db) UpdateAccountWarehouse(a *Account) error {
+	return db.Model(a).
+		Select("Warehouse", "WarehouseMoney").
+		Updates(a).Error
 }
 
 func (db *db) GetAccountByName(name string) (*Account, error) {

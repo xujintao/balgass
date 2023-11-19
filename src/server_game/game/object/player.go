@@ -129,6 +129,8 @@ type Player struct {
 	excellentDamage    int // 卓越一击概率
 	Inventory          model.Inventory
 	InventoryExpansion int
+	Warehouse          model.Warehouse
+	WarehouseMoney     int
 	// dbClass              uint8
 	ChangeUp int // 1=1转 2=2转 3=3转
 	// PKCount                    int
@@ -1129,11 +1131,35 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		}
 		reply.Result = 2
 		p.push(&reply)
+		p.Warehouse = account.Warehouse
+		p.WarehouseMoney = account.WarehouseMoney
 		warehouseItemListReply := model.MsgTypeItemListReply{Type: 0}
 		warehouseItemListReply.Items = account.Warehouse.Items
 		p.push(&warehouseItemListReply)
+		warehouseMoneyReply := model.MsgWarehouseMoneyReply{
+			Result:         1,
+			WarehouseMoney: p.WarehouseMoney,
+			InventoryMoney: p.Money,
+		}
+		p.push(&warehouseMoneyReply)
 	case NpcTypeChaosMix:
 	case NpcTypeGoldarcher:
 	case NpcTypePentagramMix:
 	}
+}
+
+func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {
+	account := model.Account{
+		ID:             p.AccountID,
+		Warehouse:      p.Warehouse,
+		WarehouseMoney: p.WarehouseMoney,
+	}
+	err := model.DB.UpdateAccountWarehouse(&account)
+	if err != nil {
+		log.Printf("CloseWarehouseWindow UpdateAccountWarehouse failed [err]%v\n", err)
+		return
+	}
+	p.SaveCharacter()
+	reply := model.MsgCloseWarehouseWindowReply{}
+	p.push(&reply)
 }

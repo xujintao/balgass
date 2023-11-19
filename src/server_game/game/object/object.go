@@ -572,6 +572,7 @@ type objecter interface {
 	DropInventoryItem(*model.MsgDropInventoryItem)
 	MoveInventoryItem(*model.MsgMoveInventoryItem)
 	Talk(*model.MsgTalk)
+	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
 }
 
 type object struct {

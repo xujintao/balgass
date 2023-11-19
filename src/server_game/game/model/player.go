@@ -583,6 +583,32 @@ func (msg *MsgMuunSystem) Unmarshal(buf []byte) error {
 	return nil
 }
 
+type MsgWarehouseMoneyReply struct {
+	Result         int
+	WarehouseMoney int
+	InventoryMoney int
+}
+
+func (msg *MsgWarehouseMoneyReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Result))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.WarehouseMoney))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.InventoryMoney))
+	return bw.Bytes(), nil
+}
+
+type MsgCloseWarehouseWindow struct{}
+
+func (msg *MsgCloseWarehouseWindow) Unmarshal(buf []byte) error {
+	return nil
+}
+
+type MsgCloseWarehouseWindowReply struct{}
+
+func (msg *MsgCloseWarehouseWindowReply) Marshal() ([]byte, error) {
+	return nil, nil
+}
+
 // pack(1)
 type MsgMove struct {
 	Dirs []int
