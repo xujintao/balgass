@@ -561,6 +561,12 @@ func (msg *MsgTalkReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgCloseTalkWindow struct{}
+
+func (msg *MsgCloseTalkWindow) Unmarshal(buf []byte) error {
+	return nil
+}
+
 // pack(1)
 type MsgTypeItemListReply struct {
 	Type int
@@ -578,8 +584,37 @@ func (msg *MsgTypeItemListReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-type MsgMuunSystem struct {
+type MsgBuyItem struct {
+	Position int
 }
+
+func (msg *MsgBuyItem) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	position, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Position = int(position)
+	return nil
+}
+
+type MsgBuyItemReply struct {
+	Result int // -1=failed position=success
+	Item   *item.Item
+}
+
+func (msg *MsgBuyItemReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Result))
+	itemFrame, err := msg.Item.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	bw.Write(itemFrame)
+	return bw.Bytes(), nil
+}
+
+type MsgMuunSystem struct{}
 
 func (msg *MsgMuunSystem) Unmarshal(buf []byte) error {
 	return nil

@@ -52,6 +52,11 @@ func NewItem(section, index int) *Item {
 	}
 }
 
+func (i *Item) Copy() *Item {
+	var copyItem Item = *i
+	return &copyItem
+}
+
 func (i *Item) IsExcellent() bool {
 	return i.ExcellentAttackRate ||
 		i.ExcellentAttackLevel ||

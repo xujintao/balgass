@@ -572,6 +572,8 @@ type objecter interface {
 	DropInventoryItem(*model.MsgDropInventoryItem)
 	MoveItem(*model.MsgMoveItem)
 	Talk(*model.MsgTalk)
+	CloseTalkWindow(*model.MsgCloseTalkWindow)
+	BuyItem(*model.MsgBuyItem)
 	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
 }
 
@@ -921,6 +923,7 @@ func (obj *object) init() {
 }
 
 func (obj *object) reset() {
+	obj.targetNumber = -1
 	obj.clearSkill()
 	obj.clearViewport()
 }

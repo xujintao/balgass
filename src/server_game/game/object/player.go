@@ -1183,6 +1183,7 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		math.Abs(float64(p.Y-tobj.Y)) > 5 {
 		return
 	}
+	p.targetNumber = tobj.index
 	switch tobj.NpcType {
 	case NpcTypeShop:
 		inventory := shop.ShopManager.GetShopInventory(tobj.Class, tobj.MapNumber)
@@ -1216,6 +1217,46 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 	case NpcTypeGoldarcher:
 	case NpcTypePentagramMix:
 	}
+}
+
+func (p *Player) CloseTalkWindow(msg *model.MsgCloseTalkWindow) {
+	p.targetNumber = -1
+}
+
+func (p *Player) BuyItem(msg *model.MsgBuyItem) {
+	reply := model.MsgBuyItemReply{
+		Result: -1,
+	}
+	defer p.push(&reply)
+	if p.targetNumber == -1 {
+		return
+	}
+	// validate
+	if p.targetNumber >= len(p.objectManager.objects) {
+		return
+	}
+	tobj := p.objectManager.objects[p.targetNumber]
+	if tobj == nil {
+		return
+	}
+	if math.Abs(float64(p.X-tobj.X)) > 5 ||
+		math.Abs(float64(p.Y-tobj.Y)) > 5 {
+		return
+	}
+	if tobj.NpcType != NpcTypeShop {
+		return
+	}
+	item := shop.ShopManager.GetShopItem(tobj.Class, tobj.MapNumber, msg.Position)
+	if item == nil {
+		return
+	}
+	position := p.Inventory.FindFreePositionForItem(item)
+	if position == -1 {
+		return
+	}
+	p.Inventory.GetItem(position, item)
+	reply.Result = position
+	reply.Item = item
 }
 
 func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {

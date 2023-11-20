@@ -156,3 +156,15 @@ func (m *shopManager) ForEachShop(f func(int, int, int, int, int)) {
 func (m *shopManager) GetShopInventory(npcIndex, mapNumber int) []*item.Item {
 	return m.shopTable[npcIndex][mapNumber].Inventory
 }
+
+func (m *shopManager) GetShopItem(npcIndex, mapNumber, position int) *item.Item {
+	inventory := m.GetShopInventory(npcIndex, mapNumber)
+	if inventory == nil {
+		return nil
+	}
+	shopItem := inventory[position]
+	if shopItem == nil {
+		return nil
+	}
+	return shopItem.Copy()
+}
