@@ -574,6 +574,7 @@ type objecter interface {
 	Talk(*model.MsgTalk)
 	CloseTalkWindow(*model.MsgCloseTalkWindow)
 	BuyItem(*model.MsgBuyItem)
+	SellItem(*model.MsgSellItem)
 	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
 }
 

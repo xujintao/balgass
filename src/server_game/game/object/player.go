@@ -1228,11 +1228,11 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 		Result: -1,
 	}
 	defer p.push(&reply)
-	if p.targetNumber == -1 {
-		return
-	}
 	// validate
-	if p.targetNumber >= len(p.objectManager.objects) {
+	if msg.Position < 0 ||
+		msg.Position >= shop.MaxShopItemCount ||
+		p.targetNumber < 0 ||
+		p.targetNumber >= len(p.objectManager.objects) {
 		return
 	}
 	tobj := p.objectManager.objects[p.targetNumber]
@@ -1257,6 +1257,38 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 	p.Inventory.GetItem(position, item)
 	reply.Result = position
 	reply.Item = item
+}
+
+func (p *Player) SellItem(msg *model.MsgSellItem) {
+	reply := model.MsgSellItemReply{
+		Result: 0,
+	}
+	defer p.push(&reply)
+	// validate
+	if msg.Position < 0 ||
+		msg.Position >= p.Inventory.Size ||
+		p.targetNumber < 0 ||
+		p.targetNumber >= len(p.objectManager.objects) {
+		return
+	}
+	tobj := p.objectManager.objects[p.targetNumber]
+	if tobj == nil {
+		return
+	}
+	if math.Abs(float64(p.X-tobj.X)) > 5 ||
+		math.Abs(float64(p.Y-tobj.Y)) > 5 {
+		return
+	}
+	if tobj.NpcType != NpcTypeShop {
+		return
+	}
+	item := p.Inventory.Items[msg.Position]
+	if item == nil {
+		return
+	}
+	p.Inventory.DropItem(msg.Position, item)
+	reply.Result = 1
+	reply.Money = p.Money
 }
 
 func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {

@@ -614,6 +614,32 @@ func (msg *MsgBuyItemReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgSellItem struct {
+	Position int
+}
+
+func (msg *MsgSellItem) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	position, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Position = int(position)
+	return nil
+}
+
+type MsgSellItemReply struct {
+	Result int // 0=failed 1=success
+	Money  int
+}
+
+func (msg *MsgSellItemReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Result))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.Money))
+	return bw.Bytes(), nil
+}
+
 type MsgMuunSystem struct{}
 
 func (msg *MsgMuunSystem) Unmarshal(buf []byte) error {

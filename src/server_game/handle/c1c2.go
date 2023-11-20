@@ -227,6 +227,7 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x30, "Talk", (*model.MsgTalk)(nil)},
 	{0, false, Player, 0x31, "CloseTalkWindow", (*model.MsgCloseTalkWindow)(nil)},
 	{0, false, Player, 0x32, "BuyItem", (*model.MsgBuyItem)(nil)},
+	{0, false, Player, 0x33, "SellItem", (*model.MsgSellItem)(nil)},
 	{0, false, Player, 0x4E11, "MuunSystem", (*model.MsgMuunSystem)(nil)},
 	{0, false, Player, 0x82, "CloseWarehouseWindow", (*model.MsgCloseWarehouseWindow)(nil)},
 	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},     // s9
@@ -263,6 +264,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC3, 0x30, "TalkReply", (*model.MsgTalkReply)(nil)},
 	{0, false, 0xC2, 0x31, "TypeItemListReply", (*model.MsgTypeItemListReply)(nil)},
 	{0, false, 0xC1, 0x32, "BuyItemReply", (*model.MsgBuyItemReply)(nil)},
+	{0, false, 0xC1, 0x33, "SellItemReply", (*model.MsgSellItemReply)(nil)},
 	{0, false, 0xC1, 0x81, "WarehouseMoneyReply", (*model.MsgWarehouseMoneyReply)(nil)},
 	{0, false, 0xC1, 0x82, "CloseWarehouseWindowReply", (*model.MsgCloseWarehouseWindowReply)(nil)},
 	{0, false, 0xC1, 0xD4, "MoveReply", (*model.MsgMoveReply)(nil)},
