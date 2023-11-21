@@ -501,16 +501,52 @@ func (msg *MsgMoveItemReply) Marshal() ([]byte, error) {
 }
 
 // pack(1)
+type MsgUseItem struct {
+	SrcPosition int
+	DstPosition int
+	UseType     int
+}
+
+func (msg *MsgUseItem) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// srcPosition
+	srcPosition, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.SrcPosition = int(srcPosition)
+
+	// dstPosition
+	dstPosition, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.DstPosition = int(dstPosition)
+
+	// useType
+	useType, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.UseType = int(useType)
+
+	return nil
+}
+
+// pack(1)
 type MsgHPReply struct {
-	HP int
-	SD int
+	Position int
+	HP       int
+	Flag     int
+	SD       int
 }
 
 func (msg *MsgHPReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
-	bw.WriteByte(0xFE)
+	bw.WriteByte(byte(msg.Position))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.HP))
-	bw.WriteByte(0)
+	bw.WriteByte(byte(msg.Flag))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.SD))
 	return bw.Bytes(), nil
 }
@@ -526,6 +562,34 @@ func (msg *MsgMPReply) Marshal() ([]byte, error) {
 	bw.WriteByte(0xFF)
 	binary.Write(&bw, binary.BigEndian, uint16(msg.MP))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.AG))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgDeleteInventoryItemReply struct {
+	Position int
+	Flag     int
+}
+
+func (msg *MsgDeleteInventoryItemReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Position))
+	bw.WriteByte(byte(msg.Flag))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgItemDurabilityReply struct {
+	Position   int
+	Durability int
+	Flag       int
+}
+
+func (msg *MsgItemDurabilityReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Position))
+	bw.WriteByte(byte(msg.Durability))
+	bw.WriteByte(byte(msg.Flag))
 	return bw.Bytes(), nil
 }
 
@@ -1531,12 +1595,6 @@ type MsgLive struct {
 	MagicSpeed   int
 	Version      string
 	ServerSeason int
-}
-
-type MsgUseItem struct {
-	InventoryPos       int
-	InventoryPosTarget int
-	ItemUseType        int
 }
 
 type MsgLearnMasterSkill struct {

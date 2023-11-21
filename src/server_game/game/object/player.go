@@ -77,16 +77,17 @@ func NewPlayer(conn Conn, actioner actioner) *Player {
 
 type Player struct {
 	object
-	offline         bool
-	conn            Conn
-	msgChan         chan any
-	cancel          context.CancelFunc
-	actioner        actioner
-	AccountID       int
-	AccountName     string
-	AccountPassword string
-	AuthLevel       int
-	// hwid                 string
+	offline              bool
+	conn                 Conn
+	msgChan              chan any
+	cancel               context.CancelFunc
+	actioner             actioner
+	AccountID            int
+	AccountName          string
+	AccountPassword      string
+	AuthLevel            int
+	FillHP               int
+	FillHPCount          int
 	Experience           int
 	ExperienceNext       int
 	ExperienceMaster     int
@@ -857,82 +858,6 @@ func (player *Player) Whisper(msg *model.MsgWhisper) {
 
 // }
 
-func (player *Player) UseItem(msg *model.MsgUseItem) {
-	// validate the position
-
-	it := player.Inventory.Items[msg.InventoryPos]
-	it2 := player.Inventory.Items[msg.InventoryPosTarget]
-	// validate item serial/id
-	if player.LimitUseItem(it) {
-		return
-	}
-	switch {
-	case it.Code == item.Code(12, 30): // Bundle Jewel of Bless
-	case it.Code == item.Code(13, 15): // Fruits 果实
-	case it.Code >= item.Code(13, 43) && it.Code <= item.Code(13, 45): // Seal 印章
-	case it.Code == item.Code(13, 48): // Kalima Ticket 卡利玛自由入场券
-	case it.Code >= item.Code(13, 54) && it.Code <= item.Code(13, 58): // Reset Fruit 洗点果实
-	case it.Code == item.Code(13, 60): // Indulgence 免罪符
-	case it.Code == item.Code(13, 66): // Invitation to Santa Village 圣诞之地入场券
-	case it.Code == item.Code(13, 69): // Talisman of Resurrection 复活符咒
-	case it.Code == item.Code(13, 70): // Talisman of Mobility 移动符咒
-	case it.Code == item.Code(13, 82): // Talisman of Item Protection 装备保护符咒
-	case it.Code >= item.Code(13, 152) && it.Code <= item.Code(13, 159): // Scroll of Oblivion 忘却卷轴
-	case it.Code >= item.Code(14, 0) && it.Code <= item.Code(14, 3): // HP Potion
-	case it.Code >= item.Code(14, 4) && it.Code <= item.Code(14, 6): // MP Potion
-	case it.Code == item.Code(14, 7): // Siege Potion 攻城药水
-	case it.Code == item.Code(14, 8): // Antidote 解毒剂
-	case it.Code == item.Code(14, 9) || it.Code == item.Code(14, 20): // Ale 酒 / Remedy of Love 爱情的魔力
-	case it.Code == item.Code(14, 10): // Town Portal Scroll 回城卷轴
-	case it.Code == item.Code(14, 13): // Jewel of Bless
-	case it.Code == item.Code(14, 14): // Jewel of Soul
-	case it.Code == item.Code(14, 16): // Jewel of Life
-	case it.Code >= item.Code(14, 38) && it.Code <= item.Code(14, 40): // comples/compound Potion
-	case it.Code >= item.Code(14, 35) && it.Code <= item.Code(14, 37): // SD Potion
-	case it.Code == item.Code(14, 42) && it2.Type != item.TypeSocket: // 再生强化
-	case it.Code >= item.Code(14, 43) && it.Code <= item.Code(14, 44): // 进化道具
-	case it.Code >= item.Code(14, 46) && it.Code <= item.Code(14, 50): // Jack O'Lantern 南瓜灯饮料
-	case it.Code == item.Code(14, 70): // Elite HP Potion 精华HP药水
-	case it.Code == item.Code(14, 71): // Elite MP Potion 精华MP药水
-	case it.Code >= item.Code(14, 78) && it.Code <= item.Code(14, 82): // kindBPremiumElixir 会员圣水
-	case it.Code >= item.Code(14, 85) && it.Code <= item.Code(14, 87): // Cherry Blossom 樱花
-	case it.Code == item.Code(14, 133): // Elite SD Potion 精华防护值药水
-	case it.Code == item.Code(14, 160): // Jewel of Extension 延长宝石
-	case it.Code == item.Code(14, 161): // Jewel of Elevation 提高宝石
-	case it.Code == item.Code(14, 162): // Magic Backpack 魔法背书
-	case it.Code == item.Code(14, 163): // Vault Expansion Certificate 仓库拓展证书
-	case it.Code == item.Code(14, 209): // Tradeable Seal 交易印章
-	case it.Code == item.Code(14, 224): // Bless of Light (Greater) 光的祝福
-	case it.Code >= item.Code(14, 263) && it.Code <= item.Code(14, 264): // Bless of Light 光之祝福
-	case it.KindA == item.KindASkill:
-		// (15, 18) // Scroll of Nova 星辰一怒术
-		skillIndex := it.SkillIndex
-		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
-			skillIndex += it.Level
-		}
-		if player.LearnSkill(skillIndex) {
-			player.PushSkillOne()
-		}
-
-	}
-}
-
-func (player *Player) LimitUseItem(it *item.Item) bool {
-	if player.Level < it.ReqLevel ||
-		player.Strength+player.AddStrength < it.ReqStrength ||
-		player.Dexterity+player.AddDexterity < it.ReqDexterity ||
-		player.Vitality+player.AddVitality < it.ReqVitality ||
-		player.Energy+player.AddEnergy < it.ReqEnergy ||
-		player.Leadership+player.AddLeadership < it.ReqCommand {
-		return true
-	}
-	reqClass := it.ReqClass[player.Class]
-	if reqClass == 0 || (reqClass > player.ChangeUp+1) {
-		return true
-	}
-	return false
-}
-
 func (player *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
 	if player.LearnSkill(msg.SkillIndex) {
 
@@ -1165,6 +1090,143 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	reply.Result = msg.DstFlag
 	reply.Position = msg.DstPosition
 	reply.ItemFrame = msg.ItemFrame
+}
+
+func (p *Player) LimitUseItem(it *item.Item) bool {
+	if p.Level < it.ReqLevel ||
+		p.Strength+p.AddStrength < it.ReqStrength ||
+		p.Dexterity+p.AddDexterity < it.ReqDexterity ||
+		p.Vitality+p.AddVitality < it.ReqVitality ||
+		p.Energy+p.AddEnergy < it.ReqEnergy ||
+		p.Leadership+p.AddLeadership < it.ReqCommand {
+		return true
+	}
+	reqClass := it.ReqClass[p.Class]
+	if reqClass == 0 || (reqClass > p.ChangeUp+1) {
+		return true
+	}
+	return false
+}
+
+func (p *Player) UseItem(msg *model.MsgUseItem) {
+	// validate the position
+	if msg.SrcPosition < 0 ||
+		msg.SrcPosition >= p.Inventory.Size ||
+		msg.DstPosition < 0 ||
+		msg.DstPosition >= p.Inventory.Size ||
+		msg.SrcPosition == msg.DstPosition {
+		return
+	}
+	it := p.Inventory.Items[msg.SrcPosition]
+	if it == nil {
+		return
+	}
+	switch {
+	case it.Code == item.Code(12, 30): // Bundle Jewel of Bless
+	case it.Code == item.Code(13, 15): // Fruits 果实
+	case it.Code >= item.Code(13, 43) && it.Code <= item.Code(13, 45): // Seal 印章
+	case it.Code == item.Code(13, 48): // Kalima Ticket 卡利玛自由入场券
+	case it.Code >= item.Code(13, 54) && it.Code <= item.Code(13, 58): // Reset Fruit 洗点果实
+	case it.Code == item.Code(13, 60): // Indulgence 免罪符
+	case it.Code == item.Code(13, 66): // Invitation to Santa Village 圣诞之地入场券
+	case it.Code == item.Code(13, 69): // Talisman of Resurrection 复活符咒
+	case it.Code == item.Code(13, 70): // Talisman of Mobility 移动符咒
+	case it.Code == item.Code(13, 82): // Talisman of Item Protection 装备保护符咒
+	case it.Code >= item.Code(13, 152) && it.Code <= item.Code(13, 159): // Scroll of Oblivion 忘却卷轴
+	case it.Code >= item.Code(14, 0) && it.Code <= item.Code(14, 3): // HP Potion
+		addRate := 0
+		switch it.Code {
+		case item.Code(14, 0): // Apple 苹果
+			addRate = 10
+		case item.Code(14, 1): // Small Healing Potion 小瓶治疗药水
+			addRate = 20
+		case item.Code(14, 2): // Healing Potion 中瓶治疗药水
+			addRate = 30
+		case item.Code(14, 3): // Large Healing Potion 大瓶治疗药水
+			addRate = 40
+		}
+		if it.Level >= 1 {
+			addRate += 5
+		}
+		hp := 0
+		hp += (p.MaxHP + p.AddHP) * addRate / 100
+
+		// fill object hp
+		p.HP += hp
+		if p.HP > p.MaxHP+p.AddHP {
+			p.HP = p.MaxHP + p.AddHP
+		}
+		reply := model.MsgHPReply{
+			Position: -1,
+			HP:       p.HP,
+			Flag:     0,
+			SD:       p.SD,
+		}
+		p.push(&reply)
+		it.Durability--
+		if it.Durability > 0 {
+			reply := model.MsgItemDurabilityReply{
+				Position:   msg.SrcPosition,
+				Durability: it.Durability,
+				Flag:       1,
+			}
+			p.push(&reply)
+		} else {
+			p.Inventory.DropItem(msg.SrcPosition, it)
+			reply := model.MsgDeleteInventoryItemReply{
+				Position: msg.SrcPosition,
+				Flag:     1,
+			}
+			p.push(&reply)
+		}
+
+		// defer fill object hp
+		p.FillHP = hp
+		switch it.Level {
+		case 0:
+			p.FillHPCount = 0
+		case 1:
+			p.FillHPCount = 2
+		default:
+			p.FillHPCount = 3
+		}
+	case it.Code >= item.Code(14, 4) && it.Code <= item.Code(14, 6): // MP Potion
+	case it.Code == item.Code(14, 7): // Siege Potion 攻城药水
+	case it.Code == item.Code(14, 8): // Antidote 解毒剂
+	case it.Code == item.Code(14, 9) || it.Code == item.Code(14, 20): // Ale 酒 / Remedy of Love 爱情的魔力
+	case it.Code == item.Code(14, 10): // Town Portal Scroll 回城卷轴
+	case it.Code == item.Code(14, 13): // Jewel of Bless
+	case it.Code == item.Code(14, 14): // Jewel of Soul
+	case it.Code == item.Code(14, 16): // Jewel of Life
+	case it.Code >= item.Code(14, 38) && it.Code <= item.Code(14, 40): // comples/compound Potion
+	case it.Code >= item.Code(14, 35) && it.Code <= item.Code(14, 37): // SD Potion
+	// case it.Code == item.Code(14, 42) && it2.Type != item.TypeSocket: // 再生强化
+	case it.Code >= item.Code(14, 43) && it.Code <= item.Code(14, 44): // 进化道具
+	case it.Code >= item.Code(14, 46) && it.Code <= item.Code(14, 50): // Jack O'Lantern 南瓜灯饮料
+	case it.Code == item.Code(14, 70): // Elite HP Potion 精华HP药水
+	case it.Code == item.Code(14, 71): // Elite MP Potion 精华MP药水
+	case it.Code >= item.Code(14, 78) && it.Code <= item.Code(14, 82): // kindBPremiumElixir 会员圣水
+	case it.Code >= item.Code(14, 85) && it.Code <= item.Code(14, 87): // Cherry Blossom 樱花
+	case it.Code == item.Code(14, 133): // Elite SD Potion 精华防护值药水
+	case it.Code == item.Code(14, 160): // Jewel of Extension 延长宝石
+	case it.Code == item.Code(14, 161): // Jewel of Elevation 提高宝石
+	case it.Code == item.Code(14, 162): // Magic Backpack 魔法背书
+	case it.Code == item.Code(14, 163): // Vault Expansion Certificate 仓库拓展证书
+	case it.Code == item.Code(14, 209): // Tradeable Seal 交易印章
+	case it.Code == item.Code(14, 224): // Bless of Light (Greater) 光的祝福
+	case it.Code >= item.Code(14, 263) &&
+		it.Code <= item.Code(14, 264): // Bless of Light 光之祝福
+	case it.KindA == item.KindASkill:
+		// (15, 18) // Scroll of Nova 星辰一怒术
+		skillIndex := it.SkillIndex
+		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
+			skillIndex += it.Level
+		}
+		if p.LearnSkill(skillIndex) {
+			p.PushSkillOne()
+		}
+
+	}
 }
 
 func (p *Player) Talk(msg *model.MsgTalk) {

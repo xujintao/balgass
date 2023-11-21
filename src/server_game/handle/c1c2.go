@@ -261,6 +261,8 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC3, 0x24, "MoveItemReply", (*model.MsgMoveItemReply)(nil)},
 	{0, false, 0xC1, 0x26, "HPReply", (*model.MsgHPReply)(nil)},
 	{0, false, 0xC1, 0x27, "MPReply", (*model.MsgMPReply)(nil)},
+	{0, false, 0xC1, 0x28, "DeleteInventoryItemReply", (*model.MsgDeleteInventoryItemReply)(nil)},
+	{0, false, 0xC1, 0x2A, "ItemDurabilityReply", (*model.MsgItemDurabilityReply)(nil)},
 	{0, false, 0xC3, 0x30, "TalkReply", (*model.MsgTalkReply)(nil)},
 	{0, false, 0xC2, 0x31, "TypeItemListReply", (*model.MsgTypeItemListReply)(nil)},
 	{0, false, 0xC1, 0x32, "BuyItemReply", (*model.MsgBuyItemReply)(nil)},

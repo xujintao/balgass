@@ -571,6 +571,7 @@ type objecter interface {
 	GetItem(*model.MsgGetItem)
 	DropInventoryItem(*model.MsgDropInventoryItem)
 	MoveItem(*model.MsgMoveItem)
+	UseItem(*model.MsgUseItem)
 	Talk(*model.MsgTalk)
 	CloseTalkWindow(*model.MsgCloseTalkWindow)
 	BuyItem(*model.MsgBuyItem)
@@ -611,8 +612,6 @@ type object struct {
 	MaxHP              int // MaxHP
 	AddHP              int
 	ScriptMaxHP        int
-	FillHP             int
-	FillHPMax          int
 	MP                 int // MP
 	MaxMP              int // MaxMP
 	AddMP              int
