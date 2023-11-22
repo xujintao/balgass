@@ -230,6 +230,7 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x33, "SellItem", (*model.MsgSellItem)(nil)},
 	{0, false, Player, 0x4E11, "MuunSystem", (*model.MsgMuunSystem)(nil)},
 	{0, false, Player, 0x82, "CloseWarehouseWindow", (*model.MsgCloseWarehouseWindow)(nil)},
+	{0, false, Player, 0x8E02, "MapMove", (*model.MsgMapMove)(nil)},
 	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},     // s9
 	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)},     // 1.04R
 	{0, false, Player, 0xD9, "Attack", (*model.MsgAttack)(nil)}, // 1.04R
@@ -254,9 +255,11 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x14, "DestroyViewportObjectReply", (*model.MsgDestroyViewportObjectReply)(nil)},
 	{0, false, 0xC1, 0x17, "AttackDieReply", (*model.MsgAttackDieReply)(nil)},
 	{0, false, 0xC1, 0x18, "ActionReply", (*model.MsgActionReply)(nil)},
+	{0, false, 0xC3, 0x1C, "TeleportReply", (*model.MsgTeleportReply)(nil)},
 	{0, false, 0xC2, 0x20, "CreateViewportItemReply", (*model.MsgCreateViewportItemReply)(nil)},
 	{0, false, 0xC2, 0x21, "DestroyViewportItemReply", (*model.MsgDestroyViewportItemReply)(nil)},
 	{0, false, 0xC3, 0x22, "GetItemReply", (*model.MsgGetItemReply)(nil)},
+	{0, false, 0xC3, 0x22, "MoneyReply", (*model.MsgMoneyReply)(nil)},
 	{0, false, 0xC1, 0x23, "DropInventoryItemReply", (*model.MsgDropInventoryItemReply)(nil)},
 	{0, false, 0xC3, 0x24, "MoveItemReply", (*model.MsgMoveItemReply)(nil)},
 	{0, false, 0xC1, 0x26, "HPReply", (*model.MsgHPReply)(nil)},
@@ -269,6 +272,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x33, "SellItemReply", (*model.MsgSellItemReply)(nil)},
 	{0, false, 0xC1, 0x81, "WarehouseMoneyReply", (*model.MsgWarehouseMoneyReply)(nil)},
 	{0, false, 0xC1, 0x82, "CloseWarehouseWindowReply", (*model.MsgCloseWarehouseWindowReply)(nil)},
+	{0, false, 0xC1, 0x8E03, "MapMoveReply", (*model.MsgMapMoveReply)(nil)},
 	{0, false, 0xC1, 0xD4, "MoveReply", (*model.MsgMoveReply)(nil)},
 	{0, false, 0xC1, 0xDE00, "EnableCharacterClassReply", (*model.MsgEnableCharacterClassReply)(nil)},
 	{0, false, 0xC1, 0xEC10, "AttackHPReply", (*model.MsgAttackHPReply)(nil)},

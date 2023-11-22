@@ -348,6 +348,31 @@ func (msg *MsgActionReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgTeleportReply struct {
+	GateNumber int
+	MapNumber  int
+	X          int
+	Y          int
+	Dir        int
+}
+
+func (msg *MsgTeleportReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(0) // padding 1 byte
+	flag := 0
+	if msg.GateNumber > 0 {
+		flag = 256
+	}
+	binary.Write(&bw, binary.LittleEndian, uint16(flag))
+	bw.WriteByte(byte(msg.MapNumber))
+	bw.WriteByte(byte(msg.X))
+	bw.WriteByte(byte(msg.Y))
+	bw.WriteByte(byte(msg.Dir))
+	bw.WriteByte(0) // padding 1 byte
+	bw.WriteByte(0) // padding 1 byte
+	return bw.Bytes(), nil
+}
+
 // pack(1)
 type MsgGetItem struct {
 	Index int
@@ -368,18 +393,33 @@ func (msg *MsgGetItem) Unmarshal(buf []byte) error {
 
 // pack(1)
 type MsgGetItemReply struct {
-	Position int
-	Item     *item.Item
+	Result int // -1=failed -2=money 0~237=postion
+	Item   *item.Item
 }
 
 func (msg *MsgGetItemReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
-	bw.WriteByte(byte(msg.Position))
+	bw.WriteByte(byte(msg.Result))
 	itemFrame, err := msg.Item.Marshal()
 	if err != nil {
 		return nil, err
 	}
 	bw.Write(itemFrame)
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgMoneyReply struct {
+	Result int // -2
+	Money  int
+}
+
+func (msg *MsgMoneyReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Result))
+	var data [12]byte
+	binary.BigEndian.PutUint32(data[:], uint32(msg.Money))
+	binary.Write(&bw, binary.BigEndian, data[:])
 	return bw.Bytes(), nil
 }
 
@@ -734,6 +774,45 @@ type MsgCloseWarehouseWindowReply struct{}
 
 func (msg *MsgCloseWarehouseWindowReply) Marshal() ([]byte, error) {
 	return nil, nil
+}
+
+// pack(1)
+type MsgMapMove struct {
+	// RandomNumber int
+	MoveIndex int
+}
+
+func (msg *MsgMapMove) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// randomNumber
+	var randomNumber uint32
+	err := binary.Read(br, binary.LittleEndian, &randomNumber)
+	if err != nil {
+		return err
+	}
+	// msg.RandomNumber = int(randomNumber)
+
+	// moveIndex
+	var moveIndex uint16
+	err = binary.Read(br, binary.LittleEndian, &moveIndex)
+	if err != nil {
+		return err
+	}
+	msg.MoveIndex = int(moveIndex)
+
+	return nil
+}
+
+type MsgMapMoveReply struct {
+	// 0=success
+	Result int
+}
+
+func (msg *MsgMapMoveReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Result))
+	return bw.Bytes(), nil
 }
 
 // pack(1)

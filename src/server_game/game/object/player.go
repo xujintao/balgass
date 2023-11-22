@@ -10,6 +10,7 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/game/move"
 	"github.com/xujintao/balgass/src/server_game/game/shop"
 	"gorm.io/gorm"
 )
@@ -960,7 +961,7 @@ func (p *Player) GetInventory() [9]*item.Item {
 
 func (p *Player) GetItem(msg *model.MsgGetItem) {
 	reply := model.MsgGetItemReply{
-		Position: -1,
+		Result: -1,
 	}
 	defer p.push(&reply)
 	item := maps.MapManager.PickItem(p.MapNumber, msg.Index)
@@ -973,7 +974,7 @@ func (p *Player) GetItem(msg *model.MsgGetItem) {
 	}
 	p.Inventory.GetItem(position, item)
 	maps.MapManager.PopItem(p.MapNumber, msg.Index)
-	reply.Position = position
+	reply.Result = position
 	reply.Item = item
 }
 
@@ -1367,4 +1368,48 @@ func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {
 	p.SaveCharacter()
 	reply := model.MsgCloseWarehouseWindowReply{}
 	p.push(&reply)
+}
+
+func (p *Player) gateMove(gateNumber int) bool {
+	success := false
+	move.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
+		p.MapNumber = mapNumber
+		p.X, p.Y = x, y
+		p.TX, p.TY = x, y
+		p.Dir = dir
+		// p.destroyViewport()
+		p.clearViewport()
+		reply := model.MsgTeleportReply{
+			GateNumber: gateNumber,
+			MapNumber:  mapNumber,
+			X:          x,
+			Y:          y,
+			Dir:        dir,
+		}
+		p.push(&reply)
+		// p.createViewport()
+		success = true
+	})
+	return success
+}
+
+func (p *Player) MapMove(msg *model.MsgMapMove) {
+	reply := model.MsgMapMoveReply{
+		Result: 0,
+	}
+	defer p.push(&reply)
+	move.MapMoveManager.Move(msg.MoveIndex, func(gateNumber, level, money int) {
+		if p.Level < level || p.Money < money {
+			return
+		}
+		ok := p.gateMove(gateNumber)
+		if ok {
+			p.Money -= money
+			reply := model.MsgMoneyReply{
+				Result: -2,
+				Money:  p.Money,
+			}
+			p.push(&reply)
+		}
+	})
 }

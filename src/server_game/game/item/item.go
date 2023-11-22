@@ -220,6 +220,15 @@ func (item *Item) Marshal() ([]byte, error) {
 	if item == nil {
 		return data[:], nil
 	}
+	if item.Code == Code(14, 15) {
+		money := item.Durability
+		data[0] = byte(item.Index)
+		data[1] = byte(money >> 16)
+		data[2] = byte(money >> 8)
+		data[4] = byte(money >> 0)
+		data[5] = byte(item.Section << 4)
+		return data[:], nil
+	}
 	data[0] = byte(item.Index)
 	data[1] = byte(item.Addition & 0x0C >> 2)
 	if item.Lucky {

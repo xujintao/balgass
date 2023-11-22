@@ -93,9 +93,10 @@ func (m mapManager) GetMapPots(number int) []*Pot {
 	return m[number].getPots()
 }
 
-// bit0(1): 安全标志
+// bit0(1): 安全区标志
 // bit1(2): 被对象站立
 // bit2(4): 障碍物标志
+// bit3(8): ?
 func (m mapManager) GetMapAttr(number, x, y int) int {
 	return m[number].getAttr(x, y)
 }
@@ -114,6 +115,10 @@ func (m mapManager) ClearMapAttrStand(number, x, y int) {
 
 func (m mapManager) GetMapRegenPos(number int) (int, int) {
 	return m[number].getRegenPos()
+}
+
+func (m mapManager) GetMapRandomPos(number, x1, y1, x2, y2 int) (int, int) {
+	return m[number].getRandomPos(x1, y1, x2, y2)
 }
 
 func (m mapManager) CheckMapNoWall(number, x1, y1, x2, y2 int) bool {
@@ -242,6 +247,30 @@ func (m *_map) getRegenPos() (int, int) {
 	}
 	log.Printf("cannot find position [file]%s", m.file)
 	return left, top
+}
+
+func (m *_map) getRandomPos(x1, y1, x2, y2 int) (int, int) {
+	w := x2 - x1
+	if w <= 0 {
+		w = 1
+	}
+	h := y2 - y1
+	if h <= 0 {
+		h = 1
+	}
+	if w == 1 && h == 1 {
+		return x1, y1
+	}
+	log.Printf("(%d,%d,%d,%d)->(%d,%d)\n", x1, y1, x2, y2, w, h)
+	for i := 0; i < 100; i++ {
+		x := x1 + rand.Intn(w)
+		y := y1 + rand.Intn(h)
+		attr := m.getAttr(x, y)
+		if attr&2 == 0 && attr&4 == 0 && attr&8 == 0 {
+			return x, y
+		}
+	}
+	return x1, y1
 }
 
 func (m *_map) checkNoWall(x1, y1, x2, y2 int) bool {

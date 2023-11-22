@@ -577,6 +577,7 @@ type objecter interface {
 	BuyItem(*model.MsgBuyItem)
 	SellItem(*model.MsgSellItem)
 	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
+	MapMove(*model.MsgMapMove)
 }
 
 type object struct {
