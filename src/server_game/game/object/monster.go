@@ -383,10 +383,13 @@ func (m *Monster) baseAction() {
 			if m.chaseMove(tobj) {
 				// 可以寻路
 				if maps.MapManager.CheckMapNoWall(m.MapNumber, m.X, m.Y, m.TX, m.TY) {
-					m.actionState.move = true
-					m.Dir = maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
-					m.nextActionTime = 200
-					return
+					attr := maps.MapManager.GetMapAttr(m.MapNumber, tobj.X, tobj.Y)
+					if attr&1 == 0 {
+						m.actionState.move = true
+						m.Dir = maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
+						m.nextActionTime = 200
+						return
+					}
 				}
 			}
 		} else {
