@@ -283,29 +283,6 @@ func (msg *MsgAttackEffectReply) Marshal() ([]byte, error) {
 }
 
 // pack(1)
-type MsgAttackHPReply struct {
-	Target int
-	MaxHP  int
-	HP     int
-}
-
-func (msg *MsgAttackHPReply) Marshal() ([]byte, error) {
-	var bw bytes.Buffer
-	binary.Write(&bw, binary.BigEndian, uint16(msg.Target))
-	// binary.Write(&bw, binary.BigEndian, uint32(msg.MaxHP))
-	bw.WriteByte(byte(msg.MaxHP >> 24))
-	bw.WriteByte(byte(msg.MaxHP >> 8))
-	bw.WriteByte(byte(msg.MaxHP >> 16))
-	bw.WriteByte(byte(msg.MaxHP))
-	// binary.Write(&bw, binary.BigEndian, uint32(msg.HP))
-	bw.WriteByte(byte(msg.HP >> 24))
-	bw.WriteByte(byte(msg.HP >> 8))
-	bw.WriteByte(byte(msg.HP >> 16))
-	bw.WriteByte(byte(msg.HP))
-	return bw.Bytes(), nil
-}
-
-// pack(1)
 type MsgAction struct {
 	Dir    int
 	Action int
@@ -920,6 +897,68 @@ func (msg *MsgMoveReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgEnableCharacterClassReply struct {
+	Class int
+}
+
+func (msg *MsgEnableCharacterClassReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Class))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgMiniMapReply struct {
+	ID          int
+	IsNpc       int
+	DisplayType int
+	Type        int
+	X           int
+	Y           int
+	Name        string
+}
+
+func (msg *MsgMiniMapReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.ID))
+	bw.WriteByte(byte(msg.IsNpc))
+	bw.WriteByte(byte(msg.DisplayType))
+	bw.WriteByte(byte(msg.Type))
+	bw.WriteByte(byte(msg.X))
+	bw.WriteByte(byte(msg.Y))
+	gbk, err := simplifiedchinese.GBK.NewEncoder().String(msg.Name)
+	if err != nil {
+		return nil, err
+	}
+	var name [31]byte
+	copy(name[:], gbk)
+	bw.Write(name[:])
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgAttackHPReply struct {
+	Target int
+	MaxHP  int
+	HP     int
+}
+
+func (msg *MsgAttackHPReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Target))
+	// binary.Write(&bw, binary.BigEndian, uint32(msg.MaxHP))
+	bw.WriteByte(byte(msg.MaxHP >> 24))
+	bw.WriteByte(byte(msg.MaxHP >> 8))
+	bw.WriteByte(byte(msg.MaxHP >> 16))
+	bw.WriteByte(byte(msg.MaxHP))
+	// binary.Write(&bw, binary.BigEndian, uint32(msg.HP))
+	bw.WriteByte(byte(msg.HP >> 24))
+	bw.WriteByte(byte(msg.HP >> 8))
+	bw.WriteByte(byte(msg.HP >> 16))
+	bw.WriteByte(byte(msg.HP))
+	return bw.Bytes(), nil
+}
+
 // #pragma pack (1)
 // struct PMSG_JOINRESULT
 //
@@ -1325,16 +1364,6 @@ func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-type MsgEnableCharacterClassReply struct {
-	Class int
-}
-
-func (msg *MsgEnableCharacterClassReply) Marshal() ([]byte, error) {
-	var bw bytes.Buffer
-	bw.WriteByte(byte(msg.Class))
-	return bw.Bytes(), nil
-}
-
 type MsgResetCharacterReply struct {
 	Reset string
 }
@@ -1620,6 +1649,12 @@ func (msg *MsgItemListReply) Marshal() ([]byte, error) {
 	bw2.WriteByte(byte(count))
 	bw2.Write(bw.Bytes())
 	return bw2.Bytes(), nil
+}
+
+type MsgMapDataLoadingOK struct{}
+
+func (msg *MsgMapDataLoadingOK) Unmarshal(buf []byte) error {
+	return nil
 }
 
 type MsgCheckCharacter struct {

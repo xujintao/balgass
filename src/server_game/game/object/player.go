@@ -654,12 +654,41 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.push(&model.MsgItemListReply{
 		Items: p.Inventory.Items,
 	})
-
+	p.loadMiniMap()
 	// go func() {
 	// 	time.Sleep(100 * time.Millisecond) // get character info
 	// 	p.actioner.PlayerAction(p.index, "SetCharacter", &model.MsgSetCharacter{Name: msg.Name})
 	// }()
 }
+
+func (p *Player) loadMiniMap() {
+	maps.MiniManager.ForEachMapNpc(p.MapNumber, func(id, display, x, y int, name string) {
+		reply := model.MsgMiniMapReply{
+			ID:          id,
+			IsNpc:       1,
+			DisplayType: display,
+			Type:        0,
+			X:           x,
+			Y:           y,
+			Name:        name,
+		}
+		p.push(&reply)
+	})
+	maps.MiniManager.ForEachMapEntrance(p.MapNumber, func(id, display, x, y int, name string) {
+		reply := model.MsgMiniMapReply{
+			ID:          id,
+			IsNpc:       0,
+			DisplayType: 1,
+			Type:        0,
+			X:           x,
+			Y:           y,
+			Name:        name,
+		}
+		p.push(&reply)
+	})
+}
+
+func (p *Player) MapDataLoadingOK(msg *model.MsgMapDataLoadingOK) {}
 
 func (p *Player) SaveCharacter() {
 	c := model.Character{
@@ -1062,11 +1091,6 @@ func (p *Player) GetInventory() [9]*item.Item {
 func (p *Player) gateMove(gateNumber int) bool {
 	success := false
 	maps.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
-		p.MapNumber = mapNumber
-		p.X, p.Y = x, y
-		p.TX, p.TY = x, y
-		p.Dir = dir
-		// p.destroyViewport()
 		p.clearViewport()
 		reply := model.MsgTeleportReply{
 			GateNumber: gateNumber,
@@ -1076,7 +1100,14 @@ func (p *Player) gateMove(gateNumber int) bool {
 			Dir:        dir,
 		}
 		p.push(&reply)
-		// p.createViewport()
+		if p.MapNumber != mapNumber {
+			p.MapNumber = mapNumber
+			p.loadMiniMap()
+		}
+		p.X, p.Y = x, y
+		p.TX, p.TY = x, y
+		p.Dir = dir
+		p.createFrustrum()
 		success = true
 	})
 	return success

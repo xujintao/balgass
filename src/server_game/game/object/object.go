@@ -560,6 +560,7 @@ type objecter interface {
 	DeleteCharacter(*model.MsgDeleteCharacter)
 	CheckCharacter(*model.MsgCheckCharacter)
 	LoadCharacter(*model.MsgLoadCharacter)
+	MapDataLoadingOK(*model.MsgMapDataLoadingOK)
 	getPKLevel() int
 	processAction()
 	Action(*model.MsgAction)
