@@ -220,6 +220,7 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x0E, "Live", (*model.MsgLive)(nil)},
 	{0, false, Player, 0x11, "Attack", (*model.MsgAttack)(nil)}, // s9
 	{0, false, Player, 0x18, "Action", (*model.MsgAction)(nil)},
+	{0, false, Player, 0x1C, "Teleport", (*model.MsgTeleport)(nil)},
 	{0, false, Player, 0x22, "GetItem", (*model.MsgGetItem)(nil)},
 	{0, false, Player, 0x23, "DropInventoryItem", (*model.MsgDropInventoryItem)(nil)},
 	{0, false, Player, 0x24, "MoveItem", (*model.MsgMoveItem)(nil)},

@@ -90,6 +90,12 @@ func (m *gateMoveManager) Move(index int, f func(int, int, int, int)) {
 	if !ok {
 		return
 	}
+	if move.Target != 0 {
+		move, ok = m.gateMoveTable[move.Target]
+		if !ok {
+			return
+		}
+	}
 	mapNumber := move.MapNumber
 	x1 := move.StartX
 	y1 := move.StartY

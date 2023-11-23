@@ -348,6 +348,32 @@ func (msg *MsgActionReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgTeleport struct {
+	GateNumber int
+	X          int
+	Y          int
+}
+
+func (msg *MsgTeleport) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// padding 1 byte
+	_, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+
+	// GateNumber
+	var GateNumber uint16
+	err = binary.Read(br, binary.LittleEndian, &GateNumber)
+	if err != nil {
+		return err
+	}
+	msg.GateNumber = int(GateNumber)
+
+	return nil
+}
+
 type MsgTeleportReply struct {
 	GateNumber int
 	MapNumber  int

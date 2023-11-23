@@ -959,6 +959,33 @@ func (p *Player) GetInventory() [9]*item.Item {
 	return [9]*item.Item(p.Inventory.Items[:9])
 }
 
+func (p *Player) gateMove(gateNumber int) bool {
+	success := false
+	move.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
+		p.MapNumber = mapNumber
+		p.X, p.Y = x, y
+		p.TX, p.TY = x, y
+		p.Dir = dir
+		// p.destroyViewport()
+		p.clearViewport()
+		reply := model.MsgTeleportReply{
+			GateNumber: gateNumber,
+			MapNumber:  mapNumber,
+			X:          x,
+			Y:          y,
+			Dir:        dir,
+		}
+		p.push(&reply)
+		// p.createViewport()
+		success = true
+	})
+	return success
+}
+
+func (p *Player) Teleport(msg *model.MsgTeleport) {
+	p.gateMove(msg.GateNumber)
+}
+
 func (p *Player) GetItem(msg *model.MsgGetItem) {
 	reply := model.MsgGetItemReply{
 		Result: -1,
@@ -1368,29 +1395,6 @@ func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {
 	p.SaveCharacter()
 	reply := model.MsgCloseWarehouseWindowReply{}
 	p.push(&reply)
-}
-
-func (p *Player) gateMove(gateNumber int) bool {
-	success := false
-	move.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
-		p.MapNumber = mapNumber
-		p.X, p.Y = x, y
-		p.TX, p.TY = x, y
-		p.Dir = dir
-		// p.destroyViewport()
-		p.clearViewport()
-		reply := model.MsgTeleportReply{
-			GateNumber: gateNumber,
-			MapNumber:  mapNumber,
-			X:          x,
-			Y:          y,
-			Dir:        dir,
-		}
-		p.push(&reply)
-		// p.createViewport()
-		success = true
-	})
-	return success
 }
 
 func (p *Player) MapMove(msg *model.MsgMapMove) {

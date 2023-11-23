@@ -568,6 +568,7 @@ type objecter interface {
 	Regen()
 	GetChangeUp() int
 	GetInventory() [9]*item.Item
+	Teleport(*model.MsgTeleport)
 	GetItem(*model.MsgGetItem)
 	DropInventoryItem(*model.MsgDropInventoryItem)
 	MoveItem(*model.MsgMoveItem)

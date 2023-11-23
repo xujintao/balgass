@@ -261,7 +261,6 @@ func (m *_map) getRandomPos(x1, y1, x2, y2 int) (int, int) {
 	if w == 1 && h == 1 {
 		return x1, y1
 	}
-	log.Printf("(%d,%d,%d,%d)->(%d,%d)\n", x1, y1, x2, y2, w, h)
 	for i := 0; i < 100; i++ {
 		x := x1 + rand.Intn(w)
 		y := y1 + rand.Intn(h)
