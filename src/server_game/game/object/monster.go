@@ -365,7 +365,7 @@ func (m *Monster) baseAction() {
 			return
 		}
 		tobj := m.objectManager.objects[m.targetNumber]
-		if tobj == nil || !tobj.Live {
+		if tobj == nil || !tobj.Live || tobj.MapNumber != m.MapNumber {
 			m.targetNumber = -1
 			m.actionState.emotion = 3
 			m.actionState.emotionCount = 2 // 2*500ms=1s
