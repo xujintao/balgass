@@ -38,7 +38,7 @@ const (
 	Crywolf                                // 狼魂要塞
 	Reserved                               // 狼魂要塞2
 	Kalima7                                // 卡利玛7
-	Kanturu                                // 坎特鲁废墟
+	Kanturu                                // 坎特鲁废墟1~3
 	KanturuRemain                          // 坎特鲁遗址
 	KanturuBoss                            // 提炼之塔
 	Silent                                 // GM召唤区
@@ -52,7 +52,7 @@ const (
 	IllusionTemple6                        // 幻影寺院6
 	Elbeland                               // 幻术园
 	BloodCastle8                           // 血色城堡8
-	ChaosCastle8                           // 赤色要塞7
+	ChaosCastle7                           // 赤色要塞7
 	SwampOfCalmness     = iota + 4         // 安宁池
 	Raklion                                // 冰霜之城
 	RaklionBoss                            // 冰霜之城Boss

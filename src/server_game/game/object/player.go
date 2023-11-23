@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"math"
-	"math/rand"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
@@ -247,10 +246,110 @@ func (p *Player) push(msg any) {
 }
 
 func (p *Player) spawnPosition() {
-	p.X, p.Y = maps.MapManager.GetMapRegenPos(p.MapNumber)
-	p.TX, p.TY = p.X, p.Y
+	gate := 0
+	switch p.MapNumber {
+	case maps.Arena, // 古战场
+		maps.DuelArena, // 竞技场
+		maps.Exile,     // 流放地
+		maps.SantaTown: // 圣诞之地
+
+	case maps.LorenMarket, // 罗兰市场
+		maps.ImperialGuardian1, // 帝国要塞1
+		maps.ImperialGuardian2, // 帝国要塞2
+		maps.ImperialGuardian3, // 帝国要塞3
+		maps.ImperialGuardian4, // 帝国要塞4
+		maps.IllusionTemple1,   // 幻影寺院1
+		maps.IllusionTemple2,   // 幻影寺院2
+		maps.IllusionTemple3,   // 幻影寺院3
+		maps.IllusionTemple4,   // 幻影寺院4
+		maps.IllusionTemple5,   // 幻影寺院5
+		maps.IllusionTemple6,   // 幻影寺院6
+		maps.IllusionTemple7,   // 幻影寺院7
+		maps.IllusionTemple8,   // 幻影寺院8
+		maps.Doppelganger1,     //生魂广场1
+		maps.Doppelganger2,     //生魂广场2
+		maps.Doppelganger3,     //生魂广场3
+		maps.Doppelganger4:     //生魂广场4
+		gate = 333
+	case maps.Lorencia, // 勇者大陆
+		maps.Dungeon, // 地下城1~3
+		maps.Kalima1, // 卡利玛1
+		maps.Kalima2, // 卡利玛2
+		maps.Kalima3, // 卡利玛3
+		maps.Kalima4, // 卡利玛4
+		maps.Kalima5, // 卡利玛5
+		maps.Kalima6, // 卡利玛6
+		maps.Kalima7: // 卡利玛7
+		gate = 17 // Lorencia
+	case maps.Devias, // 冰风谷1~4
+		maps.Icarus,           // 天空之城
+		maps.DevilSquare,      // 恶魔广场1~4
+		maps.DevilSquare2,     // 恶魔广场5~7
+		maps.DevilSquareFinal, // 恶魔广场
+		maps.BloodCastle1,     // 血色城堡1
+		maps.BloodCastle2,     // 血色城堡2
+		maps.BloodCastle3,     // 血色城堡3
+		maps.BloodCastle4,     // 血色城堡4
+		maps.BloodCastle5,     // 血色城堡5
+		maps.BloodCastle6,     // 血色城堡6
+		maps.BloodCastle7,     // 血色城堡7
+		maps.BloodCastle8,     // 血色城堡8
+		maps.ChaosCastle1,     // 赤色要塞1
+		maps.ChaosCastle2,     // 赤色要塞2
+		maps.ChaosCastle3,     // 赤色要塞3
+		maps.ChaosCastle4,     // 赤色要塞4
+		maps.ChaosCastle5,     // 赤色要塞5
+		maps.ChaosCastle6,     // 赤色要塞6
+		maps.ChaosCastle7:     // 赤色要塞7
+		gate = 22 // Devias
+	case maps.Noria: // 仙踪林
+		gate = 27 // Noria
+	case maps.Elbeland: // 幻术园
+		gate = 267 // Elbeland
+	case maps.LostTower: // 失落之塔1~7
+		gate = 42 // LostTower
+	case maps.Atlans: // 亚特兰蒂斯1~3
+		gate = 49 // Atlans
+	case maps.Tarkan: // 死亡沙漠1~2
+		gate = 57 // Tarkan
+	case maps.Aida: // 幽暗森林1~2
+		gate = 119 // Aida
+	case maps.Kanturu: // 坎特鲁废墟1~3
+		gate = 138 // Kanturu
+	case maps.KanturuRemain: // 坎特鲁遗址
+		gate = 139 // KanturuRemain
+	case maps.Karutan1, // 卡伦特1
+		maps.Karutan2: // 卡伦特2
+		gate = 335 // Karutan1
+	case maps.Raklion, // 冰霜之城
+		maps.RaklionBoss: // 冰霜之城Boss
+		gate = 287
+	case maps.SwampOfCalmness: // 安宁池
+		gate = 273 // SwampOfCalmness
+	case maps.Acheron, // 阿卡伦
+		maps.AcheronArcaWar, // 阿卡伦战役
+		maps.Debenter,
+		maps.DebenterArcaWar,
+		maps.UrkMontain,
+		maps.UrkMontainArcaWar:
+		gate = 417
+	case maps.Vulcanus: // 囚禁之岛
+		gate = 294
+	case maps.ValleyOfLoren: // 罗兰峡谷
+
+	case maps.Crywolf:
+		gate = 114 // Crywolf
+	case maps.BalgassBarracks, // 巴卡斯兵营
+		maps.BalgassRefuge: // 巴卡斯休息室
+		gate = 256
+	}
+	move.GateMoveManager.Move(gate, func(mapNumber, x, y, dir int) {
+		p.MapNumber = mapNumber
+		p.X, p.Y = x, y
+		p.TX, p.TY = x, y
+		p.Dir = dir
+	})
 	maps.MapManager.SetMapAttrStand(p.MapNumber, p.X, p.Y)
-	p.Dir = rand.Intn(8)
 	p.createFrustrum()
 }
 
@@ -477,7 +576,9 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.X, p.TX = c.X, c.X
 	p.Y, p.TY = c.Y, c.Y
 	p.Dir = c.Dir
-	p.spawnPosition()
+	if p.Level <= 10 {
+		p.spawnPosition()
+	}
 	p.Strength = c.Strength
 	p.Dexterity = c.Dexterity
 	p.Vitality = c.Vitality
