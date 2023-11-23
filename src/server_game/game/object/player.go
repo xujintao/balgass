@@ -9,7 +9,6 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
-	"github.com/xujintao/balgass/src/server_game/game/move"
 	"github.com/xujintao/balgass/src/server_game/game/shop"
 	"gorm.io/gorm"
 )
@@ -343,7 +342,7 @@ func (p *Player) spawnPosition() {
 		maps.BalgassRefuge: // 巴卡斯休息室
 		gate = 256
 	}
-	move.GateMoveManager.Move(gate, func(mapNumber, x, y, dir int) {
+	maps.GateMoveManager.Move(gate, func(mapNumber, x, y, dir int) {
 		p.MapNumber = mapNumber
 		p.X, p.Y = x, y
 		p.TX, p.TY = x, y
@@ -1062,7 +1061,7 @@ func (p *Player) GetInventory() [9]*item.Item {
 
 func (p *Player) gateMove(gateNumber int) bool {
 	success := false
-	move.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
+	maps.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
 		p.MapNumber = mapNumber
 		p.X, p.Y = x, y
 		p.TX, p.TY = x, y
@@ -1503,7 +1502,7 @@ func (p *Player) MapMove(msg *model.MsgMapMove) {
 		Result: 0,
 	}
 	defer p.push(&reply)
-	move.MapMoveManager.Move(msg.MoveIndex, func(gateNumber, level, money int) {
+	maps.MapMoveManager.Move(msg.MoveIndex, func(gateNumber, level, money int) {
 		if p.Level < level || p.Money < money {
 			return
 		}

@@ -1,10 +1,9 @@
-package move
+package maps
 
 import (
 	"encoding/xml"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
-	"github.com/xujintao/balgass/src/server_game/game/maps"
 )
 
 func init() {
@@ -101,6 +100,6 @@ func (m *gateMoveManager) Move(index int, f func(int, int, int, int)) {
 	y1 := move.StartY
 	x2 := move.EndX
 	y2 := move.EndY
-	x, y := maps.MapManager.GetMapRandomPos(mapNumber, x1, y1, x2, y2)
+	x, y := MapManager.GetMapRandomPos(mapNumber, x1, y1, x2, y2)
 	f(mapNumber, x, y, move.Direction)
 }
