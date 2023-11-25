@@ -477,7 +477,7 @@ func (msg *MsgDropInventoryItemReply) Marshal() ([]byte, error) {
 type MsgMoveItem struct {
 	SrcFlag     int
 	SrcPosition int
-	ItemFrame   [12]byte // Item *item.Item
+	Item        *item.Item // ItemFrame   [12]byte
 	DstFlag     int
 	DstPosition int
 }
@@ -509,7 +509,7 @@ func (msg *MsgMoveItem) Unmarshal(buf []byte) error {
 		return fmt.Errorf("item frame invalid [frame]%s",
 			hex.EncodeToString(data[:n]))
 	}
-	msg.ItemFrame = data
+	// msg.ItemFrame = data
 
 	// dstFlag
 	dstFlag, err := br.ReadByte()
@@ -530,16 +530,21 @@ func (msg *MsgMoveItem) Unmarshal(buf []byte) error {
 
 // pack(1)
 type MsgMoveItemReply struct {
-	Result    int // -1=failed dstFlag=success
-	Position  int
-	ItemFrame [12]byte // Item *item.Item
+	Result   int // -1=failed dstFlag=success
+	Position int
+	Item     *item.Item // ItemFrame [12]byte
 }
 
 func (msg *MsgMoveItemReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	bw.WriteByte(byte(msg.Result))
 	bw.WriteByte(byte(msg.Position))
-	bw.Write(msg.ItemFrame[:])
+	// bw.Write(msg.ItemFrame[:])
+	itemFrame, err := msg.Item.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	bw.Write(itemFrame)
 	return bw.Bytes(), nil
 }
 

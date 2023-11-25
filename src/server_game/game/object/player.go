@@ -1091,7 +1091,6 @@ func (p *Player) GetInventory() [9]*item.Item {
 func (p *Player) gateMove(gateNumber int) bool {
 	success := false
 	maps.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
-		p.clearViewport()
 		reply := model.MsgTeleportReply{
 			GateNumber: gateNumber,
 			MapNumber:  mapNumber,
@@ -1162,9 +1161,31 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	reply := model.MsgMoveItemReply{
 		Result: -1,
 	}
-	defer p.push(&reply)
-	// get source item
+	sitemDurChanged := false
+	titemDurChanged := false
 	var sitem *item.Item
+	var titem *item.Item
+	defer func() {
+		p.push(&reply)
+		if sitemDurChanged {
+			reply := model.MsgItemDurabilityReply{
+				Position:   msg.SrcPosition,
+				Durability: sitem.Durability,
+				Flag:       0,
+			}
+			p.push(&reply)
+		}
+		if titemDurChanged {
+			reply := model.MsgItemDurabilityReply{
+				Position:   msg.DstPosition,
+				Durability: titem.Durability,
+				Flag:       0,
+			}
+			p.push(&reply)
+		}
+	}()
+
+	// get source item
 	switch msg.SrcFlag {
 	case 0:
 		if msg.SrcPosition >= p.Inventory.Size {
@@ -1182,7 +1203,6 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 		return
 	}
 	// get destination item
-	var titem *item.Item
 	switch msg.DstFlag {
 	case 0:
 		if msg.DstPosition >= p.Inventory.Size {
@@ -1200,13 +1220,40 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	case 0:
 		switch msg.DstFlag {
 		case 0:
-			if titem == nil {
+			switch {
+			case titem == nil: // move
 				ok := p.Inventory.CheckFlagsForItem(msg.DstPosition, sitem)
 				if !ok {
 					return
 				}
 				p.Inventory.DropItem(msg.SrcPosition, sitem)
 				p.Inventory.GetItem(msg.DstPosition, sitem)
+				reply.Result = msg.DstFlag
+			case titem.Overlap != 0 && // overlap
+				titem.Code == sitem.Code &&
+				titem.Level == sitem.Level &&
+				titem.Durability < titem.Overlap:
+				delta := titem.Overlap - titem.Durability
+				if delta > sitem.Durability {
+					delta = sitem.Durability
+				}
+				sitem.Durability -= delta
+				sitemDurChanged = true
+				if sitem.Durability <= 0 {
+					sitem.Durability = 0
+					sitemDurChanged = false
+					p.Inventory.DropItem(msg.SrcPosition, sitem)
+					reply := model.MsgDeleteInventoryItemReply{
+						Position: msg.SrcPosition,
+						Flag:     1,
+					}
+					p.push(&reply)
+				}
+				titem.Durability += delta
+				titemDurChanged = true
+				reply.Result = -1
+			default:
+				return
 			}
 		case 2:
 			if titem == nil {
@@ -1216,6 +1263,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				}
 				p.Inventory.DropItem(msg.SrcPosition, sitem)
 				p.Warehouse.GetItem(msg.DstPosition, sitem)
+				reply.Result = msg.DstFlag
 			}
 		default:
 			return
@@ -1230,6 +1278,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				}
 				p.Warehouse.DropItem(msg.SrcPosition, sitem)
 				p.Inventory.GetItem(msg.DstPosition, sitem)
+				reply.Result = msg.DstFlag
 			}
 		case 2:
 			if titem == nil {
@@ -1239,6 +1288,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				}
 				p.Warehouse.DropItem(msg.SrcPosition, sitem)
 				p.Warehouse.GetItem(msg.DstPosition, sitem)
+				reply.Result = msg.DstFlag
 			}
 		default:
 			return
@@ -1246,9 +1296,8 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	default:
 		return
 	}
-	reply.Result = msg.DstFlag
 	reply.Position = msg.DstPosition
-	reply.ItemFrame = msg.ItemFrame
+	reply.Item = sitem
 }
 
 func (p *Player) LimitUseItem(it *item.Item) bool {
