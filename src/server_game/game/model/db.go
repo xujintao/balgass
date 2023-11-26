@@ -284,15 +284,22 @@ func (inv *Inventory) CheckFlagsForItem(position int, item *item.Item) bool {
 }
 
 func (inv *Inventory) FindFreePositionForItem(item *item.Item) int {
-	for i, v := range inv.Flags {
+	for i := range inv.Flags {
 		if i < 12 {
-			continue
-		}
-		if v {
 			continue
 		}
 		ok := inv.CheckFlagsForItem(i, item)
 		if ok {
+			return i
+		}
+		it := inv.Items[i]
+		if it == nil {
+			continue
+		}
+		if item.Overlap != 0 &&
+			item.Code == it.Code &&
+			item.Level == it.Level &&
+			item.Durability <= it.Overlap-it.Durability {
 			return i
 		}
 	}

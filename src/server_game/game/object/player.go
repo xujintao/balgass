@@ -1120,16 +1120,35 @@ func (p *Player) GetItem(msg *model.MsgGetItem) {
 	reply := model.MsgGetItemReply{
 		Result: -1,
 	}
-	defer p.push(&reply)
+	itemDurChanged := false
+	position := -1
+	var it *item.Item
+	defer func() {
+		p.push(&reply)
+		if itemDurChanged {
+			reply := model.MsgItemDurabilityReply{
+				Position:   position,
+				Durability: it.Durability,
+				Flag:       0,
+			}
+			p.push(&reply)
+		}
+	}()
 	item := maps.MapManager.PickItem(p.MapNumber, msg.Index)
 	if item == nil {
 		return
 	}
-	position := p.Inventory.FindFreePositionForItem(item)
+	position = p.Inventory.FindFreePositionForItem(item)
 	if position == -1 {
 		return
 	}
-	p.Inventory.GetItem(position, item)
+	it = p.Inventory.Items[position]
+	if it == nil {
+		p.Inventory.GetItem(position, item)
+	} else {
+		it.Durability += item.Durability
+		itemDurChanged = true
+	}
 	maps.MapManager.PopItem(p.MapNumber, msg.Index)
 	reply.Result = position
 	reply.Item = item
@@ -1499,7 +1518,20 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 	reply := model.MsgBuyItemReply{
 		Result: -1,
 	}
-	defer p.push(&reply)
+	itemDurChanged := false
+	position := -1
+	var it *item.Item
+	defer func() {
+		p.push(&reply)
+		if itemDurChanged {
+			reply := model.MsgItemDurabilityReply{
+				Position:   position,
+				Durability: it.Durability,
+				Flag:       0,
+			}
+			p.push(&reply)
+		}
+	}()
 	// validate
 	if msg.Position < 0 ||
 		msg.Position >= shop.MaxShopItemCount ||
@@ -1522,11 +1554,17 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 	if item == nil {
 		return
 	}
-	position := p.Inventory.FindFreePositionForItem(item)
+	position = p.Inventory.FindFreePositionForItem(item)
 	if position == -1 {
 		return
 	}
-	p.Inventory.GetItem(position, item)
+	it = p.Inventory.Items[position]
+	if it == nil {
+		p.Inventory.GetItem(position, item)
+	} else {
+		it.Durability += item.Durability
+		itemDurChanged = true
+	}
 	reply.Result = position
 	reply.Item = item
 }
