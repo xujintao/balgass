@@ -1240,6 +1240,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				sitem.Durability -= delta
 				sitemDurChanged = true
 				if sitem.Durability <= 0 {
+					reply.Result = msg.DstFlag
 					sitem.Durability = 0
 					sitemDurChanged = false
 					p.Inventory.DropItem(msg.SrcPosition, sitem)
@@ -1248,10 +1249,11 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 						Flag:     1,
 					}
 					p.push(&reply)
+				} else {
+					reply.Result = -1
 				}
 				titem.Durability += delta
 				titemDurChanged = true
-				reply.Result = -1
 			default:
 				return
 			}
