@@ -552,6 +552,7 @@ type objecter interface {
 	addr() string
 	Offline()
 	push(any)
+	Chat(*model.MsgChat)
 	Login(*model.MsgLogin)
 	Logout(*model.MsgLogout)
 	Hack(*model.MsgHack)

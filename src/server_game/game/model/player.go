@@ -12,6 +12,64 @@ import (
 	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
+type MsgChat struct {
+	Name string
+	Msg  string
+}
+
+func (msg *MsgChat) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// Name
+	var Name [10]byte
+	_, err := br.Read(Name[:])
+	if err != nil {
+		return err
+	}
+	utf8, err := simplifiedchinese.GBK.NewDecoder().Bytes(Name[:])
+	if err != nil {
+		return err
+	}
+	msg.Name = string(bytes.TrimRight(utf8[:], "\x00"))
+
+	// Msg
+	var Msg [90]byte
+	_, err = br.Read(Msg[:])
+	if err != nil {
+		return err
+	}
+	utf8, err = simplifiedchinese.GBK.NewDecoder().Bytes(Msg[:])
+	if err != nil {
+		return err
+	}
+	msg.Msg = string(bytes.TrimRight(utf8[:], "\x00"))
+
+	return nil
+}
+
+type MsgChatReply struct {
+	*MsgChat
+}
+
+func (msg *MsgChatReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	gbk, err := simplifiedchinese.GBK.NewEncoder().String(msg.Name)
+	if err != nil {
+		return nil, err
+	}
+	var Name [10]byte
+	copy(Name[:], gbk)
+	bw.Write(Name[:])
+	gbk, err = simplifiedchinese.GBK.NewEncoder().String(msg.Msg)
+	if err != nil {
+		return nil, err
+	}
+	var Msg [90]byte
+	copy(Msg[:], gbk)
+	bw.Write(Msg[:])
+	return bw.Bytes(), nil
+}
+
 type CreateViewportPlayer struct {
 	Index                  int
 	X                      int
@@ -1707,25 +1765,6 @@ func (msg *MsgCheckCharacterReply) Marshal() ([]byte, error) {
 	bw.WriteByte(byte(msg.Result))
 
 	return bw.Bytes(), nil
-}
-
-type MsgChat struct {
-	Name string
-	Msg  string
-}
-
-func (*MsgChat) Unmarshal([]byte) error {
-	// var buf bytes.Buffer
-	// buf.WriteByte(byte(msg.Result))
-	// var ids [2]uint8
-	// binary.BigEndian.PutUint16(ids[:], uint16(msg.ID))
-	// buf.Write(ids[:])
-	// buf.WriteString(msg.Version)
-	// return buf.Bytes(), nil
-	var msg MsgChat
-	msg.Name = "api"
-	msg.Msg = "hello world"
-	return nil
 }
 
 type MsgWhisper struct {

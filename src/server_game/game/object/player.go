@@ -356,6 +356,36 @@ func (p *Player) MuunSystem(msg *model.MsgMuunSystem) {
 	log.Println("MuunSystem placeholder")
 }
 
+func (p *Player) Chat(msg *model.MsgChat) {
+	l := len(msg.Msg)
+	if l == 0 {
+		return
+	}
+	switch {
+	case msg.Msg[0] == '!' && l > 2: // global announcement
+		return
+	case msg.Msg[0] == '/' && l > 1: // command
+		return
+	case msg.Msg[0] == '~' || msg.Msg[0] == ']': // party
+		return
+	case msg.Msg[0] == '$': // gens
+		return
+	case msg.Msg[0] == '@': //guild
+		return
+	default:
+		reply := model.MsgChatReply{MsgChat: msg}
+		p.pushViewport(&reply)
+	}
+}
+
+func (p *Player) Whisper(msg *model.MsgWhisper) {
+
+}
+
+// func (p *Player) Live(msg *model.MsgLive) {
+
+// }
+
 func (p *Player) Login(msg *model.MsgLogin) {
 	// validate msg
 	resp := model.MsgLoginReply{Result: 1}
@@ -975,18 +1005,6 @@ func (player *Player) Calc380Item() {
 	player.AddHP += player.item380Effect.Item380EffectIncMaxHP
 	player.AddSD += player.item380Effect.Item380EffectIncMaxSD
 }
-
-func (player *Player) Chat(msg *model.MsgChat) {
-	log.Println(msg.Name, msg.Msg)
-}
-
-func (player *Player) Whisper(msg *model.MsgWhisper) {
-
-}
-
-// func (player *Player) Live(msg *model.MsgLive) {
-
-// }
 
 func (player *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
 	if player.LearnSkill(msg.SkillIndex) {
