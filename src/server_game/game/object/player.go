@@ -373,13 +373,24 @@ func (p *Player) Chat(msg *model.MsgChat) {
 	case msg.Msg[0] == '@': //guild
 		return
 	default:
-		reply := model.MsgChatReply{MsgChat: msg}
+		reply := model.MsgChatReply{MsgChat: *msg}
 		p.pushViewport(&reply)
 	}
 }
 
 func (p *Player) Whisper(msg *model.MsgWhisper) {
-
+	if len(msg.Name) == 0 {
+		return
+	}
+	for _, tobj := range p.objectManager.objects[p.playerStartIndex:] {
+		if tobj.Name == msg.Name {
+			reply := model.MsgWhisperReply{}
+			reply.Name = p.Name
+			reply.Msg = msg.Msg
+			tobj.push(&reply)
+			return
+		}
+	}
 }
 
 // func (p *Player) Live(msg *model.MsgLive) {

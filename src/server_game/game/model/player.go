@@ -48,7 +48,7 @@ func (msg *MsgChat) Unmarshal(buf []byte) error {
 }
 
 type MsgChatReply struct {
-	*MsgChat
+	MsgChat
 }
 
 func (msg *MsgChatReply) Marshal() ([]byte, error) {
@@ -68,6 +68,14 @@ func (msg *MsgChatReply) Marshal() ([]byte, error) {
 	copy(Msg[:], gbk)
 	bw.Write(Msg[:])
 	return bw.Bytes(), nil
+}
+
+type MsgWhisper struct {
+	MsgChat
+}
+
+type MsgWhisperReply struct {
+	MsgChatReply
 }
 
 type CreateViewportPlayer struct {
@@ -1765,11 +1773,6 @@ func (msg *MsgCheckCharacterReply) Marshal() ([]byte, error) {
 	bw.WriteByte(byte(msg.Result))
 
 	return bw.Bytes(), nil
-}
-
-type MsgWhisper struct {
-	Name string
-	Msg  string
 }
 
 type MsgLive struct {

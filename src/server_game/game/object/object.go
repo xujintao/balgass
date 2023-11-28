@@ -553,6 +553,7 @@ type objecter interface {
 	Offline()
 	push(any)
 	Chat(*model.MsgChat)
+	Whisper(*model.MsgWhisper)
 	Login(*model.MsgLogin)
 	Logout(*model.MsgLogout)
 	Hack(*model.MsgHack)
