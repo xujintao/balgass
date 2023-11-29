@@ -78,6 +78,16 @@ type MsgWhisperReply struct {
 	MsgChatReply
 }
 
+type MsgWhisperReplyFailed struct {
+	Flag int
+}
+
+func (msg *MsgWhisperReplyFailed) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Flag))
+	return bw.Bytes(), nil
+}
+
 type CreateViewportPlayer struct {
 	Index                  int
 	X                      int

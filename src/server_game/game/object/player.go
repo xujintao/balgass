@@ -382,15 +382,21 @@ func (p *Player) Whisper(msg *model.MsgWhisper) {
 	if len(msg.Name) == 0 {
 		return
 	}
-	for _, tobj := range p.objectManager.objects[p.playerStartIndex:] {
-		if tobj.Name == msg.Name {
-			reply := model.MsgWhisperReply{}
-			reply.Name = p.Name
-			reply.Msg = msg.Msg
-			tobj.push(&reply)
-			return
-		}
+	if p.Name == msg.Name {
+		return
 	}
+	tobj := ObjectManager.GetPlayerByName(msg.Name)
+	if tobj == nil {
+		reply := model.MsgWhisperReplyFailed{
+			Flag: 0,
+		}
+		p.push(&reply)
+		return
+	}
+	reply := model.MsgWhisperReply{}
+	reply.Name = p.Name
+	reply.Msg = msg.Msg
+	tobj.push(&reply)
 }
 
 // func (p *Player) Live(msg *model.MsgLive) {

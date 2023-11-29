@@ -315,6 +315,18 @@ func (m *objectManager) GetPlayer(id int) *object {
 	return m.objects[id]
 }
 
+func (m *objectManager) GetPlayerByName(name string) *object {
+	for _, tobj := range m.objects[m.playerStartIndex:] {
+		if tobj == nil {
+			continue
+		}
+		if tobj.Name == name {
+			return tobj
+		}
+	}
+	return nil
+}
+
 func (m *objectManager) GetPlayerPercent() int {
 	return m.playerCount / m.maxPlayerCount * 100
 }
