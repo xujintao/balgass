@@ -664,7 +664,7 @@ type object struct {
 	pentagramAttackMax        int
 	pentagramAttackRate       int
 	pentagramDefense          int
-	skills                    map[int]*skill.Skill
+	skills                    skill.Skills
 	FrustrumX                 [MaxArrayFrustrum]int
 	FrustrumY                 [MaxArrayFrustrum]int
 	viewports                 [MaxViewportNum]*viewport // 主动视野
@@ -934,14 +934,14 @@ type object struct {
 
 func (obj *object) init() {
 	obj.targetNumber = -1
-	obj.initSkill()
+	// obj.initSkill()
 	obj.initViewport()
 	obj.initMessage()
 }
 
 func (obj *object) reset() {
 	obj.targetNumber = -1
-	obj.clearSkill()
+	// obj.clearSkill()
 	obj.clearViewport()
 }
 

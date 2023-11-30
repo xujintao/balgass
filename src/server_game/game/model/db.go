@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/skill"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -358,29 +359,30 @@ func (inv *Inventory) Scan(value any) error {
 }
 
 type Character struct {
-	ID                 int       `json:"id" gorm:"primarykey"`
-	AccountID          int       `json:"-" validate:"-" gorm:"not null"`
-	Position           int       `json:"position" validate:"-" gorm:"not null"`
-	Name               string    `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique;not null"`
-	Class              int       `json:"class" validate:"-" gorm:"not null"`
-	ChangeUp           int       `json:"change_up" validate:"-" gorm:"not null"`
-	Level              int       `json:"level" validate:"-" gorm:"not null"`
-	LevelUpPoint       int       `json:"level_up_point,omitempty" validate:"-" gorm:"not null"`
-	MapNumber          int       `json:"map_number,omitempty" validate:"-" gorm:"not null"`
-	X                  int       `json:"x,omitempty" validate:"-" gorm:"not null"`
-	Y                  int       `json:"y,omitempty" validate:"-" gorm:"not null"`
-	Dir                int       `json:"dir,omitempty" validate:"-" gorm:"not null"`
-	Strength           int       `json:"strength,omitempty" validate:"-" gorm:"not null"`
-	Dexterity          int       `json:"dexterity,omitempty" validate:"-" gorm:"not null"`
-	Vitality           int       `json:"vitality,omitempty" validate:"-" gorm:"not null"`
-	Energy             int       `json:"energy,omitempty" validate:"-" gorm:"not null"`
-	Leadership         int       `json:"leadership,omitempty" validate:"-" gorm:"not null"`
-	Inventory          Inventory `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;not null"`
-	InventoryExpansion int       `json:"inventory_expansion,omitempty" validate:"-" gorm:"not null"`
-	Money              int       `json:"money,omitempty" validate:"-" gorm:"not null"`
-	Experience         int       `json:"experience,omitempty" validate:"-" gorm:"not null"`
-	CreatedAt          time.Time `json:"-"`
-	UpdatedAt          time.Time `json:"-"`
+	ID                 int          `json:"id" gorm:"primarykey"`
+	AccountID          int          `json:"-" validate:"-" gorm:"not null"`
+	Position           int          `json:"position" validate:"-" gorm:"not null"`
+	Name               string       `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique;not null"`
+	Class              int          `json:"class" validate:"-" gorm:"not null"`
+	ChangeUp           int          `json:"change_up" validate:"-" gorm:"not null"`
+	Level              int          `json:"level" validate:"-" gorm:"not null"`
+	LevelUpPoint       int          `json:"level_up_point,omitempty" validate:"-" gorm:"not null"`
+	MapNumber          int          `json:"map_number,omitempty" validate:"-" gorm:"not null"`
+	X                  int          `json:"x,omitempty" validate:"-" gorm:"not null"`
+	Y                  int          `json:"y,omitempty" validate:"-" gorm:"not null"`
+	Dir                int          `json:"dir,omitempty" validate:"-" gorm:"not null"`
+	Strength           int          `json:"strength,omitempty" validate:"-" gorm:"not null"`
+	Dexterity          int          `json:"dexterity,omitempty" validate:"-" gorm:"not null"`
+	Vitality           int          `json:"vitality,omitempty" validate:"-" gorm:"not null"`
+	Energy             int          `json:"energy,omitempty" validate:"-" gorm:"not null"`
+	Leadership         int          `json:"leadership,omitempty" validate:"-" gorm:"not null"`
+	Skills             skill.Skills `json:"skills,omitempty" validate:"-" gorm:"type:jsonb"`
+	Inventory          Inventory    `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;not null"`
+	InventoryExpansion int          `json:"inventory_expansion,omitempty" validate:"-" gorm:"not null"`
+	Money              int          `json:"money,omitempty" validate:"-" gorm:"not null"`
+	Experience         int          `json:"experience,omitempty" validate:"-" gorm:"not null"`
+	CreatedAt          time.Time    `json:"-"`
+	UpdatedAt          time.Time    `json:"-"`
 }
 
 func (db *db) CreateCharacter(c *Character) error {

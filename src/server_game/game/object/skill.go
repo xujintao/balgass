@@ -16,7 +16,8 @@ func (obj *object) addSkill(index, level int) bool {
 		log.Printf("[object]%s [skill]%d already exists", obj.Name, index)
 		return false
 	}
-	obj.skills[index] = skill.SkillManager.Get(index, level, obj.skills)
+	// obj.skills[index] = skill.SkillManager.Get(index, level, obj.skills)
+	obj.skills.Get(index, level)
 	return true
 }
 

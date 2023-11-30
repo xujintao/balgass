@@ -630,6 +630,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Vitality = c.Vitality
 	p.Energy = c.Energy
 	p.Leadership = c.Leadership
+	p.skills = c.Skills
 	p.Inventory = c.Inventory
 	p.InventoryExpansion = c.InventoryExpansion
 	p.Money = c.Money
@@ -751,6 +752,7 @@ func (p *Player) SaveCharacter() {
 		Vitality:           p.Vitality,
 		Energy:             p.Energy,
 		Leadership:         p.Leadership,
+		Skills:             p.skills,
 		Inventory:          p.Inventory,
 		InventoryExpansion: p.InventoryExpansion,
 		Money:              p.Money,

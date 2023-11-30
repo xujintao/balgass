@@ -1,166 +1,114 @@
 package skill
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log"
 	"sync"
-
-	"github.com/xujintao/balgass/src/server_game/conf"
-	"github.com/xujintao/balgass/src/server_game/game/class"
 )
 
 type Skill struct {
-	Level     int
-	DamageMin int
-	DamageMax int
+	*SkillBase       `json:"-"`
+	*MasterSkillBase `json:"-"`
+	Index            int `json:"index"`
+	MasterClass      int `json:"master_class,omitempty"`
+	MasterType       int `json:"master_type,omitempty"`
+	MasterIndex      int `json:"master_index,omitempty"`
+	Level            int `json:"level,omitempty"`
+	DamageMin        int `json:"-"`
+	DamageMax        int `json:"-"`
 }
 
-func init() {
-	SkillManager.init()
-}
+type Skills map[int]*Skill
 
-var SkillManager skillManager
-
-type SkillBase struct {
-	Index          int    `xml:"Index,attr"`
-	Name           string `xml:"Name,attr"`
-	ReqLevel       int    `xml:"ReqLevel,attr"`
-	Damage         int    `xml:"Damage,attr"`
-	STID           int    `xml:"STID,attr"`
-	ManaUsage      int    `xml:"ManaUsage,attr"`
-	BPUsage        int    `xml:"BPUsage,attr"`
-	Distance       int    `xml:"Distance,attr"`
-	Delay          int    `xml:"Delay,attr"`
-	ReqStrength    int    `xml:"ReqStrength,attr"`
-	ReqDexterity   int    `xml:"ReqDexterity,attr"`
-	ReqEnergy      int    `xml:"ReqEnergy,attr"`
-	ReqCommand     int    `xml:"ReqCommand,attr"`
-	ReqMLPoint     int    `xml:"ReqMLPoint,attr"`
-	Attribute      int    `xml:"Attribute,attr"`
-	Type           int    `xml:"Type,attr"`
-	UseType        int    `xml:"UseType,attr"`
-	Brand          int    `xml:"Brand,attr"`
-	KillCount      int    `xml:"KillCount,attr"`
-	ReqStatus0     int    `xml:"ReqStatus0,attr"`
-	ReqStatus1     int    `xml:"ReqStatus1,attr"`
-	ReqStatus2     int    `xml:"ReqStatus2,attr"`
-	DarkWizard     int    `xml:"DarkWizard,attr"`
-	DarkKnight     int    `xml:"DarkKnight,attr"`
-	FairyElf       int    `xml:"FairyElf,attr"`
-	MagicGladiator int    `xml:"MagicGladiator,attr"`
-	DarkLord       int    `xml:"DarkLord,attr"`
-	Summoner       int    `xml:"Summoner,attr"`
-	RageFighter    int    `xml:"RageFighter,attr"`
-	ReqClass       [8]int `xml:"-"`
-	Rank           int    `xml:"Rank,attr"`
-	Group          int    `xml:"Group,attr"`
-	HP             int    `xml:"HP,attr"`
-	SD             int    `xml:"SD,attr"`
-	Duration       int    `xml:"Duration,attr"`
-	IconNumber     int    `xml:"IconNumber,attr"`
-	ItemSkill      int    `xml:"ItemSkill,attr"`
-	IsDamage       int    `xml:"isDamage,attr"`
-	BuffIndex      int    `xml:"BuffIndex,attr"`
-}
-
-type MasterSkillBase struct {
-	Index        int    `xml:"Index,attr"`
-	ReqMinPoint  int    `xml:"ReqMinPoint,attr"`
-	MaxPoint     int    `xml:"MaxPoint,attr"`
-	ParentSkill1 int    `xml:"ParentSkill1,attr"`
-	ParentSkill2 int    `xml:"ParentSkill2,attr"`
-	SkillID      int    `xml:"MagicNumber,attr"`
-	Name         string `xml:"Name,attr"`
-}
-
-type valueType int
-
-const (
-	valueTypeNormal = iota
-	valueTypeDamage
-	valueTypeManaInc
-)
-
-type masterSkillValue struct {
-	valueType valueType
-	values    [21]float32
-}
-
-type skillManager struct {
-	skillTable            map[int]*SkillBase
-	masterSkillTable      [8][3][9][4]*MasterSkillBase
-	masterSkillValueTable [30]masterSkillValue
-}
-
-func (m *skillManager) init() {
-	type skillListConfig struct {
-		Skills []*SkillBase `xml:"Skill"`
+func (s Skills) MarshalJSON() ([]byte, error) {
+	var skills []*Skill
+	for _, v := range s {
+		skills = append(skills, v)
 	}
-	var skillList skillListConfig
-	conf.XML(conf.PathCommon, "Skills/IGC_SkillList.xml", &skillList)
+	// sort
+	data, err := json.Marshal(skills)
+	if err != nil {
+		return nil, err
+	}
+	return data, err
+}
 
-	// array -> map
-	m.skillTable = make(map[int]*SkillBase)
-	for _, v := range skillList.Skills {
-		v.ReqClass[class.Wizard] = v.DarkWizard
-		v.ReqClass[class.Knight] = v.DarkKnight
-		v.ReqClass[class.Elf] = v.FairyElf
-		v.ReqClass[class.Magumsa] = v.MagicGladiator
-		v.ReqClass[class.DarkLord] = v.DarkLord
-		v.ReqClass[class.Summoner] = v.Summoner
-		v.ReqClass[class.RageFighter] = v.RageFighter
-		// v.ReqClass[class.GrowLancer] = v.GrowLancer
-		m.skillTable[v.Index] = v
-	}
+// func (s Skills) UnmarshalJSON(buf []byte) error {
+// 	var skills []*Skill
+// 	err := json.Unmarshal(buf, &skills)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	s = make(Skills)
+// 	for _, v := range skills {
+// 		switch {
+// 		case v.Index < 300:
+// 			base, ok := SkillManager.skillTable[v.Index]
+// 			if !ok {
+// 				log.Printf("Skills UnmarshalJSON failed skillTable [index]%d\n", v.Index)
+// 				continue
+// 			}
+// 			v.SkillBase = base
+// 		default:
+// 			index := v.MasterIndex%36 - 1
+// 			rank, pos := index>>2, index%4
+// 			base := SkillManager.masterSkillTable[v.MasterClass][v.MasterType][rank][pos]
+// 			if base == nil {
+// 				log.Printf("Skills UnmarshalJSON failed masterSkillTable [class]%d [type]%d [index]%d\n",
+// 					v.MasterClass, v.MasterType, v.MasterIndex)
+// 				continue
+// 			}
+// 			v.MasterSkillBase = base
+// 			v.Index = base.SkillID
+// 		}
+// 		s[v.Index] = v
+// 	}
+// 	return nil
+// }
 
-	type MasterSkillTree struct {
-		Class []struct {
-			ID   int `xml:"ID,attr"`
-			Tree []struct {
-				Type   int                `xml:"Type,attr"`
-				Skills []*MasterSkillBase `xml:"Skill"`
-			} `xml:"Tree"`
-		} `xml:"Class"`
+func (s Skills) Value() (driver.Value, error) {
+	return s.MarshalJSON()
+}
+
+func (s *Skills) Scan(value any) error {
+	buf, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to Scan Inventory value:", value))
 	}
-	var masterSkillTree MasterSkillTree
-	conf.XML(conf.PathCommon, "IGC_MasterSkillTree.xml", &masterSkillTree)
-	id2class := map[int]class.Class{
-		1:   class.Knight,
-		2:   class.Wizard,
-		4:   class.Elf,
-		8:   class.Summoner,
-		16:  class.Magumsa,
-		32:  class.DarkLord,
-		64:  class.RageFighter,
-		128: class.GrowLancer,
+	var skills []*Skill
+	err := json.Unmarshal(buf, &skills)
+	if err != nil {
+		return err
 	}
-	for _, class := range masterSkillTree.Class {
-		for _, tree := range class.Tree {
-			for _, skill := range tree.Skills {
-				index := skill.Index
-				index2 := index%36 - 1
-				rank := index2 >> 2
-				pos := index2 % 4
-				m.masterSkillTable[id2class[class.ID]][tree.Type][rank][pos] = skill
+	ts := make(map[int]*Skill)
+	for _, v := range skills {
+		switch {
+		case v.Index < 300:
+			base, ok := SkillManager.skillTable[v.Index]
+			if !ok {
+				log.Printf("Skills UnmarshalJSON failed skillTable [index]%d\n", v.Index)
+				continue
 			}
+			v.SkillBase = base
+		default:
+			index := v.MasterIndex%36 - 1
+			rank, pos := index>>2, index%4
+			base := SkillManager.masterSkillTable[v.MasterClass][v.MasterType][rank][pos]
+			if base == nil {
+				log.Printf("Skills UnmarshalJSON failed masterSkillTable [class]%d [type]%d [index]%d\n",
+					v.MasterClass, v.MasterType, v.MasterIndex)
+				continue
+			}
+			v.MasterSkillBase = base
+			v.Index = base.SkillID
 		}
+		ts[v.Index] = v
 	}
-	// for t := 0; t < 3; t++ {
-	// 	for rank := 0; rank < 9; rank++ {
-	// 		for pos := 0; pos < 4; pos++ {
-	// 			skill := m.table[class.Knight][t][rank][pos]
-	// 			if skill == nil {
-	// 				fmt.Print("[null]")
-	// 				fmt.Print("\t")
-	// 				continue
-	// 			}
-	// 			fmt.Print(skill.Name)
-	// 			fmt.Print("\t")
-	// 		}
-	// 		fmt.Println()
-	// 	}
-	// }
-	// fmt.Println(1)
-
-	// fulfill masterSkillVauleTable by lua script
+	*s = ts
+	return nil
 }
 
 var poolSkill = sync.Pool{
@@ -170,23 +118,23 @@ var poolSkill = sync.Pool{
 }
 
 // Get get a skill from pool
-func (m *skillManager) Get(index, level int, skills map[int]*Skill) *Skill {
+func (s Skills) Get(index, level int) *Skill {
 	damage := 0
 	if index >= 300 {
-		damage = m.getMasterSkillDamage(index, level, skills)
+		damage = s.getMasterSkillDamage(index, level)
 	} else {
-		skillBase := m.skillTable[index]
+		skillBase := SkillManager.skillTable[index]
 		damage = skillBase.Damage
 	}
-	s := poolSkill.Get().(*Skill)
-	s.Level = level
-	s.DamageMin = damage
-	s.DamageMax = damage + damage/2
-	return nil
+	ss := poolSkill.Get().(*Skill)
+	ss.Level = level
+	ss.DamageMin = damage
+	ss.DamageMax = damage + damage/2
+	return ss
 }
 
 // Put put a skill to pool
-func (m *skillManager) Put(skill *Skill) {
+func (s Skills) Put(skill *Skill) {
 	poolSkill.Put(skill)
 }
 
@@ -209,12 +157,12 @@ func (m *skillManager) Put(skill *Skill) {
 // skill 346 use 346
 // 346->344
 // 344->0
-func (m *skillManager) getMasterSkillDamage(index, level int, skills map[int]*Skill) int {
+func (s Skills) getMasterSkillDamage(index, level int) int {
 	brand1 := index
 	brand2 := index
 	for i := 0; i < 3; i++ {
 		brand1 = brand2
-		brand2 = m.skillTable[brand2].Brand
+		brand2 = SkillManager.skillTable[brand2].Brand
 		if brand2 < 300 {
 			break
 		}
@@ -222,14 +170,14 @@ func (m *skillManager) getMasterSkillDamage(index, level int, skills map[int]*Sk
 	damage := 0
 	if brand1 != index {
 		index = brand1
-		level = skills[index].Level
+		level = s[index].Level
 	}
-	stid := m.skillTable[index].STID
-	if m.masterSkillValueTable[stid].valueType == valueTypeDamage {
-		damage += int(m.masterSkillValueTable[stid].values[level])
+	stid := SkillManager.skillTable[index].STID
+	if SkillManager.masterSkillValueTable[stid].valueType == valueTypeDamage {
+		damage += int(SkillManager.masterSkillValueTable[stid].values[level])
 	}
 	if brand2 > 0 {
-		damage += m.skillTable[brand2].Damage
+		damage += SkillManager.skillTable[brand2].Damage
 	}
 	return damage
 }
