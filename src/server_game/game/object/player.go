@@ -702,6 +702,9 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.push(&model.MsgItemListReply{
 		Items: p.Inventory.Items,
 	})
+	p.push(&model.MsgSkillListReply{
+		Skills: p.skills,
+	})
 	p.loadMiniMap()
 	// go func() {
 	// 	time.Sleep(100 * time.Millisecond) // get character info
@@ -1073,12 +1076,7 @@ func (player *Player) LearnSkill(skillIndex int) bool {
 }
 
 func (player *Player) PushSkillOne() {
-	var msg model.MsgSkillList
-	player.push(&msg)
-}
-
-func (player *Player) PushSkillAll() {
-	var msg model.MsgSkillList
+	var msg model.MsgSkillListReply
 	player.push(&msg)
 }
 

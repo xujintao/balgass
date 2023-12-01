@@ -5,9 +5,11 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"sort"
 
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
+	"github.com/xujintao/balgass/src/server_game/game/skill"
 	"github.com/xujintao/balgass/src/utils"
 	"golang.org/x/text/encoding/simplifiedchinese"
 )
@@ -1732,6 +1734,27 @@ func (msg *MsgItemListReply) Marshal() ([]byte, error) {
 	return bw2.Bytes(), nil
 }
 
+type MsgSkillListReply struct {
+	Skills skill.Skills
+}
+
+func (msg *MsgSkillListReply) Marshal() ([]byte, error) {
+	var skills []*skill.Skill
+	for _, v := range msg.Skills {
+		skills = append(skills, v)
+	}
+	sort.Sort(skill.SortedSkillSlice(skills))
+	var bw bytes.Buffer
+	bw.WriteByte(byte(len(skills)))
+	bw.WriteByte(0)
+	for i, v := range skills {
+		bw.WriteByte(byte(i))
+		data, _ := v.Marshal()
+		bw.Write(data)
+	}
+	return bw.Bytes(), nil
+}
+
 type MsgMapDataLoadingOK struct{}
 
 func (msg *MsgMapDataLoadingOK) Unmarshal(buf []byte) error {
@@ -1796,9 +1819,6 @@ type MsgLive struct {
 
 type MsgLearnMasterSkill struct {
 	SkillIndex int
-}
-
-type MsgSkillList struct {
 }
 
 type MsgSkillAttack struct {

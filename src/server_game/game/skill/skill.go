@@ -1,11 +1,14 @@
 package skill
 
 import (
+	"bytes"
 	"database/sql/driver"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"sync"
 )
 
@@ -21,6 +24,29 @@ type Skill struct {
 	DamageMax        int `json:"-"`
 }
 
+type SortedSkillSlice []*Skill
+
+func (s SortedSkillSlice) Len() int {
+	return len(s)
+}
+
+func (s SortedSkillSlice) Less(i, j int) bool {
+	return s[i].Index < s[j].Index
+}
+
+func (s SortedSkillSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s *Skill) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.LittleEndian, uint16(s.Index))
+	level := s.Level << 3
+	level |= s.Index & 0x07
+	bw.WriteByte(byte(level))
+	return bw.Bytes(), nil
+}
+
 type Skills map[int]*Skill
 
 func (s Skills) MarshalJSON() ([]byte, error) {
@@ -28,7 +54,7 @@ func (s Skills) MarshalJSON() ([]byte, error) {
 	for _, v := range s {
 		skills = append(skills, v)
 	}
-	// sort
+	sort.Sort(SortedSkillSlice(skills))
 	data, err := json.Marshal(skills)
 	if err != nil {
 		return nil, err
@@ -36,54 +62,13 @@ func (s Skills) MarshalJSON() ([]byte, error) {
 	return data, err
 }
 
-// func (s Skills) UnmarshalJSON(buf []byte) error {
-// 	var skills []*Skill
-// 	err := json.Unmarshal(buf, &skills)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	s = make(Skills)
-// 	for _, v := range skills {
-// 		switch {
-// 		case v.Index < 300:
-// 			base, ok := SkillManager.skillTable[v.Index]
-// 			if !ok {
-// 				log.Printf("Skills UnmarshalJSON failed skillTable [index]%d\n", v.Index)
-// 				continue
-// 			}
-// 			v.SkillBase = base
-// 		default:
-// 			index := v.MasterIndex%36 - 1
-// 			rank, pos := index>>2, index%4
-// 			base := SkillManager.masterSkillTable[v.MasterClass][v.MasterType][rank][pos]
-// 			if base == nil {
-// 				log.Printf("Skills UnmarshalJSON failed masterSkillTable [class]%d [type]%d [index]%d\n",
-// 					v.MasterClass, v.MasterType, v.MasterIndex)
-// 				continue
-// 			}
-// 			v.MasterSkillBase = base
-// 			v.Index = base.SkillID
-// 		}
-// 		s[v.Index] = v
-// 	}
-// 	return nil
-// }
-
-func (s Skills) Value() (driver.Value, error) {
-	return s.MarshalJSON()
-}
-
-func (s *Skills) Scan(value any) error {
-	buf, ok := value.([]byte)
-	if !ok {
-		return errors.New(fmt.Sprint("Failed to Scan Inventory value:", value))
-	}
+func (s *Skills) UnmarshalJSON(buf []byte) error {
 	var skills []*Skill
 	err := json.Unmarshal(buf, &skills)
 	if err != nil {
 		return err
 	}
-	ts := make(map[int]*Skill)
+	ts := make(Skills)
 	for _, v := range skills {
 		switch {
 		case v.Index < 300:
@@ -109,6 +94,18 @@ func (s *Skills) Scan(value any) error {
 	}
 	*s = ts
 	return nil
+}
+
+func (s Skills) Value() (driver.Value, error) {
+	return s.MarshalJSON()
+}
+
+func (s *Skills) Scan(value any) error {
+	buf, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to Scan Skills value:", value))
+	}
+	return s.UnmarshalJSON(buf)
 }
 
 var poolSkill = sync.Pool{
