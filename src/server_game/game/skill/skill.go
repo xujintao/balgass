@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log"
 	"sort"
-	"sync"
 )
 
 type Skill struct {
@@ -108,31 +107,38 @@ func (s *Skills) Scan(value any) error {
 	return s.UnmarshalJSON(buf)
 }
 
-var poolSkill = sync.Pool{
-	New: func() interface{} {
-		return &Skill{}
-	},
-}
-
 // Get get a skill from pool
-func (s Skills) Get(index, level int) *Skill {
+func (s Skills) Get(index, level int) (*Skill, bool) {
+	var skillBase *SkillBase
+	var ok bool
 	damage := 0
 	if index >= 300 {
 		damage = s.getMasterSkillDamage(index, level)
 	} else {
-		skillBase := SkillManager.skillTable[index]
+		skillBase, ok = SkillManager.skillTable[index]
+		if !ok {
+			return nil, false
+		}
 		damage = skillBase.Damage
 	}
-	ss := poolSkill.Get().(*Skill)
-	ss.Level = level
-	ss.DamageMin = damage
-	ss.DamageMax = damage + damage/2
-	return ss
+	ss := &Skill{
+		SkillBase: skillBase,
+		Index:     index,
+		Level:     level,
+		DamageMin: damage,
+		DamageMax: damage + damage/2,
+	}
+	s[index] = ss
+	return ss, true
 }
 
-// Put put a skill to pool
-func (s Skills) Put(skill *Skill) {
-	poolSkill.Put(skill)
+func (s Skills) Put(index int) (*Skill, bool) {
+	ss, ok := s[index]
+	if !ok {
+		return nil, false
+	}
+	delete(s, index)
+	return ss, true
 }
 
 // example 1:

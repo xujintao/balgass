@@ -7,18 +7,25 @@ import (
 )
 
 func (obj *object) initSkill() {
-	obj.skills = make(map[int]*skill.Skill)
+	obj.skills = make(skill.Skills)
 }
 
 // AddSkill  object add skill
-func (obj *object) addSkill(index, level int) bool {
+func (obj *object) addSkill(index, level int) (*skill.Skill, bool) {
 	if _, ok := obj.skills[index]; ok {
 		log.Printf("[object]%s [skill]%d already exists", obj.Name, index)
-		return false
+		return nil, false
 	}
 	// obj.skills[index] = skill.SkillManager.Get(index, level, obj.skills)
-	obj.skills.Get(index, level)
-	return true
+	return obj.skills.Get(index, level)
+}
+
+func (obj *object) deleteSkill(index int) (*skill.Skill, bool) {
+	if _, ok := obj.skills[index]; !ok {
+		log.Printf("[object]%s [skill]%d doesn't exist", obj.Name, index)
+		return nil, false
+	}
+	return obj.skills.Put(index)
 }
 
 func (obj *object) clearSkill() {

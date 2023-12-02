@@ -934,14 +934,14 @@ type object struct {
 
 func (obj *object) init() {
 	obj.targetNumber = -1
-	// obj.initSkill()
+	obj.initSkill()
 	obj.initViewport()
 	obj.initMessage()
 }
 
 func (obj *object) reset() {
 	obj.targetNumber = -1
-	// obj.clearSkill()
+	obj.clearSkill()
 	obj.clearViewport()
 }
 

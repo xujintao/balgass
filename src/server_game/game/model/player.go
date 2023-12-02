@@ -340,27 +340,6 @@ func (msg *MsgAttackDieReply) Marshal() ([]byte, error) {
 }
 
 // pack(1)
-type MsgAttackEffectReply struct {
-	Target       int
-	HP           int
-	MaxHP        int
-	Level        int
-	IceEffect    int
-	PoisonEffect int
-}
-
-func (msg *MsgAttackEffectReply) Marshal() ([]byte, error) {
-	var bw bytes.Buffer
-	binary.Write(&bw, binary.LittleEndian, uint16(msg.Target))
-	binary.Write(&bw, binary.LittleEndian, uint32(msg.HP))
-	binary.Write(&bw, binary.LittleEndian, uint32(msg.MaxHP))
-	binary.Write(&bw, binary.LittleEndian, uint16(msg.Level))
-	bw.WriteByte(byte(msg.IceEffect))
-	bw.WriteByte(byte(msg.PoisonEffect))
-	return bw.Bytes(), nil
-}
-
-// pack(1)
 type MsgAction struct {
 	Dir    int
 	Action int
@@ -1447,19 +1426,6 @@ func (msg *MsgGetCharacterListReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-type MsgResetCharacterReply struct {
-	Reset string
-}
-
-func (msg *MsgResetCharacterReply) Marshal() ([]byte, error) {
-	var bw bytes.Buffer
-
-	// reset
-	bw.WriteString(msg.Reset)
-
-	return bw.Bytes(), nil
-}
-
 type MsgCreateCharacter struct {
 	Name  string
 	Class int
@@ -1755,6 +1721,21 @@ func (msg *MsgSkillListReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgSkillOneReply struct {
+	Flag  int // -2=add -1=delete
+	Skill *skill.Skill
+}
+
+func (msg *MsgSkillOneReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Flag))
+	bw.WriteByte(0)
+	bw.WriteByte(byte(0))
+	data, _ := msg.Skill.Marshal()
+	bw.Write(data)
+	return bw.Bytes(), nil
+}
+
 type MsgMapDataLoadingOK struct{}
 
 func (msg *MsgMapDataLoadingOK) Unmarshal(buf []byte) error {
@@ -1805,6 +1786,50 @@ func (msg *MsgCheckCharacterReply) Marshal() ([]byte, error) {
 	// result
 	bw.WriteByte(byte(msg.Result))
 
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgAttackEffectReply struct {
+	Target       int
+	HP           int
+	MaxHP        int
+	Level        int
+	IceEffect    int
+	PoisonEffect int
+}
+
+func (msg *MsgAttackEffectReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Target))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.HP))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.MaxHP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Level))
+	bw.WriteByte(byte(msg.IceEffect))
+	bw.WriteByte(byte(msg.PoisonEffect))
+	return bw.Bytes(), nil
+}
+
+type MsgResetCharacterReply struct {
+	Reset string
+}
+
+func (msg *MsgResetCharacterReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+
+	// reset
+	bw.WriteString(msg.Reset)
+
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgResetGameReply struct {
+}
+
+func (msg *MsgResetGameReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.LittleEndian, uint16(0))
 	return bw.Bytes(), nil
 }
 

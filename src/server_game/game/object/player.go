@@ -466,8 +466,8 @@ func (p *Player) Logout(msg *model.MsgLogout) {
 	case 1: // back to pick character
 		// offline to login state.\
 		p.ConnectState = ConnectStateLogged
-		p.reset()
 		p.SaveCharacter()
+		p.reset()
 	case 2: // back to pick server
 		// offline to init state.
 		// Do not close connection
@@ -625,6 +625,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	if p.Level <= 10 {
 		p.spawnPosition()
 	}
+	p.createFrustrum()
 	p.Strength = c.Strength
 	p.Dexterity = c.Dexterity
 	p.Vitality = c.Vitality
@@ -665,6 +666,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Live = true
 	p.State = 1
 
+	// p.push(&model.MsgResetGameReply{})
 	// reply
 	p.push(&model.MsgLoadCharacterReply{
 		X:                  p.X,
@@ -1029,13 +1031,6 @@ func (player *Player) Calc380Item() {
 }
 
 func (player *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
-	if player.LearnSkill(msg.SkillIndex) {
-
-	}
-}
-
-// LearnSkill object learn skill from skill stone or master point
-func (player *Player) LearnSkill(skillIndex int) bool {
 	// // validate skillIndex
 	// skillBase, ok := skill.SkillTable[skillIndex]
 	// if !ok {
@@ -1071,13 +1066,6 @@ func (player *Player) LearnSkill(skillIndex int) bool {
 	// if level == 1 {
 
 	// }
-
-	return true
-}
-
-func (player *Player) PushSkillOne() {
-	var msg model.MsgSkillListReply
-	player.push(&msg)
 }
 
 func (p *Player) processAction() {}
@@ -1374,10 +1362,8 @@ func (p *Player) LimitUseItem(it *item.Item) bool {
 
 func (p *Player) UseItem(msg *model.MsgUseItem) {
 	// validate the position
-	if msg.SrcPosition < 0 ||
-		msg.SrcPosition >= p.Inventory.Size ||
-		msg.DstPosition < 0 ||
-		msg.DstPosition >= p.Inventory.Size ||
+	if msg.SrcPosition < 0 || msg.SrcPosition >= p.Inventory.Size ||
+		msg.DstPosition < 0 || msg.DstPosition >= p.Inventory.Size ||
 		msg.SrcPosition == msg.DstPosition {
 		return
 	}
@@ -1478,18 +1464,24 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 	case it.Code == item.Code(14, 163): // Vault Expansion Certificate 仓库拓展证书
 	case it.Code == item.Code(14, 209): // Tradeable Seal 交易印章
 	case it.Code == item.Code(14, 224): // Bless of Light (Greater) 光的祝福
-	case it.Code >= item.Code(14, 263) &&
-		it.Code <= item.Code(14, 264): // Bless of Light 光之祝福
+	case it.Code >= item.Code(14, 263) && it.Code <= item.Code(14, 264): // Bless of Light 光之祝福
 	case it.KindA == item.KindASkill:
 		// (15, 18) // Scroll of Nova 星辰一怒术
 		skillIndex := it.SkillIndex
 		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
 			skillIndex += it.Level
 		}
-		if p.LearnSkill(skillIndex) {
-			p.PushSkillOne()
+		if s, ok := p.addSkill(skillIndex, 0); ok {
+			p.push(&model.MsgSkillOneReply{
+				Flag:  -2,
+				Skill: s,
+			})
+			p.Inventory.DropItem(msg.SrcPosition, it)
+			p.push(&model.MsgDeleteInventoryItemReply{
+				Position: msg.SrcPosition,
+				Flag:     1,
+			})
 		}
-
 	}
 }
 
