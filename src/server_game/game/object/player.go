@@ -707,6 +707,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.push(&model.MsgSkillListReply{
 		Skills: p.skills,
 	})
+	p.inventoryChanged()
 	p.loadMiniMap()
 	// go func() {
 	// 	time.Sleep(100 * time.Millisecond) // get character info
@@ -1038,7 +1039,7 @@ func (player *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
 	// 	return false
 	// }
 	// if skillBase.STID == 0 && skillBase.UseType == 0 {
-	// 	return player.addSkill(skillIndex, 0)
+	// 	return player.learnSkill(skillIndex, 0)
 	// }
 
 	// // validate player level
@@ -1137,6 +1138,54 @@ func (p *Player) gateMove(gateNumber int) bool {
 
 func (p *Player) Teleport(msg *model.MsgTeleport) {
 	p.gateMove(msg.GateNumber)
+}
+
+func (p *Player) inventoryChanged() {
+	// 1, change skill
+	newItemSkills := make(map[int]struct{})
+	primaryHandWeapon := p.Inventory.Items[0]
+	if primaryHandWeapon != nil && primaryHandWeapon.SkillIndex != 0 {
+		newItemSkills[primaryHandWeapon.SkillIndex] = struct{}{}
+	}
+	secondaryHandWeapon := p.Inventory.Items[1]
+	if secondaryHandWeapon != nil && secondaryHandWeapon.SkillIndex != 0 {
+		newItemSkills[secondaryHandWeapon.SkillIndex] = struct{}{}
+	}
+	oldItemSkills := make(map[int]struct{})
+	for _, s := range p.skills {
+		if s.Index < 300 && s.SkillBase.ItemSkill {
+			oldItemSkills[s.Index] = struct{}{}
+		}
+	}
+	var needLearnSkills []int
+	for newSkill := range newItemSkills {
+		if _, ok := oldItemSkills[newSkill]; !ok {
+			needLearnSkills = append(needLearnSkills, newSkill)
+		}
+	}
+	var needForgetSkills []int
+	for oldSkill := range oldItemSkills {
+		if _, ok := newItemSkills[oldSkill]; !ok {
+			needForgetSkills = append(needForgetSkills, oldSkill)
+		}
+	}
+	for _, index := range needLearnSkills {
+		if s, ok := p.learnSkill(index, 0); ok {
+			p.push(&model.MsgSkillOneReply{
+				Flag:  -2,
+				Skill: s,
+			})
+		}
+	}
+	for _, index := range needForgetSkills {
+		if s, ok := p.forgetSkill(index); ok {
+			p.push(&model.MsgSkillOneReply{
+				Flag:  -1,
+				Skill: s,
+			})
+		}
+	}
+	// 2, calculate player
 }
 
 func (p *Player) GetItem(msg *model.MsgGetItem) {
@@ -1270,6 +1319,10 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				}
 				p.Inventory.DropItem(msg.SrcPosition, sitem)
 				p.Inventory.GetItem(msg.DstPosition, sitem)
+				if msg.SrcPosition < 12 || msg.SrcPosition == 236 ||
+					msg.DstPosition < 12 || msg.DstPosition == 236 {
+					p.inventoryChanged()
+				}
 				reply.Result = msg.DstFlag
 			case titem.Overlap != 0 && // overlap
 				titem.Code == sitem.Code &&
@@ -1471,7 +1524,7 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
 			skillIndex += it.Level
 		}
-		if s, ok := p.addSkill(skillIndex, 0); ok {
+		if s, ok := p.learnSkill(skillIndex, 0); ok {
 			p.push(&model.MsgSkillOneReply{
 				Flag:  -2,
 				Skill: s,

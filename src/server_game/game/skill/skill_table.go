@@ -48,7 +48,7 @@ type SkillBase struct {
 	SD             int    `xml:"SD,attr"`
 	Duration       int    `xml:"Duration,attr"`
 	IconNumber     int    `xml:"IconNumber,attr"`
-	ItemSkill      int    `xml:"ItemSkill,attr"`
+	ItemSkill      bool   `xml:"ItemSkill,attr"`
 	IsDamage       int    `xml:"isDamage,attr"`
 	BuffIndex      int    `xml:"BuffIndex,attr"`
 }

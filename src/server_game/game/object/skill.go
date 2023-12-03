@@ -10,8 +10,7 @@ func (obj *object) initSkill() {
 	obj.skills = make(skill.Skills)
 }
 
-// AddSkill  object add skill
-func (obj *object) addSkill(index, level int) (*skill.Skill, bool) {
+func (obj *object) learnSkill(index, level int) (*skill.Skill, bool) {
 	if _, ok := obj.skills[index]; ok {
 		log.Printf("[object]%s [skill]%d already exists", obj.Name, index)
 		return nil, false
@@ -20,7 +19,7 @@ func (obj *object) addSkill(index, level int) (*skill.Skill, bool) {
 	return obj.skills.Get(index, level)
 }
 
-func (obj *object) deleteSkill(index int) (*skill.Skill, bool) {
+func (obj *object) forgetSkill(index int) (*skill.Skill, bool) {
 	if _, ok := obj.skills[index]; !ok {
 		log.Printf("[object]%s [skill]%d doesn't exist", obj.Name, index)
 		return nil, false
