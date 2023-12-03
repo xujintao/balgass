@@ -745,6 +745,9 @@ func (p *Player) loadMiniMap() {
 func (p *Player) MapDataLoadingOK(msg *model.MsgMapDataLoadingOK) {}
 
 func (p *Player) SaveCharacter() {
+	if p.Name == "" {
+		return
+	}
 	c := model.Character{
 		ChangeUp:           p.ChangeUp,
 		Level:              p.Level,
@@ -1360,6 +1363,9 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				}
 				p.Inventory.DropItem(msg.SrcPosition, sitem)
 				p.Warehouse.GetItem(msg.DstPosition, sitem)
+				if msg.SrcPosition < 12 || msg.SrcPosition == 236 {
+					p.inventoryChanged()
+				}
 				reply.Result = msg.DstFlag
 			}
 		default:
@@ -1375,6 +1381,9 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				}
 				p.Warehouse.DropItem(msg.SrcPosition, sitem)
 				p.Inventory.GetItem(msg.DstPosition, sitem)
+				if msg.DstPosition < 12 || msg.DstPosition == 236 {
+					p.inventoryChanged()
+				}
 				reply.Result = msg.DstFlag
 			}
 		case 2:

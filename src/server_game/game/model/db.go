@@ -376,8 +376,8 @@ type Character struct {
 	Vitality           int          `json:"vitality,omitempty" validate:"-" gorm:"not null"`
 	Energy             int          `json:"energy,omitempty" validate:"-" gorm:"not null"`
 	Leadership         int          `json:"leadership,omitempty" validate:"-" gorm:"not null"`
-	Skills             skill.Skills `json:"skills,omitempty" validate:"-" gorm:"type:jsonb"`
-	Inventory          Inventory    `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;not null"`
+	Skills             skill.Skills `json:"skills,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
+	Inventory          Inventory    `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
 	InventoryExpansion int          `json:"inventory_expansion,omitempty" validate:"-" gorm:"not null"`
 	Money              int          `json:"money,omitempty" validate:"-" gorm:"not null"`
 	Experience         int          `json:"experience,omitempty" validate:"-" gorm:"not null"`

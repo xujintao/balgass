@@ -940,6 +940,7 @@ func (obj *object) init() {
 }
 
 func (obj *object) reset() {
+	obj.Name = ""
 	obj.targetNumber = -1
 	obj.clearSkill()
 	obj.clearViewport()
