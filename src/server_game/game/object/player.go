@@ -88,11 +88,11 @@ type Player struct {
 	FillHP               int
 	FillHPCount          int
 	Experience           int
-	ExperienceNext       int
-	ExperienceMaster     int
-	ExperienceMasterNext int
-	masterLevel          int
-	LevelUpPoint         int
+	NextExperience       int
+	LevelPoint           int
+	MasterExperience     int
+	MasterNextExperience int
+	MasterLevel          int
 	MasterPoint          int
 	MasterPointUsed      int
 	FruitPoint           int
@@ -519,9 +519,10 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 	reply.CharacterList = make([]*model.MsgCharacter, len(chars))
 	for i, c := range chars {
 		reply.CharacterList[i] = &model.MsgCharacter{
-			Index:       c.Position,
-			Name:        c.Name,
-			Level:       c.Level,
+			Index: c.Position,
+			Name:  c.Name,
+			Level: c.Level,
+			// Level:       c.Level + c.MasterLevel,
 			Class:       c.Class,
 			ChangeUp:    c.ChangeUp,
 			Inventory:   [9]*item.Item(c.Inventory.Items[:9]),
@@ -634,7 +635,21 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Class = c.Class
 	p.ChangeUp = c.ChangeUp
 	p.Level = c.Level
-	p.LevelUpPoint = c.LevelUpPoint
+	p.LevelPoint = c.LevelPoint
+	p.Experience = c.Experience
+	p.Strength = c.Strength
+	p.Dexterity = c.Dexterity
+	p.Vitality = c.Vitality
+	p.Energy = c.Energy
+	p.Leadership = c.Leadership
+	p.MasterLevel = c.MasterLevel
+	p.MasterPoint = c.MasterPoint
+	p.MasterExperience = c.MasterExperience
+	p.MasterNextExperience = 100000
+	p.skills = c.Skills
+	p.Inventory = c.Inventory
+	p.InventoryExpansion = c.InventoryExpansion
+	p.Money = c.Money
 	p.MapNumber = c.MapNumber
 	p.X, p.TX = c.X, c.X
 	p.Y, p.TY = c.Y, c.Y
@@ -643,16 +658,6 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		p.spawnPosition()
 	}
 	p.createFrustrum()
-	p.Strength = c.Strength
-	p.Dexterity = c.Dexterity
-	p.Vitality = c.Vitality
-	p.Energy = c.Energy
-	p.Leadership = c.Leadership
-	p.skills = c.Skills
-	p.Inventory = c.Inventory
-	p.InventoryExpansion = c.InventoryExpansion
-	p.Money = c.Money
-	p.Experience = c.Experience
 
 	// calculate
 	// mc := MonsterTable[249]
@@ -690,7 +695,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		Dir:                p.Dir,
 		Experience:         p.Experience,
 		NextExperience:     p.Experience + 100,
-		LevelUpPoint:       p.LevelUpPoint,
+		LevelPoint:         p.LevelPoint,
 		Strength:           p.Strength,
 		Dexterity:          p.Dexterity,
 		Vitality:           p.Vitality,
@@ -718,6 +723,16 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// client will calculate character after receiving inventory msg
 	p.push(&model.MsgItemListReply{
 		Items: p.Inventory.Items,
+	})
+	p.push(&model.MsgMasterDataReply{
+		MasterLevel:          p.MasterLevel,
+		MasterExperience:     p.MasterExperience,
+		MasterNextExperience: p.MasterNextExperience,
+		MasterPoint:          p.MasterPoint,
+		MaxHP:                p.MaxHP + p.AddHP,
+		MaxMP:                p.MaxMP + p.AddMP,
+		MaxSD:                p.MaxSD + p.AddSD,
+		MaxAG:                p.MaxAG + p.AddAG,
 	})
 	p.push(&model.MsgSkillListReply{
 		Skills: p.skills,
@@ -769,21 +784,24 @@ func (p *Player) SaveCharacter() {
 	c := model.Character{
 		ChangeUp:           p.ChangeUp,
 		Level:              p.Level,
-		LevelUpPoint:       p.LevelUpPoint,
-		MapNumber:          p.MapNumber,
-		X:                  p.X,
-		Y:                  p.Y,
-		Dir:                p.Dir,
+		LevelPoint:         p.LevelPoint,
+		Experience:         p.Experience,
 		Strength:           p.Strength,
 		Dexterity:          p.Dexterity,
 		Vitality:           p.Vitality,
 		Energy:             p.Energy,
 		Leadership:         p.Leadership,
+		MasterLevel:        p.MasterLevel,
+		MasterPoint:        p.MasterPoint,
+		MasterExperience:   p.MasterExperience,
 		Skills:             p.skills,
 		Inventory:          p.Inventory,
 		InventoryExpansion: p.InventoryExpansion,
 		Money:              p.Money,
-		Experience:         p.Experience,
+		MapNumber:          p.MapNumber,
+		X:                  p.X,
+		Y:                  p.Y,
+		Dir:                p.Dir,
 	}
 	err := model.DB.UpdateCharacter(p.Name, &c)
 	if err != nil {
@@ -796,7 +814,7 @@ func (p *Player) getPKLevel() int {
 	return p.PKLevel
 }
 
-func (player *Player) MasterLevel() bool {
+func (player *Player) GetMasterLevel() bool {
 	return player.ChangeUp == 2 && player.Level >= conf.Common.General.MaxLevelNormal
 }
 
@@ -833,16 +851,16 @@ func (player *Player) addExcelCommonEffect(opt *item.ExcelCommon, wItem *item.It
 			wItem.Code == item.Code(13, 12) || // 雷链子
 			wItem.Code == item.Code(13, 25) || // 冰链子
 			wItem.Code == item.Code(13, 27) { // 水链子
-			player.magicDamageMin += (player.Level + player.masterLevel) / value
-			player.magicDamageMax += (player.Level + player.masterLevel) / value
+			player.magicDamageMin += (player.Level + player.MasterLevel) / value
+			player.magicDamageMax += (player.Level + player.MasterLevel) / value
 		} else {
 			if position == 0 || position == 9 {
-				player.attackDamageLeftMin += (player.Level + player.masterLevel) / value
-				player.attackDamageLeftMax += (player.Level + player.masterLevel) / value
+				player.attackDamageLeftMin += (player.Level + player.MasterLevel) / value
+				player.attackDamageLeftMax += (player.Level + player.MasterLevel) / value
 			}
 			if position == 1 || position == 9 {
-				player.attackDamageRightMin += (player.Level + player.masterLevel) / value
-				player.attackDamageRightMax += (player.Level + player.masterLevel) / value
+				player.attackDamageRightMin += (player.Level + player.MasterLevel) / value
+				player.attackDamageRightMax += (player.Level + player.MasterLevel) / value
 			}
 		}
 	case item.ExcelCommonIncExcelDamage: // 一击
@@ -1052,7 +1070,8 @@ func (player *Player) Calc380Item() {
 	player.AddSD += player.item380Effect.Item380EffectIncMaxSD
 }
 
-func (player *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
+func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
+	log.Println(msg.SkillIndex)
 	// // validate skillIndex
 	// skillBase, ok := skill.SkillTable[skillIndex]
 	// if !ok {

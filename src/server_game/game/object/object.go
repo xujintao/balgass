@@ -575,6 +575,7 @@ type objecter interface {
 	CheckCharacter(*model.MsgCheckCharacter)
 	LoadCharacter(*model.MsgLoadCharacter)
 	MapDataLoadingOK(*model.MsgMapDataLoadingOK)
+	LearnMasterSkill(*model.MsgLearnMasterSkill)
 	getPKLevel() int
 	processAction()
 	Action(*model.MsgAction)

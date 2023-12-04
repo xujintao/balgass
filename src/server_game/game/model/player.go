@@ -1587,7 +1587,7 @@ type MsgLoadCharacterReply struct {
 	Dir                int
 	Experience         int
 	NextExperience     int
-	LevelUpPoint       int
+	LevelPoint         int
 	Strength           int
 	Dexterity          int
 	Vitality           int
@@ -1619,7 +1619,7 @@ func (msg *MsgLoadCharacterReply) Marshal() ([]byte, error) {
 	bw.WriteByte(byte(msg.Dir))
 	binary.Write(&bw, binary.BigEndian, uint64(msg.Experience))
 	binary.Write(&bw, binary.BigEndian, uint64(msg.NextExperience))
-	binary.Write(&bw, binary.LittleEndian, uint16(msg.LevelUpPoint))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.LevelPoint))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.Strength))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.Dexterity))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.Vitality))
@@ -1791,6 +1791,46 @@ func (msg *MsgCheckCharacterReply) Marshal() ([]byte, error) {
 }
 
 // pack(1)
+type MsgMasterDataReply struct {
+	MasterLevel          int
+	MasterExperience     int
+	MasterNextExperience int
+	MasterPoint          int
+	MaxHP                int
+	MaxMP                int
+	MaxSD                int
+	MaxAG                int
+}
+
+func (msg *MsgMasterDataReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MasterLevel))
+	binary.Write(&bw, binary.BigEndian, uint64(msg.MasterExperience))
+	binary.Write(&bw, binary.BigEndian, uint64(msg.MasterNextExperience))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MasterPoint))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxHP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxMP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxSD))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxAG))
+	return bw.Bytes(), nil
+}
+
+type MsgLearnMasterSkill struct {
+	SkillIndex int
+}
+
+func (msg *MsgLearnMasterSkill) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	var SkillIndex uint32
+	err := binary.Read(br, binary.LittleEndian, &SkillIndex)
+	if err != nil {
+		return err
+	}
+	msg.SkillIndex = int(SkillIndex)
+	return nil
+}
+
+// pack(1)
 type MsgAttackEffectReply struct {
 	Target       int
 	HP           int
@@ -1841,10 +1881,6 @@ type MsgLive struct {
 	MagicSpeed   int
 	Version      string
 	ServerSeason int
-}
-
-type MsgLearnMasterSkill struct {
-	SkillIndex int
 }
 
 type MsgSkillAttack struct {

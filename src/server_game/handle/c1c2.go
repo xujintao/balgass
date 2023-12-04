@@ -293,6 +293,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0xF311, "SkillListReply", (*model.MsgSkillListReply)(nil)},
 	{0, false, 0xC1, 0xF311, "SkillOneReply", (*model.MsgSkillOneReply)(nil)},
 	{0, false, 0xC1, 0xF315, "CheckCharacterReply", (*model.MsgCheckCharacterReply)(nil)},
+	{0, false, 0xC1, 0xF350, "MasterDataReply", (*model.MsgMasterDataReply)(nil)},
 	{0, false, 0xC1, 0xFA05, "AttackEffectReply", (*model.MsgAttackEffectReply)(nil)},
 	{0, false, 0xC1, 0xFA0A, "ResetCharacterReply", (*model.MsgResetCharacterReply)(nil)},
 	{0, false, 0xC1, 0xFA0B, "ResetGameReply", (*model.MsgResetGameReply)(nil)},
