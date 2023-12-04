@@ -244,6 +244,22 @@ func (p *Player) push(msg any) {
 	p.msgChan <- msg
 }
 
+func (p *Player) pushMaxHP(hp, sd int) {
+	p.push(&model.MsgHPReply{Position: -2, HP: hp, SD: sd})
+}
+
+func (p *Player) pushHP(hp, sd int) {
+	p.push(&model.MsgHPReply{Position: -1, HP: hp, SD: sd})
+}
+
+func (p *Player) pushMaxMP(mp, ag int) {
+	p.push(&model.MsgMPReply{Position: -2, MP: mp, AG: ag})
+}
+
+func (p *Player) pushMP(mp, ag int) {
+	p.push(&model.MsgMPReply{Position: -1, MP: mp, AG: ag})
+}
+
 func (p *Player) spawnPosition() {
 	gate := 0
 	switch p.MapNumber {
@@ -507,6 +523,7 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 			Name:        c.Name,
 			Level:       c.Level,
 			Class:       c.Class,
+			ChangeUp:    c.ChangeUp,
 			Inventory:   [9]*item.Item(c.Inventory.Items[:9]),
 			GuildStatus: 0xFF,
 			PKLevel:     0,
@@ -639,7 +656,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 
 	// calculate
 	// mc := MonsterTable[249]
-	mc := MonsterTable[4]
+	mc := MonsterTable[10]
 	p.attackPanelMin = mc.DamageMin
 	p.attackPanelMax = mc.DamageMax
 	p.attackRate = mc.AttackRate
@@ -647,16 +664,14 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.defense = mc.Defense
 	p.magicDefense = mc.MagicDefense
 	p.defenseRate = mc.BlockRate
-	p.HP = mc.HP + p.AddHP
-	p.MaxHP = mc.HP + p.AddHP
-	// p.HP = 10000
-	// p.MaxHP = 10000
-	p.MP = mc.MP + p.AddMP
-	p.MaxMP = mc.MP + p.AddMP
-	p.SD = 100 + p.AddSD
-	p.MaxSD = 100 + p.AddSD
-	p.AG = 200 + p.AddAG
-	p.MaxAG = 200 + p.AddAG
+	p.HP = mc.HP
+	p.MaxHP = mc.HP
+	p.MP = 1000
+	p.MaxMP = 1000
+	p.SD = 100
+	p.MaxSD = 100
+	p.AG = 200
+	p.MaxAG = 200
 	p.moveSpeed = mc.MoveSpeed
 	p.attackRange = mc.AttackRange
 	p.attackType = mc.AttackType
@@ -707,8 +722,11 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.push(&model.MsgSkillListReply{
 		Skills: p.skills,
 	})
-	p.inventoryChanged()
 	p.loadMiniMap()
+	p.pushMaxHP(p.MaxHP+p.AddHP, p.MaxSD+p.AddSD)
+	p.pushHP(p.HP, p.SD)
+	p.pushMaxMP(p.MaxMP+p.AddMP, p.MaxAG+p.AddAG)
+	p.pushMP(p.MP, p.AG)
 	// go func() {
 	// 	time.Sleep(100 * time.Millisecond) // get character info
 	// 	p.actioner.PlayerAction(p.index, "SetCharacter", &model.MsgSetCharacter{Name: msg.Name})

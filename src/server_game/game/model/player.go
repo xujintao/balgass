@@ -641,7 +641,7 @@ func (msg *MsgUseItem) Unmarshal(buf []byte) error {
 
 // pack(1)
 type MsgHPReply struct {
-	Position int
+	Position int // -1=HP -2=maxHP
 	HP       int
 	Flag     int
 	SD       int
@@ -658,13 +658,14 @@ func (msg *MsgHPReply) Marshal() ([]byte, error) {
 
 // pack(1)
 type MsgMPReply struct {
-	MP int
-	AG int
+	Position int // -1=MP -2=maxMP
+	MP       int
+	AG       int
 }
 
 func (msg *MsgMPReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
-	bw.WriteByte(0xFF)
+	bw.WriteByte(byte(msg.Position))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.MP))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.AG))
 	return bw.Bytes(), nil
