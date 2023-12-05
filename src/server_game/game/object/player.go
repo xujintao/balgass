@@ -4,12 +4,14 @@ import (
 	"context"
 	"log"
 	"math"
+	"sort"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/shop"
+	"github.com/xujintao/balgass/src/server_game/game/skill"
 	"gorm.io/gorm"
 )
 
@@ -647,6 +649,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.MasterExperience = c.MasterExperience
 	p.MasterNextExperience = 100000
 	p.skills = c.Skills
+	p.skills.FillSkillData(p.Class)
 	p.Inventory = c.Inventory
 	p.InventoryExpansion = c.InventoryExpansion
 	p.Money = c.Money
@@ -734,9 +737,8 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		MaxSD:                p.MaxSD + p.AddSD,
 		MaxAG:                p.MaxAG + p.AddAG,
 	})
-	p.push(&model.MsgSkillListReply{
-		Skills: p.skills,
-	})
+	p.pushSkillList()
+	p.pushMasterSkillList()
 	p.loadMiniMap()
 	p.pushMaxHP(p.MaxHP+p.AddHP, p.MaxSD+p.AddSD)
 	p.pushHP(p.HP, p.SD)
@@ -1070,43 +1072,51 @@ func (player *Player) Calc380Item() {
 	player.AddSD += player.item380Effect.Item380EffectIncMaxSD
 }
 
+func (p *Player) pushSkillList() {
+	var skills []*skill.Skill
+	p.skills.ForEachActiveSkill(func(s *skill.Skill) {
+		skills = append(skills, s)
+	})
+	sort.Sort(skill.SortedSkillSlice(skills))
+	p.push(&model.MsgSkillListReply{Skills: skills})
+}
+
+func (p *Player) pushMasterSkillList() {
+	var skills []*model.MsgMasterSkill
+	p.skills.ForEachMasterSkill(func(index int, level int, curValue float32, nextValue float32) {
+		skills = append(skills, &model.MsgMasterSkill{
+			MasterSkillUIIndex:   index,
+			MasterSkillLevel:     level,
+			MasterSkillCurValue:  curValue,
+			MasterSkillNextValue: nextValue,
+		})
+	})
+	p.push(&model.MsgMasterSkillListReply{Skills: skills})
+}
+
 func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
-	log.Println(msg.SkillIndex)
-	// // validate skillIndex
-	// skillBase, ok := skill.SkillTable[skillIndex]
-	// if !ok {
-	// 	log.Printf("player[%s] learn invalid skill index[%d]", player.Name, skillIndex)
-	// 	return false
-	// }
-	// if skillBase.STID == 0 && skillBase.UseType == 0 {
-	// 	return player.learnSkill(skillIndex, 0)
-	// }
+	reply := model.MsgLearnMasterSkillReply{
+		Result:           0,
+		MasterPoint:      p.MasterPoint,
+		MasterSkillIndex: -1,
+	}
+	defer p.push(&reply)
 
-	// // validate player level
-	// if !player.MasterLevel() {
-	// 	return false // 2
-	// }
+	if p.MasterLevel <= 0 ||
+		p.MasterPoint <= 0 {
+		return
+	}
 
-	// // validate skill level
-	// level := 0
-	// if skill, ok := player.skills[skillIndex]; ok {
-	// 	level = skill.Level
-	// }
-	// level += skillBase.ReqMLPoint
-	// skillMaster, _ := skill.SkillMasterTable[skillIndex]
-	// if level > skillMaster.MaxPoint {
-	// 	return false // 4
-	// }
-
-	// // validate master point
-	// if player.MasterPoint < skillBase.ReqMLPoint {
-	// 	return false // 4
-	// }
-
-	// // validate new skill
-	// if level == 1 {
-
-	// }
+	p.skills.GetMaster(p.Class, msg.SkillIndex, p.MasterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
+		p.MasterPoint -= point
+		reply.Result = 1
+		reply.MasterPoint -= point
+		reply.MasterSkillUIIndex = uiIndex
+		reply.MasterSkillIndex = index
+		reply.MasterSkillLevel = level
+		reply.MasterSkillCurValue = curValue
+		reply.MasterSkillNextValue = NextValue
+	})
 }
 
 func (p *Player) processAction() {}
@@ -1210,7 +1220,7 @@ func (p *Player) inventoryChanged() {
 		}
 	}
 	for _, index := range needLearnSkills {
-		if s, ok := p.learnSkill(index, 0); ok {
+		if s, ok := p.learnSkill(index); ok {
 			p.push(&model.MsgSkillOneReply{
 				Flag:  -2,
 				Skill: s,
@@ -1570,7 +1580,7 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
 			skillIndex += it.Level
 		}
-		if s, ok := p.learnSkill(skillIndex, 0); ok {
+		if s, ok := p.learnSkill(skillIndex); ok {
 			p.push(&model.MsgSkillOneReply{
 				Flag:  -2,
 				Skill: s,

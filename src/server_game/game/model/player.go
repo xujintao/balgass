@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"sort"
 
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
@@ -1702,19 +1701,14 @@ func (msg *MsgItemListReply) Marshal() ([]byte, error) {
 }
 
 type MsgSkillListReply struct {
-	Skills skill.Skills
+	Skills []*skill.Skill
 }
 
 func (msg *MsgSkillListReply) Marshal() ([]byte, error) {
-	var skills []*skill.Skill
-	for _, v := range msg.Skills {
-		skills = append(skills, v)
-	}
-	sort.Sort(skill.SortedSkillSlice(skills))
 	var bw bytes.Buffer
-	bw.WriteByte(byte(len(skills)))
+	bw.WriteByte(byte(len(msg.Skills)))
 	bw.WriteByte(0)
-	for i, v := range skills {
+	for i, v := range msg.Skills {
 		bw.WriteByte(byte(i))
 		data, _ := v.Marshal()
 		bw.Write(data)
@@ -1828,6 +1822,51 @@ func (msg *MsgLearnMasterSkill) Unmarshal(buf []byte) error {
 	}
 	msg.SkillIndex = int(SkillIndex)
 	return nil
+}
+
+type MsgMasterSkill struct {
+	MasterSkillUIIndex   int
+	MasterSkillLevel     int
+	MasterSkillCurValue  float32
+	MasterSkillNextValue float32
+}
+
+type MsgLearnMasterSkillReply struct {
+	Result           int
+	MasterPoint      int
+	MasterSkillIndex int
+	MsgMasterSkill
+}
+
+func (msg *MsgLearnMasterSkillReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Result))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MasterPoint))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.MasterSkillUIIndex))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.MasterSkillIndex))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.MasterSkillLevel))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.MasterSkillCurValue))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.MasterSkillNextValue))
+	return bw.Bytes(), nil
+}
+
+type MsgMasterSkillListReply struct {
+	Skills []*MsgMasterSkill
+}
+
+func (msg *MsgMasterSkillListReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.Write([]byte{0, 0, 0}) // padding
+	binary.Write(&bw, binary.LittleEndian, uint32(len(msg.Skills)))
+	for _, v := range msg.Skills {
+		bw.WriteByte(byte(v.MasterSkillUIIndex))
+		bw.WriteByte(byte(v.MasterSkillLevel))
+		bw.Write([]byte{0, 0}) // padding
+		binary.Write(&bw, binary.LittleEndian, uint32(v.MasterSkillCurValue))
+		binary.Write(&bw, binary.LittleEndian, uint32(v.MasterSkillNextValue))
+		binary.Write(&bw, binary.LittleEndian, uint32(0)) // unknown field
+	}
+	return bw.Bytes(), nil
 }
 
 // pack(1)

@@ -83,13 +83,12 @@ type skillManager struct {
 }
 
 func (m *skillManager) init() {
+	// array -> map
 	type skillListConfig struct {
 		Skills []*SkillBase `xml:"Skill"`
 	}
 	var skillList skillListConfig
 	conf.XML(conf.PathCommon, "Skills/IGC_SkillList.xml", &skillList)
-
-	// array -> map
 	m.skillTable = make(map[int]*SkillBase)
 	for _, v := range skillList.Skills {
 		v.ReqClass[class.Wizard] = v.DarkWizard
@@ -103,6 +102,7 @@ func (m *skillManager) init() {
 		m.skillTable[v.Index] = v
 	}
 
+	// array -> map
 	type MasterSkillTree struct {
 		Class []struct {
 			ID   int `xml:"ID,attr"`
@@ -124,6 +124,7 @@ func (m *skillManager) init() {
 		64:  class.RageFighter,
 		128: class.GrowLancer,
 	}
+	// m.masterSkillTable = make(map[int]*MasterSkillBase)
 	for _, class := range masterSkillTree.Class {
 		for _, tree := range class.Tree {
 			for _, skill := range tree.Skills {
@@ -152,4 +153,18 @@ func (m *skillManager) init() {
 	// fmt.Println(1)
 
 	// fulfill masterSkillVauleTable by lua script
+}
+
+func (m *skillManager) getMasterSkillBase(class, index int) (*MasterSkillBase, bool) {
+	for t := 0; t < 3; t++ {
+		for rank := 0; rank < 9; rank++ {
+			for pos := 0; pos < 4; pos++ {
+				base := m.masterSkillTable[class][t][rank][pos]
+				if base != nil && base.SkillID == index {
+					return base, true
+				}
+			}
+		}
+	}
+	return nil, false
 }

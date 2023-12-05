@@ -12,15 +12,14 @@ import (
 )
 
 type Skill struct {
-	*SkillBase       `json:"-"`
-	*MasterSkillBase `json:"-"`
-	Index            int `json:"index"`
-	MasterClass      int `json:"master_class,omitempty"`
-	MasterType       int `json:"master_type,omitempty"`
-	MasterIndex      int `json:"master_index,omitempty"`
-	Level            int `json:"level,omitempty"`
-	DamageMin        int `json:"-"`
-	DamageMax        int `json:"-"`
+	*SkillBase `json:"-"`
+	Index      int     `json:"index"`
+	Level      int     `json:"level,omitempty"`
+	DamageMin  int     `json:"-"`
+	DamageMax  int     `json:"-"`
+	UIIndex    int     `json:"-"`
+	CurValue   float32 `json:"-"`
+	NextValue  float32 `json:"-"`
 }
 
 type SortedSkillSlice []*Skill
@@ -69,26 +68,12 @@ func (s *Skills) UnmarshalJSON(buf []byte) error {
 	}
 	ts := make(Skills)
 	for _, v := range skills {
-		switch {
-		case v.Index < 300:
-			base, ok := SkillManager.skillTable[v.Index]
-			if !ok {
-				log.Printf("Skills UnmarshalJSON failed skillTable [index]%d\n", v.Index)
-				continue
-			}
-			v.SkillBase = base
-		default:
-			index := v.MasterIndex%36 - 1
-			rank, pos := index>>2, index%4
-			base := SkillManager.masterSkillTable[v.MasterClass][v.MasterType][rank][pos]
-			if base == nil {
-				log.Printf("Skills UnmarshalJSON failed masterSkillTable [class]%d [type]%d [index]%d\n",
-					v.MasterClass, v.MasterType, v.MasterIndex)
-				continue
-			}
-			v.MasterSkillBase = base
-			v.Index = base.SkillID
+		skillBase, ok := SkillManager.skillTable[v.Index]
+		if !ok {
+			log.Printf("Skills UnmarshalJSON failed skillTable [index]%d\n", v.Index)
+			continue
 		}
+		v.SkillBase = skillBase
 		ts[v.Index] = v
 	}
 	*s = ts
@@ -108,28 +93,75 @@ func (s *Skills) Scan(value any) error {
 }
 
 // Get get a skill from pool
-func (s Skills) Get(index, level int) (*Skill, bool) {
-	var skillBase *SkillBase
-	var ok bool
-	damage := 0
-	if index >= 300 {
-		damage = s.getMasterSkillDamage(index, level)
-	} else {
-		skillBase, ok = SkillManager.skillTable[index]
-		if !ok {
-			return nil, false
-		}
-		damage = skillBase.Damage
+func (s Skills) Get(index int) (*Skill, bool) {
+	skillBase, ok := SkillManager.skillTable[index]
+	if !ok {
+		return nil, false
 	}
+	_, ok = s[index]
+	if ok {
+		return nil, false
+	}
+	damage := skillBase.Damage
 	ss := &Skill{
 		SkillBase: skillBase,
 		Index:     index,
-		Level:     level,
+		Level:     0,
 		DamageMin: damage,
 		DamageMax: damage + damage/2,
 	}
 	s[index] = ss
 	return ss, true
+}
+
+func (s Skills) GetMaster(class, index, point int, f func(point, uiIndex, index, level int, curValue, NextValue float32)) bool {
+	skillBase, ok := SkillManager.skillTable[index]
+	if !ok {
+		return false
+	}
+	masterSkillBase, ok := SkillManager.getMasterSkillBase(class, index)
+	if !ok {
+		return false
+	}
+	pSkill1 := masterSkillBase.ParentSkill1
+	if pSkill1 != 0 {
+		_, ok := SkillManager.skillTable[pSkill1]
+		if !ok {
+			return false
+		}
+	}
+	pSkill2 := masterSkillBase.ParentSkill2
+	if pSkill2 != 0 {
+		_, ok := SkillManager.skillTable[pSkill2]
+		if !ok {
+			return false
+		}
+	}
+	if point < masterSkillBase.ReqMinPoint {
+		return false
+	}
+	ss, ok := s[index]
+	if ok {
+		if ss.Level+masterSkillBase.ReqMinPoint > 20 {
+			return false
+		}
+		ss.Level += masterSkillBase.ReqMinPoint
+	} else {
+		ss = &Skill{
+			SkillBase: skillBase,
+			Index:     index,
+			UIIndex:   masterSkillBase.Index,
+			Level:     masterSkillBase.ReqMinPoint,
+			CurValue:  0,
+			NextValue: 0,
+		}
+		s[index] = ss
+	}
+	// if index >= 300 {
+	// 	damage = s.getMasterSkillDamage(index, level)
+	// }
+	f(masterSkillBase.ReqMinPoint, masterSkillBase.Index, index, ss.Level, ss.CurValue, ss.NextValue)
+	return true
 }
 
 func (s Skills) Put(index int) (*Skill, bool) {
@@ -183,4 +215,42 @@ func (s Skills) getMasterSkillDamage(index, level int) int {
 		damage += SkillManager.skillTable[brand2].Damage
 	}
 	return damage
+}
+
+func (s Skills) FillSkillData(class int) {
+	for _, ss := range s {
+		skillBase, ok := SkillManager.skillTable[ss.Index]
+		if !ok {
+			continue
+		}
+		switch {
+		case ss.Index < 300:
+			damage := skillBase.Damage
+			ss.DamageMin = damage
+			ss.DamageMax = damage + damage/2
+		default:
+			masterSkillBase, ok := SkillManager.getMasterSkillBase(class, ss.Index)
+			if !ok {
+				continue
+			}
+			ss.UIIndex = masterSkillBase.Index
+			ss.CurValue = 0
+			ss.NextValue = 0
+		}
+	}
+}
+
+func (s Skills) ForEachActiveSkill(f func(*Skill)) {
+	for _, ss := range s {
+		if ss.UseType == 3 {
+			continue
+		}
+		f(ss)
+	}
+}
+
+func (s Skills) ForEachMasterSkill(f func(index, level int, curValue, nextValue float32)) {
+	for _, ss := range s {
+		f(ss.UIIndex, ss.Level, ss.CurValue, ss.NextValue)
+	}
 }

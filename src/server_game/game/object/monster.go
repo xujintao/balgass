@@ -156,36 +156,36 @@ func NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 	monster.pentagramDefense = mc.PentagramDefense
 	switch {
 	case monster.attackType == 150:
-		monster.learnSkill(monster.attackType-100, 1)
+		monster.learnSkill(monster.attackType - 100)
 	case monster.attackType >= 1:
-		monster.learnSkill(monster.attackType, 1)
+		monster.learnSkill(monster.attackType)
 	}
 	switch class {
 	case 161, 181, 189, 197, 267, 275: // 昆顿
-		monster.learnSkill(1, 1)   // 毒咒
-		monster.learnSkill(17, 1)  // 能量球
-		monster.learnSkill(55, 1)  // 玄月斩
-		monster.learnSkill(200, 1) // 召唤怪
-		monster.learnSkill(201, 1) // 免疫魔攻
-		monster.learnSkill(202, 1) // 免疫物攻
+		monster.learnSkill(1)   // 毒咒
+		monster.learnSkill(17)  // 能量球
+		monster.learnSkill(55)  // 玄月斩
+		monster.learnSkill(200) // 召唤怪
+		monster.learnSkill(201) // 免疫魔攻
+		monster.learnSkill(202) // 免疫物攻
 	case 149, 179, 187, 195, 265, 273, 335: // 暗黑巫师
-		monster.learnSkill(1, 1) // 毒咒
-		// monster.learnSkill(17, 1) // 能量球
+		monster.learnSkill(1) // 毒咒
+		// monster.learnSkill(17) // 能量球
 	case 66, 73, 77: // 诅咒之王 蓝魔龙 天魔菲尼斯
 		// 163, 165, 167, 171, 173, 427: // 赤色要塞
-		monster.learnSkill(17, 1) // 能量球
+		monster.learnSkill(17) // 能量球
 	case 89, 95, 112, 118, 124, 130, 143: // 骷灵巫师
-		monster.learnSkill(3, 1)  // 掌心雷
-		monster.learnSkill(17, 1) // 能量球
+		monster.learnSkill(3)  // 掌心雷
+		monster.learnSkill(17) // 能量球
 	case 433: // 骷髅法师
-		monster.learnSkill(3, 1) // 掌心雷
+		monster.learnSkill(3) // 掌心雷
 	case 561: // 美杜莎
-		monster.learnSkill(9, 1)   // 黑龙波
-		monster.learnSkill(38, 1)  // 单毒炎
-		monster.learnSkill(237, 1) // 闪电轰顶
-		monster.learnSkill(238, 1) // 黑暗之力
+		monster.learnSkill(9)   // 黑龙波
+		monster.learnSkill(38)  // 单毒炎
+		monster.learnSkill(237) // 闪电轰顶
+		monster.learnSkill(238) // 黑暗之力
 	case 673: // 辛维斯特
-		// monster.learnSkill(622, 1) // ?
+		// monster.learnSkill(622) // ?
 	}
 	return &monster
 }

@@ -10,13 +10,13 @@ func (obj *object) initSkill() {
 	obj.skills = make(skill.Skills)
 }
 
-func (obj *object) learnSkill(index, level int) (*skill.Skill, bool) {
+func (obj *object) learnSkill(index int) (*skill.Skill, bool) {
 	if _, ok := obj.skills[index]; ok {
 		log.Printf("[object]%s [skill]%d already exists", obj.Name, index)
 		return nil, false
 	}
 	// obj.skills[index] = skill.SkillManager.Get(index, level, obj.skills)
-	return obj.skills.Get(index, level)
+	return obj.skills.Get(index)
 }
 
 func (obj *object) forgetSkill(index int) (*skill.Skill, bool) {
