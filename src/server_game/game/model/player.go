@@ -815,6 +815,29 @@ func (msg *MsgMuunSystem) Unmarshal(buf []byte) error {
 	return nil
 }
 
+type MsgStatSpec struct {
+	ID  int
+	Min int
+	Max int
+}
+
+type MsgStatSpecReply struct {
+	Options []*MsgStatSpec
+}
+
+func (msg *MsgStatSpecReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	for _, v := range msg.Options {
+		binary.Write(&bw, binary.LittleEndian, uint16(v.ID))
+		binary.Write(&bw, binary.LittleEndian, uint16(v.Min))
+		binary.Write(&bw, binary.LittleEndian, uint16(v.Max))
+	}
+	if len(msg.Options)%2 != 0 {
+		bw.Write([]byte{0, 0}) // padding
+	}
+	return bw.Bytes(), nil
+}
+
 type MsgWarehouseMoneyReply struct {
 	Result         int
 	WarehouseMoney int
@@ -1018,6 +1041,18 @@ func (msg *MsgAttackHPReply) Marshal() ([]byte, error) {
 	bw.WriteByte(byte(msg.HP >> 8))
 	bw.WriteByte(byte(msg.HP >> 16))
 	bw.WriteByte(byte(msg.HP))
+	return bw.Bytes(), nil
+}
+
+type MsgAttackSpeedReply struct {
+	AttackSpeed      int
+	SkillAttackSpeed int
+}
+
+func (msg *MsgAttackSpeedReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.AttackSpeed))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.SkillAttackSpeed))
 	return bw.Bytes(), nil
 }
 
