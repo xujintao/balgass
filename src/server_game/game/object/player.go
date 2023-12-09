@@ -670,10 +670,6 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.MaxHP = mc.HP
 	p.MP = 1000
 	p.MaxMP = 1000
-	p.SD = 100
-	p.MaxSD = 100
-	p.AG = 200
-	p.MaxAG = 200
 	p.moveSpeed = mc.MoveSpeed
 	p.attackRange = mc.AttackRange
 	p.attackType = mc.AttackType
@@ -698,14 +694,6 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		Vitality:           p.Vitality,
 		Energy:             p.Energy,
 		Leadership:         p.Leadership,
-		HP:                 p.HP,
-		MaxHP:              p.MaxHP,
-		MP:                 p.MP,
-		MaxMP:              p.MaxMP,
-		SD:                 p.SD,
-		MaxSD:              p.MaxSD,
-		AG:                 p.AG,
-		MaxAG:              p.MaxAG,
 		Money:              p.Money,
 		PKLevel:            p.PKLevel,
 		CtlCode:            0,
@@ -715,31 +703,26 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		MaxMinusPoint:      122,
 		InventoryExpansion: p.InventoryExpansion,
 	})
-
-	// calculate
-	p.calc()
+	p.loadMiniMap()
 
 	// reply inventory
-	// client will calculate character after receiving inventory msg
 	p.push(&model.MsgItemListReply{
 		Items: p.Inventory.Items,
 	})
+	// reply master data
 	p.push(&model.MsgMasterDataReply{
 		MasterLevel:          p.MasterLevel,
 		MasterExperience:     p.MasterExperience,
 		MasterNextExperience: p.MasterNextExperience,
 		MasterPoint:          p.MasterPoint,
-		MaxHP:                p.MaxHP + p.AddHP,
-		MaxMP:                p.MaxMP + p.AddMP,
-		MaxSD:                p.MaxSD + p.AddSD,
-		MaxAG:                p.MaxAG + p.AddAG,
 	})
 	p.pushSkillList()
 	p.pushMasterSkillList()
-	p.loadMiniMap()
-	p.pushMaxHP(p.MaxHP+p.AddHP, p.MaxSD+p.AddSD)
+
+	// client will calculate character after receiving inventory msg and master msg
+	// calculate
+	p.calc()
 	p.pushHP(p.HP, p.SD)
-	p.pushMaxMP(p.MaxMP+p.AddMP, p.MaxAG+p.AddAG)
 	p.pushMP(p.MP, p.AG)
 	// go func() {
 	// 	time.Sleep(100 * time.Millisecond) // get character info
@@ -765,23 +748,24 @@ func (p *Player) calc() {
 	vitality := p.Vitality + p.AddVitality
 	energy := p.Energy + p.AddEnergy
 	leadership := p.Leadership + p.AddLeadership
+	level := p.Level + p.MasterLevel
 
 	// 1. base attack
 	leftAttackMin := 0
 	leftAttackMax := 0
 	rightAttackMin := 0
 	rightAttackMax := 0
-	skillAttackMin := 0
-	skillAttackMax := 0
+	magicAttackMin := 0
+	magicAttackMax := 0
 	curseAttackMin := 0
 	curseAttackMax := 0
 	switch class.Class(p.Class) {
 	case class.Wizard:
 		formula.WizardDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.WizardMagicDamageCalc(energy, &skillAttackMin, &skillAttackMax)
+		formula.WizardMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
 	case class.Knight:
 		formula.KnightDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.KnightMagicDamageCalc(energy, &skillAttackMin, &skillAttackMax)
+		formula.KnightMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
 	case class.Elf:
 		if leftHand != nil && leftHand.KindB == item.KindBCrossbow ||
 			rightHand != nil && rightHand.KindB == item.KindBBow {
@@ -789,19 +773,19 @@ func (p *Player) calc() {
 		} else {
 			formula.ElfWithoutBowDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
 		}
-		formula.ElfMagicDamageCalc(energy, &skillAttackMin, &skillAttackMax)
+		formula.ElfMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
 	case class.Magumsa:
 		formula.GladiatorDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.GladiatorMagicDamageCalc(energy, &skillAttackMin, &skillAttackMax)
+		formula.GladiatorMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
 	case class.DarkLord:
 		formula.LordDamageCalc(strength, dexterity, vitality, energy, leadership, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.LordMagicDamageCalc(energy, &skillAttackMin, &skillAttackMax)
+		formula.LordMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
 	case class.Summoner:
 		formula.SummonerDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.SummonerMagicDamageCalc(energy, &skillAttackMin, &skillAttackMax, &curseAttackMin, &curseAttackMax)
+		formula.SummonerMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax, &curseAttackMin, &curseAttackMax)
 	case class.RageFighter:
 		formula.RageFighterDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.RageFighterMagicDamageCalc(energy, &skillAttackMin, &skillAttackMax)
+		formula.RageFighterMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
 	}
 
 	// Stat Specialization
@@ -824,10 +808,10 @@ func (p *Player) calc() {
 
 	// STAT_OPTION_INC_MAGIC_DAMAGE
 	formula.StatSpec_GetPercent(p.Class, 9, strength, dexterity, vitality, energy, leadership, &percent)
-	min = skillAttackMin * int(percent) / 100
-	max = skillAttackMax * int(percent) / 100
-	skillAttackMin += min
-	skillAttackMax += max
+	min = magicAttackMin * int(percent) / 100
+	max = magicAttackMax * int(percent) / 100
+	magicAttackMin += min
+	magicAttackMax += max
 	options = append(options, &model.MsgStatSpec{ID: 9, Min: min, Max: max})
 
 	// STAT_OPTION_INC_CURSE_DAMAGE
@@ -854,10 +838,10 @@ func (p *Player) calc() {
 	attackRatePVP := 0
 	defenseRate := 0
 	defenseRatePVP := 0
-	formula.CalcAttackSuccessRate_PvM(p.Class, strength, dexterity, leadership, p.Level+p.MasterLevel, &attackRate)
-	formula.CalcAttackSuccessRate_PvP(p.Class, dexterity, p.Level+p.MasterLevel, &attackRatePVP)
+	formula.CalcAttackSuccessRate_PvM(p.Class, strength, dexterity, leadership, level, &attackRate)
+	formula.CalcAttackSuccessRate_PvP(p.Class, dexterity, level, &attackRatePVP)
 	formula.CalcDefenseSuccessRate_PvM(p.Class, dexterity, &defenseRate)
-	formula.CalcDefenseSuccessRate_PvP(p.Class, dexterity, p.Level+p.MasterLevel, &defenseRatePVP)
+	formula.CalcDefenseSuccessRate_PvP(p.Class, dexterity, level, &defenseRatePVP)
 
 	// Stat Specialization
 	// STAT_OPTION_INC_ATTACK_RATE
@@ -886,24 +870,68 @@ func (p *Player) calc() {
 
 	// 4. speed
 	attackSpeed := 0
-	skillAttackSpeed := 0
-	formula.CalcAttackSpeed(p.Class, dexterity, &attackSpeed, &skillAttackSpeed)
+	magicAttackSpeed := 0
+	formula.CalcAttackSpeed(p.Class, dexterity, &attackSpeed, &magicAttackSpeed)
 
-	// 5 sumary
+	// ...
+
+	// 98. sd
+	sdGageConstA := conf.CommonServer.GameServerInfo.SDGageConstA
+	sdGageConstB := conf.CommonServer.GameServerInfo.SDGageConstB
+	expressionA := strength + dexterity + vitality + energy
+	if p.Class == int(class.DarkLord) {
+		expressionA += leadership
+	}
+	expressionB := level * level / sdGageConstB
+	sd := expressionA*sdGageConstA/10 + expressionB + defense
+
+	// 99. ag
+	ag := 0
+	f := func(s, d, v, e, l float32) int {
+		return int(float32(strength)*s + float32(dexterity)*d + float32(vitality)*v + float32(energy)*e + float32(leadership)*l)
+	}
+	switch class.Class(p.Class) {
+	case class.Wizard:
+		ag = f(0.2, 0.4, 0.3, 0.2, 0)
+	case class.Knight:
+		ag = f(0.15, 0.2, 0.3, 1.0, 0)
+	case class.Elf:
+		ag = f(0.3, 0.2, 0.3, 0.2, 0)
+	case class.Magumsa:
+		ag = f(0.2, 0.25, 0.3, 0.15, 0)
+	case class.DarkLord:
+		ag = f(0.3, 0.2, 0.1, 0.15, 0.3)
+	case class.Summoner:
+		ag = f(0.2, 0.25, 0.3, 0.15, 0)
+	case class.RageFighter:
+		ag = f(0.15, 0.2, 0.3, 1.0, 0)
+	}
+
+	// 100. sumary
 	p.attackPanelMin = leftAttackMin + rightAttackMin
 	p.attackPanelMax = leftAttackMax + rightAttackMax
 	p.defense = defense
 	p.attackRate = attackRate
 	p.defenseRate = defenseRate
 	p.attackSpeed = attackSpeed
+	p.MaxSD = sd
+	if p.SD > p.MaxSD+p.AddSD {
+		p.SD = p.MaxSD + p.AddSD
+	}
+	p.MaxAG = ag
+	if p.AG > p.MaxAG+p.AddAG {
+		p.AG = p.MaxAG + p.AddAG
+	}
 
 	p.push(&model.MsgStatSpecReply{
 		Options: options,
 	})
 	p.push(&model.MsgAttackSpeedReply{
 		AttackSpeed:      attackSpeed,
-		SkillAttackSpeed: skillAttackSpeed,
+		MagicAttackSpeed: magicAttackSpeed,
 	})
+	p.pushMaxHP(p.MaxHP+p.AddHP, p.MaxSD+p.AddSD)
+	p.pushMaxMP(p.MaxMP+p.AddMP, p.MaxAG+p.AddAG)
 }
 
 func (p *Player) loadMiniMap() {

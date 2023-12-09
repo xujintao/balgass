@@ -29,6 +29,8 @@ var (
 	// Common represents common config
 	Common configCommon
 
+	CommonServer configCommonServer
+
 	// ChaosBox represents chaosBox mix rate
 	ChaosBox configChaosBox
 
@@ -70,6 +72,7 @@ func init() {
 	XML(PathConfig, "IGC_ConnectMember.xml", &ConnectMember)
 	XML(PathConfig, "IGC_VipSettings.xml", &VipSystem)
 	INI(PathCommon, "IGC_Common.ini", &Common)
+	INI(path.Join(PathCommon, "../Data"), "CommonServer.cfg", &CommonServer)
 	XML(PathCommon, "IGC_ChaosBox.xml", &ChaosBox)
 	XML(PathCommon, "IGC_PetSettings.xml", &PetRing)
 	XML(PathCommon, "IGC_OffTrade.xml", &OffTrade)
@@ -368,201 +371,203 @@ type configCommon struct {
 	} `ini:"SantaVillage"`
 }
 
-type configCommon2 struct {
-	ServerType                     int     `ini:"ServerType"`
-	StalkProtocolEnable            bool    `ini:"StalkProtocol"`
-	StalkProtocolID                string  `ini:"StalkProtocolId"`
-	DisableTrashLog                bool    `ini:"DisableTrashLog"`
-	CheckSumEnable                 bool    `ini:"CheckSumCheck"`
-	ServerGroupGuildChatEnable     bool    `ini:"ServerGroupGuildChatting"`
-	ServerGroupUnionChatEnable     bool    `ini:"ServerGroupUnionChatting"`
-	CharacterCreateEnable          bool    `ini:"CreateCharacter"`
-	TradeEnable                    bool    `ini:"Trade"`
-	MultiWarehouseEnable           bool    `ini:"IsMultiWareHouse"`
-	WarehouseCount                 int     `ini:"MultiWarehouseCount"`
-	PostCommandMinLevel            int     `ini:"PostCommandMinLvl"`
-	PostCommandMoneyRequire        int     `ini:"PostCommandMoneyReq"`
-	QuestNPCTeleportTime           int     `ini:"QuestNPCTeleportTime"`
-	ItemDropPercent                int     `ini:"ItemDropPer"`
-	ItemLuckyDropPercent           int     `ini:"ItemLuckDrop"`
-	ItemExcelDropPercent           int     `ini:"ExcItemDrop"`
-	ItemSkillDropPercent           int     `ini:"ItemSkillDrop"`
-	ItemLuckyExcelDropPercent      int     `ini:"ExcItemLuckDrop"`
-	ItemExcelSkillDropPercent      int     `ini:"ExcItemSkillDrop"`
-	ZenDurationTime                int     `ini:"ZenDurationTime"`
-	ItemDurationTime               int     `ini:"ItemDisapearTime"`
-	LootingTime                    int     `ini:"LootingTime"`
-	MaxStrength                    int     `ini:"MaxStrength"`
-	MaxAgility                     int     `ini:"MaxAgility"`
-	MaxVitality                    int     `ini:"MaxVitality"`
-	MaxEnergy                      int     `ini:"MaxEnergy"`
-	MaxCommand                     int     `ini:"MaxCommand"`
-	ItemSerialCheckEnable          bool    `ini:"ItemSerialCheck"`
-	ItemSerial0CheckEnable         bool    `ini:"ItemSerialZeroCheck"`
-	HackUserKickEnable             bool    `ini:"DisconnectHackUser"`
-	HackUserKickCount              int     `ini:"DetectedHackKickCount"`
-	PacketHackCheckDisable         bool    `ini:"IsIgnorePacketHackDetect"`
-	PenetrationSkillCheckEnable    bool    `ini:"EnableCheckPenetrationSkill"`
-	SpeedHackCheckEnable           bool    `ini:"CheckSpeedHack"`
-	SpeedHackPenaltyEnable         bool    `ini:"SpeedHackPenalty"`
-	SkillDistanceCheckEnable       bool    `ini:"SkillDistanceCheck"`
-	SkillDistanceCheckTemp         int     `ini:"SkillDistanceCheckTemp"`
-	SkillDistanceKickEnable        bool    `ini:"SkillDistanceKick"`
-	SKillDistanceKickCount         int     `ini:"SkillDistanceKickCount"`
-	SkillDistanceKickCheckTime     int     `ini:"SkillDistanceKickCheckTime"`
-	LevelPoint5                    int     `ini:"LevelUpPointNormal"`
-	LevelPoint7                    int     `ini:"LevelUpPointMGDL"`
-	AutoRecuperationEnable         bool    `ini:"UseCharacterAutoRecuperationSystem"`
-	AutoRecuperationLevelLimit     int     `ini:"CharacterRecuperationMaxLevel"`
-	PersonalShopEnable             bool    `ini:"PersonalShopOpen"`
-	ItemRingTransformDropEnable    bool    `ini:"IsItemDropRingOfTransform"`
-	ItemRingTransformDropRate      int     `ini:"ItemDropRingOfTransform"`
-	BattleSoccerEnable             bool    `ini:"EnableBattleSoccer"`
-	LuckyCoinDropRate              int     `ini:"LuckyCoinDrop"`
-	Party2ExpBonus                 int     `ini:"NormalParty2ExpBonus"`
-	Party3ExpBonus                 int     `ini:"NormalParty3ExpBonus"`
-	Party4ExpBonus                 int     `ini:"NormalParty4ExpBonus"`
-	Party5ExpBonus                 int     `ini:"NormalParty5ExpBonus"`
-	Party2ExpBonusSet              int     `ini:"SetParty2ExpBonus"`
-	Party3ExpBonusSet              int     `ini:"SetParty3ExpBonus"`
-	Party4ExpBonusSet              int     `ini:"SetParty4ExpBonus"`
-	Party5ExpBonusSet              int     `ini:"SetParty5ExpBonus"`
-	ShadowPhantomLevelLimit        int     `ini:"ShadowPhantomMaxLevel"`
-	ItemFenrirDropEnable           bool    `ini:"FenrirStuffItemDrop"`
-	ItemFenrir01DropLevelMin       int     `ini:"FenrirStuff_01_DropLv_Min"`
-	ItemFenrir01DropLevelMax       int     `ini:"FenrirStuff_01_DropLv_Max"`
-	ItemFenrir01DropMap            int     `ini:"FenrirStuff_01_DropMap"`
-	ItemFenrir01DropRate           int     `ini:"FenrirStuff_01_DropRate"`
-	ItemFenrir02DropLevelMin       int     `ini:"FenrirStuff_02_DropLv_Min"`
-	ItemFenrir02DropLevelMax       int     `ini:"FenrirStuff_02_DropLv_Max"`
-	ItemFenrir02DropMap            int     `ini:"FenrirStuff_02_DropMap"`
-	ItemFenrir02DropRate           int     `ini:"FenrirStuff_02_DropRate"`
-	ItemFenrir03DropLevelMin       int     `ini:"FenrirStuff_03_DropLv_Min"`
-	ItemFenrir03DropLevelMax       int     `ini:"FenrirStuff_03_DropLv_Max"`
-	ItemFenrir03DropMap            int     `ini:"FenrirStuff_03_DropMap"`
-	ItemFenrir03DropRate           int     `ini:"FenrirStuff_03_DropRate"`
-	ItemFenrirRepairRate           int     `ini:"FenrirRepairRate"`
-	ItemFenrirDefaultMaxDurSmall   int     `ini:"FenrirDefaultMaxDurSmall"`
-	ItemFenrirElfMaxDurSmall       int     `ini:"FenrirElfMaxDurSmall"`
-	ItemFenrir01LevelMinRate       int     `ini:"Fenrir_01Level_MixRate"`
-	ItemFenrir02LevelMinRate       int     `ini:"Fenrir_02Level_MixRate"`
-	ItemFenrir03LevelMinRate       int     `ini:"Fenrir_03Level_MixRate"`
-	ItemDarkLordDropEnable         bool    `ini:"IsDropDarkLordItem"`
-	ItemDarkSpiritAddExperience    float32 `ini:"DarkSpiritAddExperience"`
-	ItemLochFeatherDropRate        int     `ini:"SleeveOfLordDropRate"` // 洛克之羽
-	ItemLochFeatherDropLevel       int     `ini:"SleeveOfLordDropLevel"`
-	ItemSpiritOfDarkHorseDropRate  int     `ini:"SoulOfDarkHorseDropRate"` // 黑马王
-	ItemSpiritOfDarkHorseDropLevel int     `ini:"SoulOfDarkHorseDropLevel"`
-	ItemSpiritOfDarkRavenDropRate  int     `ini:"SoulOfDarkSpiritDropRate"` // 天鹰
-	ItemSpiritOfDarkRavenDropLevel int     `ini:"SoulOfDarkSpiritDropLevel"`
+type configCommonServer struct {
+	GameServerInfo struct {
+		ServerType                     int     `ini:"ServerType"`
+		StalkProtocolEnable            bool    `ini:"StalkProtocol"`
+		StalkProtocolID                string  `ini:"StalkProtocolId"`
+		DisableTrashLog                bool    `ini:"DisableTrashLog"`
+		CheckSumEnable                 bool    `ini:"CheckSumCheck"`
+		ServerGroupGuildChatEnable     bool    `ini:"ServerGroupGuildChatting"`
+		ServerGroupUnionChatEnable     bool    `ini:"ServerGroupUnionChatting"`
+		CharacterCreateEnable          bool    `ini:"CreateCharacter"`
+		TradeEnable                    bool    `ini:"Trade"`
+		MultiWarehouseEnable           bool    `ini:"IsMultiWareHouse"`
+		WarehouseCount                 int     `ini:"MultiWarehouseCount"`
+		PostCommandMinLevel            int     `ini:"PostCommandMinLvl"`
+		PostCommandMoneyRequire        int     `ini:"PostCommandMoneyReq"`
+		QuestNPCTeleportTime           int     `ini:"QuestNPCTeleportTime"`
+		ItemDropPercent                int     `ini:"ItemDropPer"`
+		ItemLuckyDropPercent           int     `ini:"ItemLuckDrop"`
+		ItemExcelDropPercent           int     `ini:"ExcItemDrop"`
+		ItemSkillDropPercent           int     `ini:"ItemSkillDrop"`
+		ItemLuckyExcelDropPercent      int     `ini:"ExcItemLuckDrop"`
+		ItemExcelSkillDropPercent      int     `ini:"ExcItemSkillDrop"`
+		ZenDurationTime                int     `ini:"ZenDurationTime"`
+		ItemDurationTime               int     `ini:"ItemDisapearTime"`
+		LootingTime                    int     `ini:"LootingTime"`
+		MaxStrength                    int     `ini:"MaxStrength"`
+		MaxAgility                     int     `ini:"MaxAgility"`
+		MaxVitality                    int     `ini:"MaxVitality"`
+		MaxEnergy                      int     `ini:"MaxEnergy"`
+		MaxCommand                     int     `ini:"MaxCommand"`
+		ItemSerialCheckEnable          bool    `ini:"ItemSerialCheck"`
+		ItemSerial0CheckEnable         bool    `ini:"ItemSerialZeroCheck"`
+		HackUserKickEnable             bool    `ini:"DisconnectHackUser"`
+		HackUserKickCount              int     `ini:"DetectedHackKickCount"`
+		PacketHackCheckDisable         bool    `ini:"IsIgnorePacketHackDetect"`
+		PenetrationSkillCheckEnable    bool    `ini:"EnableCheckPenetrationSkill"`
+		SpeedHackCheckEnable           bool    `ini:"CheckSpeedHack"`
+		SpeedHackPenaltyEnable         bool    `ini:"SpeedHackPenalty"`
+		SkillDistanceCheckEnable       bool    `ini:"SkillDistanceCheck"`
+		SkillDistanceCheckTemp         int     `ini:"SkillDistanceCheckTemp"`
+		SkillDistanceKickEnable        bool    `ini:"SkillDistanceKick"`
+		SKillDistanceKickCount         int     `ini:"SkillDistanceKickCount"`
+		SkillDistanceKickCheckTime     int     `ini:"SkillDistanceKickCheckTime"`
+		LevelPoint5                    int     `ini:"LevelUpPointNormal"`
+		LevelPoint7                    int     `ini:"LevelUpPointMGDL"`
+		AutoRecuperationEnable         bool    `ini:"UseCharacterAutoRecuperationSystem"`
+		AutoRecuperationLevelLimit     int     `ini:"CharacterRecuperationMaxLevel"`
+		PersonalShopEnable             bool    `ini:"PersonalShopOpen"`
+		ItemRingTransformDropEnable    bool    `ini:"IsItemDropRingOfTransform"`
+		ItemRingTransformDropRate      int     `ini:"ItemDropRingOfTransform"`
+		BattleSoccerEnable             bool    `ini:"EnableBattleSoccer"`
+		LuckyCoinDropRate              int     `ini:"LuckyCoinDrop"`
+		Party2ExpBonus                 int     `ini:"NormalParty2ExpBonus"`
+		Party3ExpBonus                 int     `ini:"NormalParty3ExpBonus"`
+		Party4ExpBonus                 int     `ini:"NormalParty4ExpBonus"`
+		Party5ExpBonus                 int     `ini:"NormalParty5ExpBonus"`
+		Party2ExpBonusSet              int     `ini:"SetParty2ExpBonus"`
+		Party3ExpBonusSet              int     `ini:"SetParty3ExpBonus"`
+		Party4ExpBonusSet              int     `ini:"SetParty4ExpBonus"`
+		Party5ExpBonusSet              int     `ini:"SetParty5ExpBonus"`
+		ShadowPhantomLevelLimit        int     `ini:"ShadowPhantomMaxLevel"`
+		ItemFenrirDropEnable           bool    `ini:"FenrirStuffItemDrop"`
+		ItemFenrir01DropLevelMin       int     `ini:"FenrirStuff_01_DropLv_Min"`
+		ItemFenrir01DropLevelMax       int     `ini:"FenrirStuff_01_DropLv_Max"`
+		ItemFenrir01DropMap            int     `ini:"FenrirStuff_01_DropMap"`
+		ItemFenrir01DropRate           int     `ini:"FenrirStuff_01_DropRate"`
+		ItemFenrir02DropLevelMin       int     `ini:"FenrirStuff_02_DropLv_Min"`
+		ItemFenrir02DropLevelMax       int     `ini:"FenrirStuff_02_DropLv_Max"`
+		ItemFenrir02DropMap            int     `ini:"FenrirStuff_02_DropMap"`
+		ItemFenrir02DropRate           int     `ini:"FenrirStuff_02_DropRate"`
+		ItemFenrir03DropLevelMin       int     `ini:"FenrirStuff_03_DropLv_Min"`
+		ItemFenrir03DropLevelMax       int     `ini:"FenrirStuff_03_DropLv_Max"`
+		ItemFenrir03DropMap            int     `ini:"FenrirStuff_03_DropMap"`
+		ItemFenrir03DropRate           int     `ini:"FenrirStuff_03_DropRate"`
+		ItemFenrirRepairRate           int     `ini:"FenrirRepairRate"`
+		ItemFenrirDefaultMaxDurSmall   int     `ini:"FenrirDefaultMaxDurSmall"`
+		ItemFenrirElfMaxDurSmall       int     `ini:"FenrirElfMaxDurSmall"`
+		ItemFenrir01LevelMinRate       int     `ini:"Fenrir_01Level_MixRate"`
+		ItemFenrir02LevelMinRate       int     `ini:"Fenrir_02Level_MixRate"`
+		ItemFenrir03LevelMinRate       int     `ini:"Fenrir_03Level_MixRate"`
+		ItemDarkLordDropEnable         bool    `ini:"IsDropDarkLordItem"`
+		ItemDarkSpiritAddExperience    float32 `ini:"DarkSpiritAddExperience"`
+		ItemLochFeatherDropRate        int     `ini:"SleeveOfLordDropRate"` // 洛克之羽
+		ItemLochFeatherDropLevel       int     `ini:"SleeveOfLordDropLevel"`
+		ItemSpiritOfDarkHorseDropRate  int     `ini:"SoulOfDarkHorseDropRate"` // 黑马王
+		ItemSpiritOfDarkHorseDropLevel int     `ini:"SoulOfDarkHorseDropLevel"`
+		ItemSpiritOfDarkRavenDropRate  int     `ini:"SoulOfDarkSpiritDropRate"` // 天鹰
+		ItemSpiritOfDarkRavenDropLevel int     `ini:"SoulOfDarkSpiritDropLevel"`
 
-	// SD
-	ShieldSystemEnable          bool `ini:"ShieldSystemOn"` // SD is short for Shield
-	DamageDivideSDRate          int  `ini:"DamageDevideToSD"`
-	DamageDivideHPRate          int  `ini:"DamageDevideToHP"`
-	AttackSuccessRateOption     int  `ini:"SuccessAttackRateOption"`
-	SDChargingOption            int  `ini:"SDChargingOption"`
-	ConstNumberOfShieldPoint    int  `ini:"ConstNumberOfShieldPoint"`
-	SDAutoRefillEnable          bool `ini:"ShieldAutoRefillOn"`
-	SDAutoRefillSafeZoneEnable  bool `ini:"ShieldAutoRefillOnSafeZone"`
-	CompoundPotionDropEnable    bool `ini:"CompoundPotionDropOn"` // 生命圣水
-	CompoundPotion1DropRate     int  `ini:"CompoundPotionLv1DropRate"`
-	CompoundPotion1DropLevel    int  `ini:"CompoundPotionLv1DropLevel"`
-	CompoundPotion2DropRate     int  `ini:"CompoundPotionLv2DropRate"`
-	CompoundPotion2DropLevel    int  `ini:"CompoundPotionLv2DropLevel"`
-	CompoundPotion3DropRate     int  `ini:"CompoundPotionLv3DropRate"`
-	CompoundPotion3DropLevel    int  `ini:"CompoundPotionLv3DropLevel"`
-	ShieldComboMissOptionEnable bool `ini:"ShieldComboMissOptionOn"`       // ?
-	SDPotion1MixRate            int  `ini:"ShiledPotionLv1MixSuccessRate"` // 防护药水
-	SDPotion1MixMoney           int  `ini:"ShieldPotionLv1MixMoney"`
-	SDPotion2MixRate            int  `ini:"ShiledPotionLv2MixSuccessRate"`
-	SDPotion2MixMoney           int  `ini:"ShieldPotionLv2MixMoney"`
-	SDPotion3MixRate            int  `ini:"ShiledPotionLv3MixSuccessRate"`
-	SDPotion3MixMoney           int  `ini:"ShieldPotionLv3MixMoney"`
-	SDGageConstA                int  `ini:"ShieldGageConstA"` // point*1.2
-	SDGageConstB                int  `ini:"ShieldGageConstB"` // level*level/30
+		// SD
+		ShieldSystemEnable          bool `ini:"ShieldSystemOn"` // SD is short for Shield
+		DamageDivideSDRate          int  `ini:"DamageDevideToSD"`
+		DamageDivideHPRate          int  `ini:"DamageDevideToHP"`
+		AttackSuccessRateOption     int  `ini:"SuccessAttackRateOption"`
+		SDChargingOption            int  `ini:"SDChargingOption"`
+		ConstNumberOfShieldPoint    int  `ini:"ConstNumberOfShieldPoint"`
+		SDAutoRefillEnable          bool `ini:"ShieldAutoRefillOn"`
+		SDAutoRefillSafeZoneEnable  bool `ini:"ShieldAutoRefillOnSafeZone"`
+		CompoundPotionDropEnable    bool `ini:"CompoundPotionDropOn"` // 生命圣水
+		CompoundPotion1DropRate     int  `ini:"CompoundPotionLv1DropRate"`
+		CompoundPotion1DropLevel    int  `ini:"CompoundPotionLv1DropLevel"`
+		CompoundPotion2DropRate     int  `ini:"CompoundPotionLv2DropRate"`
+		CompoundPotion2DropLevel    int  `ini:"CompoundPotionLv2DropLevel"`
+		CompoundPotion3DropRate     int  `ini:"CompoundPotionLv3DropRate"`
+		CompoundPotion3DropLevel    int  `ini:"CompoundPotionLv3DropLevel"`
+		ShieldComboMissOptionEnable bool `ini:"ShieldComboMissOptionOn"`       // ?
+		SDPotion1MixRate            int  `ini:"ShiledPotionLv1MixSuccessRate"` // 防护药水
+		SDPotion1MixMoney           int  `ini:"ShieldPotionLv1MixMoney"`
+		SDPotion2MixRate            int  `ini:"ShiledPotionLv2MixSuccessRate"`
+		SDPotion2MixMoney           int  `ini:"ShieldPotionLv2MixMoney"`
+		SDPotion3MixRate            int  `ini:"ShiledPotionLv3MixSuccessRate"`
+		SDPotion3MixMoney           int  `ini:"ShieldPotionLv3MixMoney"`
+		SDGageConstA                int  `ini:"ShieldGageConstA"` // point*1.2
+		SDGageConstB                int  `ini:"ShieldGageConstB"` // level*level/30
 
-	// Kalima event
-	KundunRefillHPSec   int `ini:"KundunRefillHPSec"`
-	KundunRefillHP      int `ini:"KundunRefillHP"`
-	KundunRefillHPTime  int `ini:"KundunRefillTime"`
-	KundunHPLogSaveTime int `ini:"KundunHPLogSaveTime"`
-	KundunMarkDropRate  int `ini:"KundunMarkDropRate"`
+		// Kalima event
+		KundunRefillHPSec   int `ini:"KundunRefillHPSec"`
+		KundunRefillHP      int `ini:"KundunRefillHP"`
+		KundunRefillHPTime  int `ini:"KundunRefillTime"`
+		KundunHPLogSaveTime int `ini:"KundunHPLogSaveTime"`
+		KundunMarkDropRate  int `ini:"KundunMarkDropRate"`
 
-	// Red Dragon Invasion event
-	Event1ItemDropTodayMax     int `ini:"Event1ItemDropTodayMax"`
-	Event1ItemDropTodayPercent int `ini:"Event1ItemDropTodayPercent"`
+		// Red Dragon Invasion event
+		Event1ItemDropTodayMax     int `ini:"Event1ItemDropTodayMax"`
+		Event1ItemDropTodayPercent int `ini:"Event1ItemDropTodayPercent"`
 
-	// Fire Cracker event
-	FireCrackerEventEnable bool `ini:"FireCrackerEvent"`
-	FireCrackerDropRate    int  `ini:"FireCrackerDropRate"`
+		// Fire Cracker event
+		FireCrackerEventEnable bool `ini:"FireCrackerEvent"`
+		FireCrackerDropRate    int  `ini:"FireCrackerDropRate"`
 
-	// Medals event
-	MedalEventEnable    bool `ini:"MedalEvent"`
-	MedalSilverDropRate int  `ini:"SilverMedalDropRate"`
-	MedalGoldDropRate   int  `ini:"GoldMedalDropRate"`
+		// Medals event
+		MedalEventEnable    bool `ini:"MedalEvent"`
+		MedalSilverDropRate int  `ini:"SilverMedalDropRate"`
+		MedalGoldDropRate   int  `ini:"GoldMedalDropRate"`
 
-	// Christmas event
-	NPCChristmasEnable bool `ini:"MerryXMasTalkNpc"`
-	NPCNewYearEnable   bool `ini:"HappyNewYearTalkNpc"`
+		// Christmas event
+		NPCChristmasEnable bool `ini:"MerryXMasTalkNpc"`
+		NPCNewYearEnable   bool `ini:"HappyNewYearTalkNpc"`
 
-	// Halloween event 万圣节
-	HalloweenEventEnable bool `ini:"HallowinEventOn"`
-	LuckyPumpkinDropRate int  `ini:"HallowinEventPumpkinOfLuckDropRate"`
+		// Halloween event 万圣节
+		HalloweenEventEnable bool `ini:"HallowinEventOn"`
+		LuckyPumpkinDropRate int  `ini:"HallowinEventPumpkinOfLuckDropRate"`
 
-	// Heart Of love event
-	HeartOfLoveEventEnable bool `ini:"HeartOfLoveEvent"`
-	HeartOfLoveDropRate    int  `ini:"HeartOfLoveDropRate"`
+		// Heart Of love event
+		HeartOfLoveEventEnable bool `ini:"HeartOfLoveEvent"`
+		HeartOfLoveDropRate    int  `ini:"HeartOfLoveDropRate"`
 
-	// DarkLord heart event
-	CondorFlameDropRate int `ini:"CondorFlameDropRate"` // 神鹰火种
+		// DarkLord heart event
+		CondorFlameDropRate int `ini:"CondorFlameDropRate"` // 神鹰火种
 
-	// CherryBlossom event 樱花活动
-	CherryBlossomEventEnable bool `ini:"CherryBlossomEventOn"`
-	CherryBlossomBoxDropRate int  `ini:"CherryBlossomEventItemDropRate"`
+		// CherryBlossom event 樱花活动
+		CherryBlossomEventEnable bool `ini:"CherryBlossomEventOn"`
+		CherryBlossomBoxDropRate int  `ini:"CherryBlossomEventItemDropRate"`
 
-	// CandyBox event
-	CandyBoxEventEnable   bool `ini:"CandyBoxEvent"`
-	CandyPinkDropLevelMin int  `ini:"LightPurpleCandyBoxDropLv_Min"`
-	CandyPinkDropLevelMax int  `ini:"LightPurpleCandyBoxDropLv_Max"`
-	CandyPinkDropRate     int  `ini:"LightPurpleCandyBoxDropRate"`
-	CandyRedDropLevelMin  int  `ini:"VermilionCandyBoxDropLv_Min"`
-	CandyRedDropLevelMax  int  `ini:"VermilionCandyBoxDropLv_Max"`
-	CandyRedDropRate      int  `ini:"VermilionCandyBoxDropRate"`
-	CandyBlueDropLevelMin int  `ini:"DeepBlueCandyBoxDropLv_Min"`
-	CandyBlueDropLevelMax int  `ini:"DeepBlueCandyBoxDropLv_Max"`
-	CandyBlueDropRate     int  `ini:"DeepBlueCandyBoxDropRate"`
+		// CandyBox event
+		CandyBoxEventEnable   bool `ini:"CandyBoxEvent"`
+		CandyPinkDropLevelMin int  `ini:"LightPurpleCandyBoxDropLv_Min"`
+		CandyPinkDropLevelMax int  `ini:"LightPurpleCandyBoxDropLv_Max"`
+		CandyPinkDropRate     int  `ini:"LightPurpleCandyBoxDropRate"`
+		CandyRedDropLevelMin  int  `ini:"VermilionCandyBoxDropLv_Min"`
+		CandyRedDropLevelMax  int  `ini:"VermilionCandyBoxDropLv_Max"`
+		CandyRedDropRate      int  `ini:"VermilionCandyBoxDropRate"`
+		CandyBlueDropLevelMin int  `ini:"DeepBlueCandyBoxDropLv_Min"`
+		CandyBlueDropLevelMax int  `ini:"DeepBlueCandyBoxDropLv_Max"`
+		CandyBlueDropRate     int  `ini:"DeepBlueCandyBoxDropRate"`
 
-	// Box Drop Rate
-	BoxSilverDropRate         int `ini:"SilverBoxDropRate"`
-	BoxGoldDropRate           int `ini:"GoldBoxDropRate"`
-	SecretGemDropRate1        int `ini:"MysteriouseBeadDropRate1"`
-	SecretGemDropRate2        int `ini:"MysteriouseBeadDropRate2"`
-	HiddenTreasureBoxDropRate int `ini:"HiddenTreasureBoxOfflineRate"`
+		// Box Drop Rate
+		BoxSilverDropRate         int `ini:"SilverBoxDropRate"`
+		BoxGoldDropRate           int `ini:"GoldBoxDropRate"`
+		SecretGemDropRate1        int `ini:"MysteriouseBeadDropRate1"`
+		SecretGemDropRate2        int `ini:"MysteriouseBeadDropRate2"`
+		HiddenTreasureBoxDropRate int `ini:"HiddenTreasureBoxOfflineRate"`
 
-	// Christmas ribbon // 圣诞箱
-	RibbonBoxEventEnable       bool `ini:"RibbonBoxEvent"`
-	RibbonBoxRedDropLevelMin   int  `ini:"RedRibbonBoxDropLv_Min"`
-	RibbonBoxRedDropLevelMax   int  `ini:"RedRibbonBoxDropLv_Max"`
-	RibbonBoxRedDropRate       int  `ini:"RedRibbonBoxDropRate"`
-	RibbonBoxGreenDropLevelMin int  `ini:"GreenRibbonBoxDropLv_Min"`
-	RibbonBoxGreenDropLevelMax int  `ini:"GreenRibbonBoxDropLv_Max"`
-	RibbonBoxGreenDropRate     int  `ini:"GreenRibbonBoxDropRate"`
-	RibbonBoxBlueDropLevelMin  int  `ini:"BlueRibbonBoxDropLv_Min"`
-	RibbonBoxBlueDropLevelMax  int  `ini:"BlueRibbonBoxDropLv_Max"`
-	RibbonBoxBlueDropRate      int  `ini:"BlueRibbonBoxDropRate"`
+		// Christmas ribbon // 圣诞箱
+		RibbonBoxEventEnable       bool `ini:"RibbonBoxEvent"`
+		RibbonBoxRedDropLevelMin   int  `ini:"RedRibbonBoxDropLv_Min"`
+		RibbonBoxRedDropLevelMax   int  `ini:"RedRibbonBoxDropLv_Max"`
+		RibbonBoxRedDropRate       int  `ini:"RedRibbonBoxDropRate"`
+		RibbonBoxGreenDropLevelMin int  `ini:"GreenRibbonBoxDropLv_Min"`
+		RibbonBoxGreenDropLevelMax int  `ini:"GreenRibbonBoxDropLv_Max"`
+		RibbonBoxGreenDropRate     int  `ini:"GreenRibbonBoxDropRate"`
+		RibbonBoxBlueDropLevelMin  int  `ini:"BlueRibbonBoxDropLv_Min"`
+		RibbonBoxBlueDropLevelMax  int  `ini:"BlueRibbonBoxDropLv_Max"`
+		RibbonBoxBlueDropRate      int  `ini:"BlueRibbonBoxDropRate"`
 
-	// Chip event
-	ChipEventEnable  bool `ini:"EventChipEvent"`
-	BoxLuckyDropRate int  `ini:"BoxOfGoldDropRate"`
+		// Chip event
+		ChipEventEnable  bool `ini:"EventChipEvent"`
+		BoxLuckyDropRate int  `ini:"BoxOfGoldDropRate"`
 
-	// Loren deep
-	GuardianJewelDropEnable bool `ini:"IsDropGemOfDefend"`
-	GuardianJewelDropLevel  int  `ini:"GemOfDefendDropLevel"`
-	GuardianJewelDropRate   int  `ini:"GemOfDefendDropRate"`
+		// Loren deep
+		GuardianJewelDropEnable bool `ini:"IsDropGemOfDefend"`
+		GuardianJewelDropLevel  int  `ini:"GemOfDefendDropLevel"`
+		GuardianJewelDropRate   int  `ini:"GemOfDefendDropRate"`
 
-	// Rena/LordMark
-	RenaDropRate int `ini:"MarkOfTheLord"`
+		// Rena/LordMark
+		RenaDropRate int `ini:"MarkOfTheLord"`
+	} `ini:"GameServerInfo"`
 }
 
 type configChaosBox struct {

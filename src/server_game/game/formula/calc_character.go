@@ -5,8 +5,8 @@ func WizardDamageCalc(strengh, dexterity, vitality, energy int, leftAttackMin, r
 	call(f.CalcCharacter, "WizardDamageCalc", "iiii>iiii", strengh, dexterity, vitality, energy, leftAttackMin, rightAttackMin, leftAttackMax, rightAttackMax)
 }
 
-func WizardMagicDamageCalc(energy int, skillAttackMin, skillAttackMax *int) {
-	call(f.CalcCharacter, "WizardDamageCalc", "i>ii", energy, skillAttackMin, skillAttackMax)
+func WizardMagicDamageCalc(energy int, magicAttackMin, magicAttackMax *int) {
+	call(f.CalcCharacter, "WizardDamageCalc", "i>ii", energy, magicAttackMin, magicAttackMax)
 }
 
 // knight
@@ -14,8 +14,8 @@ func KnightDamageCalc(strengh, dexterity, vitality, energy int, leftAttackMin, r
 	call(f.CalcCharacter, "KnightDamageCalc", "iiii>iiii", strengh, dexterity, vitality, energy, leftAttackMin, rightAttackMin, leftAttackMax, rightAttackMax)
 }
 
-func KnightMagicDamageCalc(energy int, skillAttackMin, skillAttackMax *int) {
-	call(f.CalcCharacter, "KnightMagicDamageCalc", "i>ii", energy, skillAttackMin, skillAttackMax)
+func KnightMagicDamageCalc(energy int, magicAttackMin, magicAttackMax *int) {
+	call(f.CalcCharacter, "KnightMagicDamageCalc", "i>ii", energy, magicAttackMin, magicAttackMax)
 }
 
 // elf
@@ -27,8 +27,8 @@ func ElfWithoutBowDamageCalc(strengh, dexterity, vitality, energy int, leftAttac
 	call(f.CalcCharacter, "ElfWithoutBowDamageCalc", "iiii>iiii", strengh, dexterity, vitality, energy, leftAttackMin, rightAttackMin, leftAttackMax, rightAttackMax)
 }
 
-func ElfMagicDamageCalc(energy int, skillAttackMin, skillAttackMax *int) {
-	call(f.CalcCharacter, "ElfMagicDamageCalc", "i>ii", energy, skillAttackMin, skillAttackMax)
+func ElfMagicDamageCalc(energy int, magicAttackMin, magicAttackMax *int) {
+	call(f.CalcCharacter, "ElfMagicDamageCalc", "i>ii", energy, magicAttackMin, magicAttackMax)
 }
 
 // magumsa
@@ -36,8 +36,8 @@ func GladiatorDamageCalc(strengh, dexterity, vitality, energy int, leftAttackMin
 	call(f.CalcCharacter, "GladiatorDamageCalc", "iiii>iiii", strengh, dexterity, vitality, energy, leftAttackMin, rightAttackMin, leftAttackMax, rightAttackMax)
 }
 
-func GladiatorMagicDamageCalc(energy int, skillAttackMin, skillAttackMax *int) {
-	call(f.CalcCharacter, "GladiatorMagicDamageCalc", "i>ii", energy, skillAttackMin, skillAttackMax)
+func GladiatorMagicDamageCalc(energy int, magicAttackMin, magicAttackMax *int) {
+	call(f.CalcCharacter, "GladiatorMagicDamageCalc", "i>ii", energy, magicAttackMin, magicAttackMax)
 }
 
 // darkload
@@ -45,8 +45,8 @@ func LordDamageCalc(strengh, dexterity, vitality, energy, leadership int, leftAt
 	call(f.CalcCharacter, "LordDamageCalc", "iiiii>iiii", strengh, dexterity, vitality, energy, leadership, leftAttackMin, rightAttackMin, leftAttackMax, rightAttackMax)
 }
 
-func LordMagicDamageCalc(energy int, skillAttackMin, skillAttackMax *int) {
-	call(f.CalcCharacter, "LordMagicDamageCalc", "i>ii", energy, skillAttackMin, skillAttackMax)
+func LordMagicDamageCalc(energy int, magicAttackMin, magicAttackMax *int) {
+	call(f.CalcCharacter, "LordMagicDamageCalc", "i>ii", energy, magicAttackMin, magicAttackMax)
 }
 
 // summoner
@@ -54,8 +54,8 @@ func SummonerDamageCalc(strengh, dexterity, vitality, energy int, leftAttackMin,
 	call(f.CalcCharacter, "SummonerDamageCalc", "iiii>iiii", strengh, dexterity, vitality, energy, leftAttackMin, rightAttackMin, leftAttackMax, rightAttackMax)
 }
 
-func SummonerMagicDamageCalc(energy int, skillAttackMin, skillAttackMax, curseAttackMin, curseAttackMax *int) {
-	call(f.CalcCharacter, "SummonerMagicDamageCalc", "i>iiii", energy, skillAttackMin, skillAttackMax, curseAttackMin, curseAttackMax)
+func SummonerMagicDamageCalc(energy int, magicAttackMin, magicAttackMax, curseAttackMin, curseAttackMax *int) {
+	call(f.CalcCharacter, "SummonerMagicDamageCalc", "i>iiii", energy, magicAttackMin, magicAttackMax, curseAttackMin, curseAttackMax)
 }
 
 // ragefighter
@@ -63,8 +63,8 @@ func RageFighterDamageCalc(strengh, dexterity, vitality, energy int, leftAttackM
 	call(f.CalcCharacter, "RageFighterDamageCalc", "iiii>iiii", strengh, dexterity, vitality, energy, leftAttackMin, rightAttackMin, leftAttackMax, rightAttackMax)
 }
 
-func RageFighterMagicDamageCalc(energy int, skillAttackMin, skillAttackMax *int) {
-	call(f.CalcCharacter, "RageFighterMagicDamageCalc", "i>ii", energy, skillAttackMin, skillAttackMax)
+func RageFighterMagicDamageCalc(energy int, magicAttackMin, magicAttackMax *int) {
+	call(f.CalcCharacter, "RageFighterMagicDamageCalc", "i>ii", energy, magicAttackMin, magicAttackMax)
 }
 
 // defense
