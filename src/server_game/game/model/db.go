@@ -376,6 +376,12 @@ type Character struct {
 	MasterLevel        int          `json:"master_level"`
 	MasterPoint        int          `json:"master_point,omitempty"`
 	MasterExperience   int          `json:"master_experience,omitempty"`
+	HP                 int          `json:"hp,omitempty"`
+	MP                 int          `json:"mp,omitempty"`
+	LevelHP            float32      `json:"level_hp,omitempty" gorm:"-"`
+	LevelMP            float32      `json:"level_mp,omitempty" gorm:"-"`
+	VitalityHP         float32      `json:"vitality_hp,omitempty" gorm:"-"`
+	EnergyMP           float32      `json:"energy_mp,omitempty" gorm:"-"`
 	Skills             skill.Skills `json:"skills,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
 	Inventory          Inventory    `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
 	InventoryExpansion int          `json:"inventory_expansion,omitempty"`

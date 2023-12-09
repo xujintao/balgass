@@ -8,7 +8,12 @@
         "dexterity": 18,
         "vitality": 15,
         "energy": 30,
-        "leadership": 0,
+        "hp": 60,
+        "mp": 60,
+        "level_hp": 1,
+        "level_mp": 2,
+        "vitality_hp": 1,
+        "energy_mp": 2,
         "skills": [
             {
                 "index": 17
@@ -35,7 +40,12 @@
         "dexterity": 20,
         "vitality": 25,
         "energy": 10,
-        "leadership": 0,
+        "hp": 110,
+        "mp": 20,
+        "level_hp": 2,
+        "level_mp": 0.5,
+        "vitality_hp": 3,
+        "energy_mp": 1,
         "skills": [
             {
                 "index": 44
@@ -65,7 +75,12 @@
         "dexterity": 25,
         "vitality": 20,
         "energy": 15,
-        "leadership": 0,
+        "hp": 80,
+        "mp": 30,
+        "level_hp": 1,
+        "level_mp": 1.5,
+        "vitality_hp": 2,
+        "energy_mp": 1.5,
         "skills": [
             {
                 "index": 46
@@ -95,7 +110,12 @@
         "dexterity": 26,
         "vitality": 26,
         "energy": 26,
-        "leadership": 0,
+        "hp": 110,
+        "mp": 60,
+        "level_hp": 1,
+        "level_mp": 1,
+        "vitality_hp": 2,
+        "energy_mp": 2,
         "skills": [
             {
                 "index": 57
@@ -129,6 +149,12 @@
         "vitality": 20,
         "energy": 15,
         "leadership": 24,
+        "hp": 25,
+        "mp": 90,
+        "level_hp": 1.5,
+        "level_mp": 1,
+        "vitality_hp": 2,
+        "energy_mp": 1.5,
         "skills": [
             {
                 "index": 60
@@ -161,7 +187,12 @@
         "dexterity": 21,
         "vitality": 18,
         "energy": 23,
-        "leadership": 0,
+        "hp": 70,
+        "mp": 40,
+        "level_hp": 1,
+        "level_mp": 1.5,
+        "vitality_hp": 2,
+        "energy_mp": 1.5,
         "skills": [
             {
                 "index": 45
@@ -191,7 +222,12 @@
         "dexterity": 27,
         "vitality": 25,
         "energy": 20,
-        "leadership": 0,
+        "hp": 100,
+        "mp": 40,
+        "level_hp": 1.3,
+        "level_mp": 1,
+        "vitality_hp": 2,
+        "energy_mp": 1.3,
         "skills": [
             {
                 "index": 269
@@ -221,7 +257,12 @@
         "dexterity": 30,
         "vitality": 25,
         "energy": 24,
-        "leadership": 0,
+        "hp": 110,
+        "mp": 40,
+        "level_hp": 2,
+        "level_mp": 1,
+        "vitality_hp": 2,
+        "energy_mp": 1,
         "skills": [
             {
                 "index": 275

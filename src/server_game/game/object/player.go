@@ -650,6 +650,8 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.MasterPoint = c.MasterPoint
 	p.MasterExperience = c.MasterExperience
 	p.MasterNextExperience = 100000
+	p.HP = c.HP
+	p.MP = c.MP
 	p.skills = c.Skills
 	p.skills.FillSkillData(p.Class)
 	p.Inventory = c.Inventory
@@ -666,10 +668,6 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 
 	// mc := MonsterTable[249]
 	mc := MonsterTable[10]
-	p.HP = mc.HP
-	p.MaxHP = mc.HP
-	p.MP = 1000
-	p.MaxMP = 1000
 	p.moveSpeed = mc.MoveSpeed
 	p.attackRange = mc.AttackRange
 	p.attackType = mc.AttackType
@@ -722,8 +720,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// client will calculate character after receiving inventory msg and master msg
 	// calculate
 	p.calc()
-	p.pushHP(p.HP, p.SD)
-	p.pushMP(p.MP, p.AG)
+
 	// go func() {
 	// 	time.Sleep(100 * time.Millisecond) // get character info
 	// 	p.actioner.PlayerAction(p.index, "SetCharacter", &model.MsgSetCharacter{Name: msg.Name})
@@ -875,7 +872,12 @@ func (p *Player) calc() {
 
 	// ...
 
-	// 98. sd
+	// 96. hp,mp
+	c := CharacterTable[p.Class]
+	hp := c.HP + int(float32(level-1)*c.LevelHP) + int(float32(vitality-c.Vitality)*c.VitalityHP)
+	mp := c.MP + int(float32(level-1)*c.LevelMP) + int(float32(energy-c.Energy)*c.EnergyMP)
+
+	// 97. sd
 	sdGageConstA := conf.CommonServer.GameServerInfo.SDGageConstA
 	sdGageConstB := conf.CommonServer.GameServerInfo.SDGageConstB
 	expressionA := strength + dexterity + vitality + energy
@@ -885,7 +887,7 @@ func (p *Player) calc() {
 	expressionB := level * level / sdGageConstB
 	sd := expressionA*sdGageConstA/10 + expressionB + defense
 
-	// 99. ag
+	// 98. ag
 	ag := 0
 	f := func(s, d, v, e, l float32) int {
 		return int(float32(strength)*s + float32(dexterity)*d + float32(vitality)*v + float32(energy)*e + float32(leadership)*l)
@@ -907,13 +909,21 @@ func (p *Player) calc() {
 		ag = f(0.15, 0.2, 0.3, 1.0, 0)
 	}
 
-	// 100. sumary
+	// 99. sumary
 	p.attackPanelMin = leftAttackMin + rightAttackMin
 	p.attackPanelMax = leftAttackMax + rightAttackMax
 	p.defense = defense
 	p.attackRate = attackRate
 	p.defenseRate = defenseRate
 	p.attackSpeed = attackSpeed
+	p.MaxHP = hp
+	if p.HP > p.MaxHP+p.AddHP {
+		p.HP = p.MaxHP + p.AddHP
+	}
+	p.MaxMP = mp
+	if p.MP > p.MaxMP+p.AddMP {
+		p.MP = p.MaxMP + p.AddMP
+	}
 	p.MaxSD = sd
 	if p.SD > p.MaxSD+p.AddSD {
 		p.SD = p.MaxSD + p.AddSD
@@ -923,6 +933,7 @@ func (p *Player) calc() {
 		p.AG = p.MaxAG + p.AddAG
 	}
 
+	// 100. push
 	p.push(&model.MsgStatSpecReply{
 		Options: options,
 	})
@@ -932,6 +943,8 @@ func (p *Player) calc() {
 	})
 	p.pushMaxHP(p.MaxHP+p.AddHP, p.MaxSD+p.AddSD)
 	p.pushMaxMP(p.MaxMP+p.AddMP, p.MaxAG+p.AddAG)
+	p.pushHP(p.HP, p.SD)
+	p.pushMP(p.MP, p.AG)
 }
 
 func (p *Player) loadMiniMap() {
@@ -980,6 +993,8 @@ func (p *Player) SaveCharacter() {
 		MasterLevel:        p.MasterLevel,
 		MasterPoint:        p.MasterPoint,
 		MasterExperience:   p.MasterExperience,
+		HP:                 p.HP,
+		MP:                 p.MP,
 		Skills:             p.skills,
 		Inventory:          p.Inventory,
 		InventoryExpansion: p.InventoryExpansion,
