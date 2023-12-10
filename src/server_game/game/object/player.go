@@ -1318,7 +1318,7 @@ func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
 	})
 }
 
-func (p *Player) processAction() {}
+func (p *Player) ProcessAction() {}
 
 func (p *Player) Action(msg *model.MsgAction) {
 	reply := model.MsgActionReply{
@@ -1327,6 +1327,61 @@ func (p *Player) Action(msg *model.MsgAction) {
 		Dir:    msg.Dir,
 	}
 	p.pushViewport(&reply)
+}
+
+func (p *Player) Process1000ms() {
+	if p.ConnectState == ConnectStatePlaying {
+		p.recoverHP()
+		p.recoverMP()
+	}
+}
+
+func (p *Player) recoverHP() {
+
+}
+
+func (p *Player) recoverMP() {
+	change := false
+	totalMP := p.MaxMP + p.AddMP
+	if p.MP < totalMP {
+		// base recover MP
+		percent := 3.7
+		// master skill recover MP
+		percent += 0
+		mp := p.MP
+		mp += int(float64(totalMP) * percent / 100)
+		switch {
+		case mp < 1:
+			mp = 1
+		case mp > totalMP:
+			mp = totalMP
+		}
+		p.MP = mp
+		change = true
+	}
+	totalAG := p.MaxAG + p.AddAG
+	if p.AG < totalAG {
+		// base recover AG
+		percent := 3.0
+		// master skill recover AG
+		percent += 0
+		if p.Class == int(class.Knight) {
+			percent = 5
+		}
+		ag := p.AG
+		ag += 5 + int(float64(totalAG)*percent/100)
+		switch {
+		case ag < 1:
+			ag = 1
+		case ag > totalAG:
+			ag = totalAG
+		}
+		p.AG = ag
+		change = true
+	}
+	if change {
+		p.pushMP(p.MP, p.AG)
+	}
 }
 
 func (p *Player) Die(obj *object) {
@@ -1798,10 +1853,10 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		Result: 0,
 	}
 	// validate
-	if msg.Target >= len(p.objectManager.objects) {
+	if msg.Target >= len(ObjectManager.objects) {
 		return
 	}
-	tobj := p.objectManager.objects[msg.Target]
+	tobj := ObjectManager.objects[msg.Target]
 	if tobj == nil {
 		return
 	}
@@ -1871,10 +1926,10 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 	if msg.Position < 0 ||
 		msg.Position >= shop.MaxShopItemCount ||
 		p.targetNumber < 0 ||
-		p.targetNumber >= len(p.objectManager.objects) {
+		p.targetNumber >= len(ObjectManager.objects) {
 		return
 	}
-	tobj := p.objectManager.objects[p.targetNumber]
+	tobj := ObjectManager.objects[p.targetNumber]
 	if tobj == nil {
 		return
 	}
@@ -1913,10 +1968,10 @@ func (p *Player) SellItem(msg *model.MsgSellItem) {
 	if msg.Position < 0 ||
 		msg.Position >= p.Inventory.Size ||
 		p.targetNumber < 0 ||
-		p.targetNumber >= len(p.objectManager.objects) {
+		p.targetNumber >= len(ObjectManager.objects) {
 		return
 	}
-	tobj := p.objectManager.objects[p.targetNumber]
+	tobj := ObjectManager.objects[p.targetNumber]
 	if tobj == nil {
 		return
 	}

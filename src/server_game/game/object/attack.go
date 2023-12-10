@@ -107,7 +107,7 @@ func (obj *object) attack(tobj *object) {
 }
 
 func (obj *object) Attack(msg *model.MsgAttack) {
-	tobj := obj.objectManager.objects[msg.Target]
+	tobj := ObjectManager.objects[msg.Target]
 	if tobj == nil {
 		log.Printf("Attack target is invalid [index]%d->[index]%d\n",
 			obj.index, msg.Target)

@@ -214,7 +214,6 @@ func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY,
 	m.monsterCount++
 	monster := NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element)
 	monster.objecter = monster
-	monster.objectManager = m
 	monster.index = index
 	m.objects[index] = &monster.object
 	return monster, nil
@@ -242,7 +241,6 @@ func (m *objectManager) AddCallMonster(class, mapNumber, startX, startY, endX, e
 	m.lastCallMonsterIndex = index
 	m.callMonsterCount++
 	monster := NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element)
-	monster.objectManager = m
 	monster.index = index
 	m.objects[index] = &monster.object
 	return index, nil
@@ -277,7 +275,6 @@ func (m *objectManager) AddPlayer(conn Conn, actioner actioner) (int, error) {
 	m.playerCount++
 	player := NewPlayer(conn, actioner)
 	player.objecter = player
-	player.objectManager = m
 	player.index = index
 	// register the new player to object manager
 	m.objects[index] = &player.object
@@ -376,7 +373,6 @@ func (m *objectManager) AddUser(conn Conn) (int, error) {
 	m.lastUserIndex = index
 	m.userCount++
 	u := NewUser(conn)
-	u.objectManager = m
 	u.index = index
 	m.users[index] = u
 	log.Printf("user online [id]%d [addr]%s", u.index, u.conn.Addr())
@@ -406,7 +402,7 @@ func (m *objectManager) Process100ms() {
 			continue
 		}
 		obj.processMove()
-		obj.processAction()
+		obj.ProcessAction()
 	}
 }
 
@@ -425,6 +421,7 @@ func (m *objectManager) Process1000ms() {
 		if obj == nil {
 			continue
 		}
+		obj.Process1000ms()
 		obj.processViewport() // 1->2
 		obj.processRegen()    // 4->1
 
@@ -577,8 +574,9 @@ type objecter interface {
 	MapDataLoadingOK(*model.MsgMapDataLoadingOK)
 	LearnMasterSkill(*model.MsgLearnMasterSkill)
 	getPKLevel() int
-	processAction()
+	ProcessAction()
 	Action(*model.MsgAction)
+	Process1000ms()
 	spawnPosition()
 	Die(*object)
 	Regen()
@@ -599,7 +597,6 @@ type objecter interface {
 
 type object struct {
 	objecter
-	*objectManager
 	index              int
 	ConnectState       ConnectState
 	Live               bool

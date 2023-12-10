@@ -263,7 +263,7 @@ func (m *Monster) searchEnemy() int {
 		if tnum < 0 {
 			continue
 		}
-		tobj := m.objectManager.objects[tnum]
+		tobj := ObjectManager.objects[tnum]
 		if tobj == nil {
 			continue
 		}
@@ -364,7 +364,7 @@ func (m *Monster) baseAction() {
 		if m.pathMoving {
 			return
 		}
-		tobj := m.objectManager.objects[m.targetNumber]
+		tobj := ObjectManager.objects[m.targetNumber]
 		if tobj == nil || !tobj.Live || tobj.MapNumber != m.MapNumber {
 			m.targetNumber = -1
 			m.actionState.emotion = 3
@@ -485,7 +485,7 @@ func (m *Monster) attack() {
 }
 
 // 模拟怪物基本行为
-func (m *Monster) processAction() {
+func (m *Monster) ProcessAction() {
 	if m.ConnectState < ConnectStatePlaying ||
 		!m.Live {
 		return
@@ -506,6 +506,10 @@ func (m *Monster) processAction() {
 		m.attack()
 		return
 	}
+}
+
+func (m *Monster) Process1000ms() {
+
 }
 
 func (m *Monster) Die(obj *object) {

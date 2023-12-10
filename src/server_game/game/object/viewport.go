@@ -131,11 +131,11 @@ func (obj *object) createViewport() {
 	case ObjectTypePlayer:
 		start = 0 // 玩家能看到所有对象
 	case ObjectTypeMonster, ObjectTypeNPC:
-		start = obj.objectManager.maxMonsterCount // 怪物看不见怪物
+		start = ObjectManager.maxMonsterCount // 怪物看不见怪物
 	}
 	var viewportPlayerReply model.MsgCreateViewportPlayerReply
 	var viewportMonsterReply model.MsgCreateViewportMonsterReply
-	for _, tobj := range obj.objectManager.objects[start:] {
+	for _, tobj := range ObjectManager.objects[start:] {
 		if tobj == nil {
 			continue
 		}
@@ -221,7 +221,7 @@ func (obj *object) destroyViewport() {
 				}
 			})
 		default:
-			tobj := obj.objectManager.objects[vp.number]
+			tobj := ObjectManager.objects[vp.number]
 			if tobj == nil {
 				remove = true
 			} else {
@@ -281,7 +281,7 @@ func (obj *object) pushViewport(msg any) {
 				obj.index, msg, vp.number)
 			continue
 		}
-		tobj := obj.objectManager.objects[vp.number]
+		tobj := ObjectManager.objects[vp.number]
 		if tobj == nil {
 			continue
 		}

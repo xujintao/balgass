@@ -31,12 +31,11 @@ func NewUser(conn Conn) *user {
 }
 
 type user struct {
-	objectManager *objectManager
-	index         int
-	offline       bool
-	conn          Conn
-	msgChan       chan any
-	cancel        context.CancelFunc
+	index   int
+	offline bool
+	conn    Conn
+	msgChan chan any
+	cancel  context.CancelFunc
 }
 
 func (u *user) Offline() {
@@ -76,7 +75,7 @@ func (u *user) SubscribeMap(msg *model.MsgSubscribeMap) {
 		return
 	}
 	// remove
-	table := u.objectManager.mapSubscribeTable
+	table := ObjectManager.mapSubscribeTable
 	for n, users := range table {
 		if _, ok := users[u]; ok {
 			if n == number {
@@ -105,7 +104,7 @@ func (u *user) SubscribeMap(msg *model.MsgSubscribeMap) {
 }
 
 func (u *user) unsubscribeMap() {
-	table := u.objectManager.mapSubscribeTable
+	table := ObjectManager.mapSubscribeTable
 	for n, users := range table {
 		if _, ok := users[u]; ok {
 			delete(users, u)
