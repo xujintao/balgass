@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"sort"
+	"time"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/class"
@@ -89,8 +90,6 @@ type Player struct {
 	AccountName          string
 	AccountPassword      string
 	AuthLevel            int
-	FillHP               int
-	FillHPCount          int
 	Experience           int
 	NextExperience       int
 	LevelPoint           int
@@ -111,6 +110,13 @@ type Player struct {
 	AddVitality          int
 	AddEnergy            int
 	AddLeadership        int
+	autoRecoverHPTick    int
+	autoRecoverMPTick    int
+	autoRecoverSDTime    time.Time
+	delayRecoverHP       int
+	delayRecoverHPMax    int
+	delayRecoverSD       int
+	delayRecoverSDMax    int
 	// attackDamageLeft     int // 物攻左
 	// attackDamageRight    int // 物攻右
 	attackDamageLeftMin  int // 物攻左min
@@ -262,6 +268,25 @@ func (p *Player) pushMaxMP(mp, ag int) {
 
 func (p *Player) pushMP(mp, ag int) {
 	p.push(&model.MsgMPReply{Position: -1, MP: mp, AG: ag})
+}
+
+func (p *Player) pushItemDurability(position, dur int) {
+	p.push(&model.MsgItemDurabilityReply{Position: position, Durability: dur, Flag: 1})
+}
+
+func (p *Player) pushDeleteItem(position int) {
+	p.push(&model.MsgDeleteInventoryItemReply{Position: position, Flag: 1})
+}
+
+func (p *Player) decreaseItemDurability(position int) {
+	it := p.Inventory.Items[position]
+	it.Durability--
+	if it.Durability > 0 {
+		p.pushItemDurability(position, it.Durability)
+	} else {
+		p.Inventory.DropItem(position, it)
+		p.pushDeleteItem(position)
+	}
 }
 
 func (p *Player) spawnPosition() {
@@ -1331,16 +1356,125 @@ func (p *Player) Action(msg *model.MsgAction) {
 
 func (p *Player) Process1000ms() {
 	if p.ConnectState == ConnectStatePlaying {
-		p.recoverHP()
-		p.recoverMP()
+		p.recoverHPSD()
+		p.recoverMPAG()
 	}
 }
 
-func (p *Player) recoverHP() {
+func (p *Player) recoverHPSD() {
+	change := false
+	totalHP := p.MaxHP + p.AddHP
+	totalSD := p.MaxSD + p.AddSD
+	if p.HP < totalHP {
+		// auto recover HP
+		p.autoRecoverHPTick++
+		if p.autoRecoverHPTick >= 7 {
+			p.autoRecoverHPTick = 0
+			percent := 0.0
+			// base item recover HP
+			positions := []int{7, 9, 10, 11} // wing/pendant/ring
+			for _, n := range positions {
+				it := p.Inventory.Items[n]
+				if it != nil && it.Durability != 0 {
+					percent += it.RecoverHP
+				}
+			}
+			// master skill recover HP
+			percent += 0.0
+			if percent != 0.0 {
+				hp := p.HP
+				hp += int(float64(totalHP) * percent / 100)
+				switch {
+				case hp < 1:
+					hp = 1
+				case hp > totalHP:
+					hp = totalHP
+				}
+				p.HP = hp
+				change = true
+			}
+		}
+	} else {
+		p.autoRecoverHPTick = 0
+	}
 
+	// auto recover SD
+	if p.SD < totalSD {
+		if conf.CommonServer.GameServerInfo.SDAutoRefillSafeZoneEnable {
+			attr := maps.MapManager.GetMapAttr(p.MapNumber, p.X, p.Y)
+			if attr&1 == 1 {
+				now := time.Now()
+				if now.After(p.autoRecoverSDTime.Add(time.Second * 1)) {
+					p.autoRecoverSDTime = now
+					expressionA := totalSD / 30
+					expressionB := 100 // 380 option
+					sd := p.SD
+					sd += expressionA * expressionB / 100 / 25
+					switch {
+					case sd < 1:
+						sd = 1
+					case sd > totalSD:
+						sd = totalSD
+					}
+					p.SD = sd
+					change = true
+				}
+			}
+		}
+	}
+
+	// posion delay recover hp
+	if p.delayRecoverHP > 0 {
+		hp := p.delayRecoverHPMax / 4
+		if p.delayRecoverHP > hp {
+			p.delayRecoverHP -= hp
+		} else {
+			hp = p.delayRecoverHP
+			p.delayRecoverHP = 0
+		}
+		if p.HP < totalHP {
+			hp += p.HP
+			switch {
+			case hp < 1:
+				hp = 1
+			case hp > totalHP:
+				hp = totalHP
+			}
+			p.HP = hp
+			change = true
+		}
+	}
+
+	// posion delay recover SD
+	if p.delayRecoverSD > 0 {
+		sd := p.delayRecoverSDMax / 4
+		if p.delayRecoverSD > sd {
+			p.delayRecoverSD -= sd
+		} else {
+			sd = p.delayRecoverSD
+			p.delayRecoverSD = 0
+		}
+		if p.SD < totalSD {
+			sd += p.SD
+			if sd > totalSD {
+				sd = totalSD
+			}
+			p.SD = sd
+			change = true
+		}
+	}
+
+	if change {
+		p.pushHP(p.HP, p.SD)
+	}
 }
 
-func (p *Player) recoverMP() {
+func (p *Player) recoverMPAG() {
+	p.autoRecoverMPTick++
+	if p.autoRecoverMPTick < 3 {
+		return
+	}
+	p.autoRecoverMPTick = 0
 	change := false
 	totalMP := p.MaxMP + p.AddMP
 	if p.MP < totalMP {
@@ -1763,47 +1897,33 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 		}
 		hp := 0
 		hp += (p.MaxHP + p.AddHP) * addRate / 100
-
-		// fill object hp
-		p.HP += hp
-		if p.HP > p.MaxHP+p.AddHP {
-			p.HP = p.MaxHP + p.AddHP
-		}
-		reply := model.MsgHPReply{
-			Position: -1,
-			HP:       p.HP,
-			Flag:     0,
-			SD:       p.SD,
-		}
-		p.push(&reply)
-		it.Durability--
-		if it.Durability > 0 {
-			reply := model.MsgItemDurabilityReply{
-				Position:   msg.SrcPosition,
-				Durability: it.Durability,
-				Flag:       1,
-			}
-			p.push(&reply)
-		} else {
-			p.Inventory.DropItem(msg.SrcPosition, it)
-			reply := model.MsgDeleteInventoryItemReply{
-				Position: msg.SrcPosition,
-				Flag:     1,
-			}
-			p.push(&reply)
-		}
-
-		// defer fill object hp
-		p.FillHP = hp
-		switch it.Level {
-		case 0:
-			p.FillHPCount = 0
-		case 1:
-			p.FillHPCount = 2
-		default:
-			p.FillHPCount = 3
-		}
+		// defer recover hp
+		p.delayRecoverHP = hp
+		p.delayRecoverHPMax = hp
+		// decrease durability
+		p.decreaseItemDurability(msg.SrcPosition)
 	case it.Code >= item.Code(14, 4) && it.Code <= item.Code(14, 6): // MP Potion
+		addRate := 0
+		switch it.Code {
+		case item.Code(14, 4):
+			addRate = 20
+		case item.Code(14, 5):
+			addRate = 30
+		case item.Code(14, 6):
+			addRate = 40
+		}
+		totalMP := p.MaxMP + p.AddMP
+		mp := totalMP * addRate / 100
+		// recover mp immediately
+		if p.MP < totalMP {
+			p.MP += mp
+			if p.MP > totalMP {
+				p.MP = totalMP
+			}
+			p.pushMP(p.MP, p.AG)
+		}
+		// decrease durability
+		p.decreaseItemDurability(msg.SrcPosition)
 	case it.Code == item.Code(14, 7): // Siege Potion 攻城药水
 	case it.Code == item.Code(14, 8): // Antidote 解毒剂
 	case it.Code == item.Code(14, 9) || it.Code == item.Code(14, 20): // Ale 酒 / Remedy of Love 爱情的魔力

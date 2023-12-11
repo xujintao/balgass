@@ -13,6 +13,7 @@ type Item struct {
 	Lucky                    bool              `json:"lucky,omitempty"`
 	Skill                    bool              `json:"skill,omitempty"`
 	Addition                 int               `json:"addition,omitempty"` // 0/4/8/12/16
+	RecoverHP                float64           `json:"-"`
 	ExcellentAttackRate      bool              `json:"excellent_attack_rate,omitempty"`
 	ExcellentAttackLevel     bool              `json:"excellent_attack_level,omitempty"`
 	ExcellentAttackPercent   bool              `json:"excellent_attack_percent,omitempty"`
