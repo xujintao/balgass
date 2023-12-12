@@ -637,8 +637,8 @@ type object struct {
 	MaxAG              int
 	AddAG              int
 	targetNumber       int
-	attackPanelMin     int // 物攻min
-	attackPanelMax     int // 物攻max
+	attackMin          int // 物攻min
+	attackMax          int // 物攻max
 	attackSpeed        int // 物攻速度
 	attackRate         int // 攻击率
 	defense            int // 防御力

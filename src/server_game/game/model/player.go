@@ -1045,14 +1045,14 @@ func (msg *MsgAttackHPReply) Marshal() ([]byte, error) {
 }
 
 type MsgAttackSpeedReply struct {
-	AttackSpeed      int
-	MagicAttackSpeed int
+	AttackSpeed int
+	MagicSpeed  int
 }
 
 func (msg *MsgAttackSpeedReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	binary.Write(&bw, binary.LittleEndian, uint32(msg.AttackSpeed))
-	binary.Write(&bw, binary.LittleEndian, uint32(msg.MagicAttackSpeed))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.MagicSpeed))
 	return bw.Bytes(), nil
 }
 

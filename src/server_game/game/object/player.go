@@ -117,17 +117,13 @@ type Player struct {
 	delayRecoverHPMax    int
 	delayRecoverSD       int
 	delayRecoverSDMax    int
-	// attackDamageLeft     int // 物攻左
-	// attackDamageRight    int // 物攻右
-	attackDamageLeftMin  int // 物攻左min
-	attackDamageLeftMax  int // 物攻左min
-	attackDamageRightMin int // 物攻右min
-	attackDamageRightMax int // 物攻右max
-	magicDamageMin       int // 魔攻min
-	magicDamageMax       int // 魔攻max
+	magic                int
+	magicAttackMin       int // 魔攻min
+	magicAttackMax       int // 魔攻max
+	curse                int
+	curseAttackMin       int // 诅咒min
+	curseAttackMax       int // 诅咒max
 	magicSpeed           int // 魔攻速度
-	// curseDamageMin       int // 诅咒min
-	// curseDamageMax       int // 诅咒max
 	// curseSpell           int
 	DamageMinus        int // 伤害减少
 	DamageReflect      int // 伤害反射
@@ -755,6 +751,8 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 func (p *Player) calc() {
 	leftHand := p.Inventory.Items[0]
 	rightHand := p.Inventory.Items[1]
+	boot := p.Inventory.Items[6]
+	wing := p.Inventory.Items[7]
 
 	p.AddHP = 0
 	p.AddMP = 0
@@ -777,8 +775,10 @@ func (p *Player) calc() {
 	leftAttackMax := 0
 	rightAttackMin := 0
 	rightAttackMax := 0
+	magic := 0
 	magicAttackMin := 0
 	magicAttackMax := 0
+	curse := 0
 	curseAttackMin := 0
 	curseAttackMax := 0
 	switch class.Class(p.Class) {
@@ -892,8 +892,121 @@ func (p *Player) calc() {
 
 	// 4. speed
 	attackSpeed := 0
-	magicAttackSpeed := 0
-	formula.CalcAttackSpeed(p.Class, dexterity, &attackSpeed, &magicAttackSpeed)
+	magicSpeed := 0
+	formula.CalcAttackSpeed(p.Class, dexterity, &attackSpeed, &magicSpeed)
+
+	// 5. weapon and weapon addition attack
+	if leftHand != nil {
+		leftAttackMin += leftHand.DamageMin + leftHand.AdditionAttack
+		leftAttackMax += leftHand.DamageMax + leftHand.AdditionAttack
+		magicAttackMin += leftHand.AdditionMagicAttack
+		magicAttackMax += leftHand.AdditionMagicAttack
+		curseAttackMin += leftHand.AdditionCurseAttack
+		curseAttackMax += leftHand.AdditionCurseAttack
+		curse = leftHand.MagicPower
+	}
+	if rightHand != nil {
+		rightAttackMin += rightHand.DamageMin + rightHand.AdditionAttack
+		rightAttackMax += rightHand.DamageMax + rightHand.AdditionAttack
+		magicAttackMin += rightHand.AdditionMagicAttack
+		magicAttackMax += rightHand.AdditionMagicAttack
+		curseAttackMin += leftHand.AdditionCurseAttack
+		curseAttackMax += leftHand.AdditionCurseAttack
+		magic = rightHand.MagicPower
+	}
+
+	// 6. wing addition attack
+	if wing != nil {
+		leftAttackMin += wing.AdditionAttack
+		leftAttackMax += wing.AdditionAttack
+		rightAttackMin += wing.AdditionAttack
+		rightAttackMax += wing.AdditionAttack
+		magicAttackMin += wing.AdditionMagicAttack
+		magicAttackMax += wing.AdditionMagicAttack
+		curseAttackMin += wing.AdditionCurseAttack
+		curseAttackMax += wing.AdditionCurseAttack
+	}
+
+	// 7. armor(shield|armor|wing) addition defense
+	for i := 1; i <= 7; i++ {
+		it := p.Inventory.Items[i]
+		if it != nil {
+			defense += it.Defense
+			defense += it.AdditionDefense
+		}
+	}
+
+	// 8. pet defense
+
+	// 9. shield defense rate
+	if rightHand != nil {
+		defenseRate += rightHand.SuccessfulBlocking
+		defenseRate += rightHand.AdditionDefenseRate
+	}
+
+	// 10. armor bonus
+	// defense level>=10 bonus of item the same type contributed
+	// defense success rate bonus of item the same type contributed
+	sameCount := 0
+	level10Count := 0
+	level11Count := 0
+	level12Count := 0
+	level13Count := 0
+	level14Count := 0
+	level15Count := 0
+	if boot != nil {
+		refer := boot.Code % item.MaxItemIndex
+		for i := 2; i <= 6; i++ {
+			it := p.Inventory.Items[i]
+			if it != nil && it.Code%item.MaxItemIndex == refer {
+				sameCount++
+				if it.Level > 9 {
+					level10Count++
+				}
+				if it.Level > 10 {
+					level11Count++
+				}
+				if it.Level > 11 {
+					level12Count++
+				}
+				if it.Level > 12 {
+					level13Count++
+				}
+				if it.Level > 13 {
+					level14Count++
+				}
+				if it.Level > 14 {
+					level15Count++
+				}
+			}
+		}
+		if p.Class == int(class.Magumsa) || p.Class == int(class.RageFighter) {
+			sameCount++
+			level10Count++
+			level11Count++
+			level12Count++
+			level13Count++
+			level14Count++
+			level15Count++
+		}
+		if sameCount == 5 {
+			defenseRate += defenseRate / 10
+			switch {
+			case level15Count == 5:
+				defense += defense * 30 / 100
+			case level14Count == 5:
+				defense += defense * 25 / 100
+			case level13Count == 5:
+				defense += defense * 20 / 100
+			case level12Count == 5:
+				defense += defense * 15 / 100
+			case level11Count == 5:
+				defense += defense * 10 / 100
+			case level10Count == 5:
+				defense += defense * 5 / 100
+			}
+		}
+	}
 
 	// ...
 
@@ -935,12 +1048,15 @@ func (p *Player) calc() {
 	}
 
 	// 99. sumary
-	p.attackPanelMin = leftAttackMin + rightAttackMin
-	p.attackPanelMax = leftAttackMax + rightAttackMax
+	p.attackMin, p.attackMax = leftAttackMin+rightAttackMin, leftAttackMax+rightAttackMax
+	p.magic = magic
+	p.magicAttackMin, p.magicAttackMax = magicAttackMin, magicAttackMax
+	p.curse = curse
+	p.curseAttackMin, p.curseAttackMax = curseAttackMin, curseAttackMax
 	p.defense = defense
 	p.attackRate = attackRate
 	p.defenseRate = defenseRate
-	p.attackSpeed = attackSpeed
+	p.attackSpeed, p.magicSpeed = attackSpeed, magicSpeed
 	p.MaxHP = hp
 	if p.HP > p.MaxHP+p.AddHP {
 		p.HP = p.MaxHP + p.AddHP
@@ -963,8 +1079,8 @@ func (p *Player) calc() {
 		Options: options,
 	})
 	p.push(&model.MsgAttackSpeedReply{
-		AttackSpeed:      attackSpeed,
-		MagicAttackSpeed: magicAttackSpeed,
+		AttackSpeed: attackSpeed,
+		MagicSpeed:  magicSpeed,
 	})
 	p.pushMaxHP(p.MaxHP+p.AddHP, p.MaxSD+p.AddSD)
 	p.pushMaxMP(p.MaxMP+p.AddMP, p.MaxAG+p.AddAG)
@@ -1060,16 +1176,16 @@ func (player *Player) addExcelCommonEffect(opt *item.ExcelCommon, wItem *item.It
 			wItem.Code == item.Code(13, 12) || // 雷链子
 			wItem.Code == item.Code(13, 25) || // 冰链子
 			wItem.Code == item.Code(13, 27) { // 水链子
-			player.magicDamageMin += player.magicDamageMin * value / 100
-			player.magicDamageMax += player.magicDamageMax * value / 100
+			player.magicAttackMin += player.magicAttackMin * value / 100
+			player.magicAttackMax += player.magicAttackMax * value / 100
 		} else {
 			if position == 0 || position == 9 {
-				player.attackDamageLeftMin += player.attackDamageLeftMin * value / 100
-				player.attackDamageLeftMax += player.attackDamageLeftMax * value / 100
+				// player.attackDamageLeftMin += player.attackDamageLeftMin * value / 100
+				// player.attackDamageLeftMax += player.attackDamageLeftMax * value / 100
 			}
 			if position == 1 || position == 9 {
-				player.attackDamageRightMin += player.attackDamageRightMin * value / 100
-				player.attackDamageRightMax += player.attackDamageRightMax * value / 100
+				// player.attackDamageRightMin += player.attackDamageRightMin * value / 100
+				// player.attackDamageRightMax += player.attackDamageRightMax * value / 100
 			}
 		}
 	case item.ExcelCommonIncAttackLevel: // =20
@@ -1077,16 +1193,16 @@ func (player *Player) addExcelCommonEffect(opt *item.ExcelCommon, wItem *item.It
 			wItem.Code == item.Code(13, 12) || // 雷链子
 			wItem.Code == item.Code(13, 25) || // 冰链子
 			wItem.Code == item.Code(13, 27) { // 水链子
-			player.magicDamageMin += (player.Level + player.MasterLevel) / value
-			player.magicDamageMax += (player.Level + player.MasterLevel) / value
+			player.magicAttackMin += (player.Level + player.MasterLevel) / value
+			player.magicAttackMax += (player.Level + player.MasterLevel) / value
 		} else {
 			if position == 0 || position == 9 {
-				player.attackDamageLeftMin += (player.Level + player.MasterLevel) / value
-				player.attackDamageLeftMax += (player.Level + player.MasterLevel) / value
+				// player.attackDamageLeftMin += (player.Level + player.MasterLevel) / value
+				// player.attackDamageLeftMax += (player.Level + player.MasterLevel) / value
 			}
 			if position == 1 || position == 9 {
-				player.attackDamageRightMin += (player.Level + player.MasterLevel) / value
-				player.attackDamageRightMax += (player.Level + player.MasterLevel) / value
+				// player.attackDamageRightMin += (player.Level + player.MasterLevel) / value
+				// player.attackDamageRightMax += (player.Level + player.MasterLevel) / value
 			}
 		}
 	case item.ExcelCommonIncExcelDamage: // 一击
@@ -1376,7 +1492,7 @@ func (p *Player) recoverHPSD() {
 			for _, n := range positions {
 				it := p.Inventory.Items[n]
 				if it != nil && it.Durability != 0 {
-					percent += it.RecoverHP
+					percent += it.AdditionRecoverHP
 				}
 			}
 			// master skill recover HP

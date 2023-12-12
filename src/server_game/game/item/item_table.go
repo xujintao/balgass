@@ -60,6 +60,8 @@ func (table itemTable) GetItemBaseMust(i, j int) *ItemBase {
 	return table[i][j]
 }
 
+const MaxItemIndex int = 512
+
 type itemType int
 
 const (

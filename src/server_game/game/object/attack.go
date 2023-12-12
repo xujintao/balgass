@@ -10,13 +10,13 @@ import (
 )
 
 func (obj *object) getAttackPanel() int {
-	sub := obj.attackPanelMax - obj.attackPanelMin
+	sub := obj.attackMax - obj.attackMin
 	if sub < 0 {
 		log.Printf("attack panel is invalid [index]%d [class]%d\n",
 			obj.index, obj.Class)
 		return 0
 	}
-	attackDamage := obj.attackPanelMin + rand.Intn(sub+1)
+	attackDamage := obj.attackMin + rand.Intn(sub+1)
 	return attackDamage
 }
 

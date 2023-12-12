@@ -129,8 +129,8 @@ func NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 	monster.Name = mc.Name
 	monster.Annotation = mc.Annotation
 	monster.Level = mc.Level
-	monster.attackPanelMin = mc.DamageMin
-	monster.attackPanelMax = mc.DamageMax
+	monster.attackMin = mc.DamageMin
+	monster.attackMax = mc.DamageMax
 	monster.attackRate = mc.AttackRate
 	monster.attackSpeed = mc.AttackSpeed
 	monster.defense = mc.Defense
