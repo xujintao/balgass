@@ -1425,7 +1425,7 @@ func (p *Player) recoverHPSD() {
 
 	// posion delay recover hp
 	if p.delayRecoverHP > 0 {
-		hp := p.delayRecoverHPMax / 4
+		hp := p.delayRecoverHPMax / 2
 		if p.delayRecoverHP > hp {
 			p.delayRecoverHP -= hp
 		} else {
@@ -1447,7 +1447,7 @@ func (p *Player) recoverHPSD() {
 
 	// posion delay recover SD
 	if p.delayRecoverSD > 0 {
-		sd := p.delayRecoverSDMax / 4
+		sd := p.delayRecoverSDMax / 2
 		if p.delayRecoverSD > sd {
 			p.delayRecoverSD -= sd
 		} else {
@@ -1931,8 +1931,43 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 	case it.Code == item.Code(14, 13): // Jewel of Bless
 	case it.Code == item.Code(14, 14): // Jewel of Soul
 	case it.Code == item.Code(14, 16): // Jewel of Life
-	case it.Code >= item.Code(14, 38) && it.Code <= item.Code(14, 40): // comples/compound Potion
 	case it.Code >= item.Code(14, 35) && it.Code <= item.Code(14, 37): // SD Potion
+		addRate := 0
+		switch it.Code {
+		case item.Code(14, 35):
+			addRate = 25
+		case item.Code(14, 36):
+			addRate = 35
+		case item.Code(14, 37):
+			addRate = 45
+		}
+		sd := (p.MaxSD + p.AddSD) * addRate / 100
+		p.delayRecoverSD = sd
+		p.delayRecoverSDMax = sd
+		// decrease durability
+		p.decreaseItemDurability(msg.SrcPosition)
+	case it.Code >= item.Code(14, 38) && it.Code <= item.Code(14, 40): // comples/compound Potion
+		addHPRate, addSDRate := 0, 0
+		switch it.Code {
+		case item.Code(14, 38):
+			addHPRate = 10
+			addSDRate = 5
+		case item.Code(14, 39):
+			addHPRate = 25
+			addSDRate = 10
+		case item.Code(14, 40):
+			addHPRate = 45
+			addSDRate = 20
+		}
+		hp := (p.MaxHP + p.AddHP) * addHPRate / 100
+		sd := (p.MaxSD + p.AddSD) * addSDRate / 100
+		// defer recover hp sd
+		p.delayRecoverHP = hp
+		p.delayRecoverHPMax = hp
+		p.delayRecoverSD = sd
+		p.delayRecoverSDMax = sd
+		// decrease durability
+		p.decreaseItemDurability(msg.SrcPosition)
 	// case it.Code == item.Code(14, 42) && it2.Type != item.TypeSocket: // 再生强化
 	case it.Code >= item.Code(14, 43) && it.Code <= item.Code(14, 44): // 进化道具
 	case it.Code >= item.Code(14, 46) && it.Code <= item.Code(14, 50): // Jack O'Lantern 南瓜灯饮料
