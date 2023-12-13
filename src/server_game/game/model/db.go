@@ -1,10 +1,6 @@
 package model
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -44,156 +40,17 @@ func (db *db) init() {
 	}
 }
 
-type PositionedItems struct {
-	Size              int
-	Items             []*item.Item
-	Flags             []bool
-	CheckFlagsForItem func(int, *item.Item) bool
-	SetFlagsForItem   func(int, *item.Item)
-}
-
-func (pi *PositionedItems) MarshalJSON() ([]byte, error) {
-	var items []*item.Item
-	for i, v := range pi.Items {
-		if v == nil {
-			continue
-		}
-		v.Position = i
-		items = append(items, v)
-	}
-	data, err := json.Marshal(items)
-	if err != nil {
-		return nil, err
-	}
-	return data, err
-}
-
-func (pi *PositionedItems) UnmarshalJSON(buf []byte) error {
-	var items []*item.Item
-	err := json.Unmarshal(buf, &items)
-	if err != nil {
-		return err
-	}
-	pi.Items = make([]*item.Item, pi.Size)
-	pi.Flags = make([]bool, pi.Size)
-	for _, v := range items {
-		v.Code = item.Code(v.Section, v.Index)
-		itemBase, err := item.ItemTable.GetItemBase(v.Section, v.Index)
-		if err != nil {
-			return err
-		}
-		v.ItemBase = itemBase
-		ok := pi.CheckFlagsForItem(v.Position, v)
-		if !ok {
-			log.Printf("PositionedItems UnmarshalJSON CheckPosition [err]invalid [position]%d for item [name]%s [annotation]%s\n",
-				v.Position, v.Name, v.Annotation)
-			continue
-		}
-		pi.SetFlagsForItem(v.Position, v)
-		pi.Items[v.Position] = v
-	}
-	return nil
-}
-
-func (pi PositionedItems) Value() (driver.Value, error) {
-	return pi.MarshalJSON()
-}
-
-type Warehouse struct {
-	PositionedItems
-}
-
-func (w *Warehouse) CheckFlagsForItem(position int, item *item.Item) bool {
-	maxHeight1 := 15
-	maxHeight2 := 30
-	x := position % 8
-	y := position / 8
-	width := item.Width
-	height := item.Height
-	if x+width > 8 ||
-		y < maxHeight1 && y+height > maxHeight1 ||
-		y >= maxHeight1 && y < maxHeight2 && y+height > maxHeight2 {
-		return false
-	}
-	for i := x; i < x+width; i++ {
-		for j := y; j < y+height; j++ {
-			if w.Flags[i+8*j] {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func (w *Warehouse) FindFreePositionForItem(item *item.Item) int {
-	for i, v := range w.Flags {
-		if v {
-			continue
-		}
-		ok := w.CheckFlagsForItem(i, item)
-		if ok {
-			return i
-		}
-	}
-	return -1
-}
-
-func (w *Warehouse) setFlagsForItem(position int, item *item.Item, v bool) {
-	x := position % 8
-	y := position / 8
-	width := item.Width
-	height := item.Height
-	for i := x; i < x+width; i++ {
-		for j := y; j < y+height; j++ {
-			w.Flags[i+8*j] = v
-		}
-	}
-}
-
-func (w *Warehouse) SetFlagsForItem(position int, item *item.Item) {
-	w.setFlagsForItem(position, item, true)
-}
-
-func (w *Warehouse) ClearFlagsForItem(position int, item *item.Item) {
-	w.setFlagsForItem(position, item, false)
-}
-
-func (w *Warehouse) GetItem(position int, item *item.Item) {
-	w.Items[position] = item
-	w.SetFlagsForItem(position, item)
-}
-
-func (w *Warehouse) DropItem(position int, item *item.Item) {
-	w.Items[position] = nil
-	w.ClearFlagsForItem(position, item)
-}
-
-func (w *Warehouse) UnmarshalJSON(buf []byte) error {
-	w.Size = 240
-	w.PositionedItems.CheckFlagsForItem = w.CheckFlagsForItem
-	w.PositionedItems.SetFlagsForItem = w.SetFlagsForItem
-	return w.PositionedItems.UnmarshalJSON(buf)
-}
-
-func (w *Warehouse) Scan(value any) error {
-	buf, ok := value.([]byte)
-	if !ok {
-		return errors.New(fmt.Sprint("Failed to Scan Inventory value:", value))
-	}
-	return w.UnmarshalJSON(buf)
-}
-
 type Account struct {
-	ID                 int          `json:"id,omitempty" gorm:"primarykey"`
-	Name               string       `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique"`
-	Password           string       `json:"password,omitempty" validate:"required,max=10,min=1"`
-	Characters         []*Character `json:"-" validate:"-"`
-	UserID             int          `json:"user_id" validate:"required"`
-	Warehouse          Warehouse    `json:"warehouse,omitempty" validate:"-" gorm:"type:jsonb"`
-	WarehouseExpansion int          `json:"warehouse_expansion,omitempty" validate:"-"`
-	WarehouseMoney     int          `json:"warehouse_money,omitempty" validate:"-"`
-	CreatedAt          time.Time    `json:"-"`
-	UpdatedAt          time.Time    `json:"-"`
+	ID                 int            `json:"id,omitempty" gorm:"primarykey"`
+	Name               string         `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique"`
+	Password           string         `json:"password,omitempty" validate:"required,max=10,min=1"`
+	Characters         []*Character   `json:"-" validate:"-"`
+	UserID             int            `json:"user_id" validate:"required"`
+	Warehouse          item.Warehouse `json:"warehouse,omitempty" validate:"-" gorm:"type:jsonb"`
+	WarehouseExpansion int            `json:"warehouse_expansion,omitempty" validate:"-"`
+	WarehouseMoney     int            `json:"warehouse_money,omitempty" validate:"-"`
+	CreatedAt          time.Time      `json:"-"`
+	UpdatedAt          time.Time      `json:"-"`
 }
 
 // https://stackoverflow.com/questions/66135691/automatically-delete-not-null-constraints-on-unused-columns-after-migration
@@ -251,147 +108,40 @@ func (db *db) DeleteAccount(id int) error {
 	return db.Delete(&Account{ID: id}).Error
 }
 
-type Inventory struct {
-	PositionedItems
-}
-
-func (inv *Inventory) CheckFlagsForItem(position int, item *item.Item) bool {
-	if position < 12 {
-		return !inv.Flags[position]
-	}
-	maxHeight1 := 8
-	maxHeight2 := 12
-	maxHeight3 := 16
-	position -= 12
-	flags := inv.Flags[12:]
-	x := position % 8
-	y := position / 8
-	width := item.Width
-	height := item.Height
-	if x+width > 8 ||
-		y < maxHeight1 && y+height > maxHeight1 ||
-		y >= maxHeight1 && y < maxHeight2 && y+height > maxHeight2 ||
-		y >= maxHeight2 && y < maxHeight3 && y+height > maxHeight3 {
-		return false
-	}
-	for i := x; i < x+width; i++ {
-		for j := y; j < y+height; j++ {
-			if flags[i+8*j] {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func (inv *Inventory) FindFreePositionForItem(item *item.Item) int {
-	for i := range inv.Flags {
-		if i < 12 {
-			continue
-		}
-		ok := inv.CheckFlagsForItem(i, item)
-		if ok {
-			return i
-		}
-		it := inv.Items[i]
-		if it == nil {
-			continue
-		}
-		if item.Overlap != 0 &&
-			item.Code == it.Code &&
-			item.Level == it.Level &&
-			item.Durability <= it.Overlap-it.Durability {
-			return i
-		}
-	}
-	return -1
-}
-
-func (inv *Inventory) setFlagsForItem(position int, item *item.Item, v bool) {
-	if position < 12 {
-		inv.Flags[position] = v
-		return
-	}
-	position -= 12
-	flags := inv.Flags[12:]
-	x := position % 8
-	y := position / 8
-	width := item.Width
-	height := item.Height
-	for i := x; i < x+width; i++ {
-		for j := y; j < y+height; j++ {
-			flags[i+8*j] = v
-		}
-	}
-}
-
-func (inv *Inventory) SetFlagsForItem(position int, item *item.Item) {
-	inv.setFlagsForItem(position, item, true)
-}
-
-func (inv *Inventory) ClearFlagsForItem(position int, item *item.Item) {
-	inv.setFlagsForItem(position, item, false)
-}
-
-func (inv *Inventory) GetItem(position int, item *item.Item) {
-	inv.Items[position] = item
-	inv.SetFlagsForItem(position, item)
-}
-
-func (inv *Inventory) DropItem(position int, item *item.Item) {
-	inv.Items[position] = nil
-	inv.ClearFlagsForItem(position, item)
-}
-
-func (inv *Inventory) UnmarshalJSON(buf []byte) error {
-	inv.Size = 237
-	inv.PositionedItems.CheckFlagsForItem = inv.CheckFlagsForItem
-	inv.PositionedItems.SetFlagsForItem = inv.SetFlagsForItem
-	return inv.PositionedItems.UnmarshalJSON(buf)
-}
-
-func (inv *Inventory) Scan(value any) error {
-	buf, ok := value.([]byte)
-	if !ok {
-		return errors.New(fmt.Sprint("Failed to Scan Inventory value:", value))
-	}
-	return inv.UnmarshalJSON(buf)
-}
-
 type Character struct {
-	ID                 int          `json:"id" gorm:"primarykey"`
-	AccountID          int          `json:"-" validate:"-" gorm:"not null"`
-	Position           int          `json:"position" validate:"-" gorm:"not null"`
-	Name               string       `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique"`
-	Class              int          `json:"class"`
-	ChangeUp           int          `json:"change_up"`
-	Level              int          `json:"level"`
-	LevelPoint         int          `json:"level_point,omitempty"`
-	Experience         int          `json:"experience,omitempty"`
-	Strength           int          `json:"strength,omitempty"`
-	Dexterity          int          `json:"dexterity,omitempty"`
-	Vitality           int          `json:"vitality,omitempty"`
-	Energy             int          `json:"energy,omitempty"`
-	Leadership         int          `json:"leadership,omitempty"`
-	MasterLevel        int          `json:"master_level"`
-	MasterPoint        int          `json:"master_point,omitempty"`
-	MasterExperience   int          `json:"master_experience,omitempty"`
-	HP                 int          `json:"hp,omitempty"`
-	MP                 int          `json:"mp,omitempty"`
-	LevelHP            float32      `json:"level_hp,omitempty" gorm:"-"`
-	LevelMP            float32      `json:"level_mp,omitempty" gorm:"-"`
-	VitalityHP         float32      `json:"vitality_hp,omitempty" gorm:"-"`
-	EnergyMP           float32      `json:"energy_mp,omitempty" gorm:"-"`
-	Skills             skill.Skills `json:"skills,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
-	Inventory          Inventory    `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
-	InventoryExpansion int          `json:"inventory_expansion,omitempty"`
-	Money              int          `json:"money,omitempty"`
-	MapNumber          int          `json:"map_number"`
-	X                  int          `json:"x,omitempty"`
-	Y                  int          `json:"y,omitempty"`
-	Dir                int          `json:"dir,omitempty"`
-	CreatedAt          time.Time    `json:"-"`
-	UpdatedAt          time.Time    `json:"-"`
+	ID                 int            `json:"id" gorm:"primarykey"`
+	AccountID          int            `json:"-" validate:"-" gorm:"not null"`
+	Position           int            `json:"position" validate:"-" gorm:"not null"`
+	Name               string         `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique"`
+	Class              int            `json:"class"`
+	ChangeUp           int            `json:"change_up"`
+	Level              int            `json:"level"`
+	LevelPoint         int            `json:"level_point,omitempty"`
+	Experience         int            `json:"experience,omitempty"`
+	Strength           int            `json:"strength,omitempty"`
+	Dexterity          int            `json:"dexterity,omitempty"`
+	Vitality           int            `json:"vitality,omitempty"`
+	Energy             int            `json:"energy,omitempty"`
+	Leadership         int            `json:"leadership,omitempty"`
+	MasterLevel        int            `json:"master_level"`
+	MasterPoint        int            `json:"master_point,omitempty"`
+	MasterExperience   int            `json:"master_experience,omitempty"`
+	HP                 int            `json:"hp,omitempty"`
+	MP                 int            `json:"mp,omitempty"`
+	LevelHP            float32        `json:"level_hp,omitempty" gorm:"-"`
+	LevelMP            float32        `json:"level_mp,omitempty" gorm:"-"`
+	VitalityHP         float32        `json:"vitality_hp,omitempty" gorm:"-"`
+	EnergyMP           float32        `json:"energy_mp,omitempty" gorm:"-"`
+	Skills             skill.Skills   `json:"skills,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
+	Inventory          item.Inventory `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
+	InventoryExpansion int            `json:"inventory_expansion,omitempty"`
+	Money              int            `json:"money,omitempty"`
+	MapNumber          int            `json:"map_number"`
+	X                  int            `json:"x,omitempty"`
+	Y                  int            `json:"y,omitempty"`
+	Dir                int            `json:"dir,omitempty"`
+	CreatedAt          time.Time      `json:"-"`
+	UpdatedAt          time.Time      `json:"-"`
 }
 
 func (db *db) CreateCharacter(c *Character) error {

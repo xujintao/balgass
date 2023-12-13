@@ -133,9 +133,9 @@ type Player struct {
 	item380Effect      item.Item380Effect
 	// criticalDamage       int
 	excellentDamage    int // 卓越一击概率
-	Inventory          model.Inventory
+	Inventory          item.Inventory
 	InventoryExpansion int
-	Warehouse          model.Warehouse
+	Warehouse          item.Warehouse
 	WarehouseExpansion int
 	WarehouseMoney     int
 	// dbClass              uint8

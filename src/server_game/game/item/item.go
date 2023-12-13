@@ -1,5 +1,11 @@
 package item
 
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"log"
+)
+
 // Item represents a item
 type Item struct {
 	*ItemBase                `json:"-"`
@@ -293,4 +299,59 @@ func (item *Item) Marshal() ([]byte, error) {
 
 func (item *Item) Unmarshal(buf []byte) error {
 	return nil
+}
+
+type PositionedItems struct {
+	Size              int
+	Items             []*Item
+	Flags             []bool
+	CheckFlagsForItem func(int, *Item) bool
+	SetFlagsForItem   func(int, *Item)
+}
+
+func (pi *PositionedItems) MarshalJSON() ([]byte, error) {
+	var items []*Item
+	for i, v := range pi.Items {
+		if v == nil {
+			continue
+		}
+		v.Position = i
+		items = append(items, v)
+	}
+	data, err := json.Marshal(items)
+	if err != nil {
+		return nil, err
+	}
+	return data, err
+}
+
+func (pi *PositionedItems) UnmarshalJSON(buf []byte) error {
+	var items []*Item
+	err := json.Unmarshal(buf, &items)
+	if err != nil {
+		return err
+	}
+	pi.Items = make([]*Item, pi.Size)
+	pi.Flags = make([]bool, pi.Size)
+	for _, v := range items {
+		v.Code = Code(v.Section, v.Index)
+		itemBase, err := ItemTable.GetItemBase(v.Section, v.Index)
+		if err != nil {
+			return err
+		}
+		v.ItemBase = itemBase
+		ok := pi.CheckFlagsForItem(v.Position, v)
+		if !ok {
+			log.Printf("PositionedItems UnmarshalJSON CheckPosition [err]invalid [position]%d for item [name]%s [annotation]%s\n",
+				v.Position, v.Name, v.Annotation)
+			continue
+		}
+		pi.SetFlagsForItem(v.Position, v)
+		pi.Items[v.Position] = v
+	}
+	return nil
+}
+
+func (pi PositionedItems) Value() (driver.Value, error) {
+	return pi.MarshalJSON()
 }
