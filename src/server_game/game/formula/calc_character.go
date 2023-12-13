@@ -94,3 +94,15 @@ func CalcDefenseSuccessRate_PvP(class, dexterity, level int, defenseRatePVP *int
 func CalcAttackSpeed(class, dexterity int, attackSpeed, magicSpeed *int) {
 	call(f.CalcCharacter, "CalcAttackSpeed", "ii>ii", class, dexterity, attackSpeed, magicSpeed)
 }
+
+func CalcTwoSameWeaponBonus(inLeftMin, inLeftMax, inRightMin, inRightMax int, outLeftMin, outLeftMax, outRightMin, outRightMax *int) {
+	call(f.CalcCharacter, "CalcTwoSameWeaponBonus", "iiii>iiii", inLeftMin, inLeftMax, inRightMin, inRightMax, outLeftMin, outLeftMax, outRightMin, outRightMax)
+}
+
+func CalcTwoDifferentWeaponBonus(inLeftMin, inLeftMax, inRightMin, inRightMax int, outLeftMin, outLeftMax, outRightMin, outRightMax *int) {
+	call(f.CalcCharacter, "CalcTwoDifferentWeaponBonus", "iiii>iiii", inLeftMin, inLeftMax, inRightMin, inRightMax, outLeftMin, outLeftMax, outRightMin, outRightMax)
+}
+
+func CalcRageFighterTwoWeaponBonus(inLeftMin, inLeftMax, inRightMin, inRightMax int, outLeftMin, outLeftMax, outRightMin, outRightMax *int) {
+	call(f.CalcCharacter, "CalcRageFighterTwoWeaponBonus", "iiii>iiii", inLeftMin, inLeftMax, inRightMin, inRightMax, outLeftMin, outLeftMax, outRightMin, outRightMax)
+}

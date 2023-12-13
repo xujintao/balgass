@@ -751,6 +751,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 func (p *Player) calc() {
 	leftHand := p.Inventory.Items[0]
 	rightHand := p.Inventory.Items[1]
+	glove := p.Inventory.Items[5]
 	boot := p.Inventory.Items[6]
 	wing := p.Inventory.Items[7]
 
@@ -770,17 +771,14 @@ func (p *Player) calc() {
 	leadership := p.Leadership + p.AddLeadership
 	level := p.Level + p.MasterLevel
 
-	// 1. base attack
-	leftAttackMin := 0
-	leftAttackMax := 0
-	rightAttackMin := 0
-	rightAttackMax := 0
+	// base attack
+	leftAttackMin, leftAttackMax := 0, 0
+	rightAttackMin, rightAttackMax := 0, 0
+	attackMin, attackMax := 0, 0
 	magic := 0
-	magicAttackMin := 0
-	magicAttackMax := 0
+	magicAttackMin, magicAttackMax := 0, 0
 	curse := 0
-	curseAttackMin := 0
-	curseAttackMax := 0
+	curseAttackMin, curseAttackMax := 0, 0
 	switch class.Class(p.Class) {
 	case class.Wizard:
 		formula.WizardDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
@@ -844,7 +842,7 @@ func (p *Player) calc() {
 	curseAttackMax += max
 	options = append(options, &model.MsgStatSpec{ID: 10, Min: min, Max: max})
 
-	// 2. base defense
+	// base defense
 	defense := 0
 	formula.CalcDefense(p.Class, dexterity, &defense)
 
@@ -855,7 +853,7 @@ func (p *Player) calc() {
 	defense += min
 	options = append(options, &model.MsgStatSpec{ID: 4, Min: min})
 
-	// 3. attack/defense success rate
+	// base attack/defense success rate
 	attackRate := 0
 	attackRatePVP := 0
 	defenseRate := 0
@@ -890,12 +888,12 @@ func (p *Player) calc() {
 	defenseRatePVP += min
 	options = append(options, &model.MsgStatSpec{ID: 7, Min: min})
 
-	// 4. speed
+	// base speed
 	attackSpeed := 0
 	magicSpeed := 0
 	formula.CalcAttackSpeed(p.Class, dexterity, &attackSpeed, &magicSpeed)
 
-	// 5. weapon and weapon addition attack
+	// weapon and weapon addition attack
 	if leftHand != nil {
 		leftAttackMin += leftHand.DamageMin + leftHand.AdditionAttack
 		leftAttackMax += leftHand.DamageMax + leftHand.AdditionAttack
@@ -915,7 +913,7 @@ func (p *Player) calc() {
 		magic = rightHand.MagicPower
 	}
 
-	// 6. wing addition attack
+	// wing addition attack
 	if wing != nil {
 		leftAttackMin += wing.AdditionAttack
 		leftAttackMax += wing.AdditionAttack
@@ -927,7 +925,58 @@ func (p *Player) calc() {
 		curseAttackMax += wing.AdditionCurseAttack
 	}
 
-	// 7. armor(shield|armor|wing) addition defense
+	// convert left/right attack to attack
+	left, right := false, false
+	if leftHand != nil &&
+		leftHand.KindA == item.KindAWeapon &&
+		leftHand.Code != item.Code(4, 7) &&
+		leftHand.Code != item.Code(4, 15) {
+		left = true
+	}
+	if rightHand != nil &&
+		rightHand.KindA == item.KindAWeapon &&
+		rightHand.Code != item.Code(4, 7) &&
+		rightHand.Code != item.Code(4, 15) {
+		right = true
+	}
+	switch {
+	case left, right:
+		switch class.Class(p.Class) {
+		case class.Knight, class.Magumsa:
+			if leftHand.Code == rightHand.Code {
+				formula.CalcTwoSameWeaponBonus(
+					leftAttackMin, leftAttackMax, rightAttackMin, rightAttackMax,
+					&leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+			} else {
+				formula.CalcTwoDifferentWeaponBonus(
+					leftAttackMin, leftAttackMax, rightAttackMin, rightAttackMax,
+					&leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+			}
+		case class.RageFighter:
+			formula.CalcRageFighterTwoWeaponBonus(
+				leftAttackMin, leftAttackMax, rightAttackMin, rightAttackMax,
+				&leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+		}
+		attackMin = leftAttackMin + rightAttackMin
+		attackMax = leftAttackMax + rightAttackMax
+		attackSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
+		magicSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
+	case left:
+		attackMin = leftAttackMin
+		attackMax = leftAttackMax
+		attackSpeed += leftHand.AttackSpeed
+		magicSpeed += leftHand.AttackSpeed
+	case right:
+		attackMin = rightAttackMin
+		attackMax = rightAttackMax
+		attackSpeed += rightHand.AttackSpeed
+		magicSpeed += rightHand.AttackSpeed
+	default:
+		attackMin = (leftAttackMin + rightAttackMin) / 2
+		attackMax = (leftAttackMax + rightAttackMax) / 2
+	}
+
+	// armor(shield|armor|wing) addition defense
 	for i := 1; i <= 7; i++ {
 		it := p.Inventory.Items[i]
 		if it != nil {
@@ -936,15 +985,15 @@ func (p *Player) calc() {
 		}
 	}
 
-	// 8. pet defense
+	// pet defense
 
-	// 9. shield defense rate
+	// shield defense rate
 	if rightHand != nil {
 		defenseRate += rightHand.SuccessfulBlocking
 		defenseRate += rightHand.AdditionDefenseRate
 	}
 
-	// 10. armor bonus
+	// armor bonus defense and defense rate
 	// defense level>=10 bonus of item the same type contributed
 	// defense success rate bonus of item the same type contributed
 	sameCount := 0
@@ -1008,14 +1057,20 @@ func (p *Player) calc() {
 		}
 	}
 
+	// glove speed
+	if glove != nil {
+		attackSpeed += glove.AttackSpeed
+		magicSpeed += glove.AttackSpeed
+	}
+
 	// ...
 
-	// 96. hp,mp
+	// hp,mp
 	c := CharacterTable[p.Class]
 	hp := c.HP + int(float32(level-1)*c.LevelHP) + int(float32(vitality-c.Vitality)*c.VitalityHP)
 	mp := c.MP + int(float32(level-1)*c.LevelMP) + int(float32(energy-c.Energy)*c.EnergyMP)
 
-	// 97. sd
+	// sd
 	sdGageConstA := conf.CommonServer.GameServerInfo.SDGageConstA
 	sdGageConstB := conf.CommonServer.GameServerInfo.SDGageConstB
 	expressionA := strength + dexterity + vitality + energy
@@ -1025,7 +1080,7 @@ func (p *Player) calc() {
 	expressionB := level * level / sdGageConstB
 	sd := expressionA*sdGageConstA/10 + expressionB + defense
 
-	// 98. ag
+	// ag
 	ag := 0
 	f := func(s, d, v, e, l float32) int {
 		return int(float32(strength)*s + float32(dexterity)*d + float32(vitality)*v + float32(energy)*e + float32(leadership)*l)
@@ -1047,8 +1102,8 @@ func (p *Player) calc() {
 		ag = f(0.15, 0.2, 0.3, 1.0, 0)
 	}
 
-	// 99. sumary
-	p.attackMin, p.attackMax = leftAttackMin+rightAttackMin, leftAttackMax+rightAttackMax
+	// sumary
+	p.attackMin, p.attackMax = attackMin, attackMax
 	p.magic = magic
 	p.magicAttackMin, p.magicAttackMax = magicAttackMin, magicAttackMax
 	p.curse = curse
@@ -1074,7 +1129,7 @@ func (p *Player) calc() {
 		p.AG = p.MaxAG + p.AddAG
 	}
 
-	// 100. push
+	// push
 	p.push(&model.MsgStatSpecReply{
 		Options: options,
 	})
