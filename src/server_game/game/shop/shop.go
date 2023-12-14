@@ -79,12 +79,13 @@ func (m *shopManager) init() {
 				item := item.NewItem(sitem.Cat, sitem.Index)
 				item.Level = sitem.Level
 				item.Durability = sitem.Durability
-				if item.Durability == 0 {
-					item.Durability = item.CalcMaxDurability()
-				}
 				item.Skill = sitem.Skill
 				item.Lucky = sitem.Luck
 				item.Addition = sitem.Option << 2
+				item.Calc()
+				if item.Durability == 0 {
+					item.Durability = item.MaxDurability
+				}
 				i := findShopInventoryFreePosition(inventoryFlags[:], item)
 				if i == -1 {
 					log.Printf("[err]cannot find free position for [shop]%s item [name]%s [annotation]%s\n",

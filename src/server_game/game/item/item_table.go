@@ -8,6 +8,19 @@ import (
 )
 
 func init() {
+	ItemTable.init()
+}
+
+func Code(section, index int) int {
+	return section*512 + index
+}
+
+// ItemTable a map table
+var ItemTable itemTable
+
+type itemTable []map[int]*ItemBase
+
+func (table *itemTable) init() {
 	type itemListConfig struct {
 		Sections []*struct {
 			Index string      `xml:"Index,attr"`
@@ -19,9 +32,9 @@ func init() {
 	conf.XML(conf.PathCommon, "Items/IGC_ItemList.xml", &itemList)
 
 	// [][]array -> []map
-	ItemTable = make(itemTable, len(itemList.Sections))
+	t := make(itemTable, len(itemList.Sections))
 	for i, section := range itemList.Sections {
-		ItemTable[i] = make(map[int]*ItemBase)
+		t[i] = make(map[int]*ItemBase)
 		for _, v := range section.Items {
 			v.ReqClass[class.Wizard] = v.DarkWizard
 			v.ReqClass[class.Knight] = v.DarkKnight
@@ -30,19 +43,11 @@ func init() {
 			v.ReqClass[class.DarkLord] = v.DarkLord
 			v.ReqClass[class.RageFighter] = v.RageFighter
 			// v.ReqClass[class.GrowLancer] = v.GrowLancer
-			ItemTable[i][v.Index] = v
+			t[i][v.Index] = v
 		}
 	}
+	*table = t
 }
-
-func Code(section, index int) int {
-	return section*512 + index
-}
-
-// ItemTable a map table
-var ItemTable itemTable
-
-type itemTable []map[int]*ItemBase
 
 func (table itemTable) GetItemBase(i, j int) (*ItemBase, error) {
 	if i >= len(table) {

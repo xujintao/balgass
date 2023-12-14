@@ -1547,7 +1547,7 @@ func (p *Player) recoverHPSD() {
 			for _, n := range positions {
 				it := p.Inventory.Items[n]
 				if it != nil && it.Durability != 0 {
-					percent += it.AdditionRecoverHP
+					percent += float64(it.AdditionRecoverHP)
 				}
 			}
 			// master skill recover HP
@@ -1795,6 +1795,7 @@ func (p *Player) inventoryChanged() {
 		}
 	}
 	// 2, calculate player
+	p.calc()
 }
 
 func (p *Player) GetItem(msg *model.MsgGetItem) {
