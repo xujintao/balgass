@@ -381,6 +381,37 @@ func (msg *MsgActionReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+// pack(1)
+type MsgUseSkill struct {
+	Target int
+	Skill  int
+}
+
+func (msg *MsgUseSkill) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	TargetH, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	SkillH, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	TargetL, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	SkillL, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	Target := binary.BigEndian.Uint16([]byte{TargetH, TargetL})
+	msg.Target = int(Target)
+	Skill := binary.BigEndian.Uint16([]byte{SkillH, SkillL})
+	msg.Skill = int(Skill)
+	return nil
+}
+
 type MsgTeleport struct {
 	GateNumber int
 	X          int
@@ -1955,9 +1986,4 @@ type MsgLive struct {
 	MagicSpeed   int
 	Version      string
 	ServerSeason int
-}
-
-type MsgSkillAttack struct {
-	Target int
-	Skill  int
 }

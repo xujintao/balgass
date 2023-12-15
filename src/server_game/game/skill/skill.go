@@ -13,13 +13,13 @@ import (
 
 type Skill struct {
 	*SkillBase `json:"-"`
-	Index      int     `json:"index"`
-	Level      int     `json:"level,omitempty"`
-	DamageMin  int     `json:"-"`
-	DamageMax  int     `json:"-"`
-	UIIndex    int     `json:"-"`
-	CurValue   float32 `json:"-"`
-	NextValue  float32 `json:"-"`
+	Index      SkillIndex `json:"index"`
+	Level      int        `json:"level,omitempty"`
+	DamageMin  int        `json:"-"`
+	DamageMax  int        `json:"-"`
+	UIIndex    int        `json:"-"`
+	CurValue   float32    `json:"-"`
+	NextValue  float32    `json:"-"`
 }
 
 type SortedSkillSlice []*Skill
@@ -40,12 +40,12 @@ func (s *Skill) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	binary.Write(&bw, binary.LittleEndian, uint16(s.Index))
 	level := s.Level << 3
-	level |= s.Index & 0x07
+	level |= int(s.Index) & 0x07
 	bw.WriteByte(byte(level))
 	return bw.Bytes(), nil
 }
 
-type Skills map[int]*Skill
+type Skills map[SkillIndex]*Skill
 
 func (s Skills) MarshalJSON() ([]byte, error) {
 	var skills []*Skill
@@ -93,7 +93,7 @@ func (s *Skills) Scan(value any) error {
 }
 
 // Get get a skill from pool
-func (s Skills) Get(index int) (*Skill, bool) {
+func (s Skills) Get(index SkillIndex) (*Skill, bool) {
 	skillBase, ok := SkillManager.skillTable[index]
 	if !ok {
 		return nil, false
@@ -114,7 +114,7 @@ func (s Skills) Get(index int) (*Skill, bool) {
 	return ss, true
 }
 
-func (s Skills) GetMaster(class, index, point int, f func(point, uiIndex, index, level int, curValue, NextValue float32)) bool {
+func (s Skills) GetMaster(class int, index SkillIndex, point int, f func(point, uiIndex, index, level int, curValue, NextValue float32)) bool {
 	skillBase, ok := SkillManager.skillTable[index]
 	if !ok {
 		return false
@@ -160,11 +160,11 @@ func (s Skills) GetMaster(class, index, point int, f func(point, uiIndex, index,
 	// if index >= 300 {
 	// 	damage = s.getMasterSkillDamage(index, level)
 	// }
-	f(masterSkillBase.ReqMinPoint, masterSkillBase.Index, index, ss.Level, ss.CurValue, ss.NextValue)
+	f(masterSkillBase.ReqMinPoint, masterSkillBase.Index, int(index), ss.Level, ss.CurValue, ss.NextValue)
 	return true
 }
 
-func (s Skills) Put(index int) (*Skill, bool) {
+func (s Skills) Put(index SkillIndex) (*Skill, bool) {
 	ss, ok := s[index]
 	if !ok {
 		return nil, false
@@ -192,7 +192,7 @@ func (s Skills) Put(index int) (*Skill, bool) {
 // skill 346 use 346
 // 346->344
 // 344->0
-func (s Skills) getMasterSkillDamage(index, level int) int {
+func (s Skills) getMasterSkillDamage(index SkillIndex, level int) int {
 	brand1 := index
 	brand2 := index
 	for i := 0; i < 3; i++ {

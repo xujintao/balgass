@@ -123,7 +123,3 @@ func (obj *object) Attack(msg *model.MsgAttack) {
 	obj.pushViewport(&reply)
 	obj.attack(tobj)
 }
-
-func (obj *object) SkillAttack(msg *model.MsgSkillAttack) {
-
-}

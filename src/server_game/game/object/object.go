@@ -561,6 +561,7 @@ type objecter interface {
 	addr() string
 	Offline()
 	push(any)
+	PushMPAG(int, int)
 	Chat(*model.MsgChat)
 	Whisper(*model.MsgWhisper)
 	Login(*model.MsgLogin)
@@ -574,6 +575,7 @@ type objecter interface {
 	MapDataLoadingOK(*model.MsgMapDataLoadingOK)
 	LearnMasterSkill(*model.MsgLearnMasterSkill)
 	getPKLevel() int
+	GetSkillMPAG(s *skill.Skill) (int, int)
 	ProcessAction()
 	Action(*model.MsgAction)
 	Process1000ms()
@@ -637,20 +639,20 @@ type object struct {
 	MaxAG              int
 	AddAG              int
 	targetNumber       int
-	attackMin          int // 物攻min
-	attackMax          int // 物攻max
-	attackSpeed        int // 物攻速度
-	attackRate         int // 攻击率
-	defense            int // 防御力
-	defenseRate        int // 防御率
-	successfulBlocking int // 防御率
-	magicDefense       int // 魔法防御率
-	moveSpeed          int // 移动速度
-	attackRange        int // 攻击范围
-	attackType         int // 攻击类型
-	viewRange          int // 视野范围
-	itemDropRate       int // 道具掉落率
-	moneyDropRate      int // 金钱掉落率
+	attackMin          int              // 物攻min
+	attackMax          int              // 物攻max
+	attackSpeed        int              // 物攻速度
+	attackRate         int              // 攻击率
+	defense            int              // 防御力
+	defenseRate        int              // 防御率
+	successfulBlocking int              // 防御率
+	magicDefense       int              // 魔法防御率
+	moveSpeed          int              // 移动速度
+	attackRange        int              // 攻击范围
+	attackType         skill.SkillIndex // 攻击类型
+	viewRange          int              // 视野范围
+	itemDropRate       int              // 道具掉落率
+	moneyDropRate      int              // 金钱掉落率
 	attribute          int
 	dieRegen           bool
 	// regenOK                   byte
@@ -784,7 +786,7 @@ type object struct {
 	// UseMagicCount   byte
 	// OSAttackSerial  uint16
 	// SASCount        byte
-	// SkillAttackTime time.Duration
+	// UseSkillTime time.Duration
 	// CharSet         string
 	// resistance               [MaxResistanceType]byte
 	// addResistance            [MaxResistanceType]byte

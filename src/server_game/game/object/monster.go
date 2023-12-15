@@ -11,6 +11,7 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
 func init() {
@@ -33,43 +34,43 @@ var MonsterTable monsterTable
 type monsterTable map[int]*MonsterConfig
 
 type MonsterConfig struct {
-	Text                   string `xml:",chardata"`
-	Index                  int    `xml:"Index,attr"`
-	ExpType                string `xml:"ExpType,attr"`
-	Level                  int    `xml:"Level,attr"`
-	HP                     int    `xml:"HP,attr"`
-	MP                     int    `xml:"MP,attr"`
-	DamageMin              int    `xml:"DamageMin,attr"`
-	DamageMax              int    `xml:"DamageMax,attr"`
-	Defense                int    `xml:"Defense,attr"`
-	MagicDefense           int    `xml:"MagicDefense,attr"`
-	AttackRate             int    `xml:"AttackRate,attr"`
-	BlockRate              int    `xml:"BlockRate,attr"`
-	MoveRange              int    `xml:"MoveRange,attr"`
-	AttackType             int    `xml:"AttackType,attr"`
-	AttackRange            int    `xml:"AttackRange,attr"`
-	ViewRange              int    `xml:"ViewRange,attr"`
-	MoveSpeed              int    `xml:"MoveSpeed,attr"`
-	AttackSpeed            int    `xml:"AttackSpeed,attr"`
-	RegenTime              int    `xml:"RegenTime,attr"`
-	Attribute              int    `xml:"Attribute,attr"`
-	ItemDropRate           int    `xml:"ItemDropRate,attr"`
-	MoneyDropRate          int    `xml:"MoneyDropRate,attr"`
-	MaxItemLevel           string `xml:"MaxItemLevel,attr"`
-	MonsterSkill           string `xml:"MonsterSkill,attr"`
-	IceRes                 int    `xml:"IceRes,attr"`
-	PoisonRes              int    `xml:"PoisonRes,attr"`
-	LightRes               int    `xml:"LightRes,attr"`
-	FireRes                int    `xml:"FireRes,attr"`
-	PentagramMainAttrib    int    `xml:"PentagramMainAttrib,attr"`
-	PentagramAttribPattern int    `xml:"PentagramAttribPattern,attr"`
-	PentagramDamageMin     int    `xml:"PentagramDamageMin,attr"`
-	PentagramDamageMax     int    `xml:"PentagramDamageMax,attr"`
-	PentagramAttackRate    int    `xml:"PentagramAttackRate,attr"`
-	PentagramDefenseRate   int    `xml:"PentagramDefenseRate,attr"`
-	PentagramDefense       int    `xml:"PentagramDefense,attr"`
-	Name                   string `xml:"Name,attr"`
-	Annotation             string `xml:"annotation,attr"`
+	Text                   string           `xml:",chardata"`
+	Index                  int              `xml:"Index,attr"`
+	ExpType                string           `xml:"ExpType,attr"`
+	Level                  int              `xml:"Level,attr"`
+	HP                     int              `xml:"HP,attr"`
+	MP                     int              `xml:"MP,attr"`
+	DamageMin              int              `xml:"DamageMin,attr"`
+	DamageMax              int              `xml:"DamageMax,attr"`
+	Defense                int              `xml:"Defense,attr"`
+	MagicDefense           int              `xml:"MagicDefense,attr"`
+	AttackRate             int              `xml:"AttackRate,attr"`
+	BlockRate              int              `xml:"BlockRate,attr"`
+	MoveRange              int              `xml:"MoveRange,attr"`
+	AttackType             skill.SkillIndex `xml:"AttackType,attr"`
+	AttackRange            int              `xml:"AttackRange,attr"`
+	ViewRange              int              `xml:"ViewRange,attr"`
+	MoveSpeed              int              `xml:"MoveSpeed,attr"`
+	AttackSpeed            int              `xml:"AttackSpeed,attr"`
+	RegenTime              int              `xml:"RegenTime,attr"`
+	Attribute              int              `xml:"Attribute,attr"`
+	ItemDropRate           int              `xml:"ItemDropRate,attr"`
+	MoneyDropRate          int              `xml:"MoneyDropRate,attr"`
+	MaxItemLevel           string           `xml:"MaxItemLevel,attr"`
+	MonsterSkill           string           `xml:"MonsterSkill,attr"`
+	IceRes                 int              `xml:"IceRes,attr"`
+	PoisonRes              int              `xml:"PoisonRes,attr"`
+	LightRes               int              `xml:"LightRes,attr"`
+	FireRes                int              `xml:"FireRes,attr"`
+	PentagramMainAttrib    int              `xml:"PentagramMainAttrib,attr"`
+	PentagramAttribPattern int              `xml:"PentagramAttribPattern,attr"`
+	PentagramDamageMin     int              `xml:"PentagramDamageMin,attr"`
+	PentagramDamageMax     int              `xml:"PentagramDamageMax,attr"`
+	PentagramAttackRate    int              `xml:"PentagramAttackRate,attr"`
+	PentagramDefenseRate   int              `xml:"PentagramDefenseRate,attr"`
+	PentagramDefense       int              `xml:"PentagramDefense,attr"`
+	Name                   string           `xml:"Name,attr"`
+	Annotation             string           `xml:"annotation,attr"`
 }
 
 func NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) *Monster {
@@ -222,8 +223,14 @@ func (m *Monster) Offline() {}
 
 func (m *Monster) push(msg any) {}
 
+func (m *Monster) PushMPAG(int, int) {}
+
 func (m *Monster) getPKLevel() int {
 	return 0
+}
+
+func (m *Monster) GetSkillMPAG(s *skill.Skill) (int, int) {
+	return 0, 0
 }
 
 func (m *Monster) spawnPosition() {
@@ -472,15 +479,15 @@ func (m *Monster) attack() {
 		for i := range m.skills {
 			cnt--
 			if cnt == 0 {
-				skillNumber = i
+				skillNumber = int(i)
 				break
 			}
 		}
-		msg := model.MsgSkillAttack{
+		msg := model.MsgUseSkill{
 			Target: m.targetNumber,
 			Skill:  skillNumber,
 		}
-		m.SkillAttack(&msg)
+		m.UseSkill(&msg)
 	}
 }
 

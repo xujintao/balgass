@@ -264,7 +264,7 @@ func (p *Player) pushMaxMP(mp, ag int) {
 	p.push(&model.MsgMPReply{Position: -2, MP: mp, AG: ag})
 }
 
-func (p *Player) pushMP(mp, ag int) {
+func (p *Player) PushMPAG(mp, ag int) {
 	p.push(&model.MsgMPReply{Position: -1, MP: mp, AG: ag})
 }
 
@@ -1144,7 +1144,7 @@ func (p *Player) calc() {
 	p.pushMaxHP(p.MaxHP+p.AddHP, p.MaxSD+p.AddSD)
 	p.pushMaxMP(p.MaxMP+p.AddMP, p.MaxAG+p.AddAG)
 	p.pushHP(p.HP, p.SD)
-	p.pushMP(p.MP, p.AG)
+	p.PushMPAG(p.MP, p.AG)
 }
 
 func (p *Player) loadMiniMap() {
@@ -1213,6 +1213,10 @@ func (p *Player) SaveCharacter() {
 
 func (p *Player) getPKLevel() int {
 	return p.PKLevel
+}
+
+func (p *Player) GetSkillMPAG(s *skill.Skill) (int, int) {
+	return s.ManaUsage, s.BPUsage
 }
 
 func (player *Player) GetMasterLevel() bool {
@@ -1506,7 +1510,7 @@ func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
 		return
 	}
 
-	p.skills.GetMaster(p.Class, msg.SkillIndex, p.MasterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
+	p.skills.GetMaster(p.Class, skill.SkillIndex(msg.SkillIndex), p.MasterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
 		p.MasterPoint -= point
 		reply.Result = 1
 		reply.MasterPoint -= point
@@ -1689,7 +1693,7 @@ func (p *Player) recoverMPAG() {
 		change = true
 	}
 	if change {
-		p.pushMP(p.MP, p.AG)
+		p.PushMPAG(p.MP, p.AG)
 	}
 }
 
@@ -1755,7 +1759,7 @@ func (p *Player) Teleport(msg *model.MsgTeleport) {
 
 func (p *Player) inventoryChanged() {
 	// 1, change skill
-	newItemSkills := make(map[int]struct{})
+	newItemSkills := make(map[skill.SkillIndex]struct{})
 	primaryHandWeapon := p.Inventory.Items[0]
 	if primaryHandWeapon != nil && primaryHandWeapon.SkillIndex != 0 {
 		newItemSkills[primaryHandWeapon.SkillIndex] = struct{}{}
@@ -1764,21 +1768,21 @@ func (p *Player) inventoryChanged() {
 	if secondaryHandWeapon != nil && secondaryHandWeapon.SkillIndex != 0 {
 		newItemSkills[secondaryHandWeapon.SkillIndex] = struct{}{}
 	}
-	oldItemSkills := make(map[int]struct{})
+	oldItemSkills := make(map[skill.SkillIndex]struct{})
 	for _, s := range p.skills {
 		if s.Index < 300 && s.SkillBase.ItemSkill {
 			oldItemSkills[s.Index] = struct{}{}
 		}
 	}
-	var needLearnSkills []int
+	var needLearnSkills []skill.SkillIndex
 	for newSkill := range newItemSkills {
-		if _, ok := oldItemSkills[newSkill]; !ok {
+		if _, ok := oldItemSkills[skill.SkillIndex(newSkill)]; !ok {
 			needLearnSkills = append(needLearnSkills, newSkill)
 		}
 	}
-	var needForgetSkills []int
+	var needForgetSkills []skill.SkillIndex
 	for oldSkill := range oldItemSkills {
-		if _, ok := newItemSkills[oldSkill]; !ok {
+		if _, ok := newItemSkills[skill.SkillIndex(oldSkill)]; !ok {
 			needForgetSkills = append(needForgetSkills, oldSkill)
 		}
 	}
@@ -2099,7 +2103,7 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 			if p.MP > totalMP {
 				p.MP = totalMP
 			}
-			p.pushMP(p.MP, p.AG)
+			p.PushMPAG(p.MP, p.AG)
 		}
 		// decrease durability
 		p.decreaseItemDurability(msg.SrcPosition)
@@ -2166,7 +2170,7 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 		// (15, 18) // Scroll of Nova 星辰一怒术
 		skillIndex := it.SkillIndex
 		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
-			skillIndex += it.Level
+			skillIndex += skill.SkillIndex(it.Level)
 		}
 		if s, ok := p.learnSkill(skillIndex); ok {
 			p.push(&model.MsgSkillOneReply{
