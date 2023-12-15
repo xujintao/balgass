@@ -123,6 +123,8 @@ type Player struct {
 	curse                int
 	curseAttackMin       int // 诅咒min
 	curseAttackMax       int // 诅咒max
+	attackRatePVP        int
+	defenseRatePVP       int
 	magicSpeed           int // 魔攻速度
 	// curseSpell           int
 	DamageMinus        int // 伤害减少
@@ -858,10 +860,10 @@ func (p *Player) calc() {
 	attackRatePVP := 0
 	defenseRate := 0
 	defenseRatePVP := 0
-	formula.CalcAttackSuccessRate_PvM(p.Class, strength, dexterity, leadership, level, &attackRate)
-	formula.CalcAttackSuccessRate_PvP(p.Class, dexterity, level, &attackRatePVP)
+	formula.CalcAttackSuccessRate_PvM(p.Class, strength, dexterity, leadership, p.Level, &attackRate)
+	formula.CalcAttackSuccessRate_PvP(p.Class, dexterity, p.Level, &attackRatePVP)
 	formula.CalcDefenseSuccessRate_PvM(p.Class, dexterity, &defenseRate)
-	formula.CalcDefenseSuccessRate_PvP(p.Class, dexterity, level, &defenseRatePVP)
+	formula.CalcDefenseSuccessRate_PvP(p.Class, dexterity, p.Level, &defenseRatePVP)
 
 	// Stat Specialization
 	// STAT_OPTION_INC_ATTACK_RATE
@@ -895,22 +897,22 @@ func (p *Player) calc() {
 
 	// weapon and weapon addition attack
 	if leftHand != nil {
-		leftAttackMin += leftHand.DamageMin + leftHand.AdditionAttack
-		leftAttackMax += leftHand.DamageMax + leftHand.AdditionAttack
+		leftAttackMin += leftHand.AttackMin + leftHand.AdditionAttack
+		leftAttackMax += leftHand.AttackMax + leftHand.AdditionAttack
 		magicAttackMin += leftHand.AdditionMagicAttack
 		magicAttackMax += leftHand.AdditionMagicAttack
 		curseAttackMin += leftHand.AdditionCurseAttack
 		curseAttackMax += leftHand.AdditionCurseAttack
-		curse = leftHand.MagicPower
+		curse = leftHand.Magic
 	}
 	if rightHand != nil {
-		rightAttackMin += rightHand.DamageMin + rightHand.AdditionAttack
-		rightAttackMax += rightHand.DamageMax + rightHand.AdditionAttack
+		rightAttackMin += rightHand.AttackMin + rightHand.AdditionAttack
+		rightAttackMax += rightHand.AttackMax + rightHand.AdditionAttack
 		magicAttackMin += rightHand.AdditionMagicAttack
 		magicAttackMax += rightHand.AdditionMagicAttack
 		curseAttackMin += leftHand.AdditionCurseAttack
 		curseAttackMax += leftHand.AdditionCurseAttack
-		magic = rightHand.MagicPower
+		magic = rightHand.Magic
 	}
 
 	// wing addition attack
@@ -940,7 +942,7 @@ func (p *Player) calc() {
 		right = true
 	}
 	switch {
-	case left, right:
+	case left && right:
 		switch class.Class(p.Class) {
 		case class.Knight, class.Magumsa:
 			if leftHand.Code == rightHand.Code {
@@ -1108,9 +1110,11 @@ func (p *Player) calc() {
 	p.magicAttackMin, p.magicAttackMax = magicAttackMin, magicAttackMax
 	p.curse = curse
 	p.curseAttackMin, p.curseAttackMax = curseAttackMin, curseAttackMax
-	p.defense = defense
 	p.attackRate = attackRate
+	p.attackRatePVP = attackRatePVP
+	p.defense = defense
 	p.defenseRate = defenseRate
+	p.defenseRatePVP = defenseRatePVP
 	p.attackSpeed, p.magicSpeed = attackSpeed, magicSpeed
 	p.MaxHP = hp
 	if p.HP > p.MaxHP+p.AddHP {
@@ -1855,6 +1859,9 @@ func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {
 		return
 	}
 	p.Inventory.DropItem(msg.Position, item)
+	if msg.Position < 12 || msg.Position == 126 {
+		p.inventoryChanged()
+	}
 	reply.Result = 1
 }
 
