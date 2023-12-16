@@ -1510,7 +1510,7 @@ func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
 		return
 	}
 
-	p.skills.GetMaster(p.Class, skill.SkillIndex(msg.SkillIndex), p.MasterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
+	p.skills.GetMaster(p.Class, msg.SkillIndex, p.MasterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
 		p.MasterPoint -= point
 		reply.Result = 1
 		reply.MasterPoint -= point
@@ -1759,7 +1759,7 @@ func (p *Player) Teleport(msg *model.MsgTeleport) {
 
 func (p *Player) inventoryChanged() {
 	// 1, change skill
-	newItemSkills := make(map[skill.SkillIndex]struct{})
+	newItemSkills := make(map[int]struct{})
 	primaryHandWeapon := p.Inventory.Items[0]
 	if primaryHandWeapon != nil && primaryHandWeapon.SkillIndex != 0 {
 		newItemSkills[primaryHandWeapon.SkillIndex] = struct{}{}
@@ -1768,21 +1768,21 @@ func (p *Player) inventoryChanged() {
 	if secondaryHandWeapon != nil && secondaryHandWeapon.SkillIndex != 0 {
 		newItemSkills[secondaryHandWeapon.SkillIndex] = struct{}{}
 	}
-	oldItemSkills := make(map[skill.SkillIndex]struct{})
+	oldItemSkills := make(map[int]struct{})
 	for _, s := range p.skills {
 		if s.Index < 300 && s.SkillBase.ItemSkill {
 			oldItemSkills[s.Index] = struct{}{}
 		}
 	}
-	var needLearnSkills []skill.SkillIndex
+	var needLearnSkills []int
 	for newSkill := range newItemSkills {
-		if _, ok := oldItemSkills[skill.SkillIndex(newSkill)]; !ok {
+		if _, ok := oldItemSkills[newSkill]; !ok {
 			needLearnSkills = append(needLearnSkills, newSkill)
 		}
 	}
-	var needForgetSkills []skill.SkillIndex
+	var needForgetSkills []int
 	for oldSkill := range oldItemSkills {
-		if _, ok := newItemSkills[skill.SkillIndex(oldSkill)]; !ok {
+		if _, ok := newItemSkills[oldSkill]; !ok {
 			needForgetSkills = append(needForgetSkills, oldSkill)
 		}
 	}
@@ -2170,7 +2170,7 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 		// (15, 18) // Scroll of Nova 星辰一怒术
 		skillIndex := it.SkillIndex
 		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
-			skillIndex += skill.SkillIndex(it.Level)
+			skillIndex += it.Level
 		}
 		if s, ok := p.learnSkill(skillIndex); ok {
 			p.push(&model.MsgSkillOneReply{

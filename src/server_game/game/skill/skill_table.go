@@ -9,10 +9,8 @@ func init() {
 	SkillManager.init()
 }
 
-type SkillIndex int
-
 const (
-	SkillIndexPoison             SkillIndex = 1 + iota // 毒咒
+	SkillIndexPoison             int        = 1 + iota // 毒咒
 	SkillIndexMeteorite                                // 陨石
 	SkillIndexLightning                                // 掌心雷
 	SkillIndexFireBall                                 // 火球
@@ -36,17 +34,17 @@ const (
 	SkillIndexCyclone                                  // 旋风斩(武器)
 	SkillIndexSlash                                    // 天地十字剑(武器)
 	SkillIndexTripleShot                               // 多重箭(武器)
-	SkillIndexHeal               SkillIndex = 2 + iota // 治疗
+	SkillIndexHeal               = 2 + iota            // 治疗
 	SkillIndexGreaterDefense                           // 防御
 	SkillIndexGreaterAttack                            // 攻击
-	SkillIndexSummonGoblin       SkillIndex = 3 + iota // 召唤哥布林
+	SkillIndexSummonGoblin       = 3 + iota            // 召唤哥布林
 	SkillIndexSummonStoneGolem                         // 召唤石巨人
 	SkillIndexSummonAssassin                           // 召唤暗杀者
 	SkillIndexSummonEliteYeti                          // 召唤雪人王
 	SkillIndexSummonDarkKnight                         // 召唤暗黑骑士
 	SkillIndexSummonBali                               // 召唤巴里
 	SkillIndexSummonSoldier                            // 召唤黄金斗士
-	SkillIndexDecay              SkillIndex = 4 + iota // 单毒炎
+	SkillIndexDecay              = 4 + iota            // 单毒炎
 	SkillIndexIceStorm                                 // 暴风雪
 	SkillIndexNova                                     // 星辰一怒
 	SkillIndexTwistingSlash                            // 霹雳回旋斩
@@ -61,10 +59,10 @@ const (
 	SkillIndexDevilFire                                // Flame of Evil (Monster)
 	SkillIndexIceArrow                                 // 冰封箭
 	SkillIndexPenetration                              // 穿透箭
-	SkillIndexFireSlash          SkillIndex = 6 + iota // 玄月斩
+	SkillIndexFireSlash          = 6 + iota            // 玄月斩
 	SkillIndexPowerSlash                               // 天雷闪(武器)
 	SkillIndexSpiralSlash                              // 风舞回旋斩(攻城)
-	SkillIndexForce              SkillIndex = 8 + iota // 冲击
+	SkillIndexForce              = 8 + iota            // 冲击
 	SkillIndexFireBurst                                // 星云火链
 	SkillIndexEarthshake                               // 地裂(黑王马)
 	SkillIndexSummon                                   // 星云召唤
@@ -79,7 +77,7 @@ const (
 	SkillIndexAbolishMagic                             // AbolishMagic
 	SkillIndexMPRays                                   // 幻魔光束(攻城)
 	SkillIndexFireBlast                                // 神圣火焰(攻城)
-	SkillIndexPlasmaStorm        SkillIndex = 9 + iota // 闪电链(炎狼兽)
+	SkillIndexPlasmaStorm        = 9 + iota            // 闪电链(炎狼兽)
 	SkillIndexInfinityArrow                            // 无影箭
 	SkillIndexFireScream                               // 火舞旋风
 	SkillIndexExplosion                                // Explosion
@@ -88,55 +86,55 @@ const (
 var SkillManager skillManager
 
 type SkillBase struct {
-	Index          SkillIndex `xml:"Index,attr"`
-	Name           string     `xml:"Name,attr"`
-	ReqLevel       int        `xml:"ReqLevel,attr"`
-	Damage         int        `xml:"Damage,attr"`
-	STID           int        `xml:"STID,attr"`
-	ManaUsage      int        `xml:"ManaUsage,attr"`
-	BPUsage        int        `xml:"BPUsage,attr"`
-	Distance       int        `xml:"Distance,attr"`
-	Delay          int        `xml:"Delay,attr"`
-	ReqStrength    int        `xml:"ReqStrength,attr"`
-	ReqDexterity   int        `xml:"ReqDexterity,attr"`
-	ReqEnergy      int        `xml:"ReqEnergy,attr"`
-	ReqCommand     int        `xml:"ReqCommand,attr"`
-	ReqMLPoint     int        `xml:"ReqMLPoint,attr"`
-	Attribute      int        `xml:"Attribute,attr"`
-	Type           int        `xml:"Type,attr"`
-	UseType        int        `xml:"UseType,attr"`
-	Brand          SkillIndex `xml:"Brand,attr"`
-	KillCount      int        `xml:"KillCount,attr"`
-	ReqStatus0     int        `xml:"ReqStatus0,attr"`
-	ReqStatus1     int        `xml:"ReqStatus1,attr"`
-	ReqStatus2     int        `xml:"ReqStatus2,attr"`
-	DarkWizard     int        `xml:"DarkWizard,attr"`
-	DarkKnight     int        `xml:"DarkKnight,attr"`
-	FairyElf       int        `xml:"FairyElf,attr"`
-	MagicGladiator int        `xml:"MagicGladiator,attr"`
-	DarkLord       int        `xml:"DarkLord,attr"`
-	Summoner       int        `xml:"Summoner,attr"`
-	RageFighter    int        `xml:"RageFighter,attr"`
-	ReqClass       [8]int     `xml:"-"`
-	Rank           int        `xml:"Rank,attr"`
-	Group          int        `xml:"Group,attr"`
-	HP             int        `xml:"HP,attr"`
-	SD             int        `xml:"SD,attr"`
-	Duration       int        `xml:"Duration,attr"`
-	IconNumber     int        `xml:"IconNumber,attr"`
-	ItemSkill      bool       `xml:"ItemSkill,attr"`
-	IsDamage       int        `xml:"isDamage,attr"`
-	BuffIndex      int        `xml:"BuffIndex,attr"`
+	Index          int    `xml:"Index,attr"`
+	Name           string `xml:"Name,attr"`
+	ReqLevel       int    `xml:"ReqLevel,attr"`
+	Damage         int    `xml:"Damage,attr"`
+	STID           int    `xml:"STID,attr"`
+	ManaUsage      int    `xml:"ManaUsage,attr"`
+	BPUsage        int    `xml:"BPUsage,attr"`
+	Distance       int    `xml:"Distance,attr"`
+	Delay          int    `xml:"Delay,attr"`
+	ReqStrength    int    `xml:"ReqStrength,attr"`
+	ReqDexterity   int    `xml:"ReqDexterity,attr"`
+	ReqEnergy      int    `xml:"ReqEnergy,attr"`
+	ReqCommand     int    `xml:"ReqCommand,attr"`
+	ReqMLPoint     int    `xml:"ReqMLPoint,attr"`
+	Attribute      int    `xml:"Attribute,attr"`
+	Type           int    `xml:"Type,attr"`
+	UseType        int    `xml:"UseType,attr"`
+	Brand          int    `xml:"Brand,attr"`
+	KillCount      int    `xml:"KillCount,attr"`
+	ReqStatus0     int    `xml:"ReqStatus0,attr"`
+	ReqStatus1     int    `xml:"ReqStatus1,attr"`
+	ReqStatus2     int    `xml:"ReqStatus2,attr"`
+	DarkWizard     int    `xml:"DarkWizard,attr"`
+	DarkKnight     int    `xml:"DarkKnight,attr"`
+	FairyElf       int    `xml:"FairyElf,attr"`
+	MagicGladiator int    `xml:"MagicGladiator,attr"`
+	DarkLord       int    `xml:"DarkLord,attr"`
+	Summoner       int    `xml:"Summoner,attr"`
+	RageFighter    int    `xml:"RageFighter,attr"`
+	ReqClass       [8]int `xml:"-"`
+	Rank           int    `xml:"Rank,attr"`
+	Group          int    `xml:"Group,attr"`
+	HP             int    `xml:"HP,attr"`
+	SD             int    `xml:"SD,attr"`
+	Duration       int    `xml:"Duration,attr"`
+	IconNumber     int    `xml:"IconNumber,attr"`
+	ItemSkill      bool   `xml:"ItemSkill,attr"`
+	IsDamage       int    `xml:"isDamage,attr"`
+	BuffIndex      int    `xml:"BuffIndex,attr"`
 }
 
 type MasterSkillBase struct {
-	Index        int        `xml:"Index,attr"`
-	ReqMinPoint  int        `xml:"ReqMinPoint,attr"`
-	MaxPoint     int        `xml:"MaxPoint,attr"`
-	ParentSkill1 SkillIndex `xml:"ParentSkill1,attr"`
-	ParentSkill2 SkillIndex `xml:"ParentSkill2,attr"`
-	SkillID      SkillIndex `xml:"MagicNumber,attr"`
-	Name         string     `xml:"Name,attr"`
+	Index        int    `xml:"Index,attr"`
+	ReqMinPoint  int    `xml:"ReqMinPoint,attr"`
+	MaxPoint     int    `xml:"MaxPoint,attr"`
+	ParentSkill1 int    `xml:"ParentSkill1,attr"`
+	ParentSkill2 int    `xml:"ParentSkill2,attr"`
+	SkillID      int    `xml:"MagicNumber,attr"`
+	Name         string `xml:"Name,attr"`
 }
 
 type valueType int
@@ -153,7 +151,7 @@ type masterSkillValue struct {
 }
 
 type skillManager struct {
-	skillTable            map[SkillIndex]*SkillBase
+	skillTable            map[int]*SkillBase
 	masterSkillTable      [8][3][9][4]*MasterSkillBase
 	masterSkillValueTable [30]masterSkillValue
 }
@@ -165,7 +163,7 @@ func (m *skillManager) init() {
 	}
 	var skillList skillListConfig
 	conf.XML(conf.PathCommon, "Skills/IGC_SkillList.xml", &skillList)
-	m.skillTable = make(map[SkillIndex]*SkillBase)
+	m.skillTable = make(map[int]*SkillBase)
 	for _, v := range skillList.Skills {
 		v.ReqClass[class.Wizard] = v.DarkWizard
 		v.ReqClass[class.Knight] = v.DarkKnight
@@ -231,7 +229,7 @@ func (m *skillManager) init() {
 	// fulfill masterSkillVauleTable by lua script
 }
 
-func (m *skillManager) getMasterSkillBase(class int, index SkillIndex) (*MasterSkillBase, bool) {
+func (m *skillManager) getMasterSkillBase(class, index int) (*MasterSkillBase, bool) {
 	for t := 0; t < 3; t++ {
 		for rank := 0; rank < 9; rank++ {
 			for pos := 0; pos < 4; pos++ {

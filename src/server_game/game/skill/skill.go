@@ -13,13 +13,13 @@ import (
 
 type Skill struct {
 	*SkillBase `json:"-"`
-	Index      SkillIndex `json:"index"`
-	Level      int        `json:"level,omitempty"`
-	DamageMin  int        `json:"-"`
-	DamageMax  int        `json:"-"`
-	UIIndex    int        `json:"-"`
-	CurValue   float32    `json:"-"`
-	NextValue  float32    `json:"-"`
+	Index      int     `json:"index"`
+	Level      int     `json:"level,omitempty"`
+	DamageMin  int     `json:"-"`
+	DamageMax  int     `json:"-"`
+	UIIndex    int     `json:"-"`
+	CurValue   float32 `json:"-"`
+	NextValue  float32 `json:"-"`
 }
 
 type SortedSkillSlice []*Skill
@@ -45,7 +45,7 @@ func (s *Skill) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-type Skills map[SkillIndex]*Skill
+type Skills map[int]*Skill
 
 func (s Skills) MarshalJSON() ([]byte, error) {
 	var skills []*Skill
@@ -93,7 +93,7 @@ func (s *Skills) Scan(value any) error {
 }
 
 // Get get a skill from pool
-func (s Skills) Get(index SkillIndex) (*Skill, bool) {
+func (s Skills) Get(index int) (*Skill, bool) {
 	skillBase, ok := SkillManager.skillTable[index]
 	if !ok {
 		return nil, false
@@ -114,7 +114,7 @@ func (s Skills) Get(index SkillIndex) (*Skill, bool) {
 	return ss, true
 }
 
-func (s Skills) GetMaster(class int, index SkillIndex, point int, f func(point, uiIndex, index, level int, curValue, NextValue float32)) bool {
+func (s Skills) GetMaster(class, index, point int, f func(point, uiIndex, index, level int, curValue, NextValue float32)) bool {
 	skillBase, ok := SkillManager.skillTable[index]
 	if !ok {
 		return false
@@ -164,7 +164,7 @@ func (s Skills) GetMaster(class int, index SkillIndex, point int, f func(point, 
 	return true
 }
 
-func (s Skills) Put(index SkillIndex) (*Skill, bool) {
+func (s Skills) Put(index int) (*Skill, bool) {
 	ss, ok := s[index]
 	if !ok {
 		return nil, false
@@ -192,7 +192,7 @@ func (s Skills) Put(index SkillIndex) (*Skill, bool) {
 // skill 346 use 346
 // 346->344
 // 344->0
-func (s Skills) getMasterSkillDamage(index SkillIndex, level int) int {
+func (s Skills) getMasterSkillDamage(index, level int) int {
 	brand1 := index
 	brand2 := index
 	for i := 0; i < 3; i++ {

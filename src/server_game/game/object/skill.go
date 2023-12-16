@@ -15,7 +15,7 @@ func (obj *object) clearSkill() {
 	obj.skills = nil
 }
 
-func (obj *object) learnSkill(index skill.SkillIndex) (*skill.Skill, bool) {
+func (obj *object) learnSkill(index int) (*skill.Skill, bool) {
 	if _, ok := obj.skills[index]; ok {
 		log.Printf("[object]%s [skill]%d already exists", obj.Name, index)
 		return nil, false
@@ -24,7 +24,7 @@ func (obj *object) learnSkill(index skill.SkillIndex) (*skill.Skill, bool) {
 	return obj.skills.Get(index)
 }
 
-func (obj *object) forgetSkill(index skill.SkillIndex) (*skill.Skill, bool) {
+func (obj *object) forgetSkill(index int) (*skill.Skill, bool) {
 	if _, ok := obj.skills[index]; !ok {
 		log.Printf("[object]%s [skill]%d doesn't exist", obj.Name, index)
 		return nil, false
@@ -39,7 +39,7 @@ func (obj *object) UseSkill(msg *model.MsgUseSkill) {
 			obj.index, msg.Target)
 		return
 	}
-	s, ok := obj.skills[skill.SkillIndex(msg.Skill)]
+	s, ok := obj.skills[msg.Skill]
 	if !ok {
 		return
 	}

@@ -4,8 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"log"
-
-	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
 // Item represents a item
@@ -111,10 +109,10 @@ func (i *Item) IsSet() bool {
 	return i.Set > 0
 }
 
-func (it *Item) GetSkillIndex() skill.SkillIndex {
+func (it *Item) GetSkillIndex() int {
 	if it.Skill {
 		if it.Code == Code(12, 11) { // 召唤之石
-			return it.SkillIndex + skill.SkillIndex(it.Level)
+			return it.SkillIndex + it.Level
 		}
 		return it.SkillIndex
 	}

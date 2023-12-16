@@ -639,20 +639,20 @@ type object struct {
 	MaxAG              int
 	AddAG              int
 	targetNumber       int
-	attackMin          int              // 物攻min
-	attackMax          int              // 物攻max
-	attackSpeed        int              // 物攻速度
-	attackRate         int              // 攻击率
-	defense            int              // 防御力
-	defenseRate        int              // 防御率
-	successfulBlocking int              // 防御率
-	magicDefense       int              // 魔法防御率
-	moveSpeed          int              // 移动速度
-	attackRange        int              // 攻击范围
-	attackType         skill.SkillIndex // 攻击类型
-	viewRange          int              // 视野范围
-	itemDropRate       int              // 道具掉落率
-	moneyDropRate      int              // 金钱掉落率
+	attackMin          int // 物攻min
+	attackMax          int // 物攻max
+	attackSpeed        int // 物攻速度
+	attackRate         int // 攻击率
+	defense            int // 防御力
+	defenseRate        int // 防御率
+	successfulBlocking int // 防御率
+	magicDefense       int // 魔法防御率
+	moveSpeed          int // 移动速度
+	attackRange        int // 攻击范围
+	attackType         int // 攻击类型
+	viewRange          int // 视野范围
+	itemDropRate       int // 道具掉落率
+	moneyDropRate      int // 金钱掉落率
 	attribute          int
 	dieRegen           bool
 	// regenOK                   byte

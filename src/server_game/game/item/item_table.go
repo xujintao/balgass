@@ -5,7 +5,6 @@ import (
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/class"
-	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
 func init() {
@@ -186,61 +185,61 @@ const (
 )
 
 type ItemBase struct {
-	Index              int              `xml:"Index,attr"`
-	Slot               int              `xml:"Slot,attr"`
-	SkillIndex         skill.SkillIndex `xml:"SkillIndex,attr"`
-	TwoHand            bool             `xml:"TwoHand,attr"`
-	Width              int              `xml:"Width,attr"`
-	Height             int              `xml:"Height,attr"`
-	Serial             int              `xml:"Serial,attr"`
-	Option             bool             `xml:"Option,attr"`
-	Drop               bool             `xml:"Drop,attr"`
-	DropLevel          int              `xml:"DropLevel,attr"`
-	DamageMin          int              `xml:"DamageMin,attr"`
-	DamageMax          int              `xml:"DamageMax,attr"`
-	AttackSpeed        int              `xml:"AttackSpeed,attr"`
-	WalkSpeed          int              `xml:"WalkSpeed,attr"`
-	Defense            int              `xml:"Defense,attr"`
-	MagicDefense       int              `xml:"MagicDefense,attr"`
-	SuccessfulBlocking int              `xml:"SuccessfulBlocking,attr"`
-	Durability         int              `xml:"Durability,attr"`
-	MagicDurability    int              `xml:"MagicDurability,attr"`
-	IceRes             int              `xml:"IceRes,attr"`
-	PoisonRes          int              `xml:"PoisonRes,attr"`
-	LightRes           int              `xml:"LightRes,attr"`
-	FireRes            int              `xml:"FireRes,attr"`
-	EarthRes           int              `xml:"EarthRes,attr"`
-	WindRes            int              `xml:"WindRes,attr"`
-	WaterRes           int              `xml:"WaterRes,attr"`
-	MagicPower         int              `xml:"MagicPower,attr"`
-	ReqLevel           int              `xml:"ReqLevel,attr"`
-	ReqStrength        int              `xml:"ReqStrength,attr"`
-	ReqDexterity       int              `xml:"ReqDexterity,attr"`
-	ReqVitality        int              `xml:"ReqVitality,attr"`
-	ReqEnergy          int              `xml:"ReqEnergy,attr"`
-	ReqCommand         int              `xml:"ReqCommand,attr"`
-	Money              int              `xml:"Money,attr"`
-	SetAttrib          int              `xml:"SetAttrib,attr"`
-	DarkWizard         int              `xml:"DarkWizard,attr"`
-	DarkKnight         int              `xml:"DarkKnight,attr"`
-	FairyElf           int              `xml:"FairyElf,attr"`
-	MagicGladiator     int              `xml:"MagicGladiator,attr"`
-	DarkLord           int              `xml:"DarkLord,attr"`
-	Summoner           int              `xml:"Summoner,attr"`
-	RageFighter        int              `xml:"RageFighter,attr"`
-	ReqClass           [8]int           `xml:"-"`
-	Type               itemType         `xml:"Type,attr"`
-	Dump               bool             `xml:"Dump,attr"`
-	Transaction        bool             `xml:"Transaction,attr"`
-	PersonalStore      bool             `xml:"PersonalStore,attr"`
-	StoreWarehouse     bool             `xml:"StoreWarehouse,attr"`
-	SellToNPC          int              `xml:"SellToNPC,attr"`
-	Repair             bool             `xml:"Repair,attr"`
-	KindA              itemKindA        `xml:"KindA,attr"`
-	KindB              itemKindB        `xml:"KindB,attr"`
-	Overlap            int              `xml:"Overlap,attr"`
-	Name               string           `xml:"Name,attr"`
-	Annotation         string           `xml:"annotation,attr"`
-	ModelPath          string           `xml:"ModelPath,attr"`
-	ModelFile          string           `xml:"ModelFile,attr"`
+	Index              int       `xml:"Index,attr"`
+	Slot               int       `xml:"Slot,attr"`
+	SkillIndex         int       `xml:"SkillIndex,attr"`
+	TwoHand            bool      `xml:"TwoHand,attr"`
+	Width              int       `xml:"Width,attr"`
+	Height             int       `xml:"Height,attr"`
+	Serial             int       `xml:"Serial,attr"`
+	Option             bool      `xml:"Option,attr"`
+	Drop               bool      `xml:"Drop,attr"`
+	DropLevel          int       `xml:"DropLevel,attr"`
+	DamageMin          int       `xml:"DamageMin,attr"`
+	DamageMax          int       `xml:"DamageMax,attr"`
+	AttackSpeed        int       `xml:"AttackSpeed,attr"`
+	WalkSpeed          int       `xml:"WalkSpeed,attr"`
+	Defense            int       `xml:"Defense,attr"`
+	MagicDefense       int       `xml:"MagicDefense,attr"`
+	SuccessfulBlocking int       `xml:"SuccessfulBlocking,attr"`
+	Durability         int       `xml:"Durability,attr"`
+	MagicDurability    int       `xml:"MagicDurability,attr"`
+	IceRes             int       `xml:"IceRes,attr"`
+	PoisonRes          int       `xml:"PoisonRes,attr"`
+	LightRes           int       `xml:"LightRes,attr"`
+	FireRes            int       `xml:"FireRes,attr"`
+	EarthRes           int       `xml:"EarthRes,attr"`
+	WindRes            int       `xml:"WindRes,attr"`
+	WaterRes           int       `xml:"WaterRes,attr"`
+	MagicPower         int       `xml:"MagicPower,attr"`
+	ReqLevel           int       `xml:"ReqLevel,attr"`
+	ReqStrength        int       `xml:"ReqStrength,attr"`
+	ReqDexterity       int       `xml:"ReqDexterity,attr"`
+	ReqVitality        int       `xml:"ReqVitality,attr"`
+	ReqEnergy          int       `xml:"ReqEnergy,attr"`
+	ReqCommand         int       `xml:"ReqCommand,attr"`
+	Money              int       `xml:"Money,attr"`
+	SetAttrib          int       `xml:"SetAttrib,attr"`
+	DarkWizard         int       `xml:"DarkWizard,attr"`
+	DarkKnight         int       `xml:"DarkKnight,attr"`
+	FairyElf           int       `xml:"FairyElf,attr"`
+	MagicGladiator     int       `xml:"MagicGladiator,attr"`
+	DarkLord           int       `xml:"DarkLord,attr"`
+	Summoner           int       `xml:"Summoner,attr"`
+	RageFighter        int       `xml:"RageFighter,attr"`
+	ReqClass           [8]int    `xml:"-"`
+	Type               itemType  `xml:"Type,attr"`
+	Dump               bool      `xml:"Dump,attr"`
+	Transaction        bool      `xml:"Transaction,attr"`
+	PersonalStore      bool      `xml:"PersonalStore,attr"`
+	StoreWarehouse     bool      `xml:"StoreWarehouse,attr"`
+	SellToNPC          int       `xml:"SellToNPC,attr"`
+	Repair             bool      `xml:"Repair,attr"`
+	KindA              itemKindA `xml:"KindA,attr"`
+	KindB              itemKindB `xml:"KindB,attr"`
+	Overlap            int       `xml:"Overlap,attr"`
+	Name               string    `xml:"Name,attr"`
+	Annotation         string    `xml:"annotation,attr"`
+	ModelPath          string    `xml:"ModelPath,attr"`
+	ModelFile          string    `xml:"ModelFile,attr"`
 }
