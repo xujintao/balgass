@@ -53,9 +53,22 @@ func (obj *object) UseSkill(msg *model.MsgUseSkill) {
 	obj.PushMPAG(obj.MP, obj.AG)
 }
 
+func (obj *object) UseSkillReply(tobj *object, s *skill.Skill, success bool) {
+	target := tobj.index
+	if success {
+		target |= 0x8000
+	}
+	reply := model.MsgUseSkillReply{
+		Index:  obj.index,
+		Skill:  s.Index,
+		Target: target,
+	}
+	obj.pushViewport(&reply)
+}
+
 func (obj *object) canUseSkill(tobj *object, s *skill.Skill) {
 	switch s.Index {
-	case skill.SkillIndexDefense:
+	case skill.SkillIndexDefense: // 圣盾防御
 		obj.pushViewport(&model.MsgActionReply{
 			Index:  obj.index,
 			Action: int(skill.SkillIndexDefense),
@@ -81,5 +94,12 @@ func (obj *object) canUseSkill(tobj *object, s *skill.Skill) {
 		skill.SkillIndexPenetration,   // 穿透箭
 		skill.SkillIndexPowerSlash:    // 天雷闪(武器)
 		obj.attack(tobj)
+	case skill.SkillIndexDeathStab: // 袭风刺
+		obj.UseSkillDeathStab(s, tobj)
 	}
+}
+
+func (obj *object) UseSkillDeathStab(s *skill.Skill, tobj *object) {
+	obj.UseSkillReply(tobj, s, true)
+	obj.attack(tobj)
 }

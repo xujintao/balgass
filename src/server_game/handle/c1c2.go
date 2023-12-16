@@ -263,6 +263,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x15, "SetPositionReply", (*model.MsgSetPositionReply)(nil)},
 	{0, false, 0xC1, 0x17, "AttackDieReply", (*model.MsgAttackDieReply)(nil)},
 	{0, false, 0xC1, 0x18, "ActionReply", (*model.MsgActionReply)(nil)},
+	{0, false, 0xC3, 0x19, "UseSkillReply", (*model.MsgUseSkillReply)(nil)},
 	{0, false, 0xC3, 0x1C, "TeleportReply", (*model.MsgTeleportReply)(nil)},
 	{0, false, 0xC2, 0x20, "CreateViewportItemReply", (*model.MsgCreateViewportItemReply)(nil)},
 	{0, false, 0xC2, 0x21, "DestroyViewportItemReply", (*model.MsgDestroyViewportItemReply)(nil)},

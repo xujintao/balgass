@@ -452,6 +452,21 @@ func (msg *MsgUseSkill) Unmarshal(buf []byte) error {
 	return nil
 }
 
+// pack(1)
+type MsgUseSkillReply struct {
+	Index  int
+	Skill  int
+	Target int
+}
+
+func (msg *MsgUseSkillReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Index))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Skill))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Target))
+	return bw.Bytes(), nil
+}
+
 type MsgTeleport struct {
 	GateNumber int
 	X          int
