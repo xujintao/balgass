@@ -100,3 +100,15 @@ func (obj *object) Move(msg *model.MsgMove) {
 	}
 	obj.pushViewport(&msgRelpy)
 }
+
+func (obj *object) SetPosition(msg *model.MsgSetPosition) {
+	obj.X = msg.X
+	obj.Y = msg.Y
+	reply := model.MsgSetPositionReply{
+		Number: obj.index,
+		X:      msg.X,
+		Y:      msg.Y,
+	}
+	obj.createFrustrum()
+	obj.pushViewport(&reply)
+}

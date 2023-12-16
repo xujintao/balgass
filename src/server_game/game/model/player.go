@@ -324,6 +324,46 @@ func (msg *MsgAttackDamageReply) Marshal() ([]byte, error) {
 }
 
 // pack(1)
+type MsgSetPosition struct {
+	X int
+	Y int
+}
+
+func (msg *MsgSetPosition) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// x
+	x, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.X = int(x)
+
+	// y
+	y, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Y = int(y)
+
+	return nil
+}
+
+type MsgSetPositionReply struct {
+	Number int
+	X      int
+	Y      int
+}
+
+func (msg *MsgSetPositionReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Number))
+	bw.WriteByte(byte(msg.X))
+	bw.WriteByte(byte(msg.Y))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
 type MsgAttackDieReply struct {
 	Target int
 	Skill  int

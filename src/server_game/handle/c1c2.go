@@ -218,7 +218,8 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x00, "Chat", (*model.MsgChat)(nil)},
 	{0, false, Player, 0x02, "Whisper", (*model.MsgWhisper)(nil)},
 	{0, false, Player, 0x0E, "Live", (*model.MsgLive)(nil)},
-	{0, false, Player, 0x11, "Attack", (*model.MsgAttack)(nil)}, // s9
+	{0, false, Player, 0x11, "Attack", (*model.MsgAttack)(nil)},           // s9
+	{0, false, Player, 0x15, "SetPosition", (*model.MsgSetPosition)(nil)}, // s9
 	{0, false, Player, 0x18, "Action", (*model.MsgAction)(nil)},
 	{0, false, Player, 0x19, "UseSkill", (*model.MsgUseSkill)(nil)},
 	{0, false, Player, 0x1C, "Teleport", (*model.MsgTeleport)(nil)},
@@ -233,9 +234,10 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x4E11, "MuunSystem", (*model.MsgMuunSystem)(nil)},
 	{0, false, Player, 0x82, "CloseWarehouseWindow", (*model.MsgCloseWarehouseWindow)(nil)},
 	{0, false, Player, 0x8E02, "MapMove", (*model.MsgMapMove)(nil)},
-	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},     // s9
-	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)},     // 1.04R
-	{0, false, Player, 0xD9, "Attack", (*model.MsgAttack)(nil)}, // 1.04R
+	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},               // s9
+	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)},               // 1.04R
+	{0, false, Player, 0xD9, "Attack", (*model.MsgAttack)(nil)},           // 1.04R
+	{0, false, Player, 0xDA, "SetPosition", (*model.MsgSetPosition)(nil)}, // 1.04R
 	{0, false, Guest, 0xF101, "Login", (*model.MsgLogin)(nil)},
 	{0, false, Player, 0xF102, "Logout", (*model.MsgLogout)(nil)},
 	{0, false, Player, 0xF103, "Hack", (*model.MsgHack)(nil)},
@@ -258,6 +260,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC2, 0x12, "CreateViewportPlayerReply", (*model.MsgCreateViewportPlayerReply)(nil)},
 	{0, false, 0xC2, 0x13, "CreateViewportMonsterReply", (*model.MsgCreateViewportMonsterReply)(nil)},
 	{0, false, 0xC1, 0x14, "DestroyViewportObjectReply", (*model.MsgDestroyViewportObjectReply)(nil)},
+	{0, false, 0xC1, 0x15, "SetPositionReply", (*model.MsgSetPositionReply)(nil)},
 	{0, false, 0xC1, 0x17, "AttackDieReply", (*model.MsgAttackDieReply)(nil)},
 	{0, false, 0xC1, 0x18, "ActionReply", (*model.MsgActionReply)(nil)},
 	{0, false, 0xC3, 0x1C, "TeleportReply", (*model.MsgTeleportReply)(nil)},
