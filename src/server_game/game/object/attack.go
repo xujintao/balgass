@@ -92,7 +92,7 @@ func (obj *object) attack(tobj *object) {
 		tobj.Die(obj)
 		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.X, tobj.Y)
 		tobj.dieRegen = true
-		tobj.regenTime = time.Duration(time.Now().Unix())
+		tobj.regenTime = time.Now().Add(tobj.maxRegenTime)
 
 		// push attack die reply
 		attackDieReply := model.MsgAttackDieReply{

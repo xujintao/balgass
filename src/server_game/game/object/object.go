@@ -656,7 +656,7 @@ type object struct {
 	attribute          int
 	dieRegen           bool
 	// regenOK                   byte
-	regenTime                 time.Duration // 重生时间
+	regenTime                 time.Time     // 重生时间
 	maxRegenTime              time.Duration // 最大重生时间
 	pentagramMainAttribute    int
 	pentagramAttributePattern int
@@ -990,7 +990,7 @@ func (obj *object) processRegen() {
 	if obj.ConnectState < ConnectStatePlaying {
 		return
 	}
-	if time.Now().Unix()-int64(obj.regenTime) < int64(obj.maxRegenTime) {
+	if time.Now().Before(obj.regenTime) {
 		return
 	}
 	obj.spawnPosition()
