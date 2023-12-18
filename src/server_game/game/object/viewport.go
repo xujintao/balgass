@@ -209,11 +209,13 @@ func (obj *object) destroyViewport() {
 			continue
 		}
 		remove := false
+		notify := false
 		switch vp.type_ {
 		case 5:
 			maps.MapManager.MapItem(obj.MapNumber, vp.number, func(item *item.Item, index, x, y int) {
 				if item == nil {
 					remove = true
+					notify = true
 					return
 				}
 				if !obj.checkViewport(x, y) {
@@ -227,9 +229,10 @@ func (obj *object) destroyViewport() {
 			} else {
 				if tobj.ConnectState < ConnectStatePlaying ||
 					tobj.index == obj.index ||
-					(tobj.State != 1 && tobj.State != 2) ||
+					(tobj.State == 8) ||
 					tobj.MapNumber != obj.MapNumber {
 					remove = true
+					notify = true
 				}
 				if !obj.checkViewport(tobj.X, tobj.Y) {
 					remove = true
@@ -238,7 +241,7 @@ func (obj *object) destroyViewport() {
 		}
 
 		if remove {
-			if obj.Type == ObjectTypePlayer {
+			if obj.Type == ObjectTypePlayer && notify {
 				d := model.DestroyViewport{Index: vp.number}
 				switch vp.type_ {
 				case 5:

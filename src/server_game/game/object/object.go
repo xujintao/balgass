@@ -600,64 +600,63 @@ type objecter interface {
 
 type object struct {
 	objecter
-	index              int
-	ConnectState       ConnectState
-	Live               bool
-	State              int // 1:初始 2:视野 4:死亡
-	StartX             int
-	StartY             int
-	X                  int // x坐标
-	Y                  int // y坐标
-	Dir                int // 方向
-	TX                 int // 目标x坐标
-	TY                 int // 目标y坐标
-	pathX              [15]int
-	pathY              [15]int
-	pathDir            [15]int
-	pathCount          int
-	pathCur            int
-	pathTime           int64
-	pathMoving         bool
-	delayLevel         int
-	MapNumber          int        // 地图号
-	Type               ObjectType // 对象种类：玩家，怪物，NPC
-	NpcType            NpcType
-	Class              int    // 对象类别。怪物和玩家都有类别
-	Name               string // 对象名称
-	Annotation         string // 对象备注
-	Level              int
-	HP                 int // HP
-	MaxHP              int // MaxHP
-	AddHP              int
-	ScriptMaxHP        int
-	MP                 int // MP
-	MaxMP              int // MaxMP
-	AddMP              int
-	SD                 int // SD
-	MaxSD              int
-	AddSD              int
-	AG                 int // AG
-	MaxAG              int
-	AddAG              int
-	targetNumber       int
-	attackMin          int // 物攻min
-	attackMax          int // 物攻max
-	attackSpeed        int // 物攻速度
-	attackRate         int // 攻击率
-	defense            int // 防御力
-	defenseRate        int // 防御率
-	successfulBlocking int // 防御率
-	magicDefense       int // 魔法防御率
-	moveSpeed          int // 移动速度
-	attackRange        int // 攻击范围
-	attackType         int // 攻击类型
-	viewRange          int // 视野范围
-	itemDropRate       int // 道具掉落率
-	moneyDropRate      int // 金钱掉落率
-	attribute          int
-	dieRegen           bool
-	// regenOK                   byte
-	regenTime                 time.Time     // 重生时间
+	index                     int
+	ConnectState              ConnectState
+	Live                      bool
+	State                     int // 1:初始 2:视野 4:死亡 8:清理
+	StartX                    int
+	StartY                    int
+	X                         int // x坐标
+	Y                         int // y坐标
+	Dir                       int // 方向
+	TX                        int // 目标x坐标
+	TY                        int // 目标y坐标
+	pathX                     [15]int
+	pathY                     [15]int
+	pathDir                   [15]int
+	pathCount                 int
+	pathCur                   int
+	pathTime                  int64
+	pathMoving                bool
+	delayLevel                int
+	MapNumber                 int        // 地图号
+	Type                      ObjectType // 对象种类：玩家，怪物，NPC
+	NpcType                   NpcType
+	Class                     int    // 对象类别。怪物和玩家都有类别
+	Name                      string // 对象名称
+	Annotation                string // 对象备注
+	Level                     int
+	HP                        int // HP
+	MaxHP                     int // MaxHP
+	AddHP                     int
+	ScriptMaxHP               int
+	MP                        int // MP
+	MaxMP                     int // MaxMP
+	AddMP                     int
+	SD                        int // SD
+	MaxSD                     int
+	AddSD                     int
+	AG                        int // AG
+	MaxAG                     int
+	AddAG                     int
+	targetNumber              int
+	attackMin                 int // 物攻min
+	attackMax                 int // 物攻max
+	attackSpeed               int // 物攻速度
+	attackRate                int // 攻击率
+	defense                   int // 防御力
+	defenseRate               int // 防御率
+	successfulBlocking        int // 防御率
+	magicDefense              int // 魔法防御率
+	moveSpeed                 int // 移动速度
+	attackRange               int // 攻击范围
+	attackType                int // 攻击类型
+	viewRange                 int // 视野范围
+	itemDropRate              int // 道具掉落率
+	moneyDropRate             int // 金钱掉落率
+	attribute                 int
+	dieTime                   time.Time
+	dieRegen                  bool
 	maxRegenTime              time.Duration // 最大重生时间
 	pentagramMainAttribute    int
 	pentagramAttributePattern int
@@ -991,7 +990,13 @@ func (obj *object) processRegen() {
 	if obj.ConnectState < ConnectStatePlaying {
 		return
 	}
-	if time.Now().Before(obj.regenTime) {
+	now := time.Now()
+	if now.After(obj.dieTime.Add(5 * time.Second)) {
+		if obj.State == 4 {
+			obj.State = 8
+		}
+	}
+	if now.Before(obj.dieTime.Add(obj.maxRegenTime)) {
 		return
 	}
 	obj.spawnPosition()

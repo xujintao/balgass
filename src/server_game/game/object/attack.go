@@ -44,12 +44,15 @@ func (obj *object) attack(tobj *object) {
 	attackDamage := attackPanel - defense
 
 	// limit attack damage min
-	attackDamageMin := tobj.Level / 10
-	if attackDamageMin <= 0 {
-		attackDamageMin = 1
-	}
-	if attackDamage < attackDamageMin {
-		attackDamage = attackDamageMin
+	// attackDamageMin := tobj.Level / 10
+	// if attackDamageMin <= 0 {
+	// 	attackDamageMin = 1
+	// }
+	// if attackDamage < attackDamageMin {
+	// 	attackDamage = attackDamageMin
+	// }
+	if attackDamage < 0 {
+		attackDamage = 1
 	}
 	tobj.HP -= attackDamage
 	if tobj.HP <= 0 {
@@ -89,10 +92,10 @@ func (obj *object) attack(tobj *object) {
 	if tobj.HP == 0 {
 		tobj.Live = false
 		tobj.State = 4
+		tobj.dieTime = time.Now()
 		tobj.Die(obj)
 		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.X, tobj.Y)
 		tobj.dieRegen = true
-		tobj.regenTime = time.Now().Add(tobj.maxRegenTime)
 
 		// push attack die reply
 		attackDieReply := model.MsgAttackDieReply{

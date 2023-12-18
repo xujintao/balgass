@@ -104,6 +104,8 @@ func (obj *object) Move(msg *model.MsgMove) {
 func (obj *object) SetPosition(msg *model.MsgSetPosition) {
 	obj.X = msg.X
 	obj.Y = msg.Y
+	obj.TX = msg.X
+	obj.TY = msg.Y
 	reply := model.MsgSetPositionReply{
 		Number: obj.index,
 		X:      msg.X,

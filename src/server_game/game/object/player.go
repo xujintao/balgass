@@ -705,7 +705,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.attackRange = mc.AttackRange
 	p.attackType = mc.AttackType
 	p.viewRange = mc.ViewRange
-	p.maxRegenTime = 4
+	p.maxRegenTime = 4 * time.Second
 	p.ConnectState = ConnectStatePlaying
 	p.Live = true
 	p.State = 1

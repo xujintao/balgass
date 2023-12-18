@@ -149,7 +149,7 @@ func NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 	monster.attribute = mc.Attribute
 	monster.itemDropRate = mc.ItemDropRate
 	monster.moneyDropRate = mc.MoneyDropRate
-	monster.maxRegenTime = time.Duration(mc.RegenTime)
+	monster.maxRegenTime = time.Duration(mc.RegenTime) * time.Second
 	monster.pentagramAttributePattern = mc.PentagramAttribPattern
 	monster.pentagramAttackMin = mc.PentagramDamageMin
 	monster.pentagramAttackMax = mc.PentagramDamageMax
@@ -520,7 +520,9 @@ func (m *Monster) Process1000ms() {
 }
 
 func (m *Monster) Die(obj *object) {
-
+	// give experience
+	// give item
+	// obj recover hp/mp
 }
 
 func (m *Monster) Regen() {
