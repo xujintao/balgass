@@ -89,6 +89,7 @@ type Player struct {
 	AccountID            int
 	AccountName          string
 	AccountPassword      string
+	CharacterID          int
 	AuthLevel            int
 	Experience           int
 	NextExperience       int
@@ -641,6 +642,14 @@ func (p *Player) CheckCharacter(msg *model.MsgCheckCharacter) {
 	})
 }
 
+func (p *Player) DefineKey(msg *model.MsgDefineKey) {
+	err := model.DB.UpdateCharacterKey(p.CharacterID, msg)
+	if err != nil {
+		log.Printf("model.DB.UpdateCharacterKey failed [err]%v\n", err)
+		return
+	}
+}
+
 func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// validate msg
 	if msg.Name == "" || msg.Position < 0 || msg.Position > 4 {
@@ -657,6 +666,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	}
 
 	// set player with character data
+	p.CharacterID = c.ID
 	p.Name = c.Name
 	p.Annotation = c.Name
 	p.Class = c.Class
@@ -739,6 +749,10 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	})
 	p.pushSkillList()
 	p.pushMasterSkillList()
+
+	p.push(&model.MsgDefineKeyReply{
+		MsgDefineKey: c.KeyDefine,
+	})
 
 	// client will calculate character after receiving inventory msg and master msg
 	// calculate
@@ -1181,6 +1195,7 @@ func (p *Player) SaveCharacter() {
 		return
 	}
 	c := model.Character{
+		ID:                 p.CharacterID,
 		ChangeUp:           p.ChangeUp,
 		Level:              p.Level,
 		LevelPoint:         p.LevelPoint,
@@ -1204,7 +1219,7 @@ func (p *Player) SaveCharacter() {
 		Y:                  p.Y,
 		Dir:                p.Dir,
 	}
-	err := model.DB.UpdateCharacter(p.Name, &c)
+	err := model.DB.UpdateCharacter(&c)
 	if err != nil {
 		log.Printf("model.DB.SaveCharacter failed [err]%v\n", err)
 		return

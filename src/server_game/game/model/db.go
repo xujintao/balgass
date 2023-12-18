@@ -135,6 +135,7 @@ type Character struct {
 	Skills             skill.Skills   `json:"skills,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
 	Inventory          item.Inventory `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
 	InventoryExpansion int            `json:"inventory_expansion,omitempty"`
+	KeyDefine          MsgDefineKey   `json:"key_define,omitempty" validate:"-" gorm:"type:jsonb;default:'{}'"`
 	Money              int            `json:"money,omitempty"`
 	MapNumber          int            `json:"map_number"`
 	X                  int            `json:"x,omitempty"`
@@ -152,17 +153,21 @@ func (db *db) CreateCharacter(c *Character) error {
 	return nil
 }
 
-func (db *db) UpdateCharacter(name string, c *Character) error {
+func (db *db) UpdateCharacter(c *Character) error {
 	return db.Model(c).
-		Where("name = ?", name).
 		Select("*").Omit(
 		"ID",
 		"AccountID",
 		"Position",
 		"Name",
 		"Class",
+		"KeyDefine",
 		"CreatedAt").
 		Updates(c).Error
+}
+
+func (db *db) UpdateCharacterKey(id int, key *MsgDefineKey) error {
+	return db.Model(&Character{ID: id}).Update("KeyDefine", key).Error
 }
 
 func (db *db) GetCharacterList(aid int) ([]*Character, error) {

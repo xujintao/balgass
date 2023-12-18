@@ -76,7 +76,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	req.Body = req.Body[1:]
 	if os.Getenv("DEBUG") == "1" {
 		switch api.action {
-		case "Live", "DefineKey":
+		case "Live":
 			return
 		case "Move", "Action", "Attack":
 		default:
@@ -300,6 +300,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0xF311, "SkillListReply", (*model.MsgSkillListReply)(nil)},
 	{0, false, 0xC1, 0xF311, "SkillOneReply", (*model.MsgSkillOneReply)(nil)},
 	{0, false, 0xC1, 0xF315, "CheckCharacterReply", (*model.MsgCheckCharacterReply)(nil)},
+	{0, false, 0xC1, 0xF330, "DefineKeyReply", (*model.MsgDefineKeyReply)(nil)},
 	{0, false, 0xC1, 0xF350, "MasterDataReply", (*model.MsgMasterDataReply)(nil)},
 	{0, false, 0xC1, 0xF352, "LearnMasterSkillReply", (*model.MsgLearnMasterSkillReply)(nil)},
 	{0, false, 0xC2, 0xF353, "MasterSkillListReply", (*model.MsgMasterSkillListReply)(nil)},

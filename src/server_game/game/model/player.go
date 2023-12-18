@@ -2,8 +2,11 @@ package model
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/xujintao/balgass/src/server_game/game/item"
@@ -1331,22 +1334,6 @@ func (msg *MsgHack) Unmarshal(buf []byte) error {
 	return nil
 }
 
-// invalid api [body]f330ffffffffffffffffffffffffffffffffffffffff1dffffff16ff00000000
-type MsgDefineKey struct {
-}
-
-type MsgTest struct{}
-
-func (msg *MsgTest) Marshal() ([]byte, error) {
-	var buf bytes.Buffer
-	buf.WriteByte(0x01)
-	return buf.Bytes(), nil
-}
-
-func (msg *MsgTest) Unmarshal([]byte) error {
-	return nil
-}
-
 type MsgGetCharacterList struct{}
 
 func (msg *MsgGetCharacterList) Unmarshal(buf []byte) error {
@@ -1905,6 +1892,126 @@ func (msg *MsgCheckCharacterReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+// invalid api [body]f330
+// ffffffffffffffffffffffffffffffffffffffff
+// 1d
+// ff
+// ff
+// ff
+// 16
+// ff
+// 00000000
+type MsgDefineKey struct {
+	Skill [20]byte `json:"skill"`
+	Game  int      `json:"game"`
+	Q     int      `json:"q"`
+	W     int      `json:"w"`
+	E     int      `json:"e"`
+	Chat  int      `json:"chat"`
+	R     int      `json:"r"`
+	QWER  int      `json:"qwer"`
+}
+
+func (msg *MsgDefineKey) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// skill
+	var skill [20]byte
+	_, err := br.Read(skill[:])
+	if err != nil {
+		return err
+	}
+	msg.Skill = skill
+
+	// Game
+	Game, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Game = int(Game)
+
+	// Q
+	Q, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Q = int(Q)
+
+	// W
+	W, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.W = int(W)
+
+	// E
+	E, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.E = int(E)
+
+	// Chat
+	Chat, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Chat = int(Chat)
+
+	// R
+	R, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.R = int(R)
+
+	// var paddings [2]byte // padding
+	// _, err = br.Read(paddings[:])
+	// if err != nil {
+	// 	return err
+	// }
+
+	// QWER
+	var QWER uint32
+	err = binary.Read(br, binary.LittleEndian, &QWER)
+	if err != nil {
+		return err
+	}
+	msg.QWER = int(QWER)
+
+	return nil
+}
+
+func (msg *MsgDefineKey) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.Write(msg.Skill[:])
+	bw.WriteByte(byte(msg.Game))
+	bw.WriteByte(byte(msg.Q))
+	bw.WriteByte(byte(msg.W))
+	bw.WriteByte(byte(msg.E))
+	bw.WriteByte(byte(msg.Chat))
+	bw.WriteByte(byte(msg.R))
+	// bw.Write([]byte{0, 0}) // padding
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.QWER))
+	return bw.Bytes(), nil
+}
+
+func (msg MsgDefineKey) Value() (driver.Value, error) {
+	return json.Marshal(msg)
+}
+
+func (msg *MsgDefineKey) Scan(value any) error {
+	buf, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to Scan MsgDefineKey value:", value))
+	}
+	return json.Unmarshal(buf, msg)
+}
+
+type MsgDefineKeyReply struct {
+	MsgDefineKey
+}
+
 // pack(1)
 type MsgMasterDataReply struct {
 	MasterLevel          int
@@ -2041,4 +2148,16 @@ type MsgLive struct {
 	MagicSpeed   int
 	Version      string
 	ServerSeason int
+}
+
+type MsgTest struct{}
+
+func (msg *MsgTest) Marshal() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteByte(0x01)
+	return buf.Bytes(), nil
+}
+
+func (msg *MsgTest) Unmarshal([]byte) error {
+	return nil
 }
