@@ -135,7 +135,8 @@ type Character struct {
 	Skills             skill.Skills   `json:"skills,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
 	Inventory          item.Inventory `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
 	InventoryExpansion int            `json:"inventory_expansion,omitempty"`
-	KeyDefine          MsgDefineKey   `json:"key_define,omitempty" validate:"-" gorm:"type:jsonb;default:'{}'"`
+	MuKey              MsgMuKey       `json:"mu_key,omitempty" validate:"-" gorm:"type:jsonb;default:'{}'"`
+	MuBot              MsgMuBot       `json:"mu_bot,omitempty" validate:"-" gorm:"type:jsonb;default:'{}'"`
 	Money              int            `json:"money,omitempty"`
 	MapNumber          int            `json:"map_number"`
 	X                  int            `json:"x,omitempty"`
@@ -161,13 +162,18 @@ func (db *db) UpdateCharacter(c *Character) error {
 		"Position",
 		"Name",
 		"Class",
-		"KeyDefine",
+		"MuKey",
+		"MuBot",
 		"CreatedAt").
 		Updates(c).Error
 }
 
-func (db *db) UpdateCharacterKey(id int, key *MsgDefineKey) error {
-	return db.Model(&Character{ID: id}).Update("KeyDefine", key).Error
+func (db *db) UpdateCharacterMuKey(id int, key *MsgDefineMuKey) error {
+	return db.Model(&Character{ID: id}).Update("MuKey", key).Error
+}
+
+func (db *db) UpdateCharacterMuBot(id int, bot *MsgDefineMuBot) error {
+	return db.Model(&Character{ID: id}).Update("MuBot", bot).Error
 }
 
 func (db *db) GetCharacterList(aid int) ([]*Character, error) {

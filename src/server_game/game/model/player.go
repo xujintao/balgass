@@ -992,6 +992,42 @@ func (msg *MsgMapMoveReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgMuBot struct {
+	Data [257]byte
+}
+
+func (msg *MsgMuBot) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	_, err := br.Read(msg.Data[:])
+	return err
+}
+
+func (msg *MsgMuBot) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.Write(msg.Data[:])
+	return bw.Bytes(), nil
+}
+
+func (msg MsgMuBot) Value() (driver.Value, error) {
+	return json.Marshal(msg)
+}
+
+func (msg *MsgMuBot) Scan(value any) error {
+	buf, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to Scan MsgMuBot value:", value))
+	}
+	return json.Unmarshal(buf, msg)
+}
+
+type MsgDefineMuBot struct {
+	MsgMuBot
+}
+
+type MsgMuBotReply struct {
+	MsgMuBot
+}
+
 // pack(1)
 type MsgMove struct {
 	Dirs []int
@@ -1892,16 +1928,8 @@ func (msg *MsgCheckCharacterReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-// invalid api [body]f330
-// ffffffffffffffffffffffffffffffffffffffff
-// 1d
-// ff
-// ff
-// ff
-// 16
-// ff
-// 00000000
-type MsgDefineKey struct {
+// pack(1)
+type MsgMuKey struct {
 	Skill [20]byte `json:"skill"`
 	Game  int      `json:"game"`
 	Q     int      `json:"q"`
@@ -1912,7 +1940,7 @@ type MsgDefineKey struct {
 	QWER  int      `json:"qwer"`
 }
 
-func (msg *MsgDefineKey) Unmarshal(buf []byte) error {
+func (msg *MsgMuKey) Unmarshal(buf []byte) error {
 	br := bytes.NewReader(buf)
 
 	// skill
@@ -1982,7 +2010,7 @@ func (msg *MsgDefineKey) Unmarshal(buf []byte) error {
 	return nil
 }
 
-func (msg *MsgDefineKey) Marshal() ([]byte, error) {
+func (msg *MsgMuKey) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	bw.Write(msg.Skill[:])
 	bw.WriteByte(byte(msg.Game))
@@ -1996,11 +2024,11 @@ func (msg *MsgDefineKey) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-func (msg MsgDefineKey) Value() (driver.Value, error) {
+func (msg MsgMuKey) Value() (driver.Value, error) {
 	return json.Marshal(msg)
 }
 
-func (msg *MsgDefineKey) Scan(value any) error {
+func (msg *MsgMuKey) Scan(value any) error {
 	buf, ok := value.([]byte)
 	if !ok {
 		return errors.New(fmt.Sprint("Failed to Scan MsgDefineKey value:", value))
@@ -2008,8 +2036,12 @@ func (msg *MsgDefineKey) Scan(value any) error {
 	return json.Unmarshal(buf, msg)
 }
 
-type MsgDefineKeyReply struct {
-	MsgDefineKey
+type MsgDefineMuKey struct {
+	MsgMuKey
+}
+
+type MsgMuKeyReply struct {
+	MsgMuKey
 }
 
 // pack(1)

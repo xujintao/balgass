@@ -234,6 +234,7 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x4E11, "MuunSystem", (*model.MsgMuunSystem)(nil)},
 	{0, false, Player, 0x82, "CloseWarehouseWindow", (*model.MsgCloseWarehouseWindow)(nil)},
 	{0, false, Player, 0x8E02, "MapMove", (*model.MsgMapMove)(nil)},
+	{0, false, Player, 0xAE, "DefineMuBot", (*model.MsgDefineMuBot)(nil)},
 	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},               // s9
 	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)},               // 1.04R
 	{0, false, Player, 0xD9, "Attack", (*model.MsgAttack)(nil)},           // 1.04R
@@ -247,7 +248,7 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0xF303, "LoadCharacter", (*model.MsgLoadCharacter)(nil)},
 	{0, false, Player, 0xF312, "MapDataLoadingOK", (*model.MsgMapDataLoadingOK)(nil)},
 	{0, false, Player, 0xF315, "CheckCharacter", (*model.MsgCheckCharacter)(nil)},
-	{0, false, Player, 0xF330, "DefineKey", (*model.MsgDefineKey)(nil)},
+	{0, false, Player, 0xF330, "DefineMuKey", (*model.MsgDefineMuKey)(nil)},
 	{0, false, Player, 0xF352, "LearnMasterSkill", (*model.MsgLearnMasterSkill)(nil)},
 	{0, false, Player, 0xFFFF, "Test", (*model.MsgTest)(nil)},
 }
@@ -283,6 +284,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x81, "WarehouseMoneyReply", (*model.MsgWarehouseMoneyReply)(nil)},
 	{0, false, 0xC1, 0x82, "CloseWarehouseWindowReply", (*model.MsgCloseWarehouseWindowReply)(nil)},
 	{0, false, 0xC1, 0x8E03, "MapMoveReply", (*model.MsgMapMoveReply)(nil)},
+	{0, false, 0xC2, 0xAE, "MuBotReply", (*model.MsgMuBotReply)(nil)},
 	{0, false, 0xC1, 0xD4, "MoveReply", (*model.MsgMoveReply)(nil)},
 	{0, false, 0xC1, 0xDE00, "EnableCharacterClassReply", (*model.MsgEnableCharacterClassReply)(nil)},
 	{0, false, 0xC1, 0xE703, "MiniMapReply", (*model.MsgMiniMapReply)(nil)},
@@ -300,7 +302,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0xF311, "SkillListReply", (*model.MsgSkillListReply)(nil)},
 	{0, false, 0xC1, 0xF311, "SkillOneReply", (*model.MsgSkillOneReply)(nil)},
 	{0, false, 0xC1, 0xF315, "CheckCharacterReply", (*model.MsgCheckCharacterReply)(nil)},
-	{0, false, 0xC1, 0xF330, "DefineKeyReply", (*model.MsgDefineKeyReply)(nil)},
+	{0, false, 0xC1, 0xF330, "MuKeyReply", (*model.MsgMuKeyReply)(nil)},
 	{0, false, 0xC1, 0xF350, "MasterDataReply", (*model.MsgMasterDataReply)(nil)},
 	{0, false, 0xC1, 0xF352, "LearnMasterSkillReply", (*model.MsgLearnMasterSkillReply)(nil)},
 	{0, false, 0xC2, 0xF353, "MasterSkillListReply", (*model.MsgMasterSkillListReply)(nil)},

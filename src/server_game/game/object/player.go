@@ -642,10 +642,18 @@ func (p *Player) CheckCharacter(msg *model.MsgCheckCharacter) {
 	})
 }
 
-func (p *Player) DefineKey(msg *model.MsgDefineKey) {
-	err := model.DB.UpdateCharacterKey(p.CharacterID, msg)
+func (p *Player) DefineMuKey(msg *model.MsgDefineMuKey) {
+	err := model.DB.UpdateCharacterMuKey(p.CharacterID, msg)
 	if err != nil {
-		log.Printf("model.DB.UpdateCharacterKey failed [err]%v\n", err)
+		log.Printf("model.DB.UpdateCharacterMuKey failed [err]%v\n", err)
+		return
+	}
+}
+
+func (p *Player) DefineMuBot(msg *model.MsgDefineMuBot) {
+	err := model.DB.UpdateCharacterMuBot(p.CharacterID, msg)
+	if err != nil {
+		log.Printf("model.DB.UpdateCharacterMuBot failed [err]%v\n", err)
 		return
 	}
 }
@@ -750,8 +758,11 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.pushSkillList()
 	p.pushMasterSkillList()
 
-	p.push(&model.MsgDefineKeyReply{
-		MsgDefineKey: c.KeyDefine,
+	p.push(&model.MsgMuKeyReply{
+		MsgMuKey: c.MuKey,
+	})
+	p.push(&model.MsgMuBotReply{
+		MsgMuBot: c.MuBot,
 	})
 
 	// client will calculate character after receiving inventory msg and master msg
