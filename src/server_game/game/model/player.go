@@ -1445,7 +1445,26 @@ func MakeCharacterFrame(Class, ChangeUp int, Inventory [9]*item.Item) [18]byte {
 		if v.Index == 512 {
 			continue
 		}
-		level |= uint32(v.Level) << i * 3
+		var l uint32
+		switch l {
+		case 0, 1, 2:
+			l = 0
+		case 3, 4:
+			l = 1
+		case 5, 6:
+			l = 2
+		case 7, 8:
+			l = 3
+		case 9, 10:
+			l = 4
+		case 11:
+			l = 5
+		case 12, 13, 14:
+			l = 6
+		case 15:
+			l = 7
+		}
+		level |= l << (i * 3)
 	}
 	binary.BigEndian.PutUint32(data[:], level)
 	copy(chars[6:9], data[1:])
