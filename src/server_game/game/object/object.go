@@ -575,6 +575,7 @@ type objecter interface {
 	MapDataLoadingOK(*model.MsgMapDataLoadingOK)
 	DefineMuKey(*model.MsgDefineMuKey)
 	DefineMuBot(*model.MsgDefineMuBot)
+	EnableMuBot(*model.MsgEnableMuBot)
 	LearnMasterSkill(*model.MsgLearnMasterSkill)
 	getPKLevel() int
 	GetSkillMPAG(s *skill.Skill) (int, int)

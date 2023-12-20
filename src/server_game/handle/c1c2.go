@@ -235,6 +235,7 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x82, "CloseWarehouseWindow", (*model.MsgCloseWarehouseWindow)(nil)},
 	{0, false, Player, 0x8E02, "MapMove", (*model.MsgMapMove)(nil)},
 	{0, false, Player, 0xAE, "DefineMuBot", (*model.MsgDefineMuBot)(nil)},
+	{0, false, Player, 0xBF51, "EnableMuBot", (*model.MsgEnableMuBot)(nil)},
 	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},               // s9
 	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)},               // 1.04R
 	{0, false, Player, 0xD9, "Attack", (*model.MsgAttack)(nil)},           // 1.04R
@@ -285,6 +286,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x82, "CloseWarehouseWindowReply", (*model.MsgCloseWarehouseWindowReply)(nil)},
 	{0, false, 0xC1, 0x8E03, "MapMoveReply", (*model.MsgMapMoveReply)(nil)},
 	{0, false, 0xC2, 0xAE, "MuBotReply", (*model.MsgMuBotReply)(nil)},
+	{0, false, 0xC1, 0xBF51, "EnableMuBotReply", (*model.MsgEnableMuBotReply)(nil)},
 	{0, false, 0xC1, 0xD4, "MoveReply", (*model.MsgMoveReply)(nil)},
 	{0, false, 0xC1, 0xDE00, "EnableCharacterClassReply", (*model.MsgEnableCharacterClassReply)(nil)},
 	{0, false, 0xC1, 0xE703, "MiniMapReply", (*model.MsgMiniMapReply)(nil)},

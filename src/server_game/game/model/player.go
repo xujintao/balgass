@@ -1028,6 +1028,37 @@ type MsgMuBotReply struct {
 	MsgMuBot
 }
 
+type MsgEnableMuBot struct {
+	Flag int
+}
+
+func (msg *MsgEnableMuBot) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	flag, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Flag = int(flag)
+	return nil
+}
+
+type MsgEnableMuBotReply struct {
+	Time          int
+	TimeMultipler int
+	Money         int
+	Flag          int
+}
+
+func (msg *MsgEnableMuBotReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Time))
+	bw.WriteByte(byte(msg.TimeMultipler))
+	bw.Write([]byte{0, 0})
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.Money))
+	binary.Write(&bw, binary.LittleEndian, uint32(msg.Flag))
+	return bw.Bytes(), nil
+}
+
 // pack(1)
 type MsgMove struct {
 	Dirs []int

@@ -658,6 +658,15 @@ func (p *Player) DefineMuBot(msg *model.MsgDefineMuBot) {
 	}
 }
 
+func (p *Player) EnableMuBot(msg *model.MsgEnableMuBot) {
+	reply := model.MsgEnableMuBotReply{Flag: msg.Flag}
+	defer p.push(&reply)
+	switch msg.Flag {
+	case 0:
+	case 1:
+	}
+}
+
 func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// validate msg
 	if msg.Name == "" || msg.Position < 0 || msg.Position > 4 {
