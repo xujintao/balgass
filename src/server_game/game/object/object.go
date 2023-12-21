@@ -427,6 +427,9 @@ func (m *objectManager) Process1000ms() {
 
 		// process map subscripion
 		if _, ok := m.mapSubscribeTable[obj.MapNumber]; ok {
+			if !obj.Live {
+				continue
+			}
 			p := maps.Pot{X: obj.X, Y: obj.Y}
 			switch obj.Type {
 			case ObjectTypePlayer:
@@ -618,7 +621,7 @@ type object struct {
 	pathDir                   [15]int
 	pathCount                 int
 	pathCur                   int
-	pathTime                  int64
+	pathTime                  time.Time
 	pathMoving                bool
 	delayLevel                int
 	MapNumber                 int        // 地图号

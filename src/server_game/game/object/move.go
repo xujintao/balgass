@@ -25,15 +25,15 @@ func (obj *object) processMove() {
 		obj.pathCount == 0 {
 		return
 	}
-	moveTime := obj.moveSpeed
+	moveTime := 400
 	if obj.delayLevel != 0 {
 		moveTime += 300
 	}
-	pathTime := time.Now().UnixMilli()
-	if pathTime-obj.pathTime+1 < int64(moveTime) {
+	now := time.Now()
+	if now.Before(obj.pathTime.Add(time.Duration(moveTime) * time.Millisecond)) {
 		return
 	}
-	obj.pathTime = pathTime
+	obj.pathTime = now
 	x := obj.pathX[obj.pathCur]
 	y := obj.pathY[obj.pathCur]
 	dir := obj.pathDir[obj.pathCur]

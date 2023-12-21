@@ -715,13 +715,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		p.spawnPosition()
 	}
 	p.createFrustrum()
-
-	// mc := MonsterTable[249]
-	mc := MonsterTable[10]
-	p.moveSpeed = mc.MoveSpeed
-	p.attackRange = mc.AttackRange
-	p.attackType = mc.AttackType
-	p.viewRange = mc.ViewRange
+	p.moveSpeed = 1000
 	p.maxRegenTime = 4 * time.Second
 	p.ConnectState = ConnectStatePlaying
 	p.Live = true
