@@ -202,17 +202,17 @@ type actionState struct {
 
 type Monster struct {
 	object
-	moveRange       int // 移动范围
-	spawnStartX     int
-	spawnStartY     int
-	spawnEndX       int
-	spawnEndY       int
-	spawnDir        int
-	spawnDis        int
-	actionState     actionState
-	curActionTime   int64
-	nextActionTime  int64
-	delayActionTime int64
+	moveRange           int // 移动范围
+	spawnStartX         int
+	spawnStartY         int
+	spawnEndX           int
+	spawnEndY           int
+	spawnDir            int
+	spawnDis            int
+	actionState         actionState
+	lastActionTime      time.Time
+	nextActionInterval  int
+	delayActionInterval int
 }
 
 func (m *Monster) addr() string {
@@ -346,18 +346,18 @@ func (m *Monster) baseAction() {
 		// if m.actionState.attack {
 		// 	m.actionState.attack = false
 		// 	m.targetNumber = -1
-		// 	m.nextActionTime = 500
+		// 	m.nextActionInterval = 500
 		// }
 		// rn := rand.Intn(2)
 		// if rn == 0 {
 		// 	m.actionState.rest = true
-		// 	m.nextActionTime = 500
+		// 	m.nextActionInterval = 500
 		// }
 		m.targetNumber = m.searchEnemy()
 		if m.targetNumber >= 0 {
 			m.actionState.emotion = 1
 		} else if m.moveRange > 0 && !m.pathMoving {
-			m.nextActionTime = 500
+			m.nextActionInterval = 500
 			if m.roamMove() {
 				m.actionState.move = true
 			}
@@ -394,7 +394,7 @@ func (m *Monster) baseAction() {
 					if attr&1 == 0 {
 						m.actionState.move = true
 						m.Dir = maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
-						m.nextActionTime = 200
+						m.nextActionInterval = 400
 						return
 					}
 				}
@@ -406,7 +406,7 @@ func (m *Monster) baseAction() {
 				if attr&1 == 0 {
 					m.actionState.attack = true
 					m.Dir = maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
-					m.nextActionTime = int64(m.attackSpeed)
+					m.nextActionInterval = m.attackSpeed
 					return
 				}
 			}
@@ -423,7 +423,7 @@ func (m *Monster) baseAction() {
 		}
 		m.actionState.move = false
 		m.actionState.attack = false
-		m.nextActionTime = 500
+		m.nextActionInterval = 500
 	case 3:
 		if m.actionState.emotionCount > 0 {
 			m.actionState.emotionCount--
@@ -436,7 +436,7 @@ func (m *Monster) baseAction() {
 		}
 		m.actionState.move = false
 		m.actionState.attack = false
-		m.nextActionTime = 500
+		m.nextActionInterval = 500
 	}
 }
 
@@ -497,11 +497,12 @@ func (m *Monster) ProcessAction() {
 		!m.Live {
 		return
 	}
-	curActionTime := time.Now().UnixMilli()
-	if curActionTime-m.curActionTime+1 < m.nextActionTime+m.delayActionTime {
+	now := time.Now()
+	interval := m.nextActionInterval + m.delayActionInterval
+	if now.Before(m.lastActionTime.Add(time.Duration(interval) * time.Millisecond)) {
 		return
 	}
-	m.curActionTime = curActionTime
+	m.lastActionTime = now
 	m.baseAction()
 	if m.actionState.move {
 		m.actionState.move = false

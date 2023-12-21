@@ -947,6 +947,7 @@ func (obj *object) init() {
 func (obj *object) reset() {
 	obj.Name = ""
 	obj.targetNumber = -1
+	obj.Live = false
 	obj.clearSkill()
 	obj.clearViewport()
 }
