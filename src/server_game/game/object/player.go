@@ -643,6 +643,9 @@ func (p *Player) CheckCharacter(msg *model.MsgCheckCharacter) {
 }
 
 func (p *Player) DefineMuKey(msg *model.MsgDefineMuKey) {
+	if p.ConnectState != ConnectStatePlaying {
+		return
+	}
 	err := model.DB.UpdateCharacterMuKey(p.CharacterID, msg)
 	if err != nil {
 		log.Printf("model.DB.UpdateCharacterMuKey failed [err]%v\n", err)

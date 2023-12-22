@@ -98,6 +98,8 @@ func (obj *object) Move(msg *model.MsgMove) {
 		Y:      obj.TY,
 		Dir:    obj.Dir << 4,
 	}
+	obj.destroyViewport()
+	obj.createViewport()
 	obj.pushViewport(&msgRelpy)
 }
 
@@ -112,5 +114,7 @@ func (obj *object) SetPosition(msg *model.MsgSetPosition) {
 		Y:      msg.Y,
 	}
 	obj.createFrustrum()
+	obj.destroyViewport()
+	obj.createViewport()
 	obj.pushViewport(&reply)
 }

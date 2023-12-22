@@ -16,7 +16,6 @@ import (
 )
 
 func init() {
-	InitFrustrum()
 	ObjectManager.init()
 }
 

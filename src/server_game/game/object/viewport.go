@@ -14,7 +14,7 @@ var (
 	FrustrumY [MaxArrayFrustrum]int
 )
 
-func InitFrustrum() {
+func init() {
 	var cameraViewFar float32 = 3200.0
 	var cameraviewNear float32 = cameraViewFar * 0.19
 	var cameraViewTarget float32 = cameraViewFar * 0.53
