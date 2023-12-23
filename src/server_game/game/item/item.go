@@ -27,7 +27,7 @@ type Item struct {
 	ExcellentAttackMP            bool              `json:"excellent_attack_mp,omitempty"`
 	ExcellentDefenseHP           bool              `json:"excellent_defense_hp,omitempty"`
 	ExcellentDefenseMP           bool              `json:"excellent_defense_mp,omitempty"`
-	ExcellentDefenseDecrease     bool              `json:"excellent_defense_decrease,omitempty"`
+	ExcellentDefenseReduce       bool              `json:"excellent_defense_reduce,omitempty"`
 	ExcellentDefenseReflect      bool              `json:"excellent_defense_reflect,omitempty"`
 	ExcellentDefenseRate         bool              `json:"excellent_defense_rate,omitempty"`
 	ExcellentDefenseMoney        bool              `json:"excellent_defense_money,omitempty"`
@@ -99,7 +99,7 @@ func (i *Item) IsExcellent() bool {
 		i.ExcellentAttackMP ||
 		i.ExcellentDefenseHP ||
 		i.ExcellentDefenseMP ||
-		i.ExcellentDefenseDecrease ||
+		i.ExcellentDefenseReduce ||
 		i.ExcellentDefenseReflect ||
 		i.ExcellentDefenseRate ||
 		i.ExcellentDefenseMoney
@@ -516,7 +516,7 @@ func (item *Item) Marshal() ([]byte, error) {
 	if item.ExcellentAttackLevel || item.ExcellentDefenseMP {
 		data[3] |= 1 << 4
 	}
-	if item.ExcellentAttackPercent || item.ExcellentDefenseDecrease {
+	if item.ExcellentAttackPercent || item.ExcellentDefenseReduce {
 		data[3] |= 1 << 3
 	}
 	if item.ExcellentAttackSpeed || item.ExcellentDefenseReflect {
