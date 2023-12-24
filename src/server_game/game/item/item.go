@@ -176,9 +176,9 @@ func (it *Item) Calc() {
 		delta := 0
 		switch {
 		case it.IsExcellent():
-			delta += attackMin*25/level + 5
+			delta += attackMin*25/it.ItemBase.DropLevel + 5
 		case it.IsSet():
-			delta += attackMin*25/level + 5
+			delta += attackMin*25/it.ItemBase.DropLevel + 5
 			delta += level/40 + 5
 		}
 		delta += it.Level * 3
@@ -195,9 +195,9 @@ func (it *Item) Calc() {
 		delta := 0
 		switch {
 		case it.IsExcellent():
-			delta += magic*25/level + 5
+			delta += magic*25/it.ItemBase.DropLevel + 5
 		case it.IsSet():
-			delta += magic*25/level + 5
+			delta += magic*25/it.ItemBase.DropLevel + 5
 			delta += level/60 + 2
 		}
 		delta += it.Level * 3
@@ -244,9 +244,9 @@ func (it *Item) Calc() {
 		default: // armor
 			switch {
 			case it.IsExcellent():
-				delta += defense*12/level + level/5 + 4
+				delta += defense*12/it.ItemBase.DropLevel + it.ItemBase.DropLevel/5 + 4
 			case it.IsSet():
-				delta += defense*12/level + level/5 + 4
+				delta += defense*12/it.ItemBase.DropLevel + it.ItemBase.DropLevel/5 + 4
 				delta += defense*3/level + level/30 + 2
 			}
 			delta += it.Level * 3
@@ -263,9 +263,9 @@ func (it *Item) Calc() {
 		delta := 0
 		switch {
 		case it.IsExcellent():
-			delta += defenseRate*25/level + 5
+			delta += defenseRate*25/it.ItemBase.DropLevel + 5
 		case it.IsSet():
-			delta += defenseRate*25/level + 5
+			delta += defenseRate*25/it.ItemBase.DropLevel + 5
 			delta += level/40 + 5
 		}
 		delta += it.Level * 3

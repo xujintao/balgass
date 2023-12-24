@@ -1144,7 +1144,7 @@ func (p *Player) calc() {
 				excellentDefenseReflect += 5
 			}
 			if it.ExcellentDefenseRate {
-				defenseRate += defenseRate * 10
+				defenseRate += defenseRate * 10 / 100
 			}
 			if it.ExcellentDefenseMoney {
 				excellentDefenseMoney += 0

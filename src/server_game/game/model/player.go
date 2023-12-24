@@ -1476,7 +1476,7 @@ func MakeCharacterFrame(Class, ChangeUp int, Inventory [9]*item.Item) [18]byte {
 		if v.Index == 512 {
 			continue
 		}
-		var l uint32
+		var l uint32 = uint32(v.Level)
 		switch l {
 		case 0, 1, 2:
 			l = 0
