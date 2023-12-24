@@ -118,6 +118,7 @@ type Player struct {
 	delayRecoverHPMax    int
 	delayRecoverSD       int
 	delayRecoverSDMax    int
+	WingRecoverHP        int
 	magic                int
 	magicAttackMin       int // 魔攻min
 	magicAttackMax       int // 魔攻max
@@ -187,7 +188,6 @@ type Player struct {
 	// skillStrengthenHellFire2Count int
 	// skillStrengthenHellFire2Time  time.Time
 	// reqWarehouseOpen              int
-	HelperReduceDamage          int
 	CriticalAttackRate          int // 幸运一击概率
 	ExcellentAttackRate         int // 卓越一击概率
 	ExcellentAttackHP           int // 杀怪回生
@@ -195,8 +195,10 @@ type Player struct {
 	ExcellentDefenseReduce      int // 伤害减少
 	ExcellentDefenseReflect     int // 伤害反射
 	ExcellentDefenseMoney       int // 杀怪加钱
-	WingReduceDamage            int
-	WingIncreaseDamage          int
+	ExcellentWingIgnore         int
+	ExcellentWingReturn         int
+	ExcellentWingHP             bool
+	ExcellentWingMP             bool
 	item380Effect               item.Item380Effect
 	setEffectIncSkillAttack     int
 	setEffectIncExcelDamage     int
@@ -226,6 +228,7 @@ type Player struct {
 	excelWingEffectRecoveryHP    int
 	excelWingEffectRecoveryMP    int
 	excelWingEffectDoubleDamage  int
+	HelperReduceDamage           int
 }
 
 func (p *Player) addr() string {
@@ -961,19 +964,15 @@ func (p *Player) calc() {
 		curseAttackMax += wing.AdditionCurseAttack
 	}
 
-	// armor(shield|armor|wing) addition defense
+	// armor(shield|armor|wing) addition defense(rate)
 	for i := 1; i <= 7; i++ {
 		it := p.Inventory.Items[i]
 		if it != nil {
 			defense += it.Defense
 			defense += it.AdditionDefense
+			defenseRate += it.SuccessfulBlocking
+			defenseRate += it.AdditionDefenseRate
 		}
-	}
-
-	// shield defense rate
-	if rightHand != nil {
-		defenseRate += rightHand.SuccessfulBlocking
-		defenseRate += rightHand.AdditionDefenseRate
 	}
 
 	// armor bonus defense and defense rate
@@ -1040,12 +1039,6 @@ func (p *Player) calc() {
 		}
 	}
 
-	// glove speed
-	if glove != nil {
-		attackSpeed += glove.AttackSpeed
-		magicSpeed += glove.AttackSpeed
-	}
-
 	// hp/mp
 	c := CharacterTable[p.Class]
 	hp := c.HP + int(float32(level-1)*c.LevelHP) + int(float32(vitality-c.Vitality)*c.VitalityHP)
@@ -1083,16 +1076,36 @@ func (p *Player) calc() {
 		ag = f(0.15, 0.2, 0.3, 1.0, 0)
 	}
 
+	// glove speed
+	if glove != nil {
+		attackSpeed += glove.AttackSpeed
+		magicSpeed += glove.AttackSpeed
+	}
+
+	// wing auto recover hp
+	wingRecoverHP := 0
+	if wing != nil {
+		wingRecoverHP = wing.AdditionRecoverHP
+	}
+
 	// excellent item contribution
+	criticalAttackRate := 0
 	excellentAttackRate := 0
 	excellentAttackHP := 0
 	excellentAttackMP := 0
 	excellentDefenseReduce := 0
 	excellentDefenseReflect := 0
 	excellentDefenseMoney := 0
+	excellentWingIgnore := 0
+	excellentWingReturn := 0
+	excellentWingHP := false
+	excellentWingMP := false
 	for i := 0; i <= 7; i++ {
 		it := p.Inventory.Items[i]
 		if it != nil {
+			if it.Lucky {
+				criticalAttackRate += 5
+			}
 			if it.ExcellentAttackRate {
 				excellentAttackRate += 10
 			}
@@ -1147,7 +1160,35 @@ func (p *Player) calc() {
 				defenseRate += defenseRate * 10 / 100
 			}
 			if it.ExcellentDefenseMoney {
-				excellentDefenseMoney += 0
+				excellentDefenseMoney = 0
+			}
+			if it.ExcellentWing2HP {
+				hp += 50
+			}
+			if it.ExcellentWing2MP {
+				mp += 50
+			}
+			if it.ExcellentWing2Ignore {
+				excellentWingIgnore = 3
+			}
+			if it.ExcellentWing2AG {
+				ag += 50
+			}
+			if it.ExcellentWing2Speed {
+				attackSpeed += 5
+				magicSpeed += 5
+			}
+			if it.ExcellentWing3Ignore {
+				excellentWingIgnore = 5
+			}
+			if it.ExcellentWing3Return {
+				excellentWingReturn = 5
+			}
+			if it.ExcellentWing3HP {
+				excellentWingHP = true
+			}
+			if it.ExcellentWing3MP {
+				excellentWingMP = true
 			}
 		}
 	}
@@ -1266,6 +1307,18 @@ func (p *Player) calc() {
 	if p.AG > p.MaxAG+p.AddAG {
 		p.AG = p.MaxAG + p.AddAG
 	}
+	p.WingRecoverHP = wingRecoverHP
+	p.CriticalAttackRate = criticalAttackRate
+	p.ExcellentAttackRate = excellentAttackRate
+	p.ExcellentAttackHP = excellentAttackHP
+	p.ExcellentAttackMP = excellentAttackMP
+	p.ExcellentDefenseReduce = excellentDefenseReduce
+	p.ExcellentDefenseReflect = excellentDefenseReflect
+	p.ExcellentDefenseMoney = excellentDefenseMoney
+	p.ExcellentWingIgnore = excellentWingIgnore
+	p.ExcellentWingReturn = excellentWingReturn
+	p.ExcellentWingHP = excellentWingHP
+	p.ExcellentWingMP = excellentWingMP
 	p.HelperReduceDamage = helperReduceDamage
 
 	// push
@@ -1445,35 +1498,6 @@ func (player *Player) addSetEffect(index item.SetEffectType, value int) {
 	case item.SetEffectIncSkillAttack:
 		player.setEffectIncSkillAttack += value
 	}
-}
-
-func (player *Player) CalcExcelItem() {
-	// for i, wItem := range player.Inventory[0:InventoryWearSize] {
-	// 	if wItem.Durability == 0 {
-	// 		continue
-	// 	}
-	// 	if wItem.Excel == 0 {
-	// 		continue
-	// 	}
-	// 	if i == 7 {
-	// 		for _, opt := range item.ExcelManager.Wings.Options {
-	// 			if wItem.KindA == opt.ItemKindA && wItem.KindB == opt.ItemKindB {
-	// 				if wItem.Excel&opt.Number == opt.Number {
-	// 					player.addExcelWingEffect(opt, wItem)
-	// 				}
-	// 			}
-	// 		}
-	// 	} else {
-	// 		for _, opt := range item.ExcelManager.Common.Options {
-	// 			switch wItem.KindA {
-	// 			case opt.ItemKindA1, opt.ItemKindA2, opt.ItemKindA3:
-	// 				if wItem.Excel&opt.Number == opt.Number {
-	// 					player.addExcelCommonEffect(opt, wItem, i)
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
 }
 
 func (player *Player) CalcSetItem() {
