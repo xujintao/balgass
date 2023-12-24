@@ -29,6 +29,9 @@ func (obj *object) processMove() {
 	if obj.delayLevel != 0 {
 		moveTime += 300
 	}
+	if obj.pathDir[obj.pathCur]%2 == 0 {
+		moveTime = int(float64(moveTime) * 1.3)
+	}
 	now := time.Now()
 	if now.Before(obj.pathTime.Add(time.Duration(moveTime) * time.Millisecond)) {
 		return
