@@ -118,7 +118,7 @@ type Player struct {
 	delayRecoverHPMax    int
 	delayRecoverSD       int
 	delayRecoverSDMax    int
-	WingRecoverHP        int
+	RecoverHP            int // 恢复生命(翅膀+项链+大师技能)
 	magic                int
 	magicAttackMin       int // 魔攻min
 	magicAttackMax       int // 魔攻max
@@ -188,47 +188,31 @@ type Player struct {
 	// skillStrengthenHellFire2Count int
 	// skillStrengthenHellFire2Time  time.Time
 	// reqWarehouseOpen              int
+	IncreaseAttackMin           int // 增加最小攻击(套装+洞装+大师技能)
+	IncreaseAttackMax           int // 增加最大攻击(套装+洞装+大师技能)
+	IncreaseMagicAttack         int // 增加魔攻(套装+洞装+大师技能)
+	IncreaseSkillAttack         int // 增加技能攻击(套装+卓越+大师技能)
+	SetIncreaseDamage           int // 增加伤害
 	CriticalAttackRate          int // 幸运一击概率
+	CriticalAttackDamage        int // 幸运一击伤害
 	ExcellentAttackRate         int // 卓越一击概率
-	ExcellentAttackHP           int // 杀怪回生
-	ExcellentAttackMP           int // 杀怪回蓝
-	ExcellentDefenseReduce      int // 伤害减少
-	ExcellentDefenseReflect     int // 伤害反射
-	ExcellentDefenseMoney       int // 杀怪加钱
-	ExcellentWingIgnore         int
-	ExcellentWingReturn         int
-	ExcellentWingHP             bool
-	ExcellentWingMP             bool
+	ExcellentAttackDamage       int // 卓越一击伤害
+	MonsterDieGetHP             int // 杀怪回生(套装+卓越+大师技能)
+	MonsterDieGetMP             int // 杀怪回蓝(套装+卓越+大师技能)
+	MonsterDieGetMoney          int // 杀怪加钱(卓越)
+	ExcellentReduceDamage       int // 减少伤害(卓越)
+	WingIncreaseDamage          int // 增加伤害(翅膀)
+	WingReduceDamage            int // 减少伤害(翅膀)
+	HelperReduceDamage          int // 减少伤害(天使)
+	ExcellentReflectDamage      int // 伤害反射(卓越)
+	DoubleDamage                int // 双倍伤害(套装+大师技能)
+	IgnoreDefense               int // 无视防御(套装+翅膀+大师技能)
+	ReturnDamage                int // 反弹伤害(翅膀+大师技能)
+	RecoverMaxHP                int // 恢复最大生命(翅膀+大师技能)
+	RecoverMaxMP                int // 恢复最大魔法(翅膀+大师技能)
+	IncreaseTwoHandWeaponDamage int // 增加双手武器伤害
 	item380Effect               item.Item380Effect
-	setEffectIncSkillAttack     int
-	setEffectIncExcelDamage     int
-	setEffectIncExcelDamageRate int
-	setEffectIncCritiDamage     int
-	setEffectIncCritiDamageRate int
-	setEffectIncAG              int
-	setEffectIncDamage          int
-	setEffectIncAttackMin       int
-	setEffectIncAttackMax       int
-	// setEffectIncAttack             int
-	setEffectIncDefense int
-	// setEffectIncDefenseRate        int
-	setEffectIncMagicAttack        int
-	setEffectIgnoreDefense         int
-	setEffectDoubleDamage          int
-	setEffectTwoHandSwordIncDamage int
-	setEffectIncAttackRate         int
-	// setEffectReflectDamage         int
-	setEffectIncShieldDefense int
-	// setEffectDecAG            int
-	// setEffectIncItemDropRate  int
-	setFull bool
-	// excel wing
-	excelWingEffectIgnoreDefense int
-	excelWingEffectReboundDamage int
-	excelWingEffectRecoveryHP    int
-	excelWingEffectRecoveryMP    int
-	excelWingEffectDoubleDamage  int
-	HelperReduceDamage           int
+	setFull                     bool
 }
 
 func (p *Player) addr() string {
@@ -794,15 +778,37 @@ func (p *Player) calc() {
 	wing := p.Inventory.Items[7]
 	helper := p.Inventory.Items[8]
 
-	p.AddHP = 0
-	p.AddMP = 0
-	p.AddSD = 0
-	p.AddAG = 0
 	p.AddStrength = 0
 	p.AddDexterity = 0
 	p.AddVitality = 0
 	p.AddEnergy = 0
 	p.AddLeadership = 0
+	p.MaxHP = 0
+	p.MaxMP = 0
+	p.MaxAG = 0
+	p.MaxSD = 0
+	p.CriticalAttackRate = 0
+	p.ExcellentAttackRate = 0
+	p.MonsterDieGetHP = 0
+	p.MonsterDieGetMP = 0
+	p.MonsterDieGetMoney = 0
+	p.ExcellentReduceDamage = 0
+	p.WingIncreaseDamage = 0
+	p.WingReduceDamage = 0
+	p.ExcellentReflectDamage = 0
+	p.IgnoreDefense = 0
+	p.ReturnDamage = 0
+	p.RecoverMaxHP = 0
+	p.RecoverMaxMP = 0
+
+	// wing item contribution
+	if wing != nil && wing.ExcellentWing2Leadership {
+		p.AddLeadership += 10 + 5*wing.Level
+	}
+	// set item contribution
+	p.CalcSetItem()
+	// master skill contribution
+
 	strength := p.Strength + p.AddStrength
 	dexterity := p.Dexterity + p.AddDexterity
 	vitality := p.Vitality + p.AddVitality
@@ -813,18 +819,13 @@ func (p *Player) calc() {
 	// base attack
 	leftAttackMin, leftAttackMax := 0, 0
 	rightAttackMin, rightAttackMax := 0, 0
-	attackMin, attackMax := 0, 0
-	magic := 0
-	magicAttackMin, magicAttackMax := 0, 0
-	curse := 0
-	curseAttackMin, curseAttackMax := 0, 0
 	switch class.Class(p.Class) {
 	case class.Wizard:
 		formula.WizardDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.WizardMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
+		formula.WizardMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	case class.Knight:
 		formula.KnightDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.KnightMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
+		formula.KnightMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	case class.Elf:
 		if leftHand != nil && leftHand.KindB == item.KindBCrossbow ||
 			rightHand != nil && rightHand.KindB == item.KindBBow {
@@ -832,20 +833,32 @@ func (p *Player) calc() {
 		} else {
 			formula.ElfWithoutBowDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
 		}
-		formula.ElfMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
+		formula.ElfMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	case class.Magumsa:
 		formula.GladiatorDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.GladiatorMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
+		formula.GladiatorMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	case class.DarkLord:
 		formula.LordDamageCalc(strength, dexterity, vitality, energy, leadership, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.LordMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
+		formula.LordMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	case class.Summoner:
 		formula.SummonerDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.SummonerMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax, &curseAttackMin, &curseAttackMax)
+		formula.SummonerMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax, &p.curseAttackMin, &p.curseAttackMax)
 	case class.RageFighter:
 		formula.RageFighterDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
-		formula.RageFighterMagicDamageCalc(energy, &magicAttackMin, &magicAttackMax)
+		formula.RageFighterMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	}
+
+	// base defense
+	formula.CalcDefense(p.Class, dexterity, &p.defense)
+
+	// base attack/defense success rate
+	formula.CalcAttackSuccessRate_PvM(p.Class, strength, dexterity, leadership, p.Level, &p.attackRate)
+	formula.CalcAttackSuccessRate_PvP(p.Class, dexterity, p.Level, &p.attackRatePVP)
+	formula.CalcDefenseSuccessRate_PvM(p.Class, dexterity, &p.defenseRate)
+	formula.CalcDefenseSuccessRate_PvP(p.Class, dexterity, p.Level, &p.defenseRatePVP)
+
+	// base speed
+	formula.CalcAttackSpeed(p.Class, dexterity, &p.attackSpeed, &p.magicSpeed)
 
 	// Stat Specialization
 	// calc Stat Specialization: increase attack power
@@ -867,89 +880,68 @@ func (p *Player) calc() {
 
 	// STAT_OPTION_INC_MAGIC_DAMAGE
 	formula.StatSpec_GetPercent(p.Class, 9, strength, dexterity, vitality, energy, leadership, &percent)
-	min = magicAttackMin * int(percent) / 100
-	max = magicAttackMax * int(percent) / 100
-	magicAttackMin += min
-	magicAttackMax += max
+	min = p.magicAttackMin * int(percent) / 100
+	max = p.magicAttackMax * int(percent) / 100
+	p.magicAttackMin += min
+	p.magicAttackMax += max
 	options = append(options, &model.MsgStatSpec{ID: 9, Min: min, Max: max})
 
 	// STAT_OPTION_INC_CURSE_DAMAGE
 	formula.StatSpec_GetPercent(p.Class, 10, strength, dexterity, vitality, energy, leadership, &percent)
-	min = curseAttackMin * int(percent) / 100
-	max = curseAttackMax * int(percent) / 100
-	curseAttackMin += min
-	curseAttackMax += max
+	min = p.curseAttackMin * int(percent) / 100
+	max = p.curseAttackMax * int(percent) / 100
+	p.curseAttackMin += min
+	p.curseAttackMax += max
 	options = append(options, &model.MsgStatSpec{ID: 10, Min: min, Max: max})
 
-	// base defense
-	defense := 0
-	formula.CalcDefense(p.Class, dexterity, &defense)
-
-	// Stat Specialization
 	// STAT_OPTION_INC_DEFENSE
 	formula.StatSpec_GetPercent(p.Class, 4, strength, dexterity, vitality, energy, leadership, &percent)
-	min = defense * int(percent) / 100
-	defense += min
+	min = p.defense * int(percent) / 100
+	p.defense += min
 	options = append(options, &model.MsgStatSpec{ID: 4, Min: min})
 
-	// base attack/defense success rate
-	attackRate := 0
-	attackRatePVP := 0
-	defenseRate := 0
-	defenseRatePVP := 0
-	formula.CalcAttackSuccessRate_PvM(p.Class, strength, dexterity, leadership, p.Level, &attackRate)
-	formula.CalcAttackSuccessRate_PvP(p.Class, dexterity, p.Level, &attackRatePVP)
-	formula.CalcDefenseSuccessRate_PvM(p.Class, dexterity, &defenseRate)
-	formula.CalcDefenseSuccessRate_PvP(p.Class, dexterity, p.Level, &defenseRatePVP)
-
-	// Stat Specialization
 	// STAT_OPTION_INC_ATTACK_RATE
 	formula.StatSpec_GetPercent(p.Class, 2, strength, dexterity, vitality, energy, leadership, &percent)
-	min = attackRate * int(percent) / 100
-	attackRate += min
+	min = p.attackRate * int(percent) / 100
+	p.attackRate += min
 	options = append(options, &model.MsgStatSpec{ID: 2, Min: min})
 
 	// STAT_OPTION_INC_ATTACK_RATE_PVP
 	formula.StatSpec_GetPercent(p.Class, 3, strength, dexterity, vitality, energy, leadership, &percent)
-	min = attackRatePVP * int(percent) / 100
-	attackRatePVP += min
+	min = p.attackRatePVP * int(percent) / 100
+	p.attackRatePVP += min
 	options = append(options, &model.MsgStatSpec{ID: 3, Min: min})
 
 	// STAT_OPTION_INC_DEFENSE_RATE
 	formula.StatSpec_GetPercent(p.Class, 6, strength, dexterity, vitality, energy, leadership, &percent)
-	min = defenseRate * int(percent) / 100
-	defenseRate += min
+	min = p.defenseRate * int(percent) / 100
+	p.defenseRate += min
 	options = append(options, &model.MsgStatSpec{ID: 6, Min: min})
 
 	// STAT_OPTION_INC_DEFENSE_RATE_PVP
 	formula.StatSpec_GetPercent(p.Class, 7, strength, dexterity, vitality, energy, leadership, &percent)
-	min = defenseRatePVP * int(percent) / 100
-	defenseRatePVP += min
+	min = p.defenseRatePVP * int(percent) / 100
+	p.defenseRatePVP += min
 	options = append(options, &model.MsgStatSpec{ID: 7, Min: min})
-
-	// base speed
-	attackSpeed := 0
-	magicSpeed := 0
-	formula.CalcAttackSpeed(p.Class, dexterity, &attackSpeed, &magicSpeed)
 
 	// weapon and weapon addition attack
 	if leftHand != nil {
 		leftAttackMin += leftHand.AttackMin + leftHand.AdditionAttack
 		leftAttackMax += leftHand.AttackMax + leftHand.AdditionAttack
-		magicAttackMin += leftHand.AdditionMagicAttack
-		magicAttackMax += leftHand.AdditionMagicAttack
-		curseAttackMin += leftHand.AdditionCurseAttack
-		curseAttackMax += leftHand.AdditionCurseAttack
-		curse = leftHand.Magic
+		p.magicAttackMin += leftHand.AdditionMagicAttack
+		p.magicAttackMax += leftHand.AdditionMagicAttack
+		p.curseAttackMin += leftHand.AdditionCurseAttack
+		p.curseAttackMax += leftHand.AdditionCurseAttack
+		p.curse = leftHand.Magic
 	}
 	if rightHand != nil {
 		rightAttackMin += rightHand.AttackMin + rightHand.AdditionAttack
 		rightAttackMax += rightHand.AttackMax + rightHand.AdditionAttack
-		magicAttackMin += rightHand.AdditionMagicAttack
-		magicAttackMax += rightHand.AdditionMagicAttack
-		curseAttackMin += rightHand.AdditionCurseAttack
-		curseAttackMax += rightHand.AdditionCurseAttack
-		magic = rightHand.Magic
+		p.magicAttackMin += rightHand.AdditionMagicAttack
+		p.magicAttackMax += rightHand.AdditionMagicAttack
+		p.curseAttackMin += rightHand.AdditionCurseAttack
+		p.curseAttackMax += rightHand.AdditionCurseAttack
+		p.magic = rightHand.Magic
 	}
 
 	// wing addition attack
@@ -958,20 +950,27 @@ func (p *Player) calc() {
 		leftAttackMax += wing.AdditionAttack
 		rightAttackMin += wing.AdditionAttack
 		rightAttackMax += wing.AdditionAttack
-		magicAttackMin += wing.AdditionMagicAttack
-		magicAttackMax += wing.AdditionMagicAttack
-		curseAttackMin += wing.AdditionCurseAttack
-		curseAttackMax += wing.AdditionCurseAttack
+		p.magicAttackMin += wing.AdditionMagicAttack
+		p.magicAttackMax += wing.AdditionMagicAttack
+		p.curseAttackMin += wing.AdditionCurseAttack
+		p.curseAttackMax += wing.AdditionCurseAttack
+	}
+
+	// glove speed
+	if glove != nil {
+		p.attackSpeed += glove.AttackSpeed
+		p.magicSpeed += glove.AttackSpeed
 	}
 
 	// armor(shield|armor|wing) addition defense(rate)
 	for i := 1; i <= 7; i++ {
 		it := p.Inventory.Items[i]
 		if it != nil {
-			defense += it.Defense
-			defense += it.AdditionDefense
-			defenseRate += it.SuccessfulBlocking
-			defenseRate += it.AdditionDefenseRate
+			p.defense += it.Defense
+			p.defense += it.AdditionDefense
+			p.defenseRate += it.SuccessfulBlocking
+			p.defenseRate += it.AdditionDefenseRate
+			p.RecoverHP = it.AdditionRecoverHP
 		}
 	}
 
@@ -1021,28 +1020,30 @@ func (p *Player) calc() {
 			level15Count++
 		}
 		if sameCount == 5 {
-			defenseRate += defenseRate / 10
+			n := 0
 			switch {
 			case level15Count == 5:
-				defense += defense * 30 / 100
+				n = 30
 			case level14Count == 5:
-				defense += defense * 25 / 100
+				n = 25
 			case level13Count == 5:
-				defense += defense * 20 / 100
+				n = 20
 			case level12Count == 5:
-				defense += defense * 15 / 100
+				n = 15
 			case level11Count == 5:
-				defense += defense * 10 / 100
+				n = 10
 			case level10Count == 5:
-				defense += defense * 5 / 100
+				n = 5
 			}
+			p.defense += p.defense * n / 100
+			p.defenseRate += p.defenseRate / 10
 		}
 	}
 
 	// hp/mp
 	c := CharacterTable[p.Class]
-	hp := c.HP + int(float32(level-1)*c.LevelHP) + int(float32(vitality-c.Vitality)*c.VitalityHP)
-	mp := c.MP + int(float32(level-1)*c.LevelMP) + int(float32(energy-c.Energy)*c.EnergyMP)
+	p.MaxHP += c.HP + int(float32(level-1)*c.LevelHP) + int(float32(vitality-c.Vitality)*c.VitalityHP)
+	p.MaxMP += c.MP + int(float32(level-1)*c.LevelMP) + int(float32(energy-c.Energy)*c.EnergyMP)
 
 	// sd
 	sdGageConstA := conf.CommonServer.GameServerInfo.SDGageConstA
@@ -1052,62 +1053,38 @@ func (p *Player) calc() {
 		expressionA += leadership
 	}
 	expressionB := level * level / sdGageConstB
-	sd := expressionA*sdGageConstA/10 + expressionB + defense
+	p.MaxSD += expressionA*sdGageConstA/10 + expressionB + p.defense
 
 	// ag
-	ag := 0
 	f := func(s, d, v, e, l float32) int {
 		return int(float32(strength)*s + float32(dexterity)*d + float32(vitality)*v + float32(energy)*e + float32(leadership)*l)
 	}
 	switch class.Class(p.Class) {
 	case class.Wizard:
-		ag = f(0.2, 0.4, 0.3, 0.2, 0)
+		p.MaxAG += f(0.2, 0.4, 0.3, 0.2, 0)
 	case class.Knight:
-		ag = f(0.15, 0.2, 0.3, 1.0, 0)
+		p.MaxAG += f(0.15, 0.2, 0.3, 1.0, 0)
 	case class.Elf:
-		ag = f(0.3, 0.2, 0.3, 0.2, 0)
+		p.MaxAG += f(0.3, 0.2, 0.3, 0.2, 0)
 	case class.Magumsa:
-		ag = f(0.2, 0.25, 0.3, 0.15, 0)
+		p.MaxAG += f(0.2, 0.25, 0.3, 0.15, 0)
 	case class.DarkLord:
-		ag = f(0.3, 0.2, 0.1, 0.15, 0.3)
+		p.MaxAG += f(0.3, 0.2, 0.1, 0.15, 0.3)
 	case class.Summoner:
-		ag = f(0.2, 0.25, 0.3, 0.15, 0)
+		p.MaxAG += f(0.2, 0.25, 0.3, 0.15, 0)
 	case class.RageFighter:
-		ag = f(0.15, 0.2, 0.3, 1.0, 0)
-	}
-
-	// glove speed
-	if glove != nil {
-		attackSpeed += glove.AttackSpeed
-		magicSpeed += glove.AttackSpeed
-	}
-
-	// wing auto recover hp
-	wingRecoverHP := 0
-	if wing != nil {
-		wingRecoverHP = wing.AdditionRecoverHP
+		p.MaxAG += f(0.15, 0.2, 0.3, 1.0, 0)
 	}
 
 	// excellent item contribution
-	criticalAttackRate := 0
-	excellentAttackRate := 0
-	excellentAttackHP := 0
-	excellentAttackMP := 0
-	excellentDefenseReduce := 0
-	excellentDefenseReflect := 0
-	excellentDefenseMoney := 0
-	excellentWingIgnore := 0
-	excellentWingReturn := 0
-	excellentWingHP := false
-	excellentWingMP := false
-	for i := 0; i <= 7; i++ {
+	for i := 0; i < 12; i++ {
 		it := p.Inventory.Items[i]
 		if it != nil {
 			if it.Lucky {
-				criticalAttackRate += 5
+				p.CriticalAttackRate += 5
 			}
 			if it.ExcellentAttackRate {
-				excellentAttackRate += 10
+				p.ExcellentAttackRate += 10
 			}
 			if it.ExcellentAttackLevel {
 				value := level / 20
@@ -1119,8 +1096,8 @@ func (p *Player) calc() {
 					rightAttackMin += value
 					rightAttackMax += value
 				}
-				magicAttackMin += value
-				magicAttackMax += value
+				p.magicAttackMin += value
+				p.magicAttackMax += value
 			}
 			if it.ExcellentAttackPercent {
 				switch i {
@@ -1131,69 +1108,67 @@ func (p *Player) calc() {
 					rightAttackMin += rightAttackMin * 2 / 100
 					rightAttackMax += rightAttackMax * 2 / 100
 				}
-				magicAttackMin += magicAttackMin * 2 / 100
-				magicAttackMax += magicAttackMax * 2 / 100
+				p.magicAttackMin += p.magicAttackMin * 2 / 100
+				p.magicAttackMax += p.magicAttackMax * 2 / 100
 			}
 			if it.ExcellentAttackSpeed {
-				attackSpeed += 7
-				magicSpeed += 7
+				p.attackSpeed += 7
+				p.magicSpeed += 7
 			}
 			if it.ExcellentAttackHP {
-				excellentAttackHP++
+				p.MonsterDieGetHP++
 			}
 			if it.ExcellentAttackMP {
-				excellentAttackMP++
+				p.MonsterDieGetMP++
 			}
 			if it.ExcellentDefenseHP {
-				hp += hp * 4 / 100
+				p.MaxHP += p.MaxHP * 4 / 100
 			}
 			if it.ExcellentDefenseMP {
-				mp += mp * 4 / 100
+				p.MaxMP += p.MaxMP * 4 / 100
 			}
 			if it.ExcellentDefenseReduce {
-				excellentDefenseReduce += 4
+				p.ExcellentReduceDamage += 4
 			}
 			if it.ExcellentDefenseReflect {
-				excellentDefenseReflect += 5
+				p.ExcellentReflectDamage += 5
 			}
 			if it.ExcellentDefenseRate {
-				defenseRate += defenseRate * 10 / 100
+				p.defenseRate += p.defenseRate * 10 / 100
 			}
 			if it.ExcellentDefenseMoney {
-				excellentDefenseMoney = 0
-			}
-			if it.ExcellentWing2HP {
-				hp += 50
-			}
-			if it.ExcellentWing2MP {
-				mp += 50
-			}
-			if it.ExcellentWing2Ignore {
-				excellentWingIgnore = 3
-			}
-			if it.ExcellentWing2AG {
-				ag += 50
+				p.MonsterDieGetMoney += 30
 			}
 			if it.ExcellentWing2Speed {
-				attackSpeed += 5
-				magicSpeed += 5
+				p.attackSpeed += 5
+				p.magicSpeed += 5
+			}
+			if it.ExcellentWing2AG {
+				p.MaxAG += 50
+			}
+			if it.ExcellentWing2Ignore {
+				p.IgnoreDefense += 3
+			}
+			if it.ExcellentWing2MP {
+				p.MaxMP += 50 + 5*it.Level
+			}
+			if it.ExcellentWing2HP {
+				p.MaxHP += 50 + 5*it.Level
 			}
 			if it.ExcellentWing3Ignore {
-				excellentWingIgnore = 5
+				p.IgnoreDefense += 5
 			}
 			if it.ExcellentWing3Return {
-				excellentWingReturn = 5
+				p.ReturnDamage += 5
 			}
 			if it.ExcellentWing3HP {
-				excellentWingHP = true
+				p.RecoverMaxHP += 5
 			}
 			if it.ExcellentWing3MP {
-				excellentWingMP = true
+				p.RecoverMaxMP += 5
 			}
 		}
 	}
-
-	// set item contribution
 
 	// convert left/right attack to attack
 	left, right := false, false
@@ -1227,107 +1202,77 @@ func (p *Player) calc() {
 				leftAttackMin, leftAttackMax, rightAttackMin, rightAttackMax,
 				&leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
 		}
-		attackMin = leftAttackMin + rightAttackMin
-		attackMax = leftAttackMax + rightAttackMax
-		attackSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
-		magicSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
+		p.attackMin = leftAttackMin + rightAttackMin
+		p.attackMax = leftAttackMax + rightAttackMax
+		p.attackSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
+		p.magicSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
 	case left:
-		attackMin = leftAttackMin
-		attackMax = leftAttackMax
-		attackSpeed += leftHand.AttackSpeed
-		magicSpeed += leftHand.AttackSpeed
+		p.attackMin = leftAttackMin
+		p.attackMax = leftAttackMax
+		p.attackSpeed += leftHand.AttackSpeed
+		p.magicSpeed += leftHand.AttackSpeed
 	case right:
-		attackMin = rightAttackMin
-		attackMax = rightAttackMax
-		attackSpeed += rightHand.AttackSpeed
-		magicSpeed += rightHand.AttackSpeed
+		p.attackMin = rightAttackMin
+		p.attackMax = rightAttackMax
+		p.attackSpeed += rightHand.AttackSpeed
+		p.magicSpeed += rightHand.AttackSpeed
 	default:
-		attackMin = (leftAttackMin + rightAttackMin) / 2
-		attackMax = (leftAttackMax + rightAttackMax) / 2
+		p.attackMin = (leftAttackMin + rightAttackMin) / 2
+		p.attackMax = (leftAttackMax + rightAttackMax) / 2
 	}
 
 	// helper item contribution
-	helperReduceDamage := 0
 	switch {
 	case p.equippedItem(helper, item.Code(13, 1)): // 小恶魔
 		percent := conf.PetRing.Pets.Imp.AddAttackPercent
-		attackMin += attackMin * percent / 100
-		attackMax += attackMax * percent / 100
-		magicAttackMin += magicAttackMin * percent / 100
-		magicAttackMax += magicAttackMax * percent / 100
-		curseAttackMin += curseAttackMin * percent / 100
-		curseAttackMax += curseAttackMax * percent / 100
+		p.attackMin += p.attackMin * percent / 100
+		p.attackMax += p.attackMax * percent / 100
+		p.magicAttackMin += p.magicAttackMin * percent / 100
+		p.magicAttackMax += p.magicAttackMax * percent / 100
+		p.curseAttackMin += p.curseAttackMin * percent / 100
+		p.curseAttackMax += p.curseAttackMax * percent / 100
 	case p.equippedItem(helper, item.Code(13, 64)): // 强化恶魔
 		percent := conf.PetRing.Pets.Demon.AddAttackPercent
-		attackMin += attackMin * percent / 100
-		attackMax += attackMax * percent / 100
-		magicAttackMin += magicAttackMin * percent / 100
-		magicAttackMax += magicAttackMax * percent / 100
-		curseAttackMin += curseAttackMin * percent / 100
-		curseAttackMax += curseAttackMax * percent / 100
-		attackSpeed += conf.PetRing.Pets.Demon.AddAttackSpeed
-		magicSpeed += conf.PetRing.Pets.Demon.AddAttackSpeed
+		p.attackMin += p.attackMin * percent / 100
+		p.attackMax += p.attackMax * percent / 100
+		p.magicAttackMin += p.magicAttackMin * percent / 100
+		p.magicAttackMax += p.magicAttackMax * percent / 100
+		p.curseAttackMin += p.curseAttackMin * percent / 100
+		p.curseAttackMax += p.curseAttackMax * percent / 100
+		p.attackSpeed += conf.PetRing.Pets.Demon.AddAttackSpeed
+		p.magicSpeed += conf.PetRing.Pets.Demon.AddAttackSpeed
 	case p.equippedItem(helper, item.Code(13, 0)): // 守护天使
-		hp += conf.PetRing.Pets.Angel.AddHP
-		helperReduceDamage = conf.PetRing.Pets.Angel.ReduceDamagePercent
+		p.MaxHP += conf.PetRing.Pets.Angel.AddHP
+		p.HelperReduceDamage = conf.PetRing.Pets.Angel.ReduceDamagePercent
 	case p.equippedItem(helper, item.Code(13, 65)): // 强化天使
-		hp += conf.PetRing.Pets.SpiritAngel.AddHP
-		helperReduceDamage = conf.PetRing.Pets.SpiritAngel.ReduceDamagePercent
+		p.MaxHP += conf.PetRing.Pets.SpiritAngel.AddHP
+		p.HelperReduceDamage = conf.PetRing.Pets.SpiritAngel.ReduceDamagePercent
 	case p.equippedItem(helper, item.Code(13, 80)): // 熊猫
-		defense += conf.PetRing.Pets.Panda.AddDefenseValue
+		p.defense += conf.PetRing.Pets.Panda.AddDefenseValue
 	}
 
 	// ...
 
-	// sumary
-	p.attackMin, p.attackMax = attackMin, attackMax
-	p.magic = magic
-	p.magicAttackMin, p.magicAttackMax = magicAttackMin, magicAttackMax
-	p.curse = curse
-	p.curseAttackMin, p.curseAttackMax = curseAttackMin, curseAttackMax
-	p.attackRate = attackRate
-	p.attackRatePVP = attackRatePVP
-	p.defense = defense
-	p.defenseRate = defenseRate
-	p.defenseRatePVP = defenseRatePVP
-	p.attackSpeed, p.magicSpeed = attackSpeed, magicSpeed
-	p.MaxHP = hp
-	if p.HP > p.MaxHP+p.AddHP {
-		p.HP = p.MaxHP + p.AddHP
+	if p.HP > p.MaxHP {
+		p.HP = p.MaxHP
 	}
-	p.MaxMP = mp
-	if p.MP > p.MaxMP+p.AddMP {
-		p.MP = p.MaxMP + p.AddMP
+	if p.MP > p.MaxMP {
+		p.MP = p.MaxMP
 	}
-	p.MaxSD = sd
-	if p.SD > p.MaxSD+p.AddSD {
-		p.SD = p.MaxSD + p.AddSD
+	if p.SD > p.MaxSD {
+		p.SD = p.MaxSD
 	}
-	p.MaxAG = ag
-	if p.AG > p.MaxAG+p.AddAG {
-		p.AG = p.MaxAG + p.AddAG
+	if p.AG > p.MaxAG {
+		p.AG = p.MaxAG
 	}
-	p.WingRecoverHP = wingRecoverHP
-	p.CriticalAttackRate = criticalAttackRate
-	p.ExcellentAttackRate = excellentAttackRate
-	p.ExcellentAttackHP = excellentAttackHP
-	p.ExcellentAttackMP = excellentAttackMP
-	p.ExcellentDefenseReduce = excellentDefenseReduce
-	p.ExcellentDefenseReflect = excellentDefenseReflect
-	p.ExcellentDefenseMoney = excellentDefenseMoney
-	p.ExcellentWingIgnore = excellentWingIgnore
-	p.ExcellentWingReturn = excellentWingReturn
-	p.ExcellentWingHP = excellentWingHP
-	p.ExcellentWingMP = excellentWingMP
-	p.HelperReduceDamage = helperReduceDamage
 
 	// push
 	p.push(&model.MsgStatSpecReply{
 		Options: options,
 	})
 	p.push(&model.MsgAttackSpeedReply{
-		AttackSpeed: attackSpeed,
-		MagicSpeed:  magicSpeed,
+		AttackSpeed: p.attackSpeed,
+		MagicSpeed:  p.magicSpeed,
 	})
 	p.pushMaxHP(p.MaxHP+p.AddHP, p.MaxSD+p.AddSD)
 	p.pushMaxMP(p.MaxMP+p.AddMP, p.MaxAG+p.AddAG)
@@ -1419,88 +1364,60 @@ func (player *Player) GetMasterLevel() bool {
 	return player.ChangeUp == 2 && player.Level >= conf.Common.General.MaxLevelNormal
 }
 
-func (player *Player) addExcelWingEffect(opt *item.ExcelWing, wItem *item.Item) {
-	id := opt.ID
-	value := opt.Value
-	switch id {
-	case 0, 9, 13: // incHP
-		player.AddHP += value + wItem.Level*5
-	case 1, 10, 14: // incMP
-		player.AddMP += value + wItem.Level*5
-	case 2, 5, 11, 15, 16, 18, 23: // ingore
-		player.excelWingEffectIgnoreDefense = value
-	// case 3: // AG ?
-	// 	player.AddAG += value
-	// case 4: // speed ?
-	// 	player.attackSpeed += value
-	// 	player.magicSpeed += value
-	case 6, 19:
-		player.excelWingEffectReboundDamage = value
-	case 7, 17, 20, 24:
-		player.excelWingEffectRecoveryHP = value
-	case 8, 21:
-		player.excelWingEffectRecoveryMP = value
-	case 12:
-		player.AddLeadership += value + wItem.Level*5
-	case 22:
-		player.excelWingEffectDoubleDamage = value
-	}
-}
-
-func (player *Player) addSetEffect(index item.SetEffectType, value int) {
+func (p *Player) addSetEffect(index item.SetEffectType, value int) {
 	switch index {
 	case item.SetEffectIncStrength:
-		player.AddStrength += value
+		p.AddStrength += value
 	case item.SetEffectIncAgility:
-		player.AddDexterity += value
+		p.AddDexterity += value
 	case item.SetEffectIncEnergy:
-		player.AddEnergy += value
+		p.AddEnergy += value
 	case item.SetEffectIncVitality:
-		player.AddVitality += value
+		p.AddVitality += value
 	case item.SetEffectIncLeadership:
-		player.AddLeadership += value
+		p.AddLeadership += value
 	case item.SetEffectIncMaxHP:
-		player.AddHP += value
+		p.MaxHP += value
 	case item.SetEffectIncMaxMP:
-		player.AddMP += value
+		p.MaxMP += value
 	case item.SetEffectIncMaxAG:
-		player.AddAG += value
+		p.MaxAG += value
 	case item.SetEffectDoubleDamage:
-		player.setEffectDoubleDamage += value
+		p.DoubleDamage += value
 	case item.SetEffectIncShieldDefense:
-		player.setEffectIncShieldDefense += value
+		p.MaxSD += value
 	case item.SetEffectIncTwoHandSwordDamage:
-		player.setEffectTwoHandSwordIncDamage += value
+		p.IncreaseTwoHandWeaponDamage += value
 	case item.SetEffectIncAttackMin:
-		player.setEffectIncAttackMin += value
+		p.IncreaseAttackMin += value
 	case item.SetEffectIncAttackMax:
-		player.setEffectIncAttackMax += value
+		p.IncreaseAttackMax += value
 	case item.SetEffectIncMagicAttack:
-		player.setEffectIncMagicAttack += value
+		p.IncreaseMagicAttack += value
 	case item.SetEffectIncDamage:
-		player.setEffectIncDamage += value
+		p.SetIncreaseDamage += value
 	case item.SetEffectIncAttackRate:
-		player.setEffectIncAttackRate += value
+		p.attackRate += value
 	case item.SetEffectIncDefense:
-		player.setEffectIncDefense += value
+		p.defense += value
 	case item.SetEffectIgnoreDefense:
-		player.setEffectIgnoreDefense += value
+		p.IgnoreDefense += value
 	case item.SetEffectIncAG:
-		player.setEffectIncAG += value
+		p.MaxAG += value
 	case item.SetEffectIncCritiDamage:
-		player.setEffectIncCritiDamage += value
+		p.CriticalAttackDamage += value
 	case item.SetEffectIncCritiDamageRate:
-		player.setEffectIncCritiDamageRate += value
+		p.CriticalAttackRate += value
 	case item.SetEffectIncExcelDamage:
-		player.setEffectIncExcelDamage += value
+		p.ExcellentAttackDamage += value
 	case item.SetEffectIncExcelDamageRate:
-		player.setEffectIncExcelDamageRate += value
+		p.ExcellentAttackRate += value
 	case item.SetEffectIncSkillAttack:
-		player.setEffectIncSkillAttack += value
+		p.IncreaseSkillAttack += value
 	}
 }
 
-func (player *Player) CalcSetItem() {
+func (p *Player) CalcSetItem() {
 	type set struct {
 		index int
 		count int
@@ -1509,15 +1426,18 @@ func (player *Player) CalcSetItem() {
 
 	sameWeapon := 0
 	sameRing := 0
-	for i, wItem := range player.Inventory.Items[0:InventoryWearSize] {
-		if wItem.Durability == 0 {
+	for i, it := range p.Inventory.Items[0:InventoryWearSize] {
+		if it == nil {
 			continue
 		}
-		tierIndex := wItem.GetSetTierIndex()
+		if it.Durability == 0 {
+			continue
+		}
+		tierIndex := it.GetSetTierIndex()
 		if tierIndex == 0 {
 			continue
 		}
-		index := item.SetManager.GetSetIndex(wItem.Section, wItem.Index, tierIndex)
+		index := item.SetManager.GetSetIndex(it.Section, it.Index, tierIndex)
 		if index <= 0 {
 			continue
 		}
@@ -1552,14 +1472,14 @@ func (player *Player) CalcSetItem() {
 		if count >= 2 {
 			for i := 0; i < count-1; i++ {
 				setEffect := item.SetManager.GetSet(index, i)
-				player.addSetEffect(setEffect.Index, setEffect.Value)
+				p.addSetEffect(setEffect.Index, setEffect.Value)
 			}
 
 			if count > item.SetManager.GetSetEffectCount(index) {
-				player.setFull = true
+				p.setFull = true
 				setEffects := item.SetManager.GetSetFull(index)
 				for _, setEffect := range setEffects {
-					player.addSetEffect(setEffect.Index, setEffect.Value)
+					p.addSetEffect(setEffect.Index, setEffect.Value)
 				}
 			}
 		}

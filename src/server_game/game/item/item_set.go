@@ -4,6 +4,10 @@ import (
 	"github.com/xujintao/balgass/src/server_game/conf"
 )
 
+func init() {
+	SetManager.init()
+}
+
 type setItem struct {
 	tiers    [4]int
 	mixLevel [2]int
@@ -51,6 +55,8 @@ type set struct {
 	class       [8]bool
 }
 
+var SetManager setManager
+
 type setManager struct {
 	items []map[int]*setItem
 	sets  map[int]*set
@@ -92,9 +98,7 @@ func (o *setManager) GetSetFull(setIndex int) []SetEffect {
 	return set.effectsFull[:]
 }
 
-var SetManager setManager
-
-func init() {
+func (m *setManager) init() {
 	type SetItemXml struct {
 		DropRate struct {
 			Sections []struct {
@@ -119,7 +123,7 @@ func init() {
 	var setItemXml SetItemXml
 	conf.XML(conf.PathCommon, "Items/IGC_ItemSetType.xml", &setItemXml)
 	// convert
-	SetManager.items = make([]map[int]*setItem, len(setItemXml.Sections))
+	m.items = make([]map[int]*setItem, len(setItemXml.Sections))
 	for _, section := range setItemXml.Sections {
 		items := make(map[int]*setItem)
 		for _, item := range section.Items {
@@ -132,7 +136,7 @@ func init() {
 			sItem.mixLevel[1] = item.MixLevelB
 			items[item.Index] = &sItem
 		}
-		SetManager.items[section.Index] = items
+		m.items[section.Index] = items
 	}
 
 	type SetXml struct {
@@ -189,7 +193,7 @@ func init() {
 	var setXml SetXml
 	conf.XML(conf.PathCommon, "Items/IGC_ItemSetOption.xml", &setXml)
 	// convert
-	SetManager.sets = make(map[int]*set)
+	m.sets = make(map[int]*set)
 	for _, s := range setXml.Sets {
 		var set set
 		set.effects[0].Index = s.OptIdx11 + SetEffectIncStrength
@@ -234,6 +238,6 @@ func init() {
 		set.effectsFull[4].Index = s.FullOptIdx5 + SetEffectIncStrength
 		set.effectsFull[4].Value = s.FullOptVal5
 
-		SetManager.sets[s.Index] = &set
+		m.sets[s.Index] = &set
 	}
 }

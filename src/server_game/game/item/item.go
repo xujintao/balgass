@@ -18,31 +18,31 @@ type Item struct {
 	Durability                   int               `json:"durability"`
 	Lucky                        bool              `json:"lucky,omitempty"`
 	Skill                        bool              `json:"skill,omitempty"`
-	Addition                     int               `json:"addition,omitempty"` // 0/4/8/12/16
-	ExcellentAttackRate          bool              `json:"excellent_attack_rate,omitempty"`
-	ExcellentAttackLevel         bool              `json:"excellent_attack_level,omitempty"`
-	ExcellentAttackPercent       bool              `json:"excellent_attack_percent,omitempty"`
-	ExcellentAttackSpeed         bool              `json:"excellent_attack_speed,omitempty"`
-	ExcellentAttackHP            bool              `json:"excellent_attack_hp,omitempty"`
-	ExcellentAttackMP            bool              `json:"excellent_attack_mp,omitempty"`
-	ExcellentDefenseHP           bool              `json:"excellent_defense_hp,omitempty"`
-	ExcellentDefenseMP           bool              `json:"excellent_defense_mp,omitempty"`
-	ExcellentDefenseReduce       bool              `json:"excellent_defense_reduce,omitempty"`
-	ExcellentDefenseReflect      bool              `json:"excellent_defense_reflect,omitempty"`
-	ExcellentDefenseRate         bool              `json:"excellent_defense_rate,omitempty"`
-	ExcellentDefenseMoney        bool              `json:"excellent_defense_money,omitempty"`
-	ExcellentWingKind1           bool              `json:"excellent_wing_king1,omitempty"`       // Kind1
-	ExcellentWingKind2           bool              `json:"excellent_wing_king2,omitempty"`       // Kind2
-	ExcellentWing2HP             bool              `json:"excellent_wing2_hp,omitempty"`         // HP +50
-	ExcellentWing2MP             bool              `json:"excellent_wing2_mp,omitempty"`         // MP +50
-	ExcellentWing2Ignore         bool              `json:"excellent_wing2_ignore,omitempty"`     // Ignore defense 3%
-	ExcellentWing2AG             bool              `json:"excellent_wing2_ag,omitempty"`         // AG +50
-	ExcellentWing2Leadership     bool              `json:"excellent_wing2_leadership,omitempty"` // Command 10
-	ExcellentWing2Speed          bool              `json:"excellent_wing2_speed,omitempty"`      // Speed 5
-	ExcellentWing3Ignore         bool              `json:"excellent_wing3_ignore,omitempty"`     // Ignore defense 5%
-	ExcellentWing3Return         bool              `json:"excellent_wing3_return,omitempty"`     // Return Damage 5%
-	ExcellentWing3HP             bool              `json:"excellent_wing3_hp,omitempty"`         // Recovery HP 5%
-	ExcellentWing3MP             bool              `json:"excellent_wing3_mp,omitempty"`         // Recovery MP 5%
+	Addition                     int               `json:"addition,omitempty"`                   // 0/4/8/12/16
+	ExcellentAttackRate          bool              `json:"excellent_attack_rate,omitempty"`      // bit5:卓越攻击几率10%
+	ExcellentAttackLevel         bool              `json:"excellent_attack_level,omitempty"`     // bit4:攻击力增加等级/20
+	ExcellentAttackPercent       bool              `json:"excellent_attack_percent,omitempty"`   // bit3:攻击力增加2%
+	ExcellentAttackSpeed         bool              `json:"excellent_attack_speed,omitempty"`     // bit2:攻击(魔法)速度增加7
+	ExcellentAttackHP            bool              `json:"excellent_attack_hp,omitempty"`        // bit1:杀死怪物时所获生命值增加生命值/8
+	ExcellentAttackMP            bool              `json:"excellent_attack_mp,omitempty"`        // bit0:杀死怪物时所获魔法值增加魔法值/8
+	ExcellentDefenseHP           bool              `json:"excellent_defense_hp,omitempty"`       // bit5:最大生命值增加4%
+	ExcellentDefenseMP           bool              `json:"excellent_defense_mp,omitempty"`       // bit4:最大魔法值增加4%
+	ExcellentDefenseReduce       bool              `json:"excellent_defense_reduce,omitempty"`   // bit3:伤害减少4%
+	ExcellentDefenseReflect      bool              `json:"excellent_defense_reflect,omitempty"`  // bit2:伤害反射5%
+	ExcellentDefenseRate         bool              `json:"excellent_defense_rate,omitempty"`     // bit1:防御成功率10%
+	ExcellentDefenseMoney        bool              `json:"excellent_defense_money,omitempty"`    // bit0:杀死怪物时所获金币增加30%
+	ExcellentWingKind1           bool              `json:"excellent_wing_kind1,omitempty"`       // bit5:Wing-Kind1 for 2D
+	ExcellentWingKind2           bool              `json:"excellent_wing_kind2,omitempty"`       // bit4:Wing-Kind2 for 2D/3D
+	ExcellentWing2Speed          bool              `json:"excellent_wing2_speed,omitempty"`      // bit4:攻击(魔法)速度增加5
+	ExcellentWing2AG             bool              `json:"excellent_wing2_ag,omitempty"`         // bit3:最大AG增加50
+	ExcellentWing2Leadership     bool              `json:"excellent_wing2_leadership,omitempty"` // bit3:声望增加10+5*level
+	ExcellentWing2Ignore         bool              `json:"excellent_wing2_ignore,omitempty"`     // bit2:无视防御伤害几率3%
+	ExcellentWing2MP             bool              `json:"excellent_wing2_mp,omitempty"`         // bit1:魔法值增加50+5*level
+	ExcellentWing2HP             bool              `json:"excellent_wing2_hp,omitempty"`         // bit0:生命值增加50+5*level
+	ExcellentWing3MP             bool              `json:"excellent_wing3_mp,omitempty"`         // bit3:魔法值完全恢复几率5%
+	ExcellentWing3HP             bool              `json:"excellent_wing3_hp,omitempty"`         // bit2:生命值完全恢复几率5%
+	ExcellentWing3Return         bool              `json:"excellent_wing3_return,omitempty"`     // bit1:反弹攻击力几率5%
+	ExcellentWing3Ignore         bool              `json:"excellent_wing3_ignore,omitempty"`     // bit0:无视防御伤害几率5%
 	Set                          int               `json:"set,omitempty"`
 	Option380                    bool              `json:"option380,omitempty"`
 	Period                       int               `json:"period,omitempty"`
@@ -510,22 +510,28 @@ func (item *Item) Marshal() ([]byte, error) {
 		data[1] |= byte(1 << 7)
 	}
 	data[2] = byte(item.Durability)
-	if item.ExcellentAttackRate || item.ExcellentDefenseHP {
+	if item.ExcellentAttackRate || item.ExcellentDefenseHP ||
+		item.ExcellentWingKind1 {
 		data[3] |= 1 << 5
 	}
-	if item.ExcellentAttackLevel || item.ExcellentDefenseMP {
+	if item.ExcellentAttackLevel || item.ExcellentDefenseMP ||
+		item.ExcellentWing2Speed || item.ExcellentWingKind2 {
 		data[3] |= 1 << 4
 	}
-	if item.ExcellentAttackPercent || item.ExcellentDefenseReduce {
+	if item.ExcellentAttackPercent || item.ExcellentDefenseReduce ||
+		item.ExcellentWing2AG || item.ExcellentWing2Leadership || item.ExcellentWing3MP {
 		data[3] |= 1 << 3
 	}
-	if item.ExcellentAttackSpeed || item.ExcellentDefenseReflect {
+	if item.ExcellentAttackSpeed || item.ExcellentDefenseReflect ||
+		item.ExcellentWing2Ignore || item.ExcellentWing3HP {
 		data[3] |= 1 << 2
 	}
-	if item.ExcellentAttackHP || item.ExcellentDefenseRate {
+	if item.ExcellentAttackHP || item.ExcellentDefenseRate ||
+		item.ExcellentWing2MP || item.ExcellentWing3Return {
 		data[3] |= 1 << 1
 	}
-	if item.ExcellentAttackMP || item.ExcellentDefenseMoney {
+	if item.ExcellentAttackMP || item.ExcellentDefenseMoney ||
+		item.ExcellentWing2HP || item.ExcellentWing3Ignore {
 		data[3] |= 1 << 0
 	}
 	data[3] |= byte(item.Addition & 0x10 << 2)
