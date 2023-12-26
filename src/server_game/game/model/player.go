@@ -1500,6 +1500,50 @@ func MakeCharacterFrame(Class, ChangeUp int, Inventory [9]*item.Item) [18]byte {
 	binary.BigEndian.PutUint32(data[:], level)
 	copy(chars[6:9], data[1:])
 
+	// slot0~slot6 excellent -> chars[10]
+	for i, v := range inventory[:7] {
+		if v.IsExcellent() {
+			switch i {
+			case 0:
+				chars[10] |= 0x04
+			case 1:
+				chars[10] |= 0x02
+			case 2:
+				chars[10] |= 0x80
+			case 3:
+				chars[10] |= 0x40
+			case 4:
+				chars[10] |= 0x20
+			case 5:
+				chars[10] |= 0x10
+			case 6:
+				chars[10] |= 0x08
+			}
+		}
+	}
+
+	// slot0~slot6 set -> chars[11]
+	for i, v := range inventory[:7] {
+		if v.IsSet() {
+			switch i {
+			case 0:
+				chars[11] |= 0x04
+			case 1:
+				chars[11] |= 0x02
+			case 2:
+				chars[11] |= 0x80
+			case 3:
+				chars[11] |= 0x40
+			case 4:
+				chars[11] |= 0x20
+			case 5:
+				chars[11] |= 0x10
+			case 6:
+				chars[11] |= 0x08
+			}
+		}
+	}
+
 	// slot7 -> chars[5] bit2~bit3 4=1D, 8=2D, 12=3D 0=empty
 	// slot7 -> chars[9] bit0~bit2
 	// slot7 -> chars[16] bit2~bit4
