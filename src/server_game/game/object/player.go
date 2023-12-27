@@ -783,10 +783,6 @@ func (p *Player) calc() {
 	p.AddVitality = 0
 	p.AddEnergy = 0
 	p.AddLeadership = 0
-	p.MaxHP = 0
-	p.MaxMP = 0
-	p.MaxAG = 0
-	p.MaxSD = 0
 	p.CriticalAttackRate = 0
 	p.ExcellentAttackRate = 0
 	p.MonsterDieGetHP = 0
@@ -806,7 +802,7 @@ func (p *Player) calc() {
 		p.AddLeadership += 10 + 5*wing.Level
 	}
 	// set item contribution
-	p.CalcSetItem()
+	p.CalcSetItem(true)
 	// master skill contribution
 
 	strength := p.Strength + p.AddStrength
@@ -1042,8 +1038,8 @@ func (p *Player) calc() {
 
 	// hp/mp
 	c := CharacterTable[p.Class]
-	p.MaxHP += c.HP + int(float32(level-1)*c.LevelHP) + int(float32(vitality-c.Vitality)*c.VitalityHP)
-	p.MaxMP += c.MP + int(float32(level-1)*c.LevelMP) + int(float32(energy-c.Energy)*c.EnergyMP)
+	p.MaxHP = c.HP + int(float32(level-1)*c.LevelHP) + int(float32(vitality-c.Vitality)*c.VitalityHP)
+	p.MaxMP = c.MP + int(float32(level-1)*c.LevelMP) + int(float32(energy-c.Energy)*c.EnergyMP)
 
 	// sd
 	sdGageConstA := conf.CommonServer.GameServerInfo.SDGageConstA
@@ -1053,7 +1049,7 @@ func (p *Player) calc() {
 		expressionA += leadership
 	}
 	expressionB := level * level / sdGageConstB
-	p.MaxSD += expressionA*sdGageConstA/10 + expressionB + p.defense
+	p.MaxSD = expressionA*sdGageConstA/10 + expressionB + p.defense
 
 	// ag
 	f := func(s, d, v, e, l float32) int {
@@ -1061,20 +1057,27 @@ func (p *Player) calc() {
 	}
 	switch class.Class(p.Class) {
 	case class.Wizard:
-		p.MaxAG += f(0.2, 0.4, 0.3, 0.2, 0)
+		p.MaxAG = f(0.2, 0.4, 0.3, 0.2, 0)
 	case class.Knight:
-		p.MaxAG += f(0.15, 0.2, 0.3, 1.0, 0)
+		p.MaxAG = f(0.15, 0.2, 0.3, 1.0, 0)
 	case class.Elf:
-		p.MaxAG += f(0.3, 0.2, 0.3, 0.2, 0)
+		p.MaxAG = f(0.3, 0.2, 0.3, 0.2, 0)
 	case class.Magumsa:
-		p.MaxAG += f(0.2, 0.25, 0.3, 0.15, 0)
+		p.MaxAG = f(0.2, 0.25, 0.3, 0.15, 0)
 	case class.DarkLord:
-		p.MaxAG += f(0.3, 0.2, 0.1, 0.15, 0.3)
+		p.MaxAG = f(0.3, 0.2, 0.1, 0.15, 0.3)
 	case class.Summoner:
-		p.MaxAG += f(0.2, 0.25, 0.3, 0.15, 0)
+		p.MaxAG = f(0.2, 0.25, 0.3, 0.15, 0)
 	case class.RageFighter:
-		p.MaxAG += f(0.15, 0.2, 0.3, 1.0, 0)
+		p.MaxAG = f(0.15, 0.2, 0.3, 1.0, 0)
 	}
+
+	p.CalcSetItem(false)
+	// set item contribution
+	leftAttackMin += p.IncreaseAttackMin
+	leftAttackMax += p.IncreaseAttackMax
+	rightAttackMin += p.IncreaseAttackMin
+	rightAttackMax += p.IncreaseAttackMax
 
 	// excellent item contribution
 	for i := 0; i < 12; i++ {
@@ -1364,60 +1367,66 @@ func (player *Player) GetMasterLevel() bool {
 	return player.ChangeUp == 2 && player.Level >= conf.Common.General.MaxLevelNormal
 }
 
-func (p *Player) addSetEffect(index item.SetEffectType, value int) {
-	switch index {
-	case item.SetEffectIncStrength:
-		p.AddStrength += value
-	case item.SetEffectIncAgility:
-		p.AddDexterity += value
-	case item.SetEffectIncEnergy:
-		p.AddEnergy += value
-	case item.SetEffectIncVitality:
-		p.AddVitality += value
-	case item.SetEffectIncLeadership:
-		p.AddLeadership += value
-	case item.SetEffectIncMaxHP:
-		p.MaxHP += value
-	case item.SetEffectIncMaxMP:
-		p.MaxMP += value
-	case item.SetEffectIncMaxAG:
-		p.MaxAG += value
-	case item.SetEffectDoubleDamage:
-		p.DoubleDamage += value
-	case item.SetEffectIncShieldDefense:
-		p.MaxSD += value
-	case item.SetEffectIncTwoHandSwordDamage:
-		p.IncreaseTwoHandWeaponDamage += value
-	case item.SetEffectIncAttackMin:
-		p.IncreaseAttackMin += value
-	case item.SetEffectIncAttackMax:
-		p.IncreaseAttackMax += value
-	case item.SetEffectIncMagicAttack:
-		p.IncreaseMagicAttack += value
-	case item.SetEffectIncDamage:
-		p.SetIncreaseDamage += value
-	case item.SetEffectIncAttackRate:
-		p.attackRate += value
-	case item.SetEffectIncDefense:
-		p.defense += value
-	case item.SetEffectIgnoreDefense:
-		p.IgnoreDefense += value
-	case item.SetEffectIncAG:
-		p.MaxAG += value
-	case item.SetEffectIncCritiDamage:
-		p.CriticalAttackDamage += value
-	case item.SetEffectIncCritiDamageRate:
-		p.CriticalAttackRate += value
-	case item.SetEffectIncExcelDamage:
-		p.ExcellentAttackDamage += value
-	case item.SetEffectIncExcelDamageRate:
-		p.ExcellentAttackRate += value
-	case item.SetEffectIncSkillAttack:
-		p.IncreaseSkillAttack += value
+func (p *Player) addSetEffect(index item.SetEffectType, value int, base bool) {
+	if base {
+		switch index {
+		case item.SetEffectIncStrength:
+			p.AddStrength += value
+		case item.SetEffectIncAgility:
+			p.AddDexterity += value
+		case item.SetEffectIncEnergy:
+			p.AddEnergy += value
+		case item.SetEffectIncVitality:
+			p.AddVitality += value
+		case item.SetEffectIncLeadership:
+			p.AddLeadership += value
+		}
+	} else {
+		switch index {
+		case item.SetEffectIncAttackMin:
+			p.IncreaseAttackMin += value
+		case item.SetEffectIncAttackMax:
+			p.IncreaseAttackMax += value
+		case item.SetEffectIncMagicAttack:
+			p.magicAttackMin += value
+			p.magicAttackMax += value
+		case item.SetEffectIncDamage:
+			p.SetIncreaseDamage += value
+		case item.SetEffectIncAttackRate:
+			p.attackRate += value
+		case item.SetEffectIncDefense:
+			p.defense += value
+		case item.SetEffectIncMaxHP:
+			p.MaxHP += value
+		case item.SetEffectIncMaxMP:
+			p.MaxMP += value
+		case item.SetEffectIncMaxAG:
+			p.MaxAG += value
+		case item.SetEffectIncAG:
+			p.MaxAG += value
+		case item.SetEffectIncCritiDamageRate:
+			p.CriticalAttackRate += value
+		case item.SetEffectIncCritiDamage:
+			p.CriticalAttackDamage += value
+		case item.SetEffectIncExcelDamageRate:
+			p.ExcellentAttackRate += value
+		case item.SetEffectIncExcelDamage:
+			p.ExcellentAttackDamage += value
+		case item.SetEffectIncSkillAttack:
+			p.IncreaseSkillAttack += value
+		case item.SetEffectDoubleDamage:
+			p.DoubleDamage += value
+		case item.SetEffectIgnoreDefense:
+			p.IgnoreDefense += value
+		case item.SetEffectIncShieldDefense:
+			p.MaxSD += value
+		case item.SetEffectIncTwoHandSwordDamage:
+			p.IncreaseTwoHandWeaponDamage += value
+		}
 	}
 }
 
-func (p *Player) CalcSetItem() {
+func (p *Player) CalcSetItem(base bool) {
 	type set struct {
 		index int
 		count int
@@ -1472,14 +1481,14 @@ func (p *Player) CalcSetItem() {
 		if count >= 2 {
 			for i := 0; i < count-1; i++ {
 				setEffect := item.SetManager.GetSet(index, i)
-				p.addSetEffect(setEffect.Index, setEffect.Value)
+				p.addSetEffect(setEffect.Index, setEffect.Value, base)
 			}
 
 			if count > item.SetManager.GetSetEffectCount(index) {
 				p.setFull = true
 				setEffects := item.SetManager.GetSetFull(index)
 				for _, setEffect := range setEffects {
-					p.addSetEffect(setEffect.Index, setEffect.Value)
+					p.addSetEffect(setEffect.Index, setEffect.Value, base)
 				}
 			}
 		}

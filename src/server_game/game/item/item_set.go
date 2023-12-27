@@ -16,28 +16,28 @@ type setItem struct {
 type SetEffectType int
 
 const (
-	SetEffectIncStrength SetEffectType = 0xA0 + iota
+	SetEffectIncStrength SetEffectType = iota
 	SetEffectIncAgility
 	SetEffectIncEnergy
 	SetEffectIncVitality
 	SetEffectIncLeadership
-	SetEffectIncAttackMin
-	SetEffectIncAttackMax
+	SetEffectIncAttackMin // 最小攻击力增加
+	SetEffectIncAttackMax // 最大攻击力增加
 	SetEffectIncMagicAttack
-	SetEffectIncDamage
+	SetEffectIncDamage // 伤害增加
 	SetEffectIncAttackRate
-	SetEffectIncDefense
+	SetEffectIncDefense // 防御力增加
 	SetEffectIncMaxHP
 	SetEffectIncMaxMP
 	SetEffectIncMaxAG
 	SetEffectIncAG
-	SetEffectIncCritiDamageRate
-	SetEffectIncCritiDamage
-	SetEffectIncExcelDamageRate
-	SetEffectIncExcelDamage
-	SetEffectIncSkillAttack
-	SetEffectDoubleDamage
-	SetEffectIgnoreDefense
+	SetEffectIncCritiDamageRate // 幸运一击伤害几率增加
+	SetEffectIncCritiDamage     // 幸运一击伤害增加
+	SetEffectIncExcelDamageRate // 卓越一击伤害几率增加
+	SetEffectIncExcelDamage     // 卓越一击伤害增加
+	SetEffectIncSkillAttack     // 技能攻击力增加
+	SetEffectDoubleDamage       // 双倍伤害几率
+	SetEffectIgnoreDefense      // 无视目标防御
 	SetEffectIncShieldDefense
 	SetEffectIncTwoHandSwordDamage
 )
@@ -52,47 +52,46 @@ type set struct {
 	count       int
 	effects     [6]SetEffect
 	effectsFull [5]SetEffect
-	class       [8]bool
+	// class       [8]bool
 }
 
 var SetManager setManager
 
 type setManager struct {
 	items []map[int]*setItem
-	sets  map[int]*set
+	sets  []*set
 }
 
-func (o *setManager) IsSetItem(section, index int) bool {
-	_, ok := o.items[section][index]
-	return ok
-}
-
-func (o *setManager) GetSetIndex(secion, index int, tierIndex int) int {
-	if !o.IsSetItem(secion, index) {
+func (m *setManager) GetSetIndex(section, index, tierIndex int) int {
+	if _, ok := m.items[section][index]; !ok {
 		return 0
 	}
-	return o.items[secion][index].tiers[tierIndex]
+	// 0x01=tier0=TierI
+	// 0x02=tier1=TierII
+	// 0x10=tier2=TierIII
+	// 0x20=tier3=TierIV
+	return m.items[section][index].tiers[tierIndex-1]
 }
 
-func (o *setManager) GetSet(setIndex int, effectIndex int) *SetEffect {
-	set, ok := o.sets[setIndex]
-	if !ok {
+func (m *setManager) GetSet(setIndex int, effectIndex int) *SetEffect {
+	set := m.sets[setIndex]
+	if set == nil {
 		return nil
 	}
 	return &set.effects[effectIndex]
 }
 
-func (o *setManager) GetSetEffectCount(setIndex int) int {
-	set, ok := o.sets[setIndex]
-	if !ok {
+func (m *setManager) GetSetEffectCount(setIndex int) int {
+	set := m.sets[setIndex]
+	if set == nil {
 		return 0
 	}
 	return set.count
 }
 
-func (o *setManager) GetSetFull(setIndex int) []SetEffect {
-	set, ok := o.sets[setIndex]
-	if !ok {
+func (m *setManager) GetSetFull(setIndex int) []SetEffect {
+	set := m.sets[setIndex]
+	if set == nil {
 		return nil
 	}
 	return set.effectsFull[:]
@@ -193,49 +192,50 @@ func (m *setManager) init() {
 	var setXml SetXml
 	conf.XML(conf.PathCommon, "Items/IGC_ItemSetOption.xml", &setXml)
 	// convert
-	m.sets = make(map[int]*set)
+	m.sets = make([]*set, 64)
 	for _, s := range setXml.Sets {
 		var set set
-		set.effects[0].Index = s.OptIdx11 + SetEffectIncStrength
+		set.name = s.Name
+		set.effects[0].Index = s.OptIdx11
 		set.effects[0].Value = s.OptVal11
 		if s.OptIdx11 != -1 {
 			set.count++
 		}
-		set.effects[1].Index = s.OptIdx12 + SetEffectIncStrength
+		set.effects[1].Index = s.OptIdx12
 		set.effects[1].Value = s.OptVal12
 		if s.OptIdx12 != -1 {
 			set.count++
 		}
-		set.effects[2].Index = s.OptIdx13 + SetEffectIncStrength
+		set.effects[2].Index = s.OptIdx13
 		set.effects[2].Value = s.OptVal13
 		if s.OptIdx13 != -1 {
 			set.count++
 		}
-		set.effects[3].Index = s.OptIdx14 + SetEffectIncStrength
+		set.effects[3].Index = s.OptIdx14
 		set.effects[3].Value = s.OptVal14
 		if s.OptIdx14 != -1 {
 			set.count++
 		}
-		set.effects[4].Index = s.OptIdx15 + SetEffectIncStrength
+		set.effects[4].Index = s.OptIdx15
 		set.effects[4].Value = s.OptVal15
 		if s.OptIdx15 != -1 {
 			set.count++
 		}
-		set.effects[5].Index = s.OptIdx16 + SetEffectIncStrength
+		set.effects[5].Index = s.OptIdx16
 		set.effects[5].Value = s.OptVal16
 		if s.OptIdx16 != -1 {
 			set.count++
 		}
 
-		set.effectsFull[0].Index = s.FullOptIdx1 + SetEffectIncStrength
+		set.effectsFull[0].Index = s.FullOptIdx1
 		set.effectsFull[0].Value = s.FullOptVal1
-		set.effectsFull[1].Index = s.FullOptIdx2 + SetEffectIncStrength
+		set.effectsFull[1].Index = s.FullOptIdx2
 		set.effectsFull[1].Value = s.FullOptVal2
-		set.effectsFull[2].Index = s.FullOptIdx3 + SetEffectIncStrength
+		set.effectsFull[2].Index = s.FullOptIdx3
 		set.effectsFull[2].Value = s.FullOptVal3
-		set.effectsFull[3].Index = s.FullOptIdx4 + SetEffectIncStrength
+		set.effectsFull[3].Index = s.FullOptIdx4
 		set.effectsFull[3].Value = s.FullOptVal4
-		set.effectsFull[4].Index = s.FullOptIdx5 + SetEffectIncStrength
+		set.effectsFull[4].Index = s.FullOptIdx5
 		set.effectsFull[4].Value = s.FullOptVal5
 
 		m.sets[s.Index] = &set
