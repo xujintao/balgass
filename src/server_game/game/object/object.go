@@ -1,7 +1,6 @@
 package object
 
 import (
-	"encoding/xml"
 	"fmt"
 	"log"
 	"math/rand"
@@ -11,7 +10,6 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
-	"github.com/xujintao/balgass/src/server_game/game/shop"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
@@ -42,7 +40,7 @@ type objectManager struct {
 
 	// objects
 	maxObjectCount int
-	objects        []*object
+	objects        []*Object
 
 	// users
 	maxUserCount      int
@@ -71,7 +69,7 @@ func (m *objectManager) init() {
 
 	// objects
 	m.maxObjectCount = m.maxMonsterCount + m.maxCallMonsterCount + m.maxPlayerCount
-	m.objects = make([]*object, m.maxObjectCount)
+	m.objects = make([]*Object, m.maxObjectCount)
 
 	// users
 	m.maxUserCount = 10
@@ -79,118 +77,10 @@ func (m *objectManager) init() {
 	m.lastUserIndex = m.userStartIndex - 1
 	m.users = make([]*user, m.maxUserCount)
 	m.mapSubscribeTable = make(map[int]map[*user]struct{})
-
-	// 先有怪后有玩家
-	m.spawnMonster()
-	m.spawnShopNPC()
 }
 
-func (m *objectManager) spawnMonster() {
-	// MonsterSpawn was generated 2023-07-17 16:05:41 by https://xml-to-go.github.io/ in Ukraine.
-	type MonsterSpawn struct {
-		XMLName xml.Name `xml:"MonsterSpawn"`
-		Text    string   `xml:",chardata"`
-		Map     []*struct {
-			Text       string `xml:",chardata"`
-			Number     int    `xml:"Number,attr"`
-			Name       string `xml:"Name,attr"`
-			Annotation string `xml:"annotation,attr"`
-			Spot       []*struct {
-				Text        string `xml:",chardata"`
-				Type        int    `xml:"Type,attr"`
-				Description string `xml:"Description,attr"`
-				Spawn       []*struct {
-					Text     string `xml:",chardata"`
-					Index    int    `xml:"Index,attr"`
-					Distance int    `xml:"Distance,attr"`
-					StartX   int    `xml:"StartX,attr"`
-					StartY   int    `xml:"StartY,attr"`
-					Dir      int    `xml:"Dir,attr"`
-					EndX     int    `xml:"EndX,attr"`
-					EndY     int    `xml:"EndY,attr"`
-					Count    int    `xml:"Count,attr"`
-					Element  int    `xml:"Element,attr"`
-				} `xml:"Spawn"`
-			} `xml:"Spot"`
-		} `xml:"Map"`
-	}
-	var monsterSpawn MonsterSpawn
-	conf.XML(conf.PathCommon, "Monsters/IGC_MonsterSpawn.xml", &monsterSpawn)
-	for _, _map := range monsterSpawn.Map {
-		for _, spot := range _map.Spot {
-			for _, spawn := range spot.Spawn {
-				cnt := spawn.Count
-				if cnt == 0 {
-					cnt = 1
-				}
-				for i := 0; i < cnt; i++ {
-					spawnClass := spawn.Index
-					spawnMapNumber := _map.Number
-					spawnStartX := 0
-					spawnStartY := 0
-					spawnEndX := 0
-					spawnEndY := 0
-					switch spot.Type {
-					case 0: // npc
-						spawnStartX = spawn.StartX
-						spawnStartY = spawn.StartY
-						spawnEndX = spawn.StartX
-						spawnEndY = spawn.StartY
-					case 1, 3: // multiple
-						spawnStartX = spawn.StartX
-						spawnStartY = spawn.StartY
-						spawnEndX = spawn.EndX
-						spawnEndY = spawn.EndY
-					case 2: // single
-						spawnStartX = spawn.StartX - 3
-						spawnStartY = spawn.StartY - 3
-						spawnEndX = spawn.StartX + 3
-						spawnEndY = spawn.StartY + 3
-					}
-					spawnDir := spawn.Dir
-					spawnDis := spawn.Distance
-					spawnElement := spawn.Element
-					_, err := m.AddMonster(
-						spawnClass,
-						spawnMapNumber,
-						spawnStartX,
-						spawnStartY,
-						spawnEndX,
-						spawnEndY,
-						spawnDir,
-						spawnDis,
-						spawnElement,
-					)
-					if err != nil {
-						log.Fatalf("spawnMonster AddMonster failed err[%v]", err)
-					}
-				}
-			}
-		}
-	}
-}
-
-func (m *objectManager) spawnShopNPC() {
-	shop.ShopManager.ForEachShop(func(class, mapNumber, x, y, dir int) {
-		monster, err := m.AddMonster(
-			class,
-			mapNumber,
-			x,
-			y,
-			x,
-			y,
-			dir,
-			0,
-			0,
-		)
-		if err != nil {
-			log.Fatalf("spawnShopNPC AddMonster failed err[%v]", err)
-		}
-		monster.NpcType = NpcTypeShop
-	})
-}
-
-func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (*Monster, error) {
+func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int,
+	newMonster func(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) *Object) (*Object, error) {
 	if m.monsterCount > m.maxMonsterCount {
 		return nil, fmt.Errorf("over max monster count")
 	}
@@ -211,41 +101,49 @@ func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY,
 	}
 	m.lastMonsterIndex = index
 	m.monsterCount++
-	monster := NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element)
-	monster.objecter = monster
-	monster.index = index
-	m.objects[index] = &monster.object
+	monster := newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element)
+	monster.Index = index
+	m.objects[index] = monster
 	return monster, nil
 }
 
-func (m *objectManager) AddCallMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (int, error) {
-	if m.callMonsterCount > m.maxCallMonsterCount {
-		return -1, fmt.Errorf("over max call monster count")
-	}
-	index := m.lastCallMonsterIndex
-	cnt := m.maxCallMonsterCount
-	for cnt > 0 {
-		index++
-		if index >= m.playerStartIndex {
-			index = m.callMonsterStartIndex
-		}
-		if m.objects[index] == nil {
-			break
-		}
-		cnt--
-	}
-	if cnt == 0 {
-		panic(fmt.Errorf("have no free call monster index"))
-	}
-	m.lastCallMonsterIndex = index
-	m.callMonsterCount++
-	monster := NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element)
-	monster.index = index
-	m.objects[index] = &monster.object
-	return index, nil
+// func (m *objectManager) AddCallMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (int, error) {
+// 	if m.callMonsterCount > m.maxCallMonsterCount {
+// 		return -1, fmt.Errorf("over max call monster count")
+// 	}
+// 	index := m.lastCallMonsterIndex
+// 	cnt := m.maxCallMonsterCount
+// 	for cnt > 0 {
+// 		index++
+// 		if index >= m.playerStartIndex {
+// 			index = m.callMonsterStartIndex
+// 		}
+// 		if m.objects[index] == nil {
+// 			break
+// 		}
+// 		cnt--
+// 	}
+// 	if cnt == 0 {
+// 		panic(fmt.Errorf("have no free call monster index"))
+// 	}
+// 	m.lastCallMonsterIndex = index
+// 	m.callMonsterCount++
+// 	monster := NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element)
+// 	monster.index = index
+// 	m.objects[index] = &monster.object
+// 	return index, nil
+// }
+
+type Conn interface {
+	Addr() string
+	Write(any) error
+	Close() error
+}
+type Actioner interface {
+	PlayerAction(int, string, any)
 }
 
-func (m *objectManager) AddPlayer(conn Conn, actioner actioner) (int, error) {
+func (m *objectManager) AddPlayer(conn Conn, actioner Actioner, newPlayer func(Conn, Actioner) *Object) (int, error) {
 	// limit max player count
 	if m.playerCount >= m.maxPlayerCount {
 		// reply
@@ -272,11 +170,10 @@ func (m *objectManager) AddPlayer(conn Conn, actioner actioner) (int, error) {
 	}
 	m.lastPlayerIndex = index
 	m.playerCount++
-	player := NewPlayer(conn, actioner)
-	player.objecter = player
-	player.index = index
+	player := newPlayer(conn, actioner)
+	player.Index = index
 	// register the new player to object manager
-	m.objects[index] = &player.object
+	m.objects[index] = player
 
 	// reply
 	msg := model.MsgConnectReply{
@@ -284,8 +181,8 @@ func (m *objectManager) AddPlayer(conn Conn, actioner actioner) (int, error) {
 		ID:      index,
 		Version: conf.MapServers.ServerInfo.Version,
 	}
-	player.push(&msg)
-	log.Printf("player online [id]%d [addr]%s", player.index, player.addr())
+	player.Push(&msg)
+	log.Printf("player online [id]%d [addr]%s", player.Index, player.Addr())
 	return index, nil
 }
 
@@ -299,19 +196,22 @@ func (m *objectManager) DeletePlayer(id int) {
 		return
 	}
 	player.Offline()
-	log.Printf("player offline [id]%d [addr]%s", player.index, player.addr())
+	log.Printf("player offline [id]%d [addr]%s", player.Index, player.Addr())
 
 	// unregister player from object manager
-	player.reset()
+	player.Reset()
 	m.objects[id] = nil
 	m.playerCount--
 }
 
-func (m *objectManager) GetPlayer(id int) *object {
+func (m *objectManager) GetObject(id int) *Object {
+	if id >= m.maxObjectCount {
+		return nil
+	}
 	return m.objects[id]
 }
 
-func (m *objectManager) GetPlayerByName(name string) *object {
+func (m *objectManager) GetPlayerByName(name string) *Object {
 	for _, tobj := range m.objects[m.playerStartIndex:] {
 		if tobj == nil {
 			continue
@@ -486,12 +386,12 @@ const (
 	MaxViewportNum = 75
 )
 
-type viewport struct {
-	state  int
-	number int
-	type_  int
+type Viewport struct {
+	State  int
+	Number int
+	Type   int
 	// index  int
-	dis int
+	Dis int
 }
 
 type HitDamage struct {
@@ -559,10 +459,10 @@ type messageStateMachine struct {
 	time    time.Duration
 }
 
-type objecter interface {
-	addr() string
+type Objecter interface {
+	Addr() string
 	Offline()
-	push(any)
+	Push(any)
 	PushMPAG(int, int)
 	Chat(*model.MsgChat)
 	Whisper(*model.MsgWhisper)
@@ -579,13 +479,13 @@ type objecter interface {
 	DefineMuBot(*model.MsgDefineMuBot)
 	EnableMuBot(*model.MsgEnableMuBot)
 	LearnMasterSkill(*model.MsgLearnMasterSkill)
-	getPKLevel() int
+	GetPKLevel() int
 	GetSkillMPAG(s *skill.Skill) (int, int)
 	ProcessAction()
 	Action(*model.MsgAction)
 	Process1000ms()
-	spawnPosition()
-	Die(*object)
+	SpawnPosition()
+	Die(*Object)
 	Regen()
 	GetChangeUp() int
 	GetInventory() [9]*item.Item
@@ -602,9 +502,9 @@ type objecter interface {
 	MapMove(*model.MsgMapMove)
 }
 
-type object struct {
-	objecter
-	index                     int
+type Object struct {
+	Objecter
+	Index                     int
 	ConnectState              ConnectState
 	Live                      bool
 	State                     int // 1:初始 2:视野 4:死亡 8:清理
@@ -621,7 +521,7 @@ type object struct {
 	pathCount                 int
 	pathCur                   int
 	pathTime                  time.Time
-	pathMoving                bool
+	PathMoving                bool
 	delayLevel                int
 	MapNumber                 int        // 地图号
 	Type                      ObjectType // 对象种类：玩家，怪物，NPC
@@ -643,36 +543,35 @@ type object struct {
 	AG                        int // AG
 	MaxAG                     int
 	AddAG                     int
-	targetNumber              int
-	attackMin                 int // 物攻min
-	attackMax                 int // 物攻max
-	attackSpeed               int // 物攻速度
-	attackRate                int // 攻击率
-	defense                   int // 防御力
-	defenseRate               int // 防御率
-	successfulBlocking        int // 防御率
-	magicDefense              int // 魔法防御率
-	moveSpeed                 int // 移动速度
-	attackRange               int // 攻击范围
-	attackType                int // 攻击类型
-	viewRange                 int // 视野范围
-	itemDropRate              int // 道具掉落率
-	moneyDropRate             int // 金钱掉落率
-	attribute                 int
+	TargetNumber              int
+	AttackMin                 int // 物攻min
+	AttackMax                 int // 物攻max
+	AttackSpeed               int // 物攻速度
+	AttackRate                int // 攻击率
+	Defense                   int // 防御力
+	DefenseRate               int // 防御率
+	MagicDefense              int // 魔法防御率
+	MoveSpeed                 int // 移动速度
+	AttackRange               int // 攻击范围
+	AttackType                int // 攻击类型
+	ViewRange                 int // 视野范围
+	ItemDropRate              int // 道具掉落率
+	MoneyDropRate             int // 金钱掉落率
+	Attribute                 int
 	dieTime                   time.Time
 	dieRegen                  bool
-	maxRegenTime              time.Duration // 最大重生时间
-	pentagramMainAttribute    int
-	pentagramAttributePattern int
-	pentagramAttackMin        int
-	pentagramAttackMax        int
-	pentagramAttackRate       int
-	pentagramDefense          int
-	skills                    skill.Skills
+	MaxRegenTime              time.Duration // 最大重生时间
+	PentagramMainAttribute    int
+	PentagramAttributePattern int
+	PentagramAttackMin        int
+	PentagramAttackMax        int
+	PentagramAttackRate       int
+	PentagramDefense          int
+	Skills                    skill.Skills
 	FrustrumX                 [MaxArrayFrustrum]int
 	FrustrumY                 [MaxArrayFrustrum]int
-	viewports                 [MaxViewportNum]*viewport // 主动视野
-	viewportNum               int
+	Viewports                 [MaxViewportNum]*Viewport // 主动视野
+	ViewportNum               int
 	msgs                      [20]*messageStateMachine
 
 	// groupNumber     int
@@ -936,22 +835,22 @@ type object struct {
 	// offLevelTime                int
 }
 
-func (obj *object) init() {
-	obj.targetNumber = -1
+func (obj *Object) Init() {
+	obj.TargetNumber = -1
 	obj.initSkill()
 	obj.initViewport()
 	obj.initMessage()
 }
 
-func (obj *object) reset() {
+func (obj *Object) Reset() {
 	obj.Name = ""
-	obj.targetNumber = -1
+	obj.TargetNumber = -1
 	obj.Live = false
 	obj.clearSkill()
 	obj.clearViewport()
 }
 
-func (obj *object) initMessage() {
+func (obj *Object) initMessage() {
 	for i := range obj.msgs {
 		obj.msgs[i] = &messageStateMachine{
 			code: -1,
@@ -959,11 +858,11 @@ func (obj *object) initMessage() {
 	}
 }
 
-func (obj *object) Test(msg *model.MsgTest) {
-	obj.push(msg)
+func (obj *Object) Test(msg *model.MsgTest) {
+	obj.Push(msg)
 }
 
-func (obj *object) randPosition(number, x1, y1, x2, y2 int) (int, int) {
+func (obj *Object) RandPosition(number, x1, y1, x2, y2 int) (int, int) {
 	w := x2 - x1
 	if w <= 0 {
 		w = 1
@@ -983,12 +882,12 @@ func (obj *object) randPosition(number, x1, y1, x2, y2 int) (int, int) {
 			return x, y
 		}
 	}
-	// panic(fmt.Sprintf("randPosition failed [number]%d", number))
-	log.Printf("randPosition failed [map]%d [start](%d,%d) [end](%d,%d)\n", number, x1, y1, x2, y2)
+	// panic(fmt.Sprintf("RandPosition failed [number]%d", number))
+	log.Printf("RandPosition failed [map]%d [start](%d,%d) [end](%d,%d)\n", number, x1, y1, x2, y2)
 	return x1, y1
 }
 
-func (obj *object) processRegen() {
+func (obj *Object) processRegen() {
 	if !obj.dieRegen {
 		return
 	}
@@ -1001,10 +900,10 @@ func (obj *object) processRegen() {
 			obj.State = 8
 		}
 	}
-	if now.Before(obj.dieTime.Add(obj.maxRegenTime)) {
+	if now.Before(obj.dieTime.Add(obj.MaxRegenTime)) {
 		return
 	}
-	obj.spawnPosition()
+	obj.SpawnPosition()
 	obj.Regen()
 	obj.dieRegen = false
 	obj.State = 1

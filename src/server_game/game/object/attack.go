@@ -9,18 +9,18 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
-func (obj *object) getAttackPanel() int {
-	sub := obj.attackMax - obj.attackMin
+func (obj *Object) getAttackPanel() int {
+	sub := obj.AttackMax - obj.AttackMin
 	if sub < 0 {
 		log.Printf("attack panel is invalid [index]%d [class]%d\n",
-			obj.index, obj.Class)
+			obj.Index, obj.Class)
 		return 0
 	}
-	attackDamage := obj.attackMin + rand.Intn(sub+1)
+	attackDamage := obj.AttackMin + rand.Intn(sub+1)
 	return attackDamage
 }
 
-func (obj *object) attack(tobj *object) {
+func (obj *Object) attack(tobj *Object) {
 	// if attackDamage == 0 {
 	// 	1. think about miss
 	// 	2. rand normal/critical/excel and get object attack panel or skill attack
@@ -40,7 +40,7 @@ func (obj *object) attack(tobj *object) {
 	// 15. check target hp
 
 	attackPanel := obj.getAttackPanel()
-	defense := tobj.defense
+	defense := tobj.Defense
 	attackDamage := attackPanel - defense
 
 	// limit attack damage min
@@ -59,34 +59,34 @@ func (obj *object) attack(tobj *object) {
 		tobj.HP = 0
 	}
 
-	// push attack damage reply
+	// Push attack damage reply
 	attackDamageReply := model.MsgAttackDamageReply{
-		Target:     tobj.index,
+		Target:     tobj.Index,
 		Damage:     attackDamage,
 		DamageType: 0,
 		SDDamage:   0,
 	}
-	obj.push(&attackDamageReply)
-	tobj.push(&attackDamageReply)
+	obj.Push(&attackDamageReply)
+	tobj.Push(&attackDamageReply)
 
-	// push attack effect reply
+	// Push attack effect reply
 	attackEffectReply := model.MsgAttackEffectReply{
-		Target:       tobj.index,
+		Target:       tobj.Index,
 		HP:           tobj.HP,
 		MaxHP:        tobj.MaxHP + tobj.AddHP,
 		Level:        tobj.Level,
 		IceEffect:    0,
 		PoisonEffect: 0,
 	}
-	tobj.pushViewport(&attackEffectReply)
+	tobj.PushViewport(&attackEffectReply)
 
-	// push attack hp reply
+	// Push attack hp reply
 	attackHPReply := model.MsgAttackHPReply{
-		Target: tobj.index,
+		Target: tobj.Index,
 		MaxHP:  tobj.MaxHP + tobj.AddHP,
 		HP:     tobj.HP,
 	}
-	tobj.pushViewport(&attackHPReply)
+	tobj.PushViewport(&attackHPReply)
 
 	// handle target die
 	if tobj.HP == 0 {
@@ -97,32 +97,32 @@ func (obj *object) attack(tobj *object) {
 		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.X, tobj.Y)
 		tobj.dieRegen = true
 
-		// push attack die reply
+		// Push attack die reply
 		attackDieReply := model.MsgAttackDieReply{
-			Target: tobj.index,
+			Target: tobj.Index,
 			Skill:  0,
-			Killer: obj.index,
+			Killer: obj.Index,
 		}
-		tobj.pushViewport(&attackDieReply)
+		tobj.PushViewport(&attackDieReply)
 	}
 	// log.Printf("attack [%d][%s]->[%d][%s] hp[%d]\n",
 	// 	obj.index, obj.Annotation, tobj.index, tobj.Annotation, tobj.HP)
 }
 
-func (obj *object) Attack(msg *model.MsgAttack) {
+func (obj *Object) Attack(msg *model.MsgAttack) {
 	tobj := ObjectManager.objects[msg.Target]
 	if tobj == nil {
 		log.Printf("Attack target is invalid [index]%d->[index]%d\n",
-			obj.index, msg.Target)
+			obj.Index, msg.Target)
 		return
 	}
-	// push attack action to viewport
+	// Push attack action to viewport
 	reply := model.MsgActionReply{
-		Index:  obj.index,
+		Index:  obj.Index,
 		Action: msg.Action,
 		Dir:    msg.Dir,
-		Target: tobj.index,
+		Target: tobj.Index,
 	}
-	obj.pushViewport(&reply)
+	obj.PushViewport(&reply)
 	obj.attack(tobj)
 }

@@ -7,39 +7,39 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
-func (obj *object) initSkill() {
-	obj.skills = make(skill.Skills)
+func (obj *Object) initSkill() {
+	obj.Skills = make(skill.Skills)
 }
 
-func (obj *object) clearSkill() {
-	obj.skills = nil
+func (obj *Object) clearSkill() {
+	obj.Skills = nil
 }
 
-func (obj *object) learnSkill(index int) (*skill.Skill, bool) {
-	if _, ok := obj.skills[index]; ok {
+func (obj *Object) LearnSkill(index int) (*skill.Skill, bool) {
+	if _, ok := obj.Skills[index]; ok {
 		log.Printf("[object]%s [skill]%d already exists", obj.Name, index)
 		return nil, false
 	}
-	// obj.skills[index] = skill.SkillManager.Get(index, level, obj.skills)
-	return obj.skills.Get(index)
+	// obj.Skills[index] = skill.SkillManager.Get(index, level, obj.Skills)
+	return obj.Skills.Get(index)
 }
 
-func (obj *object) forgetSkill(index int) (*skill.Skill, bool) {
-	if _, ok := obj.skills[index]; !ok {
+func (obj *Object) ForgetSkill(index int) (*skill.Skill, bool) {
+	if _, ok := obj.Skills[index]; !ok {
 		log.Printf("[object]%s [skill]%d doesn't exist", obj.Name, index)
 		return nil, false
 	}
-	return obj.skills.Put(index)
+	return obj.Skills.Put(index)
 }
 
-func (obj *object) UseSkill(msg *model.MsgUseSkill) {
+func (obj *Object) UseSkill(msg *model.MsgUseSkill) {
 	tobj := ObjectManager.objects[msg.Target]
 	if tobj == nil {
 		log.Printf("UseSkill target is invalid [index]%d->[index]%d\n",
-			obj.index, msg.Target)
+			obj.Index, msg.Target)
 		return
 	}
-	s, ok := obj.skills[msg.Skill]
+	s, ok := obj.Skills[msg.Skill]
 	if !ok {
 		return
 	}
@@ -53,27 +53,27 @@ func (obj *object) UseSkill(msg *model.MsgUseSkill) {
 	obj.PushMPAG(obj.MP, obj.AG)
 }
 
-func (obj *object) UseSkillReply(tobj *object, s *skill.Skill, success bool) {
-	target := tobj.index
+func (obj *Object) UseSkillReply(tobj *Object, s *skill.Skill, success bool) {
+	target := tobj.Index
 	if success {
 		target |= 0x8000
 	}
 	reply := model.MsgUseSkillReply{
-		Index:  obj.index,
+		Index:  obj.Index,
 		Skill:  s.Index,
 		Target: target,
 	}
-	obj.pushViewport(&reply)
+	obj.PushViewport(&reply)
 }
 
-func (obj *object) canUseSkill(tobj *object, s *skill.Skill) {
+func (obj *Object) canUseSkill(tobj *Object, s *skill.Skill) {
 	switch s.Index {
 	case skill.SkillIndexDefense: // 圣盾防御
-		obj.pushViewport(&model.MsgActionReply{
-			Index:  obj.index,
+		obj.PushViewport(&model.MsgActionReply{
+			Index:  obj.Index,
 			Action: int(skill.SkillIndexDefense),
 			Dir:    obj.Dir,
-			Target: tobj.index,
+			Target: tobj.Index,
 		})
 	case skill.SkillIndexPoison, // 毒咒
 		skill.SkillIndexMeteorite,     // 陨石
@@ -99,7 +99,7 @@ func (obj *object) canUseSkill(tobj *object, s *skill.Skill) {
 	}
 }
 
-func (obj *object) UseSkillDeathStab(s *skill.Skill, tobj *object) {
+func (obj *Object) UseSkillDeathStab(s *skill.Skill, tobj *Object) {
 	obj.UseSkillReply(tobj, s, true)
 	obj.attack(tobj)
 }

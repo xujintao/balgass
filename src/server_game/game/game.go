@@ -14,6 +14,8 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/object"
+	"github.com/xujintao/balgass/src/server_game/game/object/monster"
+	"github.com/xujintao/balgass/src/server_game/game/object/player"
 )
 
 func init() {
@@ -43,6 +45,7 @@ func (g *game) init() {
 	g.userCloseConnRequestChan = make(chan *closeConnRequest, 100)
 	g.userActionChan = make(chan *actionRequest, 1000)
 	g.commandRequestChan = make(chan *commandRequest, 100)
+	monster.SpawnMonster()
 	bot.BotManager.Register(g)
 }
 
@@ -87,7 +90,7 @@ func (g *game) Start() {
 			// player
 			case connReq := <-g.playerConnRequestChan:
 				conn := connReq.Conn
-				id, err := object.ObjectManager.AddPlayer(conn, g)
+				id, err := player.NewPlayer(conn, g)
 				connResp := connResponse{id: id, err: err}
 				connReq.connResponseChan <- &connResp
 			case closeConnReq := <-g.playerCloseConnRequestChan:
@@ -98,7 +101,7 @@ func (g *game) Start() {
 				id := playerAction.id
 				action := playerAction.action
 				msg := playerAction.msg
-				player := object.ObjectManager.GetPlayer(id)
+				player := object.ObjectManager.GetObject(id)
 				if player == nil {
 					break
 				}

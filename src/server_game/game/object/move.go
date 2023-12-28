@@ -9,7 +9,7 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
-func (obj *object) calcDistance(tobj *object) int {
+func (obj *Object) CalcDistance(tobj *Object) int {
 	x := obj.X - tobj.X
 	y := obj.Y - tobj.Y
 	if x == 0 && y == 0 {
@@ -18,7 +18,7 @@ func (obj *object) calcDistance(tobj *object) int {
 	return int(math.Sqrt(float64(x*x + y*y)))
 }
 
-func (obj *object) processMove() {
+func (obj *Object) processMove() {
 	if obj.ConnectState < ConnectStatePlaying ||
 		!obj.Live ||
 		obj.State != 2 ||
@@ -43,7 +43,7 @@ func (obj *object) processMove() {
 	attr := maps.MapManager.GetMapAttr(obj.MapNumber, x, y)
 	if attr&4 != 0 && attr&8 != 0 {
 		log.Printf("process300ms object move check [index]%d [class]%d [map]%d [position](%d,%d)",
-			obj.index, obj.Class, obj.MapNumber, x, y)
+			obj.Index, obj.Class, obj.MapNumber, x, y)
 		for i := 0; i < len(obj.pathDir); i++ {
 			obj.pathX[i] = 0
 			obj.pathY[i] = 0
@@ -51,16 +51,16 @@ func (obj *object) processMove() {
 		}
 		obj.pathCount = 0
 		obj.pathCur = 0
-		obj.pathMoving = false
+		obj.PathMoving = false
 		return
 	}
 	obj.X = x
 	obj.Y = y
-	// if obj.index == 6 && obj.pathMoving {
+	// if obj.index == 6 && obj.PathMoving {
 	// 	fmt.Println(obj.X, obj.Y)
 	// }
 	obj.Dir = dir
-	obj.createFrustrum()
+	obj.CreateFrustrum()
 	obj.pathCur++
 	if obj.pathCur >= obj.pathCount {
 		for i := 0; i < len(obj.pathDir); i++ {
@@ -70,11 +70,11 @@ func (obj *object) processMove() {
 		}
 		obj.pathCount = 0
 		obj.pathCur = 0
-		obj.pathMoving = false
+		obj.PathMoving = false
 	}
 }
 
-func (obj *object) Move(msg *model.MsgMove) {
+func (obj *Object) Move(msg *model.MsgMove) {
 	n := len(msg.Path)
 	if n < 1 || n > 14 {
 		return
@@ -86,7 +86,7 @@ func (obj *object) Move(msg *model.MsgMove) {
 	}
 	obj.pathCount = n
 	obj.pathCur = 0
-	obj.pathMoving = true
+	obj.PathMoving = true
 	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
 	obj.TX = msg.Path[n-1].X
 	obj.TY = msg.Path[n-1].Y
@@ -96,28 +96,28 @@ func (obj *object) Move(msg *model.MsgMove) {
 	// }
 
 	msgRelpy := model.MsgMoveReply{
-		Number: obj.index,
+		Number: obj.Index,
 		X:      obj.TX,
 		Y:      obj.TY,
 		Dir:    obj.Dir << 4,
 	}
 	obj.destroyViewport()
 	obj.createViewport()
-	obj.pushViewport(&msgRelpy)
+	obj.PushViewport(&msgRelpy)
 }
 
-func (obj *object) SetPosition(msg *model.MsgSetPosition) {
+func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
 	obj.X = msg.X
 	obj.Y = msg.Y
 	obj.TX = msg.X
 	obj.TY = msg.Y
 	reply := model.MsgSetPositionReply{
-		Number: obj.index,
+		Number: obj.Index,
 		X:      msg.X,
 		Y:      msg.Y,
 	}
-	obj.createFrustrum()
+	obj.CreateFrustrum()
 	obj.destroyViewport()
 	obj.createViewport()
-	obj.pushViewport(&reply)
+	obj.PushViewport(&reply)
 }

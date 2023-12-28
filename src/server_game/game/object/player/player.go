@@ -1,4 +1,4 @@
-package object
+package player
 
 import (
 	"context"
@@ -13,6 +13,7 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/game/object"
 	"github.com/xujintao/balgass/src/server_game/game/shop"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
 	"gorm.io/gorm"
@@ -31,61 +32,56 @@ var CharacterTable characterTable
 
 type characterTable map[int]model.Character
 
-type Conn interface {
-	Addr() string
-	Write(any) error
-	Close() error
+func NewPlayer(conn object.Conn, actioner object.Actioner) (int, error) {
+	return object.ObjectManager.AddPlayer(conn, actioner, newPlayer)
 }
 
-type actioner interface {
-	PlayerAction(int, string, any)
-}
-
-func NewPlayer(conn Conn, actioner actioner) *Player {
+func newPlayer(conn object.Conn, actioner object.Actioner) *object.Object {
 	// create a new player
-	player := &Player{}
-	player.init()
-	// player.LoginMsgSend = false
-	// player.LoginMsgCount = 0
-	player.conn = conn
-	player.msgChan = make(chan any, 100)
+	p := Player{}
+	p.Init()
+	// p.LoginMsgSend = false
+	// p.LoginMsgCount = 0
+	p.conn = conn
+	p.msgChan = make(chan any, 100)
 	ctx, cancel := context.WithCancel(context.Background())
-	player.cancel = cancel
+	p.cancel = cancel
 	// player.ConnectCheckTime = time.Now()
 	// player.AutoSaveTime = player.ConnectCheckTime
-	player.ConnectState = ConnectStateConnected
-	// player.CheckSpeedHack = false
-	// player.EnableCharacterCreate = false
-	player.Type = ObjectTypePlayer
-	player.actioner = actioner
+	p.ConnectState = object.ConnectStateConnected
+	// p.CheckSpeedHack = false
+	// p.EnableCharacterCreate = false
+	p.Type = object.ObjectTypePlayer
+	p.actioner = actioner
 
 	// new a new goroutine to reply message
 	go func() {
 		for {
 			select {
-			case msg := <-player.msgChan:
-				err := player.conn.Write(msg)
+			case msg := <-p.msgChan:
+				err := p.conn.Write(msg)
 				if err != nil {
 					log.Printf("conn.Write failed [err]%v [player]%d [name]%s [msg]%v\n",
-						err, player.index, player.Name, msg)
+						err, p.Index, p.Name, msg)
 				}
 			case <-ctx.Done():
-				close(player.msgChan)
-				player.conn.Close()
+				close(p.msgChan)
+				p.conn.Close()
 				return // return ctx.Err()
 			}
 		}
 	}()
-	return player
+	p.Objecter = &p
+	return &p.Object
 }
 
 type Player struct {
-	object
+	object.Object
 	offline              bool
-	conn                 Conn
+	conn                 object.Conn
 	msgChan              chan any
 	cancel               context.CancelFunc
-	actioner             actioner
+	actioner             object.Actioner
 	AccountID            int
 	AccountName          string
 	AccountPassword      string
@@ -215,7 +211,7 @@ type Player struct {
 	setFull                     bool
 }
 
-func (p *Player) addr() string {
+func (p *Player) Addr() string {
 	return p.conn.Addr()
 }
 
@@ -229,10 +225,10 @@ func (p *Player) Offline() {
 	p.cancel()
 }
 
-func (p *Player) push(msg any) {
+func (p *Player) Push(msg any) {
 	if p.offline {
 		log.Printf("Still pushing [msg]%#v to [player]%d that already offline\n",
-			msg, p.index)
+			msg, p.Index)
 		return
 	}
 	if len(p.msgChan) > 80 {
@@ -243,27 +239,27 @@ func (p *Player) push(msg any) {
 }
 
 func (p *Player) pushMaxHP(hp, sd int) {
-	p.push(&model.MsgHPReply{Position: -2, HP: hp, SD: sd})
+	p.Push(&model.MsgHPReply{Position: -2, HP: hp, SD: sd})
 }
 
 func (p *Player) pushHP(hp, sd int) {
-	p.push(&model.MsgHPReply{Position: -1, HP: hp, SD: sd})
+	p.Push(&model.MsgHPReply{Position: -1, HP: hp, SD: sd})
 }
 
 func (p *Player) pushMaxMP(mp, ag int) {
-	p.push(&model.MsgMPReply{Position: -2, MP: mp, AG: ag})
+	p.Push(&model.MsgMPReply{Position: -2, MP: mp, AG: ag})
 }
 
 func (p *Player) PushMPAG(mp, ag int) {
-	p.push(&model.MsgMPReply{Position: -1, MP: mp, AG: ag})
+	p.Push(&model.MsgMPReply{Position: -1, MP: mp, AG: ag})
 }
 
 func (p *Player) pushItemDurability(position, dur int) {
-	p.push(&model.MsgItemDurabilityReply{Position: position, Durability: dur, Flag: 1})
+	p.Push(&model.MsgItemDurabilityReply{Position: position, Durability: dur, Flag: 1})
 }
 
 func (p *Player) pushDeleteItem(position int) {
-	p.push(&model.MsgDeleteInventoryItemReply{Position: position, Flag: 1})
+	p.Push(&model.MsgDeleteInventoryItemReply{Position: position, Flag: 1})
 }
 
 func (p *Player) decreaseItemDurability(position int) {
@@ -277,7 +273,7 @@ func (p *Player) decreaseItemDurability(position int) {
 	}
 }
 
-func (p *Player) spawnPosition() {
+func (p *Player) SpawnPosition() {
 	gate := 0
 	switch p.MapNumber {
 	case maps.Arena, // 古战场
@@ -382,7 +378,7 @@ func (p *Player) spawnPosition() {
 		p.Dir = dir
 	})
 	maps.MapManager.SetMapAttrStand(p.MapNumber, p.X, p.Y)
-	p.createFrustrum()
+	p.CreateFrustrum()
 }
 
 func (p *Player) MuunSystem(msg *model.MsgMuunSystem) {
@@ -407,7 +403,7 @@ func (p *Player) Chat(msg *model.MsgChat) {
 		return
 	default:
 		reply := model.MsgChatReply{MsgChat: *msg}
-		p.pushViewport(&reply)
+		p.PushViewport(&reply)
 	}
 }
 
@@ -418,18 +414,18 @@ func (p *Player) Whisper(msg *model.MsgWhisper) {
 	if p.Name == msg.Name {
 		return
 	}
-	tobj := ObjectManager.GetPlayerByName(msg.Name)
+	tobj := object.ObjectManager.GetPlayerByName(msg.Name)
 	if tobj == nil {
 		reply := model.MsgWhisperReplyFailed{
 			Flag: 0,
 		}
-		p.push(&reply)
+		p.Push(&reply)
 		return
 	}
 	reply := model.MsgWhisperReply{}
 	reply.Name = p.Name
 	reply.Msg = msg.Msg
-	tobj.push(&reply)
+	tobj.Push(&reply)
 }
 
 // func (p *Player) Live(msg *model.MsgLive) {
@@ -439,7 +435,7 @@ func (p *Player) Whisper(msg *model.MsgWhisper) {
 func (p *Player) Login(msg *model.MsgLogin) {
 	// validate msg
 	resp := model.MsgLoginReply{Result: 1}
-	defer p.push(&resp)
+	defer p.Push(&resp)
 	account, err := model.DB.GetAccountByName(msg.Account)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -458,7 +454,7 @@ func (p *Player) Login(msg *model.MsgLogin) {
 	p.AccountName = account.Name
 	p.AccountPassword = account.Password
 	p.WarehouseExpansion = account.WarehouseExpansion
-	p.ConnectState = ConnectStateLogged
+	p.ConnectState = object.ConnectStateLogged
 
 	// async
 	// go func() {
@@ -473,7 +469,7 @@ func (p *Player) Login(msg *model.MsgLogin) {
 
 // func (p *Player) SetAccount(msg *model.MsgSetAccount) {
 // 	resp := model.MsgLoginReply{Result: 1}
-// 	defer p.push(&resp)
+// 	defer p.Push(&resp)
 // 	login := msg.MsgLogin
 // 	account := msg.Account
 // 	err := msg.Err
@@ -493,14 +489,14 @@ func (p *Player) Login(msg *model.MsgLogin) {
 // }
 
 func (p *Player) Logout(msg *model.MsgLogout) {
-	defer p.push(&model.MsgLogoutReply{Flag: msg.Flag})
+	defer p.Push(&model.MsgLogoutReply{Flag: msg.Flag})
 	switch msg.Flag {
 	case 0: // close game
 	case 1: // back to pick character
 		// offline to login state.\
-		p.ConnectState = ConnectStateLogged
+		p.ConnectState = object.ConnectStateLogged
 		p.SaveCharacter()
-		p.reset()
+		p.Reset()
 	case 2: // back to pick server
 		// offline to init state.
 		// Do not close connection
@@ -519,10 +515,10 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 	// get account
 	reply.EnableCharacterClass = 0xFF
 	reply.WarehouseExpansion = p.WarehouseExpansion
-	p.push(&model.MsgEnableCharacterClassReply{
+	p.Push(&model.MsgEnableCharacterClassReply{
 		Class: reply.EnableCharacterClass,
 	})
-	p.push(&model.MsgResetCharacterReply{
+	p.Push(&model.MsgResetCharacterReply{
 		Reset: "012345678901234567",
 	})
 
@@ -547,12 +543,12 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 			PKLevel:     0,
 		}
 	}
-	p.push(&reply)
+	p.Push(&reply)
 }
 
 func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	reply := model.MsgCreateCharacterReply{Result: 0}
-	defer p.push(&reply)
+	defer p.Push(&reply)
 
 	// validate msg
 	if msg.Name == "" || msg.Class > 6 {
@@ -597,9 +593,9 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 
 func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
 	reply := model.MsgDeleteCharacterReply{Result: 0}
-	defer p.push(&reply)
+	defer p.Push(&reply)
 
-	if p.ConnectState == ConnectStatePlaying {
+	if p.ConnectState == object.ConnectStatePlaying {
 		return
 	}
 
@@ -626,13 +622,13 @@ func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
 }
 
 func (p *Player) CheckCharacter(msg *model.MsgCheckCharacter) {
-	p.push(&model.MsgCheckCharacterReply{
+	p.Push(&model.MsgCheckCharacterReply{
 		Result: 0,
 	})
 }
 
 func (p *Player) DefineMuKey(msg *model.MsgDefineMuKey) {
-	if p.ConnectState != ConnectStatePlaying {
+	if p.ConnectState != object.ConnectStatePlaying {
 		return
 	}
 	err := model.DB.UpdateCharacterMuKey(p.CharacterID, msg)
@@ -652,7 +648,7 @@ func (p *Player) DefineMuBot(msg *model.MsgDefineMuBot) {
 
 func (p *Player) EnableMuBot(msg *model.MsgEnableMuBot) {
 	reply := model.MsgEnableMuBotReply{Flag: msg.Flag}
-	defer p.push(&reply)
+	defer p.Push(&reply)
 	switch msg.Flag {
 	case 0:
 	case 1:
@@ -694,8 +690,8 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.MasterNextExperience = 100000
 	p.HP = c.HP
 	p.MP = c.MP
-	p.skills = c.Skills
-	p.skills.FillSkillData(p.Class)
+	p.Skills = c.Skills
+	p.Skills.FillSkillData(p.Class)
 	p.Inventory = c.Inventory
 	p.InventoryExpansion = c.InventoryExpansion
 	p.Money = c.Money
@@ -704,18 +700,18 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Y, p.TY = c.Y, c.Y
 	p.Dir = c.Dir
 	if p.Level <= 10 {
-		p.spawnPosition()
+		p.SpawnPosition()
 	}
-	p.createFrustrum()
-	p.moveSpeed = 1000
-	p.maxRegenTime = 4 * time.Second
-	p.ConnectState = ConnectStatePlaying
+	p.CreateFrustrum()
+	p.MoveSpeed = 1000
+	p.MaxRegenTime = 4 * time.Second
+	p.ConnectState = object.ConnectStatePlaying
 	p.Live = true
 	p.State = 1
 
-	// p.push(&model.MsgResetGameReply{})
+	// p.Push(&model.MsgResetGameReply{})
 	// reply
-	p.push(&model.MsgLoadCharacterReply{
+	p.Push(&model.MsgLoadCharacterReply{
 		X:                  p.X,
 		Y:                  p.Y,
 		MapNumber:          p.MapNumber,
@@ -740,11 +736,11 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.loadMiniMap()
 
 	// reply inventory
-	p.push(&model.MsgItemListReply{
+	p.Push(&model.MsgItemListReply{
 		Items: p.Inventory.Items,
 	})
 	// reply master data
-	p.push(&model.MsgMasterDataReply{
+	p.Push(&model.MsgMasterDataReply{
 		MasterLevel:          p.MasterLevel,
 		MasterExperience:     p.MasterExperience,
 		MasterNextExperience: p.MasterNextExperience,
@@ -753,10 +749,10 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.pushSkillList()
 	p.pushMasterSkillList()
 
-	p.push(&model.MsgMuKeyReply{
+	p.Push(&model.MsgMuKeyReply{
 		MsgMuKey: c.MuKey,
 	})
-	p.push(&model.MsgMuBotReply{
+	p.Push(&model.MsgMuBotReply{
 		MsgMuBot: c.MuBot,
 	})
 
@@ -845,16 +841,16 @@ func (p *Player) calc() {
 	}
 
 	// base defense
-	formula.CalcDefense(p.Class, dexterity, &p.defense)
+	formula.CalcDefense(p.Class, dexterity, &p.Defense)
 
 	// base attack/defense success rate
-	formula.CalcAttackSuccessRate_PvM(p.Class, strength, dexterity, leadership, p.Level, &p.attackRate)
+	formula.CalcAttackSuccessRate_PvM(p.Class, strength, dexterity, leadership, p.Level, &p.AttackRate)
 	formula.CalcAttackSuccessRate_PvP(p.Class, dexterity, p.Level, &p.attackRatePVP)
-	formula.CalcDefenseSuccessRate_PvM(p.Class, dexterity, &p.defenseRate)
+	formula.CalcDefenseSuccessRate_PvM(p.Class, dexterity, &p.DefenseRate)
 	formula.CalcDefenseSuccessRate_PvP(p.Class, dexterity, p.Level, &p.defenseRatePVP)
 
 	// base speed
-	formula.CalcAttackSpeed(p.Class, dexterity, &p.attackSpeed, &p.magicSpeed)
+	formula.CalcAttackSpeed(p.Class, dexterity, &p.AttackSpeed, &p.magicSpeed)
 
 	// Stat Specialization
 	// calc Stat Specialization: increase attack power
@@ -892,14 +888,14 @@ func (p *Player) calc() {
 
 	// STAT_OPTION_INC_DEFENSE
 	formula.StatSpec_GetPercent(p.Class, 4, strength, dexterity, vitality, energy, leadership, &percent)
-	min = p.defense * int(percent) / 100
-	p.defense += min
+	min = p.Defense * int(percent) / 100
+	p.Defense += min
 	options = append(options, &model.MsgStatSpec{ID: 4, Min: min})
 
 	// STAT_OPTION_INC_ATTACK_RATE
 	formula.StatSpec_GetPercent(p.Class, 2, strength, dexterity, vitality, energy, leadership, &percent)
-	min = p.attackRate * int(percent) / 100
-	p.attackRate += min
+	min = p.AttackRate * int(percent) / 100
+	p.AttackRate += min
 	options = append(options, &model.MsgStatSpec{ID: 2, Min: min})
 
 	// STAT_OPTION_INC_ATTACK_RATE_PVP
@@ -910,8 +906,8 @@ func (p *Player) calc() {
 
 	// STAT_OPTION_INC_DEFENSE_RATE
 	formula.StatSpec_GetPercent(p.Class, 6, strength, dexterity, vitality, energy, leadership, &percent)
-	min = p.defenseRate * int(percent) / 100
-	p.defenseRate += min
+	min = p.DefenseRate * int(percent) / 100
+	p.DefenseRate += min
 	options = append(options, &model.MsgStatSpec{ID: 6, Min: min})
 
 	// STAT_OPTION_INC_DEFENSE_RATE_PVP
@@ -954,7 +950,7 @@ func (p *Player) calc() {
 
 	// glove speed
 	if glove != nil {
-		p.attackSpeed += glove.AttackSpeed
+		p.AttackSpeed += glove.AttackSpeed
 		p.magicSpeed += glove.AttackSpeed
 	}
 
@@ -962,10 +958,10 @@ func (p *Player) calc() {
 	for i := 1; i <= 7; i++ {
 		it := p.Inventory.Items[i]
 		if it != nil {
-			p.defense += it.Defense
-			p.defense += it.AdditionDefense
-			p.defenseRate += it.SuccessfulBlocking
-			p.defenseRate += it.AdditionDefenseRate
+			p.Defense += it.Defense
+			p.Defense += it.AdditionDefense
+			p.DefenseRate += it.SuccessfulBlocking
+			p.DefenseRate += it.AdditionDefenseRate
 			p.RecoverHP = it.AdditionRecoverHP
 		}
 	}
@@ -1031,8 +1027,8 @@ func (p *Player) calc() {
 			case level10Count == 5:
 				n = 5
 			}
-			p.defense += p.defense * n / 100
-			p.defenseRate += p.defenseRate / 10
+			p.Defense += p.Defense * n / 100
+			p.DefenseRate += p.DefenseRate / 10
 		}
 	}
 
@@ -1049,7 +1045,7 @@ func (p *Player) calc() {
 		expressionA += leadership
 	}
 	expressionB := level * level / sdGageConstB
-	p.MaxSD = expressionA*sdGageConstA/10 + expressionB + p.defense
+	p.MaxSD = expressionA*sdGageConstA/10 + expressionB + p.Defense
 
 	// ag
 	f := func(s, d, v, e, l float32) int {
@@ -1115,7 +1111,7 @@ func (p *Player) calc() {
 				p.magicAttackMax += p.magicAttackMax * 2 / 100
 			}
 			if it.ExcellentAttackSpeed {
-				p.attackSpeed += 7
+				p.AttackSpeed += 7
 				p.magicSpeed += 7
 			}
 			if it.ExcellentAttackHP {
@@ -1137,13 +1133,13 @@ func (p *Player) calc() {
 				p.ExcellentReflectDamage += 5
 			}
 			if it.ExcellentDefenseRate {
-				p.defenseRate += p.defenseRate * 10 / 100
+				p.DefenseRate += p.DefenseRate * 10 / 100
 			}
 			if it.ExcellentDefenseMoney {
 				p.MonsterDieGetMoney += 30
 			}
 			if it.ExcellentWing2Speed {
-				p.attackSpeed += 5
+				p.AttackSpeed += 5
 				p.magicSpeed += 5
 			}
 			if it.ExcellentWing2AG {
@@ -1205,44 +1201,44 @@ func (p *Player) calc() {
 				leftAttackMin, leftAttackMax, rightAttackMin, rightAttackMax,
 				&leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
 		}
-		p.attackMin = leftAttackMin + rightAttackMin
-		p.attackMax = leftAttackMax + rightAttackMax
-		p.attackSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
+		p.AttackMin = leftAttackMin + rightAttackMin
+		p.AttackMax = leftAttackMax + rightAttackMax
+		p.AttackSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
 		p.magicSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
 	case left:
-		p.attackMin = leftAttackMin
-		p.attackMax = leftAttackMax
-		p.attackSpeed += leftHand.AttackSpeed
+		p.AttackMin = leftAttackMin
+		p.AttackMax = leftAttackMax
+		p.AttackSpeed += leftHand.AttackSpeed
 		p.magicSpeed += leftHand.AttackSpeed
 	case right:
-		p.attackMin = rightAttackMin
-		p.attackMax = rightAttackMax
-		p.attackSpeed += rightHand.AttackSpeed
+		p.AttackMin = rightAttackMin
+		p.AttackMax = rightAttackMax
+		p.AttackSpeed += rightHand.AttackSpeed
 		p.magicSpeed += rightHand.AttackSpeed
 	default:
-		p.attackMin = (leftAttackMin + rightAttackMin) / 2
-		p.attackMax = (leftAttackMax + rightAttackMax) / 2
+		p.AttackMin = (leftAttackMin + rightAttackMin) / 2
+		p.AttackMax = (leftAttackMax + rightAttackMax) / 2
 	}
 
 	// helper item contribution
 	switch {
 	case p.equippedItem(helper, item.Code(13, 1)): // 小恶魔
 		percent := conf.PetRing.Pets.Imp.AddAttackPercent
-		p.attackMin += p.attackMin * percent / 100
-		p.attackMax += p.attackMax * percent / 100
+		p.AttackMin += p.AttackMin * percent / 100
+		p.AttackMax += p.AttackMax * percent / 100
 		p.magicAttackMin += p.magicAttackMin * percent / 100
 		p.magicAttackMax += p.magicAttackMax * percent / 100
 		p.curseAttackMin += p.curseAttackMin * percent / 100
 		p.curseAttackMax += p.curseAttackMax * percent / 100
 	case p.equippedItem(helper, item.Code(13, 64)): // 强化恶魔
 		percent := conf.PetRing.Pets.Demon.AddAttackPercent
-		p.attackMin += p.attackMin * percent / 100
-		p.attackMax += p.attackMax * percent / 100
+		p.AttackMin += p.AttackMin * percent / 100
+		p.AttackMax += p.AttackMax * percent / 100
 		p.magicAttackMin += p.magicAttackMin * percent / 100
 		p.magicAttackMax += p.magicAttackMax * percent / 100
 		p.curseAttackMin += p.curseAttackMin * percent / 100
 		p.curseAttackMax += p.curseAttackMax * percent / 100
-		p.attackSpeed += conf.PetRing.Pets.Demon.AddAttackSpeed
+		p.AttackSpeed += conf.PetRing.Pets.Demon.AddAttackSpeed
 		p.magicSpeed += conf.PetRing.Pets.Demon.AddAttackSpeed
 	case p.equippedItem(helper, item.Code(13, 0)): // 守护天使
 		p.MaxHP += conf.PetRing.Pets.Angel.AddHP
@@ -1251,7 +1247,7 @@ func (p *Player) calc() {
 		p.MaxHP += conf.PetRing.Pets.SpiritAngel.AddHP
 		p.HelperReduceDamage = conf.PetRing.Pets.SpiritAngel.ReduceDamagePercent
 	case p.equippedItem(helper, item.Code(13, 80)): // 熊猫
-		p.defense += conf.PetRing.Pets.Panda.AddDefenseValue
+		p.Defense += conf.PetRing.Pets.Panda.AddDefenseValue
 	}
 
 	// ...
@@ -1269,12 +1265,12 @@ func (p *Player) calc() {
 		p.AG = p.MaxAG
 	}
 
-	// push
-	p.push(&model.MsgStatSpecReply{
+	// Push
+	p.Push(&model.MsgStatSpecReply{
 		Options: options,
 	})
-	p.push(&model.MsgAttackSpeedReply{
-		AttackSpeed: p.attackSpeed,
+	p.Push(&model.MsgAttackSpeedReply{
+		AttackSpeed: p.AttackSpeed,
 		MagicSpeed:  p.magicSpeed,
 	})
 	p.pushMaxHP(p.MaxHP+p.AddHP, p.MaxSD+p.AddSD)
@@ -1301,7 +1297,7 @@ func (p *Player) loadMiniMap() {
 			Y:           y,
 			Name:        name,
 		}
-		p.push(&reply)
+		p.Push(&reply)
 	})
 	maps.MiniManager.ForEachMapEntrance(p.MapNumber, func(id, display, x, y int, name string) {
 		reply := model.MsgMiniMapReply{
@@ -1313,7 +1309,7 @@ func (p *Player) loadMiniMap() {
 			Y:           y,
 			Name:        name,
 		}
-		p.push(&reply)
+		p.Push(&reply)
 	})
 }
 
@@ -1339,7 +1335,7 @@ func (p *Player) SaveCharacter() {
 		MasterExperience:   p.MasterExperience,
 		HP:                 p.HP,
 		MP:                 p.MP,
-		Skills:             p.skills,
+		Skills:             p.Skills,
 		Inventory:          p.Inventory,
 		InventoryExpansion: p.InventoryExpansion,
 		Money:              p.Money,
@@ -1355,7 +1351,7 @@ func (p *Player) SaveCharacter() {
 	}
 }
 
-func (p *Player) getPKLevel() int {
+func (p *Player) GetPKLevel() int {
 	return p.PKLevel
 }
 
@@ -1393,9 +1389,9 @@ func (p *Player) addSetEffect(index item.SetEffectType, value int, base bool) {
 		case item.SetEffectIncDamage:
 			p.SetIncreaseDamage += value
 		case item.SetEffectIncAttackRate:
-			p.attackRate += value
+			p.AttackRate += value
 		case item.SetEffectIncDefense:
-			p.defense += value
+			p.Defense += value
 		case item.SetEffectIncMaxHP:
 			p.MaxHP += value
 		case item.SetEffectIncMaxMP:
@@ -1435,7 +1431,7 @@ func (p *Player) CalcSetItem(base bool) {
 
 	sameWeapon := 0
 	sameRing := 0
-	for i, it := range p.Inventory.Items[0:InventoryWearSize] {
+	for i, it := range p.Inventory.Items[0:object.InventoryWearSize] {
 		if it == nil {
 			continue
 		}
@@ -1496,7 +1492,7 @@ func (p *Player) CalcSetItem(base bool) {
 }
 
 func (player *Player) Calc380Item() {
-	for _, wItem := range player.Inventory.Items[0:InventoryWearSize] {
+	for _, wItem := range player.Inventory.Items[0:object.InventoryWearSize] {
 		if wItem.Durability == 0 {
 			continue
 		}
@@ -1511,16 +1507,16 @@ func (player *Player) Calc380Item() {
 
 func (p *Player) pushSkillList() {
 	var skills []*skill.Skill
-	p.skills.ForEachActiveSkill(func(s *skill.Skill) {
+	p.Skills.ForEachActiveSkill(func(s *skill.Skill) {
 		skills = append(skills, s)
 	})
 	sort.Sort(skill.SortedSkillSlice(skills))
-	p.push(&model.MsgSkillListReply{Skills: skills})
+	p.Push(&model.MsgSkillListReply{Skills: skills})
 }
 
 func (p *Player) pushMasterSkillList() {
 	var skills []*model.MsgMasterSkill
-	p.skills.ForEachMasterSkill(func(index int, level int, curValue float32, nextValue float32) {
+	p.Skills.ForEachMasterSkill(func(index int, level int, curValue float32, nextValue float32) {
 		skills = append(skills, &model.MsgMasterSkill{
 			MasterSkillUIIndex:   index,
 			MasterSkillLevel:     level,
@@ -1528,7 +1524,7 @@ func (p *Player) pushMasterSkillList() {
 			MasterSkillNextValue: nextValue,
 		})
 	})
-	p.push(&model.MsgMasterSkillListReply{Skills: skills})
+	p.Push(&model.MsgMasterSkillListReply{Skills: skills})
 }
 
 func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
@@ -1537,14 +1533,14 @@ func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
 		MasterPoint:      p.MasterPoint,
 		MasterSkillIndex: -1,
 	}
-	defer p.push(&reply)
+	defer p.Push(&reply)
 
 	if p.MasterLevel <= 0 ||
 		p.MasterPoint <= 0 {
 		return
 	}
 
-	p.skills.GetMaster(p.Class, msg.SkillIndex, p.MasterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
+	p.Skills.GetMaster(p.Class, msg.SkillIndex, p.MasterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
 		p.MasterPoint -= point
 		reply.Result = 1
 		reply.MasterPoint -= point
@@ -1560,15 +1556,15 @@ func (p *Player) ProcessAction() {}
 
 func (p *Player) Action(msg *model.MsgAction) {
 	reply := model.MsgActionReply{
-		Index:  p.index,
+		Index:  p.Index,
 		Action: msg.Action,
 		Dir:    msg.Dir,
 	}
-	p.pushViewport(&reply)
+	p.PushViewport(&reply)
 }
 
 func (p *Player) Process1000ms() {
-	if p.ConnectState == ConnectStatePlaying {
+	if p.ConnectState == object.ConnectStatePlaying {
 		p.recoverHPSD()
 		p.recoverMPAG()
 	}
@@ -1731,7 +1727,7 @@ func (p *Player) recoverMPAG() {
 	}
 }
 
-func (p *Player) Die(obj *object) {
+func (p *Player) Die(obj *object.Object) {
 
 }
 
@@ -1752,7 +1748,7 @@ func (p *Player) Regen() {
 		Experience: int(p.Experience),
 		Money:      p.Money,
 	}
-	p.push(&reply)
+	p.Push(&reply)
 }
 
 func (p *Player) GetChangeUp() int {
@@ -1773,7 +1769,7 @@ func (p *Player) gateMove(gateNumber int) bool {
 			Y:          y,
 			Dir:        dir,
 		}
-		p.push(&reply)
+		p.Push(&reply)
 		if p.MapNumber != mapNumber {
 			p.MapNumber = mapNumber
 			p.loadMiniMap()
@@ -1781,7 +1777,7 @@ func (p *Player) gateMove(gateNumber int) bool {
 		p.X, p.Y = x, y
 		p.TX, p.TY = x, y
 		p.Dir = dir
-		p.createFrustrum()
+		p.CreateFrustrum()
 		success = true
 	})
 	return success
@@ -1803,7 +1799,7 @@ func (p *Player) inventoryChanged() {
 		newItemSkills[secondaryHandWeapon.SkillIndex] = struct{}{}
 	}
 	oldItemSkills := make(map[int]struct{})
-	for _, s := range p.skills {
+	for _, s := range p.Skills {
 		if s.Index < 300 && s.SkillBase.ItemSkill {
 			oldItemSkills[s.Index] = struct{}{}
 		}
@@ -1821,16 +1817,16 @@ func (p *Player) inventoryChanged() {
 		}
 	}
 	for _, index := range needLearnSkills {
-		if s, ok := p.learnSkill(index); ok {
-			p.push(&model.MsgSkillOneReply{
+		if s, ok := p.LearnSkill(index); ok {
+			p.Push(&model.MsgSkillOneReply{
 				Flag:  -2,
 				Skill: s,
 			})
 		}
 	}
 	for _, index := range needForgetSkills {
-		if s, ok := p.forgetSkill(index); ok {
-			p.push(&model.MsgSkillOneReply{
+		if s, ok := p.ForgetSkill(index); ok {
+			p.Push(&model.MsgSkillOneReply{
 				Flag:  -1,
 				Skill: s,
 			})
@@ -1848,14 +1844,14 @@ func (p *Player) GetItem(msg *model.MsgGetItem) {
 	position := -1
 	var it *item.Item
 	defer func() {
-		p.push(&reply)
+		p.Push(&reply)
 		if itemDurChanged {
 			reply := model.MsgItemDurabilityReply{
 				Position:   position,
 				Durability: it.Durability,
 				Flag:       0,
 			}
-			p.push(&reply)
+			p.Push(&reply)
 		}
 	}()
 	item := maps.MapManager.PickItem(p.MapNumber, msg.Index)
@@ -1883,7 +1879,7 @@ func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {
 		Result:   0,
 		Position: msg.Position,
 	}
-	defer p.push(&reply)
+	defer p.Push(&reply)
 	// validate
 	if msg.Position >= len(p.Inventory.Items) {
 		return
@@ -1912,14 +1908,14 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	var sitem *item.Item
 	var titem *item.Item
 	defer func() {
-		p.push(&reply)
+		p.Push(&reply)
 		if sitemDurChanged {
 			reply := model.MsgItemDurabilityReply{
 				Position:   msg.SrcPosition,
 				Durability: sitem.Durability,
 				Flag:       0,
 			}
-			p.push(&reply)
+			p.Push(&reply)
 		}
 		if titemDurChanged {
 			reply := model.MsgItemDurabilityReply{
@@ -1927,7 +1923,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				Durability: titem.Durability,
 				Flag:       0,
 			}
-			p.push(&reply)
+			p.Push(&reply)
 		}
 	}()
 
@@ -1998,7 +1994,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 						Position: msg.SrcPosition,
 						Flag:     1,
 					}
-					p.push(&reply)
+					p.Push(&reply)
 				} else {
 					reply.Result = -1
 				}
@@ -2206,13 +2202,13 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
 			skillIndex += it.Level
 		}
-		if s, ok := p.learnSkill(skillIndex); ok {
-			p.push(&model.MsgSkillOneReply{
+		if s, ok := p.LearnSkill(skillIndex); ok {
+			p.Push(&model.MsgSkillOneReply{
 				Flag:  -2,
 				Skill: s,
 			})
 			p.Inventory.DropItem(msg.SrcPosition, it)
-			p.push(&model.MsgDeleteInventoryItemReply{
+			p.Push(&model.MsgDeleteInventoryItemReply{
 				Position: msg.SrcPosition,
 				Flag:     1,
 			})
@@ -2225,10 +2221,11 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		Result: 0,
 	}
 	// validate
-	if msg.Target >= len(ObjectManager.objects) {
-		return
-	}
-	tobj := ObjectManager.objects[msg.Target]
+	// if msg.Target >= len(object.ObjectManager.objects) {
+	// 	return
+	// }
+	// tobj := object.ObjectManager.objects[msg.Target]
+	tobj := object.ObjectManager.GetObject(msg.Target)
 	if tobj == nil {
 		return
 	}
@@ -2236,44 +2233,44 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		math.Abs(float64(p.Y-tobj.Y)) > 5 {
 		return
 	}
-	p.targetNumber = tobj.index
+	p.TargetNumber = tobj.Index
 	switch tobj.NpcType {
-	case NpcTypeShop:
+	case object.NpcTypeShop:
 		inventory := shop.ShopManager.GetShopInventory(tobj.Class, tobj.MapNumber)
 		if tobj.Class == 492 {
 			reply.Result = 34
 		}
-		p.push(&reply)
+		p.Push(&reply)
 		shopItemListReply := model.MsgTypeItemListReply{Type: 0}
 		shopItemListReply.Items = inventory
-		p.push(&shopItemListReply)
-	case NpcTypeWarehouse:
+		p.Push(&shopItemListReply)
+	case object.NpcTypeWarehouse:
 		account, err := model.DB.GetAccountByID(p.AccountID)
 		if err != nil {
 			log.Printf("Talk model.DB.GetAccountByID failed [err]%v\n", err)
 			return
 		}
 		reply.Result = 2
-		p.push(&reply)
+		p.Push(&reply)
 		p.Warehouse = account.Warehouse
 		p.WarehouseMoney = account.WarehouseMoney
 		warehouseItemListReply := model.MsgTypeItemListReply{Type: 0}
 		warehouseItemListReply.Items = account.Warehouse.Items
-		p.push(&warehouseItemListReply)
+		p.Push(&warehouseItemListReply)
 		warehouseMoneyReply := model.MsgWarehouseMoneyReply{
 			Result:         1,
 			WarehouseMoney: p.WarehouseMoney,
 			InventoryMoney: p.Money,
 		}
-		p.push(&warehouseMoneyReply)
-	case NpcTypeChaosMix:
-	case NpcTypeGoldarcher:
-	case NpcTypePentagramMix:
+		p.Push(&warehouseMoneyReply)
+	case object.NpcTypeChaosMix:
+	case object.NpcTypeGoldarcher:
+	case object.NpcTypePentagramMix:
 	}
 }
 
 func (p *Player) CloseTalkWindow(msg *model.MsgCloseTalkWindow) {
-	p.targetNumber = -1
+	p.TargetNumber = -1
 }
 
 func (p *Player) BuyItem(msg *model.MsgBuyItem) {
@@ -2284,24 +2281,23 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 	position := -1
 	var it *item.Item
 	defer func() {
-		p.push(&reply)
+		p.Push(&reply)
 		if itemDurChanged {
 			reply := model.MsgItemDurabilityReply{
 				Position:   position,
 				Durability: it.Durability,
 				Flag:       0,
 			}
-			p.push(&reply)
+			p.Push(&reply)
 		}
 	}()
 	// validate
 	if msg.Position < 0 ||
 		msg.Position >= shop.MaxShopItemCount ||
-		p.targetNumber < 0 ||
-		p.targetNumber >= len(ObjectManager.objects) {
+		p.TargetNumber < 0 {
 		return
 	}
-	tobj := ObjectManager.objects[p.targetNumber]
+	tobj := object.ObjectManager.GetObject(p.TargetNumber)
 	if tobj == nil {
 		return
 	}
@@ -2309,7 +2305,7 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 		math.Abs(float64(p.Y-tobj.Y)) > 5 {
 		return
 	}
-	if tobj.NpcType != NpcTypeShop {
+	if tobj.NpcType != object.NpcTypeShop {
 		return
 	}
 	item := shop.ShopManager.GetShopItem(tobj.Class, tobj.MapNumber, msg.Position)
@@ -2335,15 +2331,14 @@ func (p *Player) SellItem(msg *model.MsgSellItem) {
 	reply := model.MsgSellItemReply{
 		Result: 0,
 	}
-	defer p.push(&reply)
+	defer p.Push(&reply)
 	// validate
 	if msg.Position < 0 ||
 		msg.Position >= p.Inventory.Size ||
-		p.targetNumber < 0 ||
-		p.targetNumber >= len(ObjectManager.objects) {
+		p.TargetNumber < 0 {
 		return
 	}
-	tobj := ObjectManager.objects[p.targetNumber]
+	tobj := object.ObjectManager.GetObject(p.TargetNumber)
 	if tobj == nil {
 		return
 	}
@@ -2351,7 +2346,7 @@ func (p *Player) SellItem(msg *model.MsgSellItem) {
 		math.Abs(float64(p.Y-tobj.Y)) > 5 {
 		return
 	}
-	if tobj.NpcType != NpcTypeShop {
+	if tobj.NpcType != object.NpcTypeShop {
 		return
 	}
 	item := p.Inventory.Items[msg.Position]
@@ -2376,14 +2371,14 @@ func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {
 	}
 	p.SaveCharacter()
 	reply := model.MsgCloseWarehouseWindowReply{}
-	p.push(&reply)
+	p.Push(&reply)
 }
 
 func (p *Player) MapMove(msg *model.MsgMapMove) {
 	reply := model.MsgMapMoveReply{
 		Result: 0,
 	}
-	defer p.push(&reply)
+	defer p.Push(&reply)
 	maps.MapMoveManager.Move(msg.MoveIndex, func(gateNumber, level, money int) {
 		if p.Level < level || p.Money < money {
 			return
@@ -2395,7 +2390,7 @@ func (p *Player) MapMove(msg *model.MsgMapMove) {
 				Result: -2,
 				Money:  p.Money,
 			}
-			p.push(&reply)
+			p.Push(&reply)
 		}
 	})
 }

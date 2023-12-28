@@ -1,8 +1,9 @@
-package object
+package monster
 
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 	"time"
@@ -11,10 +12,12 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/game/object"
+	"github.com/xujintao/balgass/src/server_game/game/shop"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
-func init() {
+func SpawnMonster() {
 	// MonsterList was generated 2023-07-17 11:34:17 by https://xml-to-go.github.io/ in Ukraine.
 	type MonsterList struct {
 		XMLName  xml.Name         `xml:"MonsterList"`
@@ -27,6 +30,109 @@ func init() {
 	for _, monster := range monsterList.Monsters {
 		MonsterTable[monster.Index] = monster
 	}
+
+	// MonsterSpawn was generated 2023-07-17 16:05:41 by https://xml-to-go.github.io/ in Ukraine.
+	type MonsterSpawn struct {
+		XMLName xml.Name `xml:"MonsterSpawn"`
+		Text    string   `xml:",chardata"`
+		Map     []*struct {
+			Text       string `xml:",chardata"`
+			Number     int    `xml:"Number,attr"`
+			Name       string `xml:"Name,attr"`
+			Annotation string `xml:"annotation,attr"`
+			Spot       []*struct {
+				Text        string `xml:",chardata"`
+				Type        int    `xml:"Type,attr"`
+				Description string `xml:"Description,attr"`
+				Spawn       []*struct {
+					Text     string `xml:",chardata"`
+					Index    int    `xml:"Index,attr"`
+					Distance int    `xml:"Distance,attr"`
+					StartX   int    `xml:"StartX,attr"`
+					StartY   int    `xml:"StartY,attr"`
+					Dir      int    `xml:"Dir,attr"`
+					EndX     int    `xml:"EndX,attr"`
+					EndY     int    `xml:"EndY,attr"`
+					Count    int    `xml:"Count,attr"`
+					Element  int    `xml:"Element,attr"`
+				} `xml:"Spawn"`
+			} `xml:"Spot"`
+		} `xml:"Map"`
+	}
+	var monsterSpawn MonsterSpawn
+	conf.XML(conf.PathCommon, "Monsters/IGC_MonsterSpawn.xml", &monsterSpawn)
+	for _, _map := range monsterSpawn.Map {
+		for _, spot := range _map.Spot {
+			for _, spawn := range spot.Spawn {
+				cnt := spawn.Count
+				if cnt == 0 {
+					cnt = 1
+				}
+				for i := 0; i < cnt; i++ {
+					spawnClass := spawn.Index
+					spawnMapNumber := _map.Number
+					spawnStartX := 0
+					spawnStartY := 0
+					spawnEndX := 0
+					spawnEndY := 0
+					switch spot.Type {
+					case 0: // npc
+						spawnStartX = spawn.StartX
+						spawnStartY = spawn.StartY
+						spawnEndX = spawn.StartX
+						spawnEndY = spawn.StartY
+					case 1, 3: // multiple
+						spawnStartX = spawn.StartX
+						spawnStartY = spawn.StartY
+						spawnEndX = spawn.EndX
+						spawnEndY = spawn.EndY
+					case 2: // single
+						spawnStartX = spawn.StartX - 3
+						spawnStartY = spawn.StartY - 3
+						spawnEndX = spawn.StartX + 3
+						spawnEndY = spawn.StartY + 3
+					}
+					spawnDir := spawn.Dir
+					spawnDis := spawn.Distance
+					spawnElement := spawn.Element
+					_, err := object.ObjectManager.AddMonster(
+						spawnClass,
+						spawnMapNumber,
+						spawnStartX,
+						spawnStartY,
+						spawnEndX,
+						spawnEndY,
+						spawnDir,
+						spawnDis,
+						spawnElement,
+						newMonster,
+					)
+					if err != nil {
+						log.Fatalf("spawnMonster AddMonster failed err[%v]", err)
+					}
+				}
+			}
+		}
+	}
+
+	shop.ShopManager.ForEachShop(func(class, mapNumber, x, y, dir int) {
+		obj, err := object.ObjectManager.AddMonster(
+			class,
+			mapNumber,
+			x,
+			y,
+			x,
+			y,
+			dir,
+			0,
+			0,
+			newMonster,
+		)
+		if err != nil {
+			log.Fatalf("spawnShopNPC AddMonster failed err[%v]", err)
+		}
+		obj.NpcType = object.NpcTypeShop
+	})
 }
 
 var MonsterTable monsterTable
@@ -73,27 +179,27 @@ type MonsterConfig struct {
 	Annotation             string `xml:"annotation,attr"`
 }
 
-func NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) *Monster {
+func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) *object.Object {
 	mc, ok := MonsterTable[class]
 	if !ok {
 		panic(fmt.Sprintf("monster invalid [class]%d", class))
 	}
-	monster := Monster{}
-	monster.init()
-	monster.ConnectState = ConnectStatePlaying
-	monster.Live = true
-	monster.State = 1
+	m := Monster{}
+	m.Init()
+	m.ConnectState = object.ConnectStatePlaying
+	m.Live = true
+	m.State = 1
 	switch class {
 	case 240: // 仓库使者塞弗特
-		monster.NpcType = NpcTypeWarehouse
+		m.NpcType = object.NpcTypeWarehouse
 	case 238, 368, 369, 370, 452, 453, 478, 450:
-		monster.NpcType = NpcTypeChaosMix
+		m.NpcType = object.NpcTypeChaosMix
 	case 236:
-		monster.NpcType = NpcTypeGoldarcher
+		m.NpcType = object.NpcTypeGoldarcher
 	case 582:
-		monster.NpcType = NpcTypePentagramMix
+		m.NpcType = object.NpcTypePentagramMix
 	default:
-		monster.NpcType = NpcTypeNone
+		m.NpcType = object.NpcTypeNone
 	}
 	switch {
 	case class >= 204 && class <= 259 ||
@@ -113,82 +219,83 @@ func NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 		class == 651 ||
 		class >= 658 && class <= 668 ||
 		class >= 682 && class <= 688:
-		monster.Type = ObjectTypeNPC
+		m.Type = object.ObjectTypeNPC
 	default:
-		monster.Type = ObjectTypeMonster
+		m.Type = object.ObjectTypeMonster
 	}
-	monster.Class = class
-	monster.MapNumber = mapNumber
-	monster.spawnStartX = startX
-	monster.spawnStartY = startY
-	monster.spawnEndX = endX
-	monster.spawnEndY = endY
-	monster.spawnDir = dir
-	monster.spawnPosition()
-	monster.spawnDis = dis
-	monster.pentagramMainAttribute = element
-	monster.Name = mc.Name
-	monster.Annotation = mc.Annotation
-	monster.Level = mc.Level
-	monster.attackMin = mc.DamageMin
-	monster.attackMax = mc.DamageMax
-	monster.attackRate = mc.AttackRate
-	monster.attackSpeed = mc.AttackSpeed
-	monster.defense = mc.Defense
-	monster.magicDefense = mc.MagicDefense
-	monster.defenseRate = mc.BlockRate
-	monster.HP = mc.HP
-	monster.MaxHP = mc.HP
-	monster.MP = mc.MP
-	monster.MaxMP = mc.MP
-	monster.moveRange = mc.MoveRange
-	monster.moveSpeed = mc.MoveSpeed
-	monster.attackRange = mc.AttackRange
-	monster.attackType = mc.AttackType
-	monster.viewRange = mc.ViewRange
-	monster.attribute = mc.Attribute
-	monster.itemDropRate = mc.ItemDropRate
-	monster.moneyDropRate = mc.MoneyDropRate
-	monster.maxRegenTime = time.Duration(mc.RegenTime) * time.Second
-	monster.pentagramAttributePattern = mc.PentagramAttribPattern
-	monster.pentagramAttackMin = mc.PentagramDamageMin
-	monster.pentagramAttackMax = mc.PentagramDamageMax
-	monster.pentagramAttackRate = mc.PentagramAttackRate
-	monster.pentagramDefense = mc.PentagramDefense
+	m.Class = class
+	m.MapNumber = mapNumber
+	m.spawnStartX = startX
+	m.spawnStartY = startY
+	m.spawnEndX = endX
+	m.spawnEndY = endY
+	m.spawnDir = dir
+	m.SpawnPosition()
+	m.spawnDis = dis
+	m.PentagramMainAttribute = element
+	m.Name = mc.Name
+	m.Annotation = mc.Annotation
+	m.Level = mc.Level
+	m.AttackMin = mc.DamageMin
+	m.AttackMax = mc.DamageMax
+	m.AttackRate = mc.AttackRate
+	m.AttackSpeed = mc.AttackSpeed
+	m.Defense = mc.Defense
+	m.MagicDefense = mc.MagicDefense
+	m.DefenseRate = mc.BlockRate
+	m.HP = mc.HP
+	m.MaxHP = mc.HP
+	m.MP = mc.MP
+	m.MaxMP = mc.MP
+	m.moveRange = mc.MoveRange
+	m.MoveSpeed = mc.MoveSpeed
+	m.AttackRange = mc.AttackRange
+	m.AttackType = mc.AttackType
+	m.ViewRange = mc.ViewRange
+	m.Attribute = mc.Attribute
+	m.ItemDropRate = mc.ItemDropRate
+	m.MoneyDropRate = mc.MoneyDropRate
+	m.MaxRegenTime = time.Duration(mc.RegenTime) * time.Second
+	m.PentagramAttributePattern = mc.PentagramAttribPattern
+	m.PentagramAttackMin = mc.PentagramDamageMin
+	m.PentagramAttackMax = mc.PentagramDamageMax
+	m.PentagramAttackRate = mc.PentagramAttackRate
+	m.PentagramDefense = mc.PentagramDefense
 	switch {
-	case monster.attackType == 150:
-		monster.learnSkill(monster.attackType - 100)
-	case monster.attackType >= 1:
-		monster.learnSkill(monster.attackType)
+	case m.AttackType == 150:
+		m.LearnSkill(m.AttackType - 100)
+	case m.AttackType >= 1:
+		m.LearnSkill(m.AttackType)
 	}
 	switch class {
 	case 161, 181, 189, 197, 267, 275: // 昆顿
-		monster.learnSkill(1)   // 毒咒
-		monster.learnSkill(17)  // 能量球
-		monster.learnSkill(55)  // 玄月斩
-		monster.learnSkill(200) // 召唤怪
-		monster.learnSkill(201) // 免疫魔攻
-		monster.learnSkill(202) // 免疫物攻
+		m.LearnSkill(1)   // 毒咒
+		m.LearnSkill(17)  // 能量球
+		m.LearnSkill(55)  // 玄月斩
+		m.LearnSkill(200) // 召唤怪
+		m.LearnSkill(201) // 免疫魔攻
+		m.LearnSkill(202) // 免疫物攻
 	case 149, 179, 187, 195, 265, 273, 335: // 暗黑巫师
-		monster.learnSkill(1) // 毒咒
-		// monster.learnSkill(17) // 能量球
+		m.LearnSkill(1) // 毒咒
+		// m.LearnSkill(17) // 能量球
 	case 66, 73, 77: // 诅咒之王 蓝魔龙 天魔菲尼斯
 		// 163, 165, 167, 171, 173, 427: // 赤色要塞
-		monster.learnSkill(17) // 能量球
+		m.LearnSkill(17) // 能量球
 	case 89, 95, 112, 118, 124, 130, 143: // 骷灵巫师
-		monster.learnSkill(3)  // 掌心雷
-		monster.learnSkill(17) // 能量球
+		m.LearnSkill(3)  // 掌心雷
+		m.LearnSkill(17) // 能量球
 	case 433: // 骷髅法师
-		monster.learnSkill(3) // 掌心雷
+		m.LearnSkill(3) // 掌心雷
 	case 561: // 美杜莎
-		monster.learnSkill(9)   // 黑龙波
-		monster.learnSkill(38)  // 单毒炎
-		monster.learnSkill(237) // 闪电轰顶
-		monster.learnSkill(238) // 黑暗之力
+		m.LearnSkill(9)   // 黑龙波
+		m.LearnSkill(38)  // 单毒炎
+		m.LearnSkill(237) // 闪电轰顶
+		m.LearnSkill(238) // 黑暗之力
 	case 673: // 辛维斯特
-		// monster.learnSkill(622) // ?
+		// m.LearnSkill(622) // ?
 	}
-	return &monster
+	m.Objecter = &m
+	return &m.Object
 }
 
 type actionState struct {
@@ -201,7 +308,7 @@ type actionState struct {
 }
 
 type Monster struct {
-	object
+	object.Object
 	moveRange           int // 移动范围
 	spawnStartX         int
 	spawnStartY         int
@@ -215,17 +322,17 @@ type Monster struct {
 	delayActionInterval int
 }
 
-func (m *Monster) addr() string {
+func (m *Monster) Addr() string {
 	return fmt.Sprintf("%d", m.Class)
 }
 
 func (m *Monster) Offline() {}
 
-func (m *Monster) push(msg any) {}
+func (m *Monster) Push(msg any) {}
 
 func (m *Monster) PushMPAG(int, int) {}
 
-func (m *Monster) getPKLevel() int {
+func (m *Monster) GetPKLevel() int {
 	return 0
 }
 
@@ -233,7 +340,7 @@ func (m *Monster) GetSkillMPAG(s *skill.Skill) (int, int) {
 	return 0, 0
 }
 
-func (m *Monster) spawnPosition() {
+func (m *Monster) SpawnPosition() {
 	// // wrong
 	// if _map.Number == maps.Atlans && spawn.StartX == 251 && spawn.StartY == 51 ||
 	// 	_map.Number == maps.Atlans && spawn.StartX == 7 && spawn.StartY == 52 ||
@@ -241,7 +348,7 @@ func (m *Monster) spawnPosition() {
 	// 	_map.Number == maps.KanturuBoss && spawn.Index == 106 {
 	// 	continue
 	// }
-	m.StartX, m.StartY = m.randPosition(m.MapNumber, m.spawnStartX, m.spawnStartY, m.spawnEndX, m.spawnEndY)
+	m.StartX, m.StartY = m.RandPosition(m.MapNumber, m.spawnStartX, m.spawnStartY, m.spawnEndX, m.spawnEndY)
 	maps.MapManager.SetMapAttrStand(m.MapNumber, m.StartX, m.StartY)
 	m.X, m.Y = m.StartX, m.StartY
 	m.TX, m.TY = m.X, m.Y
@@ -249,7 +356,7 @@ func (m *Monster) spawnPosition() {
 	if m.Dir < 0 {
 		m.Dir = rand.Intn(8)
 	}
-	m.createFrustrum()
+	m.CreateFrustrum()
 }
 
 func (m *Monster) overDis(tx, ty int) bool {
@@ -263,18 +370,18 @@ func (m *Monster) overDis(tx, ty int) bool {
 }
 
 func (m *Monster) searchEnemy() int {
-	mindis := m.viewRange
+	mindis := m.ViewRange
 	target := -1
-	for _, vp := range m.viewports {
-		tnum := vp.number
+	for _, vp := range m.Viewports {
+		tnum := vp.Number
 		if tnum < 0 {
 			continue
 		}
-		tobj := ObjectManager.objects[tnum]
+		tobj := object.ObjectManager.GetObject(tnum)
 		if tobj == nil {
 			continue
 		}
-		if (m.Class == 247 || m.Class == 249) && tobj.getPKLevel() <= 4 {
+		if (m.Class == 247 || m.Class == 249) && tobj.GetPKLevel() <= 4 {
 			continue
 		}
 		attr := maps.MapManager.GetMapAttr(tobj.MapNumber, tobj.X, tobj.Y)
@@ -282,7 +389,7 @@ func (m *Monster) searchEnemy() int {
 			x := m.X - tobj.X
 			y := m.Y - tobj.Y
 			dis := int(math.Sqrt(float64(x*x + y*y)))
-			vp.dis = dis
+			vp.Dis = dis
 			if dis < mindis {
 				mindis = dis
 				target = tnum
@@ -313,7 +420,7 @@ func (m *Monster) roamMove() bool {
 	return false
 }
 
-func (m *Monster) chaseMove(tobj *object) bool {
+func (m *Monster) chaseMove(tobj *object.Object) bool {
 	dir := maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
 	cnt := len(maps.Dirs)
 	for cnt > 0 {
@@ -336,7 +443,7 @@ func (m *Monster) chaseMove(tobj *object) bool {
 }
 
 func (m *Monster) baseAction() {
-	if m.attribute == 0 {
+	if m.Attribute == 0 {
 		// attribute为0的怪物没有行为
 		return
 	}
@@ -345,7 +452,7 @@ func (m *Monster) baseAction() {
 	case 0: // 寻找目标
 		// if m.actionState.attack {
 		// 	m.actionState.attack = false
-		// 	m.targetNumber = -1
+		// 	m.TargetNumber = -1
 		// 	m.nextActionInterval = 500
 		// }
 		// rn := rand.Intn(2)
@@ -353,37 +460,37 @@ func (m *Monster) baseAction() {
 		// 	m.actionState.rest = true
 		// 	m.nextActionInterval = 500
 		// }
-		m.targetNumber = m.searchEnemy()
-		if m.targetNumber >= 0 {
+		m.TargetNumber = m.searchEnemy()
+		if m.TargetNumber >= 0 {
 			m.actionState.emotion = 1
-		} else if m.moveRange > 0 && !m.pathMoving {
+		} else if m.moveRange > 0 && !m.PathMoving {
 			m.nextActionInterval = 500
 			if m.roamMove() {
 				m.actionState.move = true
 			}
 		}
 	case 1: // 移动及攻击
-		if m.targetNumber < 0 {
+		if m.TargetNumber < 0 {
 			m.actionState.emotion = 3
 			m.actionState.emotionCount = 10 // 10*500ms=5s
 			return
 		}
-		if m.pathMoving {
+		if m.PathMoving {
 			return
 		}
-		tobj := ObjectManager.objects[m.targetNumber]
+		tobj := object.ObjectManager.GetObject(m.TargetNumber)
 		if tobj == nil || !tobj.Live || tobj.MapNumber != m.MapNumber {
-			m.targetNumber = -1
+			m.TargetNumber = -1
 			m.actionState.emotion = 3
 			m.actionState.emotionCount = 2 // 2*500ms=1s
 			return
 		}
-		dis := m.calcDistance(tobj)
-		attackRange := m.attackRange
-		if m.attackType >= 100 {
-			attackRange = m.attackRange + 2
+		dis := m.CalcDistance(tobj)
+		attackRange := m.AttackRange
+		if m.AttackType >= 100 {
+			attackRange = m.AttackRange + 2
 		}
-		if dis > m.viewRange<<1 {
+		if dis > m.ViewRange<<1 {
 			// target is too far
 		} else if dis > attackRange {
 			// 目标不在攻击范围内
@@ -406,13 +513,13 @@ func (m *Monster) baseAction() {
 				if attr&1 == 0 {
 					m.actionState.attack = true
 					m.Dir = maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
-					m.nextActionInterval = m.attackSpeed
+					m.nextActionInterval = m.AttackSpeed
 					return
 				}
 			}
 		}
 		// 进入状态3，原地傻等5s
-		m.targetNumber = -1
+		m.TargetNumber = -1
 		m.actionState.emotion = 3
 		m.actionState.emotionCount = 2 // 2*500ms=1s
 	case 2:
@@ -464,10 +571,10 @@ func (m *Monster) move() {
 func (m *Monster) attack() {
 	// 将普通攻击等效成一种技能
 	// 技能数越多则普通攻击的概率越低
-	n := len(m.skills)
+	n := len(m.Skills)
 	if rand.Intn(n+1) == 0 {
 		msg := model.MsgAttack{
-			Target: m.targetNumber,
+			Target: m.TargetNumber,
 			Action: 120,
 			Dir:    m.Dir,
 		}
@@ -476,7 +583,7 @@ func (m *Monster) attack() {
 		// 从map中随机获取一个元素
 		cnt := rand.Intn(n) + 1
 		skillNumber := 0
-		for i := range m.skills {
+		for i := range m.Skills {
 			cnt--
 			if cnt == 0 {
 				skillNumber = int(i)
@@ -484,7 +591,7 @@ func (m *Monster) attack() {
 			}
 		}
 		msg := model.MsgUseSkill{
-			Target: m.targetNumber,
+			Target: m.TargetNumber,
 			Skill:  skillNumber,
 		}
 		m.UseSkill(&msg)
@@ -493,7 +600,7 @@ func (m *Monster) attack() {
 
 // 模拟怪物基本行为
 func (m *Monster) ProcessAction() {
-	if m.ConnectState < ConnectStatePlaying ||
+	if m.ConnectState < object.ConnectStatePlaying ||
 		!m.Live {
 		return
 	}
@@ -520,7 +627,7 @@ func (m *Monster) Process1000ms() {
 
 }
 
-func (m *Monster) Die(obj *object) {
+func (m *Monster) Die(obj *object.Object) {
 	// give experience
 	// give item
 	// obj recover hp/mp

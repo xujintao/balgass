@@ -37,20 +37,20 @@ func init() {
 	}
 }
 
-func (obj *object) createFrustrum() {
+func (obj *Object) CreateFrustrum() {
 	for i := 0; i < MaxArrayFrustrum; i++ {
 		obj.FrustrumX[i] = FrustrumX[i] + obj.X
 		obj.FrustrumY[i] = FrustrumY[i] + obj.Y
 	}
 }
 
-func (obj *object) initViewport() {
-	for i := range obj.viewports {
-		obj.viewports[i] = &viewport{number: -1}
+func (obj *Object) initViewport() {
+	for i := range obj.Viewports {
+		obj.Viewports[i] = &Viewport{Number: -1}
 	}
 }
 
-func (obj *object) checkViewport(x, y int) bool {
+func (obj *Object) checkViewport(x, y int) bool {
 	if x < obj.X-15 ||
 		x > obj.X+15 ||
 		y < obj.Y-15 ||
@@ -67,37 +67,37 @@ func (obj *object) checkViewport(x, y int) bool {
 	return true
 }
 
-func (obj *object) addViewport(index, type_ int) bool {
+func (obj *Object) addViewport(index, type_ int) bool {
 	// if tobj.Class == 523 ||
 	// 	tobj.Class == 603 {
 	// 	return false
 	// }
-	for _, vp := range obj.viewports {
-		if vp.number == index {
+	for _, vp := range obj.Viewports {
+		if vp.Number == index {
 			return false
 		}
 	}
-	for _, vp := range obj.viewports {
-		if vp.state == 0 {
-			vp.state = 1
-			vp.number = index
-			vp.type_ = type_
-			obj.viewportNum++
+	for _, vp := range obj.Viewports {
+		if vp.State == 0 {
+			vp.State = 1
+			vp.Number = index
+			vp.Type = type_
+			obj.ViewportNum++
 			return true
 		}
 	}
 	return false
 }
 
-func (obj *object) clearViewport() {
-	for i := range obj.viewports {
-		obj.viewports[i].state = 0
-		obj.viewports[i].number = -1
+func (obj *Object) clearViewport() {
+	for i := range obj.Viewports {
+		obj.Viewports[i].State = 0
+		obj.Viewports[i].Number = -1
 	}
-	obj.viewportNum = 0
+	obj.ViewportNum = 0
 }
 
-func (obj *object) createViewport() {
+func (obj *Object) createViewport() {
 	if obj.ConnectState != ConnectStatePlaying {
 		return
 	}
@@ -121,7 +121,7 @@ func (obj *object) createViewport() {
 			}
 		})
 		if len(viewportItemReply.Items) > 0 {
-			obj.push(&viewportItemReply)
+			obj.Push(&viewportItemReply)
 		}
 	}
 
@@ -140,7 +140,7 @@ func (obj *object) createViewport() {
 			continue
 		}
 		if tobj.ConnectState < ConnectStatePlaying ||
-			tobj.index == obj.index ||
+			tobj.Index == obj.Index ||
 			(tobj.State != 1 && tobj.State != 2) ||
 			tobj.MapNumber != obj.MapNumber {
 			continue
@@ -148,12 +148,12 @@ func (obj *object) createViewport() {
 		if !obj.checkViewport(tobj.X, tobj.Y) {
 			continue
 		}
-		ok := obj.addViewport(tobj.index, int(tobj.Type))
+		ok := obj.addViewport(tobj.Index, int(tobj.Type))
 		if ok && obj.Type == ObjectTypePlayer {
 			switch tobj.Type {
 			case ObjectTypePlayer:
 				p := model.CreateViewportPlayer{
-					Index:                  tobj.index,
+					Index:                  tobj.Index,
 					X:                      tobj.X,
 					Y:                      tobj.Y,
 					Class:                  tobj.Class,
@@ -163,8 +163,8 @@ func (obj *object) createViewport() {
 					TX:                     tobj.TX,
 					TY:                     tobj.TY,
 					Dir:                    tobj.Dir,
-					PKLevel:                tobj.getPKLevel(),
-					PentagramMainAttribute: tobj.pentagramAttributePattern,
+					PKLevel:                tobj.GetPKLevel(),
+					PentagramMainAttribute: tobj.PentagramAttributePattern,
 					Level:                  tobj.Level,
 					MaxHP:                  tobj.MaxHP,
 					HP:                     tobj.HP,
@@ -173,14 +173,14 @@ func (obj *object) createViewport() {
 				viewportPlayerReply.Players = append(viewportPlayerReply.Players, &p)
 			case ObjectTypeMonster, ObjectTypeNPC:
 				m := model.CreateViewportMonster{
-					Index:                  tobj.index,
+					Index:                  tobj.Index,
 					Class:                  tobj.Class,
 					X:                      tobj.X,
 					Y:                      tobj.Y,
 					TX:                     tobj.TX,
 					TY:                     tobj.TY,
 					Dir:                    tobj.Dir,
-					PentagramMainAttribute: tobj.pentagramMainAttribute,
+					PentagramMainAttribute: tobj.PentagramMainAttribute,
 					Level:                  tobj.Level,
 					MaxHP:                  tobj.MaxHP,
 					HP:                     tobj.HP,
@@ -190,29 +190,29 @@ func (obj *object) createViewport() {
 		}
 	}
 	if len(viewportPlayerReply.Players) > 0 {
-		obj.push(&viewportPlayerReply)
+		obj.Push(&viewportPlayerReply)
 	}
 	if len(viewportMonsterReply.Monsters) > 0 {
-		obj.push(&viewportMonsterReply)
+		obj.Push(&viewportMonsterReply)
 	}
 }
 
-func (obj *object) destroyViewport() {
+func (obj *Object) destroyViewport() {
 	if obj.ConnectState != ConnectStatePlaying {
 		return
 	}
 	// remove viewport
 	var viewportObjectReply model.MsgDestroyViewportObjectReply
 	var viewportItemReply model.MsgDestroyViewportItemReply
-	for i, vp := range obj.viewports {
-		if vp.state == 0 {
+	for i, vp := range obj.Viewports {
+		if vp.State == 0 {
 			continue
 		}
 		remove := false
 		// notify := false
-		switch vp.type_ {
+		switch vp.Type {
 		case 5:
-			maps.MapManager.MapItem(obj.MapNumber, vp.number, func(item *item.Item, index, x, y int) {
+			maps.MapManager.MapItem(obj.MapNumber, vp.Number, func(item *item.Item, index, x, y int) {
 				if item == nil {
 					remove = true
 					// notify = true
@@ -223,12 +223,12 @@ func (obj *object) destroyViewport() {
 				}
 			})
 		default:
-			tobj := ObjectManager.objects[vp.number]
+			tobj := ObjectManager.objects[vp.Number]
 			if tobj == nil {
 				remove = true
 			} else {
 				if tobj.ConnectState < ConnectStatePlaying ||
-					tobj.index == obj.index ||
+					tobj.Index == obj.Index ||
 					(tobj.State == 8) ||
 					tobj.MapNumber != obj.MapNumber {
 					remove = true
@@ -243,8 +243,8 @@ func (obj *object) destroyViewport() {
 		if remove {
 			// if obj.Type == ObjectTypePlayer && notify {
 			if obj.Type == ObjectTypePlayer {
-				d := model.DestroyViewport{Index: vp.number}
-				switch vp.type_ {
+				d := model.DestroyViewport{Index: vp.Number}
+				switch vp.Type {
 				case 5:
 					viewportItemReply.Items = append(viewportItemReply.Items, &d)
 				default:
@@ -252,20 +252,20 @@ func (obj *object) destroyViewport() {
 				}
 
 			}
-			obj.viewports[i].state = 0
-			obj.viewports[i].number = -1
-			obj.viewportNum--
+			obj.Viewports[i].State = 0
+			obj.Viewports[i].Number = -1
+			obj.ViewportNum--
 		}
 	}
 	if len(viewportObjectReply.Objects) > 0 {
-		obj.push(&viewportObjectReply)
+		obj.Push(&viewportObjectReply)
 	}
 	if len(viewportItemReply.Items) > 0 {
-		obj.push(&viewportItemReply)
+		obj.Push(&viewportItemReply)
 	}
 }
 
-func (obj *object) processViewport() {
+func (obj *Object) processViewport() {
 	obj.destroyViewport()
 	obj.createViewport()
 	if obj.State == 1 {
@@ -273,22 +273,22 @@ func (obj *object) processViewport() {
 	}
 }
 
-// pushViewport push msg to self and viewport
-func (obj *object) pushViewport(msg any) {
-	obj.push(msg)
-	for _, vp := range obj.viewports {
-		if vp.state == 0 {
+// PushViewport Push msg to self and viewport
+func (obj *Object) PushViewport(msg any) {
+	obj.Push(msg)
+	for _, vp := range obj.Viewports {
+		if vp.State == 0 {
 			continue
 		}
-		if vp.number < 0 {
-			log.Printf("pushViewport warning [obj]%d [msg]%v -> [tobj]%d\n",
-				obj.index, msg, vp.number)
+		if vp.Number < 0 {
+			log.Printf("PushViewport warning [obj]%d [msg]%v -> [tobj]%d\n",
+				obj.Index, msg, vp.Number)
 			continue
 		}
-		tobj := ObjectManager.objects[vp.number]
+		tobj := ObjectManager.objects[vp.Number]
 		if tobj == nil {
 			continue
 		}
-		tobj.push(msg)
+		tobj.Push(msg)
 	}
 }
