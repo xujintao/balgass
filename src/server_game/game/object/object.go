@@ -500,6 +500,15 @@ type Objecter interface {
 	SellItem(*model.MsgSellItem)
 	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
 	MapMove(*model.MsgMapMove)
+	GetIgnoreDefenseRate() int
+	GetCriticalAttackRate() int
+	GetCriticalAttackDamage() int
+	GetExcellentAttackRate() int
+	GetExcellentAttackDamage() int
+	GetIncreaseDamage() int
+	GetWingIncreaseDamage() int
+	GetWingReduceDamage() int
+	GetDoubleDamageRate() int
 }
 
 type Object struct {

@@ -18,6 +18,7 @@ var f formula
 type formula struct {
 	CalcCharacter *lua.LState
 	StatSpec      *lua.LState
+	ItemCalc      *lua.LState
 }
 
 func (f *formula) init() {
@@ -32,6 +33,7 @@ func (f *formula) init() {
 	}
 	f.CalcCharacter = load("Character/CalcCharacter.lua")
 	f.StatSpec = load("Specialization/StatSpec.lua")
+	f.ItemCalc = load("Misc/ItemCalc.lua")
 }
 
 func call(ls *lua.LState, method string, sig string, args ...any) {
@@ -51,7 +53,7 @@ func call(ls *lua.LState, method string, sig string, args ...any) {
 		case 'i':
 			lvArgs[i] = lua.LNumber(args[i].(int))
 		case 'd':
-			lvArgs[i] = lua.LNumber(args[i].(float32))
+			lvArgs[i] = lua.LNumber(args[i].(float64))
 		}
 	}
 
@@ -85,8 +87,8 @@ func call(ls *lua.LState, method string, sig string, args ...any) {
 				log.Printf("formula CallByParam returned value d invalid [method]%s\n", method)
 				return
 			}
-			r := args[nIn+i].(*float32)
-			*r = float32(ln)
+			r := args[nIn+i].(*float64)
+			*r = float64(ln)
 		}
 	}
 }

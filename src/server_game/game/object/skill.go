@@ -93,7 +93,7 @@ func (obj *Object) canUseSkill(tobj *Object, s *skill.Skill) {
 		skill.SkillIndexImpale,        // 钻云枪
 		skill.SkillIndexPenetration,   // 穿透箭
 		skill.SkillIndexPowerSlash:    // 天雷闪(武器)
-		obj.attack(tobj)
+		obj.attack(tobj, 0)
 	case skill.SkillIndexDeathStab: // 袭风刺
 		obj.UseSkillDeathStab(s, tobj)
 	}
@@ -101,5 +101,5 @@ func (obj *Object) canUseSkill(tobj *Object, s *skill.Skill) {
 
 func (obj *Object) UseSkillDeathStab(s *skill.Skill, tobj *Object) {
 	obj.UseSkillReply(tobj, s, true)
-	obj.attack(tobj)
+	obj.attack(tobj, 0)
 }
