@@ -1,5 +1,13 @@
 package monster
 
+func (*Monster) GetAttackRatePVP() int {
+	return 0
+}
+
+func (*Monster) GetDefenseRatePVP() int {
+	return 0
+}
+
 func (m *Monster) GetIgnoreDefenseRate() int {
 	return 0
 }
@@ -20,7 +28,7 @@ func (m *Monster) GetExcellentAttackDamage() int {
 	return 0
 }
 
-func (m *Monster) GetIncreaseDamage() int {
+func (m *Monster) GetAddDamage() int {
 	return 0
 }
 

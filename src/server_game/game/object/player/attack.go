@@ -1,5 +1,13 @@
 package player
 
+func (p *Player) GetAttackRatePVP() int {
+	return p.attackRatePVP
+}
+
+func (p *Player) GetDefenseRatePVP() int {
+	return p.defenseRatePVP
+}
+
 func (p *Player) GetIgnoreDefenseRate() int {
 	return p.IgnoreDefenseRate
 }
@@ -20,7 +28,7 @@ func (p *Player) GetExcellentAttackDamage() int {
 	return p.ExcellentAttackDamage
 }
 
-func (p *Player) GetIncreaseDamage() int {
+func (p *Player) GetAddDamage() int {
 	return p.SetAddDamage
 }
 

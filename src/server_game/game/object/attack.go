@@ -9,13 +9,65 @@ import (
 	"github.com/xujintao/balgass/src/server_game/game/model"
 )
 
-func (obj *Object) getDefense(t int) int {
+func (obj *Object) CheckMiss(tobj *Object) bool {
+
+	if obj.Type == ObjectTypePlayer && tobj.Type == ObjectTypePlayer {
+		// pvp
+		attackLevel := obj.Level + obj.GetMasterLevel()
+		defenseLevel := tobj.Level + tobj.GetMasterLevel()
+		attackRate := obj.GetAttackRatePVP()
+		defenseRate := tobj.GetDefenseRatePVP()
+		expressionA := attackRate * 100 / (attackRate + defenseRate)
+		expressionB := attackLevel * 100 / (attackLevel + defenseLevel)
+		rate := expressionA * expressionB / 100
+		switch {
+		case defenseLevel-attackLevel >= 100:
+			rate -= 5
+		case defenseLevel-attackLevel >= 200:
+			rate -= 10
+		case defenseLevel-attackLevel >= 300:
+			rate -= 15
+		}
+		if rand.Intn(100) > rate {
+			return true
+		}
+	} else {
+		// pve
+		attackRate := obj.AttackRate
+		defenseRate := tobj.DefenseRate
+		if attackRate <= 0 {
+			attackRate = 1
+		}
+		if defenseRate <= 0 {
+			defenseRate = 1
+		}
+		if attackRate < defenseRate {
+			if rand.Intn(100) >= 5 {
+				return true
+			}
+		} else {
+			if rand.Intn(attackRate) < defenseRate {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (obj *Object) getDefense(attacker *Object, t int) int {
 	defense := 0
 	switch t {
 	case 1:
 		defense = 0
 	default:
 		defense = obj.Defense
+		if obj.Type == ObjectTypePlayer {
+			if attacker.Type == ObjectTypePlayer {
+				// pvp
+			} else {
+				defense /= 2 // pve
+			}
+		}
 	}
 	return defense
 }
@@ -42,15 +94,14 @@ func (obj *Object) getDamage(t int) int {
 
 func (obj *Object) attack(tobj *Object, damage int) {
 	damageType := 0
-	if damage == 0 {
+	if damage == 0 && !obj.CheckMiss(tobj) {
 		// 1. think about miss
-
 		// 2. rand ignore target defense and get target defense
 		ignoreDefenseRate := obj.GetIgnoreDefenseRate()
 		if rand.Intn(10000) < ignoreDefenseRate*100 {
 			damageType = 1
 		}
-		defense := tobj.getDefense(damageType)
+		defense := tobj.getDefense(obj, damageType)
 		// 3. rand normal/critical/excel and get object attack panel or skill attack
 		criticalAttackRate := obj.GetCriticalAttackRate()
 		if rand.Intn(10000) < criticalAttackRate*100 {
@@ -63,8 +114,11 @@ func (obj *Object) attack(tobj *Object, damage int) {
 		damage = obj.getDamage(damageType)
 		// 4. calc attack damage
 		damage = damage - defense
+		if damage < 0 {
+			damage = 0
+		}
 		// 5. add damage
-		damage += obj.GetIncreaseDamage()
+		damage += obj.GetAddDamage()
 		// 6. decrease damage
 		damage += damage * obj.GetWingIncreaseDamage() / 100
 		// 7. absorb damage
@@ -72,7 +126,7 @@ func (obj *Object) attack(tobj *Object, damage int) {
 		// 8. combo damage
 	}
 	// 9. reflect damage
-	// 10. rebound damage
+	// 10. return damage
 	// 11. rand double damage
 	doubleDamageRate := obj.GetDoubleDamageRate()
 	if rand.Intn(10000) < doubleDamageRate*100 {
@@ -91,9 +145,7 @@ func (obj *Object) attack(tobj *Object, damage int) {
 	// if attackDamage < attackDamageMin {
 	// 	attackDamage = attackDamageMin
 	// }
-	if damage < 0 {
-		damage = 1
-	}
+
 	tobj.HP -= damage
 	if tobj.HP <= 0 {
 		tobj.HP = 0

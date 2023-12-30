@@ -1362,12 +1362,12 @@ func (p *Player) GetPKLevel() int {
 	return p.PKLevel
 }
 
-func (p *Player) GetSkillMPAG(s *skill.Skill) (int, int) {
-	return s.ManaUsage, s.BPUsage
+func (p *Player) GetMasterLevel() int {
+	return p.MasterLevel
 }
 
-func (player *Player) GetMasterLevel() bool {
-	return player.ChangeUp == 2 && player.Level >= conf.Common.General.MaxLevelNormal
+func (p *Player) GetSkillMPAG(s *skill.Skill) (int, int) {
+	return s.ManaUsage, s.BPUsage
 }
 
 func (p *Player) addSetEffect(index item.SetEffectType, value int, base bool) {

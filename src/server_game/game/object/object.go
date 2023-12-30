@@ -480,6 +480,7 @@ type Objecter interface {
 	EnableMuBot(*model.MsgEnableMuBot)
 	LearnMasterSkill(*model.MsgLearnMasterSkill)
 	GetPKLevel() int
+	GetMasterLevel() int
 	GetSkillMPAG(s *skill.Skill) (int, int)
 	ProcessAction()
 	Action(*model.MsgAction)
@@ -500,12 +501,14 @@ type Objecter interface {
 	SellItem(*model.MsgSellItem)
 	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
 	MapMove(*model.MsgMapMove)
+	GetAttackRatePVP() int
+	GetDefenseRatePVP() int
 	GetIgnoreDefenseRate() int
 	GetCriticalAttackRate() int
 	GetCriticalAttackDamage() int
 	GetExcellentAttackRate() int
 	GetExcellentAttackDamage() int
-	GetIncreaseDamage() int
+	GetAddDamage() int
 	GetWingIncreaseDamage() int
 	GetWingReduceDamage() int
 	GetDoubleDamageRate() int
