@@ -305,6 +305,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0xF311, "SkillOneReply", (*model.MsgSkillOneReply)(nil)},
 	{0, false, 0xC1, 0xF315, "CheckCharacterReply", (*model.MsgCheckCharacterReply)(nil)},
 	{0, false, 0xC1, 0xF330, "MuKeyReply", (*model.MsgMuKeyReply)(nil)},
+	{0, false, 0xC1, 0xF340, "ServerCMDReply", (*model.MsgServerCMDReply)(nil)},
 	{0, false, 0xC1, 0xF350, "MasterDataReply", (*model.MsgMasterDataReply)(nil)},
 	{0, false, 0xC1, 0xF352, "LearnMasterSkillReply", (*model.MsgLearnMasterSkillReply)(nil)},
 	{0, false, 0xC2, 0xF353, "MasterSkillListReply", (*model.MsgMasterSkillListReply)(nil)},

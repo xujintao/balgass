@@ -1891,15 +1891,25 @@ func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {
 	if msg.Position >= len(p.Inventory.Items) {
 		return
 	}
-	item := p.Inventory.Items[msg.Position]
-	if item == nil {
+	it := p.Inventory.Items[msg.Position]
+	if it == nil {
 		return
 	}
-	ok := maps.MapManager.PushItem(p.MapNumber, msg.X, msg.Y, item)
-	if !ok {
-		return
+	switch it.Code {
+	case item.Code(14, 63):
+		cmdReply := model.MsgServerCMDReply{
+			Type: 0,
+			X:    p.X,
+			Y:    p.Y,
+		}
+		p.PushViewport(&cmdReply)
+	default:
+		ok := maps.MapManager.PushItem(p.MapNumber, msg.X, msg.Y, it)
+		if !ok {
+			return
+		}
 	}
-	p.Inventory.DropItem(msg.Position, item)
+	p.Inventory.DropItem(msg.Position, it)
 	if msg.Position < 12 || msg.Position == 126 {
 		p.inventoryChanged()
 	}

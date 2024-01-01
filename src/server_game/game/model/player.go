@@ -2138,6 +2138,20 @@ type MsgMuKeyReply struct {
 	MsgMuKey
 }
 
+type MsgServerCMDReply struct {
+	Type int
+	X    int
+	Y    int
+}
+
+func (msg *MsgServerCMDReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Type))
+	bw.WriteByte(byte(msg.X))
+	bw.WriteByte(byte(msg.Y))
+	return bw.Bytes(), nil
+}
+
 // pack(1)
 type MsgMasterDataReply struct {
 	MasterLevel          int
