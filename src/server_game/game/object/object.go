@@ -582,6 +582,8 @@ type Object struct {
 	Skills                    skill.Skills
 	FrustrumX                 [MaxArrayFrustrum]int
 	FrustrumY                 [MaxArrayFrustrum]int
+	SkillFrustrumX            [MaxArrayFrustrum]int
+	SkillFrustrumY            [MaxArrayFrustrum]int
 	Viewports                 [MaxViewportNum]*Viewport // 主动视野
 	ViewportNum               int
 	msgs                      [20]*messageStateMachine

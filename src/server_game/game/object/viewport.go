@@ -265,6 +265,25 @@ func (obj *Object) destroyViewport() {
 	}
 }
 
+func (obj *Object) ForEachViewportObject(f func(tobj *Object)) {
+	for _, vp := range obj.Viewports {
+		if vp.State == 0 {
+			continue
+		}
+		if vp.Number < 0 {
+			continue
+		}
+		if vp.Type == 5 {
+			continue
+		}
+		tobj := ObjectManager.objects[vp.Number]
+		if tobj == nil {
+			continue
+		}
+		f(tobj)
+	}
+}
+
 func (obj *Object) processViewport() {
 	obj.destroyViewport()
 	obj.createViewport()
@@ -283,6 +302,9 @@ func (obj *Object) PushViewport(msg any) {
 		if vp.Number < 0 {
 			log.Printf("PushViewport warning [obj]%d [msg]%v -> [tobj]%d\n",
 				obj.Index, msg, vp.Number)
+			continue
+		}
+		if vp.Type == 5 {
 			continue
 		}
 		tobj := ObjectManager.objects[vp.Number]
