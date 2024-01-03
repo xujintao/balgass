@@ -95,14 +95,15 @@ func (obj *Object) getDamage(t int) int {
 func (obj *Object) attack(tobj *Object, damage int) {
 	damageType := 0
 	if damage == 0 && !obj.CheckMiss(tobj) {
-		// 1. think about miss
-		// 2. rand ignore target defense and get target defense
+		// 1. calc target defense
+		// rand ignore target defense and get target defense
 		ignoreDefenseRate := obj.GetIgnoreDefenseRate()
 		if rand.Intn(10000) < ignoreDefenseRate*100 {
 			damageType = 1
 		}
 		defense := tobj.getDefense(obj, damageType)
-		// 3. rand normal/critical/excel and get object attack panel or skill attack
+		// 2. calc object skill damage
+		// rand normal/critical/excel and get object attack panel or skill attack
 		criticalAttackRate := obj.GetCriticalAttackRate()
 		if rand.Intn(10000) < criticalAttackRate*100 {
 			damageType = 3
@@ -111,19 +112,28 @@ func (obj *Object) attack(tobj *Object, damage int) {
 		if rand.Intn(10000) < excellentAttackRate*100 {
 			damageType = 2
 		}
+		// normal attack --> physical attack
+		// skill attack --> physical/magic/curse attack
 		damage = obj.getDamage(damageType)
-		// 4. calc attack damage
+		// 3. calc attack damage
 		damage = damage - defense
 		if damage < 0 {
 			damage = 0
 		}
-		// 5. add damage
+		// 4. add damage
 		damage += obj.GetAddDamage()
-		// 6. decrease damage
+		// 5. premium scroll damage
+
+		// 6. armor reduce damage
+		damage -= damage * tobj.GetArmorReduceDamage() / 100
+		// 7. wing increase/reduce damage
 		damage += damage * obj.GetWingIncreaseDamage() / 100
-		// 7. absorb damage
 		damage -= damage * tobj.GetWingReduceDamage() / 100
-		// 8. combo damage
+		// 8. helper reduce damage
+		// 9. pet reduce damage
+		if damage <= 0 {
+			damage = 0
+		}
 	}
 	// 9. reflect damage
 	// 10. return damage

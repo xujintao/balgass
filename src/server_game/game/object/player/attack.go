@@ -43,3 +43,7 @@ func (p *Player) GetWingReduceDamage() int {
 func (p *Player) GetDoubleDamageRate() int {
 	return p.DoubleDamageRate
 }
+
+func (p *Player) GetArmorReduceDamage() int {
+	return p.ArmorReduceDamage
+}

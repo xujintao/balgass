@@ -43,3 +43,7 @@ func (m *Monster) GetWingReduceDamage() int {
 func (m *Monster) GetDoubleDamageRate() int {
 	return 0
 }
+
+func (*Monster) GetArmorReduceDamage() int {
+	return 0
+}

@@ -196,11 +196,11 @@ type Player struct {
 	MonsterDieGetHP             int // 杀怪回生(套装+卓越+大师技能)
 	MonsterDieGetMP             int // 杀怪回蓝(套装+卓越+大师技能)
 	MonsterDieGetMoney          int // 杀怪加钱(卓越)
-	ExcellentReduceDamage       int // 减少伤害(卓越)
-	WingIncreaseDamage          int // 增加伤害(翅膀)
-	WingReduceDamage            int // 减少伤害(翅膀)
-	HelperReduceDamage          int // 减少伤害(天使)
-	ExcellentReflectDamage      int // 伤害反射(卓越)
+	ArmorReduceDamage           int // 防具减少伤害(卓越+洞装)
+	WingIncreaseDamage          int // 翅膀增加伤害
+	WingReduceDamage            int // 翅膀减少伤害
+	HelperReduceDamage          int // 天使减少伤害
+	ArmorReflectDamage          int // 防具伤害反射(卓越+洞装)
 	DoubleDamageRate            int // 双倍伤害(套装+大师技能)
 	IgnoreDefenseRate           int // 无视防御(套装+翅膀+大师技能)
 	ReturnDamage                int // 反弹伤害(翅膀+大师技能)
@@ -784,8 +784,8 @@ func (p *Player) calc() {
 	p.MonsterDieGetHP = 0
 	p.MonsterDieGetMP = 0
 	p.MonsterDieGetMoney = 0
-	p.ExcellentReduceDamage = 0
-	p.ExcellentReflectDamage = 0
+	p.ArmorReduceDamage = 0
+	p.ArmorReflectDamage = 0
 	p.IgnoreDefenseRate = 0
 	p.ReturnDamage = 0
 	p.RecoverMaxHP = 0
@@ -1125,10 +1125,10 @@ func (p *Player) calc() {
 				p.MaxMP += p.MaxMP * 4 / 100
 			}
 			if it.ExcellentDefenseReduce {
-				p.ExcellentReduceDamage += 4
+				p.ArmorReduceDamage += 4
 			}
 			if it.ExcellentDefenseReflect {
-				p.ExcellentReflectDamage += 5
+				p.ArmorReflectDamage += 5
 			}
 			if it.ExcellentDefenseRate {
 				p.DefenseRate += p.DefenseRate * 10 / 100
