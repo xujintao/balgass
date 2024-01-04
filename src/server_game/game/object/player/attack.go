@@ -47,3 +47,7 @@ func (p *Player) GetDoubleDamageRate() int {
 func (p *Player) GetArmorReduceDamage() int {
 	return p.ArmorReduceDamage
 }
+
+func (p *Player) GetHelperReduceDamage() int {
+	return p.HelperReduceDamage
+}

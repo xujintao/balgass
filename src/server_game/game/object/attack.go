@@ -130,6 +130,7 @@ func (obj *Object) attack(tobj *Object, damage int) {
 		damage += damage * obj.GetWingIncreaseDamage() / 100
 		damage -= damage * tobj.GetWingReduceDamage() / 100
 		// 8. helper reduce damage
+		damage -= damage * tobj.GetHelperReduceDamage() / 100
 		// 9. pet reduce damage
 		if damage <= 0 {
 			damage = 0
