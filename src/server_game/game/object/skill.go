@@ -97,7 +97,7 @@ func (obj *Object) canUseSkill(tobj *Object, s *skill.Skill) {
 		skill.SkillIndexPenetration,   // 52穿透箭
 		skill.SkillIndexPowerSlash:    // 56天雷闪(武器)
 		obj.UseSkillReply(tobj, s, true)
-		obj.attack(tobj, 0)
+		obj.attack(tobj, s, 0)
 	case skill.SkillIndexDeathStab: // 43袭风刺
 		obj.UseSkillDeathStab(s, tobj)
 	}
@@ -142,15 +142,15 @@ func (obj *Object) CheckSkillFrustrum(tobj *Object) bool {
 
 func (obj *Object) UseSkillDeathStab(s *skill.Skill, tobj *Object) {
 	obj.UseSkillReply(tobj, s, true)
-	obj.attack(tobj, 0)
+	obj.attack(tobj, s, 0)
 	if rand.Intn(100)%3 == 0 {
-		obj.attack(tobj, 0)
+		obj.attack(tobj, s, 0)
 	}
 	angle := obj.getAngle(tobj)
 	obj.CreateSkillFrustrum(angle, 1.5, 3.0)
 	obj.ForEachViewportObject(func(vpobj *Object) {
-		if vpobj != tobj && obj.CheckSkillFrustrum(vpobj) {
-			obj.attack(vpobj, 0)
+		if vpobj.Live && vpobj != tobj && obj.CheckSkillFrustrum(vpobj) {
+			obj.attack(vpobj, s, 0)
 		}
 	})
 }

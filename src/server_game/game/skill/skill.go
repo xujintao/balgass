@@ -11,6 +11,14 @@ import (
 	"sort"
 )
 
+func init() {
+	Skill0 = &Skill{
+		SkillBase: &SkillBase{},
+	}
+}
+
+var Skill0 *Skill
+
 type Skill struct {
 	*SkillBase `json:"-"`
 	Index      int     `json:"index"`

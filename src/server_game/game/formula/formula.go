@@ -16,9 +16,10 @@ func init() {
 var f formula
 
 type formula struct {
-	CalcCharacter *lua.LState
-	StatSpec      *lua.LState
-	ItemCalc      *lua.LState
+	CalcCharacter    *lua.LState
+	StatSpec         *lua.LState
+	ItemCalc         *lua.LState
+	RegularSkillCacl *lua.LState
 }
 
 func (f *formula) init() {
@@ -34,6 +35,7 @@ func (f *formula) init() {
 	f.CalcCharacter = load("Character/CalcCharacter.lua")
 	f.StatSpec = load("Specialization/StatSpec.lua")
 	f.ItemCalc = load("Misc/ItemCalc.lua")
+	f.RegularSkillCacl = load("Skills/RegularSkillCalc.lua")
 }
 
 func call(ls *lua.LState, method string, sig string, args ...any) {

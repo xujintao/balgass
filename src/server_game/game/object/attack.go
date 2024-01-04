@@ -7,6 +7,7 @@ import (
 
 	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
+	"github.com/xujintao/balgass/src/server_game/game/skill"
 )
 
 func (obj *Object) CheckMiss(tobj *Object) bool {
@@ -72,29 +73,62 @@ func (obj *Object) getDefense(attacker *Object, t int) int {
 	return defense
 }
 
-func (obj *Object) getDamage(t int) int {
+func (obj *Object) getDamage(s *skill.Skill, t int) int {
+	// get (physical/magic/curse/special)damage from skill type
+	damageMin := 0
+	damageMax := 0
+	switch s.Index {
+	case 0: // normal attack skill
+		damageMin = obj.AttackMin
+		damageMax = obj.AttackMax
+	case skill.SkillIndexFallingSlash, // 19地裂斩(武器)
+		skill.SkillIndexLunge,             // 20牙突刺(武器)
+		skill.SkillIndexUppercut,          // 21升龙击(武器)
+		skill.SkillIndexCyclone,           // 22旋风斩(武器)
+		skill.SkillIndexSlash,             // 23天地十字剑(武器)
+		skill.SkillIndexTwistingSlash,     // 41霹雳回旋斩
+		skill.SkillIndexRagefulBlow,       // 42雷霆裂闪
+		skill.SkillIndexDeathStab,         // 43袭风刺
+		skill.SkillIndexCrescentMoonSlash, // 44半月斩(攻城)
+		skill.SkillIndexFireBreath,        // 49流星焰(彩云兽)
+		skill.SkillIndexFireSlash,         // 55玄月斩
+		skill.SkillIndexSpiralSlash:       // 57风舞回旋斩(攻城)
+		damageMin = obj.AttackMin
+		damageMax = obj.AttackMax
+		damageMin = int(float64(damageMin) * obj.GetKnightGladiatorCalcSkillBonus())
+		damageMax = int(float64(damageMax) * obj.GetKnightGladiatorCalcSkillBonus())
+	default:
+		damageMin = obj.AttackMin
+		damageMax = obj.AttackMax
+	}
+
+	// get damage from damage type(normal/critical/excellent)
 	damage := 0
 	switch t {
 	case 3:
-		damage = obj.AttackMax
+		damage = damageMax
 		damage += obj.GetCriticalAttackDamage()
 	case 2:
-		damage = obj.AttackMax
+		damage = damageMax
 		damage += damage * 20 / 100
 		damage += obj.GetExcellentAttackDamage()
 	default:
-		sub := obj.AttackMax - obj.AttackMin
+		sub := damageMax - damageMin
 		if sub < 0 {
 			return 0
 		}
-		damage = obj.AttackMin + rand.Intn(sub+1)
+		damage = damageMin + rand.Intn(sub+1)
 	}
 	return damage
 }
 
-func (obj *Object) attack(tobj *Object, damage int) {
+func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 	damageType := 0
 	if damage == 0 && !obj.CheckMiss(tobj) {
+		if s == nil {
+			s = skill.Skill0
+		}
+
 		// 1. calc target defense
 		// rand ignore target defense and get target defense
 		ignoreDefenseRate := obj.GetIgnoreDefenseRate()
@@ -114,7 +148,7 @@ func (obj *Object) attack(tobj *Object, damage int) {
 		}
 		// normal attack --> physical attack
 		// skill attack --> physical/magic/curse attack
-		damage = obj.getDamage(damageType)
+		damage = obj.getDamage(s, damageType)
 		// 3. calc attack damage
 		damage = damage - defense
 		if damage < 0 {
@@ -227,5 +261,5 @@ func (obj *Object) Attack(msg *model.MsgAttack) {
 		Target: tobj.Index,
 	}
 	obj.PushViewport(&reply)
-	obj.attack(tobj, 0)
+	obj.attack(tobj, nil, 0)
 }

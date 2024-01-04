@@ -184,31 +184,32 @@ type Player struct {
 	// skillStrengthenHellFire2Count int
 	// skillStrengthenHellFire2Time  time.Time
 	// reqWarehouseOpen              int
-	IncreaseAttackMin           int // 增加最小攻击(套装+洞装+大师技能)
-	IncreaseAttackMax           int // 增加最大攻击(套装+洞装+大师技能)
-	IncreaseMagicAttack         int // 增加魔攻(套装+洞装+大师技能)
-	IncreaseSkillAttack         int // 增加技能攻击(套装+卓越+大师技能)
-	SetAddDamage                int // 增加伤害
-	CriticalAttackRate          int // 幸运一击概率
-	CriticalAttackDamage        int // 幸运一击伤害
-	ExcellentAttackRate         int // 卓越一击概率
-	ExcellentAttackDamage       int // 卓越一击伤害
-	MonsterDieGetHP             int // 杀怪回生(套装+卓越+大师技能)
-	MonsterDieGetMP             int // 杀怪回蓝(套装+卓越+大师技能)
-	MonsterDieGetMoney          int // 杀怪加钱(卓越)
-	ArmorReduceDamage           int // 防具减少伤害(卓越+洞装)
-	WingIncreaseDamage          int // 翅膀增加伤害
-	WingReduceDamage            int // 翅膀减少伤害
-	HelperReduceDamage          int // 天使减少伤害
-	ArmorReflectDamage          int // 防具伤害反射(卓越+洞装)
-	DoubleDamageRate            int // 双倍伤害(套装+大师技能)
-	IgnoreDefenseRate           int // 无视防御(套装+翅膀+大师技能)
-	ReturnDamage                int // 反弹伤害(翅膀+大师技能)
-	RecoverMaxHP                int // 恢复最大生命(翅膀+大师技能)
-	RecoverMaxMP                int // 恢复最大魔法(翅膀+大师技能)
-	IncreaseTwoHandWeaponDamage int // 增加双手武器伤害
-	item380Effect               item.Item380Effect
-	setFull                     bool
+	IncreaseAttackMin             int // 增加最小攻击(套装+洞装+大师技能)
+	IncreaseAttackMax             int // 增加最大攻击(套装+洞装+大师技能)
+	IncreaseMagicAttack           int // 增加魔攻(套装+洞装+大师技能)
+	IncreaseSkillAttack           int // 增加技能攻击(套装+卓越+大师技能)
+	SetAddDamage                  int // 增加伤害
+	CriticalAttackRate            int // 幸运一击概率
+	CriticalAttackDamage          int // 幸运一击伤害
+	ExcellentAttackRate           int // 卓越一击概率
+	ExcellentAttackDamage         int // 卓越一击伤害
+	MonsterDieGetHP               int // 杀怪回生(套装+卓越+大师技能)
+	MonsterDieGetMP               int // 杀怪回蓝(套装+卓越+大师技能)
+	MonsterDieGetMoney            int // 杀怪加钱(卓越)
+	ArmorReduceDamage             int // 防具减少伤害(卓越+洞装)
+	WingIncreaseDamage            int // 翅膀增加伤害
+	WingReduceDamage              int // 翅膀减少伤害
+	HelperReduceDamage            int // 天使减少伤害
+	ArmorReflectDamage            int // 防具伤害反射(卓越+洞装)
+	DoubleDamageRate              int // 双倍伤害(套装+大师技能)
+	IgnoreDefenseRate             int // 无视防御(套装+翅膀+大师技能)
+	ReturnDamage                  int // 反弹伤害(翅膀+大师技能)
+	RecoverMaxHP                  int // 恢复最大生命(翅膀+大师技能)
+	RecoverMaxMP                  int // 恢复最大魔法(翅膀+大师技能)
+	IncreaseTwoHandWeaponDamage   int // 增加双手武器伤害
+	item380Effect                 item.Item380Effect
+	setFull                       bool
+	KnightGladiatorCalcSkillBonus float64
 }
 
 func (p *Player) Addr() string {
@@ -1218,6 +1219,13 @@ func (p *Player) calc() {
 		p.AttackMax = (leftAttackMax + rightAttackMax) / 2
 	}
 
+	// convert magic/curse to magic/curse attack
+	p.magicAttackMin += p.magicAttackMax * p.magic / 100
+	p.magicAttackMax += p.magicAttackMax * p.magic / 100
+	p.curseAttackMin += p.curseAttackMin * p.curseAttackMax / 100
+	p.curseAttackMax += p.curseAttackMin * p.curseAttackMax / 100
+
+	// wing
 	if wing != nil {
 		wingIncreaseDamage := 0
 		formula.Wings_CalcIncAttack(wing.Code, wing.Level, &wingIncreaseDamage)
@@ -1271,6 +1279,11 @@ func (p *Player) calc() {
 	if p.AG > p.MaxAG {
 		p.AG = p.MaxAG
 	}
+
+	// skill bonus
+	KnightGladiatorCalcSkillBonus := 0.0
+	formula.Knight_Gladiator_CalcSkillBonus(p.Class, energy, &KnightGladiatorCalcSkillBonus)
+	p.KnightGladiatorCalcSkillBonus = KnightGladiatorCalcSkillBonus
 
 	// Push
 	p.Push(&model.MsgStatSpecReply{

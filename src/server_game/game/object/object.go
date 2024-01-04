@@ -514,6 +514,7 @@ type Objecter interface {
 	GetWingIncreaseDamage() int
 	GetWingReduceDamage() int
 	GetDoubleDamageRate() int
+	GetKnightGladiatorCalcSkillBonus() float64
 }
 
 type Object struct {
