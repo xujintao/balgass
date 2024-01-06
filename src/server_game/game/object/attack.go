@@ -97,6 +97,11 @@ func (obj *Object) getDamage(s *skill.Skill, t int) int {
 		damageMax = obj.AttackMax
 		damageMin = int(float64(damageMin) * obj.GetKnightGladiatorCalcSkillBonus())
 		damageMax = int(float64(damageMax) * obj.GetKnightGladiatorCalcSkillBonus())
+	case skill.SkillIndexImpale: // 47钻云枪
+		damageMin = obj.AttackMin
+		damageMax = obj.AttackMax
+		damageMin = int(float64(damageMin) * obj.GetImpaleSkillCalc())
+		damageMax = int(float64(damageMax) * obj.GetImpaleSkillCalc())
 	default:
 		damageMin = obj.AttackMin
 		damageMax = obj.AttackMax

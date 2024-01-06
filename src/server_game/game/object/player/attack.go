@@ -55,3 +55,7 @@ func (p *Player) GetHelperReduceDamage() int {
 func (p *Player) GetKnightGladiatorCalcSkillBonus() float64 {
 	return p.KnightGladiatorCalcSkillBonus
 }
+
+func (p *Player) GetImpaleSkillCalc() float64 {
+	return p.ImpaleSkillCalc
+}

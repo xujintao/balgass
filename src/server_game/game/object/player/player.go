@@ -210,6 +210,7 @@ type Player struct {
 	item380Effect                 item.Item380Effect
 	setFull                       bool
 	KnightGladiatorCalcSkillBonus float64
+	ImpaleSkillCalc               float64
 }
 
 func (p *Player) Addr() string {
@@ -1281,9 +1282,8 @@ func (p *Player) calc() {
 	}
 
 	// skill bonus
-	KnightGladiatorCalcSkillBonus := 0.0
-	formula.Knight_Gladiator_CalcSkillBonus(p.Class, energy, &KnightGladiatorCalcSkillBonus)
-	p.KnightGladiatorCalcSkillBonus = KnightGladiatorCalcSkillBonus
+	formula.Knight_Gladiator_CalcSkillBonus(p.Class, energy, &p.KnightGladiatorCalcSkillBonus)
+	formula.ImpaleSkillCalc(p.Class, energy, &p.ImpaleSkillCalc)
 
 	// Push
 	p.Push(&model.MsgStatSpecReply{

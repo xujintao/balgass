@@ -55,3 +55,7 @@ func (*Monster) GetHelperReduceDamage() int {
 func (*Monster) GetKnightGladiatorCalcSkillBonus() float64 {
 	return 1.0
 }
+
+func (*Monster) GetImpaleSkillCalc() float64 {
+	return 1.0
+}
