@@ -32,6 +32,10 @@ func (p *Player) GetAddDamage() int {
 	return p.SetAddDamage
 }
 
+func (p *Player) GetArmorReduceDamage() int {
+	return p.ArmorReduceDamage
+}
+
 func (p *Player) GetWingIncreaseDamage() int {
 	return p.WingIncreaseDamage
 }
@@ -40,16 +44,20 @@ func (p *Player) GetWingReduceDamage() int {
 	return p.WingReduceDamage
 }
 
-func (p *Player) GetDoubleDamageRate() int {
-	return p.DoubleDamageRate
-}
-
-func (p *Player) GetArmorReduceDamage() int {
-	return p.ArmorReduceDamage
-}
-
 func (p *Player) GetHelperReduceDamage() int {
 	return p.HelperReduceDamage
+}
+
+func (p *Player) GetPetIncreaseDamage() int {
+	return p.PetIncreaseDamage
+}
+
+func (p *Player) GetPetReduceDamage() int {
+	return p.PetReduceDamage
+}
+
+func (p *Player) GetDoubleDamageRate() int {
+	return p.DoubleDamageRate
 }
 
 func (p *Player) GetKnightGladiatorCalcSkillBonus() float64 {

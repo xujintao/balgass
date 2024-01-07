@@ -201,7 +201,9 @@ type Player struct {
 	WingIncreaseDamage            int // 翅膀增加伤害
 	WingReduceDamage              int // 翅膀减少伤害
 	HelperReduceDamage            int // 天使减少伤害
-	ArmorReflectDamage            int // 防具伤害反射(卓越+洞装)
+	PetIncreaseDamage             int // pet增加伤害
+	PetReduceDamage               int // pet减少伤害
+	ArmorReflectDamage            int // 防具反射伤害(卓越+洞装)
 	DoubleDamageRate              int // 双倍伤害(套装+大师技能)
 	IgnoreDefenseRate             int // 无视防御(套装+翅膀+大师技能)
 	ReturnDamage                  int // 反弹伤害(翅膀+大师技能)
@@ -783,8 +785,15 @@ func (p *Player) calc() {
 	p.AddVitality = 0
 	p.AddEnergy = 0
 	p.AddLeadership = 0
+	p.IncreaseAttackMin = 0
+	p.IncreaseAttackMax = 0
+	p.IncreaseMagicAttack = 0
+	p.IncreaseSkillAttack = 0
+	p.SetAddDamage = 0
 	p.CriticalAttackRate = 0
+	p.CriticalAttackDamage = 0
 	p.ExcellentAttackRate = 0
+	p.ExcellentAttackDamage = 0
 	p.MonsterDieGetHP = 0
 	p.MonsterDieGetMP = 0
 	p.MonsterDieGetMoney = 0
@@ -794,6 +803,11 @@ func (p *Player) calc() {
 	p.ReturnDamage = 0
 	p.RecoverMaxHP = 0
 	p.RecoverMaxMP = 0
+	p.WingIncreaseDamage = 0
+	p.WingReduceDamage = 0
+	p.HelperReduceDamage = 0
+	p.PetIncreaseDamage = 0
+	p.PetReduceDamage = 0
 
 	// wing item contribution
 	if wing != nil && wing.ExcellentWing2Leadership {
@@ -1266,6 +1280,20 @@ func (p *Player) calc() {
 		p.HelperReduceDamage = conf.PetRing.Pets.SpiritAngel.ReduceDamagePercent
 	case p.equippedItem(helper, item.Code(13, 80)): // 熊猫
 		p.Defense += conf.PetRing.Pets.Panda.AddDefenseValue
+	}
+
+	// pet item contribution
+	if p.Pet != nil {
+		switch p.Pet.Code {
+		case item.Code(13, 3): // Horn of Dinorant 彩云兽
+			p.PetIncreaseDamage = 15
+			p.PetReduceDamage = 10
+		case item.Code(13, 4): // Dark Horse 黑王马之角
+			p.PetReduceDamage = (30 + p.Pet.Level) / 2
+		case item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
+			p.PetIncreaseDamage = 33
+			p.PetReduceDamage = 10
+		}
 	}
 
 	// ...

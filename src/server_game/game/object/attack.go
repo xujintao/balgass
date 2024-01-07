@@ -171,6 +171,8 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 		// 8. helper reduce damage
 		damage -= damage * tobj.GetHelperReduceDamage() / 100
 		// 9. pet reduce damage
+		damage += damage * obj.GetPetIncreaseDamage() / 100
+		damage -= damage * tobj.GetPetReduceDamage() / 100
 		if damage <= 0 {
 			damage = 0
 		}

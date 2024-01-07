@@ -32,6 +32,10 @@ func (m *Monster) GetAddDamage() int {
 	return 0
 }
 
+func (*Monster) GetArmorReduceDamage() int {
+	return 0
+}
+
 func (m *Monster) GetWingIncreaseDamage() int {
 	return 0
 }
@@ -40,15 +44,19 @@ func (m *Monster) GetWingReduceDamage() int {
 	return 0
 }
 
-func (m *Monster) GetDoubleDamageRate() int {
-	return 0
-}
-
-func (*Monster) GetArmorReduceDamage() int {
-	return 0
-}
-
 func (*Monster) GetHelperReduceDamage() int {
+	return 0
+}
+
+func (*Monster) GetPetIncreaseDamage() int {
+	return 0
+}
+
+func (*Monster) GetPetReduceDamage() int {
+	return 0
+}
+
+func (m *Monster) GetDoubleDamageRate() int {
 	return 0
 }
 

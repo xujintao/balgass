@@ -510,10 +510,12 @@ type Objecter interface {
 	GetExcellentAttackRate() int
 	GetExcellentAttackDamage() int
 	GetAddDamage() int
-	GetHelperReduceDamage() int
 	GetArmorReduceDamage() int
 	GetWingIncreaseDamage() int
 	GetWingReduceDamage() int
+	GetHelperReduceDamage() int
+	GetPetIncreaseDamage() int
+	GetPetReduceDamage() int
 	GetDoubleDamageRate() int
 	GetKnightGladiatorCalcSkillBonus() float64
 	GetImpaleSkillCalc() float64
