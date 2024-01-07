@@ -478,6 +478,7 @@ type Objecter interface {
 	DefineMuKey(*model.MsgDefineMuKey)
 	DefineMuBot(*model.MsgDefineMuBot)
 	EnableMuBot(*model.MsgEnableMuBot)
+	UsePet(*model.MsgUsePet)
 	LearnMasterSkill(*model.MsgLearnMasterSkill)
 	GetPKLevel() int
 	GetMasterLevel() int

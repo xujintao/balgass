@@ -20,11 +20,9 @@ const (
 	harmonyItemDefense
 )
 
-type harmonyEffectKind int
-
-const harmonyEffectNull harmonyEffectKind = -1
+const harmonyEffectNull int = -1
 const (
-	harmonyEffectWeaponIncDamageMin harmonyEffectKind = iota
+	harmonyEffectWeaponIncDamageMin int = iota
 	harmonyEffectWeaponIncDamageMax
 	harmonyEffectWeaponDecReqStrength
 	harmonyEffectWeaponDecReqAgility
@@ -36,7 +34,7 @@ const (
 	harmonyEffectWeaponIgnoreSDRate
 )
 const (
-	harmonyEffectStaffIncMagicDamage harmonyEffectKind = iota
+	harmonyEffectStaffIncMagicDamage int = iota
 	harmonyEffectStaffDecReqStrength
 	harmonyEffectStaffDecReqAgility
 	harmonyEffectStaffIncSkillDamage
@@ -46,7 +44,7 @@ const (
 	harmonyEffectStaffIgnoreSDRate
 )
 const (
-	harmonyEffectDefenseIncDefense harmonyEffectKind = iota
+	harmonyEffectDefenseIncDefense int = iota
 	harmonyEffectDefenseIncMaxAG
 	harmonyEffectDefenseIncMaxHP
 	harmonyEffectDefenseIncAutoRecoveryHP
@@ -146,7 +144,7 @@ func (o *harmonyManager) addRandEffect(item *Item, itemKind harmonyItemKind) {
 		rm.Put(i, h.weight)
 	}
 	effect, _ := rm.GetWithWeight().(int)
-	item.HarmonyEffect = harmonyEffectKind(effect)
+	item.HarmonyEffect = effect
 	item.HarmonyLevel = o.harmonys[itemKind][effect].reqLevel
 }
 

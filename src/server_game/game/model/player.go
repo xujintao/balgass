@@ -693,6 +693,23 @@ func (msg *MsgMoveItemReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgChangeEquipmentReply struct {
+	Number  int
+	Item    *item.Item // ItemFrame   [12]byte
+	Element int
+}
+
+func (msg *MsgChangeEquipmentReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Number))
+	itemFrame, err := msg.Item.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	bw.Write(itemFrame)
+	return bw.Bytes(), nil
+}
+
 // pack(1)
 type MsgUseItem struct {
 	SrcPosition int
@@ -1026,6 +1043,43 @@ type MsgDefineMuBot struct {
 
 type MsgMuBotReply struct {
 	MsgMuBot
+}
+
+type MsgUsePet struct {
+	Position int
+	Value    int
+}
+
+func (msg *MsgUsePet) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// position
+	position, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Position = int(position)
+
+	// value
+	value, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Value = int(value)
+
+	return nil
+}
+
+type MsgUsePetReply struct {
+	Position int
+	Result   int
+}
+
+func (msg *MsgUsePetReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Position))
+	bw.WriteByte(byte(msg.Result))
+	return bw.Bytes(), nil
 }
 
 type MsgEnableMuBot struct {

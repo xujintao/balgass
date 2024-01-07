@@ -235,6 +235,7 @@ var apiIns = [...]*apiIn{
 	{0, false, Player, 0x82, "CloseWarehouseWindow", (*model.MsgCloseWarehouseWindow)(nil)},
 	{0, false, Player, 0x8E02, "MapMove", (*model.MsgMapMove)(nil)},
 	{0, false, Player, 0xAE, "DefineMuBot", (*model.MsgDefineMuBot)(nil)},
+	{0, false, Player, 0xBF20, "UsePet", (*model.MsgUsePet)(nil)},
 	{0, false, Player, 0xBF51, "EnableMuBot", (*model.MsgEnableMuBot)(nil)},
 	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},               // s9
 	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)},               // 1.04R
@@ -273,6 +274,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC3, 0x22, "MoneyReply", (*model.MsgMoneyReply)(nil)},
 	{0, false, 0xC1, 0x23, "DropInventoryItemReply", (*model.MsgDropInventoryItemReply)(nil)},
 	{0, false, 0xC3, 0x24, "MoveItemReply", (*model.MsgMoveItemReply)(nil)},
+	{0, false, 0xC1, 0x25, "ChangedEquipmentReply", (*model.MsgChangeEquipmentReply)(nil)},
 	{0, false, 0xC1, 0x26, "HPReply", (*model.MsgHPReply)(nil)},
 	{0, false, 0xC1, 0x27, "MPReply", (*model.MsgMPReply)(nil)},
 	{0, false, 0xC1, 0x28, "DeleteInventoryItemReply", (*model.MsgDeleteInventoryItemReply)(nil)},
@@ -286,6 +288,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x82, "CloseWarehouseWindowReply", (*model.MsgCloseWarehouseWindowReply)(nil)},
 	{0, false, 0xC1, 0x8E03, "MapMoveReply", (*model.MsgMapMoveReply)(nil)},
 	{0, false, 0xC2, 0xAE, "MuBotReply", (*model.MsgMuBotReply)(nil)},
+	{0, false, 0xC1, 0xBF20, "UsePetReply", (*model.MsgUsePetReply)(nil)},
 	{0, false, 0xC1, 0xBF51, "EnableMuBotReply", (*model.MsgEnableMuBotReply)(nil)},
 	{0, false, 0xC1, 0xD4, "MoveReply", (*model.MsgMoveReply)(nil)},
 	{0, false, 0xC1, 0xDE00, "EnableCharacterClassReply", (*model.MsgEnableCharacterClassReply)(nil)},

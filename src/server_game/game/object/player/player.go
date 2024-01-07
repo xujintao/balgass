@@ -134,6 +134,7 @@ type Player struct {
 	ChangeUp int // 1=1转 2=2转 3=3转
 	// PKCount                    int
 	PKLevel int
+	Pet     *item.Item
 	// PKTime                     int
 	// PKTotalCount               int
 	// guild                *guild.GuildInfo
@@ -736,6 +737,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		InventoryExpansion: p.InventoryExpansion,
 	})
 	p.loadMiniMap()
+	p.findAndUsePet()
 
 	// reply inventory
 	p.Push(&model.MsgItemListReply{
@@ -1333,6 +1335,56 @@ func (p *Player) loadMiniMap() {
 	})
 }
 
+func (p *Player) findAndUsePet() {
+	for _, it := range p.Inventory.Items[12:204] {
+		if it == nil {
+			continue
+		}
+		switch it.Code {
+		case item.Code(13, 2), // Horn of Uniria 兽角
+			item.Code(13, 3),  // Horn of Dinorant 彩云兽
+			item.Code(13, 4),  // Dark Horse 黑王马之角
+			item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
+			if it.HarmonyOption == 1 {
+				p.Pet = it
+			}
+		}
+	}
+}
+
+func (p *Player) UsePet(msg *model.MsgUsePet) {
+	reply := model.MsgUsePetReply{
+		Position: msg.Position,
+		Result:   0,
+	}
+	defer p.Push(&reply)
+
+	if msg.Position < 12 || msg.Position > 204 {
+		return
+	}
+	it := p.Inventory.Items[msg.Position]
+	if it == nil || it.Durability <= 0 {
+		return
+	}
+	switch it.Code {
+	case item.Code(13, 2), // Horn of Uniria 兽角
+		item.Code(13, 3),  // Horn of Dinorant 彩云兽
+		item.Code(13, 4),  // Dark Horse 黑王马之角
+		item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
+		if p.Pet != nil {
+			it.HarmonyOption = 0
+			p.Pet = nil
+			reply.Result = -1
+		} else {
+			it.HarmonyOption = 1
+			p.Pet = it
+			reply.Result = -2
+		}
+		p.equipmentChanged()
+		p.PushChangedEquipment(it)
+	}
+}
+
 func (p *Player) MapDataLoadingOK(msg *model.MsgMapDataLoadingOK) {}
 
 func (p *Player) SaveCharacter() {
@@ -1807,7 +1859,15 @@ func (p *Player) Teleport(msg *model.MsgTeleport) {
 	p.gateMove(msg.GateNumber)
 }
 
-func (p *Player) inventoryChanged() {
+func (p *Player) PushChangedEquipment(it *item.Item) {
+	reply := model.MsgChangeEquipmentReply{
+		Number: p.Index,
+		Item:   it,
+	}
+	p.PushViewport(&reply)
+}
+
+func (p *Player) equipmentChanged() {
 	// 1, change skill
 	newItemSkills := make(map[int]struct{})
 	primaryHandWeapon := p.Inventory.Items[0]
@@ -1924,7 +1984,7 @@ func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {
 	}
 	p.Inventory.DropItem(msg.Position, it)
 	if msg.Position < 12 || msg.Position == 126 {
-		p.inventoryChanged()
+		p.equipmentChanged()
 	}
 	reply.Result = 1
 }
@@ -2002,7 +2062,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				p.Inventory.GetItem(msg.DstPosition, sitem)
 				if msg.SrcPosition < 12 || msg.SrcPosition == 236 ||
 					msg.DstPosition < 12 || msg.DstPosition == 236 {
-					p.inventoryChanged()
+					p.equipmentChanged()
 				}
 				reply.Result = msg.DstFlag
 			case titem.Overlap != 0 && // overlap
@@ -2042,7 +2102,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				p.Inventory.DropItem(msg.SrcPosition, sitem)
 				p.Warehouse.GetItem(msg.DstPosition, sitem)
 				if msg.SrcPosition < 12 || msg.SrcPosition == 236 {
-					p.inventoryChanged()
+					p.equipmentChanged()
 				}
 				reply.Result = msg.DstFlag
 			}
@@ -2060,7 +2120,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				p.Warehouse.DropItem(msg.SrcPosition, sitem)
 				p.Inventory.GetItem(msg.DstPosition, sitem)
 				if msg.DstPosition < 12 || msg.DstPosition == 236 {
-					p.inventoryChanged()
+					p.equipmentChanged()
 				}
 				reply.Result = msg.DstFlag
 			}
