@@ -1,5 +1,11 @@
 package player
 
+import (
+	"log"
+
+	"github.com/xujintao/balgass/src/server_game/game/object"
+)
+
 func (p *Player) GetAttackRatePVP() int {
 	return p.attackRatePVP
 }
@@ -66,4 +72,17 @@ func (p *Player) GetKnightGladiatorCalcSkillBonus() float64 {
 
 func (p *Player) GetImpaleSkillCalc() float64 {
 	return p.ImpaleSkillCalc
+}
+
+func (p *Player) Die(obj *object.Object) {
+
+}
+
+func (p *Player) MonsterDieRecoverHP() {
+	log.Printf("MonsterDieRecoverHP %d\n", p.MonsterDieGetHP)
+	p.HP += int(float64(p.HP) * float64(p.MonsterDieGetHP) / 8)
+	if p.HP >= p.MaxHP {
+		p.HP = p.MaxHP
+	}
+	p.pushHP(p.HP, p.SD)
 }

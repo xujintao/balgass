@@ -631,12 +631,6 @@ func (m *Monster) Process1000ms() {
 
 }
 
-func (m *Monster) Die(obj *object.Object) {
-	// give experience
-	// give item
-	// obj recover hp/mp
-}
-
 func (m *Monster) Regen() {
 	m.HP = m.MaxHP + m.AddHP
 	m.MP = m.MaxMP + m.AddMP

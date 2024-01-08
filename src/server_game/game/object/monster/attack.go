@@ -1,5 +1,7 @@
 package monster
 
+import "github.com/xujintao/balgass/src/server_game/game/object"
+
 func (*Monster) GetAttackRatePVP() int {
 	return 0
 }
@@ -66,4 +68,15 @@ func (*Monster) GetKnightGladiatorCalcSkillBonus() float64 {
 
 func (*Monster) GetImpaleSkillCalc() float64 {
 	return 1.0
+}
+
+func (m *Monster) Die(obj *object.Object) {
+	// give experience
+	// give item
+	// obj recover hp/mp
+	obj.AddDelayMsg(2, 0, 2000, m.Index)
+}
+
+func (*Monster) MonsterDieRecoverHP() {
+
 }

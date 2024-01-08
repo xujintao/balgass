@@ -301,6 +301,7 @@ func (m *objectManager) Process100ms() {
 			continue
 		}
 		obj.processMove()
+		obj.processDelayMsg()
 		obj.ProcessAction()
 	}
 }
@@ -452,11 +453,11 @@ type skillInfo struct {
 	circleShieldRate     float32
 }
 
-type messageStateMachine struct {
+type DelayMsg struct {
 	code    int
 	subcode int
 	sender  int
-	time    time.Duration
+	time    time.Time
 }
 
 type Objecter interface {
@@ -488,6 +489,7 @@ type Objecter interface {
 	Process1000ms()
 	SpawnPosition()
 	Die(*Object)
+	MonsterDieRecoverHP()
 	Regen()
 	GetChangeUp() int
 	GetInventory() [9]*item.Item
@@ -593,7 +595,7 @@ type Object struct {
 	SkillFrustrumY            [MaxArrayFrustrum]int
 	Viewports                 [MaxViewportNum]*Viewport // 主动视野
 	ViewportNum               int
-	msgs                      [20]*messageStateMachine
+	msgs                      [20]*DelayMsg
 
 	// groupNumber     int
 	// subGroupNumber  int
@@ -873,7 +875,7 @@ func (obj *Object) Reset() {
 
 func (obj *Object) initMessage() {
 	for i := range obj.msgs {
-		obj.msgs[i] = &messageStateMachine{
+		obj.msgs[i] = &DelayMsg{
 			code: -1,
 		}
 	}
@@ -929,4 +931,35 @@ func (obj *Object) processRegen() {
 	obj.dieRegen = false
 	obj.State = 1
 	obj.Live = true
+}
+
+func (obj *Object) AddDelayMsg(code, subcode, delay, sender int) {
+	for _, msg := range obj.msgs {
+		if msg.code == -1 {
+			msg.code = code
+			msg.subcode = subcode
+			msg.time = time.Now().Add(time.Duration(delay) * time.Millisecond)
+			msg.sender = sender
+			break
+		}
+	}
+}
+
+func (obj *Object) processDelayMsg() {
+	now := time.Now()
+	for _, msg := range obj.msgs {
+		if msg.code == -1 {
+			continue
+		}
+		if now.Before(msg.time) {
+			continue
+		}
+		switch msg.code {
+		case 0: // give experience
+		case 1: // give item
+		case 2: // recover send hp/mp
+			obj.MonsterDieRecoverHP()
+		}
+		msg.code = -1
+	}
 }

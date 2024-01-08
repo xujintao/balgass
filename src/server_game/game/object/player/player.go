@@ -1827,10 +1827,6 @@ func (p *Player) recoverMPAG() {
 	}
 }
 
-func (p *Player) Die(obj *object.Object) {
-
-}
-
 func (p *Player) Regen() {
 	p.HP = p.MaxHP + p.AddHP
 	p.SD = p.MaxSD + p.AddSD
