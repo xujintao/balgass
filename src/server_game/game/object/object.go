@@ -489,6 +489,7 @@ type Objecter interface {
 	Process1000ms()
 	SpawnPosition()
 	Die(*Object)
+	MonsterDieGetExperience(*Object)
 	MonsterDieRecoverHP()
 	Regen()
 	GetChangeUp() int

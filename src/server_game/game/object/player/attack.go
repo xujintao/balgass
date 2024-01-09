@@ -1,8 +1,7 @@
 package player
 
 import (
-	"log"
-
+	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/object"
 )
 
@@ -78,11 +77,53 @@ func (p *Player) Die(obj *object.Object) {
 
 }
 
-func (p *Player) MonsterDieRecoverHP() {
-	log.Printf("MonsterDieRecoverHP %d\n", p.MonsterDieGetHP)
-	p.HP += int(float64(p.HP) * float64(p.MonsterDieGetHP) / 8)
-	if p.HP >= p.MaxHP {
-		p.HP = p.MaxHP
+func (p *Player) MonsterDieGetExperience(tobj *object.Object) {
+	level := p.Level + p.MasterLevel
+	targetLevel := (tobj.Level + 25) * tobj.Level / 3
+	if tobj.Level+10 < level {
+		targetLevel = targetLevel * (tobj.Level + 10) / level
 	}
-	p.pushHP(p.HP, p.SD)
+	if tobj.Level >= 65 {
+		targetLevel += (tobj.Level - 64) * tobj.Level / 4
+	}
+	addexp := 0
+	maxexp := 0
+	if targetLevel > 0 {
+		maxexp = targetLevel / 2
+	} else {
+		targetLevel = 0
+	}
+	if maxexp < 1 {
+		addexp = targetLevel
+	} else {
+		addexp = maxexp/2 + targetLevel
+	}
+	if addexp <= 0 {
+		return
+	}
+	if !p.LevelUp(addexp) {
+		reply := model.MsgExperienceReply{
+			Number:     tobj.Index,
+			Experience: addexp,
+			Damage:     0,
+		}
+		p.Push(&reply)
+	}
+}
+
+func (p *Player) MonsterDieRecoverHP() {
+	if p.MonsterDieGetHP != 0 {
+		p.HP += int(float64(p.MaxHP) * p.MonsterDieGetHP)
+		if p.HP >= p.MaxHP {
+			p.HP = p.MaxHP
+		}
+		p.pushHP(p.HP, p.SD)
+	}
+	if p.MonsterDieGetMP != 0 {
+		p.MP += int(float64(p.MaxMP) * p.MonsterDieGetMP)
+		if p.MP >= p.MaxMP {
+			p.MP = p.MaxMP
+		}
+		p.PushMPAG(p.MP, p.AG)
+	}
 }

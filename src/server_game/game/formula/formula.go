@@ -20,6 +20,7 @@ type formula struct {
 	StatSpec         *lua.LState
 	ItemCalc         *lua.LState
 	RegularSkillCacl *lua.LState
+	ExpCalc          *lua.LState
 }
 
 func (f *formula) init() {
@@ -35,6 +36,7 @@ func (f *formula) init() {
 	f.CalcCharacter = load("Character/CalcCharacter.lua")
 	f.StatSpec = load("Specialization/StatSpec.lua")
 	f.ItemCalc = load("Misc/ItemCalc.lua")
+	f.ExpCalc = load("Misc/ExpCalc.lua")
 	f.RegularSkillCacl = load("Skills/RegularSkillCalc.lua")
 }
 

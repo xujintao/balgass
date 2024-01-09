@@ -72,11 +72,12 @@ func (*Monster) GetImpaleSkillCalc() float64 {
 
 func (m *Monster) Die(obj *object.Object) {
 	// give experience
+	obj.MonsterDieGetExperience(&m.Object)
 	// give item
-	// obj recover hp/mp
+	// obj delay recover hp/mp/sd
 	obj.AddDelayMsg(2, 0, 2000, m.Index)
 }
 
-func (*Monster) MonsterDieRecoverHP() {
+func (*Monster) MonsterDieGetExperience(*object.Object) {}
 
-}
+func (*Monster) MonsterDieRecoverHP() {}

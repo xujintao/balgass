@@ -9,6 +9,7 @@ import (
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/class"
+	"github.com/xujintao/balgass/src/server_game/game/exp"
 	"github.com/xujintao/balgass/src/server_game/game/formula"
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/maps"
@@ -130,8 +131,7 @@ type Player struct {
 	Warehouse          item.Warehouse
 	WarehouseExpansion int
 	WarehouseMoney     int
-	// dbClass              uint8
-	ChangeUp int // 1=1转 2=2转 3=3转
+	ChangeUp           int // 1=1转 2=2转 3=3转
 	// PKCount                    int
 	PKLevel int
 	Pet     *item.Item
@@ -185,31 +185,31 @@ type Player struct {
 	// skillStrengthenHellFire2Count int
 	// skillStrengthenHellFire2Time  time.Time
 	// reqWarehouseOpen              int
-	IncreaseAttackMin             int // 增加最小攻击(套装+洞装+大师技能)
-	IncreaseAttackMax             int // 增加最大攻击(套装+洞装+大师技能)
-	IncreaseMagicAttack           int // 增加魔攻(套装+洞装+大师技能)
-	IncreaseSkillAttack           int // 增加技能攻击(套装+卓越+大师技能)
-	SetAddDamage                  int // 增加伤害
-	CriticalAttackRate            int // 幸运一击概率
-	CriticalAttackDamage          int // 幸运一击伤害
-	ExcellentAttackRate           int // 卓越一击概率
-	ExcellentAttackDamage         int // 卓越一击伤害
-	MonsterDieGetHP               int // 杀怪回生(套装+卓越+大师技能)
-	MonsterDieGetMP               int // 杀怪回蓝(套装+卓越+大师技能)
-	MonsterDieGetMoney            int // 杀怪加钱(卓越)
-	ArmorReduceDamage             int // 防具减少伤害(卓越+洞装)
-	WingIncreaseDamage            int // 翅膀增加伤害
-	WingReduceDamage              int // 翅膀减少伤害
-	HelperReduceDamage            int // 天使减少伤害
-	PetIncreaseDamage             int // pet增加伤害
-	PetReduceDamage               int // pet减少伤害
-	ArmorReflectDamage            int // 防具反射伤害(卓越+洞装)
-	DoubleDamageRate              int // 双倍伤害(套装+大师技能)
-	IgnoreDefenseRate             int // 无视防御(套装+翅膀+大师技能)
-	ReturnDamage                  int // 反弹伤害(翅膀+大师技能)
-	RecoverMaxHP                  int // 恢复最大生命(翅膀+大师技能)
-	RecoverMaxMP                  int // 恢复最大魔法(翅膀+大师技能)
-	IncreaseTwoHandWeaponDamage   int // 增加双手武器伤害
+	IncreaseAttackMin             int     // 增加最小攻击(套装+洞装+大师技能)
+	IncreaseAttackMax             int     // 增加最大攻击(套装+洞装+大师技能)
+	IncreaseMagicAttack           int     // 增加魔攻(套装+洞装+大师技能)
+	IncreaseSkillAttack           int     // 增加技能攻击(套装+卓越+大师技能)
+	SetAddDamage                  int     // 增加伤害
+	CriticalAttackRate            int     // 幸运一击概率
+	CriticalAttackDamage          int     // 幸运一击伤害
+	ExcellentAttackRate           int     // 卓越一击概率
+	ExcellentAttackDamage         int     // 卓越一击伤害
+	MonsterDieGetHP               float64 // 杀怪回生(套装+卓越+大师技能)
+	MonsterDieGetMP               float64 // 杀怪回蓝(套装+卓越+大师技能)
+	MonsterDieGetMoney            int     // 杀怪加钱(卓越)
+	ArmorReduceDamage             int     // 防具减少伤害(卓越+洞装)
+	WingIncreaseDamage            int     // 翅膀增加伤害
+	WingReduceDamage              int     // 翅膀减少伤害
+	HelperReduceDamage            int     // 天使减少伤害
+	PetIncreaseDamage             int     // pet增加伤害
+	PetReduceDamage               int     // pet减少伤害
+	ArmorReflectDamage            int     // 防具反射伤害(卓越+洞装)
+	DoubleDamageRate              int     // 双倍伤害(套装+大师技能)
+	IgnoreDefenseRate             int     // 无视防御(套装+翅膀+大师技能)
+	ReturnDamage                  int     // 反弹伤害(翅膀+大师技能)
+	RecoverMaxHP                  int     // 恢复最大生命(翅膀+大师技能)
+	RecoverMaxMP                  int     // 恢复最大魔法(翅膀+大师技能)
+	IncreaseTwoHandWeaponDamage   int     // 增加双手武器伤害
 	item380Effect                 item.Item380Effect
 	setFull                       bool
 	KnightGladiatorCalcSkillBonus float64
@@ -1131,10 +1131,10 @@ func (p *Player) calc() {
 				p.magicSpeed += 7
 			}
 			if it.ExcellentAttackHP {
-				p.MonsterDieGetHP++
+				p.MonsterDieGetHP += 1.0 / 8
 			}
 			if it.ExcellentAttackMP {
-				p.MonsterDieGetMP++
+				p.MonsterDieGetMP += 1.0 / 8
 			}
 			if it.ExcellentDefenseHP {
 				p.MaxHP += p.MaxHP * 4 / 100
@@ -2507,4 +2507,68 @@ func (p *Player) MapMove(msg *model.MsgMapMove) {
 			p.Push(&reply)
 		}
 	})
+}
+
+func (p *Player) LevelUp(addexp int) bool {
+	switch p.ChangeUp {
+	case 0, 1:
+		p.Experience += addexp
+		levelUpExp := exp.ExperienceTable[p.Level]
+		if p.Experience < levelUpExp {
+			return false
+		}
+		p.Experience = levelUpExp
+		p.Level++
+		switch class.Class(p.Class) {
+		case class.Magumsa,
+			class.DarkLord,
+			class.RageFighter,
+			class.GrowLancer:
+			p.LevelPoint += conf.CommonServer.GameServerInfo.LevelPoint7
+		default:
+			p.LevelPoint += conf.CommonServer.GameServerInfo.LevelPoint5
+		}
+
+	case 2:
+		p.MasterExperience += addexp
+		levelUpExp := exp.MasterExperienceTable[p.MasterLevel]
+		if p.MasterExperience < levelUpExp {
+			return false
+		}
+		p.MasterExperience = levelUpExp
+		p.MasterLevel++
+		p.MasterPoint += conf.Common.General.MasterPointPerLevel
+	}
+	p.calc()
+	p.HP = p.MaxHP
+	p.SD = p.MaxSD
+	p.MP = p.MaxMP
+	p.AG = p.MaxAG
+	p.pushHP(p.HP, p.SD)
+	p.PushMPAG(p.MP, p.AG)
+	switch p.ChangeUp {
+	case 0, 1:
+		reply := model.MsgLevelUpReply{
+			Level:      p.Level,
+			LevelPoint: p.LevelPoint,
+			MaxHP:      p.MaxHP,
+			MaxMP:      p.MaxMP,
+			MaxSD:      p.MaxSD,
+			MaxAG:      p.MaxAG,
+		}
+		p.Push(&reply)
+	case 2:
+		reply := model.MsgMasterLevelUpReply{
+			MasterLevel:         p.MasterLevel,
+			MasterPointPerLevel: conf.Common.General.MasterPointPerLevel,
+			MasterPoint:         p.MasterPoint,
+			MaxMasterLevel:      conf.Common.General.MaxLevelMaster,
+			MaxHP:               p.MaxHP,
+			MaxMP:               p.MaxMP,
+			MaxSD:               p.MaxSD,
+			MaxAG:               p.MaxAG,
+		}
+		p.Push(&reply)
+	}
+	return true
 }

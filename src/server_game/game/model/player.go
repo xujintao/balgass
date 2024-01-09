@@ -1009,6 +1009,22 @@ func (msg *MsgMapMoveReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgExperienceReply struct {
+	Number     int
+	Experience int
+	Damage     int
+}
+
+func (msg *MsgExperienceReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Number))
+	bw.WriteByte(0) // padding
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Experience>>16))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Experience))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Damage))
+	return bw.Bytes(), nil
+}
+
 type MsgMuBot struct {
 	Data [257]byte
 }
@@ -1966,6 +1982,26 @@ func (msg *MsgReloadCharacterReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgLevelUpReply struct {
+	Level      int
+	LevelPoint int
+	MaxHP      int
+	MaxMP      int
+	MaxSD      int
+	MaxAG      int
+}
+
+func (msg *MsgLevelUpReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Level))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.LevelPoint))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxHP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxMP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxSD))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxAG))
+	return bw.Bytes(), nil
+}
+
 // pack(1)
 type MsgItemListReply struct {
 	Items []*item.Item
@@ -2224,6 +2260,30 @@ func (msg *MsgMasterDataReply) Marshal() ([]byte, error) {
 	binary.Write(&bw, binary.BigEndian, uint64(msg.MasterExperience))
 	binary.Write(&bw, binary.BigEndian, uint64(msg.MasterNextExperience))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MasterPoint))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxHP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxMP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxSD))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxAG))
+	return bw.Bytes(), nil
+}
+
+type MsgMasterLevelUpReply struct {
+	MasterLevel         int
+	MasterPointPerLevel int
+	MasterPoint         int
+	MaxMasterLevel      int
+	MaxHP               int
+	MaxMP               int
+	MaxSD               int
+	MaxAG               int
+}
+
+func (msg *MsgMasterLevelUpReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MasterLevel))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MasterPointPerLevel))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MasterPoint))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxMasterLevel))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxHP))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxMP))
 	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxSD))
