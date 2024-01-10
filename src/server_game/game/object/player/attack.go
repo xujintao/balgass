@@ -1,6 +1,8 @@
 package player
 
 import (
+	"github.com/xujintao/balgass/src/server_game/game/exp"
+	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/model"
 	"github.com/xujintao/balgass/src/server_game/game/object"
 )
@@ -101,6 +103,16 @@ func (p *Player) MonsterDieGetExperience(tobj *object.Object) {
 	if addexp <= 0 {
 		return
 	}
+	var mapBonus float64
+	var baseBonus float64
+	if !p.isMasterLevel() {
+		mapBonus = maps.MapManager.GetExpBonus(p.MapNumber)
+		baseBonus = exp.ExpManager.Normal
+	} else {
+		mapBonus = maps.MapManager.GetMasterExpBonus(p.MapNumber)
+		baseBonus = exp.ExpManager.Master
+	}
+	addexp = int(float64(addexp) * (1 + mapBonus) * baseBonus)
 	if !p.LevelUp(addexp) {
 		reply := model.MsgExperienceReply{
 			Number:     tobj.Index,

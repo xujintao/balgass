@@ -1459,6 +1459,10 @@ func (p *Player) GetMasterLevel() int {
 	return p.MasterLevel
 }
 
+func (p *Player) isMasterLevel() bool {
+	return p.ChangeUp >= 2
+}
+
 func (p *Player) GetSkillMPAG(s *skill.Skill) (int, int) {
 	return s.ManaUsage, s.BPUsage
 }
@@ -2510,8 +2514,7 @@ func (p *Player) MapMove(msg *model.MsgMapMove) {
 }
 
 func (p *Player) LevelUp(addexp int) bool {
-	switch p.ChangeUp {
-	case 0, 1:
+	if !p.isMasterLevel() {
 		p.Experience += addexp
 		levelUpExp := exp.ExperienceTable[p.Level]
 		if p.Experience < levelUpExp {
@@ -2528,8 +2531,7 @@ func (p *Player) LevelUp(addexp int) bool {
 		default:
 			p.LevelPoint += conf.CommonServer.GameServerInfo.LevelPoint5
 		}
-
-	case 2:
+	} else {
 		p.MasterExperience += addexp
 		levelUpExp := exp.MasterExperienceTable[p.MasterLevel]
 		if p.MasterExperience < levelUpExp {
@@ -2546,8 +2548,7 @@ func (p *Player) LevelUp(addexp int) bool {
 	p.AG = p.MaxAG
 	p.pushHP(p.HP, p.SD)
 	p.PushMPAG(p.MP, p.AG)
-	switch p.ChangeUp {
-	case 0, 1:
+	if !p.isMasterLevel() {
 		reply := model.MsgLevelUpReply{
 			Level:      p.Level,
 			LevelPoint: p.LevelPoint,
@@ -2557,7 +2558,7 @@ func (p *Player) LevelUp(addexp int) bool {
 			MaxAG:      p.MaxAG,
 		}
 		p.Push(&reply)
-	case 2:
+	} else {
 		reply := model.MsgMasterLevelUpReply{
 			MasterLevel:         p.MasterLevel,
 			MasterPointPerLevel: conf.Common.General.MasterPointPerLevel,

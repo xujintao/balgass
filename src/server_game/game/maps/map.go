@@ -72,6 +72,33 @@ func init() {
 		m.init(number, file)
 		MapManager[v.Number] = &m
 	}
+
+	// MapAttribute was generated 2024-01-10 18:37:20 by https://xml-to-go.github.io/ in Ukraine.
+	type MapAttribute struct {
+		XMLName xml.Name `xml:"MapAttribute"`
+		Text    string   `xml:",chardata"`
+		Config  struct {
+			Text string `xml:",chardata"`
+			Map  []struct {
+				Text              string  `xml:",chardata"`
+				Number            int     `xml:"Number,attr"`
+				PvPConfig         bool    `xml:"PvPConfig,attr"`
+				ItemDropRateBonus float64 `xml:"ItemDropRateBonus,attr"`
+				ExpBonus          float64 `xml:"ExpBonus,attr"`
+				MasterExpBonus    float64 `xml:"MasterExpBonus,attr"`
+				VipLevel          bool    `xml:"VipLevel,attr"`
+				PkLevelIncrease   bool    `xml:"PkLevelIncrease,attr"`
+				RegenOnSamePlace  bool    `xml:"RegenOnSamePlace,attr"`
+				BlockEntry        bool    `xml:"BlockEntry,attr"`
+			} `xml:"Map"`
+		} `xml:"Config"`
+	}
+	var mapAttribute MapAttribute
+	conf.XML(conf.PathCommon, "IGC_MapAttribute.xml", &mapAttribute)
+	for _, v := range mapAttribute.Config.Map {
+		MapManager[v.Number].expBonus = v.ExpBonus
+		MapManager[v.Number].masterExpBonus = v.MasterExpBonus
+	}
 }
 
 type Rect struct {
@@ -139,17 +166,27 @@ func (m mapManager) ProcessWeather(sender sender) {
 	}
 }
 
+func (m mapManager) GetExpBonus(number int) float64 {
+	return m[number].expBonus
+}
+
+func (m mapManager) GetMasterExpBonus(number int) float64 {
+	return m[number].masterExpBonus
+}
+
 type _map struct {
-	number    int
-	file      string
-	width     int
-	height    int
-	buf       []byte
-	pots      []*Pot
-	regenRect *Rect
-	inventory []*mapItem
-	cnt       int
-	weather   int
+	number         int
+	file           string
+	width          int
+	height         int
+	buf            []byte
+	pots           []*Pot
+	regenRect      *Rect
+	inventory      []*mapItem
+	cnt            int
+	weather        int
+	expBonus       float64
+	masterExpBonus float64
 }
 
 func (m *_map) init(number int, file string) {
