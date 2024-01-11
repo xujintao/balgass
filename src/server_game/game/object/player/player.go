@@ -78,53 +78,52 @@ func newPlayer(conn object.Conn, actioner object.Actioner) *object.Object {
 
 type Player struct {
 	object.Object
-	offline              bool
-	conn                 object.Conn
-	msgChan              chan any
-	cancel               context.CancelFunc
-	actioner             object.Actioner
-	AccountID            int
-	AccountName          string
-	AccountPassword      string
-	CharacterID          int
-	AuthLevel            int
-	Experience           int
-	NextExperience       int
-	LevelPoint           int
-	MasterExperience     int
-	MasterNextExperience int
-	MasterLevel          int
-	MasterPoint          int
-	MasterPointUsed      int
-	FruitPoint           int
-	Money                int
-	Strength             int
-	Dexterity            int
-	Vitality             int
-	Energy               int
-	Leadership           int
-	AddStrength          int
-	AddDexterity         int
-	AddVitality          int
-	AddEnergy            int
-	AddLeadership        int
-	autoRecoverHPTick    int
-	autoRecoverMPTick    int
-	autoRecoverSDTime    time.Time
-	delayRecoverHP       int
-	delayRecoverHPMax    int
-	delayRecoverSD       int
-	delayRecoverSDMax    int
-	RecoverHP            int // 恢复生命(翅膀+项链+大师技能)
-	magic                int
-	magicAttackMin       int // 魔攻min
-	magicAttackMax       int // 魔攻max
-	curse                int
-	curseAttackMin       int // 诅咒min
-	curseAttackMax       int // 诅咒max
-	attackRatePVP        int
-	defenseRatePVP       int
-	magicSpeed           int // 魔攻速度
+	offline           bool
+	conn              object.Conn
+	msgChan           chan any
+	cancel            context.CancelFunc
+	actioner          object.Actioner
+	AccountID         int
+	AccountName       string
+	AccountPassword   string
+	CharacterID       int
+	AuthLevel         int
+	Experience        int
+	NextExperience    int
+	LevelPoint        int
+	MasterExperience  int
+	MasterLevel       int
+	MasterPoint       int
+	MasterPointUsed   int
+	FruitPoint        int
+	Money             int
+	Strength          int
+	Dexterity         int
+	Vitality          int
+	Energy            int
+	Leadership        int
+	AddStrength       int
+	AddDexterity      int
+	AddVitality       int
+	AddEnergy         int
+	AddLeadership     int
+	autoRecoverHPTick int
+	autoRecoverMPTick int
+	autoRecoverSDTime time.Time
+	delayRecoverHP    int
+	delayRecoverHPMax int
+	delayRecoverSD    int
+	delayRecoverSDMax int
+	RecoverHP         int // 恢复生命(翅膀+项链+大师技能)
+	magic             int
+	magicAttackMin    int // 魔攻min
+	magicAttackMax    int // 魔攻max
+	curse             int
+	curseAttackMin    int // 诅咒min
+	curseAttackMax    int // 诅咒max
+	attackRatePVP     int
+	defenseRatePVP    int
+	magicSpeed        int // 魔攻速度
 	// curseSpell           int
 	Inventory          item.Inventory
 	InventoryExpansion int
@@ -692,7 +691,6 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.MasterLevel = c.MasterLevel
 	p.MasterPoint = c.MasterPoint
 	p.MasterExperience = c.MasterExperience
-	p.MasterNextExperience = 100000
 	p.HP = c.HP
 	p.MP = c.MP
 	p.Skills = c.Skills
@@ -714,6 +712,15 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Live = true
 	p.State = 1
 
+	experience := p.Experience
+	if p.isMasterLevel() {
+		experience = p.MasterExperience
+	}
+	nextExperience := exp.ExperienceTable[p.Level]
+	if p.isMasterLevel() {
+		experience = exp.MasterExperienceTable[p.MasterLevel]
+	}
+
 	// p.Push(&model.MsgResetGameReply{})
 	// reply
 	p.Push(&model.MsgLoadCharacterReply{
@@ -721,8 +728,8 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		Y:                  p.Y,
 		MapNumber:          p.MapNumber,
 		Dir:                p.Dir,
-		Experience:         p.Experience,
-		NextExperience:     p.Experience + 100,
+		Experience:         experience,
+		NextExperience:     nextExperience,
 		LevelPoint:         p.LevelPoint,
 		Strength:           p.Strength,
 		Dexterity:          p.Dexterity,
@@ -749,7 +756,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Push(&model.MsgMasterDataReply{
 		MasterLevel:          p.MasterLevel,
 		MasterExperience:     p.MasterExperience,
-		MasterNextExperience: p.MasterNextExperience,
+		MasterNextExperience: exp.MasterExperienceTable[p.MasterLevel],
 		MasterPoint:          p.MasterPoint,
 	})
 	p.pushSkillList()
