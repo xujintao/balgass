@@ -475,6 +475,7 @@ type Objecter interface {
 	DeleteCharacter(*model.MsgDeleteCharacter)
 	CheckCharacter(*model.MsgCheckCharacter)
 	LoadCharacter(*model.MsgLoadCharacter)
+	AddLevelPoint(*model.MsgAddLevelPoint)
 	MapDataLoadingOK(*model.MsgMapDataLoadingOK)
 	DefineMuKey(*model.MsgDefineMuKey)
 	DefineMuBot(*model.MsgDefineMuBot)

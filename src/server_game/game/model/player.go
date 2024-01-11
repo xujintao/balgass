@@ -2002,6 +2002,42 @@ func (msg *MsgLevelUpReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgAddLevelPoint struct {
+	// 0=Strength
+	// 1=Dexterity
+	// 2=Vitality
+	// 3=Energy
+	// 4=Leadership
+	Type int
+}
+
+func (msg *MsgAddLevelPoint) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	Type, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Type = int(Type)
+	return nil
+}
+
+type MsgAddLevelPointReply struct {
+	Type    int
+	MaxHPMP int
+	MaxSD   int
+	MaxAG   int
+}
+
+func (msg *MsgAddLevelPointReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Type))
+	bw.WriteByte(0) // padding
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxHPMP))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxSD))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.MaxAG))
+	return bw.Bytes(), nil
+}
+
 // pack(1)
 type MsgItemListReply struct {
 	Items []*item.Item

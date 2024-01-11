@@ -779,6 +779,31 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// }()
 }
 
+func (p *Player) AddLevelPoint(msg *model.MsgAddLevelPoint) {
+	reply := model.MsgAddLevelPointReply{}
+	defer p.Push(&reply)
+	if p.LevelPoint < 1 {
+		return
+	}
+	switch msg.Type {
+	case 0:
+		p.Strength++
+	case 1:
+		p.Dexterity++
+	case 2:
+		p.Vitality++
+	case 3:
+		p.Energy++
+	case 4:
+		p.Leadership++
+	default:
+		return
+	}
+	p.LevelPoint--
+	p.calc()
+	reply.Type = 0x10 + msg.Type
+}
+
 func (p *Player) calc() {
 	leftHand := p.Inventory.Items[0]
 	rightHand := p.Inventory.Items[1]
