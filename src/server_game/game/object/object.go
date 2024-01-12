@@ -555,17 +555,13 @@ type Object struct {
 	Level                     int
 	HP                        int // HP
 	MaxHP                     int // MaxHP
-	AddHP                     int
 	ScriptMaxHP               int
 	MP                        int // MP
 	MaxMP                     int // MaxMP
-	AddMP                     int
 	SD                        int // SD
 	MaxSD                     int
-	AddSD                     int
 	AG                        int // AG
 	MaxAG                     int
-	AddAG                     int
 	TargetNumber              int
 	AttackMin                 int // 物攻min
 	AttackMax                 int // 物攻max

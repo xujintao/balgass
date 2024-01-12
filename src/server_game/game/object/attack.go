@@ -217,7 +217,7 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 	attackEffectReply := model.MsgAttackEffectReply{
 		Target:       tobj.Index,
 		HP:           tobj.HP,
-		MaxHP:        tobj.MaxHP + tobj.AddHP,
+		MaxHP:        tobj.MaxHP,
 		Level:        tobj.Level,
 		IceEffect:    0,
 		PoisonEffect: 0,
@@ -227,7 +227,7 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 	// Push attack hp reply
 	attackHPReply := model.MsgAttackHPReply{
 		Target: tobj.Index,
-		MaxHP:  tobj.MaxHP + tobj.AddHP,
+		MaxHP:  tobj.MaxHP,
 		HP:     tobj.HP,
 	}
 	tobj.PushViewport(&attackHPReply)

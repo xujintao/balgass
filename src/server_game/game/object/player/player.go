@@ -802,6 +802,8 @@ func (p *Player) AddLevelPoint(msg *model.MsgAddLevelPoint) {
 	p.LevelPoint--
 	p.calc()
 	reply.Type = 0x10 + msg.Type
+	reply.MaxSD = p.MaxSD
+	reply.MaxAG = p.MaxAG
 }
 
 func (p *Player) calc() {
@@ -1355,8 +1357,8 @@ func (p *Player) calc() {
 		AttackSpeed: p.AttackSpeed,
 		MagicSpeed:  p.magicSpeed,
 	})
-	p.pushMaxHP(p.MaxHP+p.AddHP, p.MaxSD+p.AddSD)
-	p.pushMaxMP(p.MaxMP+p.AddMP, p.MaxAG+p.AddAG)
+	p.pushMaxHP(p.MaxHP, p.MaxSD)
+	p.pushMaxMP(p.MaxMP, p.MaxAG)
 	p.pushHP(p.HP, p.SD)
 	p.PushMPAG(p.MP, p.AG)
 }
@@ -1637,8 +1639,8 @@ func (player *Player) Calc380Item() {
 		}
 		item.Item380Manager.Apply380ItemEffect(wItem.Section, wItem.Index, &player.item380Effect)
 	}
-	player.AddHP += player.item380Effect.Item380EffectIncMaxHP
-	player.AddSD += player.item380Effect.Item380EffectIncMaxSD
+	player.MaxHP += player.item380Effect.Item380EffectIncMaxHP
+	player.MaxSD += player.item380Effect.Item380EffectIncMaxSD
 }
 
 func (p *Player) pushSkillList() {
@@ -1708,9 +1710,7 @@ func (p *Player) Process1000ms() {
 
 func (p *Player) recoverHPSD() {
 	change := false
-	totalHP := p.MaxHP + p.AddHP
-	totalSD := p.MaxSD + p.AddSD
-	if p.HP < totalHP {
+	if p.HP < p.MaxHP {
 		// auto recover HP
 		p.autoRecoverHPTick++
 		if p.autoRecoverHPTick >= 7 {
@@ -1728,12 +1728,12 @@ func (p *Player) recoverHPSD() {
 			percent += 0.0
 			if percent != 0.0 {
 				hp := p.HP
-				hp += int(float64(totalHP) * percent / 100)
+				hp += int(float64(p.MaxHP) * percent / 100)
 				switch {
 				case hp < 1:
 					hp = 1
-				case hp > totalHP:
-					hp = totalHP
+				case hp > p.MaxHP:
+					hp = p.MaxHP
 				}
 				p.HP = hp
 				change = true
@@ -1744,22 +1744,22 @@ func (p *Player) recoverHPSD() {
 	}
 
 	// auto recover SD
-	if p.SD < totalSD {
+	if p.SD < p.MaxSD {
 		if conf.CommonServer.GameServerInfo.SDAutoRefillSafeZoneEnable {
 			attr := maps.MapManager.GetMapAttr(p.MapNumber, p.X, p.Y)
 			if attr&1 == 1 {
 				now := time.Now()
 				if now.After(p.autoRecoverSDTime.Add(time.Second * 1)) {
 					p.autoRecoverSDTime = now
-					expressionA := totalSD / 30
-					expressionB := 100 // 380 option
+					expressionA := float64(p.MaxSD) / 30
+					expressionB := 100.0 // 380 option
 					sd := p.SD
-					sd += expressionA * expressionB / 100 / 25
+					sd += int(expressionA * expressionB / 100)
 					switch {
 					case sd < 1:
 						sd = 1
-					case sd > totalSD:
-						sd = totalSD
+					case sd > p.MaxSD:
+						sd = p.MaxSD
 					}
 					p.SD = sd
 					change = true
@@ -1777,13 +1777,13 @@ func (p *Player) recoverHPSD() {
 			hp = p.delayRecoverHP
 			p.delayRecoverHP = 0
 		}
-		if p.HP < totalHP {
+		if p.HP < p.MaxHP {
 			hp += p.HP
 			switch {
 			case hp < 1:
 				hp = 1
-			case hp > totalHP:
-				hp = totalHP
+			case hp > p.MaxHP:
+				hp = p.MaxHP
 			}
 			p.HP = hp
 			change = true
@@ -1799,10 +1799,10 @@ func (p *Player) recoverHPSD() {
 			sd = p.delayRecoverSD
 			p.delayRecoverSD = 0
 		}
-		if p.SD < totalSD {
+		if p.SD < p.MaxSD {
 			sd += p.SD
-			if sd > totalSD {
-				sd = totalSD
+			if sd > p.MaxSD {
+				sd = p.MaxSD
 			}
 			p.SD = sd
 			change = true
@@ -1821,25 +1821,23 @@ func (p *Player) recoverMPAG() {
 	}
 	p.autoRecoverMPTick = 0
 	change := false
-	totalMP := p.MaxMP + p.AddMP
-	if p.MP < totalMP {
+	if p.MP < p.MaxMP {
 		// base recover MP
 		percent := 3.7
 		// master skill recover MP
 		percent += 0
 		mp := p.MP
-		mp += int(float64(totalMP) * percent / 100)
+		mp += int(float64(p.MaxMP) * percent / 100)
 		switch {
 		case mp < 1:
 			mp = 1
-		case mp > totalMP:
-			mp = totalMP
+		case mp > p.MaxMP:
+			mp = p.MaxMP
 		}
 		p.MP = mp
 		change = true
 	}
-	totalAG := p.MaxAG + p.AddAG
-	if p.AG < totalAG {
+	if p.AG < p.MaxAG {
 		// base recover AG
 		percent := 3.0
 		// master skill recover AG
@@ -1848,12 +1846,12 @@ func (p *Player) recoverMPAG() {
 			percent = 5
 		}
 		ag := p.AG
-		ag += 5 + int(float64(totalAG)*percent/100)
+		ag += 5 + int(float64(p.MaxAG)*percent/100)
 		switch {
 		case ag < 1:
 			ag = 1
-		case ag > totalAG:
-			ag = totalAG
+		case ag > p.MaxAG:
+			ag = p.MaxAG
 		}
 		p.AG = ag
 		change = true
@@ -1864,10 +1862,10 @@ func (p *Player) recoverMPAG() {
 }
 
 func (p *Player) Regen() {
-	p.HP = p.MaxHP + p.AddHP
-	p.SD = p.MaxSD + p.AddSD
-	p.MP = p.MaxMP + p.AddMP
-	p.AG = p.MaxAG + p.AddAG
+	p.HP = p.MaxHP
+	p.SD = p.MaxSD
+	p.MP = p.MaxMP
+	p.AG = p.MaxAG
 	reply := model.MsgReloadCharacterReply{
 		X:          p.X,
 		Y:          p.Y,
@@ -2259,7 +2257,7 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 			addRate += 5
 		}
 		hp := 0
-		hp += (p.MaxHP + p.AddHP) * addRate / 100
+		hp += p.MaxHP * addRate / 100
 		// defer recover hp
 		p.delayRecoverHP = hp
 		p.delayRecoverHPMax = hp
@@ -2275,13 +2273,12 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 		case item.Code(14, 6):
 			addRate = 40
 		}
-		totalMP := p.MaxMP + p.AddMP
-		mp := totalMP * addRate / 100
+		mp := p.MaxMP * addRate / 100
 		// recover mp immediately
-		if p.MP < totalMP {
+		if p.MP < p.MaxMP {
 			p.MP += mp
-			if p.MP > totalMP {
-				p.MP = totalMP
+			if p.MP > p.MaxMP {
+				p.MP = p.MaxMP
 			}
 			p.PushMPAG(p.MP, p.AG)
 		}
@@ -2304,7 +2301,7 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 		case item.Code(14, 37):
 			addRate = 45
 		}
-		sd := (p.MaxSD + p.AddSD) * addRate / 100
+		sd := p.MaxSD * addRate / 100
 		p.delayRecoverSD = sd
 		p.delayRecoverSDMax = sd
 		// decrease durability
@@ -2322,8 +2319,8 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 			addHPRate = 45
 			addSDRate = 20
 		}
-		hp := (p.MaxHP + p.AddHP) * addHPRate / 100
-		sd := (p.MaxSD + p.AddSD) * addSDRate / 100
+		hp := p.MaxHP * addHPRate / 100
+		sd := p.MaxSD * addSDRate / 100
 		// defer recover hp sd
 		p.delayRecoverHP = hp
 		p.delayRecoverHPMax = hp
