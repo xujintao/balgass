@@ -123,6 +123,8 @@ func (p *Player) MonsterDieGetExperience(tobj *object.Object) {
 	}
 }
 
+func (p *Player) MonsterDieGiveItem(int) {}
+
 func (p *Player) MonsterDieRecoverHP() {
 	if p.MonsterDieGetHP != 0 {
 		p.HP += int(float64(p.MaxHP) * p.MonsterDieGetHP)

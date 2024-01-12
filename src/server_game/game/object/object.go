@@ -491,6 +491,7 @@ type Objecter interface {
 	SpawnPosition()
 	Die(*Object)
 	MonsterDieGetExperience(*Object)
+	MonsterDieGiveItem(int)
 	MonsterDieRecoverHP()
 	Regen()
 	GetChangeUp() int
@@ -955,6 +956,7 @@ func (obj *Object) processDelayMsg() {
 		switch msg.code {
 		case 0: // give experience
 		case 1: // give item
+			obj.MonsterDieGiveItem(msg.sender)
 		case 2: // recover send hp/mp
 			obj.MonsterDieRecoverHP()
 		}
