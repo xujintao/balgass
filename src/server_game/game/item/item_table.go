@@ -2,6 +2,7 @@ package item
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/class"
@@ -63,6 +64,67 @@ func (table itemTable) GetItemBase(i, j int) (*ItemBase, error) {
 
 func (table itemTable) GetItemBaseMust(i, j int) *ItemBase {
 	return table[i][j]
+}
+
+func (table itemTable) GetItemLevel(i, j, level int) int {
+	itBase := table[i][j]
+	if !itBase.Drop {
+		return -1
+	}
+	itLevel := itBase.DropLevel
+	if i == 13 {
+		itLevel = itBase.ReqLevel
+	}
+	// Orb of Summoning 召唤之石
+	if i == 12 && j == 11 {
+		if rand.Intn(10) == 0 {
+			itLevel = level / 10
+			if itLevel > 0 {
+				itLevel--
+			}
+			if itLevel > 6 {
+				itLevel = 6
+			}
+			return itLevel
+		}
+		return -1
+	}
+	// Transformation Ring 变身戒指
+	if i == 13 && j == 10 {
+		if rand.Intn(10) == 0 {
+			itLevel = level / 10
+			if itLevel > 0 {
+				itLevel--
+			}
+			if itLevel > 5 {
+				itLevel = 5
+			}
+			return itLevel
+		}
+		return -1
+	}
+	if i == 14 {
+		if j == 15 { // Zen 金
+			return -1
+		}
+		if itLevel >= level-8 && itLevel <= level {
+			return 0
+		}
+		return -1
+	}
+	if itLevel >= level-18 && itLevel <= level {
+		if itBase.KindA == KindACommon {
+			return 0
+		}
+		itLevel = (level - itLevel) / 3
+		if itBase.KindA == KindAPendant || itBase.KindA == KindARing {
+			if itLevel > 4 {
+				itLevel = 4
+			}
+		}
+		return itLevel
+	}
+	return -1
 }
 
 const MaxItemIndex int = 512

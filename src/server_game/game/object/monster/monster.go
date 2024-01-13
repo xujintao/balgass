@@ -18,18 +18,8 @@ import (
 )
 
 func SpawnMonster() {
-	// MonsterList was generated 2023-07-17 11:34:17 by https://xml-to-go.github.io/ in Ukraine.
-	type MonsterList struct {
-		XMLName  xml.Name         `xml:"MonsterList"`
-		Text     string           `xml:",chardata"`
-		Monsters []*MonsterConfig `xml:"Monster"`
-	}
-	var monsterList MonsterList
-	conf.XML(conf.PathCommon, "Monsters/IGC_MonsterList.xml", &monsterList)
-	MonsterTable = make(monsterTable)
-	for _, monster := range monsterList.Monsters {
-		MonsterTable[monster.Index] = monster
-	}
+	MonsterTable.init()
+	DropManager.init()
 
 	// MonsterSpawn was generated 2023-07-17 16:05:41 by https://xml-to-go.github.io/ in Ukraine.
 	type MonsterSpawn struct {
@@ -139,10 +129,26 @@ var MonsterTable monsterTable
 
 type monsterTable map[int]*MonsterConfig
 
+func (m *monsterTable) init() {
+	// MonsterList was generated 2023-07-17 11:34:17 by https://xml-to-go.github.io/ in Ukraine.
+	type MonsterList struct {
+		XMLName  xml.Name         `xml:"MonsterList"`
+		Text     string           `xml:",chardata"`
+		Monsters []*MonsterConfig `xml:"Monster"`
+	}
+	var monsterList MonsterList
+	conf.XML(conf.PathCommon, "Monsters/IGC_MonsterList.xml", &monsterList)
+	tm := make(monsterTable)
+	for _, monster := range monsterList.Monsters {
+		tm[monster.Index] = monster
+	}
+	*m = tm
+}
+
 type MonsterConfig struct {
 	Text                   string `xml:",chardata"`
 	Index                  int    `xml:"Index,attr"`
-	ExpType                string `xml:"ExpType,attr"`
+	ExpType                int    `xml:"ExpType,attr"`
 	Level                  int    `xml:"Level,attr"`
 	HP                     int    `xml:"HP,attr"`
 	MP                     int    `xml:"MP,attr"`
@@ -162,8 +168,8 @@ type MonsterConfig struct {
 	Attribute              int    `xml:"Attribute,attr"`
 	ItemDropRate           int    `xml:"ItemDropRate,attr"`
 	MoneyDropRate          int    `xml:"MoneyDropRate,attr"`
-	MaxItemLevel           string `xml:"MaxItemLevel,attr"`
-	MonsterSkill           string `xml:"MonsterSkill,attr"`
+	MaxItemLevel           int    `xml:"MaxItemLevel,attr"`
+	MonsterSkill           int    `xml:"MonsterSkill,attr"`
 	IceRes                 int    `xml:"IceRes,attr"`
 	PoisonRes              int    `xml:"PoisonRes,attr"`
 	LightRes               int    `xml:"LightRes,attr"`
