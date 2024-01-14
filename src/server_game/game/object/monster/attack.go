@@ -5,6 +5,8 @@ import (
 	"math/rand"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
+	"github.com/xujintao/balgass/src/server_game/game/item"
+	"github.com/xujintao/balgass/src/server_game/game/maps"
 	"github.com/xujintao/balgass/src/server_game/game/object"
 )
 
@@ -88,14 +90,18 @@ func (m *Monster) Die(obj *object.Object) {
 func (*Monster) MonsterDieGetExperience(*object.Object) {}
 
 func (m *Monster) MonsterDieGiveItem(id int) {
-	excellentDropRate := conf.CommonServer.GameServerInfo.ItemExcelDropPercent
+	dropExcellentItem := false
+	dropPlainItem := false
+	dropMoney := false
 	// roll excellent item
+	excellentDropRate := conf.CommonServer.GameServerInfo.ItemExcelDropPercent
 	if rand.Intn(10000) < excellentDropRate {
 		// excellent item
+		dropExcellentItem = true
 		log.Printf("MonsterDieGiveItem %s\n", "excellent item")
 	} else {
-		plainDropRate := conf.CommonServer.GameServerInfo.ItemDropPercent
 		// roll normal item
+		plainDropRate := conf.CommonServer.GameServerInfo.ItemDropPercent
 		itemDropRate := m.ItemDropRate
 		if itemDropRate < 1 {
 			itemDropRate = 1
@@ -103,6 +109,7 @@ func (m *Monster) MonsterDieGiveItem(id int) {
 		if rand.Intn(itemDropRate) < plainDropRate {
 			// plain item
 			log.Printf("MonsterDieGiveItem %s\n", "plain item")
+			dropPlainItem = true
 		} else {
 			// roll money
 			moneyDropRate := m.MoneyDropRate
@@ -112,7 +119,59 @@ func (m *Monster) MonsterDieGiveItem(id int) {
 			if rand.Intn(moneyDropRate) < 10 {
 				// money
 				log.Printf("MonsterDieGiveItem %s\n", "money")
+				dropMoney = true
 			}
+		}
+	}
+
+	if dropExcellentItem || dropPlainItem || dropMoney {
+		var it *item.Item
+		if dropExcellentItem || dropPlainItem {
+			switch {
+			case dropExcellentItem:
+				// it = DropManager.DropExcellentItem(m.Level - 25)
+				// // option
+				// it.Calc()
+			case dropPlainItem:
+				it = DropManager.DropItem(m.Level)
+			}
+			if it == nil {
+				return
+			}
+			it.Durability = it.MaxDurability
+			if it.Type == item.TypeRegular {
+				skillRate := 0
+				luckyRate := 0
+				switch {
+				case dropExcellentItem:
+					skillRate = conf.CommonServer.GameServerInfo.ItemExcelSkillDropPercent
+					luckyRate = conf.CommonServer.GameServerInfo.ItemExcelSkillDropPercent
+				case dropPlainItem:
+					skillRate = conf.CommonServer.GameServerInfo.ItemSkillDropPercent
+					luckyRate = conf.CommonServer.GameServerInfo.ItemLuckyDropPercent
+				}
+				if rand.Intn(100) < skillRate {
+					it.Skill = true
+				}
+				if rand.Intn(100) < luckyRate {
+					it.Lucky = true
+				}
+				addtionRate := rand.Intn(3)
+				switch addtionRate {
+				case 0:
+					it.Addition = 0
+				case 1:
+					it.Addition = 4
+				case 2:
+					it.Addition = 8
+				}
+			}
+		} else if dropMoney {
+			it = item.NewItem(14, 15)
+			it.Durability = 2000
+		}
+		if it != nil {
+			maps.MapManager.PushItem(m.MapNumber, m.X, m.Y, it.Copy())
 		}
 	}
 }

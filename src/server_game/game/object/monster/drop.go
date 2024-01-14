@@ -9,24 +9,31 @@ import (
 )
 
 const MaxMagicBookCount int = 100
+const MaxNormalItemCount int = 1000
 
 var DropManager dropManager
 
 type itemDropRate struct {
-	MagicBook       float64
-	JewelOfBless    float64
-	JewelOfSoul     float64
-	JewelOfLife     float64
-	JewelOfCreation float64
-	JewelOfChaos    float64
-	NormalItem      float64
+	magicBook       int
+	jewelOfBless    int
+	jewelOfSoul     int
+	jewelOfLife     int
+	jewelOfCreation int
+	jewelOfChaos    int
+	normalItem      int
 }
 
 type dropManager struct {
-	itemDropRate []*itemDropRate
-	magicBook    [][]*item.Item
-	jewel        [][]*item.Item
-	normalItem   [][]*item.Item
+	itemDropRate    []*itemDropRate
+	magicBook       [][]*item.Item
+	jewel           [][]*item.Item
+	jewelOfBless    *item.Item
+	jewelOfSoul     *item.Item
+	jewelOfChaos    *item.Item
+	jewelOfLife     *item.Item
+	jewelOfCreation *item.Item
+	normalItem      [][]*item.Item
+	excellentItem   [][]*item.Item
 }
 
 func (m *dropManager) init() {
@@ -52,13 +59,13 @@ func (m *dropManager) init() {
 	m.itemDropRate = make([]*itemDropRate, levelCount)
 	for _, lm := range dropRate.Monster {
 		m.itemDropRate[lm.Level] = &itemDropRate{
-			MagicBook:       lm.MagicBook,
-			JewelOfBless:    lm.JewelOfBless,
-			JewelOfSoul:     lm.JewelOfSoul,
-			JewelOfLife:     lm.JewelOfLife,
-			JewelOfCreation: lm.JewelOfCreation,
-			JewelOfChaos:    lm.JewelOfChaos,
-			NormalItem:      lm.Items,
+			magicBook:       int(lm.MagicBook * 10000000),
+			jewelOfBless:    int(lm.JewelOfBless * 10000000),
+			jewelOfSoul:     int(lm.JewelOfSoul * 10000000),
+			jewelOfLife:     int(lm.JewelOfLife * 10000000),
+			jewelOfCreation: int(lm.JewelOfCreation * 10000000),
+			jewelOfChaos:    int(lm.JewelOfChaos * 10000000),
+			normalItem:      int(lm.Items * 10000000),
 		}
 	}
 
@@ -66,6 +73,7 @@ func (m *dropManager) init() {
 	m.magicBook = make([][]*item.Item, levelCount)
 	m.jewel = make([][]*item.Item, levelCount)
 	m.normalItem = make([][]*item.Item, levelCount)
+	m.excellentItem = make([][]*item.Item, levelCount)
 	for _, monster := range MonsterTable {
 		// make magic book
 		m.makeMagicBook(monster.Level)
@@ -74,6 +82,17 @@ func (m *dropManager) init() {
 	}
 	// make jewel
 	m.makeJewel()
+
+	// for level, its := range m.magicBook {
+	// 	for _, it := range its {
+	// 		log.Printf("[level]%d [magicbook]%s\n", level, it.Annotation)
+	// 	}
+	// }
+	// for level, its := range m.normalItem {
+	// 	for _, it := range its {
+	// 		log.Printf("[level]%d [magicbook]%s [excellent]%t\n", level, it.Annotation, it.excellent)
+	// 	}
+	// }
 }
 
 func (m *dropManager) makeMagicBook(monsterLevel int) {
@@ -93,7 +112,7 @@ func (m *dropManager) makeMagicBook(monsterLevel int) {
 	count := 200
 	for count > 0 {
 		if len(m.magicBook[monsterLevel]) >= MaxMagicBookCount {
-			break
+			return
 		}
 		n := rand.Intn(len(books))
 		b := books[n]
@@ -113,13 +132,105 @@ func (m *dropManager) makeMagicBook(monsterLevel int) {
 }
 
 func (m *dropManager) makeNormalItem(monsterLevel, maxItemLevel int) {
-
+	for section, its := range item.ItemTable {
+		for index := range its {
+			if len(m.normalItem[monsterLevel]) >= MaxNormalItemCount {
+				return
+			}
+			level := item.ItemTable.GetItemLevel(section, index, monsterLevel)
+			if level >= 0 {
+				if level > maxItemLevel {
+					level = maxItemLevel
+				}
+				it := item.NewItem(section, index)
+				it.Level = level
+				it.Calc()
+				it.Durability = it.MaxDurability
+				excellent := false
+				if it.Type == item.TypeRegular {
+					excellent = true
+				}
+				m.normalItem[monsterLevel] = append(m.normalItem[monsterLevel], it)
+				if excellent {
+					m.excellentItem[monsterLevel] = append(m.excellentItem[monsterLevel], it)
+				}
+			}
+		}
+	}
 }
 
 func (m *dropManager) makeJewel() {
-
+	type jewel struct {
+		section int
+		index   int
+		it      *item.Item
+	}
+	jewels := []*jewel{
+		{14, 13, nil}, // Jewel of Bless
+		{14, 14, nil}, // Jewel of Soul
+		{12, 15, nil}, // Jewel of Chaos
+		{14, 16, nil}, // Jewel of Life
+		{14, 22, nil}, // Jewel of Creation
+	}
+	for _, jewel := range jewels {
+		it := item.NewItem(jewel.section, jewel.index)
+		it.Level = 0
+		it.Calc()
+		it.Durability = it.MaxDurability
+		jewel.it = it
+	}
+	m.jewelOfBless = jewels[0].it
+	m.jewelOfSoul = jewels[1].it
+	m.jewelOfChaos = jewels[2].it
+	m.jewelOfLife = jewels[3].it
+	m.jewelOfCreation = jewels[4].it
 }
 
-func (m *dropManager) DropMagicBook() {
+func (m *dropManager) DropItem(monsterLevel int) *item.Item {
+	number := rand.Intn(10000000)
+	dropRate := m.itemDropRate[monsterLevel]
+	book := dropRate.magicBook
+	bless := dropRate.jewelOfBless + book
+	soul := dropRate.jewelOfSoul + bless
+	life := dropRate.jewelOfLife + soul
+	creation := dropRate.jewelOfCreation + life
+	chaos := dropRate.jewelOfChaos + creation
+	items := dropRate.normalItem + chaos
 
+	switch {
+	case number >= 0 && number < book:
+		its := m.magicBook[monsterLevel]
+		n := len(its)
+		if n <= 0 {
+			return nil
+		}
+		return its[rand.Intn(n)]
+	case number >= book && number < bless:
+		return m.jewelOfBless
+	case number >= bless && number < soul:
+		return m.jewelOfSoul
+	case number >= soul && number < life:
+		return m.jewelOfLife
+	case number >= life && number < creation:
+		return m.jewelOfCreation
+	case number >= creation && number < chaos:
+		return m.jewelOfCreation
+	case number >= chaos && number < items:
+		its := m.normalItem[monsterLevel]
+		n := len(its)
+		if n <= 0 {
+			return nil
+		}
+		return its[rand.Intn(n)]
+	}
+	return nil
+}
+
+func (m *dropManager) DropExcellentItem(monsterLevel int) *item.Item {
+	its := m.excellentItem[monsterLevel]
+	n := len(its)
+	if n <= 0 {
+		return nil
+	}
+	return its[rand.Intn(n)]
 }

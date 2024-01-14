@@ -75,6 +75,10 @@ func (table itemTable) GetItemLevel(i, j, level int) int {
 	if i == 13 {
 		itLevel = itBase.ReqLevel
 	}
+	if itLevel == 0 {
+		return -1
+	}
+
 	// Orb of Summoning 召唤之石
 	if i == 12 && j == 11 {
 		if rand.Intn(10) == 0 {
