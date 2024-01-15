@@ -388,11 +388,11 @@ type configCommonServer struct {
 		PostCommandMoneyRequire        int     `ini:"PostCommandMoneyReq"`
 		QuestNPCTeleportTime           int     `ini:"QuestNPCTeleportTime"`
 		ItemDropPercent                int     `ini:"ItemDropPer"`
+		ExcelItemDropPercent           int     `ini:"ExcItemDropPer"`
 		ItemLuckyDropPercent           int     `ini:"ItemLuckDrop"`
-		ItemExcelDropPercent           int     `ini:"ExcItemDrop"`
 		ItemSkillDropPercent           int     `ini:"ItemSkillDrop"`
-		ItemLuckyExcelDropPercent      int     `ini:"ExcItemLuckDrop"`
-		ItemExcelSkillDropPercent      int     `ini:"ExcItemSkillDrop"`
+		ExcelItemLuckyDropPercent      int     `ini:"ExcItemLuckDrop"`
+		ExcelItemSkillDropPercent      int     `ini:"ExcItemSkillDrop"`
 		ZenDurationTime                int     `ini:"ZenDurationTime"`
 		ItemDurationTime               int     `ini:"ItemDisapearTime"`
 		LootingTime                    int     `ini:"LootingTime"`

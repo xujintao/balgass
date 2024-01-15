@@ -94,7 +94,7 @@ func (m *Monster) MonsterDieGiveItem(id int) {
 	dropPlainItem := false
 	dropMoney := false
 	// roll excellent item
-	excellentDropRate := conf.CommonServer.GameServerInfo.ItemExcelDropPercent
+	excellentDropRate := conf.CommonServer.GameServerInfo.ExcelItemDropPercent
 	if rand.Intn(10000) < excellentDropRate {
 		// excellent item
 		dropExcellentItem = true
@@ -129,14 +129,51 @@ func (m *Monster) MonsterDieGiveItem(id int) {
 		if dropExcellentItem || dropPlainItem {
 			switch {
 			case dropExcellentItem:
-				// it = DropManager.DropExcellentItem(m.Level - 25)
-				// // option
-				// it.Calc()
+				it = DropManager.DropExcellentItem(m.Level - 25)
+				if it == nil {
+					return
+				}
+				drops := item.ExcellentDropManager.DropRegularExcellent(int(it.KindA))
+				for _, v := range drops {
+					switch it.KindA {
+					case 1, 2:
+						switch v {
+						case 1:
+							it.ExcellentAttackMP = true
+						case 2:
+							it.ExcellentAttackHP = true
+						case 4:
+							it.ExcellentAttackSpeed = true
+						case 8:
+							it.ExcellentAttackPercent = true
+						case 16:
+							it.ExcellentAttackLevel = true
+						case 32:
+							it.ExcellentAttackRate = true
+						}
+					case 3, 4:
+						switch v {
+						case 1:
+							it.ExcellentDefenseMoney = true
+						case 2:
+							it.ExcellentDefenseRate = true
+						case 4:
+							it.ExcellentDefenseReflect = true
+						case 8:
+							it.ExcellentDefenseReduce = true
+						case 16:
+							it.ExcellentDefenseMP = true
+						case 32:
+							it.ExcellentDefenseHP = true
+						}
+					}
+				}
+				it.Calc()
 			case dropPlainItem:
 				it = DropManager.DropItem(m.Level)
-			}
-			if it == nil {
-				return
+				if it == nil {
+					return
+				}
 			}
 			it.Durability = it.MaxDurability
 			if it.Type == item.TypeRegular {
@@ -144,11 +181,17 @@ func (m *Monster) MonsterDieGiveItem(id int) {
 				luckyRate := 0
 				switch {
 				case dropExcellentItem:
-					skillRate = conf.CommonServer.GameServerInfo.ItemExcelSkillDropPercent
-					luckyRate = conf.CommonServer.GameServerInfo.ItemExcelSkillDropPercent
+					skillRate = conf.CommonServer.GameServerInfo.ExcelItemSkillDropPercent
+					luckyRate = conf.CommonServer.GameServerInfo.ExcelItemSkillDropPercent
 				case dropPlainItem:
 					skillRate = conf.CommonServer.GameServerInfo.ItemSkillDropPercent
 					luckyRate = conf.CommonServer.GameServerInfo.ItemLuckyDropPercent
+				}
+				if !(it.KindA == item.KindAWeapon || it.KindB == item.KindBShield) {
+					skillRate = 0
+				}
+				if !(it.KindA == item.KindAWeapon || it.KindA == item.KindAArmor) {
+					luckyRate = 0
 				}
 				if rand.Intn(100) < skillRate {
 					it.Skill = true

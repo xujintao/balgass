@@ -1,125 +1,128 @@
 package item
 
 import (
+	"encoding/xml"
 	"math/rand"
 
 	"github.com/xujintao/balgass/src/server_game/conf"
 )
 
-const (
-	maxExcelCommon = 20
-	maxExcelWing   = 40
-)
-
-type ExcelCommonType int
-
-const (
-	ExcelCommonIncMPMonsterDie ExcelCommonType = iota
-	ExcelCommonIncHPMonsterDie
-	ExcelCommonIncAttackSpeed
-	ExcelCommonIncAttackPercent
-	ExcelCommonIncAttackLevel
-	ExcelCommonIncExcelDamage
-	ExcelCommonIncZen
-	ExcelCommonIncDefenseRate
-	ExcelCommonReflectDamage
-	ExcelCommonDecDamage
-	ExcelCommonIncMaxMP
-	ExcelCommonIncMaxHP
-)
-
-type ExcelCommon struct {
-	ID         ExcelCommonType `xml:"ID,attr"`
-	Number     int             `xml:"Number,attr"`
-	Value      int             `xml:"Value,attr"`
-	ItemKindA1 itemKindA       `xml:"ItemKindA_1,attr"`
-	ItemKindA2 itemKindA       `xml:"ItemKindA_2,attr"`
-	ItemKindA3 itemKindA       `xml:"ItemKindA_3,attr"`
-	Rate       int             `xml:"Rate,attr"`
-	Name       string          `xml:"Name,attr"`
-}
-
-type ExcelWing struct {
-	ID        int       `xml:"ID,attr"`
-	Number    int       `xml:"Number,attr"`
-	Value     int       `xml:"Value,attr"`
-	ItemKindA itemKindA `xml:"ItemKindA,attr"`
-	ItemKindB itemKindB `xml:"ItemKindB,attr"`
-	Name      string    `xml:"Name,attr"`
-}
-
-// (13,171) ~ (13,176)
-// discard new pendant and ring
-type ExcelAccessory struct{}
-
-type excelManager struct {
-	Common struct {
-		Options []*ExcelCommon `xml:"Option"`
-	} `xml:"Common"`
-	Wings struct {
-		Options []*ExcelWing `xml:"Option"`
-	} `xml:"Wings"`
-	OptionDropRate struct {
-		Common struct {
-			One   int `xml:"One,attr"`
-			Two   int `xml:"Two,attr"`
-			Three int `xml:"Three,attr"`
-			Four  int `xml:"Four,attr"`
-			Five  int `xml:"Five,attr"`
-			Six   int `xml:"Six,attr"`
-		} `xml:"Common"`
-	} `xml:"OptionDropRate"`
-}
-
-func (o *excelManager) CommonRand(kindA itemKindA) (excel int) {
-	var options [6]int
-	var optionRates [6]int
-	index := 0
-	for _, v := range o.Common.Options {
-		if v.ItemKindA1 == kindA || v.ItemKindA2 == kindA || v.ItemKindA3 == kindA {
-			options[index] = v.Number
-			optionRates[index] = v.Rate
-			index++
-		}
-	}
-	optionNum := dropRate(o.OptionDropRate.Common.One,
-		o.OptionDropRate.Common.Two,
-		o.OptionDropRate.Common.Three,
-		o.OptionDropRate.Common.Four,
-		o.OptionDropRate.Common.Five,
-		o.OptionDropRate.Common.Six) + 1
-	for optionNum > 0 {
-		i := rand.Int() % index
-		option := options[i]
-		// optionRate := optionRates[i]
-		if excel&option != option {
-			excel |= option
-			optionNum--
-		}
-	}
-	return
-}
-
-func (o *excelManager) CommonEffect(id int) {}
-
-// func (o *excelManager) WingRand() {}
-
-// func (o *excelManager) WingEffect(id int) {}
-
-var ExcelManager excelManager
-
 func init() {
-	conf.XML(conf.PathCommon, "Items/IGC_ExcellentOptions.xml", &ExcelManager)
+	ExcellentDropManager.init()
 }
 
-func dropRate(rates ...int) int {
+var ExcellentDropManager excellentDropManager
+
+type excellentDropManager struct {
+	regulars map[int][]int
+	wings    map[int][]int
+	multiple []int
+}
+
+func (m *excellentDropManager) init() {
+	// ExcellentOptions was generated 2024-01-15 17:48:16 by https://xml-to-go.github.io/ in Ukraine.
+	type ExcellentOptions struct {
+		XMLName xml.Name `xml:"ExcellentOptions"`
+		Text    string   `xml:",chardata"`
+		Common  struct {
+			Text   string `xml:",chardata"`
+			Option []struct {
+				Text       string `xml:",chardata"`
+				ID         int    `xml:"ID,attr"`
+				Number     int    `xml:"Number,attr"`
+				Value      int    `xml:"Value,attr"`
+				ItemKindA1 int    `xml:"ItemKindA_1,attr"`
+				ItemKindA2 int    `xml:"ItemKindA_2,attr"`
+				ItemKindA3 int    `xml:"ItemKindA_3,attr"`
+				Rate       int    `xml:"Rate,attr"`
+				Name       string `xml:"Name,attr"`
+			} `xml:"Option"`
+		} `xml:"Common"`
+		Wings struct {
+			Text   string `xml:",chardata"`
+			Option []struct {
+				Text      string `xml:",chardata"`
+				ID        int    `xml:"ID,attr"`
+				Number    int    `xml:"Number,attr"`
+				Value     int    `xml:"Value,attr"`
+				ItemKindA int    `xml:"ItemKindA,attr"`
+				ItemKindB int    `xml:"ItemKindB,attr"`
+				Name      string `xml:"Name,attr"`
+			} `xml:"Option"`
+		} `xml:"Wings"`
+		OptionDropRate struct {
+			Text   string `xml:",chardata"`
+			Common struct {
+				Text  string `xml:",chardata"`
+				One   int    `xml:"One,attr"`
+				Two   int    `xml:"Two,attr"`
+				Three int    `xml:"Three,attr"`
+				Four  int    `xml:"Four,attr"`
+				Five  int    `xml:"Five,attr"`
+				Six   int    `xml:"Six,attr"`
+			} `xml:"Common"`
+		} `xml:"OptionDropRate"`
+	}
+	var excellentOptions ExcellentOptions
+	conf.XML(conf.PathCommon, "Items/IGC_ExcellentOptions.xml", &excellentOptions)
+	// regular
+	m.regulars = make(map[int][]int)
+	for _, v := range excellentOptions.Common.Option {
+		m.regulars[v.ItemKindA1] = append(m.regulars[v.ItemKindA1], v.Number)
+		m.regulars[v.ItemKindA2] = append(m.regulars[v.ItemKindA2], v.Number)
+	}
+	// wing
+	m.wings = make(map[int][]int)
+	for _, v := range excellentOptions.Wings.Option {
+		m.wings[v.ItemKindB] = append(m.wings[v.ItemKindB], v.Number)
+	}
+	// multiple
+	rate := excellentOptions.OptionDropRate.Common
+	m.multiple = append(m.multiple,
+		rate.One,
+		rate.Two,
+		rate.Three,
+		rate.Four,
+		rate.Five,
+		rate.Six,
+	)
+}
+
+func (m *excellentDropManager) dropExcellentCount() int {
 	num := rand.Intn(10000)
 	offset := 0
-	for i, v := range rates {
+	for i, v := range m.multiple {
 		if num >= offset && num < v+offset {
 			return i
 		}
 		offset += v
 	}
 	return 0
+}
+
+func (m *excellentDropManager) DropRegularExcellent(kindA int) []int {
+	pool, ok := m.regulars[kindA]
+	if !ok {
+		return nil
+	}
+	n := len(pool)
+	if n <= 0 {
+		return nil
+	}
+	cnt := m.dropExcellentCount()
+	s1 := make(map[int]struct{})
+	for cnt > 0 {
+		i := rand.Intn(n)
+		v := pool[i]
+		_, ok := s1[v]
+		if !ok {
+			s1[v] = struct{}{}
+			cnt--
+		}
+	}
+	var s2 []int
+	for k := range s1 {
+		s2 = append(s2, k)
+	}
+	return s2
 }

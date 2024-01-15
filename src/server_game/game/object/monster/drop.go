@@ -186,8 +186,17 @@ func (m *dropManager) makeJewel() {
 	m.jewelOfCreation = jewels[4].it
 }
 
+func (m *dropManager) isValid(monsterLevel int) bool {
+	if monsterLevel < 0 || monsterLevel >= len(m.itemDropRate) {
+		return false
+	}
+	return true
+}
+
 func (m *dropManager) DropItem(monsterLevel int) *item.Item {
-	number := rand.Intn(10000000)
+	if !m.isValid(monsterLevel) {
+		return nil
+	}
 	dropRate := m.itemDropRate[monsterLevel]
 	book := dropRate.magicBook
 	bless := dropRate.jewelOfBless + book
@@ -196,7 +205,7 @@ func (m *dropManager) DropItem(monsterLevel int) *item.Item {
 	creation := dropRate.jewelOfCreation + life
 	chaos := dropRate.jewelOfChaos + creation
 	items := dropRate.normalItem + chaos
-
+	number := rand.Intn(10000000)
 	switch {
 	case number >= 0 && number < book:
 		its := m.magicBook[monsterLevel]
@@ -214,7 +223,7 @@ func (m *dropManager) DropItem(monsterLevel int) *item.Item {
 	case number >= life && number < creation:
 		return m.jewelOfCreation
 	case number >= creation && number < chaos:
-		return m.jewelOfCreation
+		return m.jewelOfChaos
 	case number >= chaos && number < items:
 		its := m.normalItem[monsterLevel]
 		n := len(its)
@@ -227,6 +236,9 @@ func (m *dropManager) DropItem(monsterLevel int) *item.Item {
 }
 
 func (m *dropManager) DropExcellentItem(monsterLevel int) *item.Item {
+	if !m.isValid(monsterLevel) {
+		return nil
+	}
 	its := m.excellentItem[monsterLevel]
 	n := len(its)
 	if n <= 0 {
