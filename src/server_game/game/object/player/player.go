@@ -195,7 +195,7 @@ type Player struct {
 	ExcellentAttackDamage         int     // 卓越一击伤害
 	MonsterDieGetHP               float64 // 杀怪回生(套装+卓越+大师技能)
 	MonsterDieGetMP               float64 // 杀怪回蓝(套装+卓越+大师技能)
-	MonsterDieGetMoney            int     // 杀怪加钱(卓越)
+	MonsterDieGetMoney            float64 // 杀怪加钱(卓越)
 	ArmorReduceDamage             int     // 防具减少伤害(卓越+洞装)
 	WingIncreaseDamage            int     // 翅膀增加伤害
 	WingReduceDamage              int     // 翅膀减少伤害
@@ -1186,7 +1186,7 @@ func (p *Player) calc() {
 				p.DefenseRate += p.DefenseRate * 10 / 100
 			}
 			if it.ExcellentDefenseMoney {
-				p.MonsterDieGetMoney += 30
+				p.MonsterDieGetMoney += float64(30) / 100
 			}
 			if it.ExcellentWing2Speed {
 				p.AttackSpeed += 5

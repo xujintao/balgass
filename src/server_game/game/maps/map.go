@@ -11,6 +11,27 @@ import (
 )
 
 func init() {
+	MapManager.init()
+}
+
+type sender interface {
+	SendWeather(int, int)
+}
+
+var MapManager mapManager
+
+type zenDropSystem struct {
+	Enable                 bool
+	MultiplyByMonsterLevel bool
+	MultiplyChanceRate     int
+}
+
+type mapManager struct {
+	maps [MAX_MAP_NUMBER]*_map
+	zen  zenDropSystem
+}
+
+func (m *mapManager) init() {
 	// MapList was generated 2023-07-12 18:10:44 by https://xml-to-go.github.io/ in Ukraine.
 	type MapList struct {
 		XMLName     xml.Name `xml:"MapList"`
@@ -45,32 +66,12 @@ func init() {
 	var mapList MapList
 	conf.XML(conf.PathCommon, "IGC_MapList.xml", &mapList)
 
-	rects := map[int]*Rect{
-		Lorencia:    {130, 116, 151, 137},
-		Dungeon:     {106, 236, 112, 243},
-		Devias:      {197, 35, 218, 50},
-		Noria:       {174, 101, 187, 125},
-		LostTower:   {201, 70, 213, 81},
-		Exile:       {89, 135, 90, 136},
-		Arena:       {89, 135, 90, 136},
-		Atlans:      {14, 11, 27, 23},
-		Tarkan:      {187, 54, 203, 69},
-		Aida:        {82, 8, 87, 14},
-		Crywolf:     {133, 41, 140, 44},
-		Elbeland:    {40, 214, 43, 224},
-		LorenMarket: {126, 142, 129, 148},
-	}
-	// MapManager = make(mapManager)
 	for _, v := range mapList.DefaultMaps.Map {
 		number := v.Number
 		file := path.Join(conf.PathCommon, "MapTerrains", v.File)
-		rect, ok := rects[number]
-		if !ok {
-			rect = rects[Lorencia]
-		}
-		m := _map{regenRect: rect}
-		m.init(number, file)
-		MapManager[v.Number] = &m
+		mm := _map{}
+		mm.init(number, file)
+		m.maps[v.Number] = &mm
 	}
 
 	// MapAttribute was generated 2024-01-10 18:37:20 by https://xml-to-go.github.io/ in Ukraine.
@@ -96,82 +97,100 @@ func init() {
 	var mapAttribute MapAttribute
 	conf.XML(conf.PathCommon, "IGC_MapAttribute.xml", &mapAttribute)
 	for _, v := range mapAttribute.Config.Map {
-		MapManager[v.Number].expBonus = v.ExpBonus
-		MapManager[v.Number].masterExpBonus = v.MasterExpBonus
+		m.maps[v.Number].expBonus = v.ExpBonus
+		m.maps[v.Number].masterExpBonus = v.MasterExpBonus
+	}
+
+	// ZenDropSystem was generated 2024-01-16 16:31:26 by https://xml-to-go.github.io/ in Ukraine.
+	type ZenDropSystem struct {
+		XMLName                xml.Name `xml:"ZenDropSystem"`
+		Text                   string   `xml:",chardata"`
+		Enable                 bool     `xml:"Enable,attr"`
+		MultiplyByMonsterLevel bool     `xml:"MultiplyByMonsterLevel,attr"`
+		MultiplyChanceRate     int      `xml:"MultiplyChanceRate,attr"`
+		Map                    []struct {
+			Text          string `xml:",chardata"`
+			Number        int    `xml:"Number,attr"`
+			MinMoneyCount int    `xml:"MinMoneyCount,attr"`
+			MaxMoneyCount int    `xml:"MaxMoneyCount,attr"`
+		} `xml:"Map"`
+	}
+	var zenDropSystem ZenDropSystem
+	conf.XML(conf.PathCommon, "IGC_ZenDrop.xml", &zenDropSystem)
+	m.zen.Enable = zenDropSystem.Enable
+	m.zen.MultiplyByMonsterLevel = zenDropSystem.MultiplyByMonsterLevel
+	m.zen.MultiplyChanceRate = zenDropSystem.MultiplyChanceRate
+	for _, v := range zenDropSystem.Map {
+		m.maps[v.Number].minMoney = v.MinMoneyCount
+		m.maps[v.Number].maxMoney = v.MaxMoneyCount
 	}
 }
 
-type Rect struct {
-	left   int
-	top    int
-	right  int
-	bottom int
-}
-
-type sender interface {
-	SendWeather(int, int)
-}
-
-var MapManager mapManager
-
-type mapManager [MAX_MAP_NUMBER]*_map
-
-func (m mapManager) GetMapPots(number int) []*Pot {
-	return m[number].getPots()
+func (m *mapManager) GetMapPots(number int) []*Pot {
+	return m.maps[number].getPots()
 }
 
 // bit0(1): 安全区标志
 // bit1(2): 被对象站立
 // bit2(4): 障碍物标志
 // bit3(8): ?
-func (m mapManager) GetMapAttr(number, x, y int) int {
-	return m[number].getAttr(x, y)
+func (m *mapManager) GetMapAttr(number, x, y int) int {
+	return m.maps[number].getAttr(x, y)
 }
 
-func (m mapManager) CheckMapAttrStand(number, x, y int) bool {
-	return m[number].checkAttrStand(x, y)
+func (m *mapManager) CheckMapAttrStand(number, x, y int) bool {
+	return m.maps[number].checkAttrStand(x, y)
 }
 
-func (m mapManager) SetMapAttrStand(number, x, y int) {
-	m[number].setAttrStand(x, y)
+func (m *mapManager) SetMapAttrStand(number, x, y int) {
+	m.maps[number].setAttrStand(x, y)
 }
 
-func (m mapManager) ClearMapAttrStand(number, x, y int) {
-	m[number].clearAttrStand(x, y)
+func (m *mapManager) ClearMapAttrStand(number, x, y int) {
+	m.maps[number].clearAttrStand(x, y)
 }
 
-func (m mapManager) GetMapRegenPos(number int) (int, int) {
-	return m[number].getRegenPos()
+func (m *mapManager) GetMapRandomPos(number, x1, y1, x2, y2 int) (int, int) {
+	return m.maps[number].getRandomPos(x1, y1, x2, y2)
 }
 
-func (m mapManager) GetMapRandomPos(number, x1, y1, x2, y2 int) (int, int) {
-	return m[number].getRandomPos(x1, y1, x2, y2)
+func (m *mapManager) CheckMapNoWall(number, x1, y1, x2, y2 int) bool {
+	return m.maps[number].checkNoWall(x1, y1, x2, y2)
 }
 
-func (m mapManager) CheckMapNoWall(number, x1, y1, x2, y2 int) bool {
-	return m[number].checkNoWall(x1, y1, x2, y2)
+func (m *mapManager) FindMapPath(number, x1, y1, x2, y2 int) (Path, bool) {
+	return m.maps[number].findPath(x1, y1, x2, y2)
 }
 
-func (m mapManager) FindMapPath(number, x1, y1, x2, y2 int) (Path, bool) {
-	return m[number].findPath(x1, y1, x2, y2)
+func (m *mapManager) GetMapWeather(number int) int {
+	return m.maps[number].getWeather()
 }
 
-func (m mapManager) GetMapWeather(number int) int {
-	return m[number].getWeather()
-}
-
-func (m mapManager) ProcessWeather(sender sender) {
-	for _, v := range m {
+func (m *mapManager) ProcessWeather(sender sender) {
+	for _, v := range m.maps {
 		v.processWeather(sender)
 	}
 }
 
-func (m mapManager) GetExpBonus(number int) float64 {
-	return m[number].expBonus
+func (m *mapManager) GetExpBonus(number int) float64 {
+	return m.maps[number].expBonus
 }
 
-func (m mapManager) GetMasterExpBonus(number int) float64 {
-	return m[number].masterExpBonus
+func (m *mapManager) GetMasterExpBonus(number int) float64 {
+	return m.maps[number].masterExpBonus
+}
+
+func (m *mapManager) GetZen(number, mLevel int) int {
+	if !m.zen.Enable {
+		return 0
+	}
+	money := m.maps[number].GetZen()
+	if m.zen.MultiplyByMonsterLevel {
+		if rand.Intn(10000) < m.zen.MultiplyChanceRate {
+			return money * mLevel
+		}
+	}
+	return money * 2
 }
 
 type _map struct {
@@ -181,12 +200,13 @@ type _map struct {
 	height         int
 	buf            []byte
 	pots           []*Pot
-	regenRect      *Rect
 	inventory      []*mapItem
 	cnt            int
 	weather        int
 	expBonus       float64
 	masterExpBonus float64
+	minMoney       int
+	maxMoney       int
 }
 
 func (m *_map) init(number int, file string) {
@@ -256,34 +276,6 @@ func (m *_map) clearAttrStand(x, y int) {
 	if m.buf[m.pos2index(x, y)]&2 != 0 {
 		m.buf[m.pos2index(x, y)] &^= 2
 	}
-}
-
-func (m *_map) getRegenPos() (int, int) {
-	left := m.regenRect.left
-	top := m.regenRect.top
-	right := m.regenRect.right
-	bottom := m.regenRect.bottom
-	for cnt := 50; cnt >= 0; cnt-- {
-		w := right - left
-		h := bottom - top
-		var x, y int
-		if w <= 0 {
-			x = left
-		} else {
-			x = left + rand.Intn(w)%w
-		}
-		if h <= 0 {
-			y = top
-		} else {
-			y = top + rand.Intn(h)%h
-		}
-		attr := m.getAttr(x, y)
-		if attr&4 == 0 && attr&8 == 0 {
-			return x, y
-		}
-	}
-	log.Printf("cannot find position [file]%s", m.file)
-	return left, top
 }
 
 func (m *_map) getRandomPos(x1, y1, x2, y2 int) (int, int) {
@@ -367,4 +359,12 @@ func (m *_map) processWeather(sender sender) {
 		m.weather = weather1<<4 | weather2
 		sender.SendWeather(m.number, m.weather)
 	}
+}
+
+func (m *_map) GetZen() int {
+	sub := m.maxMoney - m.minMoney
+	if sub < 0 {
+		return 0
+	}
+	return m.minMoney + rand.Intn(sub+1)
 }

@@ -67,6 +67,10 @@ func (p *Player) GetDoubleDamageRate() int {
 	return p.DoubleDamageRate
 }
 
+func (p *Player) GetMonsterDieGetMoney() float64 {
+	return p.MonsterDieGetMoney
+}
+
 func (p *Player) GetKnightGladiatorCalcSkillBonus() float64 {
 	return p.KnightGladiatorCalcSkillBonus
 }
@@ -123,7 +127,7 @@ func (p *Player) MonsterDieGetExperience(tobj *object.Object) {
 	}
 }
 
-func (p *Player) MonsterDieGiveItem(int) {}
+func (p *Player) MonsterDieDropItem(*object.Object) {}
 
 func (p *Player) MonsterDieRecoverHP() {
 	if p.MonsterDieGetHP != 0 {

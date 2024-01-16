@@ -70,6 +70,10 @@ func (m *Monster) GetDoubleDamageRate() int {
 	return 0
 }
 
+func (m *Monster) GetMonsterDieGetMoney() float64 {
+	return 0.0
+}
+
 func (*Monster) GetKnightGladiatorCalcSkillBonus() float64 {
 	return 1.0
 }
@@ -81,7 +85,7 @@ func (*Monster) GetImpaleSkillCalc() float64 {
 func (m *Monster) Die(obj *object.Object) {
 	// give experience
 	obj.MonsterDieGetExperience(&m.Object)
-	// give item
+	// drop item
 	m.AddDelayMsg(1, 0, 800, obj.Index)
 	// obj delay recover hp/mp/sd
 	obj.AddDelayMsg(2, 0, 2000, m.Index)
@@ -89,7 +93,7 @@ func (m *Monster) Die(obj *object.Object) {
 
 func (*Monster) MonsterDieGetExperience(*object.Object) {}
 
-func (m *Monster) MonsterDieGiveItem(id int) {
+func (m *Monster) MonsterDieDropItem(tobj *object.Object) {
 	dropExcellentItem := false
 	dropPlainItem := false
 	dropMoney := false
@@ -98,7 +102,7 @@ func (m *Monster) MonsterDieGiveItem(id int) {
 	if rand.Intn(10000) < excellentDropRate {
 		// excellent item
 		dropExcellentItem = true
-		log.Printf("MonsterDieGiveItem %s\n", "excellent item")
+		log.Printf("MonsterDieDropItem %s\n", "excellent item")
 	} else {
 		// roll normal item
 		plainDropRate := conf.CommonServer.GameServerInfo.ItemDropPercent
@@ -108,7 +112,7 @@ func (m *Monster) MonsterDieGiveItem(id int) {
 		}
 		if rand.Intn(itemDropRate) < plainDropRate {
 			// plain item
-			log.Printf("MonsterDieGiveItem %s\n", "plain item")
+			log.Printf("MonsterDieDropItem %s\n", "plain item")
 			dropPlainItem = true
 		} else {
 			// roll money
@@ -118,7 +122,7 @@ func (m *Monster) MonsterDieGiveItem(id int) {
 			}
 			if rand.Intn(moneyDropRate) < 10 {
 				// money
-				log.Printf("MonsterDieGiveItem %s\n", "money")
+				log.Printf("MonsterDieDropItem %s\n", "money")
 				dropMoney = true
 			}
 		}
@@ -211,7 +215,13 @@ func (m *Monster) MonsterDieGiveItem(id int) {
 			}
 		} else if dropMoney {
 			it = item.NewItem(14, 15)
-			it.Durability = 2000
+			money := maps.MapManager.GetZen(m.MapNumber, m.Level)
+			if money <= 0 {
+				return
+			}
+			money = int(float64(money) * conf.Common.General.ZenDropMultiplier)
+			money += int(float64(money) * tobj.GetMonsterDieGetMoney())
+			it.Durability = money
 		}
 		if it != nil {
 			maps.MapManager.PushItem(m.MapNumber, m.X, m.Y, it.Copy())

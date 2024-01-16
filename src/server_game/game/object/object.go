@@ -491,7 +491,7 @@ type Objecter interface {
 	SpawnPosition()
 	Die(*Object)
 	MonsterDieGetExperience(*Object)
-	MonsterDieGiveItem(int)
+	MonsterDieDropItem(*Object)
 	MonsterDieRecoverHP()
 	Regen()
 	GetChangeUp() int
@@ -522,6 +522,7 @@ type Objecter interface {
 	GetPetIncreaseDamage() int
 	GetPetReduceDamage() int
 	GetDoubleDamageRate() int
+	GetMonsterDieGetMoney() float64
 	GetKnightGladiatorCalcSkillBonus() float64
 	GetImpaleSkillCalc() float64
 }
@@ -956,7 +957,11 @@ func (obj *Object) processDelayMsg() {
 		switch msg.code {
 		case 0: // give experience
 		case 1: // give item
-			obj.MonsterDieGiveItem(msg.sender)
+			tobj := ObjectManager.objects[msg.sender]
+			if tobj == nil || !tobj.Live {
+				return
+			}
+			obj.MonsterDieDropItem(tobj)
 		case 2: // recover send hp/mp
 			obj.MonsterDieRecoverHP()
 		}

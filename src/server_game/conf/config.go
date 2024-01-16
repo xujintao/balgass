@@ -230,7 +230,7 @@ type configCommon struct {
 		MaxLevelMaster                int     `ini:"MaxMasterLevel"`
 		MasterPointPerLevel           int     `ini:"MasterPointPerLevel"`
 		MinMonsterLevelForMasterExp   int     `ini:"MonsterMinLevelForMLExp"`
-		ZenDropMultiplier             float32 `ini:"ZenDropMultipler"`
+		ZenDropMultiplier             float64 `ini:"ZenDropMultipler"`
 		EnableGuardSpeak              bool    `ini:"GuardSpeak"`
 		GuardSpeakChance              int     `ini:"GuardSpeakChance"`
 		GuardSpeakMsg                 string  `ini:"GuardSpeakMsg"`

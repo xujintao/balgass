@@ -13,30 +13,30 @@ type mapItem struct {
 	expiredTime time.Time
 }
 
-func (m mapManager) PushItem(number, x, y int, item *item.Item) bool {
-	return m[number].pushItem(x, y, item)
+func (m *mapManager) PushItem(number, x, y int, item *item.Item) bool {
+	return m.maps[number].pushItem(x, y, item)
 }
 
-func (m mapManager) PickItem(number, index int) *item.Item {
-	return m[number].pickItem(index)
+func (m *mapManager) PickItem(number, index int) *item.Item {
+	return m.maps[number].pickItem(index)
 }
 
-func (m mapManager) PopItem(number, index int) {
-	m[number].popItem(index)
+func (m *mapManager) PopItem(number, index int) {
+	m.maps[number].popItem(index)
 }
 
-func (m mapManager) ExpireItem(now time.Time) {
-	for _, v := range m {
+func (m *mapManager) ExpireItem(now time.Time) {
+	for _, v := range m.maps {
 		v.expireItem(now)
 	}
 }
 
-func (m mapManager) MapEachItem(number int, f func(item *item.Item, index, x, y int)) {
-	m[number].eachItem(f)
+func (m *mapManager) MapEachItem(number int, f func(item *item.Item, index, x, y int)) {
+	m.maps[number].eachItem(f)
 }
 
-func (m mapManager) MapItem(number, index int, f func(item *item.Item, index, x, y int)) {
-	m[number].item(index, f)
+func (m *mapManager) MapItem(number, index int, f func(item *item.Item, index, x, y int)) {
+	m.maps[number].item(index, f)
 }
 
 func (m *_map) pushItem(x, y int, item *item.Item) bool {
