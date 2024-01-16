@@ -66,7 +66,7 @@ func (table itemTable) GetItemBaseMust(i, j int) *ItemBase {
 	return table[i][j]
 }
 
-func (table itemTable) GetItemLevel(i, j, level int) int {
+func (table itemTable) GetItemLevel(i, j, mlevel int) int {
 	itBase := table[i][j]
 	if !itBase.Drop {
 		return -1
@@ -78,11 +78,10 @@ func (table itemTable) GetItemLevel(i, j, level int) int {
 	if itLevel == 0 {
 		return -1
 	}
-
 	// Orb of Summoning 召唤之石
 	if i == 12 && j == 11 {
 		if rand.Intn(10) == 0 {
-			itLevel = level / 10
+			itLevel = mlevel / 10
 			if itLevel > 0 {
 				itLevel--
 			}
@@ -96,7 +95,7 @@ func (table itemTable) GetItemLevel(i, j, level int) int {
 	// Transformation Ring 变身戒指
 	if i == 13 && j == 10 {
 		if rand.Intn(10) == 0 {
-			itLevel = level / 10
+			itLevel = mlevel / 10
 			if itLevel > 0 {
 				itLevel--
 			}
@@ -107,25 +106,24 @@ func (table itemTable) GetItemLevel(i, j, level int) int {
 		}
 		return -1
 	}
+	// Zen 金
 	if i == 14 {
-		if j == 15 { // Zen 金
+		if j == 15 {
 			return -1
 		}
-		if itLevel >= level-8 && itLevel <= level {
+		if itLevel >= mlevel-8 && itLevel <= mlevel {
 			return 0
 		}
 		return -1
 	}
-	if itLevel >= level-18 && itLevel <= level {
-		if itBase.KindA == KindACommon {
-			return 0
-		}
-		itLevel = (level - itLevel) / 3
-		if itBase.KindA == KindAPendant || itBase.KindA == KindARing {
-			if itLevel > 4 {
-				itLevel = 4
-			}
-		}
+	// pendant or ring or common
+	if itBase.KindA == KindAPendant ||
+		itBase.KindA == KindARing ||
+		itBase.KindA == KindACommon {
+		return 0
+	}
+	if itLevel >= mlevel-18 && itLevel <= mlevel {
+		itLevel = (mlevel - itLevel) / 3
 		return itLevel
 	}
 	return -1

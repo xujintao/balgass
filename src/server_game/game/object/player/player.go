@@ -1992,24 +1992,35 @@ func (p *Player) GetItem(msg *model.MsgGetItem) {
 			p.Push(&reply)
 		}
 	}()
-	item := maps.MapManager.PickItem(p.MapNumber, msg.Index)
-	if item == nil {
+	it2 := maps.MapManager.PickItem(p.MapNumber, msg.Index)
+	if it2 == nil {
 		return
 	}
-	position = p.Inventory.FindFreePositionForItem(item)
-	if position == -1 {
-		return
-	}
-	it = p.Inventory.Items[position]
-	if it == nil {
-		p.Inventory.GetItem(position, item)
-	} else {
-		it.Durability += item.Durability
-		itemDurChanged = true
+	switch it2.Code {
+	case item.Code(14, 15):
+		money := it2.Durability
+		if p.Money+money > object.MaxZen {
+			return
+		}
+		p.Money += money
+		reply.Money = p.Money
+		position = -2
+	default:
+		position = p.Inventory.FindFreePositionForItem(it2)
+		if position == -1 {
+			return
+		}
+		it = p.Inventory.Items[position]
+		if it == nil {
+			p.Inventory.GetItem(position, it2)
+		} else {
+			it.Durability += it2.Durability
+			itemDurChanged = true
+		}
 	}
 	maps.MapManager.PopItem(p.MapNumber, msg.Index)
 	reply.Result = position
-	reply.Item = item
+	reply.Item = it2
 }
 
 func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {

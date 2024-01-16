@@ -370,6 +370,7 @@ const (
 	// MaxResistanceType = 7
 	MaxViewPort      = 75
 	MaxArrayFrustrum = 4
+	MaxZen           = 2000000000
 )
 
 type EffectList struct {

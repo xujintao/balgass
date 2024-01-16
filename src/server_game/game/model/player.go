@@ -542,17 +542,22 @@ func (msg *MsgGetItem) Unmarshal(buf []byte) error {
 // pack(1)
 type MsgGetItemReply struct {
 	Result int // -1=failed -2=money 0~237=postion
+	Money  int
 	Item   *item.Item
 }
 
 func (msg *MsgGetItemReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	bw.WriteByte(byte(msg.Result))
-	itemFrame, err := msg.Item.Marshal()
-	if err != nil {
-		return nil, err
+	if msg.Money != 0 {
+		binary.Write(&bw, binary.BigEndian, uint32(msg.Money))
+	} else {
+		itemFrame, err := msg.Item.Marshal()
+		if err != nil {
+			return nil, err
+		}
+		bw.Write(itemFrame)
 	}
-	bw.Write(itemFrame)
 	return bw.Bytes(), nil
 }
 
