@@ -79,11 +79,11 @@ func (p *Player) GetImpaleSkillCalc() float64 {
 	return p.ImpaleSkillCalc
 }
 
-func (p *Player) Die(obj *object.Object) {
+func (p *Player) Die(obj *object.Object, damage int) {
 
 }
 
-func (p *Player) MonsterDieGetExperience(tobj *object.Object) {
+func (p *Player) MonsterDieGetExperience(tobj *object.Object, damage int) {
 	level := p.Level + p.MasterLevel
 	targetLevel := (tobj.Level + 25) * tobj.Level / 3
 	if tobj.Level+10 < level {
@@ -121,7 +121,7 @@ func (p *Player) MonsterDieGetExperience(tobj *object.Object) {
 		reply := model.MsgExperienceReply{
 			Number:     tobj.Index,
 			Experience: addexp,
-			Damage:     0,
+			Damage:     damage,
 		}
 		p.Push(&reply)
 	}

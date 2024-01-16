@@ -237,7 +237,7 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 		tobj.Live = false
 		tobj.State = 4
 		tobj.dieTime = time.Now()
-		tobj.Die(obj)
+		tobj.Die(obj, damage)
 		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.X, tobj.Y)
 		tobj.dieRegen = true
 
