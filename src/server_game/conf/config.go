@@ -140,10 +140,15 @@ type configServer struct {
 		ExDBPort            int    `ini:"ExDBPort"`
 		MaxConnectCount     int    `ini:"MachineIDConnectionLimitCount"`
 		// Log
-		MaxPlayerCount        int `ini:"PlayerCount"`
-		MaxMonsterCount       int `ini:"MonsterCount"`
-		MaxSummonMonsterCount int `ini:"SummonMonsterCount"`
-		MaxObjectItemCount    int `ini:"MapItemCount"`
+		MaxPlayerCount        int    `ini:"PlayerCount"`
+		MaxMonsterCount       int    `ini:"MonsterCount"`
+		MaxSummonMonsterCount int    `ini:"SummonMonsterCount"`
+		MaxObjectItemCount    int    `ini:"MapItemCount"`
+		DBName                string `int:"DBName"`
+		DBUser                string `int:"DBUser"`
+		DBPassword            string `int:"DBPassword"`
+		DBHost                string `int:"DBHost"`
+		DBPort                int    `int:"DBPort"`
 	} `ini:"GameServerInfo"`
 }
 

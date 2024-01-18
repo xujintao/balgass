@@ -1,10 +1,12 @@
 package model
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"github.com/xujintao/balgass/src/server_game/conf"
 	"github.com/xujintao/balgass/src/server_game/game/item"
 	"github.com/xujintao/balgass/src/server_game/game/skill"
 	"gorm.io/driver/postgres"
@@ -22,16 +24,22 @@ type db struct {
 }
 
 func (db *db) init() {
-	dsn := "postgres://root:Kdk7yTkCsvfvvEWg3d3H@localhost/game?sslmode=disable"
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		conf.Server.GameServerInfo.DBUser,
+		conf.Server.GameServerInfo.DBPassword,
+		conf.Server.GameServerInfo.DBHost,
+		conf.Server.GameServerInfo.DBPort,
+		conf.Server.GameServerInfo.DBName,
+	)
 	gdb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Panicf("gorm.Open failed [err]%v", err)
+		log.Fatalf("gorm.Open failed [err]%v", err)
 	}
 	if err := gdb.AutoMigrate(
 		&Account{},
 		&Character{},
 	); err != nil {
-		log.Panicf("gorm.AutoMigrate failed [err]%v", err)
+		log.Fatalf("gorm.AutoMigrate failed [err]%v", err)
 	}
 	if os.Getenv("DEBUG") == "1" {
 		db.DB = gdb.Debug()
