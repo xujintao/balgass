@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+// ============================================================
+// == INTERNATIONAL GAMING CENTER NETWORK
+// == www.igc-network.com
+// == (C) 2010-2015 IGC-Network (R)
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// == File is a part of IGCN Group MuOnline Server files.
+// ============================================================
+//
+// ### MiniMapObjects::TypeOne::Tag ###
+//	Id: Unique ID per MapNumber
+//	MapNumber: Number of a map
+//	NPCIndex: Index of NPC (Monster.xml)
+//	X - Coordinate X
+//	Y - Coordinate Y
+//	DisplayType:
+//		~ 1: Shield Icon
+//		~ 2: Conversation Icon (three dots in cloud)
+//		~ 3: Hammer Icon
+//		~ 4: Elixir Icon
+//		~ 5: Locker Icon
+//		~ 6: UNK
+//	SyncType:
+//		~ 0: Tag is not displayed
+//		~ 1: Tag displayed always
+//		~ 2: Tag displayed only if Monster/NPC present in-Game
+//	Name: Name of Tag to display on Mini Map
+//	annotation: s/Name="(.*)"/Name="$1" annotation="$1"
+//
+// ### MiniMapObjects::TypeTwo::Tag ###
+//	Id: Unique ID per MapNumber
+//	MapNumber: Number of a map
+//	X - Coordinate X
+//	Y - Coordinate Y
+//	Name: Name of Tag to display on Mini Map
+//	annotation: s/Name="(.*)"/Name="$1" annotation="$1"
+// STRICTLY NO COMMENTS INSIDE TAGS
+-->
+
+
+<MiniMapObjects>
+	<TypeOne>
+<!-- Loren Market -->
+		<Tag Id="0" MapNumber="79"	NPCIndex="240"	X="115"	Y="144"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+		<Tag Id="1" MapNumber="79"	NPCIndex="240"	X="147"	Y="115"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+		<Tag Id="2"	 MapNumber="79"	NPCIndex="546"	X="131"	Y="109"	 DisplayType="4"  SyncType="1"  Name="宝石商人 罗尔" annotation="Jeweller Raul" />
+		<Tag Id="3"	 MapNumber="79"	NPCIndex="545"	X="113"	Y="116"	 DisplayType="4"  SyncType="1"  Name="杂货商人 克里斯丁" annotation="Christine the Merchant" />
+		<Tag Id="4"	 MapNumber="79"	NPCIndex="547"	X="123"	Y="140"	 DisplayType="2"  SyncType="1"  Name="朱丽亚" annotation="Market Union Member Julia" />
+		<Tag Id="5"	 MapNumber="79"	NPCIndex="651"	X="108"	Y="134"	 DisplayType="2"  SyncType="1"  Name="罗兰市场个人商店留言板" annotation="Private Store Bulletin Board" />
+		<Tag Id="6"	 MapNumber="79"	NPCIndex="651"	X="138"	Y="143"	 DisplayType="2"  SyncType="1"  Name="罗兰市场个人商店留言板" annotation="Private Store Bulletin Board" />
+		<Tag Id="7"	 MapNumber="79"	NPCIndex="643"	X="85"	Y="136"	 DisplayType="2"  SyncType="1"  Name="Mait" annotation="Mait" />
+		<Tag Id="8" MapNumber="79"	NPCIndex="540"	X="84"	Y="129"	 DisplayType="2"  SyncType="1"  Name="陆迦德" annotation="Lugard" />
+		<Tag Id="9"	 MapNumber="79"	NPCIndex="385"	X="94"	Y="137"  DisplayType="2"  SyncType="1"  Name="弥拉丘" annotation="Mirage" />
+		<Tag Id="10" MapNumber="79"	NPCIndex="669"	X="113"	Y="132"	 DisplayType="2"  SyncType="1"  Name="艾琳" annotation="Ellin" />
+<!-- Lorencia -->
+		<Tag Id="0"	 MapNumber="0"	NPCIndex="226"	X="122"	Y="110"	 DisplayType="2"  SyncType="1"  Name="驯兽师" annotation="Trainer" />
+		<Tag Id="1"	 MapNumber="0"	NPCIndex="230"	X="62"	Y="130"	 DisplayType="4"  SyncType="1"  Name="流浪商人阿莱斯" annotation="Wandering Merchant Alex" />
+		<Tag Id="2"	 MapNumber="0"	NPCIndex="250"	X="183"	Y="137"	 DisplayType="4"  SyncType="1"  Name="流浪商人海罗德" annotation="Wandering Merchant Herald" />
+		<Tag Id="3"	 MapNumber="0"	NPCIndex="253"	X="127"	Y="86"	 DisplayType="4"  SyncType="1"  Name="少女安娜" annotation="Potion Girl Amy" />
+		<Tag Id="4"	 MapNumber="0"	NPCIndex="251"	X="116"	Y="141"	 DisplayType="3"  SyncType="1"  Name="铁匠汉斯" annotation="Hanzo the Blacksmith" />
+		<Tag Id="5"	 MapNumber="0"	NPCIndex="255"	X="123"	Y="135"	 DisplayType="4"  SyncType="1"  Name="老板娘 莉雅" annotation="Lumen the Barmaid" />
+		<Tag Id="6"	 MapNumber="0"	NPCIndex="254"	X="118"	Y="113"	 DisplayType="4"  SyncType="1"  Name="魔导士 帕希" annotation="Pasi the Mage" />
+		<Tag Id="7"	 MapNumber="0"	NPCIndex="547"	X="139"	Y="138"	 DisplayType="2"  SyncType="1"  Name="朱丽亚" annotation="Market Union Member Julia" />
+		<Tag Id="8"	 MapNumber="0"	NPCIndex="240"	X="146"	Y="110"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+		<Tag Id="9"	 MapNumber="0"	NPCIndex="257"	X="96"	Y="129"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="10" MapNumber="0"	NPCIndex="257"	X="132"	Y="165"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="11" MapNumber="0"	NPCIndex="257"	X="132"	Y="90"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="12" MapNumber="0"	NPCIndex="257"	X="170"	Y="129"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="13" MapNumber="0"	NPCIndex="543"	X="144"	Y="127"	 DisplayType="2"  SyncType="1"  Name="多普瑞恩家族管家" annotation="Gens Duprian Steward" />
+		<Tag Id="14" MapNumber="0"	NPCIndex="375"	X="130"	Y="161"	 DisplayType="2"  SyncType="1"  Name="玛雅使者" annotation="Chaos Card Master" />
+		<Tag Id="15" MapNumber="0"	NPCIndex="240"	X="147"	Y="145"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+		<Tag Id="16" MapNumber="0"	NPCIndex="584"	X="114"	Y="132"	 DisplayType="2"  SyncType="1"  Name="莱斯纳长官" annotation="Sir Lesnar" />
+		<Tag Id="17" MapNumber="0"	NPCIndex="568"	X="0"	Y="0"	 DisplayType="2"  SyncType="2"  Name="流浪商人杰罗" annotation="Wandering Merchant Zyro" />
+		<Tag Id="18" MapNumber="0"	NPCIndex="229"	X="137"	Y="87"	 DisplayType="2"  SyncType="2"  Name="警卫队长摩伦" annotation="Marlon" />
+<!-- Devias -->
+		<Tag Id="0"	 MapNumber="2"	NPCIndex="233"	X="209"	Y="30"	 DisplayType="2"  SyncType="1"  Name="大天使的使者" annotation="Messenger of Archangel" />
+		<Tag Id="1"	 MapNumber="2"	NPCIndex="235"	X="219"	Y="9"	 DisplayType="2"  SyncType="1"  Name="大天使的使者" annotation="Messenger of Archangel" />
+		<Tag Id="2"	 MapNumber="2"	NPCIndex="244"	X="226"	Y="25"	 DisplayType="4"  SyncType="1"  Name="老板娘 莉雅" annotation="Caren the Barmaid" />
+		<Tag Id="3"	 MapNumber="2"	NPCIndex="245"	X="225"	Y="41"	 DisplayType="2"  SyncType="1"  Name="魔导士露茜" annotation="Wizard Izabel" />
+		<Tag Id="4"	 MapNumber="2"	NPCIndex="246"	X="186"	Y="47"	 DisplayType="3"  SyncType="1"  Name="武器商人苏菲" annotation="Weapons Merchant Zienna" />
+		<Tag Id="5"	 MapNumber="2"	NPCIndex="241"	X="215"	Y="45"	 DisplayType="2"  SyncType="1"  Name="战盟使者罗兰斯" annotation="Royal Guard Captain Lorence" />
+		<Tag Id="6"	 MapNumber="2"	NPCIndex="240"	X="218"	Y="63"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+		<Tag Id="7"	 MapNumber="2"	NPCIndex="257"	X="219"	Y="73"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="8"	 MapNumber="2"	NPCIndex="257"	X="172"	Y="44"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="9"	 MapNumber="2"	NPCIndex="522"	X="229"	Y="221"	 DisplayType="2"  SyncType="1"  Name="辅佐官 杰林特" annotation="Jerint the Assistant" />
+		<Tag Id="10" MapNumber="2"	NPCIndex="379"	X="32"	Y="31"	 DisplayType="4"  SyncType="1"  Name="爆竹商人 罗嗒莎" annotation="Natasha Firecracker Merchant" />
+		<Tag Id="11" MapNumber="2"	NPCIndex="566"	X="204"	Y="61"	 DisplayType="2"  SyncType="1"  Name="特蕾西亚" annotation="Mercenary Guild Manager" />
+		<Tag Id="12" MapNumber="2"	NPCIndex="584"	X="240"	Y="53"	 DisplayType="2"  SyncType="1"  Name="莱斯纳长官" annotation="Sir Lesnar" />
+		<Tag Id="13" MapNumber="2"	NPCIndex="568"	X="0"	Y="0"	 DisplayType="2"  SyncType="2"  Name="流浪商人杰罗" annotation="Wandering Merchant Zyro" />
+		<Tag Id="14" MapNumber="2"	NPCIndex="229"	X="183"	Y="30"	 DisplayType="2"  SyncType="2"  Name="警卫队长摩伦" annotation="Marlon" />
+		<Tag Id="15" MapNumber="2"	NPCIndex="235"	X="183"	Y="32"	 DisplayType="2"  SyncType="1"  Name="圣导士塞维娜" annotation="Sebina the Priest" />
+<!-- Noria -->
+		<Tag Id="0"	 MapNumber="3"	NPCIndex="237"	X="171"	Y="105"	 DisplayType="2"  SyncType="1"  Name="卡隆" annotation="Charon" />
+		<Tag Id="1"	 MapNumber="3"	NPCIndex="242"	X="173"	Y="125"	 DisplayType="4"  SyncType="1"  Name="精灵安吉拉" annotation="Elf Lala" />
+		<Tag Id="2"	 MapNumber="3"	NPCIndex="243"	X="195"	Y="124"	 DisplayType="3"  SyncType="1"  Name="工匠尤达" annotation="Eo the Craftsman" />
+		<Tag Id="3"	 MapNumber="3"	NPCIndex="240"	X="172"	Y="96"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+		<Tag Id="4"	 MapNumber="3"	NPCIndex="238"	X="180"	Y="103"	 DisplayType="2"  SyncType="1"  Name="玛雅哥布林" annotation="Chaos Goblin" />
+		<Tag Id="5"	 MapNumber="3"	NPCIndex="257"	X="167"	Y="118"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="6"	 MapNumber="3"	NPCIndex="257"	X="166"	Y="85"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="7"	 MapNumber="3"	NPCIndex="257"	X="201"	Y="129"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="8"	 MapNumber="3"	NPCIndex="544"	X="167"	Y="100"	 DisplayType="2"  SyncType="1"  Name="巴内尔特家族管家" annotation="Gens Vanert Steward" />
+		<Tag Id="9"	 MapNumber="3"	NPCIndex="580"	X="196"	Y="113"	 DisplayType="2"  SyncType="1"  Name="斯洛普船长" annotation="Captain Slough" />
+		<Tag Id="10" MapNumber="3"	NPCIndex="584"	X="183"	Y="126"	 DisplayType="2"  SyncType="1"  Name="莱斯纳" annotation="Sir Lesnar" />
+		<Tag Id="11" MapNumber="3"	NPCIndex="568"	X="0"	Y="0"	 DisplayType="2"  SyncType="2"  Name="流浪商人杰罗" annotation="Wandering Merchant Zyro" />
+		<Tag Id="12" MapNumber="3"	NPCIndex="229"	X="169"	Y="89"	 DisplayType="2"  SyncType="2"  Name="警卫队长摩伦" annotation="Marlon" />
+<!-- Aida 1 ~ 2 -->
+		<Tag Id="0"	 MapNumber="33"	NPCIndex="369"	X="78"	Y="13"	 DisplayType="2"  SyncType="1"  Name="奥斯本" annotation="Osbourne" />
+		<Tag Id="1"	 MapNumber="33"	NPCIndex="370"	X="86"	Y="13"	 DisplayType="2"  SyncType="1"  Name="杰瑞敦" annotation="Jerridon" />
+<!-- Crywolf Fortress (First Zone) -->
+		<Tag Id="0"	 MapNumber="34"	NPCIndex="406"	X="228"	Y="48"	 DisplayType="2"  SyncType="1"  Name="弟子黛彬" annotation="Apostle Devin" />
+		<Tag Id="1"	 MapNumber="34"	NPCIndex="407"	X="62"	Y="239"	 DisplayType="2"  SyncType="1"  Name="暗黑血狼人扩雷" annotation="Werewolf Quarrel" />
+		<Tag Id="2"	 MapNumber="34"	NPCIndex="226"	X="135"	Y="47"	 DisplayType="2"  SyncType="1"  Name="驯兽师" annotation="Trainer" />
+		<Tag Id="3"	 MapNumber="34"	NPCIndex="248"	X="99"	Y="40"	 DisplayType="3"  SyncType="1"  Name="流浪商人马丁" annotation="Wandering Merchant Martin" />
+		<Tag Id="4"	 MapNumber="34"	NPCIndex="256"	X="96"	Y="25"	 DisplayType="2"  SyncType="1"  Name="塞尔维斯" annotation="Lahap" />
+		<Tag Id="5"	 MapNumber="34"	NPCIndex="251"	X="145"	Y="14"	 DisplayType="3"  SyncType="1"  Name="铁匠汉斯" annotation="Hanzo the Blacksmith" />
+		<Tag Id="6"	 MapNumber="34"	NPCIndex="240"	X="113"	Y="56"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+		<!-- <Tag Id="7" MapNumber="34"	NPCIndex="224"	X="118"	Y="11"	 DisplayType="2"  SyncType="1"  Name="Guardsman" annotation="Guardsman" /> -->
+<!-- Barracks of Balgass -->
+		<Tag Id="0"	 MapNumber="41"	NPCIndex="408"	X="119"	Y="168"	 DisplayType="2"  SyncType="1"  Name="守卫" annotation="Gatekeeper" />
+<!-- Elbeland -->
+		<Tag Id="0"	 MapNumber="51"	NPCIndex="256"	X="37"	Y="241"	 DisplayType="2"  SyncType="1"  Name="塞尔维斯" annotation="Lahap" />
+		<Tag Id="1"	 MapNumber="51"	NPCIndex="415"	X="44"	Y="229"	 DisplayType="4"  SyncType="1"  Name="药水商人塞尔维亚" annotation="Potion Merchant Silvia" />
+		<Tag Id="2"	 MapNumber="51"	NPCIndex="416"	X="29"	Y="236"	 DisplayType="3"  SyncType="1"  Name="武器商人雷亚" annotation="Weapons Merchant Rhea" />
+		<Tag Id="3"	 MapNumber="51"	NPCIndex="417"	X="36"	Y="219"	 DisplayType="4"  SyncType="1"  Name="魔法商店摩尔塞" annotation="Magic Store Marce" />
+		<Tag Id="4"	 MapNumber="51"	NPCIndex="257"	X="43"	Y="191"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="5"	 MapNumber="51"	NPCIndex="257"	X="57"	Y="232"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="6"	 MapNumber="51"	NPCIndex="257"	X="73"	Y="220"	 DisplayType="1"  SyncType="1"  Name="幻影导师" annotation="Shadow Phantom Soldier" />
+		<Tag Id="7"	 MapNumber="51"	NPCIndex="240"	X="50"	Y="229"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+		<!-- <Tag Id="8"	 MapNumber="51"	NPCIndex="385"	X="55"	Y="243"	 DisplayType="2"  SyncType="1"  Name="Mirage" annotation="Mirage" /> -->
+		<Tag Id="9"	 MapNumber="51"	NPCIndex="452"	X="46"	Y="243"	 DisplayType="2"  SyncType="1"  Name="荧之石管理员" annotation="Seed Master" />
+		<Tag Id="10" MapNumber="51"	NPCIndex="453"	X="50"	Y="243"	 DisplayType="2"  SyncType="1"  Name="荧之石研究员" annotation="Seed Researcher" />
+		<Tag Id="11" MapNumber="51"	NPCIndex="492"	X="22"	Y="225"	 DisplayType="2"  SyncType="1"  Name="摩斯" annotation="Moss" />
+		<Tag Id="12" MapNumber="51"	NPCIndex="540"	X="48"	Y="216"	 DisplayType="2"  SyncType="1"  Name="陆迦德" annotation="Lugard" />
+		<Tag Id="13" MapNumber="51"	NPCIndex="568"	X="55"	Y="199"	 DisplayType="2"  SyncType="2"  Name="流浪商人杰罗" annotation="Wandering Merchant Zyro" />
+		<Tag Id="14" MapNumber="51"	NPCIndex="579"	X="20"	Y="214"	 DisplayType="2"  SyncType="1"  Name="戴彼得" annotation="David" />
+		<Tag Id="15" MapNumber="51" NPCIndex="682"  X="24"  Y="229"  DisplayType="2"  SyncType="1"  Name="莫妮卡" annotation="Monica" />
+<!-- Vulcanus -->
+		<Tag Id="0"	 MapNumber="63"	NPCIndex="479"	X="122"	Y="135"	 DisplayType="2"  SyncType="1"  Name="门卫泰徒斯" annotation="Doorkeeper Titus" />
+<!-- Karutan 1 -->
+		<Tag Id="0"	 MapNumber="80"	NPCIndex="577"	X="121"	Y="102"	 DisplayType="4"  SyncType="1"  Name="蕾娜" annotation="Leina the Merchant" />
+		<Tag Id="1"	 MapNumber="80"	NPCIndex="578"	X="117"	Y="126"	 DisplayType="3"  SyncType="1"  Name="贝莱" annotation="Weapons Merchant Bolo" />
+		<Tag Id="2"	 MapNumber="80"	NPCIndex="240"	X="123"	Y="132"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+		<Tag Id="3"	 MapNumber="80"	NPCIndex="240"	X="122"	Y="96"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+		<Tag Id="4"	 MapNumber="80"	NPCIndex="240"	X="157"	Y="127"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+<!-- Acheron -->
+		<Tag Id="0"	 MapNumber="91"	NPCIndex="581"	X="29"	Y="210"	 DisplayType="2"  SyncType="1"  Name="戴鲁西" annotation="Acheron Quest Deruvish" />
+		<Tag Id="1"	 MapNumber="91"	NPCIndex="582"	X="38"	Y="216"	 DisplayType="2"  SyncType="1"  Name="艾德尼" annotation="Errtel Combiner Adniel" />
+		<Tag Id="2"	 MapNumber="91"	NPCIndex="583"	X="56"	Y="202"	 DisplayType="4"  SyncType="1"  Name="药水商人 真" annotation="Potion Merchant Jin" />
+		<!-- <Tag Id="3" MapNumber="91"	NPCIndex="195"	X="52"	Y="52"	 DisplayType="3"  SyncType="1"  Name="Weapons Merchant Dre" annotation="Weapons Merchant Dre" /> -->
+		<Tag Id="4"	 MapNumber="91"	NPCIndex="240"	X="50"	Y="184"	 DisplayType="5"  SyncType="1"  Name="仓库" annotation="Safety Guardian" />
+<!-- Atlans (1 ~ 3) -->
+		<Tag Id="0"	 MapNumber="7"	NPCIndex="229"	X="17"	Y="25"	 DisplayType="2"  SyncType="2"  Name="警卫队长摩伦" annotation="Marlon" />
+<!--  Illusion Template League 1 -->
+		<Tag Id="0"	 MapNumber="98"	NPCIndex="658"	X="169"	Y="84"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="1"	 MapNumber="98"	NPCIndex="659"	X="136"	Y="100"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="2"	 MapNumber="98"	NPCIndex="660"	X="150"	Y="117"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="3"	 MapNumber="98"	NPCIndex="661"	X="149"	Y="88"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="4"	 MapNumber="98"	NPCIndex="662"	X="165"	Y="101"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="5"	 MapNumber="98"	NPCIndex="663"	X="173"	Y="65"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="6"	 MapNumber="98"	NPCIndex="664"	X="186"	Y="79"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="7"	 MapNumber="98"	NPCIndex="665"	X="186"	Y="51"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="8"	 MapNumber="98"	NPCIndex="666"	X="202"	Y="66"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="9"	 MapNumber="98"	NPCIndex="667"	X="134"	Y="121"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="10" MapNumber="98"	NPCIndex="668"	X="207"	Y="47"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+<!-- Illusion Temple League 2 -->
+		<Tag Id="0"	 MapNumber="99"	NPCIndex="658"	X="169"	Y="84"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="1"	 MapNumber="99"	NPCIndex="659"	X="136"	Y="100"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="2"	 MapNumber="99"	NPCIndex="660"	X="150"	Y="117"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="3"	 MapNumber="99"	NPCIndex="661"	X="149"	Y="88"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="4"	 MapNumber="99"	NPCIndex="662"	X="165"	Y="101"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="5"	 MapNumber="99"	NPCIndex="663"	X="173"	Y="65"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="6"	 MapNumber="99"	NPCIndex="664"	X="186"	Y="79"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="7"	 MapNumber="99"	NPCIndex="665"	X="186"	Y="51"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="8"	 MapNumber="99"	NPCIndex="666"	X="202"	Y="66"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="9"	 MapNumber="99"	NPCIndex="667"	X="134"	Y="121"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="10" MapNumber="99"	NPCIndex="668"	X="207"	Y="47"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+<!-- Illusion Temple 1 -->
+		<Tag Id="0"	 MapNumber="45"	NPCIndex="658"	X="169"	Y="84"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="1"	 MapNumber="45"	NPCIndex="659"	X="136"	Y="100"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="2"	 MapNumber="45"	NPCIndex="660"	X="150"	Y="117"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="3"	 MapNumber="45"	NPCIndex="661"	X="149"	Y="88"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="4"	 MapNumber="45"	NPCIndex="662"	X="165"	Y="101"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="5"	 MapNumber="45"	NPCIndex="663"	X="173"	Y="65"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="6"	 MapNumber="45"	NPCIndex="664"	X="186"	Y="79"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="7"	 MapNumber="45"	NPCIndex="665"	X="186"	Y="51"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="8"	 MapNumber="45"	NPCIndex="666"	X="202"	Y="66"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="9"	 MapNumber="45"	NPCIndex="667"	X="134"	Y="121"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="10" MapNumber="45"	NPCIndex="668"	X="207"	Y="47"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+<!-- Illusion Temple 2 -->
+		<Tag Id="0"	 MapNumber="46"	NPCIndex="658"	X="169"	Y="84"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="1"	 MapNumber="46"	NPCIndex="659"	X="136"	Y="100"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="2"	 MapNumber="46"	NPCIndex="660"	X="150"	Y="117"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="3"	 MapNumber="46"	NPCIndex="661"	X="149"	Y="88"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="4"	 MapNumber="46"	NPCIndex="662"	X="165"	Y="101"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="5"	 MapNumber="46"	NPCIndex="663"	X="173"	Y="65"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="6"	 MapNumber="46"	NPCIndex="664"	X="186"	Y="79"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="7"	 MapNumber="46"	NPCIndex="665"	X="186"	Y="51"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="8"	 MapNumber="46"	NPCIndex="666"	X="202"	Y="66"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="9"	 MapNumber="46"	NPCIndex="667"	X="134"	Y="121"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="10" MapNumber="46"	NPCIndex="668"	X="207"	Y="47"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+<!-- Illusion Temple 3 -->
+		<Tag Id="0"	 MapNumber="47"	NPCIndex="658"	X="169"	Y="84"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="1"	 MapNumber="47"	NPCIndex="659"	X="136"	Y="100"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="2"	 MapNumber="47"	NPCIndex="660"	X="150"	Y="117"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="3"	 MapNumber="47"	NPCIndex="661"	X="149"	Y="88"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="4"	 MapNumber="47"	NPCIndex="662"	X="165"	Y="101"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="5"	 MapNumber="47"	NPCIndex="663"	X="173"	Y="65"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="6"	 MapNumber="47"	NPCIndex="664"	X="186"	Y="79"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="7"	 MapNumber="47"	NPCIndex="665"	X="186"	Y="51"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="8"	 MapNumber="47"	NPCIndex="666"	X="202"	Y="66"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="9"	 MapNumber="47"	NPCIndex="667"	X="134"	Y="121"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="10" MapNumber="47"	NPCIndex="668"	X="207"	Y="47"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+<!-- Illusion Temple 4 -->
+		<Tag Id="0"	 MapNumber="48"	NPCIndex="658"	X="169"	Y="84"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="1"	 MapNumber="48"	NPCIndex="659"	X="136"	Y="100"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="2"	 MapNumber="48"	NPCIndex="660"	X="150"	Y="117"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="3"	 MapNumber="48"	NPCIndex="661"	X="149"	Y="88"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="4"	 MapNumber="48"	NPCIndex="662"	X="165"	Y="101"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="5"	 MapNumber="48"	NPCIndex="663"	X="173"	Y="65"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="6"	 MapNumber="48"	NPCIndex="664"	X="186"	Y="79"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="7"	 MapNumber="48"	NPCIndex="665"	X="186"	Y="51"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="8"	 MapNumber="48"	NPCIndex="666"	X="202"	Y="66"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="9"	 MapNumber="48"	NPCIndex="667"	X="134"	Y="121"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="10" MapNumber="48"	NPCIndex="668"	X="207"	Y="47"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+<!-- Illusion Temple 5 -->
+		<Tag Id="0"	 MapNumber="49"	NPCIndex="658"	X="169"	Y="84"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="1"	 MapNumber="49"	NPCIndex="659"	X="136"	Y="100"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="2"	 MapNumber="49"	NPCIndex="660"	X="150"	Y="117"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="3"	 MapNumber="49"	NPCIndex="661"	X="149"	Y="88"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="4"	 MapNumber="49"	NPCIndex="662"	X="165"	Y="101"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="5"	 MapNumber="49"	NPCIndex="663"	X="173"	Y="65"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="6"	 MapNumber="49"	NPCIndex="664"	X="186"	Y="79"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="7"	 MapNumber="49"	NPCIndex="665"	X="186"	Y="51"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="8"	 MapNumber="49"	NPCIndex="666"	X="202"	Y="66"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="9"	 MapNumber="49"	NPCIndex="667"	X="134"	Y="121"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="10" MapNumber="49"	NPCIndex="668"	X="207"	Y="47"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+<!-- Illusion Temple 6 -->
+		<Tag Id="0"	 MapNumber="50"	NPCIndex="658"	X="169"	Y="84"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="1"	 MapNumber="50"	NPCIndex="659"	X="136"	Y="100"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="2"	 MapNumber="50"	NPCIndex="660"	X="150"	Y="117"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="3"	 MapNumber="50"	NPCIndex="661"	X="149"	Y="88"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="4"	 MapNumber="50"	NPCIndex="662"	X="165"	Y="101"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="5"	 MapNumber="50"	NPCIndex="663"	X="173"	Y="65"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="6"	 MapNumber="50"	NPCIndex="664"	X="186"	Y="79"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="7"	 MapNumber="50"	NPCIndex="665"	X="186"	Y="51"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="8"	 MapNumber="50"	NPCIndex="666"	X="202"	Y="66"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="9"	 MapNumber="50"	NPCIndex="667"	X="134"	Y="121"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+		<Tag Id="10" MapNumber="50"	NPCIndex="668"	X="207"	Y="47"	 DisplayType="6"  SyncType="0"  Name=" " annotation=" " />
+<!-- Kalima 1 -->
+		<Tag Id="0"	 MapNumber="24"	NPCIndex="259"	X="7"	Y="19"	 DisplayType="4"  SyncType="1"  Name="雷拉" annotation="Oracle Layla" />
+<!-- Kalima 2 -->
+		<Tag Id="0"	 MapNumber="25"	NPCIndex="259"	X="7"	Y="19"	 DisplayType="4"  SyncType="1"  Name="雷拉" annotation="Oracle Layla" />
+<!-- Kalima 3 -->
+		<Tag Id="0"	 MapNumber="26"	NPCIndex="259"	X="7"	Y="19"	 DisplayType="4"  SyncType="1"  Name="雷拉" annotation="Oracle Layla" />
+<!-- Kalima 4 -->
+		<Tag Id="0"	 MapNumber="27"	NPCIndex="259"	X="7"	Y="19"	 DisplayType="4"  SyncType="1"  Name="雷拉" annotation="Oracle Layla" />
+<!-- Kalima 5 -->
+		<Tag Id="0"	 MapNumber="28"	NPCIndex="259"	X="7"	Y="19"	 DisplayType="4"  SyncType="1"  Name="雷拉" annotation="Oracle Layla" />
+<!-- Kalima 6 -->
+		<Tag Id="0"	 MapNumber="29"	NPCIndex="259"	X="7"	Y="19"	 DisplayType="4"  SyncType="1"  Name="雷拉" annotation="Oracle Layla" />
+		<Tag Id="1"	 MapNumber="29"	NPCIndex="567"	X="10"	Y="28"	 DisplayType="2"  SyncType="1"  Name="贝娜" annotation="Priestess Veina" />
+<!-- Kalima 7 (Lost) -->
+		<Tag Id="0"	 MapNumber="36"	NPCIndex="259"	X="7"	Y="19"	 DisplayType="4"  SyncType="1"  Name="雷拉" annotation="Oracle Layla" />
+	</TypeOne>
+	<TypeTwo>
+<!-- Lorencia -->
+		<Tag Id="0"	 MapNumber="0"	X="121"	 Y="232"  Name="地下城入口" annotation="Dungeon Entrance" />
+		<Tag Id="1"	 MapNumber="0"	X="1"	 Y="38"	  Name="冰风谷入口" annotation="Devias Entrance" />
+		<Tag Id="2"	 MapNumber="0"	X="216"	 Y="248"  Name="仙踪林入口" annotation="Noria Entrance" />
+		<Tag Id="3"	 MapNumber="0"	X="242"	 Y="15"	  Name="罗兰峡谷入口" annotation="Valley of Loren Entrance" />
+<!-- Dungeon (1 ~ 3) -->                              
+		<Tag Id="0"	 MapNumber="1"	X="108"	 Y="249"  Name="勇者大陆入口" annotation="Lorencia Entrance" />
+		<Tag Id="1"	 MapNumber="1"	X="238"	 Y="150"  Name="地下城2层入口" annotation="Dungeon Level 2 Entrance" />
+		<Tag Id="2"	 MapNumber="1"	X="232"	 Y="128"  Name="地下城1楼入口" annotation="Dungeon Level 1 Entrance" />
+		<Tag Id="3"	 MapNumber="1"	X="1"	 Y="18"	  Name="地下城3楼西侧入口" annotation="Dungeon Level 3 West Entrance" />
+		<Tag Id="4"	 MapNumber="1"	X="5"	 Y="35"	  Name="地下城3楼东侧入口" annotation="Dungeon Level 3 East Entrance" />
+		<Tag Id="5"	 MapNumber="1"	X="1"	 Y="85"	  Name="地下城2层西入口" annotation="Dungeon Level 2 West Entrance" />
+		<Tag Id="6"	 MapNumber="1"	X="29"	 Y="127"  Name="地下城2层东入口" annotation="Dungeon Level 2 East Entrance" />
+<!-- Devias -->                                       
+		<Tag Id="0"	 MapNumber="2"	X="244"	 Y="34"	  Name="勇者大陆入口" annotation="Lorencia Entrance" />
+		<Tag Id="1"	 MapNumber="2"	X="162"	 Y="248"  Name="幻术园入口" annotation="Elveland Entrance" />
+		<Tag Id="2"	 MapNumber="2"	X="0"	 Y="250"  Name="失落之塔入口" annotation="Lost Tower Entrance" />
+		<Tag Id="3"	 MapNumber="2"	X="51"	 Y="92"	  Name="冰霜之城入口" annotation="La Cleon Entrance" />
+<!-- Noria -->                                        
+		<Tag Id="0"	 MapNumber="3"	X="151"	 Y="2"	  Name="勇者大陆入口" annotation="Lorencia Entrance" />
+		<Tag Id="1"	 MapNumber="3"	X="222"	 Y="29"	  Name="幽暗森林入口" annotation="Aida Entrance" />
+		<Tag Id="2"	 MapNumber="3"	X="242"	 Y="241"  Name="亚特兰蒂斯入口" annotation="Atlans Entrance" />
+<!-- Lost Tower (1 ~ 7) -->                           
+		<Tag Id="0"	 MapNumber="4"	X="164"	 Y="0"	  Name="冰风谷入口" annotation="Devias Entrance" />
+		<Tag Id="1"	 MapNumber="4"	X="190"	 Y="5"	  Name="失落之塔2入口" annotation="Lost Tower Level 2 Entrance" />
+		<Tag Id="2"	 MapNumber="4"	X="165"	 Y="165"  Name="失落之塔3入口" annotation="Lost Tower Level 3 Entrance" />
+		<Tag Id="3"	 MapNumber="4"	X="133"	 Y="246"  Name="失落之塔4入口" annotation="Lost Tower Level 4 Entrance" />
+		<Tag Id="4"	 MapNumber="4"	X="133"	 Y="136"  Name="失落之塔5入口" annotation="Lost Tower Level 5 Entrance" />
+		<Tag Id="5"	 MapNumber="4"	X="129"	 Y="14"	  Name="失落之塔6入口" annotation="Lost Tower Level 6 Entrance" />
+		<Tag Id="6"	 MapNumber="4"	X="4"	 Y="7"	  Name="失落之塔7入口" annotation="Lost Tower Level 7 Entrance" />
+		<Tag Id="7"	 MapNumber="4"	X="16"	 Y="250"  Name="天空之城入口" annotation="Icarus Entrance" />
+<!-- Atlans (1 ~ 3) -->
+		<Tag Id="0"	 MapNumber="7"	X="8"	 Y="8"	  Name="仙踪林入口" annotation="Noria Entrance" />
+		<Tag Id="1"	 MapNumber="7"	X="9"	 Y="18"	  Name="幻术园入口" annotation="Elveland Entrance" />
+		<Tag Id="2"	 MapNumber="7"	X="10"	 Y="228"  Name="死亡沙漠入口" annotation="Tarkan Entrance" />
+<!-- Tarkan (1 ~ 2) -->
+		<Tag Id="0"	 MapNumber="8"	X="250"	 Y="40"	  Name="亚特兰蒂斯入口" annotation="Atlans Entrance" />
+		<Tag Id="1"	 MapNumber="8"	X="3"	 Y="199"  Name="坎特鲁废墟入口" annotation="Kanturu Ruins Entrance" />
+<!-- Icarus -->
+		<Tag Id="0"	 MapNumber="10" X="13"	 Y="8"	  Name="失落之塔入口" annotation="Lost Tower Entrance" />
+<!-- Land of Trials -->
+		<Tag Id="0"	 MapNumber="31" X="60"	 Y="8"	  Name="罗兰峡谷入口" annotation="Valley of Loren Entrance" />
+<!-- Aida (1 ~ 2) -->
+		<Tag Id="0"	 MapNumber="33" X="72"	 Y="10"	  Name="仙踪林入口" annotation="Noria Entrance" />
+		<Tag Id="1"	 MapNumber="33" X="238"	 Y="165"  Name="卡伦特入口" annotation="Karutan Entrance" />
+<!-- Crywolf Fortress (First Zone) -->
+		<Tag Id="0"	 MapNumber="34" X="238"	 Y="42"	  Name="罗兰峡谷入口" annotation="Valley of Loren Entrance" />
+<!-- Kanturu Ruins -->
+		<Tag Id="0"  MapNumber="37" X="16"   Y="222"  Name="死亡沙漠入口" annotation="Tarkan Entrance" />
+		<Tag Id="1"	 MapNumber="37" X="89"	 Y="91"	  Name="坎特鲁遗址入口" annotation="Kanturu Relics Entrance" />
+<!-- Kanturu 1 (Remain) -->
+		<Tag Id="0"  MapNumber="38" X="66"	 Y="105"  Name="坎特鲁废墟入口" annotation="Kanturu Ruins Entrance" />
+		<Tag Id="1"	 MapNumber="38" X="141"	 Y="186"  Name="传送台" annotation="Gateway Machine" />
+<!-- Elbeland -->
+		<Tag Id="0"	 MapNumber="51" X="248"	 Y="149"  Name="亚特兰蒂斯入口" annotation="Atlans Entrance" />
+		<Tag Id="1"	 MapNumber="51" X="19"	 Y="27"	  Name="冰风谷入口" annotation="Devias Entrance" />
+<!-- Swamp of Calmness -->
+		<Tag Id="0"	 MapNumber="56" X="139"	 Y="125"  Name="怪物区 入口(1)" annotation="Hunting Grounds Entrance (1)" />
+		<Tag Id="1"	 MapNumber="56" X="124"	 Y="109"  Name="怪物区 入口(2)" annotation="Hunting Grounds Entrance (2)" />
+		<Tag Id="2"	 MapNumber="56" X="140"	 Y="95"	  Name="怪物区 入口(3)" annotation="Hunting Grounds Entrance (3)" />
+		<Tag Id="3"	 MapNumber="56" X="150"	 Y="109"  Name="怪物区 入口(4)" annotation="Hunting Grounds Entrance (4)" />
+		<Tag Id="4"	 MapNumber="56" X="185"	 Y="188"  Name="安全区域 入口" annotation="Safe Zone Entrance" />
+		<Tag Id="5"	 MapNumber="56" X="56"	 Y="177"  Name="安全区域 入口" annotation="Safe Zone Entrance" />
+		<Tag Id="6"	 MapNumber="56" X="68" 	 Y="52"	  Name="安全区域 入口" annotation="Safe Zone Entrance" />
+		<Tag Id="7"	 MapNumber="56" X="197"	 Y="13"	  Name="安全区域 入口" annotation="Safe Zone Entrance" />
+<!-- La Cleon -->
+		<Tag Id="0"	 MapNumber="57" X="224"	 Y="214"  Name="冰风谷入口" annotation="Devias Entrance" />
+		<Tag Id="1"	 MapNumber="57" X="169"	 Y="22"	  Name="孵化魔地入口" annotation="Hatchery Entrance" />
+<!-- Karutan 1 -->
+		<Tag Id="0"	 MapNumber="80" X="115"	 Y="45"	  Name="幽暗森林入口" annotation="Aida Entrance" />
+		<Tag Id="1"	 MapNumber="80" X="187"	 Y="212"  Name="卡伦特北部入口" annotation="Karutan North Entrance" />
+<!-- Karutan 2 -->
+		<Tag Id="0"	 MapNumber="81" X="162"	 Y="9"	  Name="卡伦特南部入口" annotation="Karutan South Entrance" />
+<!-- Acheron -->
+		<Tag Id="0"	 MapNumber="91" X="28"	 Y="169"  Name="阿卡玛尔入口" annotation="Alkmar Entrance" />
+		<Tag Id="1"	 MapNumber="91" X="80"	 Y="205"  Name="远古地区入口" annotation="Ubaid Entrance" />
+		<Tag Id="2"	 MapNumber="91" X="52"	 Y="162"  Name="德班泰尔入口" annotation="Debenter Entrance" />
+		<Tag Id="3"	 MapNumber="91" X="64"	 Y="220"  Name="乌尔克山入口" annotation="Uruk Mountain Entrance" />
+		<Tag Id="4"	 MapNumber="91" X="115"	 Y="168"  Name="阿卡伦之地入口" annotation="Acheron Village Entrance" />
+		<Tag Id="5"	 MapNumber="91" X="146"	 Y="206"  Name="阿卡伦之地入口" annotation="Acheron Village Entrance" />
+<!-- Debenter -->
+		<Tag Id="0"	 MapNumber="95" X="17"	 Y="107"  Name="阿卡伦之地入口" annotation="Acheron Village Entrance" />
+<!-- Uruk Mountain -->
+		<Tag Id="0"	 MapNumber="100" X="24"	 Y="90"   Name="阿卡伦之地入口" annotation="Acheron Village Entrance" />
+		<Tag Id="1"	 MapNumber="100" X="40"	 Y="82"	  Name="blue关口" annotation="Portal Field A (Blue)" />
+		<Tag Id="2"	 MapNumber="100" X="212" Y="32"	  Name="blue关口" annotation="Portal Field B (Blue)" />
+		<Tag Id="3"	 MapNumber="100" X="41"	 Y="98"	  Name="red关口" annotation="Portal Field A (Red)" />
+		<Tag Id="4"	 MapNumber="100" X="109" Y="230"  Name="red关口" annotation="Portal Field B (Red)" />
+	</TypeTwo>
+</MiniMapObjects>

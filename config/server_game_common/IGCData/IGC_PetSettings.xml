@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	// Attack
+	AddAttackValue        int `xml:"AddAttackValue,attr"`
+	AddMagicAttackValue   int `xml:"AddMagicAttackValue,attr"`
+	AddAttackPercent      int `xml:"AddAttackPercent,attr"`
+	AddMagicAttackPercent int `xml:"AddMagicAttackPercent,attr"`
+	AddAttackSpeed        int `xml:"AddAttackSpeed,attr"`
+
+	// Defense
+	AddDefenseValue   int `xml:"AddDefenseValue,attr"`
+	AddDefensePercent int `xml:"AddDefensePercent,attr"`
+
+	// Reduce
+	ReduceDamageValue   int `xml:"ReduceDamageValue,attr"`
+	ReduceDamagePercent int `xml:"ReduceDamagePercent,attr"`
+
+	// HP
+	AddHP int `xml:"AddHP,attr"`
+-->
+<PetsAndRings>
+    <Pets>
+        <Angel Item="13.0 小天使" AddHP="50" ReduceDamagePercent="20" />
+        <Imp Item="13.1 小恶魔" AddAttackPercent="30" />
+        <FenrirGold Item="13.37 金狼" AddAttackPercent="33" AddDefensePercent="10" DurabilityRate="2000" AddExp="0" />
+        <FenrirRed Item="13.37 红狼" />
+        <FenrirBlue Item="13.37 蓝狼" />
+        <FenrirBlack Item="13.37 黑狼" />
+        <Demon Item="13.64 大恶魔" AddAttackPercent="40" AddAttackSpeed="10" />
+        <SpiritAngel Item="13.65 大天使" AddHP="50" ReduceDamagePercent="30" />
+        <Panda Item="13.80 熊猫" AddDefenseValue="50" />
+        <Unicorn Item="13.106 兽角" AddDefenseValue="50" />
+        <Skeleton Item="13.123 召唤骷髅" AddAttackPercent="20" AddAttackSpeed="10"/>
+    </Pets>
+    <Rings>
+        <WizardRing Item="13.20 魔法指环" AddAttackPercent="10" AddMagicAttackPercent="10" AddAttackSpeed="10" />
+        <SkeletonRing Item="13.39 骷髅指环" AddAttackValue="40" AddDefensePercent="10" />
+        <ChristmasRing Item="13.41 圣诞指环" AddAttackValue="20" AddMagicAttackValue="20" />
+        <PandaRing Item="13.76 熊猫指环" AddAttackValue="30" />
+        <PandaBrownRing Item="13.77 棕色熊猫指环" AddAttackValue="30" />
+        <PandaPinkRing Item="13.78 粉色熊猫指环" AddAttackValue="30" />
+        <LethalWizardRing Item="13.107 致命指环" AddAttackPercent="15" AddMagicAttackPercent="15" AddAttackSpeed="10" />
+        <RobotKnightRing Item="13.163 机器人骑士指环" AddAttackValue="30" AddDefenseValue="10" />
+        <MiniRobotRing Item="13.164 迷你机器人指环" AddAttackValue="30" AddAttackSpeed="7" />
+        <MageRing Item="13.165 天魔指环" AddAttackValue="40" />
+        <DecorationRing Item="13.169 " AddAttackPercent="10" AddAttackSpeed="10" />
+        <DecorationBlessedRing Item="13.170" AddAttackPercent="15" AddAttackSpeed="10" />
+        <DarkTransformRing Item="13.268 暗黑变身指环" AddAttackValue="70" AddAttackSpeed="10" AddDefenseValue="50" AddHP="50" />
+    </Rings>
+</PetsAndRings>
