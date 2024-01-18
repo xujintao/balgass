@@ -65,14 +65,15 @@ func init() {
 		log.Printf("$CONFIG_PATH is %q, use default %q", "", PathConfig)
 	}
 	if PathCommon == "" {
-		PathCommon = "../../config/common/IGCData"
+		PathCommon = "../../config/server_game_common"
 		log.Printf("$COMMON_PATH is %q, use default %q", "", PathCommon)
 	}
 	INI(PathConfig, "GameServer.ini", &Server)
 	XML(PathConfig, "IGC_ConnectMember.xml", &ConnectMember)
 	XML(PathConfig, "IGC_VipSettings.xml", &VipSystem)
+	INI(path.Join(PathCommon, "Data"), "CommonServer.cfg", &CommonServer)
+	PathCommon = path.Join(PathCommon, "IGCData")
 	INI(PathCommon, "IGC_Common.ini", &Common)
-	INI(path.Join(PathCommon, "../Data"), "CommonServer.cfg", &CommonServer)
 	XML(PathCommon, "IGC_ChaosBox.xml", &ChaosBox)
 	XML(PathCommon, "IGC_PetSettings.xml", &PetRing)
 	XML(PathCommon, "IGC_OffTrade.xml", &OffTrade)
