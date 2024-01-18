@@ -38,9 +38,9 @@ func (h *httpHandle) init() {
 	h.validate = validator.New()
 	h.GET("/", h.handleHome)
 	h.GET("/api/game", h.handleGame)
-	h.POST("/accounts", h.CreateAccount, h.handleErr)
-	h.GET("/accounts", h.GetAccountList, h.handleErr)
-	h.DELETE("/accounts/:id", h.DeleteAccount, h.handleErr)
+	h.POST("/api/accounts", h.CreateAccount, h.handleErr)
+	h.GET("/api/accounts", h.GetAccountList, h.handleErr)
+	h.DELETE("/api/accounts/:id", h.DeleteAccount, h.handleErr)
 }
 
 func (h *httpHandle) setErr(c *gin.Context, service int, err error) {

@@ -127,7 +127,7 @@ def game(request):
 def game_accounts(request):
     context = {}
     # launch api request
-    url = "http://192.168.0.23:8080/accounts"
+    url = "http://r2f2:8080/api/accounts"
     try:
         response = requests.get(url, params={"user_id": request.user.id})
     except Exception as e:
