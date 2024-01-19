@@ -10,5 +10,5 @@ RUN set -ex; \
     /etc/apk/repositories; \
     apk update; \
     apk add tzdata
-COPY --from=builder /go/bin/server_game /user/local/bin
+COPY --from=builder /go/bin/server_game /usr/local/bin/
 CMD ["server_game"]

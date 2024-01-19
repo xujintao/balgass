@@ -17,8 +17,9 @@ docker run \
 --name server_game \
 -e TZ=Asia/Shanghai \
 -e CONFIG_PATH=/etc/server_game \
--e COMMON_PATH=/etc/server_game/IGCData \
--v ~/r2f2/server_game/config:/etc/server_game \
+-e COMMON_PATH=/etc/server_game_common \
+-v ~/r2f2/config/server_game:/etc/server_game \
+-v ~/r2f2/config/server_game_common:/etc/server_game_common \
 -p 8080:8080 \
 server_game
 ```
