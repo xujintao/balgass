@@ -18,8 +18,12 @@ python3 -m venv venv
 3 Install django
 
 ```
+# install
 pip install django
 pip install black
+
+# or restore:
+pip install -r requirements.txt
 ```
 
 4 Freeze requirements.txt

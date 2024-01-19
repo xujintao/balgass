@@ -8,5 +8,6 @@ RUN set -ex; \
     /etc/apk/repositories; \
     apk update; \
     apk add tzdata; \
+    apk add build-base postgresql-dev; \
     pip install -r ${SERVER_WEB}/requirements.txt
 CMD ["sh","-c","python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
