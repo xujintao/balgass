@@ -144,6 +144,7 @@ type configServer struct {
 		MaxMonsterCount       int    `ini:"MonsterCount"`
 		MaxSummonMonsterCount int    `ini:"SummonMonsterCount"`
 		MaxObjectItemCount    int    `ini:"MapItemCount"`
+		HTTPPort              int    `ini:"HTTPPort"`
 		DBName                string `int:"DBName"`
 		DBUser                string `int:"DBUser"`
 		DBPassword            string `int:"DBPassword"`
