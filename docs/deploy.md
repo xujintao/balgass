@@ -18,7 +18,17 @@ https://stackoverflow.com/questions/30383845/what-is-the-best-practice-of-docker
 
 #### 1.1 ufw-docker
 
+```
+ufw-docker install
+delete 192.168.0.0/16
+changed 10.10.10.0/8 to 10.10.10.0/24
+changed 172.16.0.0/12 to 172.17.0.0/16
+
+systemctl restart ufw
+```
+
 https://stackoverflow.com/a/51741599
+https://github.com/chaifeng/ufw-docker/issues/112
 
 Failed: server_web container can't access pgsql container
 
