@@ -1,4 +1,10 @@
 !*
 
-/cryptopp_8_2_0
+/_Include
 /boost_1_73_0
+/cryptopp_8_2_0
+/v140*/
+*.dll
+*.lib
+*.url
+*.pdb
