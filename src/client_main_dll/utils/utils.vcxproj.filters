@@ -3,9 +3,12 @@
   <ItemGroup>
     <ClCompile Include="xor.cpp" />
     <ClCompile Include="aes.cpp" />
+    <ClCompile Include="crypto.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="xor.h" />
     <ClInclude Include="aes.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="crypto.h" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-#include "windows.h"
+#include "stdafx.h"
 #include "xor.h"
 CXor* Xor = new CXor;
 
@@ -22,5 +22,14 @@ void CXor::Enc(unsigned char* buff, int headerSize, int len) {
 void CXor::Dec(unsigned char* buff, int headerSize, int len) {
 	for (int i = len - 1; i >= 0; i--) {
 		buff[i] ^= key[(i + headerSize) & 31] ^ buff[i - 1];
+	}
+}
+
+void CXor::BuxConvert(char* buf, int size)
+{
+	static unsigned char bBuxCode[3] = { 0xFC, 0xCF, 0xAB };
+	for (int n = 0; n<size; n++)
+	{
+		buf[n] ^= bBuxCode[n % 3];		// Nice trick from WebZen
 	}
 }
