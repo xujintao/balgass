@@ -1,5 +1,5 @@
 #pragma once
 #include <windows.h>
 
-// cryptopp
+// cryptopp (only compile, need header)
 #pragma comment(lib, "cryptlib.lib")
