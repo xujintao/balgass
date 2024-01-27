@@ -4,11 +4,15 @@
     <ClCompile Include="xor.cpp" />
     <ClCompile Include="aes.cpp" />
     <ClCompile Include="crypto.cpp" />
+    <ClCompile Include="hook.cpp" />
+    <ClCompile Include="exception.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="xor.h" />
     <ClInclude Include="aes.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="crypto.h" />
+    <ClInclude Include="hook.h" />
+    <ClInclude Include="exception.h" />
   </ItemGroup>
 </Project>

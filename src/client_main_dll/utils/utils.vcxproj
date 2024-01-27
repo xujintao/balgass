@@ -9,11 +9,15 @@
   <ItemGroup>
     <ClCompile Include="aes.cpp" />
     <ClCompile Include="crypto.cpp" />
+    <ClCompile Include="exception.cpp" />
+    <ClCompile Include="hook.cpp" />
     <ClCompile Include="xor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aes.h" />
     <ClInclude Include="crypto.h" />
+    <ClInclude Include="exception.h" />
+    <ClInclude Include="hook.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="xor.h" />
   </ItemGroup>
