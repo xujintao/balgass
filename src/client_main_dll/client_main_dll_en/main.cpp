@@ -4,9 +4,9 @@
 #include "hook.h"
 
 void rewriteVersion() {
-	char* src = (char*)0x01319A44; // 1.04R, "1.xx.xx"
-	char* dst = (char*)0x012E4018; // 1.04R
-								   // marshal version string
+	char* src = (char*)0x0123C754; // S9, "1.xx.xx"
+	char* dst = (char*)0x01207020; // S9
+	// marshal version string
 	for (int i = 0; i < 8; i++) {
 		dst[i] = src[i] + i + 1;
 	}
@@ -15,10 +15,10 @@ void rewriteVersion() {
 void __declspec(naked) RewriteVersion() {
 	rewriteVersion();
 	_asm {
-		push 1;
-		mov eax, 0x00DE852F;
+		push 0xC;
+		mov eax, 0x00D0ACC8; // S9
 		call eax;
-		mov eax, 0x004D80F4;
+		mov eax, 0x004D9B2F; // S9
 		jmp eax;
 	}
 }
@@ -103,11 +103,15 @@ void SetHook()
 {
 	HookThis(PARSE_PACKET_HOOK, 5, (DWORD)&ParsePacket); // S9
 	HookThis(SEND_PACKET_HOOK, 8, (DWORD)&SendPacket); // S9
-	HookManager.MakeJmpHook(0x004D80ED, 7, RewriteVersion); // 1.04R rewrite version
-	MemAssign(0x0AA3097E + 3, (BYTE)8); // 1.04R handle version matching 5->8 characters
-	MemAssign(0x0043EBFA + 6, (BYTE)8); // 1.04R login send version 5->8 characters
-	MemAssign(0x004FF24C + 6, (BYTE)8); // 1.04R map server send version 5->8 characters
-	MemSet(0x0AD33703, 0xC3, 1); // 1.04R, 55->C3, push ebp->ret, disable some encode
+	HookManager.MakeJmpHook(0x004D9B28, 7, RewriteVersion); // S9 rewrite version
+	//MemAssign(0x0AA3097E + 3, (BYTE)8); // 1.04R handle version matching 5->8 characters
+	//MemAssign(0x0043EBFA + 6, (BYTE)8); // 1.04R login send version 5->8 characters
+	//MemAssign(0x004FF24C + 6, (BYTE)8); // 1.04R map server send version 5->8 characters
+	MemAssign(0x004FAD40 + 6, (BYTE)8); // S9 ? version 5->8 characters
+	MemAssign(0x006E8699 + 6, (BYTE)8); // S9 login send version 5->8 characters
+	MemAssign(0x006E8F1E + 6, (BYTE)8); // S9 ? version 5->8 characters
+	MemAssign(0x0A17BF30 + 3, (BYTE)8); // S9 handle version matching 5->8 characters	
+
 	HookThis(0x0043EA4C, 7, (DWORD)&LoginHook1); // 1.04R, extend pwd length, fill pwd buf
 	HookThis(0x0043EAA2, 9, (DWORD)&LoginHook2); // 1.04R, extend pwd length, validate pwd length
 	HookThis(0x0043EB4E, 7, (DWORD)&LoginHook3); // 1.04R, extend pwd length, xor pwd buf
