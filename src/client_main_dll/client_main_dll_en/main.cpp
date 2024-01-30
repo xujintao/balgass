@@ -99,6 +99,29 @@ void __declspec(naked) RecordKey() {
 	}
 }
 
+typedef void(*tmuConnectToCS)(char* hostname, int port);
+tmuConnectToCS muConnectToCS = (tmuConnectToCS)0x0063CEDA; // S9
+void OnConnect()
+{
+	char * ip = "10.1.2.3";
+	int port = 44405;
+	muConnectToCS(ip, port);
+}
+
+void __declspec(naked) onCsHook()
+{
+	//004DE303   50               PUSH EAX
+	//004DE304   E8 68701500      CALL main_IGC.00635371
+	OnConnect();
+	_asm
+	{
+		push eax;
+		//call 0x00635371; // it's not needed, 635371 is original Connect function, we use muConnectToCS
+		mov edx, 0x004DEA9A; // S9
+		jmp edx;
+	}
+}
+
 void SetHook()
 {
 	HookThis(PARSE_PACKET_HOOK, 5, (DWORD)&ParsePacket); // S9
@@ -110,21 +133,14 @@ void SetHook()
 	MemAssign(0x004FAD40 + 6, (BYTE)8); // S9 ? version 5->8 characters
 	MemAssign(0x006E8699 + 6, (BYTE)8); // S9 login send version 5->8 characters
 	MemAssign(0x006E8F1E + 6, (BYTE)8); // S9 ? version 5->8 characters
-	MemAssign(0x0A17BF30 + 3, (BYTE)8); // S9 handle version matching 5->8 characters	
-
-	HookThis(0x0043EA4C, 7, (DWORD)&LoginHook1); // 1.04R, extend pwd length, fill pwd buf
-	HookThis(0x0043EAA2, 9, (DWORD)&LoginHook2); // 1.04R, extend pwd length, validate pwd length
-	HookThis(0x0043EB4E, 7, (DWORD)&LoginHook3); // 1.04R, extend pwd length, xor pwd buf
-	MemAssign(0x0051B429 + 1, (DWORD)0x0A87D703); // 1.04R, handleState2, disable anti-temper with backup code
-	MemAssign(0x004E17B9 + 1, (DWORD)0x099DAE9F); // 1.04R, handleState4, disable anti-temper with backup code
-	MemAssign(0x005B5D6C + 1, (DWORD)0x09A1DB88); // 1.04R, handleState5, disable anti-temper with backup code
-	MemAssign(0x004E0E03 + 1, (DWORD)0x0A36BF12); // 1.04R, handleState5, disable anti-temper with backup code
-	MemAssign(0x004D7D42 + 1, (BYTE)0x42); // 1.04R support multi instance
-	// MemAssign(0x00B0F1C1 + 1, (BYTE)0x00); // 1.04R discard high dmDisplayFrequency, fixed resolution mismatching
-	MemAssign(0x0067760B + 1, (BYTE)0x2C); // 1.04R fixed item with socket show excellent
-	MemAssign(0x0AF7F02D + 1, (DWORD)0xC8); // 1.04R modify max speed limit of death stab from 300ms to 200ms per attack
+	MemAssign(0x0A17BF30 + 3, (BYTE)8); // S9 handle version matching 5->8 character
+	HookManager.MakeJmpHook(0x004DEA94, 6, onCsHook); // S9
+	HookThis(0x0043EA60, 6, (DWORD)&OnConnect); // S9
+	//MemAssign(0x004D7D42 + 1, (BYTE)0x42); // 1.04R support multi instance
+	//MemAssign(0x0067760B + 1, (BYTE)0x2C); // 1.04R fixed item with socket show excellent
+	//MemAssign(0x0AF7F02D + 1, (DWORD)0xC8); // 1.04R modify max speed limit of death stab from 300ms to 200ms per attack
 	MemSet(CTRL_FREEZE_FIX, 0x02, 1); // S9
-	HookThis(0x004E4F57, 5, (DWORD)&RecordKey); // 1.04R
+	//HookThis(0x004E4F57, 5, (DWORD)&RecordKey); // 1.04R
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule,
