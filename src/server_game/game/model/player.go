@@ -34,7 +34,7 @@ func (msg *MsgChat) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Name = string(bytes.TrimRight(utf8[:], "\x00"))
+	msg.Name = utils.TrimStr(utf8[:])
 
 	// Msg
 	var Msg [90]byte
@@ -46,7 +46,7 @@ func (msg *MsgChat) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Msg = string(bytes.TrimRight(utf8[:], "\x00"))
+	msg.Msg = utils.TrimStr(utf8[:])
 
 	return nil
 }
@@ -1351,15 +1351,15 @@ func (msg *MsgLogin) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Account = string(bytes.TrimRight(utils.Xor(account[:]), "\x00"))
+	msg.Account = utils.TrimStr(utils.Xor(account[:]))
 
 	// password
-	var password [20]byte
+	var password [10]byte
 	_, err = br.Read(password[:])
 	if err != nil {
 		return err
 	}
-	msg.Password = string(bytes.TrimRight(utils.Xor(password[:]), "\x00"))
+	msg.Password = utils.TrimStr(utils.Xor(password[:]))
 
 	// hwid
 	var hwid [100]byte
@@ -1367,7 +1367,7 @@ func (msg *MsgLogin) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.HWID = string(bytes.TrimRight(hwid[:], "\x00"))
+	msg.HWID = utils.TrimStr(hwid[:])
 
 	// time
 	var tickCount uint32
@@ -1383,7 +1383,7 @@ func (msg *MsgLogin) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Version = string(bytes.TrimRight(version[:], "\x00"))
+	msg.Version = utils.TrimStr(version[:])
 
 	// serial
 	var serial [16]byte
@@ -1757,7 +1757,7 @@ func (msg *MsgCreateCharacter) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Name = string(bytes.TrimRight(utf8[:], "\x00"))
+	msg.Name = utils.TrimStr(utf8[:])
 
 	// class
 	// 0x00 - Dark Wizard
@@ -1836,7 +1836,7 @@ func (msg *MsgDeleteCharacter) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Name = string(bytes.TrimRight(utf8[:], "\x00"))
+	msg.Name = utils.TrimStr(utf8[:])
 
 	// password
 	var password [7]byte
@@ -1844,7 +1844,7 @@ func (msg *MsgDeleteCharacter) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Password = string(bytes.TrimRight(password[:], "\x00"))
+	msg.Password = utils.TrimStr(password[:])
 
 	return nil
 }
@@ -1880,7 +1880,7 @@ func (msg *MsgLoadCharacter) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Name = string(bytes.TrimRight(utf8[:], "\x00"))
+	msg.Name = utils.TrimStr(utf8[:])
 
 	// position
 	position, err := br.ReadByte()
@@ -2123,7 +2123,7 @@ func (msg *MsgCheckCharacter) Unmarshal(buf []byte) error {
 	if err != nil {
 		return err
 	}
-	msg.Name = string(bytes.TrimRight(utf8[:], "\x00"))
+	msg.Name = utils.TrimStr(utf8[:])
 
 	return nil
 }

@@ -446,7 +446,7 @@ func (p *Player) Login(msg *model.MsgLogin) {
 			resp.Result = 2
 			return
 		}
-		log.Printf("model.DB.GetAccountByAccount failed [err]%v\n", err)
+		log.Printf("model.DB.GetAccountByName failed [err]%v\n", err)
 		resp.Result = 7
 		return
 	}
