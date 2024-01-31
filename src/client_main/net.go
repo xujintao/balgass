@@ -487,7 +487,8 @@ func (t *t1) f007C4858(x *t6) *t6 {
 	return x
 }
 
-// f006BF89A 拨号
+// f0063CEDA 拨号 S9
+// f006BF89A 拨号 1.04R
 func f006BF89ADial(ip string, port int) {
 	v08C88FF0conn.f006BD3A7init()
 	v01319E08log.f00B38AE4printf("[Connect to Server] ip address = %s, port = %d\r\n", ip, port)

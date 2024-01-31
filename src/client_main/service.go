@@ -1360,6 +1360,7 @@ func f004DD578handleState1(hDC win.HDC) {
 	v0131A250 = win.GetTickCount()
 }
 
+// s9 f004DEB74
 func f004E1E1EhandleState2() {
 	// 带SEH
 	f00DE8A70chkstk() // 0x46E8

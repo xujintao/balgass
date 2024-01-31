@@ -338,7 +338,8 @@ func f004D755F(haystack string, y int, buf []uint8) bool {
 	return false
 }
 
-// f004D7CE5winMain, WinMain
+// f004D948AwinMain, WinMain, en
+// f004D7CE5winMain, WinMain, zh
 func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCmdLine string, iCmdShow int) int {
 	func() {
 		// 0x0A05E61B
@@ -978,7 +979,8 @@ func f004D7CE5winMain(hInstance win.HINSTANCE, hPrevInstance win.HINSTANCE, szCm
 		return ebp1A30 // 0x004D8FE2
 	}
 
-	// 0x004D80ED: gg init
+	// 0x004D80ED: gg init 1.04R
+	// 0x004D9B28: gg init S9
 	var ebp1A38 *uint32 = (*uint32)(f00DE852Fnew(1)) // hook: v012E4018versionDLL = v01319A44versionFile
 	var ebp1B0C *t1319D68
 	if ebp1A38 != nil { // 0x004D8102 gameguard 1, hook always nil，disable GameGurad

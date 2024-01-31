@@ -503,14 +503,10 @@ func f00DE76C0roundf(v float32) float32 {
 	return float32(math.Round(float64(v)))
 }
 
-//
-//
 // -----------------section ERWC-----------------
 var v0082505D uint32 = 0x6A7B9E4D // 0表示done
 var v00825070imageBase uintptr    // 0x00400000
 
-//
-//
 // -----------------crc validate--------------
 var v0A327567imageBase uintptr = 0x00400000
 var v0A8FE0E0unused uint32 = 0x12A225EC  // 未使用
@@ -575,15 +571,11 @@ var v0B287362 uint32 = 0xCD6ABE04
 // v0A88F1F8 完整性验证失败入口
 var v0A88F1F8 uint32 = 0x0A9F55F3
 
-//
-//
 // --------------validate read and write----------
 var v09E8FF96 uint32 = 0xFFFFFFFF // 0表示done
 var v0A049D16 uint32 = 0x0AD2D162
 var v0ABF9FFCimageBase uint32 = 0x00400000
 
-//
-//
 // ---------------iat move------------
 var v0A563A89 uint32 = 0xCCCCCCCC // 0表示done
 
@@ -599,8 +591,6 @@ var v0A3A1688rdataSet = [...]block{
 	{0xFFFFFFFF, 0xFFFFFFFF},
 }
 
-//
-//
 // -------------text move-----------------
 var v0A32F9C5textSet = [...]block{
 	{0x000D7CE5, 5},
@@ -633,8 +623,6 @@ var v0AC33EA1 uint32 = 0x0AF1023E // label3
 var v0A0C61AD uint32 = 0x5420110F
 var v0AF0E89A uint32 = 0x546CE7AB // v0AF0E89A = v0A0C61AD
 
-//
-//
 // ------------------winmain反调式-------------------
 var v0A7483B4 uint32 = 8
 var v0A56E4E2label1 uint32 = 0x0AD56E8A
@@ -1501,7 +1489,8 @@ var v09DA37A0heapNum int
 var v09DA37ACcmdline string
 
 // --------------------------------------------------------------------
-// 0x00DF478C, f00DF478C, runtime_main, __winMainCRTStartup
+// f00D16821, runtime_main, __winMainCRTStartup, en
+// f00DF478C, runtime_main, __winMainCRTStartup, zh
 func main() {
 	// f00DFD850(&v012AC0A8, 0x58)
 	// ebp4 := 0
