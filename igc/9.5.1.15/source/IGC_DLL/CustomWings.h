@@ -1,2 +1,0 @@
-void AsmHookPreviewCharSet();
-void FixWingOpts();

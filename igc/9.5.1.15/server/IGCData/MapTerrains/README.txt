@@ -1,1 +1,0 @@
-For reference, Game Client map numbering is +1 in relation to server numbers, e.g. Lorencia: Server: Map 0, Client: World1

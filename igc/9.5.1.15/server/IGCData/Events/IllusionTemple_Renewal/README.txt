@@ -1,1 +1,0 @@
-Illussion Temple Renewal available for Season 8 Episode 3 and later versions only

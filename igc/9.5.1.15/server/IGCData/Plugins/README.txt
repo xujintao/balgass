@@ -1,1 +1,0 @@
-Every system presenting in Plugins folder is available as optional plugin and is subject to additional charge.
