@@ -17,5 +17,5 @@ docker run \
 --name server_web \
 -e TZ=Asia/Shanghai \
 -p 8000:8000 \
-server_web
+server_web:latest
 ```

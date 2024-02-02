@@ -25,9 +25,9 @@
 -->
 
 <ServerList>
-	<Server Code="0"  IP="10.1.2.3" Port="56900" Visible="1" Name="Regular" />
-	<Server Code="12" IP="10.1.2.3" Port="56912" Visible="0" Name="Market" />
-	<Server Code="13" IP="10.1.2.3" Port="56913" Visible="0" Name="Arca" />
-	<Server Code="14" IP="10.1.2.3" Port="56914" Visible="0" Name="Siege" />
-	<Server Code="120" IP="10.1.2.3" Port="56120" Visible="0" Name="BattleCore" />
+	<Server Code="0"  IP="us.r2f2.com" Port="56900" Visible="1" Name="Regular" />
+	<Server Code="12" IP="us.r2f2.com" Port="56912" Visible="0" Name="Market" />
+	<Server Code="13" IP="us.r2f2.com" Port="56913" Visible="0" Name="Arca" />
+	<Server Code="14" IP="us.r2f2.com" Port="56914" Visible="0" Name="Siege" />
+	<Server Code="120" IP="us.r2f2.com" Port="56120" Visible="0" Name="BattleCore" />
 </ServerList>
