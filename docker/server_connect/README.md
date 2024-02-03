@@ -19,6 +19,6 @@ docker run \
 -e CONFIG_PATH=/etc/server_connect \
 -v ~/r2f2/config/server_connect:/etc/server_connect \
 -p 44405:44405 \
--p 55667:55667 \
+-p 55667:55667/udp \
 server_connect:latest
 ```
