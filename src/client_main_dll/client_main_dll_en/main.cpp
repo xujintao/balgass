@@ -103,7 +103,7 @@ typedef void(*tmuConnectToCS)(char* hostname, int port);
 tmuConnectToCS muConnectToCS = (tmuConnectToCS)0x0063CEDA; // S9
 void OnConnect()
 {
-	char * ip = "10.1.2.3";
+	char * ip = "us.r2f2.com";
 	int port = 44405;
 	muConnectToCS(ip, port);
 }
