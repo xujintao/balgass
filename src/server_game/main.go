@@ -16,8 +16,10 @@ import (
 )
 
 func main() {
-	exit := make(chan os.Signal)
+	// handle signal and error
+	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
+	errChan := make(chan error, 2)
 
 	// start game
 	log.Println("start game")
@@ -31,10 +33,7 @@ func main() {
 		NeedXor: true,
 	}
 	go func() {
-		err := tcpServer.ListenAndServe()
-		if err != nil {
-			log.Printf("tcpServer.ListenAndServe failed [err]%v\n", err)
-		}
+		errChan <- tcpServer.ListenAndServe()
 	}()
 
 	// start http server
@@ -44,19 +43,16 @@ func main() {
 		Handler: &handle.HTTPHandle,
 	}
 	go func() {
-		err := httpServer.ListenAndServe()
-		if err != nil {
-			log.Printf("httpServer.ListenAndServe failed [err]%v\n", err)
-		}
+		errChan <- httpServer.ListenAndServe()
 	}()
 
-	// wait
-	s := <-exit
-	log.Printf("exit [signal]%s\n", s.String())
-
-	// close game
-	log.Println("close game")
-	game.Game.Close()
+	// wait signal and error
+	select {
+	case s := <-exit:
+		log.Printf("exit [signal]%s\n", s.String())
+	case err := <-errChan:
+		log.Fatalf("server failed: [err]%v\n", err)
+	}
 
 	// close tcp server
 	log.Println("close tcp server")
@@ -67,6 +63,10 @@ func main() {
 	if err := httpServer.Close(); err != nil {
 		log.Printf("httpServer.Close failed [err]%v\n", err)
 	}
+
+	// close game
+	log.Println("close game")
+	game.Game.Close()
 
 	time.Sleep(2 * time.Second)
 }
