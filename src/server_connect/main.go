@@ -15,25 +15,24 @@ import (
 )
 
 func main() {
-	exit := make(chan os.Signal)
+	// handle signal and error
+	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
+	errChan := make(chan error, 2)
 
 	// start service
 	log.Println("start service")
 	service.Service.Start()
 
 	// start tcp server
+	log.Println("start tcp server")
 	tcpServer := c1c2.Server{
 		Addr:    fmt.Sprintf(":%d", conf.Net.TCPPort),
 		Handler: &handle.C1C2Handle,
 		NeedXor: false,
 	}
-	log.Println("start tcp server")
 	go func() {
-		err := tcpServer.ListenAndServe()
-		if err != nil {
-			log.Printf("tcpServer.ListenAndServe failed [err]%v\n", err)
-		}
+		errChan <- tcpServer.ListenAndServe()
 	}()
 
 	// start udp server
@@ -43,26 +42,28 @@ func main() {
 		Handler: &handle.C1C2Handle,
 	}
 	go func() {
-		err := udpServer.Run()
-		if err != nil {
-			log.Printf("udpServer.Run failed [err]%v\n", err)
-		}
+		errChan <- udpServer.Run()
 	}()
 
-	// wait
-	s := <-exit
-	log.Printf("exit [signal]%s\n", s.String())
-
-	// close service
-	log.Println("close service")
-	service.Service.Close()
+	// wait signal and error
+	select {
+	case s := <-exit:
+		log.Printf("exit [signal]%s\n", s.String())
+	case err := <-errChan:
+		log.Fatalf("server failed: [err]%v\n", err)
+	}
 
 	// close tcp server
 	log.Println("close tcp server")
 	tcpServer.Close()
 
 	// close udp server
+	log.Println("close udp server")
 	udpServer.Close()
+
+	// close service
+	log.Println("close service")
+	service.Service.Close()
 
 	time.Sleep(2 * time.Second)
 }
