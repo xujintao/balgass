@@ -210,8 +210,17 @@ type apiOut struct {
 }
 
 var apiIns = [...]*apiIn{
+	// {0, 0x01, "Register", (*model.MsgRegister)(nil)}, // para segridad, move to HandleUDP func
 	{0, 0x04, "CheckVersion", (*model.MsgCheckVersion)(nil)}, // 1.04.44
 	// {0, 0x05, "CheckVersion", (*model.MsgCheckVersion)(nil)}, // 1.05.25
+
+	// TODO:
+	// If we close main.exe suddently after GetServerList but before GetServer, it will send:
+	// c122f33dda063c605599a7940d954b478a678d47919190722b3b09b787440a47ecfd from f006B4206
+	// xor.Dec
+	// c122f330ffffffffffffffffffffffffffffffffffffffff1dffffff16ff00000000
+	// omit
+
 	{0, 0xF406, "GetServerList", (*model.MsgGetServerList)(nil)},
 	{0, 0xF403, "GetServer", (*model.MsgGetServer)(nil)},
 }
