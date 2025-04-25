@@ -2,10 +2,6 @@ package maps
 
 import "math"
 
-type validator interface {
-	canMoveForward(int) bool
-}
-
 type Pot struct {
 	X int `json:"x"`
 	Y int `json:"y"`
@@ -56,26 +52,17 @@ func CalcDir(sx, sy, tx, ty int) int {
 }
 
 type _path struct {
-	validator validator
-	width     int
-	height    int
+	validator func(int, int) bool
 	path      []*Pot
-	hits      []bool
+	hits      map[Pot]struct{} // use set instead to aviod mass memory gc
 }
 
 func (p *_path) valid(x, y int) bool {
-	return x >= 0 && x < p.width && y >= 0 && y < p.height
-}
-
-func (p *_path) posOK(x, y int) bool {
-	if !p.valid(x, y) {
+	if !p.validator(x, y) {
 		return false
 	}
-	pos := x + y*p.width
-	if !p.validator.canMoveForward(pos) {
-		p.hits[pos] = true
-	}
-	return !p.hits[pos]
+	_, ok := p.hits[Pot{x, y}]
+	return !ok
 }
 
 func (p *_path) findNexDir(x1, y1, x2, y2 int) int {
@@ -84,7 +71,7 @@ func (p *_path) findNexDir(x1, y1, x2, y2 int) int {
 	for i, pot := range Dirs {
 		x := x1 + pot.X
 		y := y1 + pot.Y
-		if p.posOK(x, y) {
+		if p.valid(x, y) {
 			dist := dist(x, y, x2, y2)
 			if dist < mindist {
 				mindist = dist
@@ -92,7 +79,7 @@ func (p *_path) findNexDir(x1, y1, x2, y2 int) int {
 			}
 		}
 	}
-	p.hits[x1+y1*p.width] = true
+	p.hits[Pot{x1, y1}] = struct{}{}
 	if mindist == 100000000 {
 		return -1
 	}

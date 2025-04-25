@@ -332,16 +332,16 @@ func (m *_map) checkNoWall(x1, y1, x2, y2 int) bool {
 	return true
 }
 
-func (m *_map) canMoveForward(pos int) bool {
-	return !(m.buf[pos] > 1)
-}
-
 func (m *_map) findPath(x1, y1, x2, y2 int) (Path, bool) {
 	path := _path{
-		validator: m,
-		width:     m.width,
-		height:    m.height,
-		hits:      make([]bool, m.width*m.height),
+		validator: func(x, y int) bool {
+			if !m.valid(x, y) {
+				return false
+			}
+			pos := x + y*m.width
+			return !(m.buf[pos] > 1)
+		},
+		hits: make(map[Pot]struct{}),
 	}
 	return path.findPath(x1, y1, x2, y2)
 }
