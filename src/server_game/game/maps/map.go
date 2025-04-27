@@ -343,7 +343,8 @@ func (m *_map) findPath(x1, y1, x2, y2 int) (Path, bool) {
 		},
 		hits: make(map[Pot]struct{}),
 	}
-	return path.findPath(x1, y1, x2, y2)
+	// return path.findPath(x1, y1, x2, y2)
+	return path.findPathBFS(x1, y1, x2, y2)
 }
 
 func (m *_map) getWeather() int {

@@ -1,6 +1,8 @@
 package maps
 
-import "math"
+import (
+	"math"
+)
 
 type Pot struct {
 	X int `json:"x"`
@@ -53,7 +55,6 @@ func CalcDir(sx, sy, tx, ty int) int {
 
 type _path struct {
 	validator func(int, int) bool
-	path      []*Pot
 	hits      map[Pot]struct{} // use set instead to aviod mass memory gc
 }
 
@@ -87,15 +88,16 @@ func (p *_path) findNexDir(x1, y1, x2, y2 int) int {
 }
 
 func (p *_path) findPath(x1, y1, x2, y2 int) (Path, bool) {
+	var path []*Pot
 	cnt := 10
 	for !(x1 == x2 && y1 == y2) {
 		dir := p.findNexDir(x1, y1, x2, y2)
 		if dir >= 0 {
 			// forward
-			if len(p.path) > 15 {
+			if len(path) > 15 {
 				return nil, false
 			}
-			p.path = append(p.path, &Pot{x1, y1})
+			path = append(path, &Pot{x1, y1})
 			x1 += Dirs[dir].X
 			y1 += Dirs[dir].Y
 		} else {
@@ -104,15 +106,45 @@ func (p *_path) findPath(x1, y1, x2, y2 int) (Path, bool) {
 			if cnt < 0 {
 				return nil, false
 			}
-			l := len(p.path)
+			l := len(path)
 			if l < 1 {
 				return nil, false
 			}
-			x1 = p.path[l-1].X
-			y1 = p.path[l-1].Y
-			p.path = p.path[:l-1]
+			x1 = path[l-1].X
+			y1 = path[l-1].Y
+			path = path[:l-1]
 		}
 	}
-	p.path = append(p.path, &Pot{x2, y2})
-	return p.path[1:], true
+	path = append(path, &Pot{x2, y2})
+	return path[1:], true
+}
+
+func (p *_path) findPathBFS(x1, y1, x2, y2 int) (Path, bool) {
+	p.hits[Pot{x1, y1}] = struct{}{}
+	path := []*Pot{{x1, y1}}
+	bfs := [][]*Pot{path}
+	for len(bfs) > 0 {
+		path = bfs[0]
+		bfs = bfs[1:]
+		x1 = path[len(path)-1].X
+		y1 = path[len(path)-1].Y
+		if x1 == x2 && y1 == y2 {
+			return path[1:], true
+		}
+		if len(path) > 14 {
+			return nil, false
+		}
+		for _, dir := range Dirs {
+			x := x1 + dir.X
+			y := y1 + dir.Y
+			if p.valid(x, y) {
+				p.hits[Pot{x, y}] = struct{}{}
+				newPath := make([]*Pot, len(path), len(path)+1)
+				copy(newPath, path)
+				newPath = append(newPath, &Pot{x, y})
+				bfs = append(bfs, newPath)
+			}
+		}
+	}
+	return nil, false
 }
