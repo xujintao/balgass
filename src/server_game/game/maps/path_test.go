@@ -124,6 +124,37 @@ func TestFindPathBFS(t *testing.T) {
 	}
 }
 
+func TestFindPathAStar(t *testing.T) {
+	for i, td := range testDatas {
+		width := td.width
+		height := td.height
+		blocks := make(map[Pot]struct{})
+		for _, pot := range td.blocks {
+			blocks[pot] = struct{}{}
+		}
+		path := _path{
+			validator: func(x, y int) bool {
+				if x < 0 || x >= width || y < 0 || y >= height {
+					return false
+				}
+				_, ok := blocks[Pot{x, y}]
+				return !ok
+			},
+			hits: make(map[Pot]struct{}),
+		}
+		p, ok := path.findPathAStar(td.begin.X, td.begin.Y, td.end.X, td.end.Y)
+		if p != nil {
+			for _, pot := range p {
+				fmt.Printf("(%d,%d)", pot.X, pot.Y)
+			}
+			fmt.Println()
+		}
+		if ok != td.ok {
+			t.Errorf("test data %d failed", i)
+		}
+	}
+}
+
 /*
 go test -v -timeout 30s -bench . -benchmem -run=^$ ~/github.com/xujintao/balgass/src/server_game/game/maps/path_test.go ~/github.com/xujintao/balgass/src/server_game/game/maps/path.go
 goos: linux
@@ -186,6 +217,30 @@ func BenchmarkFindPathBFS(b *testing.B) {
 				hits: make(map[Pot]struct{}),
 			}
 			path.findPathBFS(td.begin.X, td.begin.Y, td.end.X, td.end.Y)
+		}
+	}
+}
+
+func BenchmarkFindPathAStar(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, td := range testDatas {
+			width := td.width
+			height := td.height
+			blocks := make(map[Pot]struct{})
+			for _, pot := range td.blocks {
+				blocks[pot] = struct{}{}
+			}
+			path := _path{
+				validator: func(x, y int) bool {
+					if x < 0 || x >= width || y < 0 || y >= height {
+						return false
+					}
+					_, ok := blocks[Pot{x, y}]
+					return !ok
+				},
+				hits: make(map[Pot]struct{}),
+			}
+			path.findPathAStar(td.begin.X, td.begin.Y, td.end.X, td.end.Y)
 		}
 	}
 }

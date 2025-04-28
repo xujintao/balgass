@@ -1,6 +1,7 @@
 package maps
 
 import (
+	"container/heap"
 	"math"
 )
 
@@ -143,6 +144,80 @@ func (p *_path) findPathBFS(x1, y1, x2, y2 int) (Path, bool) {
 				copy(newPath, path)
 				newPath = append(newPath, &Pot{x, y})
 				bfs = append(bfs, newPath)
+			}
+		}
+	}
+	return nil, false
+}
+
+type pathItem struct {
+	path []*Pot
+	cost int // priority in heap
+}
+
+// A priority queue for pathItem
+type priorityQueue []*pathItem
+
+func (pq priorityQueue) Len() int { return len(pq) }
+func (pq priorityQueue) Less(i, j int) bool {
+	return pq[i].cost < pq[j].cost
+}
+func (pq priorityQueue) Swap(i, j int) {
+	pq[i], pq[j] = pq[j], pq[i]
+}
+func (pq *priorityQueue) Push(x any) {
+	*pq = append(*pq, x.(*pathItem))
+}
+func (pq *priorityQueue) Pop() any {
+	old := *pq
+	n := len(old)
+	x := old[n-1]
+	*pq = old[:n-1]
+	return x
+}
+
+func (p *_path) heuristic(x1, y1, x2, y2 int) int {
+	dx := x1 - x2
+	if dx < 0 {
+		dx = -dx
+	}
+	dy := y1 - y2
+	if dy < 0 {
+		dy = -dy
+	}
+	if dx > dy {
+		return dx
+	}
+	return dy
+}
+
+func (p *_path) findPathAStar(x1, y1, x2, y2 int) (Path, bool) {
+	p.hits[Pot{x1, y1}] = struct{}{}
+	path := []*Pot{{x1, y1}}
+	pq := &priorityQueue{}
+	heap.Init(pq)
+	heap.Push(pq, &pathItem{path: path, cost: p.heuristic(x1, y1, x2, y2)})
+	for pq.Len() > 0 {
+		item := heap.Pop(pq).(*pathItem)
+		path = item.path
+		x1 = path[len(path)-1].X
+		y1 = path[len(path)-1].Y
+		if x1 == x2 && y1 == y2 {
+			return path[1:], true
+		}
+		if len(path) > 14 {
+			return nil, false
+		}
+		for _, dir := range Dirs {
+			x := x1 + dir.X
+			y := y1 + dir.Y
+			if p.valid(x, y) {
+				p.hits[Pot{x, y}] = struct{}{}
+				newPath := make([]*Pot, len(path), len(path)+1)
+				copy(newPath, path)
+				newPath = append(newPath, &Pot{x, y})
+				cost := len(newPath) + p.heuristic(x, y, x2, y2)
+				heap.Push(pq, &pathItem{path: newPath, cost: cost})
 			}
 		}
 	}
