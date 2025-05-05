@@ -1,12 +1,12 @@
 ## 1, Parameter
 
-| item       | example               |
-| :--------- | :-------------------- |
-| USER       | root                  |
-| PASSWORD   | 1234                  |
-| DEFAULT_DB | django                |
-| PGSQL_DATA | ~/r2f2/pgsql/data     |
-| PGSQL_INIT | ~/r2f2/pgsql/initdb.d |
+| item       | example                                             |
+| :--------- | :-------------------------------------------------- |
+| USER       | root                                                |
+| PASSWORD   | 1234                                                |
+| DEFAULT_DB | django                                              |
+| PGSQL_DATA | ~/github.com/xujintao/balgass/docker/pgsql/data     |
+| PGSQL_INIT | ~/github.com/xujintao/balgass/docker/pgsql/initdb.d |
 
 ## 2, Start
 
