@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+
+{% block title %}
+Add a new entry
+{% endblock title %}
+
 {% block content %}
 <p>
     <a href="{% url 'topic' topic.id %}">{{ topic }}</a>

@@ -1,6 +1,14 @@
-{% extends "base.html" %} {% block page_header%}
+{% extends "base.html" %}
+
+{% block title %}
+Profile
+{% endblock title %}
+
+{% block page_header %}
 <h3>Profile</h3>
-{% endblock page_header%} {% block content %}
+{% endblock page_header %}
+
+{% block content %}
 <p>user: {{user.username}}</p>
 <!-- <pre>{% debug %}</pre> -->
 {% endblock content %}

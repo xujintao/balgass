@@ -1,6 +1,15 @@
-{% extends "base.html" %} {% load bootstrap4 %} {% block page_header%}
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block title %}
+Game Accounts
+{% endblock title %}
+
+{% block page_header %}
 <h3>Game Accounts</h3>
-{% endblock page_header%} {% block content %}
+{% endblock page_header %}
+
+{% block content %}
 <div>
   {% if get_account_list_message %}
   <div class="alert alert-warning" role="alert">

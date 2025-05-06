@@ -1,11 +1,18 @@
 {% load bootstrap4 %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    {% bootstrap_css %} {% bootstrap_javascript jquery='full' %}
+    <title>{% block title %} {% endblock title %}</title>
+    <link
+      rel="icon"
+      href="{% static 'img/favicon.svg' %}"
+      type="image/svg+xml"
+    />
+    {% bootstrap_css %}
+    {% bootstrap_javascript jquery='full' %}
   </head>
 
   <body>
