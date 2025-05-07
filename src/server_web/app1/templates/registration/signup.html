@@ -5,15 +5,20 @@
 Sign up
 {% endblock title %}
 
-{% block page_header %}
-<h3>Welcome to R2F2!</h3>
-{% endblock page_header %}
-
 {% block content %}
-<form action="{% url 'signup' %}" method="post" class="form">
-    {% csrf_token %}
-    {% bootstrap_form form %}
-    <button name="submit" class="btn btn-primary">Sign up</button>
-    <input type="hidden" name="next" value="{% url 'home' %}">
-</form>
+<div class="card mx-auto" style="max-width: 600px">
+  <div class="card-body">
+    <h3 class="card-title">Create an account.</h3>
+    <form action="{% url 'signup' %}" method="post" class="form">
+      {% csrf_token %} {% bootstrap_form form %}
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mt-3">
+        <button name="submit" class="btn btn-primary">Sign up</button>
+        <div>
+          <span>Already have an R2F2 Account?</span>
+          <a href="{% url 'login' %}">Login</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock content %}

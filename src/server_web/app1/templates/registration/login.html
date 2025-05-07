@@ -2,17 +2,17 @@
 {% load bootstrap4 %}
 
 {% block title %}
-Sign in
+Login
 {% endblock title %}
 
 {% block content %}
 <div class="container" style="max-width: 400px">
   <div class="card shadow-sm w-100">
     <div class="card-body">
-      <h5 class="card-title">Sign in to your account.</h5>
+      <h5 class="card-title">Log in to your account.</h5>
       <form action="{% url 'login' %}" method="post" class="form">
         {% csrf_token %} {% bootstrap_form form %}
-        <button name="submit" class="btn btn-primary w-100">Login</button>
+        <button name="submit" class="btn btn-primary w-100">Log in</button>
         <input type="hidden" name="next" value="{% url 'home' %}" />
       </form>
     </div>
