@@ -1,26 +1,4 @@
-## Config
-
-```
-cd ~/r2f2/nginx
-cp -r ~/github.com/xujintao/balgass/docker/nginx .
-```
-
-## Start nginx
-
-```
-docker run \
---restart always \
--d \
---name nginx \
--e LANG=C.UTF-8 \
--e TZ=Asia/Shanghai \
--v ~/r2f2/nginx:/etc/nginx \
--p 80:80 \
--p 443:443 \
-nginx:1.15.5-alpine
-```
-
-## Install online
+## Install acme.sh online
 
 https://github.com/acmesh-official/acme.sh
 
@@ -44,7 +22,13 @@ acme.sh --issue --dns dns_ali -d r2f2.com -d *.r2f2.com
 
 ```
 acme.sh --install-cert -d r2f2.com \
---key-file       ~/r2f2/nginx/ssl/key.pem  \
---fullchain-file ~/r2f2/nginx/ssl/cert.pem \
---reloadcmd     "docker restart nginx"
+--key-file       ~/github.com/xujintao/balgass/docker/nginx/ssl/key.pem  \
+--fullchain-file ~/github.com/xujintao/balgass/docker/nginx/ssl/cert.pem \
+--reloadcmd     "docker restart nginx mailserver "
+```
+
+## Start nginx
+
+```
+./start.sh
 ```
