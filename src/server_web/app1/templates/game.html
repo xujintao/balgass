@@ -22,7 +22,10 @@ Game
       output.appendChild(d);
       output.scroll(0, output.scrollHeight);
     };
-    ws = new WebSocket("wss://r2f2.com/api/game");
+    // ws = new WebSocket("wss://r2f2.com/api/game");
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsHost = window.location.hostname;
+    const ws = new WebSocket(`${wsProtocol}://${wsHost}:8080/api/game`);
     ws.onopen = () => {
       print("websocket open");
       ws.send(
