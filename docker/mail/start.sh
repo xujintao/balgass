@@ -5,8 +5,7 @@ MAIL_STATE=$MAIL_DIR/state
 MAIL_LOGS=$MAIL_DIR/logs
 MAIL_CONFIG=$MAIL_DIR/config
 
-SSL_KEY_PATH=$DOCKER_DIR/nginx/ssl/key.pem
-SSL_CERT_PATH=$DOCKER_DIR/nginx/ssl/cert.pem
+NGINX_SSL_DIR=$DOCKER_DIR/nginx/ssl
 
 docker run -d \
 --name mailserver \
@@ -18,13 +17,14 @@ docker run -d \
 -v $MAIL_STATE:/var/mail-state/ \
 -v $MAIL_LOGS:/var/log/mail/ \
 -v $MAIL_CONFIG:/tmp/docker-mailserver/ \
--e ENABLE_CLAMAV=1 \
+-v $NGINX_SSL_DIR:/tmp/ssl/ \
+-e ENABLE_CLAMAV=0 \
 -e ENABLE_FAIL2BAN=1 \
 -e ENABLE_POSTGREY=1 \
 -e ENABLE_SPAMASSASSIN=1 \
 -e SSL_TYPE=manual \
--e SSL_CERT_PATH=$SSL_CERT_PATH \
--e SSL_KEY_PATH=$SSL_KEY_PATH \
+-e SSL_CERT_PATH=/tmp/ssl/cert.pem \
+-e SSL_KEY_PATH=/tmp/ssl/key.pem \
 --cap-add=NET_ADMIN \
 --cap-add=SYS_PTRACE \
 --tty \
