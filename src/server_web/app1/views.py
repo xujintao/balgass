@@ -1,19 +1,17 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 from django.http import Http404
 from . import models
 import requests
 import json
 
+
 # Create your views here.
-
-
 def home(request):
-    from django.contrib.auth.models import User
-
-    users = User.objects.all()
+    users = models.User.objects.all()
     topics = models.Topic.objects.all()
     entries = models.Entry.objects.all()
     context = {"users": users, "topics": topics, "entries": entries}
@@ -22,30 +20,79 @@ def home(request):
 
 def signup(request):
     if request.method != "POST":
-        form = UserCreationForm()
+        form = models.CustomUserCreationForm()
     else:
-        form = UserCreationForm(data=request.POST)
+        form = models.CustomUserCreationForm(data=request.POST)
         if form.is_valid():
-            new_user = form.save()
-            login(request, new_user)
-            return redirect("home")
+            new_user = form.save(commit=False)
+            new_user.save()
+            models.Profile.objects.create(user=new_user, email_verified=False)
+            send_verification_email(new_user, request)
+            return render(request, "registration/verification_sent.html")
+            # login(request, new_user)
+            # return redirect("home")
     context = {"form": form}
     return render(request, "registration/signup.html", context)
 
 
+def send_verification_email(user, request):
+    from django.utils.http import urlsafe_base64_encode
+    from django.utils.encoding import force_bytes
+    from django.urls import reverse
+    from django.core.mail import send_mail
+
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    verification_link = request.build_absolute_uri(
+        reverse("verify", kwargs={"uidb64": uid, "token": token})
+    )
+    subject = "Verify your email address"
+    message = f"Click the link to verify your email address: {verification_link}"
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+
+
+@login_required
+def resend_verification_email(request):
+    if request.method != "POST":
+        return redirect("home")
+    else:
+        user = request.user
+        if user.profile.email_verified:
+            return redirect("home")
+        send_verification_email(user, request)
+        return render(request, "registration/verification_sent.html")
+
+
+def verify(request, uidb64, token):
+    from django.utils.http import urlsafe_base64_decode
+    from django.utils.encoding import force_str
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = models.User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, models.User.DoesNotExist):
+        user = None
+    if user is not None and default_token_generator.check_token(user, token):
+        profile = user.profile
+        profile.email_verified = True
+        profile.save()
+        login(request, user)
+        return render(request, "registration/verification_success.html")
+    else:
+        return render(request, "registration/verification_invalid.html")
+
+
 @login_required
 def user(request, name):
-    context = {}
-    if request.user.username == name:
-        context["self"] = True
-    else:
+    user = request.user
+    context = {"profile": user.profile}
+    if user.username != name:
         try:
-            user = models.User.objects.get(username=name)
+            other = models.User.objects.get(username=name)
         except models.User.DoesNotExist:
             return render(request, "404.html")
         else:
-            context["self"] = False
-            context["user"] = user
+            context["other"] = other
     return render(request, "user.html", context)
 
 

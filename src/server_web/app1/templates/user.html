@@ -9,6 +9,39 @@ Profile
 {% endblock page_header %}
 
 {% block content %}
-<p>user: {{user.username}}</p>
+<table class="table">
+  {% if other %}
+  <tbody>
+    <tr>
+      <th scope="row">username</th>
+      <td>{{other.username}}</td>
+    </tr>
+  </tbody>
+  {% else %}
+  <tbody>
+    <tr>
+      <th scope="row">username</th>
+      <td>{{user.username}}</td>
+    </tr>
+    <tr>
+      <th scope="row">email</th>
+      <td>{{user.email}}</td>
+      <td>
+        {% if not profile.email_verified %}
+        <form method="post" action="{% url 'resend_verification_email' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-warning">Resend Verification Email</button>
+        </form>
+      {% endif %}
+      </td>
+    </tr>
+  </tbody>
+  {% endif %}
+</table>
+
 <!-- <pre>{% debug %}</pre> -->
+
+<!-- {% if not other %}
+<p>user: {{other.username}}</p>
+{% endif %} -->
 {% endblock content %}

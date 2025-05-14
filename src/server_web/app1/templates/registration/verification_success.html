@@ -1,0 +1,17 @@
+{% load bootstrap4 %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verification Successful</title>
+    <script>
+      setTimeout(function () {
+        window.location.href = "{% url 'home' %}";
+      }, 3000);
+    </script>
+  </head>
+  <body>
+    <h2>Email verified successfully!</h2>
+    <p>You will be redirected to the home page in 3 seconds...</p>
+  </body>
+</html>
