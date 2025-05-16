@@ -12,12 +12,17 @@ docker run -d \
 --restart always \
 --hostname mail \
 --domainname r2f2.com \
--p 25:25 -p 143:143 -p 587:587 -p 993:993 \
+-p 25:25 \
+-p 465:465 \
+-p 587:587 \
+-p 143:143 \
+-p 993:993 \
 -v $MAIL_DATA:/var/mail/ \
 -v $MAIL_STATE:/var/mail-state/ \
 -v $MAIL_LOGS:/var/log/mail/ \
 -v $MAIL_CONFIG:/tmp/docker-mailserver/ \
 -v $NGINX_SSL_DIR:/tmp/ssl/ \
+-e TZ=Asia/Shanghai \
 -e ENABLE_CLAMAV=0 \
 -e ENABLE_FAIL2BAN=1 \
 -e ENABLE_POSTGREY=1 \
