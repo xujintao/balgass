@@ -5,7 +5,7 @@ on:
       - "balgass/src/server_connect/**"
 jobs:
   build-server-connect:
-    uses: ./.github/workflows/reusable/build_deploy.yml
+    uses: ./.github/workflows/build_deploy.yml
     with:
       server_name: "server_connect"
       tag: "latest"

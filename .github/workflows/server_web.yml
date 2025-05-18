@@ -5,7 +5,7 @@ on:
       - "balgass/src/server_web/**"
 jobs:
   build-server-game:
-    uses: ./.github/workflows/reusable/build_deploy.yml
+    uses: ./.github/workflows/build_deploy.yml
     with:
       server_name: "server_web"
       tag: "latest"
