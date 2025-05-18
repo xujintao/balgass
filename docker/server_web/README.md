@@ -1,21 +1,21 @@
 ## server_web
 
-1 Build and push image to docker private registry
+1 Build image
 
 ```
-cd ~/r2f2/server_web
-cp -r ~/github.com/xujintao/balgass .
-docker build -t server_web .
+REPO=~/balgass
+FILE=./docker/server_web/Dockerfile
+
+cd $REPO
+
+docker build \
+-t xujintao/server_web:latest \
+-f $FILE \
+.
 ```
 
 2 Run image
 
 ```
-docker run \
---restart always \
--d \
---name server_web \
--e TZ=Asia/Shanghai \
--p 8000:8000 \
-server_web:latest
+./start.sh
 ```

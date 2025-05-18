@@ -1,8 +1,8 @@
 USER=root
 PASSWORD=1234
 DEFAULT_DB=django
-PGSQL_DATA=~/github.com/xujintao/balgass/docker/pgsql/data
-PGSQL_INIT=~/github.com/xujintao/balgass/docker/pgsql/initdb.d
+PGSQL_DATA=~/balgass/docker/pgsql/data
+PGSQL_INIT=~/balgass/docker/pgsql/initdb.d
 
 docker run \
 --restart always \

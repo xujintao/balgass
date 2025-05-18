@@ -1,4 +1,4 @@
-DOCKER_DIR=~/github.com/xujintao/balgass/docker
+DOCKER_DIR=~/balgass/docker
 NGINX_DIR=$DOCKER_DIR/nginx
 
 docker run \

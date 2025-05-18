@@ -1,6 +1,6 @@
 EMAIL=xujintao@126.com
 PASSWORD=1234
-PGADMIN_DATA=~/github.com/xujintao/balgass/docker/pgadmin/data
+PGADMIN_DATA=~/balgass/docker/pgadmin/data
 
 docker run \
 --restart always \

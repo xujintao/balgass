@@ -1,5 +1,5 @@
 FROM golang:1.21.6-alpine3.18 as builder
-ADD ./balgass /balgass
+COPY . /balgass
 WORKDIR /balgass/src/server_game
 RUN CGO_ENABLED=0 go install .
 

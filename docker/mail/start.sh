@@ -1,4 +1,4 @@
-DOCKER_DIR=~/github.com/xujintao/balgass/docker
+DOCKER_DIR=~/balgass/docker
 MAIL_DIR=$DOCKER_DIR/mail
 MAIL_DATA=$MAIL_DIR/data
 MAIL_STATE=$MAIL_DIR/state
