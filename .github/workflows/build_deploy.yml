@@ -27,7 +27,7 @@ jobs:
           context: .
           file: ./docker/${{ inputs.server_name }}/Dockerfile
           push: true
-          tags: ${{ inputs.tag }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ inputs.server_name }}/${{ inputs.tag }}
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.0
