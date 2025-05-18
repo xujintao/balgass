@@ -9,15 +9,18 @@ jobs:
     with:
       server_name: "server_connect"
       tag: ${{ github.ref_name }}
+    secrets: inherit
 
   build-server-game:
     uses: ./.github/workflows/build_deploy.yml
     with:
       server_name: "server_game"
       tag: ${{ github.ref_name }}
+    secrets: inherit
 
   build-server-web:
     uses: ./.github/workflows/build_deploy.yml
     with:
       server_name: "server_web"
       tag: ${{ github.ref_name }}
+    secrets: inherit

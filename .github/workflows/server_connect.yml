@@ -9,3 +9,4 @@ jobs:
     with:
       server_name: "server_connect"
       tag: "latest"
+    secrets: inherit
