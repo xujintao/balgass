@@ -2,7 +2,7 @@ name: Build and Deploy Connect Server
 on:
   push:
     paths:
-      - "balgass/src/server_connect/**"
+      - "src/server_connect/**"
 jobs:
   build-server-connect:
     uses: ./.github/workflows/build_deploy.yml

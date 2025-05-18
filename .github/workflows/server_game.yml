@@ -2,7 +2,7 @@ name: Build and Deploy Game Server
 on:
   push:
     paths:
-      - "balgass/src/server_game/**"
+      - "src/server_game/**"
 jobs:
   build-server-game:
     uses: ./.github/workflows/build_deploy.yml
