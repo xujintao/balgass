@@ -36,6 +36,14 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            if [ ! -d "$HOME/balgass" ]; then
+              echo "Directory ~/balgass not found, cloning repository..."
+              git clone https://github.com/xujintao/balgass.git ~/balgass
+            fi
+            cd ~/balgass
+            git stash || echo "Nothing to stash"
+            git pull
+            git stash pop || echo "No stash to pop or conflict occurred"
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ inputs.server_name }}:${{ inputs.tag }}
             docker stop ${{ inputs.server_name }} || true
             docker rm ${{ inputs.server_name }} || true
