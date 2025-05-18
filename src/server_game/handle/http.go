@@ -208,19 +208,10 @@ func (h *httpHandle) CreateAccount(c *gin.Context) {
 
 func (h *httpHandle) GetAccountList(c *gin.Context) {
 	// get param
-	uid := 0
-	uidStr := c.Query("user_id")
-	if uidStr != "" {
-		var err error
-		uid, err = strconv.Atoi(uidStr)
-		if err != nil {
-			h.setErr(c, GetAccountListParamInvalid, err)
-			return
-		}
-	}
+	email := c.Query("user_email")
 
 	// db
-	accs, err := model.DB.GetAccountList(uid)
+	accs, err := model.DB.GetAccountList(email)
 	if err != nil {
 		h.setErr(c, GetAccountListDB, err)
 		return
