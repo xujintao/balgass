@@ -1,0 +1,11 @@
+name: Build and Deploy Web Server
+on:
+  push:
+    paths:
+      - "balgass/src/server_web/**"
+jobs:
+  build-server-game:
+    uses: ./.github/workflows/reusable/build_deploy.yml
+    with:
+      server_name: "server_web"
+      tag: "latest"

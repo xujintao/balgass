@@ -1,0 +1,23 @@
+name: Build and Deploy Servers
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  build-server-connect:
+    uses: ./.github/workflows/reusable/build_deploy.yml
+    with:
+      server_name: "server_connect"
+      tag: ${{ github.ref_name }}
+
+  build-server-game:
+    uses: ./.github/workflows/reusable/build_deploy.yml
+    with:
+      server_name: "server_game"
+      tag: ${{ github.ref_name }}
+
+  build-server-web:
+    uses: ./.github/workflows/reusable/build_deploy.yml
+    with:
+      server_name: "server_web"
+      tag: ${{ github.ref_name }}
