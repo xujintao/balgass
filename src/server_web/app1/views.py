@@ -176,7 +176,7 @@ def game_accounts(request):
     # launch api request
     url = "http://r2f2.com:8080/api/accounts"
     try:
-        response = requests.get(url, params={"user_id": request.user.id})
+        response = requests.get(url, params={"user_email": request.user.email})
     except Exception as e:
         print(e)
         context["get_account_list_message"] = "request server failed"
@@ -197,7 +197,7 @@ def game_accounts(request):
             param = {
                 "name": acc["name"],
                 "password": acc["password1"],
-                "user_id": request.user.id,
+                "user_email": request.user.email,
             }
             data = json.dumps(param)
             try:
