@@ -8,5 +8,6 @@ RUN set -ex; \
     apt-get install -y tzdata; \
     apt-get install -y gcc libpq-dev; \
     rm -rf /var/lib/apt/lists/*; \
-    pip install --no-cache-dir -r ${SERVER_WEB}/requirements.txt
-CMD ["sh","-c","python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+    pip install --no-cache-dir -r ${SERVER_WEB}/requirements.txt; \
+    python manage.py collectstatic --noinput
+CMD ["sh","-c","python manage.py migrate && exec gunicorn -b 0.0.0.0:8000 project.wsgi:application"]
