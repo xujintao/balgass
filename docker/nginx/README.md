@@ -24,7 +24,7 @@ acme.sh --issue --dns dns_ali -d r2f2.com -d *.r2f2.com
 acme.sh --install-cert -d r2f2.com \
 --key-file       ~/balgass/docker/nginx/ssl/key.pem  \
 --fullchain-file ~/balgass/docker/nginx/ssl/cert.pem \
---reloadcmd     "docker restart nginx mailserver "
+--reloadcmd     "docker restart nginx mailserver"
 ```
 
 ## Start nginx
