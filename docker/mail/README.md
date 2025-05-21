@@ -10,6 +10,16 @@ https://docker-mailserver.github.io/docker-mailserver/v15.0/usage/#minimal-dns-s
 
 https://docker-mailserver.github.io/docker-mailserver/v15.0/usage/#setting-up-tls
 
+### Fail2Ban
+
+https://docker-mailserver.github.io/docker-mailserver/v15.0/config/security/fail2ban/
+
+```
+Fail2Ban: /etc/fail2ban/jail.conf
+DMS:      /etc/fail2ban/jail.local
+User:     /ect/fail2ban/jail.d/*.local <- docker-data/dms/config/fail2ban-jail.cf
+```
+
 ## 2, Start
 
 ```
