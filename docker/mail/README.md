@@ -5,6 +5,7 @@ https://docker-mailserver.github.io/docker-mailserver/v15.0/
 ### DNS
 
 https://docker-mailserver.github.io/docker-mailserver/v15.0/usage/#minimal-dns-setup
+https://docker-mailserver.github.io/docker-mailserver/v15.0/config/best-practices/dkim_dmarc_spf/
 
 ### TLS
 
