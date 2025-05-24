@@ -53,12 +53,44 @@ ufw status numbered
 ## Use iptables
 
 ```
-sudo iptables -L -n -v
-./iptables.sh
-sudo iptables -L -n -v
+                    +-------------------+
+                    |    PREROUTING     | (nat)
+                    +-------------------+
+                             |
+                             v
+                   +---------------------+
+                   |   Routing Decision  |
+                   +---------------------+
+                        /           \
+                       /             \
+              +------------+   +----------------+
+              |   Local    |   |   Forwarding   |
+              +------------+   +----------------+
+                   |                   |
+                   v                   v
+              +-----------+     +--------------+
+              |   INPUT   |     |   FORWARD    | (filter)
+              +-----------+     +--------------+
+                   |                   |
+                   v                   v
+           +----------------+   +-------------------+
+           |  Local Process |   |   POSTROUTING     | (nat)
+           +----------------+   +-------------------+
+                                        |
+                                        v
+                                   +---------+
+                                   | Send Out|
+                                   +---------+
+
 ```
 
-## Add iptables.sh to boot
+### 1. iptables
+
+```
+./iptables.sh
+```
+
+### 2. make it persistent
 
 ```
 sudo cp iptables-boot.service /etc/systemd/system
