@@ -1,0 +1,55 @@
+root@root:~# iptables -L -v -n
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+10497 3242K DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+10425 3239K DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+ 5157  813K ACCEPT     all  --  *      docker0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+  499 29958 DOCKER     all  --  *      docker0  0.0.0.0/0            0.0.0.0/0           
+ 4769 2395K ACCEPT     all  --  docker0 !docker0  0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     all  --  docker0 docker0  0.0.0.0/0            0.0.0.0/0           
+
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain DOCKER (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.2           tcp dpt:10000
+    0     0 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.3           tcp dpt:56900
+    0     0 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.3           tcp dpt:8080
+    0     0 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.4           tcp dpt:8000
+  265 15676 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.5           tcp dpt:443
+    0     0 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.6           tcp dpt:5432
+    0     0 ACCEPT     udp  --  !docker0 docker0  0.0.0.0/0            172.17.0.7           udp dpt:55667
+    2    96 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.8           tcp dpt:80
+   53  3108 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.9           tcp dpt:993
+  151  9578 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.5           tcp dpt:80
+    0     0 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.7           tcp dpt:44405
+    5   284 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.9           tcp dpt:587
+    4   240 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.9           tcp dpt:465
+    5   236 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.9           tcp dpt:143
+   14   740 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.9           tcp dpt:25
+
+Chain DOCKER-ISOLATION-STAGE-1 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 4769 2395K DOCKER-ISOLATION-STAGE-2  all  --  docker0 !docker0  0.0.0.0/0            0.0.0.0/0           
+10425 3239K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-ISOLATION-STAGE-2 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DROP       all  --  *      docker0  0.0.0.0/0            0.0.0.0/0           
+ 4769 2395K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-USER (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     tcp  --  *      *       172.17.0.0/16        0.0.0.0/0            tcp dpt:5432
+   20  1200 DROP       tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:5432
+    0     0 ACCEPT     tcp  --  *      *       172.17.0.0/16        0.0.0.0/0            tcp dpt:8000
+   11   592 DROP       tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:8000
+    0     0 ACCEPT     tcp  --  *      *       172.17.0.0/16        0.0.0.0/0            tcp dpt:8080
+   41  1776 DROP       tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:8080
+    0     0 ACCEPT     udp  --  *      *       172.17.0.0/16        0.0.0.0/0            udp dpt:55667
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            udp dpt:55667
+10425 3239K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0           

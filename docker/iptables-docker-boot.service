@@ -1,0 +1,12 @@
+[Unit]
+Description=Custom iptables rules for Docker
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/root/balgass/docker/iptables-docker.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,49 @@
+root@root:~# iptables -t nat -L -v -n
+Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+ 3737  209K DOCKER     all  --  *      *       0.0.0.0/0            0.0.0.0/0            ADDRTYPE match dst-type LOCAL
+
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+    1    60 DOCKER     all  --  *      *       0.0.0.0/0           !127.0.0.0/8          ADDRTYPE match dst-type LOCAL
+
+Chain POSTROUTING (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+  520 37111 MASQUERADE  all  --  *      !docker0  172.17.0.0/16        0.0.0.0/0           
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.2           172.17.0.2           tcp dpt:10000
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.3           172.17.0.3           tcp dpt:56900
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.3           172.17.0.3           tcp dpt:8080
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.4           172.17.0.4           tcp dpt:8000
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.5           172.17.0.5           tcp dpt:443
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.6           172.17.0.6           tcp dpt:5432
+    0     0 MASQUERADE  udp  --  *      *       172.17.0.7           172.17.0.7           udp dpt:55667
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.8           172.17.0.8           tcp dpt:80
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.9           172.17.0.9           tcp dpt:993
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.5           172.17.0.5           tcp dpt:80
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.7           172.17.0.7           tcp dpt:44405
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.9           172.17.0.9           tcp dpt:587
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.9           172.17.0.9           tcp dpt:465
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.9           172.17.0.9           tcp dpt:143
+    0     0 MASQUERADE  tcp  --  *      *       172.17.0.9           172.17.0.9           tcp dpt:25
+
+Chain DOCKER (2 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  277 16596 RETURN     all  --  docker0 *       0.0.0.0/0            0.0.0.0/0           
+    0     0 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:10000 to:172.17.0.2:10000
+    0     0 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:56900 to:172.17.0.3:56900
+   41  1776 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:8080 to:172.17.0.3:8080
+   11   592 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:8000 to:172.17.0.4:8000
+  265 15676 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:443 to:172.17.0.5:443
+   21  1260 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:5432 to:172.17.0.6:5432
+    0     0 DNAT       udp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            udp dpt:55667 to:172.17.0.7:55667
+    2    96 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:8084 to:172.17.0.8:80
+   53  3108 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:993 to:172.17.0.9:993
+  151  9578 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:80 to:172.17.0.5:80
+    0     0 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:44405 to:172.17.0.7:44405
+    5   284 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:587 to:172.17.0.9:587
+    4   240 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:465 to:172.17.0.9:465
+    5   236 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:143 to:172.17.0.9:143
+   14   740 DNAT       tcp  --  !docker0 *       0.0.0.0/0            0.0.0.0/0            tcp dpt:25 to:172.17.0.9:25

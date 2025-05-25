@@ -5,7 +5,7 @@ Wants=docker.service
 
 [Service]
 Type=oneshot
-ExecStart=/root/balgass/docker/iptables.sh
+ExecStart=/root/balgass/docker/iptables-ufw.sh
 RemainAfterExit=true
 
 [Install]
