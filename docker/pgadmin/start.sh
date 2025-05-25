@@ -10,6 +10,7 @@ docker run \
 -e TZ=Asia/Shanghai \
 -e PGADMIN_DEFAULT_EMAIL=$EMAIL \
 -e PGADMIN_DEFAULT_PASSWORD=$PASSWORD \
+-e PGADMIN_LISTEN_PORT=8084 \
 -v $PGADMIN_DATA:/var/lib/pgadmin \
--p 8084:80 \
+-p 8084:8084 \
 dpage/pgadmin4:6.7
