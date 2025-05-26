@@ -140,3 +140,15 @@ EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
 EMAIL_HOST_USER = os.environ.get("EMAIL_USER", "noreply@r2f2.com")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASSWORD", "1234")
+
+# generate https schme in emails verification links
+# @property
+# def scheme(self):
+#     return 'https' if self.is_secure() else 'http'
+
+# def is_secure(self):
+#     if settings.SECURE_PROXY_SSL_HEADER:
+#         header, expected_value = settings.SECURE_PROXY_SSL_HEADER
+#         return self.META.get(header) == expected_value
+#     return self._get_scheme() == 'https'
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
