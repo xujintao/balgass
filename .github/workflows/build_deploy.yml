@@ -8,6 +8,11 @@ on:
       tag:
         required: true
         type: string
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -48,3 +53,4 @@ jobs:
             docker stop ${{ inputs.server_name }} || true
             docker rm ${{ inputs.server_name }} || true
             ./docker/${{ inputs.server_name }}/start.sh ${{ inputs.tag }}
+            docker image prune
