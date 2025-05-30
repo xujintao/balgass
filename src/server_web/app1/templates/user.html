@@ -10,33 +10,33 @@ Profile
 
 {% block content %}
 <table class="table">
-  {% if other %}
   <tbody>
+    {% if other %}
     <tr>
       <th scope="row">username</th>
       <td>{{other.username}}</td>
     </tr>
-  </tbody>
-  {% else %}
-  <tbody>
+    {% else %}
     <tr>
       <th scope="row">username</th>
       <td>{{user.username}}</td>
     </tr>
     <tr>
       <th scope="row">email</th>
-      <td>{{user.email}}</td>
       <td>
-        {% if not profile.email_verified %}
-        <form method="post" action="{% url 'resend_verification_email' %}">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-warning">Resend Verification Email</button>
-        </form>
-      {% endif %}
+        <div class="d-flex align-items-center">
+          {{user.email}}
+          {% if not user.profile.email_verified %}
+          <form class="ml-2 mb-0" method="post" action="{% url 'resend_verification_email' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning btn-sm" title="Send verification email">Verify</button>
+          </form>
+          {% endif %}
+        </div>
       </td>
     </tr>
+    {% endif %}
   </tbody>
-  {% endif %}
 </table>
 
 <!-- <pre>{% debug %}</pre> -->

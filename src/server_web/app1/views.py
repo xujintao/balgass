@@ -85,7 +85,7 @@ def verify(request, uidb64, token):
 @login_required
 def user(request, name):
     user = request.user
-    context = {"profile": user.profile}
+    context = {}
     if user.username != name:
         try:
             other = models.User.objects.get(username=name)
