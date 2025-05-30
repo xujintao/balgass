@@ -172,6 +172,8 @@ def game(request):
 
 @login_required
 def game_accounts(request):
+    if not request.user.profile.email_verified:
+        raise Http404
     context = {}
     # launch api request
     url = "http://r2f2.com:8080/api/accounts"
