@@ -17,6 +17,14 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Set dynamic server host based on tag
+        id: set-host
+        run: |
+          if [[ "${{ inputs.tag }}" == "latest" ]]; then
+            echo "host=${{ secrets.SERVER_HOST_DEV }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "host=${{ secrets.SERVER_HOST_PROD }}" >> "$GITHUB_OUTPUT"
+          fi
       - name: Check out repository code
         uses: actions/checkout@v4
 
@@ -37,7 +45,7 @@ jobs:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: ${{ steps.set-host.outputs.host }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
@@ -53,4 +61,4 @@ jobs:
             docker stop ${{ inputs.server_name }} || true
             docker rm ${{ inputs.server_name }} || true
             ./docker/${{ inputs.server_name }}/start.sh ${{ inputs.tag }}
-            docker image prune
+            docker image prune -f
