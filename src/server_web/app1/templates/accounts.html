@@ -29,7 +29,7 @@ Game Accounts
       </div>
     </div>
     {% endfor %}
-    <div class="col mb-3">
+    <div class="col-md-auto mb-3">
       <div class="card">
         <div class="card-body">
           <p class="card-text">New a game account.</p>
@@ -44,21 +44,6 @@ Game Accounts
         </div>
       </div>
     </div>
-    {% if create_account_message %}
-    <div class="col">
-      <div class="alert alert-warning alert-dismissible" role="alert">
-        {{create_account_message}}
-        <button
-          type="button"
-          class="close"
-          data-dismiss="alert"
-          aria-label="Close"
-        >
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    </div>
-    {% endif %}
   </div>
   <div
     class="modal fade"
@@ -66,24 +51,44 @@ Game Accounts
     tabindex="-1"
     aria-labelledby="newAccountModalLabel"
     aria-hidden="true"
+    {% if create_account_message %}
+    data-backdrop="static"
+    data-keyboard="false"
+    {% endif %}
   >
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="card">
-          <div class="card-body">
-            <form action="{% url 'accounts' %}" method="post">
-              {% csrf_token %} {% bootstrap_form form %}
-              <button class="btn btn-primary" name="submit">
-                Submit
-              </button>
-            </form>
-            <!-- <p class="card-text">{{create_account_message}}</p> -->
-          </div>
+        <div class="modal-header">
+          <h5 class="modal-title" id="newAccountModalLabel">
+            Create a new game account
+          </h5>
         </div>
+        <div class="modal-body">
+          <form action="{% url 'accounts' %}" method="post">
+            {% csrf_token %} {% bootstrap_form form %}
+            <button class="btn btn-primary" name="submit">
+              Submit
+            </button>
+          </form>
+        </div>
+        {% if create_account_message %}
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warning" onclick="window.location.href=window.location.href">
+            {{ create_account_message }}
+          </button>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
   {% endif %}
 </div>
+{% if create_account_message %}
+<script>
+  $(document).ready(function () {
+    $("#newAccountModal").modal("show");
+  });
+</script>
+{% endif %}
 <!-- <pre>{% debug %}</pre> -->
 {% endblock content %}

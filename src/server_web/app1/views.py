@@ -175,23 +175,10 @@ def game_accounts(request):
     if not request.user.profile.email_verified:
         raise Http404
     context = {}
-    # launch api request
     url = "http://r2f2.com:8080/api/accounts"
-    try:
-        response = requests.get(url, params={"user_email": request.user.email})
-    except Exception as e:
-        print(e)
-        context["get_account_list_message"] = "request server failed"
-    else:
-        result = response.json()
-        if response.status_code == 200:
-            context["accounts"] = result
-        else:
-            context["get_account_list_message"] = result["message"]
     if request.method != "POST":
         form = models.AccountForm()
     else:
-        # todo
         form = models.AccountForm(data=request.POST)
         if form.is_valid():
             acc = form.cleaned_data
@@ -204,14 +191,23 @@ def game_accounts(request):
             data = json.dumps(param)
             try:
                 response = requests.post(url, data=data, headers=headers)
+                result = response.json()
+                if response.status_code == 200:
+                    return redirect(".")
+                else:
+                    context["create_account_message"] = result["message"]
             except Exception as e:
                 print(e)
                 context["create_account_message"] = "request server failed"
-            else:
-                result = response.json()
-                if response.status_code != 200:
-                    context["create_account_message"] = result["message"]
-                else:
-                    return redirect(".")
+    try:
+        response = requests.get(url, params={"user_email": request.user.email})
+        result = response.json()
+        if response.status_code == 200:
+            context["accounts"] = result
+        else:
+            context["get_account_list_message"] = result["message"]
+    except Exception as e:
+        print(e)
+        context["get_account_list_message"] = "request server failed"
     context["form"] = form
     return render(request, "accounts.html", context)
