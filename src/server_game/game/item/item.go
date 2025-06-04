@@ -575,7 +575,7 @@ type PositionedItems struct {
 	SetFlagsForItem   func(int, *Item)
 }
 
-func (pi *PositionedItems) MarshalJSON() ([]byte, error) {
+func (pi PositionedItems) MarshalJSON() ([]byte, error) {
 	var items []*Item
 	for i, v := range pi.Items {
 		if v == nil {
