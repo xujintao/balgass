@@ -52,7 +52,7 @@ type Account struct {
 	ID                 int            `json:"id,omitempty" gorm:"primarykey"`
 	Name               string         `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique"`
 	Password           string         `json:"password,omitempty" validate:"required,max=10,min=1"`
-	Characters         []*Character   `json:"-" validate:"-"`
+	Characters         []*Character   `json:"characters" validate:"-"`
 	UserEmail          string         `json:"user_email" validate:"required"`
 	Warehouse          item.Warehouse `json:"warehouse,omitempty" validate:"-" gorm:"type:jsonb"`
 	WarehouseExpansion int            `json:"warehouse_expansion,omitempty" validate:"-"`
@@ -94,15 +94,13 @@ func (db *db) GetAccountByID(id int) (*Account, error) {
 func (db *db) GetAccountList(email string) ([]*Account, error) {
 	var accs []*Account
 	var err error
+	query := db.Preload("Characters").Order("id ASC").Omit("Password")
 	if email == "" {
-		err = db.Order("id ASC").
-			Omit("Password").
+		err = query.
 			Find(&accs).
 			Error
 	} else {
-		err = db.Order("id ASC").
-			Where("user_email = ?", email).
-			Omit("Password").
+		err = query.Where("user_email = ?", email).
 			Find(&accs).
 			Error
 	}
