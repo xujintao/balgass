@@ -18,13 +18,13 @@ Game Accounts
   {% else %}
   <div class="row row-cols-*">
     {% for acc in accounts %}
-    <div class="col mb-3">
+    <div class="col-md-auto mb-3">
       <div class="card">
         <div class="card-header">{{acc.name}}</div>
         <ul class="list-group list-group-flush">
-          <li class="list-group-item">Role1</li>
-          <li class="list-group-item">Role2</li>
-          <li class="list-group-item">Role3</li>
+          {% for c in acc.characters %}
+          <li class="list-group-item">{{ c.name }} {{ c.level|add:c.master_level }}</li>
+          {% endfor %}
         </ul>
       </div>
     </div>
