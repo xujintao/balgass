@@ -10,4 +10,4 @@ docker run \
 -v $NGINX_DIR:/etc/nginx \
 -p 80:80 \
 -p 443:443 \
-nginx:1.15.5-alpine
+nginx:1.25-alpine
