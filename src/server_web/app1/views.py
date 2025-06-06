@@ -175,7 +175,7 @@ def game_accounts(request):
     if not request.user.profile.email_verified:
         raise Http404
     context = {}
-    url = "http://r2f2.com:8080/api/accounts"
+    url = "http://us.r2f2.com:8080/api/accounts"
     if request.method != "POST":
         form = models.AccountForm()
     else:
