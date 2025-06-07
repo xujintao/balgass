@@ -1,0 +1,31 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://localhost:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: nginx-access
+    static_configs:
+      - targets: ["localhost"]
+        labels:
+          job: nginx-access
+          __path__: /var/log/nginx-fail2ban/access.log*
+
+  - job_name: nginx-error
+    static_configs:
+      - targets: ["localhost"]
+        labels:
+          job: nginx-error
+          __path__: /var/log/nginx-fail2ban/error.log*
+
+  - job_name: fail2ban
+    static_configs:
+      - targets: ["localhost"]
+        labels:
+          job: fail2ban
+          __path__: /var/log/nginx-fail2ban/fail2ban.log*
