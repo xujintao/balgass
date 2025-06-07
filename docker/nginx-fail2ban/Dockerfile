@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dnspython \
     curl \
     ca-certificates \
+    && rm -rf /etc/fail2ban/jail.d/* \
     && rm -rf /var/lib/apt/lists/*
 
 ENTRYPOINT ["sh", "-c"]
