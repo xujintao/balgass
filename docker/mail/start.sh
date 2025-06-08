@@ -5,10 +5,10 @@ MAIL_STATE=$MAIL_DIR/state
 MAIL_LOGS=$MAIL_DIR/logs
 MAIL_CONFIG=$MAIL_DIR/config
 
-NGINX_SSL_DIR=$DOCKER_DIR/nginx/ssl
+NGINX_SSL_DIR=$DOCKER_DIR/nginx-fail2ban/nginx/ssl
 
 docker run -d \
---name mailserver \
+--name mail \
 --restart always \
 --hostname mail \
 --domainname r2f2.com \
