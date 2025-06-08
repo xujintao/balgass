@@ -16,4 +16,5 @@ docker run \
 -v $LOGS_DIR:/var/log/fail2ban \
 -p 80:80 \
 -p 443:443 \
+--cap-add=NET_ADMIN \
 xujintao/nginx-fail2ban:latest

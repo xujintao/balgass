@@ -3,6 +3,7 @@ FROM ubuntu:latest
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     fail2ban \
+    nftables \
     python3-pyinotify \
     python3-dnspython \
     curl \
