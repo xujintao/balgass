@@ -21,7 +21,6 @@
 sudo cp iptables-ufw-boot.service /etc/systemd/system
 sudo systemctl daemon-reload
 sudo systemctl enable iptables-ufw-boot.service
-sudo systemctl start iptables-ufw-boot.service
 ```
 
 ## Use Docker iptables
@@ -64,5 +63,4 @@ interfaces                 ┌─────────── │ decision│ 
 sudo cp iptables-docker-boot.service /etc/systemd/system
 sudo systemctl daemon-reload
 sudo systemctl enable iptables-docker-boot.service
-sudo systemctl start iptables-docker-boot.service
 ```

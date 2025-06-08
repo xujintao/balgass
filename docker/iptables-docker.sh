@@ -14,3 +14,9 @@ sudo iptables -I DOCKER-USER 7 -s 172.17.0.0/16 -p tcp --dport 8080 -j ACCEPT
 sudo iptables -I DOCKER-USER 8 -p tcp --dport 8080 -j DROP
 sudo iptables -I DOCKER-USER 9 -s 172.17.0.0/16 -p udp --dport 55667 -j ACCEPT
 sudo iptables -I DOCKER-USER 10 -p udp --dport 55667 -j DROP
+sudo iptables -I DOCKER-USER 11 -s 172.17.0.0/16 -p tcp --dport 9080 -j ACCEPT
+sudo iptables -I DOCKER-USER 12 -p tcp --dport 9080 -j DROP
+sudo iptables -I DOCKER-USER 13 -s 172.17.0.0/16 -p tcp --dport 3100 -j ACCEPT
+sudo iptables -I DOCKER-USER 14 -p tcp --dport 3100 -j DROP
+sudo iptables -I DOCKER-USER 15 -s 172.17.0.0/16 -p tcp --dport 3000 -j ACCEPT
+sudo iptables -I DOCKER-USER 16 -p tcp --dport 3000 -j DROP
