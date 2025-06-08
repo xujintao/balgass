@@ -9,23 +9,32 @@ clients:
   - url: http://localhost:3100/loki/api/v1/push
 
 scrape_configs:
-  - job_name: nginx-access
+  - job_name: nginx
     static_configs:
       - targets: ["localhost"]
         labels:
-          job: nginx-access
+          job: nginx
+          log_type: nginx-access
           __path__: /var/log/nginx-fail2ban/access.log*
-
-  - job_name: nginx-error
-    static_configs:
       - targets: ["localhost"]
         labels:
-          job: nginx-error
+          job: nginx
+          log_type: nginx-error
           __path__: /var/log/nginx-fail2ban/error.log*
-
-  - job_name: fail2ban
+      - targets: ["localhost"]
+        labels:
+          job: nginx
+          log_type: nginx-fail2ban
+          __path__: /var/log/nginx-fail2ban/fail2ban.log*
+  - job_name: mail
     static_configs:
       - targets: ["localhost"]
         labels:
-          job: fail2ban
-          __path__: /var/log/nginx-fail2ban/fail2ban.log*
+          job: mail
+          log_type: mail-mail
+          __path__: /var/log/mail/mail.log*
+      - targets: ["localhost"]
+        labels:
+          job: mail
+          log_type: mail-fail2ban
+          __path__: /var/log/mail/fail2ban.log*
