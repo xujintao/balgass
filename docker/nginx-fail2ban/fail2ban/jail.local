@@ -1,10 +1,10 @@
-[nginx-botsearch]
-enabled = true
-logpath = %(nginx_access_log)s
-
-[nginx-bad-request]
-enabled = true
-
 [DEFAULT]
+bantime  = 10m
+findtime  = 10m
 maxretry = 2
 banaction = nftables-allports
+
+[nginx-bot-request]
+enabled = true
+port    = http,https
+logpath = %(nginx_access_log)s

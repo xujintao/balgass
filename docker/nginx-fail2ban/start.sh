@@ -13,6 +13,7 @@ docker run \
 -v $LOGS_DIR:/var/log/nginx \
 -v $FAIL2BAN_DIR/fail2ban.local:/etc/fail2ban/fail2ban.local \
 -v $FAIL2BAN_DIR/jail.local:/etc/fail2ban/jail.local \
+-v $FAIL2BAN_DIR/nginx-bot-request.conf:/etc/fail2ban/filter.d/nginx-bot-request.conf \
 -v $LOGS_DIR:/var/log/fail2ban \
 -p 80:80 \
 -p 443:443 \
