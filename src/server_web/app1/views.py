@@ -18,20 +18,43 @@ def home(request):
     return render(request, "home.html", context)
 
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR")
+
+
 def signup(request):
+    context = {"turnstile_sign_up_site_key": settings.TURNSTILE_SIGN_UP_SITE_KEY}
     if request.method != "POST":
         form = models.CustomUserCreationForm()
     else:
         form = models.CustomUserCreationForm(data=request.POST)
-        if form.is_valid():
-            new_user = form.save(commit=False)
-            new_user.save()
-            models.Profile.objects.create(user=new_user, email_verified=False)
-            send_verification_email(new_user, request)
-            return render(request, "registration/verification_sent.html")
-            # login(request, new_user)
-            # return redirect("home")
-    context = {"form": form}
+        token = request.POST.get("turnstile-response")
+        if token:
+            verify_url = settings.TURNSTILE_VERIFY_URL
+            data = {
+                "secret": settings.TURNSTILE_SIGN_UP_SECRET_KEY,
+                "response": token,
+                "remoteip": get_client_ip(request),
+            }
+            resp = requests.post(verify_url, data=data)
+            result = resp.json()
+            if result.get("success"):
+                if form.is_valid():
+                    new_user = form.save(commit=False)
+                    new_user.save()
+                    models.Profile.objects.create(user=new_user, email_verified=False)
+                    send_verification_email(new_user, request)
+                    return render(request, "registration/verification_sent.html")
+                    # login(request, new_user)
+                    # return redirect("home")
+            else:
+                form.add_error(None, "CAPTCHA verification failed. Please try again.")
+        else:
+            form.add_error(None, "Please complete the CAPTCHA.")
+    context["form"] = form
     return render(request, "registration/signup.html", context)
 
 

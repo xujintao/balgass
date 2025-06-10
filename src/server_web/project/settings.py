@@ -152,3 +152,8 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASSWORD", "1234")
 #         return self.META.get(header) == expected_value
 #     return self._get_scheme() == 'https'
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Turnstile settings
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+TURNSTILE_SIGN_UP_SITE_KEY = os.environ.get("TURNSTILE_SIGN_UP_SITE_KEY", "KEY1")
+TURNSTILE_SIGN_UP_SECRET_KEY = os.environ.get("TURNSTILE_SIGN_UP_SECRET_KEY", "KEY2")

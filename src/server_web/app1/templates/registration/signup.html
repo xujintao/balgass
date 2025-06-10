@@ -9,10 +9,12 @@ Sign up
 <div class="card mx-auto" style="max-width: 600px">
   <div class="card-body">
     <h3 class="card-title">Create an account.</h3>
-    <form action="{% url 'signup' %}" method="post" class="form">
+    <form id="signup-form" action="{% url 'signup' %}" method="post" class="form">
       {% csrf_token %} {% bootstrap_form form %}
+      <input id="turnstile-response" name="turnstile-response" type="hidden">
+      <div id="turnstile-container" style="display: none;"></div>
       <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mt-3">
-        <button name="submit" class="btn btn-primary">Sign up</button>
+        <button id="signup-btn" type="button" class="btn btn-primary">Sign up</button>
         <div>
           <span>Already have an R2F2 Account?</span>
           <a href="{% url 'login' %}">Login</a>
@@ -21,4 +23,29 @@ Sign up
     </form>
   </div>
 </div>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script>
+  let widgetId = null;
+  let turnstileReady = false;
+
+  window.onload = function () {
+    const button = document.getElementById("signup-btn");
+    button.addEventListener("click", function () {
+      if (!turnstileReady) {
+        widgetId = turnstile.render("#turnstile-container", {
+          sitekey: "{{ turnstile_sign_up_site_key }}",
+          callback: function (token) {
+            document.getElementById("turnstile-response").value = token;
+            document.getElementById("signup-form").submit();
+          },
+        });
+        turnstileReady = true;
+        document.getElementById("turnstile-container").style.display = "block";
+      } else {
+        turnstile.reset(widgetId);
+        turnstile.execute(widgetId);
+      }
+    });
+  };
+</script>
 {% endblock content %}
