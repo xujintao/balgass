@@ -49,6 +49,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -ex
             if [ ! -d "$HOME/balgass" ]; then
               echo "Directory ~/balgass not found, cloning repository..."
               git clone https://github.com/xujintao/balgass.git ~/balgass

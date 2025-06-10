@@ -4,7 +4,7 @@ on:
     paths:
       - "src/server_web/**"
 jobs:
-  build-server-game:
+  build-server-web:
     uses: ./.github/workflows/build_deploy.yml
     with:
       server_name: "server_web"

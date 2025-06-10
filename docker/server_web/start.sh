@@ -1,12 +1,13 @@
 #!/bin/bash
+set -e
 
 TAG=${1:-latest}
-
 ENV_FILE=~/balgass/config/server_web/.env
 
-docker run -d \
---name server_web \
+docker run \
 --restart always \
+-d \
+--name server_web \
 --env-file $ENV_FILE \
 -e TZ=Asia/Shanghai \
 -p 8000:8000 \
