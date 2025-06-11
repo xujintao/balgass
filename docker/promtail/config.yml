@@ -38,3 +38,17 @@ scrape_configs:
           job: mail
           log_type: mail-fail2ban
           __path__: /var/log/mail/fail2ban.log*
+  - job_name: docker
+    docker_sd_configs:
+      - host: "unix:///var/run/docker.sock"
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: [__meta_docker_container_name]
+        regex: "/(pgsql|server_web|server_game|server_connect)"
+        action: keep
+      - source_labels: [__meta_docker_container_name]
+        regex: "/(.*)"
+        replacement: "$1"
+        target_label: container_name
+      - replacement: "docker"
+        target_label: job
