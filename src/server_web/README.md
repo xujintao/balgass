@@ -44,24 +44,28 @@ django-admin startproject project .
 python manage.py startapp app1
 ```
 
-## Develop
-
-1 Create mirgrations
+7 Create mirgrations
 
 ```
 python manage.py makemigrations app1
 ```
 
-2 Apply mirgrations to migrate database
+8 Apply mirgrations to migrate database
 
 ```
 python manage.py migrate
 ```
 
-3 Run
+9 Run
 
 ```
 python manage.py runserver 0.0.0.0:8000
+```
+
+## Develop
+
+```
+./run.sh
 ```
 
 ## Debug

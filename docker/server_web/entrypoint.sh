@@ -1,0 +1,24 @@
+#!/bin/sh
+set -ex
+
+GUNICORN_BIND=${GUNICORN_BIND:-0.0.0:8000}
+GUNICORN_LOG_LEVEL=${GUNICORN_LOG_LEVEL:-info}
+GUNICORN_ACCESS_LOGFORMAT=${GUNICORN_ACCESS_LOGFORMAT:-'%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'}
+GUNICORN_ACCESS_LOGFILE=${GUNICORN_ACCESS_LOGFILE:-/dev/stdout}
+GUNICORN_WORKERS=${GUNICORN_WORKERS:-3}
+GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
+GUNICORN_GRACEFUL_TIMEOUT=${GUNICORN_GRACEFUL_TIMEOUT:-30}
+
+python manage.py migrate
+
+exec gunicorn \
+--worker-class gevent \
+--bind "$GUNICORN_BIND" \
+--log-level "$GUNICORN_LOG_LEVEL" \
+--access-logformat "$GUNICORN_ACCESS_LOGFORMAT" \
+--access-logfile "$GUNICORN_ACCESS_LOGFILE" \
+--workers "$GUNICORN_WORKERS" \
+--timeout "$GUNICORN_TIMEOUT" \
+--graceful-timeout "$GUNICORN_GRACEFUL_TIMEOUT" \
+project.wsgi:application
+

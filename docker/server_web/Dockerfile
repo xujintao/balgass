@@ -2,6 +2,7 @@ FROM python:3.10-slim-bookworm
 LABEL maintainer "xujintao@126.com"
 ENV SERVER_WEB=/server_web
 COPY ./src/server_web ${SERVER_WEB}
+COPY ./docker/server_web/entrypoint.sh /entrypoint.sh
 WORKDIR ${SERVER_WEB}
 RUN set -ex; \
     apt-get update; \
@@ -10,4 +11,4 @@ RUN set -ex; \
     rm -rf /var/lib/apt/lists/*; \
     pip install --no-cache-dir -r ${SERVER_WEB}/requirements.txt; \
     python manage.py collectstatic --noinput
-CMD ["sh","-c","python manage.py migrate && exec gunicorn -b 0.0.0.0:8000 project.wsgi:application"]
+ENTRYPOINT ["/entrypoint.sh"]
