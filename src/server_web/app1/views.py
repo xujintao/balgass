@@ -7,6 +7,9 @@ from django.http import Http404
 from . import models
 import requests
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # Create your views here.
@@ -220,7 +223,7 @@ def game_accounts(request):
                 else:
                     context["create_account_message"] = result["message"]
             except Exception as e:
-                print(e)
+                logger.error(e)
                 context["create_account_message"] = "request server failed"
     try:
         response = requests.get(url, params={"user_email": request.user.email})
@@ -230,7 +233,7 @@ def game_accounts(request):
         else:
             context["get_account_list_message"] = result["message"]
     except Exception as e:
-        print(e)
+        logger.error(e)
         context["get_account_list_message"] = "request server failed"
     context["form"] = form
     return render(request, "accounts.html", context)
