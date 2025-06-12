@@ -31,6 +31,15 @@ Sign up
   window.onload = function () {
     const button = document.getElementById("signup-btn");
     button.addEventListener("click", function () {
+      if (button.disabled) {
+        return;
+      }
+      button.disabled = true;
+      button.textContent = "Verifying...";
+      setTimeout(() => {
+        button.disabled = false;
+        button.textContent = "Sign up";
+      }, 10000);
       if (!turnstileReady) {
         widgetId = turnstile.render("#turnstile-container", {
           sitekey: "{{ turnstile_sign_up_site_key }}",
