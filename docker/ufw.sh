@@ -20,16 +20,16 @@ ufw allow from 172.17.0.0/16 to any port 5432 proto tcp comment 'pgsql <- docker
 # 5. pgadmin
 ufw allow from 172.17.0.0/16 to any port 8084 proto tcp comment 'pgadmin <- docker'
 
-# 6. server_web
-ufw allow from 172.17.0.0/16 to any port 8000 proto tcp comment 'server_web <- docker'
+# 6. server-web
+ufw allow from 172.17.0.0/16 to any port 8000 proto tcp comment 'server-web <- docker'
 
-# 7. server_game
-ufw allow from 172.17.0.0/16 to any port 8080 proto tcp comment 'server_game <- docker'
-ufw allow 56900/tcp comment 'server_game'
+# 7. server-game
+ufw allow from 172.17.0.0/16 to any port 8080 proto tcp comment 'server-game <- docker'
+ufw allow 56900/tcp comment 'server-game'
 
-# 8. server_connect
-ufw allow 44405/tcp comment 'server_connect'
-ufw allow from 172.17.0.0/16 to any port 55667 proto udp comment 'server_connect <- docker'
+# 8. server-connect
+ufw allow 44405/tcp comment 'server-connect'
+ufw allow from 172.17.0.0/16 to any port 55667 proto udp comment 'server-connect <- docker'
 
 # 9. promtail
 ufw allow from 172.17.0.0/16 to any port 9080 proto tcp comment 'promtail <- docker'

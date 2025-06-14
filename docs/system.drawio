@@ -61,7 +61,7 @@
             <mxPoint x="610" y="450" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="rW9Jt2JVrLwE_duKyx_v-15" value="server_web" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="rW9Jt2JVrLwE_duKyx_v-15" value="server-web" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="640" y="159" width="80" height="40" as="geometry" />
         </mxCell>
         <mxCell id="rW9Jt2JVrLwE_duKyx_v-16" value="DB" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;" parent="1" vertex="1">
@@ -160,7 +160,7 @@
             <mxPoint x="440" y="189" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="kpFYMuNnrzabu6qo-bZ7-2" value="server_game" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="kpFYMuNnrzabu6qo-bZ7-2" value="server-game" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="350" y="290" width="100" height="30" as="geometry" />
         </mxCell>
         <mxCell id="kpFYMuNnrzabu6qo-bZ7-3" value="mu" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -211,7 +211,7 @@
             <mxPoint x="660" y="650" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="kbl5L2O9h8Efh9OmafXO-19" value="server_connect" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="kbl5L2O9h8Efh9OmafXO-19" value="server-connect" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="357" y="570" width="100" height="30" as="geometry" />
         </mxCell>
         <mxCell id="kbl5L2O9h8Efh9OmafXO-20" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.75;exitDx=0;exitDy=0;" parent="1" source="rW9Jt2JVrLwE_duKyx_v-4" target="kbl5L2O9h8Efh9OmafXO-7" edge="1">

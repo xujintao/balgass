@@ -1,0 +1,12 @@
+name: Build and Deploy Game Server
+on:
+  push:
+    paths:
+      - "src/server-game/**"
+jobs:
+  build-server-game:
+    uses: ./.github/workflows/build-deploy.yml
+    with:
+      server_name: "server-game"
+      tag: "latest"
+    secrets: inherit

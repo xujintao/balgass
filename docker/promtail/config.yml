@@ -44,7 +44,7 @@ scrape_configs:
         refresh_interval: 5s
     relabel_configs:
       - source_labels: [__meta_docker_container_name]
-        regex: "/(pgsql|server_web|server_game|server_connect)"
+        regex: "/(pgsql|server-web|server-game|server-connect)"
         action: keep
       - source_labels: [__meta_docker_container_name]
         regex: "/(.*)"

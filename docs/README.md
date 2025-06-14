@@ -1,8 +1,8 @@
 - [System](system.md)
 
-- [Auto update](auto_update.md)
+- [Auto update](auto-update.md)
 
-- [Server list](server_list.md)
+- [Server list](server-list.md)
 
 - [Account](account.md)
 

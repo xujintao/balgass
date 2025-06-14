@@ -12,7 +12,7 @@ ufw enable
 ufw status verbose
 ```
 
-Failed: server_web container can't access pgsql container
+Failed: server-web container can't access pgsql container
 
 https://stackoverflow.com/questions/30383845/what-is-the-best-practice-of-docker-ufw-under-ubuntu
 
@@ -30,10 +30,10 @@ systemctl restart ufw
 https://stackoverflow.com/a/51741599
 https://github.com/chaifeng/ufw-docker/issues/112
 
-Failed: server_web container can't access pgsql container
+Failed: server-web container can't access pgsql container
 
 #### 1.2 --iptables=false
 
 https://stackoverflow.com/a/46266757
 
-Failed: server_web container can't access pgsql container
+Failed: server-web container can't access pgsql container

@@ -10,10 +10,10 @@
         <mxCell id="ACd-QYny71i_hxN_7XtB-1" value="nginx(80/443)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="130" y="200" width="110" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="ACd-QYny71i_hxN_7XtB-2" value="server_web(8000)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="ACd-QYny71i_hxN_7XtB-2" value="server-web(8000)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="320" y="200" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="ACd-QYny71i_hxN_7XtB-3" value="server_game(8080)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="ACd-QYny71i_hxN_7XtB-3" value="server-game(8080)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="320" y="300" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="ACd-QYny71i_hxN_7XtB-4" value="pgadmin(8084)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">

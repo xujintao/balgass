@@ -23,7 +23,7 @@ func f0075C3B2handlecmd(code uint8, buf []uint8, len int, enc bool) {
 // key: 0x0075FF6A, s9 0x00673FE6
 // value: 0x0075FCB2, s9 0x00673D2E
 var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
-	0x00:   f0075CB89handle00,                // server_connect is prepared
+	0x00:   f0075CB89handle00,                // server-connect is prepared
 	0x01:   f0075CB97handle01,                // chat
 	0x0D:   f007087BFhandle0D,                // handle notice message
 	0x1D:   handle1DBeAttacked,               // hook, hash[DF]=hash[1D]
@@ -47,7 +47,7 @@ var cmds = map[int]func(code uint8, buf []uint8, len int, enc bool){
 	0xD9:   handleD9normalAttack,             // hook, hash[11]=hash[D9]
 	0xDA:   handleDApositionGet,              // hook, hash[15]=hash[DA]
 	0xF0:   nil,                              // reserved
-	0xF1:   f0075C3E8handleF1,                // server_game is prepared and response with server's version, and the login logic also use code F1
+	0xF1:   f0075C3E8handleF1,                // server-game is prepared and response with server's version, and the login logic also use code F1
 	0xF2:   nil,                              // reserved
 	0xF3:   f0075C794handleF3,                // character
 	0xF4:   f0075CB02handleF4,                // server list and server info
