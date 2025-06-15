@@ -24,7 +24,7 @@ Game
     };
     const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
     const wsHost = window.location.hostname;
-    const ws = new WebSocket(`${wsProtocol}://${wsHost}:8080/api/game`);
+    const ws = new WebSocket("{{ game_websocket_url }}");
     ws.onopen = () => {
       print("websocket open");
       ws.send(

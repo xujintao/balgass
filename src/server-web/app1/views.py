@@ -193,7 +193,8 @@ def edit_entry(request, id):
 
 
 def game(request):
-    return render(request, "game.html")
+    context = {"game_websocket_url": settings.GAME_WEBSOCKET_URL}
+    return render(request, "game.html", context)
 
 
 @login_required
@@ -201,8 +202,7 @@ def game_accounts(request):
     if not request.user.profile.email_verified:
         raise Http404
     context = {}
-    host = request.get_host().split(":")[0]
-    url = f"http://{host}:8080/api/accounts"
+    url = settings.GAME_API_URL
     if request.method != "POST":
         form = models.AccountForm()
     else:

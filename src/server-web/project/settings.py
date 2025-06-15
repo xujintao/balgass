@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,10 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-uw3$)963+!i^!b6(y9o6(^s%c&u-69usy#hm4l+2yhgf2(1#-$"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("SECURITY_DEBUG", "0") == "1"
 
-ALLOWED_HOSTS = ["*"]
-# CSRF_TRUSTED_ORIGINS = ["https://r2f2.com"]
+ALLOWED_HOSTS = os.environ.get("SECURITY_ALLOWED_HOSTS", "localhost").split(",")
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    "SECURITY_CSRF_TRUSTED_ORIGINS", "https://r2f2.com"
+).split(",")
 
 # Application definition
 
@@ -75,8 +78,6 @@ WSGI_APPLICATION = "project.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-import os
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -134,7 +135,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "login"
 
 # mail settings
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "mail.r2f2.com")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
@@ -196,3 +197,7 @@ LOGGING = {
         },
     },
 }
+
+# game api
+GAME_API_URL = os.environ.get("GAME_API_URL", "http://r2f2.com:8080/api/accounts")
+GAME_WEBSOCKET_URL = os.environ.get("GAME_WEBSOCKET_URL", "wss://r2f2.com/api/game")
