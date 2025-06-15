@@ -88,7 +88,7 @@ python manage.py runserver 0.0.0.0:8000
                 "runserver",
                 "0.0.0.0:8000"
             ],
-            "envFile": "${env:HOME}/balgass/config/server-web/.env",
+            "envFile": "${workspaceFolder}/../../config/server-web/.env",
             "django": true,
             "justMyCode": false,
             "console": "integratedTerminal",
