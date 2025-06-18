@@ -34,7 +34,10 @@ var CharacterTable characterTable
 type characterTable map[int]model.Character
 
 func NewPlayer(conn object.Conn, actioner object.Actioner) (int, error) {
-	return object.ObjectManager.AddPlayer(conn, actioner, newPlayer)
+	// register the new player to object manager
+	return object.ObjectManager.AddPlayer(conn, func() *object.Object {
+		return newPlayer(conn, actioner)
+	})
 }
 
 func newPlayer(conn object.Conn, actioner object.Actioner) *object.Object {

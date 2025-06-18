@@ -85,18 +85,20 @@ func SpawnMonster() {
 					spawnDir := spawn.Dir
 					spawnDis := spawn.Distance
 					spawnElement := spawn.Element
-					_, err := object.ObjectManager.AddMonster(
-						spawnClass,
-						spawnMapNumber,
-						spawnStartX,
-						spawnStartY,
-						spawnEndX,
-						spawnEndY,
-						spawnDir,
-						spawnDis,
-						spawnElement,
-						newMonster,
-					)
+					// register the new monster to object manager
+					_, err := object.ObjectManager.AddMonster(func() *object.Object {
+						return newMonster(
+							spawnClass,
+							spawnMapNumber,
+							spawnStartX,
+							spawnStartY,
+							spawnEndX,
+							spawnEndY,
+							spawnDir,
+							spawnDis,
+							spawnElement,
+						)
+					})
 					if err != nil {
 						log.Fatalf("spawnMonster AddMonster failed err[%v]", err)
 					}
@@ -106,18 +108,19 @@ func SpawnMonster() {
 	}
 
 	shop.ShopManager.ForEachShop(func(class, mapNumber, x, y, dir int) {
-		obj, err := object.ObjectManager.AddMonster(
-			class,
-			mapNumber,
-			x,
-			y,
-			x,
-			y,
-			dir,
-			0,
-			0,
-			newMonster,
-		)
+		obj, err := object.ObjectManager.AddMonster(func() *object.Object {
+			return newMonster(
+				class,
+				mapNumber,
+				x,
+				y,
+				x,
+				y,
+				dir,
+				0,
+				0,
+			)
+		})
 		if err != nil {
 			log.Fatalf("spawnShopNPC AddMonster failed err[%v]", err)
 		}

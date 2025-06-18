@@ -79,19 +79,18 @@ func (m *objectManager) init() {
 	m.mapSubscribeTable = make(map[int]map[*user]struct{})
 }
 
-func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int,
-	newMonster func(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) *Object) (*Object, error) {
-	if m.monsterCount > m.maxMonsterCount {
+func (om *objectManager) AddMonster(newMonster func() *Object) (*Object, error) {
+	if om.monsterCount > om.maxMonsterCount {
 		return nil, fmt.Errorf("over max monster count")
 	}
-	index := m.lastMonsterIndex
-	cnt := m.maxMonsterCount
+	index := om.lastMonsterIndex
+	cnt := om.maxMonsterCount
 	for cnt > 0 {
 		index++
-		if index >= m.maxMonsterCount {
-			index = m.monsterStartIndex
+		if index >= om.maxMonsterCount {
+			index = om.monsterStartIndex
 		}
-		if m.objects[index] == nil {
+		if om.objects[index] == nil {
 			break
 		}
 		cnt--
@@ -99,12 +98,12 @@ func (m *objectManager) AddMonster(class, mapNumber, startX, startY, endX, endY,
 	if cnt == 0 {
 		panic(fmt.Errorf("have no free monster index"))
 	}
-	m.lastMonsterIndex = index
-	m.monsterCount++
-	monster := newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element)
-	monster.Index = index
-	m.objects[index] = monster
-	return monster, nil
+	om.lastMonsterIndex = index
+	om.monsterCount++
+	m := newMonster()
+	m.Index = index
+	om.objects[index] = m
+	return m, nil
 }
 
 // func (m *objectManager) AddCallMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (int, error) {
@@ -143,7 +142,7 @@ type Actioner interface {
 	PlayerAction(int, string, any)
 }
 
-func (m *objectManager) AddPlayer(conn Conn, actioner Actioner, newPlayer func(Conn, Actioner) *Object) (int, error) {
+func (m *objectManager) AddPlayer(conn Conn, newPlayer func() *Object) (int, error) {
 	// limit max player count
 	if m.playerCount >= m.maxPlayerCount {
 		// reply
@@ -170,10 +169,9 @@ func (m *objectManager) AddPlayer(conn Conn, actioner Actioner, newPlayer func(C
 	}
 	m.lastPlayerIndex = index
 	m.playerCount++
-	player := newPlayer(conn, actioner)
-	player.Index = index
-	// register the new player to object manager
-	m.objects[index] = player
+	p := newPlayer()
+	p.Index = index
+	m.objects[index] = p
 
 	// reply
 	msg := model.MsgConnectReply{
@@ -181,8 +179,8 @@ func (m *objectManager) AddPlayer(conn Conn, actioner Actioner, newPlayer func(C
 		ID:      index,
 		Version: conf.MapServers.ServerInfo.Version,
 	}
-	player.Push(&msg)
-	log.Printf("player online [id]%d [addr]%s", player.Index, player.Addr())
+	p.Push(&msg)
+	log.Printf("player online [id]%d [addr]%s", p.Index, p.Addr())
 	return index, nil
 }
 
@@ -191,15 +189,15 @@ func (m *objectManager) DeletePlayer(id int) {
 		log.Printf("delete player failed [id]%d\n", id)
 		return
 	}
-	player := m.objects[id]
-	if player == nil {
+	p := m.objects[id]
+	if p == nil {
 		return
 	}
-	player.Offline()
-	log.Printf("player offline [id]%d [addr]%s", player.Index, player.Addr())
+	p.Offline()
+	log.Printf("player offline [id]%d [addr]%s", p.Index, p.Addr())
 
 	// unregister player from object manager
-	player.Reset()
+	p.Reset()
 	m.objects[id] = nil
 	m.playerCount--
 }
