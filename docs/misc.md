@@ -1,6 +1,4 @@
-## System
-
-<img src="system.jpg">
+## Misc
 
 ### hold ubuntu 22.04.4
 

@@ -1,4 +1,8 @@
-- [System](system.md)
+## System
+
+<img src="system.jpg">
+
+## Specification
 
 - [Auto update](auto-update.md)
 
@@ -11,3 +15,5 @@
 - [Object](object.md)
 
 - [Item](item.md)
+
+- [Misc](misc.md)
