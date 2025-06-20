@@ -197,8 +197,8 @@ func (h *httpHandle) CreateAccount(c *gin.Context) {
 		return
 	}
 
-	// db
-	if err := model.DB.CreateAccount(&in); err != nil {
+	// command
+	if _, err := game.Game.Command("CreateAccount", &in); err != nil {
 		h.setErr(c, CreateAccountDB, err)
 		return
 	}
@@ -210,8 +210,8 @@ func (h *httpHandle) GetAccountList(c *gin.Context) {
 	// get param
 	email := c.Query("user_email")
 
-	// db
-	accs, err := model.DB.GetAccountList(email)
+	// command
+	accs, err := game.Game.Command("GetAccountList", &model.Account{UserEmail: email})
 	if err != nil {
 		h.setErr(c, GetAccountListDB, err)
 		return
@@ -228,8 +228,8 @@ func (h *httpHandle) DeleteAccount(c *gin.Context) {
 		return
 	}
 
-	// db
-	if err := model.DB.DeleteAccount(id); err != nil {
+	// command
+	if _, err := game.Game.Command("DeleteAccount", &model.Account{ID: id}); err != nil {
 		h.setErr(c, DeleteAccountDB, err)
 		return
 	}
