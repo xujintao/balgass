@@ -35,7 +35,7 @@ struct PMSG_IDPASS_OLD
 	PBMSG_HEAD h;
 	BYTE subcode;	// 3
 	char Id[10];	// 4
-	char Pass[20];	// E
+	char Pass[10];	// E
 	DWORD TickCount;	// 18
 	BYTE CliVersion[8];	// 1C
 	BYTE CliSerial[16];	// 21
