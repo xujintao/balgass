@@ -1136,6 +1136,9 @@ func (msg *MsgEnableMuBotReply) Marshal() ([]byte, error) {
 
 // pack(1)
 type MsgMove struct {
+	X    int
+	Y    int
+	Dir  int
 	Dirs []int
 	Path maps.Path
 }
@@ -1144,52 +1147,55 @@ func (msg *MsgMove) Unmarshal(buf []byte) error {
 	br := bytes.NewReader(buf)
 
 	// x
-	x, err := br.ReadByte()
+	xx, err := br.ReadByte()
 	if err != nil {
 		return err
 	}
+	x := int(xx)
+	msg.X = x
 
 	// y
-	y, err := br.ReadByte()
+	yy, err := br.ReadByte()
 	if err != nil {
 		return err
 	}
+	y := int(yy)
+	msg.Y = y
+
+	// meta
+	meta, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	dir := int(meta >> 4 & 0x0F)
+	msg.Dir = dir
+	size := int(meta & 0x0F)
 
 	// bufDir
 	var bufDir [8]byte
-	_, err = br.Read(bufDir[:])
-	if err != nil {
-		return err
-	}
-
-	size := bufDir[0] & 0x0F
-	if size > 14 {
-		return fmt.Errorf("MsgMove size invalid [size]%d", size)
+	if size != 0 {
+		n, err := br.Read(bufDir[:])
+		if err != nil {
+			return err
+		}
+		if (size+1)/2 != n {
+			return fmt.Errorf("invalid bufDir size: expected %d, got %d", (size+1)/2, n)
+		}
 	}
 	dirs := make([]int, size)
 	path := make(maps.Path, size)
-	for i := range path {
-		path[i] = &maps.Pot{}
-	}
 	for i := 0; i < int(size); i++ {
-		if i == 0 {
-			dir := int(bufDir[(i+2)/2] >> 4 & 0x0F)
-			dirs[i] = dir
-			dirPot := maps.Dirs[dir]
-			path[i].X = int(x) + dirPot.X
-			path[i].Y = int(y) + dirPot.Y
-			continue
-		}
 		dir := 0
 		if i%2 == 0 {
-			dir = int(bufDir[(i+2)/2] >> 4 & 0x0F)
+			dir = int(bufDir[i/2] >> 4 & 0x0F)
 		} else {
-			dir = int(bufDir[(i+2)/2] & 0x0F)
+			dir = int(bufDir[i/2] & 0x0F)
 		}
 		dirs[i] = dir
 		dirPot := maps.Dirs[dir]
-		path[i].X = path[i-1].X + dirPot.X
-		path[i].Y = path[i-1].Y + dirPot.Y
+		x += dirPot.X
+		y += dirPot.Y
+		path[i] = &maps.Pot{X: x, Y: y}
 	}
 	msg.Dirs = dirs
 	msg.Path = path
@@ -1354,7 +1360,7 @@ func (msg *MsgLogin) Unmarshal(buf []byte) error {
 	msg.Account = utils.TrimStr(utils.Xor(account[:]))
 
 	// password
-	var password [10]byte
+	var password [20]byte
 	_, err = br.Read(password[:])
 	if err != nil {
 		return err

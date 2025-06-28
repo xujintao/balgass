@@ -22,7 +22,7 @@ func (obj *Object) processMove() {
 	if obj.ConnectState < ConnectStatePlaying ||
 		!obj.Live ||
 		obj.State != 2 ||
-		obj.pathCount == 0 {
+		!obj.PathMoving {
 		return
 	}
 	moveTime := 400
@@ -56,9 +56,6 @@ func (obj *Object) processMove() {
 	}
 	obj.X = x
 	obj.Y = y
-	// if obj.index == 6 && obj.PathMoving {
-	// 	fmt.Println(obj.X, obj.Y)
-	// }
 	obj.Dir = dir
 	obj.CreateFrustrum()
 	obj.pathCur++
@@ -76,33 +73,44 @@ func (obj *Object) processMove() {
 
 func (obj *Object) Move(msg *model.MsgMove) {
 	n := len(msg.Path)
-	if n < 1 || n > 14 {
+	if n > 15 {
+		log.Printf("object move check [index]%d [name]%s [map]%d [path count]%d",
+			obj.Index, obj.Name, obj.MapNumber, n)
 		return
 	}
-	for i := range msg.Path {
+	if msg.X != obj.X || msg.Y != obj.Y {
+		log.Printf("object move check [index]%d [name]%s [path count]%d [client position](%d,%d) [server position](%d,%d)",
+			obj.Index, obj.Name, n, msg.X, msg.Y, obj.X, obj.Y)
+	}
+	// set move state machine
+	obj.X = msg.X
+	obj.Y = msg.Y
+	obj.Dir = msg.Dir
+	for i := 0; i < n; i++ {
 		obj.pathX[i] = msg.Path[i].X
 		obj.pathY[i] = msg.Path[i].Y
 		obj.pathDir[i] = msg.Dirs[i]
 	}
 	obj.pathCount = n
 	obj.pathCur = 0
-	obj.PathMoving = true
-	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
-	obj.TX = msg.Path[n-1].X
-	obj.TY = msg.Path[n-1].Y
-	maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
-	// if obj.Name == "asdf" {
-	// 	fmt.Printf("(%d,%d)->(%d,%d)\n", obj.X, obj.Y, obj.TX, obj.TY)
-	// }
-
+	if n == 0 {
+		obj.PathMoving = false
+		obj.TX = msg.X
+		obj.TY = msg.Y
+	} else {
+		obj.PathMoving = true
+		obj.TX = msg.Path[n-1].X
+		obj.TY = msg.Path[n-1].Y
+		maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
+		maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
+	}
+	// reply
 	msgRelpy := model.MsgMoveReply{
 		Number: obj.Index,
 		X:      obj.TX,
 		Y:      obj.TY,
 		Dir:    obj.Dir << 4,
 	}
-	obj.destroyViewport()
-	obj.createViewport()
 	obj.PushViewport(&msgRelpy)
 }
 

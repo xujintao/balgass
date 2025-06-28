@@ -577,7 +577,7 @@ func (m *Monster) move() {
 		}
 		dirs[i] = maps.CalcDir(x, y, path[i].X, path[i].Y)
 	}
-	msg := model.MsgMove{Dirs: dirs, Path: path}
+	msg := model.MsgMove{X: m.X, Y: m.Y, Dir: m.Dir, Dirs: dirs, Path: path}
 	m.Move(&msg)
 }
 

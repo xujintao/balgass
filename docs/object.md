@@ -1,6 +1,6 @@
 ## Object
 
-### Move
+### 1. Move
 
 <img src="object-move.jpg">
 
@@ -8,36 +8,30 @@
 
 ```
 pack(1)
-[C1 06+n D4 01 01 [1+n]byte]
+[C1 06+n D4 01 01 55 [n]byte]
 ```
 
-| Index | Element   | Description                         |
-| ----- | --------- | ----------------------------------- |
-| 0     | 0xC1      | c1c2 frame flag                     |
-| 1     | 0x06+n    | c1c2 frame size                     |
-| 2     | 0xD4      | c1c2 frame code: 0xD7 (0xD4 for s9) |
-| 3     | 0x01      | object current coordinate x: 0~255  |
-| 4     | 0x01      | object current coordinate y: 0~255  |
-| 5~5+n | [1+n]byte | object move path                    |
+| Index | Element | Description                                         |
+| ----- | ------- | --------------------------------------------------- |
+| 0     | 0xC1    | c1c2 frame flag                                     |
+| 1     | 0x06+n  | c1c2 frame size                                     |
+| 2     | 0xD4    | c1c2 frame code: 0xD7 (0xD4 for s9)                 |
+| 3     | 0x01    | object current coordinate x: 0~255                  |
+| 4     | 0x01    | object current coordinate y: 0~255                  |
+| 5     | 0x55    | bit4~bit7: object current dir; bit0~bit3: path size |
+| 6+n   | [n]byte | object move path                                    |
 
 ```
-object path:
-path[0] bit4~bit7: object current dir
-path[0] bit0~bit3: path size
-path[1] bit4~bit7: 1st dir
-path[1] bit0~bit3: 2nd dir
+object move path:
+path[0] bit4~bit7: the 1st dir
+path[0] bit0~bit3: the 2nd dir
 ...
-path[n] bit4~bit7: 2n-1 dir
-path[n] bit0~bit3: 2n dir
+path[n] bit4~bit7: the 2n+1st dir
+path[n] bit0~bit3: the 2n+2nd dir
 ...
-path[7] bit4~bit7: 13rd dir
-path[7] bit0~bit3: 14th dir
+path[7] bit4~bit7: the 15th dir
+path[7] bit0~bit3: placeholder
 ```
-
-#### Handle
-
-Game will save the path that object want to move to the specific object context.
-After push MsgMoveReply to object viewport, Game will also execute the move action.
 
 #### Reply
 
@@ -54,9 +48,17 @@ pack(1)
 | 3~4   | [2]byte | object index BE                     |
 | 5     | 0x01    | object target coordinate x: 0~255   |
 | 6     | 0x01    | object target coordinate y: 0~255   |
-| 7     | 0x05    | object current dir                  |
+| 7     | 0x05    | bit4~bit7: object current dir       |
 
-### Viewport
+#### Handle
+
+1, Game Client launch move request to Game Server.
+
+2, Once Game Server receives the request(move sync), it will save the path that object want to move to the specific object context and reply(move ack) with MsgMoveReply to all objects in the viewport, then execute the object move action with move state machine.
+
+3, Once Game Client receives the reply(move ack), it has to render the object move action
+
+### 2. Viewport
 
 #### Request
 
@@ -162,7 +164,7 @@ pack(1)
 | ----- | ------- | --------------- |
 | 0~1   | [2]byte | object index BE |
 
-### Attack
+### 3. Attack
 
 <img src="object-attack.jpg">
 
@@ -277,7 +279,7 @@ pack(1)
 | 5     | 0x00    | skill              |
 | 6~7   | [2]byte | object index BE    |
 
-### Action
+### 4. Action
 
 <img src="object-action.jpg">
 
