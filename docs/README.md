@@ -15,5 +15,3 @@
 - [Object](object.md)
 
 - [Item](item.md)
-
-- [Misc](misc.md)
