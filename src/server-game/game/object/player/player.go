@@ -435,9 +435,9 @@ func (p *Player) Whisper(msg *model.MsgWhisper) {
 	tobj.Push(&reply)
 }
 
-// func (p *Player) Live(msg *model.MsgLive) {
-
-// }
+func (p *Player) KeepLive(msg *model.MsgKeepLive) {
+	log.Printf("Live placeholder %#v \n", msg)
+}
 
 func (p *Player) Login(msg *model.MsgLogin) {
 	// validate msg

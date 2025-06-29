@@ -2442,13 +2442,56 @@ func (msg *MsgResetGameReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-type MsgLive struct {
-	Time         int
-	AttackSpeed  int
-	Agility      int
-	MagicSpeed   int
-	Version      string
-	ServerSeason int
+type MsgKeepLive struct {
+	Time        int
+	AttackSpeed int
+	Agility     int
+	MagicSpeed  int
+	Version     string
+}
+
+func (msg *MsgKeepLive) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+
+	// time
+	var timeH, timeL uint16
+	if err := binary.Read(br, binary.LittleEndian, &timeH); err != nil {
+		return err
+	}
+	if err := binary.Read(br, binary.LittleEndian, &timeL); err != nil {
+		return err
+	}
+	msg.Time = int(timeH)<<16 | int(timeL)
+
+	// attack speed
+	var attackSpeed uint16
+	if err := binary.Read(br, binary.LittleEndian, &attackSpeed); err != nil {
+		return err
+	}
+	msg.AttackSpeed = int(attackSpeed)
+
+	// agility
+	var agility uint16
+	if err := binary.Read(br, binary.LittleEndian, &agility); err != nil {
+		return err
+	}
+	msg.Agility = int(agility)
+
+	// magic speed
+	var magicSpeed uint16
+	if err := binary.Read(br, binary.LittleEndian, &magicSpeed); err != nil {
+		return err
+	}
+	msg.MagicSpeed = int(magicSpeed)
+
+	// version
+	var version [10]byte
+	if _, err := br.Read(version[:]); err != nil {
+		return err
+	}
+	msg.Version = utils.TrimStr(version[:])
+
+	return nil
 }
 
 type MsgTest struct{}

@@ -466,6 +466,7 @@ type Objecter interface {
 	PushMPAG(int, int)
 	Chat(*model.MsgChat)
 	Whisper(*model.MsgWhisper)
+	KeepLive(*model.MsgKeepLive)
 	Login(*model.MsgLogin)
 	Logout(*model.MsgLogout)
 	Hack(*model.MsgHack)

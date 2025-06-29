@@ -217,7 +217,7 @@ type apiOut struct {
 var apiIns = [...]*apiIn{
 	{0, false, Player, 0x00, "Chat", (*model.MsgChat)(nil)},
 	{0, false, Player, 0x02, "Whisper", (*model.MsgWhisper)(nil)},
-	{0, false, Player, 0x0E, "Live", (*model.MsgLive)(nil)},
+	{0, false, Player, 0x0E, "KeepLive", (*model.MsgKeepLive)(nil)},
 	{0, false, Player, 0x11, "Attack", (*model.MsgAttack)(nil)},           // s9
 	{0, false, Player, 0x15, "SetPosition", (*model.MsgSetPosition)(nil)}, // s9
 	{0, false, Player, 0x18, "Action", (*model.MsgAction)(nil)},
