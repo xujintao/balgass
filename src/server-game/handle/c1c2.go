@@ -76,7 +76,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	req.Body = req.Body[1:]
 	if os.Getenv("DEBUG") == "1" {
 		switch api.action {
-		case "Live":
+		case "KeepLive":
 			return
 		case "Move", "Action", "Attack":
 		default:

@@ -149,7 +149,10 @@ func (obj *Object) UseSkillDeathStab(s *skill.Skill, tobj *Object) {
 	angle := obj.getAngle(tobj)
 	obj.CreateSkillFrustrum(angle, 1.5, 3.0)
 	obj.ForEachViewportObject(func(vpobj *Object) {
-		if vpobj.Live && vpobj != tobj && obj.CheckSkillFrustrum(vpobj) {
+		if vpobj != tobj &&
+			vpobj.Live &&
+			vpobj.Type != ObjectTypePlayer &&
+			obj.CheckSkillFrustrum(vpobj) {
 			obj.attack(vpobj, s, 0)
 		}
 	})
