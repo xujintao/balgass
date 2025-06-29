@@ -782,6 +782,10 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// }()
 }
 
+func (p *Player) BattleCoreNotice(*model.MsgBattleCoreNotice) {
+	// p.Push(&model.MsgBattleCoreNoticeReply{Notice: false})
+}
+
 func (p *Player) AddLevelPoint(msg *model.MsgAddLevelPoint) {
 	reply := model.MsgAddLevelPointReply{}
 	defer p.Push(&reply)

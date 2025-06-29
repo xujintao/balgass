@@ -2134,6 +2134,26 @@ func (msg *MsgCheckCharacter) Unmarshal(buf []byte) error {
 	return nil
 }
 
+type MsgBattleCoreNotice struct{}
+
+func (msg *MsgBattleCoreNotice) Unmarshal(buf []byte) error {
+	return nil
+}
+
+type MsgBattleCoreNoticeReply struct {
+	Notice bool
+}
+
+func (msg *MsgBattleCoreNoticeReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	if msg.Notice {
+		bw.WriteByte(1) // true
+	} else {
+		bw.WriteByte(0) // false
+	}
+	return bw.Bytes(), nil
+}
+
 type MsgCheckCharacterReply struct {
 	Name string
 
