@@ -969,3 +969,10 @@ func (obj *Object) processDelayMsg() {
 		msg.code = -1
 	}
 }
+
+func (obj *Object) PushSystemMsg(msg string) {
+	reply := model.MsgWhisperReply{}
+	reply.Name = "system"
+	reply.Msg = msg
+	obj.Push(&reply)
+}
