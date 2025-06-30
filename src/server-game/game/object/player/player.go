@@ -771,6 +771,28 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Push(&model.MsgMuBotReply{
 		MsgMuBot: c.MuBot,
 	})
+	p.Push(&model.MsgCreateViewportPlayerReply{
+		Players: []*model.CreateViewportPlayer{
+			{
+				Index:                  p.Index,
+				X:                      p.X,
+				Y:                      p.Y,
+				Class:                  p.Class,
+				ChangeUp:               p.GetChangeUp(),
+				Inventory:              p.GetInventory(),
+				Name:                   p.Name,
+				TX:                     p.TX,
+				TY:                     p.TY,
+				Dir:                    p.Dir,
+				PKLevel:                p.GetPKLevel(),
+				PentagramMainAttribute: p.PentagramAttributePattern,
+				Level:                  p.Level,
+				MaxHP:                  p.MaxHP,
+				HP:                     p.HP,
+				ServerCode:             0,
+			},
+		},
+	})
 
 	// client will calculate character after receiving inventory msg and master msg
 	// calculate
