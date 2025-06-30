@@ -460,34 +460,56 @@ type DelayMsg struct {
 }
 
 type Objecter interface {
-	Addr() string
-	Offline()
-	Push(any)
-	PushMPAG(int, int)
-	Chat(*model.MsgChat)
-	Whisper(*model.MsgWhisper)
+	// object actions:
+	// 1. connection safety
 	KeepLive(*model.MsgKeepLive)
+	Hack(*model.MsgHack)
+	// 2. account and character
 	Login(*model.MsgLogin)
 	Logout(*model.MsgLogout)
-	Hack(*model.MsgHack)
 	GetCharacterList(*model.MsgGetCharacterList)
 	CreateCharacter(*model.MsgCreateCharacter)
 	DeleteCharacter(*model.MsgDeleteCharacter)
 	CheckCharacter(*model.MsgCheckCharacter)
 	LoadCharacter(*model.MsgLoadCharacter)
+	// 3. item management
+	GetItem(*model.MsgGetItem)
+	DropInventoryItem(*model.MsgDropInventoryItem)
+	MoveItem(*model.MsgMoveItem)
+	UseItem(*model.MsgUseItem)
+	BuyItem(*model.MsgBuyItem)
+	SellItem(*model.MsgSellItem)
+	// 4. behavior management
+	Chat(*model.MsgChat)
+	Whisper(*model.MsgWhisper)
+	Talk(*model.MsgTalk)
+	CloseTalkWindow(*model.MsgCloseTalkWindow)
+	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
+	Move(*model.MsgMove)               // implemented by Object
+	Attack(*model.MsgAttack)           // implemented by Object
+	UseSkill(*model.MsgUseSkill)       // implemented by Object
+	SetPosition(*model.MsgSetPosition) // implemented by Object
+	MapMove(*model.MsgMapMove)
+	MapDataLoadingOK(*model.MsgMapDataLoadingOK)
+	Teleport(*model.MsgTeleport)
+	Action(*model.MsgAction)
 	BattleCoreNotice(*model.MsgBattleCoreNotice)
 	AddLevelPoint(*model.MsgAddLevelPoint)
-	MapDataLoadingOK(*model.MsgMapDataLoadingOK)
+	LearnMasterSkill(*model.MsgLearnMasterSkill)
 	DefineMuKey(*model.MsgDefineMuKey)
 	DefineMuBot(*model.MsgDefineMuBot)
 	EnableMuBot(*model.MsgEnableMuBot)
 	UsePet(*model.MsgUsePet)
-	LearnMasterSkill(*model.MsgLearnMasterSkill)
+
+	// object actions implemented by derived object:
+	Addr() string
+	Offline()
+	Push(any)
+	PushMPAG(int, int)
 	GetPKLevel() int
 	GetMasterLevel() int
 	GetSkillMPAG(s *skill.Skill) (int, int)
 	ProcessAction()
-	Action(*model.MsgAction)
 	Process1000ms()
 	SpawnPosition()
 	Die(*Object, int)
@@ -497,17 +519,6 @@ type Objecter interface {
 	Regen()
 	GetChangeUp() int
 	GetInventory() [9]*item.Item
-	Teleport(*model.MsgTeleport)
-	GetItem(*model.MsgGetItem)
-	DropInventoryItem(*model.MsgDropInventoryItem)
-	MoveItem(*model.MsgMoveItem)
-	UseItem(*model.MsgUseItem)
-	Talk(*model.MsgTalk)
-	CloseTalkWindow(*model.MsgCloseTalkWindow)
-	BuyItem(*model.MsgBuyItem)
-	SellItem(*model.MsgSellItem)
-	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
-	MapMove(*model.MsgMapMove)
 	GetAttackRatePVP() int
 	GetDefenseRatePVP() int
 	GetIgnoreDefenseRate() int
