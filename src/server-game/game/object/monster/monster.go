@@ -3,9 +3,10 @@ package monster
 import (
 	"encoding/xml"
 	"fmt"
-	"log"
+	"log/slog"
 	"math"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
@@ -100,7 +101,8 @@ func SpawnMonster() {
 						)
 					})
 					if err != nil {
-						log.Fatalf("spawnMonster AddMonster failed err[%v]", err)
+						slog.Error("range monsterSpawn.Map object.ObjectManager.AddMonster", "err", err)
+						os.Exit(1)
 					}
 				}
 			}
@@ -122,7 +124,8 @@ func SpawnMonster() {
 			)
 		})
 		if err != nil {
-			log.Fatalf("spawnShopNPC AddMonster failed err[%v]", err)
+			slog.Error("shop.ShopManager.ForEachShop object.ObjectManager.AddMonster", "err", err)
+			os.Exit(1)
 		}
 		obj.NpcType = object.NpcTypeShop
 	})

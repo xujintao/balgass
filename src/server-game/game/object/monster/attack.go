@@ -1,7 +1,7 @@
 package monster
 
 import (
-	"log"
+	"log/slog"
 	"math/rand"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
@@ -102,7 +102,9 @@ func (m *Monster) MonsterDieDropItem(tobj *object.Object) {
 	if rand.Intn(10000) < excellentDropRate {
 		// excellent item
 		dropExcellentItem = true
-		log.Printf("MonsterDieDropItem %s\n", "excellent item")
+		slog.Debug("MonsterDieDropItem",
+			"item", "excellent",
+			"monster", m.Annotation)
 	} else {
 		// roll normal item
 		plainDropRate := conf.CommonServer.GameServerInfo.ItemDropPercent
@@ -112,7 +114,9 @@ func (m *Monster) MonsterDieDropItem(tobj *object.Object) {
 		}
 		if rand.Intn(itemDropRate) < plainDropRate {
 			// plain item
-			log.Printf("MonsterDieDropItem %s\n", "plain item")
+			slog.Debug("MonsterDieDropItem",
+				"item", "plain",
+				"monster", m.Annotation)
 			dropPlainItem = true
 		} else {
 			// roll money
@@ -122,7 +126,9 @@ func (m *Monster) MonsterDieDropItem(tobj *object.Object) {
 			}
 			if rand.Intn(moneyDropRate) < 10 {
 				// money
-				log.Printf("MonsterDieDropItem %s\n", "money")
+				slog.Debug("MonsterDieDropItem",
+					"item", "money",
+					"monster", m.Annotation)
 				dropMoney = true
 			}
 		}

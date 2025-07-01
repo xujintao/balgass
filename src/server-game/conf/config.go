@@ -3,10 +3,13 @@ package conf
 import (
 	"encoding/json"
 	"encoding/xml"
+	"io"
 	"log"
+	"log/slog"
 	"os"
 	"path"
 
+	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/ini.v1"
 )
 
@@ -16,6 +19,9 @@ var (
 
 	// SeasonX represents protocol compatibility with seasonX
 	SeasonX bool
+
+	// ServerEnv
+	ServerEnv configServerEnv
 
 	// Server server config
 	Server configServer
@@ -57,17 +63,9 @@ var (
 )
 
 func init() {
-	PathConfig = os.Getenv("CONFIG_PATH")
-	PathCommon = os.Getenv("COMMON_PATH")
-	log.Printf("[PWD]%s", os.Getenv("PWD"))
-	if PathConfig == "" {
-		PathConfig = "."
-		log.Printf("$CONFIG_PATH is %q, use default %q", "", PathConfig)
-	}
-	if PathCommon == "" {
-		PathCommon = "../../config/server-game-common"
-		log.Printf("$COMMON_PATH is %q, use default %q", "", PathCommon)
-	}
+	ENV(&ServerEnv)
+	PathConfig = ServerEnv.PathConfig
+	PathCommon = ServerEnv.PathCommon
 	INI(PathConfig, "GameServer.ini", &Server)
 	XML(PathConfig, "IGC_ConnectMember.xml", &ConnectMember)
 	XML(PathConfig, "IGC_VipSettings.xml", &VipSystem)
@@ -84,42 +82,98 @@ func init() {
 	XML(PathCommon, "IGC_MapServerInfo.xml", &MapServers)
 }
 
+func ENV(v any) {
+	err := envconfig.Process("", v)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// config log
+	var writes []io.Writer
+	for _, s := range ServerEnv.LogFile {
+		switch s {
+		case "-":
+			writes = append(writes, os.Stdout)
+		default:
+			f, err := os.OpenFile(s, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+			if err != nil {
+				log.Fatal(err)
+			}
+			writes = append(writes, f)
+		}
+	}
+	var l slog.Level
+	switch ServerEnv.LogLevel {
+	case "debug":
+		l = slog.LevelDebug
+	case "info":
+		l = slog.LevelInfo
+	case "warn":
+		l = slog.LevelWarn
+	case "error":
+		l = slog.LevelError
+	}
+	slog.SetDefault(
+		slog.New(
+			slog.NewTextHandler(
+				io.MultiWriter(writes...),
+				&slog.HandlerOptions{
+					Level: l,
+					// AddSource: true,
+				},
+			),
+		),
+	)
+}
+
 func INI(dir, file string, v interface{}) {
 	file = path.Join(dir, file)
-	log.Printf("Load %s", file)
+	slog.Info("load INI", "file", file)
 	f, err := ini.Load(file)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("ini.Load", "err", err)
+		os.Exit(1)
 	}
 	if err := f.MapTo(v); err != nil {
-		log.Fatalln(err)
+		slog.Error("f.MapTo", "err", err)
+		os.Exit(1)
 	}
 }
 
 func XML(dir, file string, v interface{}) {
 	file = path.Join(dir, file)
-	log.Printf("Load %s", file)
+	slog.Info("load XML", "file", file)
 	buf, err := os.ReadFile(file)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("os.ReadFile", "err", err)
+		os.Exit(1)
 	}
 	if err := xml.Unmarshal(buf, v); err != nil {
-		log.Fatalf("Failed to unmarshal %s, %v", file, err)
+		slog.Error("xml.Unmarshal", "err", err)
+		os.Exit(1)
 	}
 }
 
 func JSON(dir, file string, v interface{}) {
 	file = path.Join(dir, file)
-	log.Printf("Load %s", file)
-	// os.ReadFile(file)
+	slog.Info("load JSON", "file", file)
 	f, err := os.Open(file)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("os.Open", "err", err)
+		os.Exit(1)
 	}
 	err = json.NewDecoder(f).Decode(v)
 	if err != nil {
-		log.Fatalln(err)
+		slog.Error("json.NewDecoder(f).Decode", "err", err)
+		os.Exit(1)
 	}
+}
+
+type configServerEnv struct {
+	Debug      bool     `envconfig:"DEBUG" default:"false"`
+	LogLevel   string   `envconfig:"LOG_LEVEL" default:"info"`
+	LogFile    []string `envconfig:"LOG_FILE" default:"-"`
+	PathConfig string   `envconfig:"PATH_CONFIG" default:"."`
+	PathCommon string   `envconfig:"PATH_COMMON" default:"."`
 }
 
 type configServer struct {

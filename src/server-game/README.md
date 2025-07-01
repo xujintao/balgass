@@ -21,12 +21,9 @@
             "request": "launch",
             "mode": "auto",
             "program": "${fileDirname}",
-            "env": {
-                "CONFIG_PATH": "${env:HOME}/balgass/config/server-game",
-                "COMMON_PATH": "${env:HOME}/balgass/config/server-game-common",
-                "DEBUG": "1"
-            }
+            "envFile": "${workspaceFolder}/../../config/server-game/.env",
         }
     ]
 }
+
 ```

@@ -1,7 +1,8 @@
 package object
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 	"math"
 	"time"
 
@@ -42,8 +43,8 @@ func (obj *Object) processMove() {
 	dir := obj.pathDir[obj.pathCur]
 	attr := maps.MapManager.GetMapAttr(obj.MapNumber, x, y)
 	if attr&4 != 0 && attr&8 != 0 {
-		log.Printf("process300ms object move check [index]%d [class]%d [map]%d [position](%d,%d)",
-			obj.Index, obj.Class, obj.MapNumber, x, y)
+		slog.Warn("processMove maps.MapManager.GetMapAttr",
+			"index", obj.Index, "map", obj.MapNumber, "position", fmt.Sprintf("(%d,%d)", x, y))
 		for i := 0; i < len(obj.pathDir); i++ {
 			obj.pathX[i] = 0
 			obj.pathY[i] = 0
@@ -74,13 +75,16 @@ func (obj *Object) processMove() {
 func (obj *Object) Move(msg *model.MsgMove) {
 	n := len(msg.Path)
 	if n > 15 {
-		log.Printf("object move check [index]%d [name]%s [map]%d [path count]%d",
-			obj.Index, obj.Name, obj.MapNumber, n)
+		slog.Warn("Move object check",
+			"index", obj.Index, "name", obj.Name, "map", obj.MapNumber, "path_count", n)
 		return
 	}
 	if msg.X != obj.X || msg.Y != obj.Y {
-		log.Printf("object move check [index]%d [name]%s [path count]%d [client position](%d,%d) [server position](%d,%d)",
-			obj.Index, obj.Name, n, msg.X, msg.Y, obj.X, obj.Y)
+		slog.Debug("Move object check",
+			"index", obj.Index, "name", obj.Name, "map", obj.MapNumber,
+			"client_position", fmt.Sprintf("(%d,%d)", msg.X, msg.Y),
+			"server_position", fmt.Sprintf("(%d,%d)", obj.X, obj.Y),
+		)
 	}
 	// set move state machine
 	obj.X = msg.X

@@ -3,7 +3,7 @@ package item
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"log"
+	"log/slog"
 )
 
 // Item represents a item
@@ -609,8 +609,8 @@ func (pi *PositionedItems) UnmarshalJSON(buf []byte) error {
 		v.Calc()
 		ok := pi.CheckFlagsForItem(v.Position, v)
 		if !ok {
-			log.Printf("PositionedItems UnmarshalJSON CheckPosition [err]invalid [position]%d for item [name]%s [annotation]%s\n",
-				v.Position, v.Name, v.Annotation)
+			slog.Error("pi.CheckFlagsForItem",
+				"position", v.Position, "name", v.Name, "annotation", v.Annotation)
 			continue
 		}
 		pi.SetFlagsForItem(v.Position, v)

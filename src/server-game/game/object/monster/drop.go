@@ -85,12 +85,14 @@ func (m *dropManager) init() {
 
 	// for level, its := range m.magicBook {
 	// 	for _, it := range its {
-	// 		log.Printf("[level]%d [magicbook]%s\n", level, it.Annotation)
+	// 		slog.Info("range m.magicBook",
+	// 			"level", level, "magicbook", it.Annotation)
 	// 	}
 	// }
 	// for level, its := range m.normalItem {
 	// 	for _, it := range its {
-	// 		log.Printf("[level]%d [magicbook]%s [excellent]%t\n", level, it.Annotation, it.excellent)
+	// 		slog.Info("range m.normalItem",
+	// 			"level", level, "normalItem", it.Annotation, "excellent", it.IsExcellent())
 	// 	}
 	// }
 }

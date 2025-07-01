@@ -1,8 +1,11 @@
 package object
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
+	"strings"
 
+	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/math2"
@@ -191,42 +194,42 @@ func (obj *Object) createViewport() {
 	}
 	if len(viewportPlayerReply.Players) > 0 {
 		obj.Push(&viewportPlayerReply)
-		// if obj.Type == ObjectTypePlayer {
-		// 	var playerLine strings.Builder
-		// 	playerLine.WriteString("[viewport add players]")
-		// 	for _, p := range viewportPlayerReply.Players {
-		// 		playerLine.WriteString(fmt.Sprintf("(%d,%s)", p.Index, p.Name))
-		// 	}
-		// 	s := playerLine.String()
-		// 	log.Print(s)
-		// 	obj.PushSystemMsg(s)
-		// }
 	}
 	if len(viewportMonsterReply.Monsters) > 0 {
 		obj.Push(&viewportMonsterReply)
-		// if obj.Type == ObjectTypePlayer {
-		// 	var monsterLine strings.Builder
-		// 	monsterLine.WriteString("[viewport add monsters]")
-		// 	for _, m := range viewportMonsterReply.Monsters {
-		// 		monsterLine.WriteString(fmt.Sprintf("(%d)", m.Index))
-		// 	}
-		// 	s := monsterLine.String()
-		// 	log.Print(s)
-		// 	obj.PushSystemMsg(s)
-		// }
 	}
-	// if obj.Type == ObjectTypePlayer {
-	// 	var line strings.Builder
-	// 	line.WriteString("[viewport]")
-	// 	for _, vp := range obj.Viewports {
-	// 		if vp.State != 0 {
-	// 			line.WriteString(fmt.Sprintf("(%d)", vp.Number))
-	// 		}
-	// 	}
-	// 	s := line.String()
-	// 	log.Print(s)
-	// 	obj.PushSystemMsg(s)
-	// }
+
+	// debug player viewport
+	if conf.ServerEnv.Debug && obj.Type == ObjectTypePlayer {
+		switch {
+		case len(viewportPlayerReply.Players) > 0:
+			var playerLine strings.Builder
+			for _, p := range viewportPlayerReply.Players {
+				playerLine.WriteString(fmt.Sprintf("(%d,%s)", p.Index, p.Name))
+			}
+			s := playerLine.String()
+			slog.Debug("viewport add", "players", s)
+			obj.PushSystemMsg(s)
+		case len(viewportMonsterReply.Monsters) > 0:
+			var monsterLine strings.Builder
+			for _, m := range viewportMonsterReply.Monsters {
+				monsterLine.WriteString(fmt.Sprintf("(%d)", m.Index))
+			}
+			s := monsterLine.String()
+			slog.Debug("viewport add", "monsters", s)
+			obj.PushSystemMsg(s)
+		case len(viewportPlayerReply.Players) > 0 || len(viewportMonsterReply.Monsters) > 0:
+			var line strings.Builder
+			for _, vp := range obj.Viewports {
+				if vp.State != 0 {
+					line.WriteString(fmt.Sprintf("(%d)", vp.Number))
+				}
+			}
+			s := line.String()
+			slog.Debug("viewport", "all", s)
+			obj.PushSystemMsg(s)
+		}
+	}
 }
 
 func (obj *Object) destroyViewport() {
@@ -289,31 +292,33 @@ func (obj *Object) destroyViewport() {
 			obj.ViewportNum--
 		}
 	}
-	if len(viewportObjectReply.Objects) > 0 {
-		obj.Push(&viewportObjectReply)
-		// if obj.Type == ObjectTypePlayer {
-		// 	var objectLine strings.Builder
-		// 	objectLine.WriteString("[viewport remove objects]")
-		// 	for _, obj := range viewportObjectReply.Objects {
-		// 		objectLine.WriteString(fmt.Sprintf("(%d)", obj.Index))
-		// 	}
-		// 	s := objectLine.String()
-		// 	log.Print(s)
-		// 	obj.PushSystemMsg(s)
-		// }
-	}
 	if len(viewportItemReply.Items) > 0 {
 		obj.Push(&viewportItemReply)
-		// if obj.Type == ObjectTypePlayer {
-		// 	var itemLine strings.Builder
-		// 	itemLine.WriteString("[viewport remove items]")
-		// 	for _, it := range viewportItemReply.Items {
-		// 		itemLine.WriteString(fmt.Sprintf("(%d)", it.Index))
-		// 	}
-		// 	s := itemLine.String()
-		// 	log.Print(s)
-		// 	obj.PushSystemMsg(s)
-		// }
+		if conf.ServerEnv.Debug {
+			if obj.Type == ObjectTypePlayer {
+				var itemLine strings.Builder
+				for _, it := range viewportItemReply.Items {
+					itemLine.WriteString(fmt.Sprintf("(%d)", it.Index))
+				}
+				s := itemLine.String()
+				slog.Debug("viewport remove", "items", s)
+				obj.PushSystemMsg(s)
+			}
+		}
+	}
+	if len(viewportObjectReply.Objects) > 0 {
+		obj.Push(&viewportObjectReply)
+		if conf.ServerEnv.Debug {
+			if obj.Type == ObjectTypePlayer {
+				var objectLine strings.Builder
+				for _, obj := range viewportObjectReply.Objects {
+					objectLine.WriteString(fmt.Sprintf("(%d)", obj.Index))
+				}
+				s := objectLine.String()
+				slog.Debug("viewport remove", "objects", s)
+				obj.PushSystemMsg(s)
+			}
+		}
 	}
 }
 
@@ -352,8 +357,6 @@ func (obj *Object) PushViewport(msg any) {
 			continue
 		}
 		if vp.Number < 0 {
-			log.Printf("PushViewport warning [obj]%d [msg]%v -> [tobj]%d\n",
-				obj.Index, msg, vp.Number)
 			continue
 		}
 		if vp.Type == 5 {

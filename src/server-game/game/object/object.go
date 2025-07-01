@@ -2,7 +2,7 @@ package object
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"math/rand"
 	"time"
 
@@ -180,13 +180,13 @@ func (m *objectManager) AddPlayer(conn Conn, newPlayer func() *Object) (int, err
 		Version: conf.MapServers.ServerInfo.Version,
 	}
 	p.Push(&msg)
-	log.Printf("player online [id]%d [addr]%s", p.Index, p.Addr())
+	slog.Info("player online", "id", p.Index, "addr", p.Addr())
 	return index, nil
 }
 
 func (m *objectManager) DeletePlayer(id int) {
 	if id < m.playerStartIndex {
-		log.Printf("delete player failed [id]%d\n", id)
+		slog.Error("DeletePlayer id < m.playerStartIndex", "id", id)
 		return
 	}
 	p := m.objects[id]
@@ -194,7 +194,7 @@ func (m *objectManager) DeletePlayer(id int) {
 		return
 	}
 	p.Offline()
-	log.Printf("player offline [id]%d [addr]%s", p.Index, p.Addr())
+	slog.Info("player offline", "id", p.Index, "addr", p.Addr())
 
 	// unregister player from object manager
 	p.Reset()
@@ -272,7 +272,7 @@ func (m *objectManager) AddUser(conn Conn) (int, error) {
 	u := NewUser(conn)
 	u.index = index
 	m.users[index] = u
-	log.Printf("user online [id]%d [addr]%s", u.index, u.conn.Addr())
+	slog.Info("user online", "id", u.index, "addr", u.conn.Addr())
 	return index, nil
 }
 
@@ -282,7 +282,7 @@ func (m *objectManager) DeleteUser(id int) {
 		return
 	}
 	u.Offline()
-	log.Printf("user offline [id]%d [addr]%s", u.index, u.conn.Addr())
+	slog.Info("user offline", "id", u.index, "addr", u.conn.Addr())
 
 	// unregister user from object manager
 	m.users[id] = nil
@@ -917,8 +917,13 @@ func (obj *Object) RandPosition(number, x1, y1, x2, y2 int) (int, int) {
 			return x, y
 		}
 	}
-	// panic(fmt.Sprintf("RandPosition failed [number]%d", number))
-	log.Printf("RandPosition failed [map]%d [start](%d,%d) [end](%d,%d)\n", number, x1, y1, x2, y2)
+	slog.Error("RandPosition",
+		"index", obj.Index,
+		"name", obj.Name,
+		"map", number,
+		"start", fmt.Sprintf("(%d,%d)", x1, y1),
+		"end", fmt.Sprintf("(%d,%d)", x2, y2),
+	)
 	return x1, y1
 }
 

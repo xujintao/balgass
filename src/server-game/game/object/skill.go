@@ -1,7 +1,7 @@
 package object
 
 import (
-	"log"
+	"log/slog"
 	"math"
 	"math/rand"
 
@@ -20,7 +20,8 @@ func (obj *Object) clearSkill() {
 
 func (obj *Object) LearnSkill(index int) (*skill.Skill, bool) {
 	if _, ok := obj.Skills[index]; ok {
-		log.Printf("[object]%s [skill]%d already exists", obj.Name, index)
+		slog.Error("LearnSkill obj.Skills[index] ok",
+			"object", obj.Name, "skill", index)
 		return nil, false
 	}
 	// obj.Skills[index] = skill.SkillManager.Get(index, level, obj.Skills)
@@ -29,7 +30,8 @@ func (obj *Object) LearnSkill(index int) (*skill.Skill, bool) {
 
 func (obj *Object) ForgetSkill(index int) (*skill.Skill, bool) {
 	if _, ok := obj.Skills[index]; !ok {
-		log.Printf("[object]%s [skill]%d doesn't exist", obj.Name, index)
+		slog.Error("ForgetSkill obj.Skills[index] not ok",
+			"object", obj.Name, "skill", index)
 		return nil, false
 	}
 	return obj.Skills.Put(index)
@@ -38,8 +40,8 @@ func (obj *Object) ForgetSkill(index int) (*skill.Skill, bool) {
 func (obj *Object) UseSkill(msg *model.MsgUseSkill) {
 	tobj := ObjectManager.objects[msg.Target]
 	if tobj == nil {
-		log.Printf("UseSkill target is invalid [index]%d->[index]%d\n",
-			obj.Index, msg.Target)
+		slog.Error("UseSkill ObjectManager.objects[msg.Target] nil",
+			"object", obj.Name, "target", msg.Target)
 		return
 	}
 	s, ok := obj.Skills[msg.Skill]

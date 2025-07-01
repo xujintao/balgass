@@ -2,7 +2,7 @@ package shop
 
 import (
 	"encoding/xml"
-	"log"
+	"log/slog"
 	"path"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
@@ -88,8 +88,8 @@ func (m *shopManager) init() {
 				}
 				i := findShopInventoryFreePosition(inventoryFlags[:], item)
 				if i == -1 {
-					log.Printf("[err]cannot find free position for [shop]%s item [name]%s [annotation]%s\n",
-						shop.FileName, item.Name, item.Annotation)
+					slog.Error("findShopInventoryFreePosition",
+						"shop", shop.FileName, "item", item.Annotation)
 					continue
 				}
 				setShopInventoryFlagsForItem(i, inventoryFlags[:], item)

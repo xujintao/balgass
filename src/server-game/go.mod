@@ -1,6 +1,6 @@
 module github.com/xujintao/balgass/src/server-game
 
-go 1.20
+go 1.21
 
 replace github.com/xujintao/balgass/src/c1c2 => ../c1c2
 
@@ -10,6 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.15.5
 	github.com/gorilla/websocket v1.5.0
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/xujintao/balgass/src/c1c2 v0.0.0-00010101000000-000000000000
 	github.com/xujintao/balgass/src/utils v0.0.0-00010101000000-000000000000
 	github.com/yuin/gopher-lua v1.1.1

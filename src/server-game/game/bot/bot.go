@@ -2,7 +2,7 @@ package bot
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"reflect"
 	"time"
 
@@ -131,7 +131,8 @@ func (c *botConn) Addr() string {
 func (c *botConn) Write(msg any) error {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("*bot.Write [panic]%v [bot]%s [msg]%v\n", r, c.name, msg)
+			slog.Error("*botConn.Write recover()",
+				"panic", r, "bot", c.name, "msg", msg)
 		}
 	}()
 	c.msgChan <- msg

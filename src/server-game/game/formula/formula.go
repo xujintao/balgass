@@ -1,7 +1,8 @@
 package formula
 
 import (
-	"log"
+	"log/slog"
+	"os"
 	"path"
 	"strings"
 
@@ -26,10 +27,11 @@ type formula struct {
 func (f *formula) init() {
 	load := func(file string) *lua.LState {
 		file = path.Join(conf.PathCommon, "Scripts", file)
-		log.Printf("Load %s", file)
+		slog.Info("load lua", "file", file)
 		l := lua.NewState()
 		if err := l.DoFile(file); err != nil {
-			log.Fatalln(err)
+			slog.Error("l.DoFile", "err", err)
+			os.Exit(1)
 		}
 		return l
 	}
@@ -68,7 +70,7 @@ func call(ls *lua.LState, method string, sig string, args ...any) {
 		Protect: true,
 	}, lvArgs...)
 	if err != nil {
-		log.Printf("formula CallByParam failed [method]%s\n", method)
+		slog.Error("formula CallByParam", "err", err, "method", method)
 		return
 	}
 
@@ -80,7 +82,7 @@ func call(ls *lua.LState, method string, sig string, args ...any) {
 		case 'i':
 			ln, ok := lv.(lua.LNumber)
 			if !ok {
-				log.Printf("formula CallByParam returned value i invalid [method]%s\n", method)
+				slog.Error("formula CallByParam returned value i", "method", method)
 				return
 			}
 			r := args[nIn+i].(*int)
@@ -88,7 +90,7 @@ func call(ls *lua.LState, method string, sig string, args ...any) {
 		case 'd':
 			ln, ok := lv.(lua.LNumber)
 			if !ok {
-				log.Printf("formula CallByParam returned value d invalid [method]%s\n", method)
+				slog.Error("formula CallByParam returned value d", "method", method)
 				return
 			}
 			r := args[nIn+i].(*float64)

@@ -2,7 +2,7 @@ package player
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"math"
 	"sort"
 	"time"
@@ -65,8 +65,8 @@ func newPlayer(conn object.Conn, actioner object.Actioner) *object.Object {
 			case msg := <-p.msgChan:
 				err := p.conn.Write(msg)
 				if err != nil {
-					log.Printf("conn.Write failed [err]%v [player]%d [name]%s [msg]%v\n",
-						err, p.Index, p.Name, msg)
+					slog.Error("p.conn.Write",
+						"err", err, "player", p.Name, "msg", msg)
 				}
 			case <-ctx.Done():
 				close(p.msgChan)
@@ -234,8 +234,8 @@ func (p *Player) Offline() {
 
 func (p *Player) Push(msg any) {
 	if p.offline {
-		log.Printf("Still pushing [msg]%#v to [player]%d that already offline\n",
-			msg, p.Index)
+		slog.Warn("Still pushing msg to offline player",
+			"msg", msg, "player", p.Name)
 		return
 	}
 	if len(p.msgChan) > 80 {
@@ -389,7 +389,7 @@ func (p *Player) SpawnPosition() {
 }
 
 func (p *Player) MuunSystem(msg *model.MsgMuunSystem) {
-	log.Println("MuunSystem placeholder")
+	// slog.Warn("MuunSystem placeholder")
 }
 
 func (p *Player) Chat(msg *model.MsgChat) {
@@ -436,7 +436,7 @@ func (p *Player) Whisper(msg *model.MsgWhisper) {
 }
 
 func (p *Player) KeepLive(msg *model.MsgKeepLive) {
-	log.Printf("Live placeholder %#v \n", msg)
+	// slog.Warn("KeepLive placeholder")
 }
 
 func (p *Player) Login(msg *model.MsgLogin) {
@@ -449,7 +449,8 @@ func (p *Player) Login(msg *model.MsgLogin) {
 			resp.Result = 2
 			return
 		}
-		log.Printf("model.DB.GetAccountByName failed [err]%v\n", err)
+		slog.Error("Login model.DB.GetAccountByName",
+			"err", err, "account", msg.Account)
 		resp.Result = 7
 		return
 	}
@@ -485,7 +486,8 @@ func (p *Player) Login(msg *model.MsgLogin) {
 // 			resp.Result = 2
 // 			return
 // 		}
-// 		log.Printf("model.DB.GetAccountByAccount failed [err]%v\n", err)
+// 		slog.Error("model.DB.GetAccountByName",
+// 			"err", err, "account", account.Name)
 // 		resp.Result = 7
 // 		return
 // 	}
@@ -508,12 +510,12 @@ func (p *Player) Logout(msg *model.MsgLogout) {
 		// offline to init state.
 		// Do not close connection
 	default:
-		log.Printf("Logout failed [flag]%d\n", msg.Flag)
+		slog.Error("Logout", "flag", msg.Flag, "player", p.Name)
 	}
 }
 
 func (p *Player) Hack(msg *model.MsgHack) {
-	log.Printf("Hack [flag1]%02x [flag2]%02x\n", msg.Flag1, msg.Flag2)
+	// slog.Warn("Hack placeholder")
 }
 
 func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
@@ -532,7 +534,8 @@ func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
 	// get character list
 	chars, err := model.DB.GetCharacterList(p.AccountID)
 	if err != nil {
-		log.Printf("model.DB.GetCharacterList failed [err]%v\n", err)
+		slog.Error("GetCharacterList model.DB.GetCharacterList",
+			"err", err, "account", p.AccountName)
 		return
 	}
 
@@ -559,14 +562,16 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 
 	// validate msg
 	if msg.Name == "" || msg.Class > 6 {
-		log.Printf("CreateCharacter validate msg failed [msg]%v\n", msg)
+		slog.Error("CreateCharacter validate msg",
+			"msg", msg, "account", p.AccountName)
 		return
 	}
 
 	// try to get an empty postion
 	chars, err := model.DB.GetCharacterList(p.AccountID)
 	if err != nil {
-		log.Printf("model.DB.GetCharacterList failed [err]%v\n", err)
+		slog.Error("CreateCharacter model.DB.GetCharacterList",
+			"err", err, "account", p.AccountName)
 		return
 	}
 	position := 0
@@ -578,7 +583,8 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 		position++
 	}
 	if position > 4 {
-		log.Printf("over max character count [account]%s\n", p.AccountName)
+		slog.Error("CreateCharacter over max character count",
+			"account", p.AccountName)
 		return
 	}
 	// create character
@@ -587,7 +593,8 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	c.Position = position
 	c.Name = msg.Name
 	if err := model.DB.CreateCharacter(&c); err != nil {
-		log.Printf("model.DB.CreateCharacter failed [err]%v\n", err)
+		slog.Error("CreateCharacter model.DB.CreateCharacter",
+			"err", err, "account", p.AccountName)
 		return
 	}
 	// reply
@@ -608,7 +615,8 @@ func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
 
 	// validate msg
 	if msg.Name == "" || msg.Password == "" {
-		log.Printf("DeleteCharacter validate msg failed [msg]%v\n", msg)
+		slog.Error("DeleteCharacter validate msg",
+			"msg", msg, "account", p.AccountName)
 		return
 	}
 
@@ -620,7 +628,8 @@ func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
 
 	// delete character
 	if err := model.DB.DeleteCharacterByName(p.AccountID, msg.Name); err != nil {
-		log.Printf("model.DB.DeleteCharacterByName failed [err]%v\n", err)
+		slog.Error("DeleteCharacter model.DB.DeleteCharacterByName",
+			"err", err, "account", p.AccountName, "character", msg.Name)
 		return
 	}
 
@@ -640,7 +649,8 @@ func (p *Player) DefineMuKey(msg *model.MsgDefineMuKey) {
 	}
 	err := model.DB.UpdateCharacterMuKey(p.CharacterID, msg)
 	if err != nil {
-		log.Printf("model.DB.UpdateCharacterMuKey failed [err]%v\n", err)
+		slog.Error("model.DB.UpdateCharacterMuKey",
+			"err", err, "player", p.Name)
 		return
 	}
 }
@@ -648,7 +658,8 @@ func (p *Player) DefineMuKey(msg *model.MsgDefineMuKey) {
 func (p *Player) DefineMuBot(msg *model.MsgDefineMuBot) {
 	err := model.DB.UpdateCharacterMuBot(p.CharacterID, msg)
 	if err != nil {
-		log.Printf("model.DB.UpdateCharacterMuBot failed [err]%v\n", err)
+		slog.Error("model.DB.UpdateCharacterMuBot",
+			"err", err, "player", p.Name)
 		return
 	}
 }
@@ -665,15 +676,16 @@ func (p *Player) EnableMuBot(msg *model.MsgEnableMuBot) {
 func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// validate msg
 	if msg.Name == "" || msg.Position < 0 || msg.Position > 4 {
-		log.Printf("LoadCharacter validate msg failed [msg]%v [account]%s \n",
-			msg, p.AccountName)
+		slog.Error("LoadCharacter validate msg",
+			"msg", msg, "account", p.AccountName)
 		return
 	}
 
 	// load character data from db
 	c, err := model.DB.GetCharacterByName(p.AccountID, msg.Name)
 	if err != nil {
-		log.Printf("model.DB.GetCharacterByName failed [err]%v\n", err)
+		slog.Error("LoadCharacter model.DB.GetCharacterByName",
+			"err", err, "account", p.AccountName)
 		return
 	}
 
@@ -1509,7 +1521,8 @@ func (p *Player) SaveCharacter() {
 	}
 	err := model.DB.UpdateCharacter(&c)
 	if err != nil {
-		log.Printf("model.DB.SaveCharacter failed [err]%v\n", err)
+		slog.Error("SaveCharacter model.DB.UpdateCharacter",
+			"err", err, "player", p.Name)
 		return
 	}
 }
@@ -2434,7 +2447,8 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 	case object.NpcTypeWarehouse:
 		account, err := model.DB.GetAccountByID(p.AccountID)
 		if err != nil {
-			log.Printf("Talk model.DB.GetAccountByID failed [err]%v\n", err)
+			slog.Error("Talk model.DB.GetAccountByID",
+				"err", err, "player", p.Name)
 			return
 		}
 		reply.Result = 2
@@ -2553,7 +2567,8 @@ func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {
 	}
 	err := model.DB.UpdateAccountWarehouse(&account)
 	if err != nil {
-		log.Printf("CloseWarehouseWindow UpdateAccountWarehouse failed [err]%v\n", err)
+		slog.Error("CloseWarehouseWindow model.DB.UpdateAccountWarehouse",
+			"err", err, "player", p.Name)
 		return
 	}
 	p.SaveCharacter()

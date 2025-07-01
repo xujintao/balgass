@@ -3,7 +3,7 @@ package handle
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"reflect"
@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
+	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 )
@@ -31,7 +32,7 @@ type httpHandle struct {
 
 func (h *httpHandle) init() {
 	gin.SetMode(gin.ReleaseMode)
-	if os.Getenv("DEBUG") == "1" {
+	if conf.ServerEnv.Debug {
 		gin.SetMode(gin.DebugMode)
 	}
 	h.Engine = gin.Default()
@@ -57,7 +58,7 @@ func (h *httpHandle) handleErr(c *gin.Context) {
 		if !ok {
 			ce = MakeError(Unknown, nil)
 		}
-		log.Println(ce)
+		slog.Info(c.HandlerName(), "err", ce)
 		c.JSON(ce.Code, gin.H{
 			"message": ce.Description,
 		})
@@ -255,12 +256,12 @@ func (c *wsconn) Addr() string {
 func (c *wsconn) Write(msg any) error {
 	reply, err := wsHandleDefault.addAction(msg)
 	if err != nil {
-		log.Printf("addAction failed [err]%v\n", err)
+		slog.Error("(*wsconn).Write wsHandleDefault.addAction", "err", err)
 		return err
 	}
 	err = c.WriteJSON(reply)
 	if err != nil {
-		log.Printf("WriteJSON failed [err]%v\n", err)
+		slog.Error("(*wsconn).Write c.WriteJSON", "err", err)
 		return err
 	}
 	return nil
@@ -273,7 +274,7 @@ func (h *httpHandle) handleGame(c *gin.Context) {
 func handleGame(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Print("upgrade:", err)
+		slog.Error("upgrader.Upgrade", "err", err)
 		return
 	}
 	addr := r.RemoteAddr
@@ -298,34 +299,34 @@ func handleGame(w http.ResponseWriter, r *http.Request) {
 		var req map[string]any
 		err := conn.ReadJSON(&req)
 		if err != nil {
-			log.Printf("ReadJSON failed [addr]%s [err]%v\n", conn.Addr(), err)
+			slog.Error("conn.ReadJSON", "err", err, "addr", conn.Addr())
 			return
 		}
 		actionField, ok := req["action"]
 		if !ok {
 			s := "websocket request has no action field"
-			log.Printf("%s [addr]%s\n", s, conn.Addr())
+			slog.Error(s, "addr", conn.Addr())
 			writeErr(s)
 			continue
 		}
 		action, ok := actionField.(string)
 		if !ok {
 			s := "websocket request action field is not a string"
-			log.Printf("%s [addr]%s\n", s, conn.Addr())
+			slog.Error(s, "addr", conn.Addr())
 			writeErr(s)
 			continue
 		}
 		inField, ok := req["in"]
 		if !ok {
 			s := fmt.Sprintf("websocket request [action]%s has no in field", action)
-			log.Printf("%s [addr]%s\n", s, conn.Addr())
+			slog.Error(s, "addr", conn.Addr())
 			writeErr(s)
 			continue
 		}
 		data, err := json.Marshal(inField)
 		if err != nil {
 			s := fmt.Sprintf("websocket request [action]%s in field is not a valid json", action)
-			log.Printf("%s [addr]%s [err]%v\n", s, conn.Addr(), err)
+			slog.Error(s, "err", err, "addr", conn.Addr())
 			writeErr(s)
 			continue
 		}
@@ -351,7 +352,8 @@ func (h *wsHandle) init() {
 	for _, v := range wsOuts {
 		t := reflect.TypeOf(v.msg)
 		if t.Kind() != reflect.Ptr {
-			log.Printf("wsOuts [action]%s msg field must be a pointer\n", v.action)
+			slog.Error("wsOut msg field must be a pointer", "action", v.action)
+			os.Exit(1)
 		}
 		h.wsOuts[t] = v
 	}
@@ -361,12 +363,12 @@ func (h *wsHandle) Handle(id int, action string, data []byte) {
 	var api *wsIn
 	var ok bool
 	if api, ok = h.wsIns[action]; !ok {
-		log.Printf("invalid websocket request [action]%s\n", action)
+		slog.Error("invalid websocket request", "action", action)
 		return
 	}
 	msg := reflect.New(reflect.TypeOf(api.msg).Elem()).Interface()
 	if err := json.Unmarshal(data, msg); err != nil {
-		log.Printf("json.Unmarshal failed [data]%v [msg]%v\n", data, msg)
+		slog.Error("json.Unmarshal", "err", err, "action", action)
 		return
 	}
 	game.Game.UserAction(id, api.action, msg)

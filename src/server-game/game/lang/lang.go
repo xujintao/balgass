@@ -2,7 +2,8 @@ package lang
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
@@ -55,7 +56,8 @@ func init() {
 		}
 	}
 	if !valid {
-		log.Fatalln("lang not specified")
+		slog.Error("lang not specified")
+		os.Exit(1)
 	}
 }
 

@@ -1,7 +1,7 @@
 package object
 
 import (
-	"log"
+	"log/slog"
 	"math/rand"
 	"time"
 
@@ -249,15 +249,16 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 		}
 		tobj.PushViewport(&attackDieReply)
 	}
-	// log.Printf("attack [%d][%s]->[%d][%s] hp[%d]\n",
-	// 	obj.index, obj.Annotation, tobj.index, tobj.Annotation, tobj.HP)
+	slog.Debug("attack",
+		"index", obj.Index, "annotation", obj.Annotation,
+		"target", tobj.Index, "annotation", tobj.Annotation,
+		"hp", tobj.HP)
 }
 
 func (obj *Object) Attack(msg *model.MsgAttack) {
 	tobj := ObjectManager.objects[msg.Target]
 	if tobj == nil {
-		log.Printf("Attack target is invalid [index]%d->[index]%d\n",
-			obj.Index, msg.Target)
+		slog.Error("Attack target is nil", "index", obj.Index, "target", msg.Target)
 		return
 	}
 	// Push attack action to viewport

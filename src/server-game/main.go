@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,11 +22,11 @@ func main() {
 	errChan := make(chan error, 2)
 
 	// start game
-	log.Println("start game")
+	slog.Info("start game")
 	game.Game.Start()
 
 	// start tcp server
-	log.Printf("start tcp server")
+	slog.Info("start tcp server")
 	tcpServer := c1c2.Server{
 		Addr:    fmt.Sprintf(":%d", conf.Server.GameServerInfo.Port),
 		Handler: &handle.C1C2Handle,
@@ -37,7 +37,7 @@ func main() {
 	}()
 
 	// start http server
-	log.Printf("start http server")
+	slog.Info("start http server")
 	httpServer := http.Server{
 		Addr:    fmt.Sprintf(":%d", conf.Server.GameServerInfo.HTTPPort),
 		Handler: &handle.HTTPHandle,
@@ -49,23 +49,24 @@ func main() {
 	// wait signal and error
 	select {
 	case s := <-exit:
-		log.Printf("exit [signal]%s\n", s.String())
+		slog.Info("exit", "signal", s.String())
 	case err := <-errChan:
-		log.Fatalf("server failed: [err]%v\n", err)
+		slog.Error("<-errChan", "err", err)
+		os.Exit(1)
 	}
 
 	// close tcp server
-	log.Println("close tcp server")
+	slog.Info("close tcp server")
 	tcpServer.Close()
 
 	// close http server
-	log.Println("close http server")
+	slog.Info("close http server")
 	if err := httpServer.Close(); err != nil {
-		log.Printf("httpServer.Close failed [err]%v\n", err)
+		slog.Error("httpServer.Close()", "err", err)
 	}
 
 	// close game
-	log.Println("close game")
+	slog.Info("close game")
 	game.Game.Close()
 
 	time.Sleep(2 * time.Second)

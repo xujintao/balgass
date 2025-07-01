@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"sort"
 )
 
@@ -78,7 +78,7 @@ func (s *Skills) UnmarshalJSON(buf []byte) error {
 	for _, v := range skills {
 		skillBase, ok := SkillManager.skillTable[v.Index]
 		if !ok {
-			log.Printf("Skills UnmarshalJSON failed skillTable [index]%d\n", v.Index)
+			slog.Error("(*Skills).UnmarshalJSON ", "skill", v.Index)
 			continue
 		}
 		v.SkillBase = skillBase

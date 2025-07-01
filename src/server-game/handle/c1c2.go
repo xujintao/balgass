@@ -6,11 +6,12 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"reflect"
 
 	"github.com/xujintao/balgass/src/c1c2"
+	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 )
@@ -32,8 +33,10 @@ func (h *c1c2Handle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	h.apiIns = make(map[int]*apiIn)
 	for _, v := range apiIns {
 		if vv, ok := h.apiIns[v.code]; ok {
-			log.Printf("duplicated api code[%d] handle[%s] with code[%d] handle[%s]",
-				v.code, v.action, vv.code, vv.action)
+			slog.Error("apiIns duplicated code",
+				"code", v.code, "action", v.action,
+				"code", vv.code, "action", vv.action)
+			os.Exit(1)
 		}
 		h.apiIns[v.code] = v
 	}
@@ -42,8 +45,9 @@ func (h *c1c2Handle) init(apiIns []*apiIn, apiOuts []*apiOut) {
 	for _, v := range apiOuts {
 		t := reflect.TypeOf(v.msg)
 		if t.Kind() != reflect.Ptr {
-			log.Printf("api code[%d] name[%s] msg field must be a pointer",
-				v.code, v.name)
+			slog.Error("apiOut msg field must be a pointer",
+				"code", v.code, "name", v.name)
+			os.Exit(1)
 		}
 		h.apiOuts[t] = v
 	}
@@ -62,44 +66,46 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	code := int(req.Body[0])
 	if api, ok = h.apiIns[code]; !ok {
 		if len(req.Body) < 2 {
-			log.Printf("invalid api [body]%s\n", hex.EncodeToString(req.Body))
+			slog.Error("invalid api", "body", hex.EncodeToString(req.Body))
 			return
 		}
 		codes := []byte{req.Body[0], req.Body[1]}
 		code = int(binary.BigEndian.Uint16(codes))
 		if api, ok = h.apiIns[code]; !ok {
-			log.Printf("invalid api [body]%s\n", hex.EncodeToString(req.Body))
+			slog.Error("invalid api", "body", hex.EncodeToString(req.Body))
 			return
 		}
 		req.Body = req.Body[1:]
 	}
 	req.Body = req.Body[1:]
-	if os.Getenv("DEBUG") == "1" {
+
+	// debug
+	if conf.ServerEnv.Debug {
 		switch api.action {
 		case "KeepLive":
-			return
 		case "Move", "Action", "Attack":
 		default:
-			log.Printf("[player]%d [action]%s\n", id, api.action)
+			slog.Debug("play action", "player", id, "action", api.action)
 		}
 	}
 
 	// validate encrypt
 	if api.enc && !req.Encrypt {
-		log.Printf("[%d][%s] not encrypt", api.code, api.action)
+		slog.Warn("request not encrypt", "player", id, "action", api.action)
 		// return
 	}
 
 	// authenticate/authorize
 	// if game.GetAuthLevel(ctx) < int(api.level) {
-	// 	log.Printf("[%d][%s] not authrized", api.code, api.name)
+	// 	slog.Warn("api not authrized", "player", id, "action", api.action)
 	// 	return
 	// }
 
 	// cbi.Unmarshal(req.Body, api.msg)
 	t := reflect.TypeOf(api.msg)
 	if _, ok := t.MethodByName("Unmarshal"); !ok {
-		log.Printf("can't find Unmarshal method [msg]%s\n", t.String())
+		slog.Error("can't find Unmarshal method",
+			"msg", t.String(), "action", api.action)
 		return
 	}
 	msg := reflect.New(t.Elem())
@@ -107,7 +113,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	out := msg.MethodByName("Unmarshal").Call(in)
 	err := out[0].Interface()
 	if err != nil {
-		log.Printf("Unmarshal failed [msg]%s [err]%v\n", msg.String(), err)
+		slog.Error("Unmarshal", "err", err, "msg", msg.String())
 		return
 	}
 	game.Game.PlayerAction(id, api.action, msg.Interface())

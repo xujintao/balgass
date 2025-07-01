@@ -2,7 +2,7 @@ package maps
 
 import (
 	"encoding/xml"
-	"log"
+	"log/slog"
 	"math/rand"
 	"os"
 	"path"
@@ -214,7 +214,8 @@ func (m *_map) init(number int, file string) {
 	m.file = file
 	buf, err := os.ReadFile(file)
 	if err != nil {
-		log.Fatalf("read file failed [file]%s [err]%v", file, err)
+		slog.Error("os.ReadFile", "err", err, "file", file)
+		os.Exit(1)
 	}
 	m.width = int(buf[1]) + 1
 	m.height = int(buf[2]) + 1

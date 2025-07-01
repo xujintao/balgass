@@ -2,7 +2,8 @@ package handle
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
 )
 
 func init() {
@@ -10,8 +11,9 @@ func init() {
 	for _, v := range configErrors {
 		s := v.service
 		if dup, ok := mapConfigErrors[s]; ok {
-			log.Panicf("duplicated config error [service]%d [description]%s",
-				dup.service, dup.Description)
+			slog.Error("duplicated config error",
+				"service", dup.service, "description", dup.Description)
+			os.Exit(1)
 		}
 		mapConfigErrors[s] = v
 	}
@@ -20,7 +22,7 @@ func init() {
 func MakeError(service int, err error) *ConfigError {
 	ce, ok := mapConfigErrors[service]
 	if !ok {
-		log.Printf("cannot find config error [service]%d\n", service)
+		slog.Error("cannot find config error", "service", service)
 		return MakeError(Unknown, nil)
 	}
 	ce.err = err

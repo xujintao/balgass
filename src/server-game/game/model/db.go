@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -24,6 +24,8 @@ type db struct {
 }
 
 func (db *db) init() {
+	// connect postgress
+	slog.Info("gorm connect postgress", "host", conf.Server.GameServerInfo.DBHost, "name", conf.Server.GameServerInfo.DBName)
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		conf.Server.GameServerInfo.DBUser,
 		conf.Server.GameServerInfo.DBPassword,
@@ -33,15 +35,20 @@ func (db *db) init() {
 	)
 	gdb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("gorm.Open failed [err]%v", err)
+		slog.Error("gorm.Open", "err", err)
+		os.Exit(1)
 	}
+
+	// auto migrate
+	slog.Info("auto migrate")
 	if err := gdb.AutoMigrate(
 		&Account{},
 		&Character{},
 	); err != nil {
-		log.Fatalf("gorm.AutoMigrate failed [err]%v", err)
+		slog.Error("gdb.AutoMigrate", "err", err)
+		os.Exit(1)
 	}
-	if os.Getenv("DEBUG") == "1" {
+	if conf.ServerEnv.Debug {
 		db.DB = gdb.Debug()
 	} else {
 		db.DB = gdb

@@ -3,8 +3,9 @@ package game
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
+	"os"
 	"reflect"
 	"time"
 
@@ -58,7 +59,8 @@ func (g *game) Start() {
 			conf.Server.GameServerInfo.ConnectServerPort)
 		c, err := net.Dial("udp", addr)
 		if err != nil {
-			log.Fatalf("net.Dial failed [err]%v", err)
+			slog.Error("net.Dial", "err", err, "addr", addr)
+			os.Exit(1)
 		}
 		for {
 			select {
@@ -71,11 +73,14 @@ func (g *game) Start() {
 				serverRegister.Type_ = nonPVP
 				data, err := serverRegister.Marshal()
 				if err != nil {
-					log.Printf("serverRegister.Marshal failed [err]%v\n", err)
+					slog.Error("serverRegister.Marshal", "err", err, "serverRegister", serverRegister)
+					break
 				}
 				frame := []byte{0xC1, 0x08, 0x01}
 				frame = append(frame, data...)
-				c.Write(frame)
+				if _, err := c.Write(frame); err != nil {
+					slog.Error("c.Write", "err", err)
+				}
 			case <-ctx.Done():
 				// todo
 				return
@@ -108,7 +113,7 @@ func (g *game) Start() {
 				// player.Chat(msg)
 				t := reflect.TypeOf(player)
 				if _, ok := t.MethodByName(action); !ok {
-					log.Printf("player has no [action]%s\n", action)
+					slog.Error("player has no action", "action", action)
 					break
 				}
 				in := []reflect.Value{reflect.ValueOf(msg)}
@@ -187,7 +192,7 @@ func (g *game) Close() {
 		playerNumber := reply.PlayerNumber
 		userNumber := reply.UserNumber
 		number := playerNumber + userNumber
-		log.Printf("online objects [player]%d [user]%d\n", playerNumber, userNumber)
+		slog.Info("online objects", "player", playerNumber, "user", userNumber)
 		if number == 0 {
 			break
 		}
@@ -298,6 +303,6 @@ func (g *game) Command(name string, msg any) (any, error) {
 
 func (g *game) SendWeather(number, weather int) {
 	// if number == 0 {
-	// 	log.Println(number, weather)
+	// slog.Info("SendWeather", "number", number, "weather", weather)
 	// }
 }

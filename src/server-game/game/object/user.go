@@ -2,7 +2,7 @@ package object
 
 import (
 	"context"
-	"log"
+	"log/slog"
 
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
@@ -50,8 +50,7 @@ func (u *user) Offline() {
 
 func (u *user) Push(msg any) {
 	if u.offline {
-		log.Printf("Still pushing [msg]%v to [user]%d that alread offline\n",
-			msg, u.index)
+		slog.Warn("Still pushing msg to offline user", "msg", msg, "user", u.index)
 		return
 	}
 	if len(u.msgChan) > 80 {

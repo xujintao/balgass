@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"log"
+	"log/slog"
 	"testing"
 
 	"github.com/xujintao/balgass/src/c1c2"
@@ -42,7 +42,7 @@ func TestC1C2Handle(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	item := items[0]
 	items := items[1:]
-	// log.Println(item.id)
+	// slog.Info("TestC1C2Handle", "item", item.id)
 	conn := c1c2.Conn{RemoteAddr: "test"}
 	conn.Write = func(resp *c1c2.Response) error {
 		buf := resp.Body()
@@ -79,7 +79,7 @@ func TestC1C2Handle(t *testing.T) {
 		}
 		item = items[0]
 		items = items[1:]
-		// log.Println(item.id)
+		// slog.Info("TestC1C2Handle", "item", item.id)
 		in, err := hex.DecodeString(item.in)
 		if err != nil {
 			t.Errorf("hex.DecodeString failed [id]%s [in]%s\n", item.id, item.in)
@@ -91,7 +91,7 @@ func TestC1C2Handle(t *testing.T) {
 		return nil
 	}
 	conn.Close = func() error {
-		log.Println("CloseConn is called")
+		slog.Info("CloseConn is called")
 		return nil
 	}
 	id, err := C1C2Handle.OnConn(&conn)
