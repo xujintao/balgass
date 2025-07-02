@@ -112,7 +112,7 @@ func (obj *Object) getAngle(tobj *Object) float32 {
 	return rad*180/math.Pi + 90
 }
 
-func (obj *Object) CreateSkillFrustrum(a, x, y float32) {
+func (obj *Object) CreateSkillFrustum(a, x, y float32) {
 	p := [4][3]float32{
 		{-x, y, 0.0},
 		{x, y, 0.0},
@@ -121,21 +121,21 @@ func (obj *Object) CreateSkillFrustrum(a, x, y float32) {
 	}
 	angle := [3]float32{0.0, 0.0, a}
 	matrix := math2.Angle2Matrix(angle)
-	var frustrum [4][3]float32
+	var frustum [4][3]float32
 	for i := 0; i < 4; i++ {
-		frustrum[i] = math2.VectorRotate(p[i], matrix)
-		obj.SkillFrustrumX[i] = int(frustrum[i][0]) + obj.X
-		obj.SkillFrustrumY[i] = int(frustrum[i][1]) + obj.Y
+		frustum[i] = math2.VectorRotate(p[i], matrix)
+		obj.SkillFrustumX[i] = int(frustum[i][0]) + obj.X
+		obj.SkillFrustumY[i] = int(frustum[i][1]) + obj.Y
 	}
 }
 
-func (obj *Object) CheckSkillFrustrum(tobj *Object) bool {
+func (obj *Object) CheckSkillFrustum(tobj *Object) bool {
 	x := tobj.X
 	y := tobj.Y
-	for i, j := 0, 3; i < MaxArrayFrustrum; j, i = i, i+1 {
-		frustrum := (obj.SkillFrustrumX[i]-x)*(obj.SkillFrustrumY[j]-y) -
-			(obj.SkillFrustrumX[j]-x)*(obj.SkillFrustrumY[i]-y)
-		if frustrum < 0 {
+	for i, j := 0, 3; i < MaxArrayFrustum; j, i = i, i+1 {
+		frustum := (obj.SkillFrustumX[i]-x)*(obj.SkillFrustumY[j]-y) -
+			(obj.SkillFrustumX[j]-x)*(obj.SkillFrustumY[i]-y)
+		if frustum < 0 {
 			return false
 		}
 	}
@@ -149,12 +149,12 @@ func (obj *Object) UseSkillDeathStab(s *skill.Skill, tobj *Object) {
 		obj.attack(tobj, s, 0)
 	}
 	angle := obj.getAngle(tobj)
-	obj.CreateSkillFrustrum(angle, 1.5, 3.0)
+	obj.CreateSkillFrustum(angle, 1.5, 3.0)
 	obj.ForEachViewportObject(func(vpobj *Object) {
 		if vpobj != tobj &&
 			vpobj.Live &&
 			vpobj.Type != ObjectTypePlayer &&
-			obj.CheckSkillFrustrum(vpobj) {
+			obj.CheckSkillFrustum(vpobj) {
 			obj.attack(vpobj, s, 0)
 		}
 	})

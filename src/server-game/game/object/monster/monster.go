@@ -372,7 +372,7 @@ func (m *Monster) SpawnPosition() {
 	if m.Dir < 0 {
 		m.Dir = rand.Intn(8)
 	}
-	m.CreateFrustrum()
+	m.CreateFrustum()
 }
 
 func (m *Monster) overDis(tx, ty int) bool {

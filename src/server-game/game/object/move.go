@@ -6,6 +6,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 )
@@ -58,7 +59,7 @@ func (obj *Object) processMove() {
 	obj.X = x
 	obj.Y = y
 	obj.Dir = dir
-	obj.CreateFrustrum()
+	obj.CreateFrustum()
 	obj.pathCur++
 	if obj.pathCur >= obj.pathCount {
 		for i := 0; i < len(obj.pathDir); i++ {
@@ -82,13 +83,13 @@ func (obj *Object) Move(msg *model.MsgMove) {
 
 	// debug
 	if conf.ServerEnv.Debug {
-	if msg.X != obj.X || msg.Y != obj.Y {
-		slog.Debug("Move object check",
-			"index", obj.Index, "name", obj.Name, "map", obj.MapNumber,
-			"client_position", fmt.Sprintf("(%d,%d)", msg.X, msg.Y),
-			"server_position", fmt.Sprintf("(%d,%d)", obj.X, obj.Y),
-		)
-	}
+		if msg.X != obj.X || msg.Y != obj.Y {
+			slog.Debug("Move object check",
+				"index", obj.Index, "name", obj.Name, "map", obj.MapNumber,
+				"client_position", fmt.Sprintf("(%d,%d)", msg.X, msg.Y),
+				"server_position", fmt.Sprintf("(%d,%d)", obj.X, obj.Y),
+			)
+		}
 	}
 
 	// set move state machine
@@ -133,7 +134,7 @@ func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
 		X:      msg.X,
 		Y:      msg.Y,
 	}
-	obj.CreateFrustrum()
+	obj.CreateFrustum()
 	obj.destroyViewport()
 	obj.createViewport()
 	obj.PushViewport(&reply)

@@ -366,9 +366,9 @@ const (
 	MaxSelfDefense          = 5
 	MaxBuffEffect           = 32
 	// MaxResistanceType = 7
-	MaxViewPort      = 75
-	MaxArrayFrustrum = 4
-	MaxZen           = 2000000000
+	MaxViewport     = 75
+	MaxArrayFrustum = 4
+	MaxZen          = 2000000000
 )
 
 type EffectList struct {
@@ -601,10 +601,10 @@ type Object struct {
 	PentagramAttackRate       int
 	PentagramDefense          int
 	Skills                    skill.Skills
-	FrustrumX                 [MaxArrayFrustrum]int
-	FrustrumY                 [MaxArrayFrustrum]int
-	SkillFrustrumX            [MaxArrayFrustrum]int
-	SkillFrustrumY            [MaxArrayFrustrum]int
+	FrustumX                  [MaxArrayFrustum]int
+	FrustumY                  [MaxArrayFrustum]int
+	SkillFrustumX             [MaxArrayFrustum]int
+	SkillFrustumY             [MaxArrayFrustum]int
 	Viewports                 [MaxViewportNum]*Viewport // 主动视野
 	ViewportNum               int
 	msgs                      [20]*DelayMsg
@@ -813,7 +813,7 @@ type Object struct {
 	// PShopDealerIndex         int
 	// PShopDealerName          string
 	// muPShopTrade             sync.Mutex
-	// VPPShopPlayer            [MaxViewPort]int
+	// VPPShopPlayer            [MaxViewport]int
 	// VPPShopPlayerCount       uint16
 	// BossGoldDerconMapNumber  uint8
 	// lastTeleportTime         time.Time
@@ -821,8 +821,8 @@ type Object struct {
 	// isInMonsterHerd      bool
 	// isMonsterAttackFirst bool
 	// monsterHerd          *monster.MonsterHerd
-	// fsKillFrustrumX      [MaxArrayFrustrum]int
-	// fsKillFrustrumY      [MaxArrayFrustrum]int
+	// skillFrustumX      [MaxArrayFrustum]int
+	// skillFrustumY      [MaxArrayFrustum]int
 	// // durMagicKeyChecker          *skill.DurMagicKeyChecker
 	// IsChaosMixCompleted         bool
 	// SkillLongSpearChange        bool

@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	FrustrumX [MaxArrayFrustrum]int
-	FrustrumY [MaxArrayFrustrum]int
+	FrustumX [MaxArrayFrustum]int
+	FrustumY [MaxArrayFrustum]int
 )
 
 func init() {
@@ -32,18 +32,18 @@ func init() {
 	}
 	angle := [3]float32{0.0, 0.0, 45.0}
 	matrix := math2.Angle2Matrix(angle)
-	var frustrum [4][3]float32
+	var frustum [4][3]float32
 	for i := 0; i < 4; i++ {
-		frustrum[i] = math2.VectorRotate(p[i], matrix)
-		FrustrumX[i] = int(frustrum[i][0] * 0.01)
-		FrustrumY[i] = int(frustrum[i][1] * 0.01)
+		frustum[i] = math2.VectorRotate(p[i], matrix)
+		FrustumX[i] = int(frustum[i][0] * 0.01)
+		FrustumY[i] = int(frustum[i][1] * 0.01)
 	}
 }
 
-func (obj *Object) CreateFrustrum() {
-	for i := 0; i < MaxArrayFrustrum; i++ {
-		obj.FrustrumX[i] = FrustrumX[i] + obj.X
-		obj.FrustrumY[i] = FrustrumY[i] + obj.Y
+func (obj *Object) CreateFrustum() {
+	for i := 0; i < MaxArrayFrustum; i++ {
+		obj.FrustumX[i] = FrustumX[i] + obj.X
+		obj.FrustumY[i] = FrustumY[i] + obj.Y
 	}
 }
 
@@ -60,10 +60,10 @@ func (obj *Object) checkViewport(x, y int) bool {
 		y > obj.Y+15 {
 		return false
 	}
-	for i, j := 0, 3; i < MaxArrayFrustrum; j, i = i, i+1 {
-		frustrum := (obj.FrustrumX[i]-x)*(obj.FrustrumY[j]-y) -
-			(obj.FrustrumX[j]-x)*(obj.FrustrumY[i]-y)
-		if frustrum < 0 {
+	for i, j := 0, 3; i < MaxArrayFrustum; j, i = i, i+1 {
+		frustum := (obj.FrustumX[i]-x)*(obj.FrustumY[j]-y) -
+			(obj.FrustumX[j]-x)*(obj.FrustumY[i]-y)
+		if frustum < 0 {
 			return false
 		}
 	}
@@ -314,21 +314,21 @@ func (obj *Object) destroyViewport() {
 	// debug
 	if conf.ServerEnv.Debug && obj.Type == ObjectTypePlayer {
 		if len(viewportItemReply.Items) > 0 {
-				var itemLine strings.Builder
-				for _, it := range viewportItemReply.Items {
-					itemLine.WriteString(fmt.Sprintf("(%d)", it.Index))
-				}
-				s := itemLine.String()
-				slog.Debug("viewport remove", "items", s)
+			var itemLine strings.Builder
+			for _, it := range viewportItemReply.Items {
+				itemLine.WriteString(fmt.Sprintf("(%d)", it.Index))
+			}
+			s := itemLine.String()
+			slog.Debug("viewport remove", "items", s)
 			obj.PushSystemMsg(fmt.Sprintf("viewport remove [items]%s", s))
-	}
-	if len(viewportObjectReply.Objects) > 0 {
-				var objectLine strings.Builder
-				for _, obj := range viewportObjectReply.Objects {
-					objectLine.WriteString(fmt.Sprintf("(%d)", obj.Index))
-				}
-				s := objectLine.String()
-				slog.Debug("viewport remove", "objects", s)
+		}
+		if len(viewportObjectReply.Objects) > 0 {
+			var objectLine strings.Builder
+			for _, obj := range viewportObjectReply.Objects {
+				objectLine.WriteString(fmt.Sprintf("(%d)", obj.Index))
+			}
+			s := objectLine.String()
+			slog.Debug("viewport remove", "objects", s)
 			obj.PushSystemMsg(fmt.Sprintf("viewport remove [objects]%s", s))
 		}
 		if len(viewportItemReply.Items) > 0 ||

@@ -385,7 +385,7 @@ func (p *Player) SpawnPosition() {
 		p.Dir = dir
 	})
 	maps.MapManager.SetMapAttrStand(p.MapNumber, p.X, p.Y)
-	p.CreateFrustrum()
+	p.CreateFrustum()
 }
 
 func (p *Player) MuunSystem(msg *model.MsgMuunSystem) {
@@ -720,7 +720,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	if p.Level <= 10 {
 		p.SpawnPosition()
 	}
-	p.CreateFrustrum()
+	p.CreateFrustum()
 	p.MoveSpeed = 1000
 	p.MaxRegenTime = 4 * time.Second
 	p.ConnectState = object.ConnectStatePlaying
@@ -1949,7 +1949,7 @@ func (p *Player) gateMove(gateNumber int) bool {
 		p.X, p.Y = x, y
 		p.TX, p.TY = x, y
 		p.Dir = dir
-		p.CreateFrustrum()
+		p.CreateFrustum()
 		success = true
 	})
 	return success
