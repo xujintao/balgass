@@ -79,6 +79,9 @@ func (obj *Object) Move(msg *model.MsgMove) {
 			"index", obj.Index, "name", obj.Name, "map", obj.MapNumber, "path_count", n)
 		return
 	}
+
+	// debug
+	if conf.ServerEnv.Debug {
 	if msg.X != obj.X || msg.Y != obj.Y {
 		slog.Debug("Move object check",
 			"index", obj.Index, "name", obj.Name, "map", obj.MapNumber,
@@ -86,6 +89,8 @@ func (obj *Object) Move(msg *model.MsgMove) {
 			"server_position", fmt.Sprintf("(%d,%d)", obj.X, obj.Y),
 		)
 	}
+	}
+
 	// set move state machine
 	obj.X = msg.X
 	obj.Y = msg.Y

@@ -11,7 +11,6 @@ import (
 	"reflect"
 
 	"github.com/xujintao/balgass/src/c1c2"
-	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 )
@@ -80,13 +79,11 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	req.Body = req.Body[1:]
 
 	// debug
-	if conf.ServerEnv.Debug {
-		switch api.action {
-		case "KeepLive":
-		case "Move", "Action", "Attack":
-		default:
-			slog.Debug("play action", "player", id, "action", api.action)
-		}
+	switch api.action {
+	case "KeepLive":
+	case "Move", "Action", "Attack":
+	default:
+		slog.Debug("play action", "player", id, "action", api.action)
 	}
 
 	// validate encrypt
