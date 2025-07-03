@@ -83,7 +83,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	case "KeepLive":
 	case "Move", "Action", "Attack":
 	default:
-		slog.Debug("play action", "player", id, "action", api.action)
+		slog.Debug("player action", "player", id, "action", api.action)
 	}
 
 	// validate encrypt
@@ -116,7 +116,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	game.Game.PlayerAction(id, api.action, msg.Interface())
 }
 
-func (h *c1c2Handle) marshal(msg any) (*c1c2.Response, error) {
+func (h *c1c2Handle) marshal(id int, msg any) (*c1c2.Response, error) {
 	v := reflect.ValueOf(msg)
 	t := v.Type()
 	api, ok := h.apiOuts[t]
@@ -124,6 +124,19 @@ func (h *c1c2Handle) marshal(msg any) (*c1c2.Response, error) {
 		err := fmt.Errorf("%s has not yet be registered to api table", t.String())
 		return nil, err
 	}
+
+	// debug
+	switch api.name {
+	case "HPReply", "MPReply":
+	case "AttackDamageReply", "AttackDieReply", "AttackHPReply",
+		"AttackSpeedReply", "AttackEffectReply":
+	case "CreateViewportItemReply", "CreateViewportPlayerReply", "CreateViewportMonsterReply",
+		"DestroyViewportItemReply", "DestroyViewportObjectReply":
+	case "MoveReply", "ActionReply":
+	default:
+		slog.Debug("player push", "player", id, "name", api.name)
+	}
+
 	if _, ok := t.MethodByName("Marshal"); !ok {
 		err := fmt.Errorf("%s has no Marshal Method", t.String())
 		return nil, err
@@ -156,6 +169,7 @@ func (h *c1c2Handle) marshal(msg any) (*c1c2.Response, error) {
 
 type conn struct {
 	*c1c2.Conn
+	id int
 }
 
 func (c *conn) Addr() string {
@@ -163,7 +177,7 @@ func (c *conn) Addr() string {
 }
 
 func (c *conn) Write(msg any) error {
-	resp, err := C1C2Handle.marshal(msg)
+	resp, err := C1C2Handle.marshal(c.id, msg)
 	if err != nil {
 		return err
 	}
@@ -176,8 +190,10 @@ func (c *conn) Close() error {
 
 // OnConn implements c1c2.Handler.OnConn
 func (h *c1c2Handle) OnConn(c *c1c2.Conn) (any, error) {
-	conn := conn{c}
-	return game.Game.PlayerConn(&conn)
+	conn := conn{Conn: c}
+	id, err := game.Game.PlayerConn(&conn)
+	conn.id = id
+	return id, err
 }
 
 // OnClose implements c1c2.Handler.OnConn
