@@ -47,14 +47,14 @@ func (inv *Inventory) FindFreePositionForItem(it *Item) int {
 		if ok {
 			return i
 		}
-		it := inv.Items[i]
-		if it == nil {
+		it2 := inv.Items[i]
+		if it2 == nil {
 			continue
 		}
-		if it.Overlap != 0 &&
-			it.Code == it.Code &&
-			it.Level == it.Level &&
-			it.Durability <= it.Overlap-it.Durability {
+		if it2.Overlap != 0 &&
+			it2.Code == it.Code &&
+			it2.Level == it.Level &&
+			it2.Durability <= it.Overlap-it.Durability {
 			return i
 		}
 	}

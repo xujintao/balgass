@@ -2496,23 +2496,23 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 	if tobj.NpcType != object.NpcTypeShop {
 		return
 	}
-	item := shop.ShopManager.GetShopItem(tobj.Class, tobj.MapNumber, msg.Position)
-	if item == nil {
+	sit := shop.ShopManager.GetShopItem(tobj.Class, tobj.MapNumber, msg.Position)
+	if sit == nil {
 		return
 	}
-	position = p.Inventory.FindFreePositionForItem(item)
+	position = p.Inventory.FindFreePositionForItem(sit)
 	if position == -1 {
 		return
 	}
 	it = p.Inventory.Items[position]
 	if it == nil {
-		p.Inventory.GetItem(position, item)
+		p.Inventory.GetItem(position, sit)
 	} else {
-		it.Durability += item.Durability
+		it.Durability += sit.Durability
 		itemDurChanged = true
 	}
 	reply.Result = position
-	reply.Item = item
+	reply.Item = sit
 }
 
 func (p *Player) SellItem(msg *model.MsgSellItem) {
