@@ -245,22 +245,6 @@ func (p *Player) Push(msg any) {
 	p.msgChan <- msg
 }
 
-func (p *Player) pushMaxHP(hp, sd int) {
-	p.Push(&model.MsgHPReply{Position: -2, HP: hp, SD: sd})
-}
-
-func (p *Player) pushHP(hp, sd int) {
-	p.Push(&model.MsgHPReply{Position: -1, HP: hp, SD: sd})
-}
-
-func (p *Player) pushMaxMP(mp, ag int) {
-	p.Push(&model.MsgMPReply{Position: -2, MP: mp, AG: ag})
-}
-
-func (p *Player) PushMPAG(mp, ag int) {
-	p.Push(&model.MsgMPReply{Position: -1, MP: mp, AG: ag})
-}
-
 func (p *Player) pushItemDurability(position, dur int) {
 	p.Push(&model.MsgItemDurabilityReply{Position: position, Durability: dur, Flag: 1})
 }
@@ -728,11 +712,11 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.State = 1
 
 	experience := p.Experience
-	if p.isMasterLevel() {
+	if p.IsMasterLevel() {
 		experience = p.MasterExperience
 	}
 	nextExperience := exp.ExperienceTable[p.Level]
-	if p.isMasterLevel() {
+	if p.IsMasterLevel() {
 		experience = exp.MasterExperienceTable[p.MasterLevel]
 	}
 
@@ -1401,9 +1385,9 @@ func (p *Player) calc() {
 		AttackSpeed: p.AttackSpeed,
 		MagicSpeed:  p.magicSpeed,
 	})
-	p.pushMaxHP(p.MaxHP, p.MaxSD)
-	p.pushMaxMP(p.MaxMP, p.MaxAG)
-	p.pushHP(p.HP, p.SD)
+	p.PushMaxHPSD(p.MaxHP, p.MaxSD)
+	p.PushMaxMPAG(p.MaxMP, p.MaxAG)
+	p.PushHPSD(p.HP, p.SD)
 	p.PushMPAG(p.MP, p.AG)
 }
 
@@ -1538,7 +1522,7 @@ func (p *Player) GetMasterLevel() int {
 	return p.MasterLevel
 }
 
-func (p *Player) isMasterLevel() bool {
+func (p *Player) IsMasterLevel() bool {
 	return p.ChangeUp >= 2
 }
 
@@ -1855,7 +1839,7 @@ func (p *Player) recoverHPSD() {
 	}
 
 	if change {
-		p.pushHP(p.HP, p.SD)
+		p.PushHPSD(p.HP, p.SD)
 	}
 }
 
@@ -2553,11 +2537,15 @@ func (p *Player) SellItem(msg *model.MsgSellItem) {
 	if tobj.NpcType != object.NpcTypeShop {
 		return
 	}
-	item := p.Inventory.Items[msg.Position]
-	if item == nil {
+	it := p.Inventory.Items[msg.Position]
+	if it == nil {
 		return
 	}
-	p.Inventory.DropItem(msg.Position, item)
+	if p.Money+it.Money > object.MaxZen {
+		return
+	}
+	p.Money += it.Money
+	p.Inventory.DropItem(msg.Position, it)
 	reply.Result = 1
 	reply.Money = p.Money
 }
@@ -2598,65 +2586,4 @@ func (p *Player) MapMove(msg *model.MsgMapMove) {
 			p.Push(&reply)
 		}
 	})
-}
-
-func (p *Player) LevelUp(addexp int) bool {
-	if !p.isMasterLevel() {
-		p.Experience += addexp
-		levelUpExp := exp.ExperienceTable[p.Level]
-		if p.Experience < levelUpExp {
-			return false
-		}
-		p.Experience = levelUpExp
-		p.Level++
-		switch class.Class(p.Class) {
-		case class.Magumsa,
-			class.DarkLord,
-			class.RageFighter,
-			class.GrowLancer:
-			p.LevelPoint += conf.CommonServer.GameServerInfo.LevelPoint7
-		default:
-			p.LevelPoint += conf.CommonServer.GameServerInfo.LevelPoint5
-		}
-	} else {
-		p.MasterExperience += addexp
-		levelUpExp := exp.MasterExperienceTable[p.MasterLevel]
-		if p.MasterExperience < levelUpExp {
-			return false
-		}
-		p.MasterExperience = levelUpExp
-		p.MasterLevel++
-		p.MasterPoint += conf.Common.General.MasterPointPerLevel
-	}
-	p.calc()
-	p.HP = p.MaxHP
-	p.SD = p.MaxSD
-	p.MP = p.MaxMP
-	p.AG = p.MaxAG
-	p.pushHP(p.HP, p.SD)
-	p.PushMPAG(p.MP, p.AG)
-	if !p.isMasterLevel() {
-		reply := model.MsgLevelUpReply{
-			Level:      p.Level,
-			LevelPoint: p.LevelPoint,
-			MaxHP:      p.MaxHP,
-			MaxMP:      p.MaxMP,
-			MaxSD:      p.MaxSD,
-			MaxAG:      p.MaxAG,
-		}
-		p.Push(&reply)
-	} else {
-		reply := model.MsgMasterLevelUpReply{
-			MasterLevel:         p.MasterLevel,
-			MasterPointPerLevel: conf.Common.General.MasterPointPerLevel,
-			MasterPoint:         p.MasterPoint,
-			MaxMasterLevel:      conf.Common.General.MaxLevelMaster,
-			MaxHP:               p.MaxHP,
-			MaxMP:               p.MaxMP,
-			MaxSD:               p.MaxSD,
-			MaxAG:               p.MaxAG,
-		}
-		p.Push(&reply)
-	}
-	return true
 }

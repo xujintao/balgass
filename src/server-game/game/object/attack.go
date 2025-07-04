@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/game/exp"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
@@ -270,4 +271,70 @@ func (obj *Object) Attack(msg *model.MsgAttack) {
 	}
 	obj.PushViewport(&reply)
 	obj.attack(tobj, nil, 0)
+}
+
+func (obj *Object) DieGiveExperience(tobj *Object, damage int) {
+	targetLevel := tobj.Level + tobj.GetMasterLevel()
+	level := (obj.Level + 25) * obj.Level / 3
+	if obj.Level+10 < targetLevel {
+		level = level * (obj.Level + 10) / targetLevel
+	}
+	if obj.Level >= 65 {
+		level += (obj.Level - 64) * obj.Level / 4
+	}
+	baseExp := 0
+	maxExp := 0
+	if level > 0 {
+		maxExp = level / 2
+	} else {
+		level = 0
+	}
+	if maxExp < 1 {
+		baseExp = level
+	} else {
+		baseExp = maxExp/2 + level
+	}
+	if baseExp <= 0 {
+		return
+	}
+	obj.MoneyDrop = baseExp
+	var mapBonus float64
+	var baseBonus float64
+	if !tobj.IsMasterLevel() {
+		mapBonus = maps.MapManager.GetExpBonus(obj.MapNumber)
+		baseBonus = exp.ExpManager.Normal
+	} else {
+		mapBonus = maps.MapManager.GetMasterExpBonus(obj.MapNumber)
+		baseBonus = exp.ExpManager.Master
+	}
+	addexp := int(float64(baseExp) * (1 + mapBonus) * baseBonus)
+	if !tobj.LevelUp(addexp) {
+		reply := model.MsgExperienceReply{
+			Number:     obj.Index,
+			Experience: addexp,
+			Damage:     damage,
+		}
+		tobj.Push(&reply)
+	}
+}
+
+func (obj *Object) DieDropExperience() {
+	slog.Debug("object DieDropExperience placeholder")
+}
+
+func (obj *Object) DieRecoverHPMP(tobj *Object) {
+	if tobj.GetMonsterDieGetHP() != 0 {
+		tobj.HP += int(float64(tobj.MaxHP) * tobj.GetMonsterDieGetHP())
+		if tobj.HP >= tobj.MaxHP {
+			tobj.HP = tobj.MaxHP
+		}
+		tobj.PushHPSD(tobj.HP, tobj.SD)
+	}
+	if tobj.GetMonsterDieGetMP() != 0 {
+		tobj.MP += int(float64(tobj.MaxMP) * tobj.GetMonsterDieGetMP())
+		if tobj.MP >= tobj.MaxMP {
+			tobj.MP = tobj.MaxMP
+		}
+		tobj.PushMPAG(tobj.MP, tobj.AG)
+	}
 }

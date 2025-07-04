@@ -352,6 +352,10 @@ func (*Monster) GetMasterLevel() int {
 	return 0
 }
 
+func (*Monster) IsMasterLevel() bool {
+	return false
+}
+
 func (m *Monster) GetSkillMPAG(s *skill.Skill) (int, int) {
 	return 0, 0
 }

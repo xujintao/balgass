@@ -500,22 +500,23 @@ type Objecter interface {
 	DefineMuBot(*model.MsgDefineMuBot)
 	EnableMuBot(*model.MsgEnableMuBot)
 	UsePet(*model.MsgUsePet)
+	// 5. Others
+	MuunSystem(*model.MsgMuunSystem)
 
 	// object actions implemented by derived object:
 	Addr() string
 	Offline()
 	Push(any)
-	PushMPAG(int, int)
 	GetPKLevel() int
 	GetMasterLevel() int
+	IsMasterLevel() bool
 	GetSkillMPAG(s *skill.Skill) (int, int)
 	ProcessAction()
 	Process1000ms()
 	SpawnPosition()
 	Die(*Object, int)
-	MonsterDieGetExperience(*Object, int)
-	MonsterDieDropItem(*Object)
-	MonsterDieRecoverHP()
+	LevelUp(int) bool
+	DieDropItem(*Object)
 	Regen()
 	GetChangeUp() int
 	GetInventory() [9]*item.Item
@@ -526,6 +527,8 @@ type Objecter interface {
 	GetCriticalAttackDamage() int
 	GetExcellentAttackRate() int
 	GetExcellentAttackDamage() int
+	GetMonsterDieGetHP() float64
+	GetMonsterDieGetMP() float64
 	GetAddDamage() int
 	GetArmorReduceDamage() int
 	GetWingIncreaseDamage() int
@@ -590,6 +593,7 @@ type Object struct {
 	ViewRange                 int // 视野范围
 	ItemDropRate              int // 道具掉落率
 	MoneyDropRate             int // 金钱掉落率
+	MoneyDrop                 int
 	Attribute                 int
 	dieTime                   time.Time
 	dieRegen                  bool
@@ -972,18 +976,38 @@ func (obj *Object) processDelayMsg() {
 			continue
 		}
 		switch msg.code {
-		case 0: // give experience
-		case 1: // give item
+		case 0: // die give target experience
+		case 1: // die drop item
 			tobj := ObjectManager.objects[msg.sender]
 			if tobj == nil || !tobj.Live {
-				return
+				break
 			}
-			obj.MonsterDieDropItem(tobj)
-		case 2: // recover send hp/mp
-			obj.MonsterDieRecoverHP()
+			obj.DieDropItem(tobj)
+		case 2: // die recover target hp/mp
+			tobj := ObjectManager.objects[msg.sender]
+			if tobj == nil || !tobj.Live {
+				break
+			}
+			obj.DieRecoverHPMP(tobj)
 		}
 		msg.code = -1
 	}
+}
+
+func (obj *Object) PushHPSD(hp, sd int) {
+	obj.Push(&model.MsgHPReply{Position: -1, HP: hp, SD: sd})
+}
+
+func (obj *Object) PushMPAG(mp, ag int) {
+	obj.Push(&model.MsgMPReply{Position: -1, MP: mp, AG: ag})
+}
+
+func (obj *Object) PushMaxHPSD(hp, sd int) {
+	obj.Push(&model.MsgHPReply{Position: -2, HP: hp, SD: sd})
+}
+
+func (obj *Object) PushMaxMPAG(mp, ag int) {
+	obj.Push(&model.MsgMPReply{Position: -2, MP: mp, AG: ag})
 }
 
 func (obj *Object) PushSystemMsg(msg string) {

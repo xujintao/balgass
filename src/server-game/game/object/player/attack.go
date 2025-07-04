@@ -1,8 +1,11 @@
 package player
 
 import (
+	"log/slog"
+
+	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/exp"
-	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 )
@@ -33,6 +36,14 @@ func (p *Player) GetExcellentAttackRate() int {
 
 func (p *Player) GetExcellentAttackDamage() int {
 	return p.ExcellentAttackDamage
+}
+
+func (p *Player) GetMonsterDieGetHP() float64 {
+	return p.MonsterDieGetHP
+}
+
+func (p *Player) GetMonsterDieGetMP() float64 {
+	return p.MonsterDieGetMP
 }
 
 func (p *Player) GetAddDamage() int {
@@ -79,69 +90,74 @@ func (p *Player) GetImpaleSkillCalc() float64 {
 	return p.ImpaleSkillCalc
 }
 
-func (p *Player) Die(obj *object.Object, damage int) {
-
+func (p *Player) Die(tobj *object.Object, damage int) {
+	// drop experience
+	p.DieDropExperience()
+	// delay drop item
+	p.AddDelayMsg(1, 0, 800, tobj.Index)
 }
 
-func (p *Player) MonsterDieGetExperience(tobj *object.Object, damage int) {
-	level := p.Level + p.MasterLevel
-	targetLevel := (tobj.Level + 25) * tobj.Level / 3
-	if tobj.Level+10 < level {
-		targetLevel = targetLevel * (tobj.Level + 10) / level
-	}
-	if tobj.Level >= 65 {
-		targetLevel += (tobj.Level - 64) * tobj.Level / 4
-	}
-	addexp := 0
-	maxexp := 0
-	if targetLevel > 0 {
-		maxexp = targetLevel / 2
+func (p *Player) DieDropItem(*object.Object) {
+	slog.Debug("player DieDropItem placeholder")
+}
+
+func (p *Player) LevelUp(addexp int) bool {
+	if !p.IsMasterLevel() {
+		p.Experience += addexp
+		levelUpExp := exp.ExperienceTable[p.Level]
+		if p.Experience < levelUpExp {
+			return false
+		}
+		p.Experience = levelUpExp
+		p.Level++
+		switch class.Class(p.Class) {
+		case class.Magumsa,
+			class.DarkLord,
+			class.RageFighter,
+			class.GrowLancer:
+			p.LevelPoint += conf.CommonServer.GameServerInfo.LevelPoint7
+		default:
+			p.LevelPoint += conf.CommonServer.GameServerInfo.LevelPoint5
+		}
 	} else {
-		targetLevel = 0
+		p.MasterExperience += addexp
+		levelUpExp := exp.MasterExperienceTable[p.MasterLevel]
+		if p.MasterExperience < levelUpExp {
+			return false
+		}
+		p.MasterExperience = levelUpExp
+		p.MasterLevel++
+		p.MasterPoint += conf.Common.General.MasterPointPerLevel
 	}
-	if maxexp < 1 {
-		addexp = targetLevel
+	p.calc()
+	p.HP = p.MaxHP
+	p.SD = p.MaxSD
+	p.MP = p.MaxMP
+	p.AG = p.MaxAG
+	p.PushHPSD(p.HP, p.SD)
+	p.PushMPAG(p.MP, p.AG)
+	if !p.IsMasterLevel() {
+		reply := model.MsgLevelUpReply{
+			Level:      p.Level,
+			LevelPoint: p.LevelPoint,
+			MaxHP:      p.MaxHP,
+			MaxMP:      p.MaxMP,
+			MaxSD:      p.MaxSD,
+			MaxAG:      p.MaxAG,
+		}
+		p.Push(&reply)
 	} else {
-		addexp = maxexp/2 + targetLevel
-	}
-	if addexp <= 0 {
-		return
-	}
-	var mapBonus float64
-	var baseBonus float64
-	if !p.isMasterLevel() {
-		mapBonus = maps.MapManager.GetExpBonus(p.MapNumber)
-		baseBonus = exp.ExpManager.Normal
-	} else {
-		mapBonus = maps.MapManager.GetMasterExpBonus(p.MapNumber)
-		baseBonus = exp.ExpManager.Master
-	}
-	addexp = int(float64(addexp) * (1 + mapBonus) * baseBonus)
-	if !p.LevelUp(addexp) {
-		reply := model.MsgExperienceReply{
-			Number:     tobj.Index,
-			Experience: addexp,
-			Damage:     damage,
+		reply := model.MsgMasterLevelUpReply{
+			MasterLevel:         p.MasterLevel,
+			MasterPointPerLevel: conf.Common.General.MasterPointPerLevel,
+			MasterPoint:         p.MasterPoint,
+			MaxMasterLevel:      conf.Common.General.MaxLevelMaster,
+			MaxHP:               p.MaxHP,
+			MaxMP:               p.MaxMP,
+			MaxSD:               p.MaxSD,
+			MaxAG:               p.MaxAG,
 		}
 		p.Push(&reply)
 	}
-}
-
-func (p *Player) MonsterDieDropItem(*object.Object) {}
-
-func (p *Player) MonsterDieRecoverHP() {
-	if p.MonsterDieGetHP != 0 {
-		p.HP += int(float64(p.MaxHP) * p.MonsterDieGetHP)
-		if p.HP >= p.MaxHP {
-			p.HP = p.MaxHP
-		}
-		p.pushHP(p.HP, p.SD)
-	}
-	if p.MonsterDieGetMP != 0 {
-		p.MP += int(float64(p.MaxMP) * p.MonsterDieGetMP)
-		if p.MP >= p.MaxMP {
-			p.MP = p.MaxMP
-		}
-		p.PushMPAG(p.MP, p.AG)
-	}
+	return true
 }
