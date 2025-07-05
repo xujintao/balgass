@@ -5817,7 +5817,7 @@ BOOL gObjBackSpring(LPOBJ lpObj, LPOBJ lpTargetObj)
 	}
 
 	pMove.h.c = 0xC1;
-	pMove.h.headcode = 0x11;
+	pMove.h.headcode = 0x15;
 	pMove.h.size = sizeof(pMove);
 	pMove.X = x;
 	pMove.Y = y;
@@ -6044,7 +6044,7 @@ BOOL gObjBackSpring2(LPOBJ lpObj, LPOBJ lpTargetObj, int count)
 	PMSG_POSISTION_SET pMove;
 
 	pMove.h.c = 0xC1;
-	pMove.h.headcode = 0x11;
+	pMove.h.headcode = 0x15;
 	pMove.h.size = sizeof(pMove);
 	pMove.X = x;
 	pMove.Y = y;
