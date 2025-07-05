@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"math/rand"
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
@@ -125,10 +126,15 @@ func (obj *Object) Move(msg *model.MsgMove) {
 }
 
 func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
-	obj.X = msg.X
-	obj.Y = msg.Y
-	obj.TX = msg.X
-	obj.TY = msg.Y
+	slog.Debug("SetPosition",
+		"index", obj.Index, "name", obj.Name, "map", obj.MapNumber,
+		"from", fmt.Sprintf("(%d,%d)", obj.X, obj.Y),
+		"to", fmt.Sprintf("(%d,%d)", msg.X, msg.Y),
+	)
+	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
+	obj.X, obj.Y = msg.X, msg.Y
+	obj.TX, obj.TY = msg.X, msg.Y
+	maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
 	reply := model.MsgSetPositionReply{
 		Number: obj.Index,
 		X:      msg.X,
@@ -138,4 +144,27 @@ func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
 	obj.destroyViewport()
 	obj.createViewport()
 	obj.PushViewport(&reply)
+}
+
+func (obj *Object) Knockback(tobj *Object) {
+	dir := tobj.Dir
+	if rand.Intn(3) == 0 {
+		// reverse dir
+		dir = (tobj.Dir + 4) % 8
+	}
+	dirPot := maps.Dirs[dir]
+	x := tobj.X + dirPot.X
+	y := tobj.Y + dirPot.Y
+	attr := maps.MapManager.GetMapAttr(tobj.MapNumber, x, y)
+	if attr&1 != 0 &&
+		attr&2 != 0 &&
+		attr&4 != 0 &&
+		attr&8 != 0 &&
+		attr&16 != 0 {
+		return
+	}
+	tobj.SetPosition(&model.MsgSetPosition{
+		X: x,
+		Y: y,
+	})
 }

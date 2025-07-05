@@ -91,12 +91,12 @@ func (*Monster) GetImpaleSkillCalc() float64 {
 }
 
 func (m *Monster) Die(tobj *object.Object, damage int) {
-	// give experience
+	// give experience to target
 	m.DieGiveExperience(tobj, damage)
 	// delay drop item
 	m.AddDelayMsg(1, 0, 800, tobj.Index)
-	// attacker delay recover hp/mp/sd
-	m.AddDelayMsg(2, 0, 2000, tobj.Index)
+	// delay recover target hp/mp/sd
+	m.AddDelayMsg(3, 0, 2000, tobj.Index)
 }
 
 func (m *Monster) DieDropItem(tobj *object.Object) {

@@ -100,6 +100,15 @@ func (obj *Object) canUseSkill(tobj *Object, s *skill.Skill) {
 		skill.SkillIndexPowerSlash:    // 56天雷闪(武器)
 		obj.UseSkillReply(tobj, s, true)
 		obj.attack(tobj, s, 0)
+		switch s.Index {
+		case skill.SkillIndexLightning, // 3掌心雷
+			skill.SkillIndexFallingSlash, // 19地裂斩(武器)
+			skill.SkillIndexLunge,        // 20牙突刺(武器)
+			skill.SkillIndexUppercut,     // 21升龙击(武器)
+			skill.SkillIndexCyclone,      // 22旋风斩(武器)
+			skill.SkillIndexSlash:        // 23天地十字剑(武器)
+			obj.AddDelayMsg(2, 0, 150, tobj.Index) // delay knockback target
+		}
 	case skill.SkillIndexDeathStab: // 43袭风刺
 		obj.UseSkillDeathStab(s, tobj)
 	}

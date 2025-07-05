@@ -983,7 +983,13 @@ func (obj *Object) processDelayMsg() {
 				break
 			}
 			obj.DieDropItem(tobj)
-		case 2: // die recover target hp/mp
+		case 2: // skill knockback
+			tobj := ObjectManager.objects[msg.sender]
+			if tobj == nil || !tobj.Live {
+				break
+			}
+			obj.Knockback(tobj)
+		case 3: // die recover target hp/mp
 			tobj := ObjectManager.objects[msg.sender]
 			if tobj == nil || !tobj.Live {
 				break
