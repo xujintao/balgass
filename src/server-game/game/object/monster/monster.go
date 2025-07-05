@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
-	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
@@ -654,8 +653,4 @@ func (m *Monster) Regen() {
 
 func (m *Monster) GetChangeUp() int {
 	return 0
-}
-
-func (m *Monster) GetInventory() [9]*item.Item {
-	return [9]*item.Item{}
 }

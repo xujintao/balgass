@@ -87,12 +87,12 @@ func (inv *Inventory) ClearFlagsForItem(position int, it *Item) {
 	inv.setFlagsForItem(position, it, false)
 }
 
-func (inv *Inventory) GetItem(position int, it *Item) {
+func (inv *Inventory) AddItem(position int, it *Item) {
 	inv.Items[position] = it
 	inv.SetFlagsForItem(position, it)
 }
 
-func (inv *Inventory) DropItem(position int, it *Item) {
+func (inv *Inventory) RemoveItem(position int, it *Item) {
 	inv.Items[position] = nil
 	inv.ClearFlagsForItem(position, it)
 }

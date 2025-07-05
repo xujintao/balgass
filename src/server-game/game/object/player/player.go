@@ -245,25 +245,6 @@ func (p *Player) Push(msg any) {
 	p.msgChan <- msg
 }
 
-func (p *Player) pushItemDurability(position, dur int) {
-	p.Push(&model.MsgItemDurabilityReply{Position: position, Durability: dur, Flag: 1})
-}
-
-func (p *Player) pushDeleteItem(position int) {
-	p.Push(&model.MsgDeleteInventoryItemReply{Position: position, Flag: 1})
-}
-
-func (p *Player) decreaseItemDurability(position int) {
-	it := p.Inventory.Items[position]
-	it.Durability--
-	if it.Durability > 0 {
-		p.pushItemDurability(position, it.Durability)
-	} else {
-		p.Inventory.DropItem(position, it)
-		p.pushDeleteItem(position)
-	}
-}
-
 func (p *Player) SpawnPosition() {
 	gate := 0
 	switch p.MapNumber {
@@ -775,7 +756,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 				Y:                      p.Y,
 				Class:                  p.Class,
 				ChangeUp:               p.GetChangeUp(),
-				Inventory:              p.GetInventory(),
+				Inventory:              [9]*item.Item(p.GetInventory().Items[:9]),
 				Name:                   p.Name,
 				TX:                     p.TX,
 				TY:                     p.TY,
@@ -1470,7 +1451,7 @@ func (p *Player) UsePet(msg *model.MsgUsePet) {
 			p.Pet = it
 			reply.Result = -2
 		}
-		p.equipmentChanged()
+		p.EquipmentChanged()
 		p.PushChangedEquipment(it)
 	}
 }
@@ -1914,10 +1895,6 @@ func (p *Player) GetChangeUp() int {
 	return p.ChangeUp
 }
 
-func (p *Player) GetInventory() [9]*item.Item {
-	return [9]*item.Item(p.Inventory.Items[:9])
-}
-
 func (p *Player) gateMove(gateNumber int) bool {
 	success := false
 	maps.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
@@ -1954,7 +1931,7 @@ func (p *Player) PushChangedEquipment(it *item.Item) {
 	p.PushViewport(&reply)
 }
 
-func (p *Player) equipmentChanged() {
+func (p *Player) EquipmentChanged() {
 	// 1, change skill
 	newItemSkills := make(map[int]struct{})
 	primaryHandWeapon := p.Inventory.Items[0]
@@ -2003,245 +1980,6 @@ func (p *Player) equipmentChanged() {
 	p.calc()
 }
 
-func (p *Player) GetItem(msg *model.MsgGetItem) {
-	reply := model.MsgGetItemReply{
-		Result: -1,
-	}
-	itemDurChanged := false
-	position := -1
-	var it *item.Item
-	defer func() {
-		p.Push(&reply)
-		if itemDurChanged {
-			reply := model.MsgItemDurabilityReply{
-				Position:   position,
-				Durability: it.Durability,
-				Flag:       0,
-			}
-			p.Push(&reply)
-		}
-	}()
-	it2 := maps.MapManager.PickItem(p.MapNumber, msg.Index)
-	if it2 == nil {
-		return
-	}
-	switch it2.Code {
-	case item.Code(14, 15):
-		money := it2.Durability
-		if p.Money+money > object.MaxZen {
-			return
-		}
-		p.Money += money
-		reply.Money = p.Money
-		position = -2
-	default:
-		position = p.Inventory.FindFreePositionForItem(it2)
-		if position == -1 {
-			return
-		}
-		it = p.Inventory.Items[position]
-		if it == nil {
-			p.Inventory.GetItem(position, it2)
-		} else {
-			it.Durability += it2.Durability
-			itemDurChanged = true
-		}
-	}
-	maps.MapManager.PopItem(p.MapNumber, msg.Index)
-	reply.Result = position
-	reply.Item = it2
-}
-
-func (p *Player) DropInventoryItem(msg *model.MsgDropInventoryItem) {
-	reply := model.MsgDropInventoryItemReply{
-		Result:   0,
-		Position: msg.Position,
-	}
-	defer p.Push(&reply)
-	// validate
-	if msg.Position >= len(p.Inventory.Items) {
-		return
-	}
-	it := p.Inventory.Items[msg.Position]
-	if it == nil {
-		return
-	}
-	switch it.Code {
-	case item.Code(14, 63):
-		cmdReply := model.MsgServerCMDReply{
-			Type: 0,
-			X:    p.X,
-			Y:    p.Y,
-		}
-		p.PushViewport(&cmdReply)
-	default:
-		ok := maps.MapManager.PushItem(p.MapNumber, msg.X, msg.Y, it)
-		if !ok {
-			return
-		}
-	}
-	p.Inventory.DropItem(msg.Position, it)
-	if msg.Position < 12 || msg.Position == 126 {
-		p.equipmentChanged()
-	}
-	reply.Result = 1
-}
-
-func (p *Player) MoveItem(msg *model.MsgMoveItem) {
-	reply := model.MsgMoveItemReply{
-		Result: -1,
-	}
-	sitemDurChanged := false
-	titemDurChanged := false
-	var sitem *item.Item
-	var titem *item.Item
-	defer func() {
-		p.Push(&reply)
-		if sitemDurChanged {
-			reply := model.MsgItemDurabilityReply{
-				Position:   msg.SrcPosition,
-				Durability: sitem.Durability,
-				Flag:       0,
-			}
-			p.Push(&reply)
-		}
-		if titemDurChanged {
-			reply := model.MsgItemDurabilityReply{
-				Position:   msg.DstPosition,
-				Durability: titem.Durability,
-				Flag:       0,
-			}
-			p.Push(&reply)
-		}
-	}()
-
-	// get source item
-	switch msg.SrcFlag {
-	case 0:
-		if msg.SrcPosition >= p.Inventory.Size {
-			return
-		}
-		sitem = p.Inventory.Items[msg.SrcPosition]
-	case 2:
-		if msg.SrcPosition >= p.Warehouse.Size {
-			return
-		}
-		sitem = p.Warehouse.Items[msg.SrcPosition]
-
-	}
-	if sitem == nil {
-		return
-	}
-	// get destination item
-	switch msg.DstFlag {
-	case 0:
-		if msg.DstPosition >= p.Inventory.Size {
-			return
-		}
-		titem = p.Inventory.Items[msg.DstPosition]
-	case 2:
-		if msg.DstPosition >= p.Warehouse.Size {
-			return
-		}
-		titem = p.Warehouse.Items[msg.DstPosition]
-	}
-
-	switch msg.SrcFlag {
-	case 0:
-		switch msg.DstFlag {
-		case 0:
-			switch {
-			case titem == nil: // move
-				ok := p.Inventory.CheckFlagsForItem(msg.DstPosition, sitem)
-				if !ok {
-					return
-				}
-				p.Inventory.DropItem(msg.SrcPosition, sitem)
-				p.Inventory.GetItem(msg.DstPosition, sitem)
-				if msg.SrcPosition < 12 || msg.SrcPosition == 236 ||
-					msg.DstPosition < 12 || msg.DstPosition == 236 {
-					p.equipmentChanged()
-				}
-				reply.Result = msg.DstFlag
-			case titem.Overlap != 0 && // overlap
-				titem.Code == sitem.Code &&
-				titem.Level == sitem.Level &&
-				titem.Durability < titem.Overlap:
-				delta := titem.Overlap - titem.Durability
-				if delta > sitem.Durability {
-					delta = sitem.Durability
-				}
-				sitem.Durability -= delta
-				sitemDurChanged = true
-				if sitem.Durability <= 0 {
-					reply.Result = msg.DstFlag
-					sitem.Durability = 0
-					sitemDurChanged = false
-					p.Inventory.DropItem(msg.SrcPosition, sitem)
-					reply := model.MsgDeleteInventoryItemReply{
-						Position: msg.SrcPosition,
-						Flag:     1,
-					}
-					p.Push(&reply)
-				} else {
-					reply.Result = -1
-				}
-				titem.Durability += delta
-				titemDurChanged = true
-			default:
-				return
-			}
-		case 2:
-			if titem == nil {
-				ok := p.Warehouse.CheckFlagsForItem(msg.DstPosition, sitem)
-				if !ok {
-					return
-				}
-				p.Inventory.DropItem(msg.SrcPosition, sitem)
-				p.Warehouse.GetItem(msg.DstPosition, sitem)
-				if msg.SrcPosition < 12 || msg.SrcPosition == 236 {
-					p.equipmentChanged()
-				}
-				reply.Result = msg.DstFlag
-			}
-		default:
-			return
-		}
-	case 2:
-		switch msg.DstFlag {
-		case 0:
-			if titem == nil {
-				ok := p.Inventory.CheckFlagsForItem(msg.DstPosition, sitem)
-				if !ok {
-					return
-				}
-				p.Warehouse.DropItem(msg.SrcPosition, sitem)
-				p.Inventory.GetItem(msg.DstPosition, sitem)
-				if msg.DstPosition < 12 || msg.DstPosition == 236 {
-					p.equipmentChanged()
-				}
-				reply.Result = msg.DstFlag
-			}
-		case 2:
-			if titem == nil {
-				ok := p.Warehouse.CheckFlagsForItem(msg.DstPosition, sitem)
-				if !ok {
-					return
-				}
-				p.Warehouse.DropItem(msg.SrcPosition, sitem)
-				p.Warehouse.GetItem(msg.DstPosition, sitem)
-				reply.Result = msg.DstFlag
-			}
-		default:
-			return
-		}
-	default:
-		return
-	}
-	reply.Position = msg.DstPosition
-	reply.Item = sitem
-}
-
 func (p *Player) LimitUseItem(it *item.Item) bool {
 	if p.Level < it.ReqLevel ||
 		p.Strength+p.AddStrength < it.ReqStrength ||
@@ -2256,151 +1994,6 @@ func (p *Player) LimitUseItem(it *item.Item) bool {
 		return true
 	}
 	return false
-}
-
-func (p *Player) UseItem(msg *model.MsgUseItem) {
-	// validate the position
-	if msg.SrcPosition < 0 || msg.SrcPosition >= p.Inventory.Size ||
-		msg.DstPosition < 0 || msg.DstPosition >= p.Inventory.Size ||
-		msg.SrcPosition == msg.DstPosition {
-		return
-	}
-	it := p.Inventory.Items[msg.SrcPosition]
-	if it == nil {
-		return
-	}
-	switch {
-	case it.Code == item.Code(12, 30): // Bundle Jewel of Bless
-	case it.Code == item.Code(13, 15): // Fruits 果实
-	case it.Code >= item.Code(13, 43) && it.Code <= item.Code(13, 45): // Seal 印章
-	case it.Code == item.Code(13, 48): // Kalima Ticket 卡利玛自由入场券
-	case it.Code >= item.Code(13, 54) && it.Code <= item.Code(13, 58): // Reset Fruit 洗点果实
-	case it.Code == item.Code(13, 60): // Indulgence 免罪符
-	case it.Code == item.Code(13, 66): // Invitation to Santa Village 圣诞之地入场券
-	case it.Code == item.Code(13, 69): // Talisman of Resurrection 复活符咒
-	case it.Code == item.Code(13, 70): // Talisman of Mobility 移动符咒
-	case it.Code == item.Code(13, 82): // Talisman of Item Protection 装备保护符咒
-	case it.Code >= item.Code(13, 152) && it.Code <= item.Code(13, 159): // Scroll of Oblivion 忘却卷轴
-	case it.Code >= item.Code(14, 0) && it.Code <= item.Code(14, 3): // HP Potion
-		addRate := 0
-		switch it.Code {
-		case item.Code(14, 0): // Apple 苹果
-			addRate = 10
-		case item.Code(14, 1): // Small Healing Potion 小瓶治疗药水
-			addRate = 20
-		case item.Code(14, 2): // Healing Potion 中瓶治疗药水
-			addRate = 30
-		case item.Code(14, 3): // Large Healing Potion 大瓶治疗药水
-			addRate = 40
-		}
-		if it.Level >= 1 {
-			addRate += 5
-		}
-		hp := 0
-		hp += p.MaxHP * addRate / 100
-		// defer recover hp
-		p.delayRecoverHP = hp
-		p.delayRecoverHPMax = hp
-		// decrease durability
-		p.decreaseItemDurability(msg.SrcPosition)
-	case it.Code >= item.Code(14, 4) && it.Code <= item.Code(14, 6): // MP Potion
-		addRate := 0
-		switch it.Code {
-		case item.Code(14, 4):
-			addRate = 20
-		case item.Code(14, 5):
-			addRate = 30
-		case item.Code(14, 6):
-			addRate = 40
-		}
-		mp := p.MaxMP * addRate / 100
-		// recover mp immediately
-		if p.MP < p.MaxMP {
-			p.MP += mp
-			if p.MP > p.MaxMP {
-				p.MP = p.MaxMP
-			}
-			p.PushMPAG(p.MP, p.AG)
-		}
-		// decrease durability
-		p.decreaseItemDurability(msg.SrcPosition)
-	case it.Code == item.Code(14, 7): // Siege Potion 攻城药水
-	case it.Code == item.Code(14, 8): // Antidote 解毒剂
-	case it.Code == item.Code(14, 9) || it.Code == item.Code(14, 20): // Ale 酒 / Remedy of Love 爱情的魔力
-	case it.Code == item.Code(14, 10): // Town Portal Scroll 回城卷轴
-	case it.Code == item.Code(14, 13): // Jewel of Bless
-	case it.Code == item.Code(14, 14): // Jewel of Soul
-	case it.Code == item.Code(14, 16): // Jewel of Life
-	case it.Code >= item.Code(14, 35) && it.Code <= item.Code(14, 37): // SD Potion
-		addRate := 0
-		switch it.Code {
-		case item.Code(14, 35):
-			addRate = 25
-		case item.Code(14, 36):
-			addRate = 35
-		case item.Code(14, 37):
-			addRate = 45
-		}
-		sd := p.MaxSD * addRate / 100
-		p.delayRecoverSD = sd
-		p.delayRecoverSDMax = sd
-		// decrease durability
-		p.decreaseItemDurability(msg.SrcPosition)
-	case it.Code >= item.Code(14, 38) && it.Code <= item.Code(14, 40): // comples/compound Potion
-		addHPRate, addSDRate := 0, 0
-		switch it.Code {
-		case item.Code(14, 38):
-			addHPRate = 10
-			addSDRate = 5
-		case item.Code(14, 39):
-			addHPRate = 25
-			addSDRate = 10
-		case item.Code(14, 40):
-			addHPRate = 45
-			addSDRate = 20
-		}
-		hp := p.MaxHP * addHPRate / 100
-		sd := p.MaxSD * addSDRate / 100
-		// defer recover hp sd
-		p.delayRecoverHP = hp
-		p.delayRecoverHPMax = hp
-		p.delayRecoverSD = sd
-		p.delayRecoverSDMax = sd
-		// decrease durability
-		p.decreaseItemDurability(msg.SrcPosition)
-	// case it.Code == item.Code(14, 42) && it2.Type != item.TypeSocket: // 再生强化
-	case it.Code >= item.Code(14, 43) && it.Code <= item.Code(14, 44): // 进化道具
-	case it.Code >= item.Code(14, 46) && it.Code <= item.Code(14, 50): // Jack O'Lantern 南瓜灯饮料
-	case it.Code == item.Code(14, 70): // Elite HP Potion 精华HP药水
-	case it.Code == item.Code(14, 71): // Elite MP Potion 精华MP药水
-	case it.Code >= item.Code(14, 78) && it.Code <= item.Code(14, 82): // kindBPremiumElixir 会员圣水
-	case it.Code >= item.Code(14, 85) && it.Code <= item.Code(14, 87): // Cherry Blossom 樱花
-	case it.Code == item.Code(14, 133): // Elite SD Potion 精华防护值药水
-	case it.Code == item.Code(14, 160): // Jewel of Extension 延长宝石
-	case it.Code == item.Code(14, 161): // Jewel of Elevation 提高宝石
-	case it.Code == item.Code(14, 162): // Magic Backpack 魔法背书
-	case it.Code == item.Code(14, 163): // Vault Expansion Certificate 仓库拓展证书
-	case it.Code == item.Code(14, 209): // Tradeable Seal 交易印章
-	case it.Code == item.Code(14, 224): // Bless of Light (Greater) 光的祝福
-	case it.Code >= item.Code(14, 263) && it.Code <= item.Code(14, 264): // Bless of Light 光之祝福
-	case it.KindA == item.KindASkill:
-		// (15, 18) // Scroll of Nova 星辰一怒术
-		skillIndex := it.SkillIndex
-		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
-			skillIndex += it.Level
-		}
-		if s, ok := p.LearnSkill(skillIndex); ok {
-			p.Push(&model.MsgSkillOneReply{
-				Flag:  -2,
-				Skill: s,
-			})
-			p.Inventory.DropItem(msg.SrcPosition, it)
-			p.Push(&model.MsgDeleteInventoryItemReply{
-				Position: msg.SrcPosition,
-				Flag:     1,
-			})
-		}
-	}
 }
 
 func (p *Player) Talk(msg *model.MsgTalk) {
@@ -2461,95 +2054,6 @@ func (p *Player) CloseTalkWindow(msg *model.MsgCloseTalkWindow) {
 	p.TargetNumber = -1
 }
 
-func (p *Player) BuyItem(msg *model.MsgBuyItem) {
-	reply := model.MsgBuyItemReply{
-		Result: -1,
-	}
-	itemDurChanged := false
-	position := -1
-	var it *item.Item
-	defer func() {
-		p.Push(&reply)
-		if itemDurChanged {
-			reply := model.MsgItemDurabilityReply{
-				Position:   position,
-				Durability: it.Durability,
-				Flag:       0,
-			}
-			p.Push(&reply)
-		}
-	}()
-	// validate
-	if msg.Position < 0 ||
-		msg.Position >= shop.MaxShopItemCount ||
-		p.TargetNumber < 0 {
-		return
-	}
-	tobj := object.ObjectManager.GetObject(p.TargetNumber)
-	if tobj == nil {
-		return
-	}
-	if math.Abs(float64(p.X-tobj.X)) > 5 ||
-		math.Abs(float64(p.Y-tobj.Y)) > 5 {
-		return
-	}
-	if tobj.NpcType != object.NpcTypeShop {
-		return
-	}
-	sit := shop.ShopManager.GetShopItem(tobj.Class, tobj.MapNumber, msg.Position)
-	if sit == nil {
-		return
-	}
-	position = p.Inventory.FindFreePositionForItem(sit)
-	if position == -1 {
-		return
-	}
-	it = p.Inventory.Items[position]
-	if it == nil {
-		p.Inventory.GetItem(position, sit)
-	} else {
-		it.Durability += sit.Durability
-		itemDurChanged = true
-	}
-	reply.Result = position
-	reply.Item = sit
-}
-
-func (p *Player) SellItem(msg *model.MsgSellItem) {
-	reply := model.MsgSellItemReply{
-		Result: 0,
-	}
-	defer p.Push(&reply)
-	// validate
-	if msg.Position < 0 ||
-		msg.Position >= p.Inventory.Size ||
-		p.TargetNumber < 0 {
-		return
-	}
-	tobj := object.ObjectManager.GetObject(p.TargetNumber)
-	if tobj == nil {
-		return
-	}
-	if math.Abs(float64(p.X-tobj.X)) > 5 ||
-		math.Abs(float64(p.Y-tobj.Y)) > 5 {
-		return
-	}
-	if tobj.NpcType != object.NpcTypeShop {
-		return
-	}
-	it := p.Inventory.Items[msg.Position]
-	if it == nil {
-		return
-	}
-	if p.Money+it.Money > object.MaxZen {
-		return
-	}
-	p.Money += it.Money
-	p.Inventory.DropItem(msg.Position, it)
-	reply.Result = 1
-	reply.Money = p.Money
-}
-
 func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {
 	account := model.Account{
 		ID:             p.AccountID,
@@ -2586,4 +2090,30 @@ func (p *Player) MapMove(msg *model.MsgMapMove) {
 			p.Push(&reply)
 		}
 	})
+}
+
+func (p *Player) SetMoney(money int) {
+	p.Money = money
+}
+
+func (p *Player) GetMoney() int {
+	return p.Money
+}
+
+func (p *Player) GetInventory() *item.Inventory {
+	return &p.Inventory
+}
+
+func (p *Player) GetWarehouse() *item.Warehouse {
+	return &p.Warehouse
+}
+
+func (p *Player) SetDelayRecoverHP(hp, hpMax int) {
+	p.delayRecoverHP = hp
+	p.delayRecoverHPMax = hpMax
+}
+
+func (p *Player) SetDelayRecoverSD(sd, sdMax int) {
+	p.delayRecoverSD = sd
+	p.delayRecoverSDMax = sdMax
 }

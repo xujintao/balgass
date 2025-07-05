@@ -13,16 +13,16 @@ type mapItem struct {
 	expiredTime time.Time
 }
 
-func (m *mapManager) PushItem(number, x, y int, item *item.Item) bool {
-	return m.maps[number].pushItem(x, y, item)
+func (m *mapManager) AddItem(number, x, y int, item *item.Item) bool {
+	return m.maps[number].addItem(x, y, item)
 }
 
-func (m *mapManager) PickItem(number, index int) *item.Item {
-	return m.maps[number].pickItem(index)
+func (m *mapManager) PeekItem(number, index int) *item.Item {
+	return m.maps[number].peekItem(index)
 }
 
-func (m *mapManager) PopItem(number, index int) {
-	m.maps[number].popItem(index)
+func (m *mapManager) RemoveItem(number, index int) {
+	m.maps[number].removeItem(index)
 }
 
 func (m *mapManager) ExpireItem(now time.Time) {
@@ -39,7 +39,7 @@ func (m *mapManager) MapItem(number, index int, f func(item *item.Item, index, x
 	m.maps[number].item(index, f)
 }
 
-func (m *_map) pushItem(x, y int, item *item.Item) bool {
+func (m *_map) addItem(x, y int, item *item.Item) bool {
 	if !m.valid(x, y) {
 		return false
 	}
@@ -59,7 +59,7 @@ func (m *_map) pushItem(x, y int, item *item.Item) bool {
 	return false
 }
 
-func (m *_map) pickItem(index int) *item.Item {
+func (m *_map) peekItem(index int) *item.Item {
 	if index < 0 || index >= len(m.inventory) {
 		return nil
 	}
@@ -70,8 +70,8 @@ func (m *_map) pickItem(index int) *item.Item {
 	return mapItem.Item
 }
 
-func (m *_map) popItem(index int) {
-	item := m.pickItem(index)
+func (m *_map) removeItem(index int) {
+	item := m.peekItem(index)
 	if item == nil {
 		return
 	}

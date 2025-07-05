@@ -64,12 +64,12 @@ func (w *Warehouse) ClearFlagsForItem(position int, it *Item) {
 	w.setFlagsForItem(position, it, false)
 }
 
-func (w *Warehouse) GetItem(position int, it *Item) {
+func (w *Warehouse) AddItem(position int, it *Item) {
 	w.Items[position] = it
 	w.SetFlagsForItem(position, it)
 }
 
-func (w *Warehouse) DropItem(position int, it *Item) {
+func (w *Warehouse) RemoveItem(position int, it *Item) {
 	w.Items[position] = nil
 	w.ClearFlagsForItem(position, it)
 }

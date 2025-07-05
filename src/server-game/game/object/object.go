@@ -473,12 +473,12 @@ type Objecter interface {
 	CheckCharacter(*model.MsgCheckCharacter)
 	LoadCharacter(*model.MsgLoadCharacter)
 	// 3. item management
-	GetItem(*model.MsgGetItem)
-	DropInventoryItem(*model.MsgDropInventoryItem)
-	MoveItem(*model.MsgMoveItem)
-	UseItem(*model.MsgUseItem)
-	BuyItem(*model.MsgBuyItem)
-	SellItem(*model.MsgSellItem)
+	PickItem(*model.MsgPickItem) // implemented by Object
+	DropItem(*model.MsgDropItem) // implemented by Object
+	BuyItem(*model.MsgBuyItem)   // implemented by Object
+	SellItem(*model.MsgSellItem) // implemented by Object
+	MoveItem(*model.MsgMoveItem) // implemented by Object
+	UseItem(*model.MsgUseItem)   // implemented by Object
 	// 4. behavior management
 	Chat(*model.MsgChat)
 	Whisper(*model.MsgWhisper)
@@ -519,7 +519,6 @@ type Objecter interface {
 	DieDropItem(*Object)
 	Regen()
 	GetChangeUp() int
-	GetInventory() [9]*item.Item
 	GetAttackRatePVP() int
 	GetDefenseRatePVP() int
 	GetIgnoreDefenseRate() int
@@ -540,6 +539,14 @@ type Objecter interface {
 	GetMonsterDieGetMoney() float64
 	GetKnightGladiatorCalcSkillBonus() float64
 	GetImpaleSkillCalc() float64
+	SetMoney(int)
+	GetMoney() int
+	GetInventory() *item.Inventory
+	GetWarehouse() *item.Warehouse
+	EquipmentChanged()
+	SetDelayRecoverHP(int, int)
+	SetDelayRecoverSD(int, int)
+	decreaseItemDurability(int)
 }
 
 type Object struct {

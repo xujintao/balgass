@@ -161,7 +161,7 @@ func (obj *Object) createViewport() {
 					Y:                      tobj.Y,
 					Class:                  tobj.Class,
 					ChangeUp:               tobj.GetChangeUp(),
-					Inventory:              tobj.GetInventory(),
+					Inventory:              [9]*item.Item(tobj.GetInventory().Items[:9]),
 					Name:                   tobj.Name,
 					TX:                     tobj.TX,
 					TY:                     tobj.TY,

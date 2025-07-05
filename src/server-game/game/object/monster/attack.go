@@ -231,10 +231,6 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 		it.Durability = money
 	}
 	if it != nil {
-		maps.MapManager.PushItem(m.MapNumber, m.X, m.Y, it.Copy())
+		maps.MapManager.AddItem(m.MapNumber, m.X, m.Y, it.Copy())
 	}
-}
-
-func (*Monster) LevelUp(int) bool {
-	return false
 }
