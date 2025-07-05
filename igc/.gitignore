@@ -367,3 +367,6 @@ _Library/
 !9.5.1.15/client104R
 9.5.1.15/client104R/*
 !9.5.1.15/client104R/main.bat
+
+# keep docks directory
+!docs
