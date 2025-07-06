@@ -125,12 +125,100 @@ func (obj *Object) Move(msg *model.MsgMove) {
 	obj.PushViewport(&msgRelpy)
 }
 
+func (obj *Object) LoadMiniMap() {
+	maps.MiniManager.ForEachMapNpc(obj.MapNumber, func(id, display, x, y int, name string) {
+		reply := model.MsgMiniMapReply{
+			ID:          id,
+			IsNpc:       1,
+			DisplayType: display,
+			Type:        0,
+			X:           x,
+			Y:           y,
+			Name:        name,
+		}
+		obj.Push(&reply)
+	})
+	maps.MiniManager.ForEachMapEntrance(obj.MapNumber, func(id, display, x, y int, name string) {
+		reply := model.MsgMiniMapReply{
+			ID:          id,
+			IsNpc:       0,
+			DisplayType: 1,
+			Type:        0,
+			X:           x,
+			Y:           y,
+			Name:        name,
+		}
+		obj.Push(&reply)
+	})
+}
+
+func (obj *Object) gateMove(gateNumber int) bool {
+	success := false
+	maps.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
+		slog.Debug("teleport",
+			"object", obj.Name,
+			"from", fmt.Sprintf("[%d](%d,%d)", obj.MapNumber, obj.X, obj.Y),
+			"to", fmt.Sprintf("[%d](%d,%d)", mapNumber, x, y))
+		reply := model.MsgTeleportReply{
+			GateNumber: gateNumber,
+			MapNumber:  mapNumber,
+			X:          x,
+			Y:          y,
+			Dir:        dir,
+		}
+		obj.Push(&reply)
+		maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
+		if obj.MapNumber != mapNumber {
+			obj.MapNumber = mapNumber
+			obj.LoadMiniMap()
+		}
+		obj.X, obj.Y = x, y
+		obj.TX, obj.TY = x, y
+		obj.Dir = dir
+		maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
+		obj.CreateFrustum()
+		success = true
+
+	})
+	return success
+}
+
+func (obj *Object) Teleport(msg *model.MsgTeleport) {
+	obj.PathMoving = false
+	obj.gateMove(msg.GateNumber)
+}
+
+func (obj *Object) MapMove(msg *model.MsgMapMove) {
+	obj.PathMoving = false
+	reply := model.MsgMapMoveReply{
+		Result: 0,
+	}
+	defer obj.Push(&reply)
+	maps.MapMoveManager.Move(msg.MoveIndex, func(gateNumber, level, money int) {
+		objMoney := obj.GetMoney()
+		if obj.Level < level || objMoney < money {
+			return
+		}
+		ok := obj.gateMove(gateNumber)
+		if ok {
+			objMoney -= money
+			obj.SetMoney(objMoney)
+			reply := model.MsgMoneyReply{
+				Result: -2,
+				Money:  objMoney,
+			}
+			obj.Push(&reply)
+		}
+	})
+}
+
 func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
 	slog.Debug("SetPosition",
 		"index", obj.Index, "name", obj.Name, "map", obj.MapNumber,
 		"from", fmt.Sprintf("(%d,%d)", obj.X, obj.Y),
 		"to", fmt.Sprintf("(%d,%d)", msg.X, msg.Y),
 	)
+	obj.PathMoving = false
 	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
 	obj.X, obj.Y = msg.X, msg.Y
 	obj.TX, obj.TY = msg.X, msg.Y

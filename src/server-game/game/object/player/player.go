@@ -725,7 +725,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		MaxMinusPoint:      122,
 		InventoryExpansion: p.InventoryExpansion,
 	})
-	p.loadMiniMap()
+	p.LoadMiniMap()
 	p.findAndUsePet()
 
 	// reply inventory
@@ -1379,33 +1379,6 @@ func (p *Player) equippedItem(it *item.Item, code int) bool {
 	return it.Code == code
 }
 
-func (p *Player) loadMiniMap() {
-	maps.MiniManager.ForEachMapNpc(p.MapNumber, func(id, display, x, y int, name string) {
-		reply := model.MsgMiniMapReply{
-			ID:          id,
-			IsNpc:       1,
-			DisplayType: display,
-			Type:        0,
-			X:           x,
-			Y:           y,
-			Name:        name,
-		}
-		p.Push(&reply)
-	})
-	maps.MiniManager.ForEachMapEntrance(p.MapNumber, func(id, display, x, y int, name string) {
-		reply := model.MsgMiniMapReply{
-			ID:          id,
-			IsNpc:       0,
-			DisplayType: 1,
-			Type:        0,
-			X:           x,
-			Y:           y,
-			Name:        name,
-		}
-		p.Push(&reply)
-	})
-}
-
 func (p *Player) findAndUsePet() {
 	for _, it := range p.Inventory.Items[12:204] {
 		if it == nil {
@@ -1895,34 +1868,6 @@ func (p *Player) GetChangeUp() int {
 	return p.ChangeUp
 }
 
-func (p *Player) gateMove(gateNumber int) bool {
-	success := false
-	maps.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
-		reply := model.MsgTeleportReply{
-			GateNumber: gateNumber,
-			MapNumber:  mapNumber,
-			X:          x,
-			Y:          y,
-			Dir:        dir,
-		}
-		p.Push(&reply)
-		if p.MapNumber != mapNumber {
-			p.MapNumber = mapNumber
-			p.loadMiniMap()
-		}
-		p.X, p.Y = x, y
-		p.TX, p.TY = x, y
-		p.Dir = dir
-		p.CreateFrustum()
-		success = true
-	})
-	return success
-}
-
-func (p *Player) Teleport(msg *model.MsgTeleport) {
-	p.gateMove(msg.GateNumber)
-}
-
 func (p *Player) PushChangedEquipment(it *item.Item) {
 	reply := model.MsgChangeEquipmentReply{
 		Number: p.Index,
@@ -2069,27 +2014,6 @@ func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {
 	p.SaveCharacter()
 	reply := model.MsgCloseWarehouseWindowReply{}
 	p.Push(&reply)
-}
-
-func (p *Player) MapMove(msg *model.MsgMapMove) {
-	reply := model.MsgMapMoveReply{
-		Result: 0,
-	}
-	defer p.Push(&reply)
-	maps.MapMoveManager.Move(msg.MoveIndex, func(gateNumber, level, money int) {
-		if p.Level < level || p.Money < money {
-			return
-		}
-		ok := p.gateMove(gateNumber)
-		if ok {
-			p.Money -= money
-			reply := model.MsgMoneyReply{
-				Result: -2,
-				Money:  p.Money,
-			}
-			p.Push(&reply)
-		}
-	})
 }
 
 func (p *Player) SetMoney(money int) {
