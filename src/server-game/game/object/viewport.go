@@ -48,8 +48,9 @@ func (obj *Object) CreateFrustum() {
 }
 
 func (obj *Object) initViewport() {
-	for i := range obj.Viewports {
-		obj.Viewports[i] = &Viewport{Number: -1}
+	for i := 0; i < MaxViewportNum; i++ {
+		obj.Viewports[i] = &Viewport{State: 0, Number: -1}
+		obj.ViewportsPassive[i] = &Viewport{State: 0, Number: -1}
 	}
 }
 
@@ -71,10 +72,6 @@ func (obj *Object) checkViewport(x, y int) bool {
 }
 
 func (obj *Object) addViewport(index, type_ int) bool {
-	// if tobj.Class == 523 ||
-	// 	tobj.Class == 603 {
-	// 	return false
-	// }
 	for _, vp := range obj.Viewports {
 		if vp.Number == index {
 			return false
@@ -85,19 +82,63 @@ func (obj *Object) addViewport(index, type_ int) bool {
 			vp.State = 1
 			vp.Number = index
 			vp.Type = type_
-			obj.ViewportNum++
+			obj.ViewportsNum++
 			return true
 		}
 	}
 	return false
 }
 
+func (obj *Object) addViewportPassive(index, type_ int) bool {
+	for _, vp := range obj.ViewportsPassive {
+		if vp.Number == index {
+			return false
+		}
+	}
+	for _, vp := range obj.ViewportsPassive {
+		if vp.State == 0 {
+			vp.State = 1
+			vp.Number = index
+			vp.Type = type_
+			obj.ViewportsPassiveNum++
+			return true
+		}
+	}
+	return false
+}
+
+func (obj *Object) removeViewport(i int) {
+	// remove active viewport
+	vp := obj.Viewports[i]
+	vp.State = 0
+	target := vp.Number
+	vp.Number = -1
+	obj.ViewportsNum--
+
+	// remove passive viewport
+	tobj := ObjectManager.objects[target]
+	if tobj == nil {
+		return
+	}
+	for _, vpp := range tobj.ViewportsPassive {
+		if vpp.State == 1 && vpp.Number == target {
+			vpp.State = 0
+			vpp.Number = -1
+			tobj.ViewportsPassiveNum--
+			// break
+		}
+	}
+}
+
 func (obj *Object) clearViewport() {
-	for i := range obj.Viewports {
+	for i := 0; i < MaxViewportNum; i++ {
 		obj.Viewports[i].State = 0
 		obj.Viewports[i].Number = -1
+		obj.ViewportsPassive[i].State = 0
+		obj.ViewportsPassive[i].Number = -1
 	}
-	obj.ViewportNum = 0
+	obj.ViewportsNum = 0
+	obj.ViewportsPassiveNum = 0
 }
 
 func (obj *Object) createViewport() {
@@ -152,43 +193,46 @@ func (obj *Object) createViewport() {
 			continue
 		}
 		ok := obj.addViewport(tobj.Index, int(tobj.Type))
-		if ok && obj.Type == ObjectTypePlayer {
-			switch tobj.Type {
-			case ObjectTypePlayer:
-				p := model.CreateViewportPlayer{
-					Index:                  tobj.Index,
-					X:                      tobj.X,
-					Y:                      tobj.Y,
-					Class:                  tobj.Class,
-					ChangeUp:               tobj.GetChangeUp(),
-					Inventory:              [9]*item.Item(tobj.GetInventory().Items[:9]),
-					Name:                   tobj.Name,
-					TX:                     tobj.TX,
-					TY:                     tobj.TY,
-					Dir:                    tobj.Dir,
-					PKLevel:                tobj.GetPKLevel(),
-					PentagramMainAttribute: tobj.PentagramAttributePattern,
-					Level:                  tobj.Level,
-					MaxHP:                  tobj.MaxHP,
-					HP:                     tobj.HP,
-					ServerCode:             0,
+		if ok {
+			tobj.addViewportPassive(obj.Index, int(obj.Type))
+			if obj.Type == ObjectTypePlayer {
+				switch tobj.Type {
+				case ObjectTypePlayer:
+					p := model.CreateViewportPlayer{
+						Index:                  tobj.Index,
+						X:                      tobj.X,
+						Y:                      tobj.Y,
+						Class:                  tobj.Class,
+						ChangeUp:               tobj.GetChangeUp(),
+						Inventory:              [9]*item.Item(tobj.GetInventory().Items[:9]),
+						Name:                   tobj.Name,
+						TX:                     tobj.TX,
+						TY:                     tobj.TY,
+						Dir:                    tobj.Dir,
+						PKLevel:                tobj.GetPKLevel(),
+						PentagramMainAttribute: tobj.PentagramAttributePattern,
+						Level:                  tobj.Level,
+						MaxHP:                  tobj.MaxHP,
+						HP:                     tobj.HP,
+						ServerCode:             0,
+					}
+					viewportPlayerReply.Players = append(viewportPlayerReply.Players, &p)
+				case ObjectTypeMonster, ObjectTypeNPC:
+					m := model.CreateViewportMonster{
+						Index:                  tobj.Index,
+						Class:                  tobj.Class,
+						X:                      tobj.X,
+						Y:                      tobj.Y,
+						TX:                     tobj.TX,
+						TY:                     tobj.TY,
+						Dir:                    tobj.Dir,
+						PentagramMainAttribute: tobj.PentagramMainAttribute,
+						Level:                  tobj.Level,
+						MaxHP:                  tobj.MaxHP,
+						HP:                     tobj.HP,
+					}
+					viewportMonsterReply.Monsters = append(viewportMonsterReply.Monsters, &m)
 				}
-				viewportPlayerReply.Players = append(viewportPlayerReply.Players, &p)
-			case ObjectTypeMonster, ObjectTypeNPC:
-				m := model.CreateViewportMonster{
-					Index:                  tobj.Index,
-					Class:                  tobj.Class,
-					X:                      tobj.X,
-					Y:                      tobj.Y,
-					TX:                     tobj.TX,
-					TY:                     tobj.TY,
-					Dir:                    tobj.Dir,
-					PentagramMainAttribute: tobj.PentagramMainAttribute,
-					Level:                  tobj.Level,
-					MaxHP:                  tobj.MaxHP,
-					HP:                     tobj.HP,
-				}
-				viewportMonsterReply.Monsters = append(viewportMonsterReply.Monsters, &m)
 			}
 		}
 	}
@@ -299,9 +343,7 @@ func (obj *Object) destroyViewport() {
 				}
 
 			}
-			obj.Viewports[i].State = 0
-			obj.Viewports[i].Number = -1
-			obj.ViewportNum--
+			obj.removeViewport(i)
 		}
 	}
 	if len(viewportItemReply.Items) > 0 {
@@ -376,7 +418,7 @@ func (obj *Object) processViewport() {
 // PushViewport Push msg to self and viewport
 func (obj *Object) PushViewport(msg any) {
 	obj.Push(msg)
-	for _, vp := range obj.Viewports {
+	for _, vp := range obj.ViewportsPassive {
 		if vp.State == 0 {
 			continue
 		}

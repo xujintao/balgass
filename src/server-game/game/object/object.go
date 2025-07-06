@@ -616,8 +616,10 @@ type Object struct {
 	FrustumY                  [MaxArrayFrustum]int
 	SkillFrustumX             [MaxArrayFrustum]int
 	SkillFrustumY             [MaxArrayFrustum]int
-	Viewports                 [MaxViewportNum]*Viewport // 主动视野
-	ViewportNum               int
+	Viewports                 [MaxViewportNum]*Viewport // for attack
+	ViewportsNum              int
+	ViewportsPassive          [MaxViewportNum]*Viewport // for push
+	ViewportsPassiveNum       int
 	msgs                      [20]*DelayMsg
 
 	// groupNumber     int
