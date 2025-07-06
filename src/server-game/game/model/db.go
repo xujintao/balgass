@@ -128,14 +128,19 @@ type Character struct {
 	Name               string         `json:"name" validate:"required,max=10,min=1,ascii" gorm:"unique"`
 	Class              int            `json:"class"`
 	ChangeUp           int            `json:"change_up"`
-	Level              int            `json:"level"`
-	LevelPoint         int            `json:"level_point,omitempty"`
-	Experience         int            `json:"experience,omitempty"`
+	MapNumber          int            `json:"map_number"`
+	X                  int            `json:"x,omitempty"`
+	Y                  int            `json:"y,omitempty"`
+	Dir                int            `json:"dir,omitempty"`
+	Money              int            `json:"money,omitempty"`
 	Strength           int            `json:"strength,omitempty"`
 	Dexterity          int            `json:"dexterity,omitempty"`
 	Vitality           int            `json:"vitality,omitempty"`
 	Energy             int            `json:"energy,omitempty"`
 	Leadership         int            `json:"leadership,omitempty"`
+	Level              int            `json:"level"`
+	LevelPoint         int            `json:"level_point,omitempty"`
+	Experience         int            `json:"experience,omitempty"`
 	MasterLevel        int            `json:"master_level"`
 	MasterPoint        int            `json:"master_point,omitempty"`
 	MasterExperience   int            `json:"master_experience,omitempty"`
@@ -145,16 +150,11 @@ type Character struct {
 	LevelMP            float32        `json:"level_mp,omitempty" gorm:"-"`
 	VitalityHP         float32        `json:"vitality_hp,omitempty" gorm:"-"`
 	EnergyMP           float32        `json:"energy_mp,omitempty" gorm:"-"`
-	Skills             skill.Skills   `json:"skills,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
-	Inventory          item.Inventory `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
 	InventoryExpansion int            `json:"inventory_expansion,omitempty"`
+	Inventory          item.Inventory `json:"inventory,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
+	Skills             skill.Skills   `json:"skills,omitempty" validate:"-" gorm:"type:jsonb;default:'[]'"`
 	MuKey              MsgMuKey       `json:"mu_key,omitempty" validate:"-" gorm:"type:jsonb;default:'{}'"`
 	MuBot              MsgMuBot       `json:"mu_bot,omitempty" validate:"-" gorm:"type:jsonb;default:'{}'"`
-	Money              int            `json:"money,omitempty"`
-	MapNumber          int            `json:"map_number"`
-	X                  int            `json:"x,omitempty"`
-	Y                  int            `json:"y,omitempty"`
-	Dir                int            `json:"dir,omitempty"`
 	CreatedAt          time.Time      `json:"-"`
 	UpdatedAt          time.Time      `json:"-"`
 }
