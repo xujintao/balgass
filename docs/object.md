@@ -1,10 +1,12 @@
 ## Object
 
+Object Move/Viewport/Attack/Action/Item
+
 ### 1. Move
 
 <img src="object-move.jpg">
 
-#### Request
+#### Move Request
 
 ```
 pack(1)
@@ -33,7 +35,7 @@ path[7] bit4~bit7: the 15th dir
 path[7] bit0~bit3: placeholder
 ```
 
-#### Reply
+#### Move Reply
 
 ```
 pack(1)
@@ -50,13 +52,21 @@ pack(1)
 | 6     | 0x01    | object target coordinate y: 0~255   |
 | 7     | 0x05    | bit4~bit7: object current dir       |
 
-#### Handle
+#### Move Handle
 
 1, Game Client launch move request to Game Server.
 
 2, Once Game Server receives the request(move sync), it will save the path that object want to move to the specific object context and reply(move ack) with MsgMoveReply to all objects in the viewport, then execute the object move action with move state machine.
 
 3, Once Game Client receives the reply(move ack), it has to render the object move action
+
+#### Teleport Request
+
+#### Teleport Reply
+
+#### Map Move Request
+
+#### Map Move Reply
 
 ### 2. Viewport
 
@@ -69,7 +79,7 @@ empty
 Game will process all objects viewport every 1 second.  
 Game will add the target object to object viewport if the target is near from our object and push the increment-add viewport reply to client and it will remove the target object from our object viewport if it is too far away and also push the increment-remove viewport to client.
 
-#### Reply create viewport player object
+#### Create Viewport Player Reply
 
 ```
 pack(1)
@@ -110,7 +120,7 @@ pack(1)
 | 54    | byte     | buff effects count                 |
 | 54+n  | [n]byte  | buff effect item                   |
 
-#### Reply create viewport monster object
+#### Create Viewport Monster Reply
 
 ```
 pack(1)
@@ -146,7 +156,9 @@ pack(1)
 | 20    | byte    | buff effects count                  |
 | 20+n  | [n]byte | buff effect item                    |
 
-#### Reply destroy viewport object
+#### Create Viewport Item Reply
+
+#### Destroy Viewport Object Reply
 
 ```
 pack(1)
@@ -168,7 +180,7 @@ pack(1)
 
 <img src="object-attack.jpg">
 
-#### Request
+#### Attack Request
 
 ```
 pack(1)
@@ -184,11 +196,11 @@ pack(1)
 | 5     | 0x78    | action                 |
 | 6     | 0x05    | attack direction       |
 
-#### Handle
+#### Attack Handle
 
 Game will execute the attack instruction and push reply to object viewport.
 
-#### Reply action
+#### Attack Action Reply
 
 ```
 pack(1)
@@ -205,7 +217,7 @@ pack(1)
 | 6     | 0x78    | action          |
 | 7~8   | [2]byte | target index BE |
 
-#### Reply attack damage
+#### Attack Damage Reply
 
 ```
 pack(1)
@@ -222,7 +234,7 @@ pack(1)
 | 7~8   | [2]byte | damage type BE  |
 | 9~10  | [2]byte | SD damage BE    |
 
-#### Reply attack effect
+#### Attack Effect Reply
 
 ```
 pack(1)
@@ -241,7 +253,7 @@ pack(1)
 | 16    | 0x00    | ice effect         |
 | 17    | 0x00    | poison effect      |
 
-#### Reply attack hp
+#### Attack HP Reply
 
 ```
 pack(1)
@@ -263,7 +275,7 @@ pack(1)
 | 12    | byte    | monster hp>>16     |
 | 13    | byte    | monster hp         |
 
-#### Reply attack die
+#### Attack Die Reply
 
 ```
 pack(1)
@@ -314,3 +326,31 @@ pack(1)
 | 5     | 0x05    | direction             |
 | 6     | 0x7A    | action                |
 | 7~8   | [2]byte | object index index BE |
+
+### 5. Item
+
+<img src="object-item.jpg">
+
+#### Pick Item Request
+
+#### Pick Item Reply
+
+#### Drop Item Request
+
+#### Drop Item Reply
+
+#### Buy Item Request
+
+#### Buy Item Reply
+
+#### Sell Item Request
+
+#### Sell Item Reply
+
+#### Move Item Request
+
+#### Move Item Reply
+
+#### Use Item Request
+
+#### Use Item Reply
