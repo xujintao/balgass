@@ -351,8 +351,6 @@ func (p *Player) SpawnPosition() {
 		p.X, p.Y = x, y
 		p.TX, p.TY = x, y
 		p.Dir = dir
-		maps.MapManager.SetMapAttrStand(p.MapNumber, p.TX, p.TY)
-		p.CreateFrustum()
 	})
 }
 
@@ -466,6 +464,7 @@ func (p *Player) Login(msg *model.MsgLogin) {
 // }
 
 func (p *Player) Logout(msg *model.MsgLogout) {
+	maps.MapManager.ClearMapAttrStand(p.MapNumber, p.TX, p.TY)
 	defer p.Push(&model.MsgLogoutReply{Flag: msg.Flag})
 	switch msg.Flag {
 	case 0: // close game
@@ -688,6 +687,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	if p.Level <= 10 {
 		p.SpawnPosition()
 	}
+	maps.MapManager.SetMapAttrStand(p.MapNumber, p.TX, p.TY)
 	p.CreateFrustum()
 	p.MoveSpeed = 1000
 	p.MaxRegenTime = 4 * time.Second

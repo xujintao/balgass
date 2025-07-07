@@ -242,6 +242,8 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 	m.spawnEndY = endY
 	m.spawnDir = dir
 	m.SpawnPosition()
+	maps.MapManager.SetMapAttrStand(m.MapNumber, m.TX, m.TY)
+	m.CreateFrustum()
 	m.spawnDis = dis
 	m.PentagramMainAttribute = element
 	m.Name = mc.Name
@@ -374,8 +376,6 @@ func (m *Monster) SpawnPosition() {
 	if m.Dir < 0 {
 		m.Dir = rand.Intn(8)
 	}
-	maps.MapManager.SetMapAttrStand(m.MapNumber, m.TX, m.TY)
-	m.CreateFrustum()
 }
 
 func (m *Monster) overDis(tx, ty int) bool {
