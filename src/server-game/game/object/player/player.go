@@ -814,6 +814,12 @@ func (p *Player) AddLevelPoint(msg *model.MsgAddLevelPoint) {
 	p.LevelPoint--
 	p.calc()
 	reply.Type = 0x10 + msg.Type
+	switch msg.Type {
+	case 2:
+		reply.MaxHPMP = p.MaxHP
+	case 3:
+		reply.MaxHPMP = p.MaxMP
+	}
 	reply.MaxSD = p.MaxSD
 	reply.MaxAG = p.MaxAG
 }
