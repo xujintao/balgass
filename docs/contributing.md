@@ -1,3 +1,7 @@
+## Roadmap
+
+<img src="roadmap.jpg">
+
 ## Contribution Guidelines
 
 ### 1. git config
