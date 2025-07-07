@@ -58,6 +58,10 @@ Game
             bg.map((p) => {
               drawPoint(p.x, p.y, 2);
             });
+            ctx.fillStyle = "purple";
+            out.data.stands?.map((p) => {
+              drawPoint(p.x, p.y, 4);
+            });
             ctx.fillStyle = "red";
             out.data.monsters?.map((p) => {
               drawPoint(p.x, p.y, 4);
@@ -67,8 +71,12 @@ Game
               drawPoint(p.x, p.y, 4);
             });
             ctx.fillStyle = "blue";
+            ctx.strokeStyle = "blue";
             out.data.players?.map((p) => {
               drawPoint(p.x, p.y, 4);
+              ctx.beginPath();
+              ctx.arc(p.x*2, p.y*2, 10, 0, Math.PI * 2);
+              ctx.stroke();
             });
           }
           break;

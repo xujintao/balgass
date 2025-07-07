@@ -81,7 +81,6 @@ func (obj *Object) Move(msg *model.MsgMove) {
 			"index", obj.Index, "name", obj.Name, "map", obj.MapNumber, "path_count", n)
 		return
 	}
-
 	// debug
 	if conf.ServerEnv.Debug {
 		if msg.X != obj.X || msg.Y != obj.Y {
@@ -92,7 +91,6 @@ func (obj *Object) Move(msg *model.MsgMove) {
 			)
 		}
 	}
-
 	// set move state machine
 	obj.X = msg.X
 	obj.Y = msg.Y
@@ -110,6 +108,7 @@ func (obj *Object) Move(msg *model.MsgMove) {
 		obj.TY = msg.Y
 	} else {
 		obj.PathMoving = true
+		maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
 		obj.TX = msg.Path[n-1].X
 		obj.TY = msg.Path[n-1].Y
 		maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
@@ -167,7 +166,7 @@ func (obj *Object) gateMove(gateNumber int) bool {
 			Dir:        dir,
 		}
 		obj.Push(&reply)
-		maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
+		maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
 		if obj.MapNumber != mapNumber {
 			obj.MapNumber = mapNumber
 			obj.LoadMiniMap()
@@ -219,7 +218,7 @@ func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
 		"to", fmt.Sprintf("(%d,%d)", msg.X, msg.Y),
 	)
 	obj.PathMoving = false
-	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.X, obj.Y)
+	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
 	obj.X, obj.Y = msg.X, msg.Y
 	obj.TX, obj.TY = msg.X, msg.Y
 	maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
@@ -229,8 +228,8 @@ func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
 		Y:      msg.Y,
 	}
 	obj.CreateFrustum()
-	obj.destroyViewport()
-	obj.createViewport()
+	// obj.destroyViewport()
+	// obj.createViewport()
 	obj.PushViewport(&reply)
 }
 

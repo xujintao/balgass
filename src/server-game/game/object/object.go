@@ -309,10 +309,11 @@ func (m *objectManager) Process1000ms() {
 		Players  []*maps.Pot `json:"players"`
 		Monsters []*maps.Pot `json:"monsters"`
 		Npcs     []*maps.Pot `json:"npcs"`
+		Stands   []*maps.Pot `json:"stands"`
 	}
 	table := make(map[int]*objects)
 	for i := range m.mapSubscribeTable {
-		table[i] = &objects{}
+		table[i] = &objects{Stands: maps.MapManager.GetMapStands(i)}
 	}
 
 	for _, obj := range m.objects {

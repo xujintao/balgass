@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/exp"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
@@ -239,7 +240,7 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 		tobj.State = 4
 		tobj.dieTime = time.Now()
 		tobj.Die(obj, damage)
-		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.X, tobj.Y)
+		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.TX, tobj.TY)
 		tobj.dieRegen = true
 
 		// Push attack die reply
@@ -250,10 +251,13 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 		}
 		tobj.PushViewport(&attackDieReply)
 	}
-	slog.Debug("attack",
-		"index", obj.Index, "annotation", obj.Annotation,
-		"target", tobj.Index, "annotation", tobj.Annotation,
-		"hp", tobj.HP)
+	// debug
+	if conf.ServerEnv.Debug {
+		slog.Debug("attack",
+			"index", obj.Index, "annotation", obj.Annotation,
+			"target", tobj.Index, "annotation", tobj.Annotation,
+			"hp", tobj.HP)
+	}
 }
 
 func (obj *Object) Attack(msg *model.MsgAttack) {

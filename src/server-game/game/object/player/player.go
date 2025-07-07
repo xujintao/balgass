@@ -344,13 +344,16 @@ func (p *Player) SpawnPosition() {
 		gate = 256
 	}
 	maps.GateMoveManager.Move(gate, func(mapNumber, x, y, dir int) {
-		p.MapNumber = mapNumber
+		if p.MapNumber != mapNumber {
+			p.MapNumber = mapNumber
+			p.LoadMiniMap()
+		}
 		p.X, p.Y = x, y
 		p.TX, p.TY = x, y
 		p.Dir = dir
+		maps.MapManager.SetMapAttrStand(p.MapNumber, p.TX, p.TY)
+		p.CreateFrustum()
 	})
-	maps.MapManager.SetMapAttrStand(p.MapNumber, p.X, p.Y)
-	p.CreateFrustum()
 }
 
 func (p *Player) MuunSystem(msg *model.MsgMuunSystem) {

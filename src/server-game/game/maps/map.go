@@ -130,6 +130,16 @@ func (m *mapManager) GetMapPots(number int) []*Pot {
 	return m.maps[number].getPots()
 }
 
+func (m *mapManager) GetMapStands(number int) []*Pot {
+	var pots []*Pot
+	for k := range m.maps[number].stands {
+		pots = append(pots, &Pot{
+			X: k.X,
+			Y: k.Y})
+	}
+	return pots
+}
+
 // bit0(1): 安全区标志
 // bit1(2): 被对象站立
 // bit2(4): 障碍物标志
@@ -144,10 +154,12 @@ func (m *mapManager) CheckMapAttrStand(number, x, y int) bool {
 
 func (m *mapManager) SetMapAttrStand(number, x, y int) {
 	m.maps[number].setAttrStand(x, y)
+	m.maps[number].stands[Pot{X: x, Y: y}] = struct{}{}
 }
 
 func (m *mapManager) ClearMapAttrStand(number, x, y int) {
 	m.maps[number].clearAttrStand(x, y)
+	delete(m.maps[number].stands, Pot{X: x, Y: y})
 }
 
 func (m *mapManager) GetMapRandomPos(number, x1, y1, x2, y2 int) (int, int) {
@@ -207,6 +219,7 @@ type _map struct {
 	masterExpBonus float64
 	minMoney       int
 	maxMoney       int
+	stands         map[Pot]struct{}
 }
 
 func (m *_map) init(number int, file string) {
@@ -230,6 +243,7 @@ func (m *_map) init(number int, file string) {
 	}
 	m.inventory = make([]*mapItem, conf.Server.GameServerInfo.MaxObjectItemCount)
 	m.cnt = 1
+	m.stands = make(map[Pot]struct{})
 }
 
 func (m *_map) valid(x, y int) bool {
