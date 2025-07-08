@@ -154,12 +154,16 @@ func (m *mapManager) CheckMapAttrStand(number, x, y int) bool {
 
 func (m *mapManager) SetMapAttrStand(number, x, y int) {
 	m.maps[number].setAttrStand(x, y)
-	m.maps[number].stands[Pot{X: x, Y: y}] = struct{}{}
+	if conf.ServerEnv.Debug {
+		m.maps[number].stands[Pot{X: x, Y: y}] = struct{}{}
+	}
 }
 
 func (m *mapManager) ClearMapAttrStand(number, x, y int) {
 	m.maps[number].clearAttrStand(x, y)
-	delete(m.maps[number].stands, Pot{X: x, Y: y})
+	if conf.ServerEnv.Debug {
+		delete(m.maps[number].stands, Pot{X: x, Y: y})
+	}
 }
 
 func (m *mapManager) GetMapRandomPos(number, x1, y1, x2, y2 int) (int, int) {

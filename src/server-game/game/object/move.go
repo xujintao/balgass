@@ -212,11 +212,14 @@ func (obj *Object) MapMove(msg *model.MsgMapMove) {
 }
 
 func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
-	slog.Debug("SetPosition",
-		"index", obj.Index, "name", obj.Name, "map", obj.MapNumber,
-		"from", fmt.Sprintf("(%d,%d)", obj.X, obj.Y),
-		"to", fmt.Sprintf("(%d,%d)", msg.X, msg.Y),
-	)
+	// debug
+	if conf.ServerEnv.Debug {
+		slog.Debug("SetPosition",
+			"index", obj.Index, "name", obj.Name, "map", obj.MapNumber,
+			"from", fmt.Sprintf("(%d,%d)", obj.X, obj.Y),
+			"to", fmt.Sprintf("(%d,%d)", msg.X, msg.Y),
+		)
+	}
 	obj.PathMoving = false
 	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
 	obj.X, obj.Y = msg.X, msg.Y
@@ -228,8 +231,6 @@ func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
 		Y:      msg.Y,
 	}
 	obj.CreateFrustum()
-	// obj.destroyViewport()
-	// obj.createViewport()
 	obj.PushViewport(&reply)
 }
 
