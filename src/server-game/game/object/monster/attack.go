@@ -128,7 +128,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 			}
 			if rand.Intn(moneyDropRate) < 10 {
 				// money
-				slog.Debug("DieDropItem", "item", "money", "monster", m.Annotation)
+				// slog.Debug("DieDropItem", "item", "money", "monster", m.Annotation)
 				dropMoney = true
 			}
 		}
@@ -139,14 +139,14 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 	case dropExcellentItem || dropPlainItem:
 		switch {
 		case dropExcellentItem:
-			it = DropManager.DropExcellentItem(m.Level - 25)
+			it = DropManager.DropItemExcellent(m.Level - 25)
 			if it == nil {
 				return
 			}
-			drops := item.ExcellentDropManager.DropRegularExcellent(int(it.KindA))
+			drops := item.ExcellentDropManager.DropExcellent(int(it.KindA))
 			for _, v := range drops {
 				switch it.KindA {
-				case 1, 2:
+				case item.KindAWeapon, item.KindAPendant:
 					switch v {
 					case 1:
 						it.ExcellentAttackMP = true
@@ -161,7 +161,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 					case 32:
 						it.ExcellentAttackRate = true
 					}
-				case 3, 4:
+				case item.KindAArmor, item.KindARing:
 					switch v {
 					case 1:
 						it.ExcellentDefenseMoney = true
@@ -176,9 +176,62 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 					case 32:
 						it.ExcellentDefenseHP = true
 					}
+				case item.KindAWing:
+					switch it.KindB {
+					case item.KindBWing2nd:
+						switch v {
+						case 1:
+							it.ExcellentWing2HP = true
+						case 2:
+							it.ExcellentWing2MP = true
+						case 4:
+							it.ExcellentWing2Ignore = true
+						case 8:
+							it.ExcellentWing2AG = true
+						case 16:
+							it.ExcellentWing2Speed = true
+						}
+					case item.KindBWing3rd:
+						switch v {
+						case 1:
+							it.ExcellentWing3Ignore = true
+						case 2:
+							it.ExcellentWing3Return = true
+						case 4:
+							it.ExcellentWing3HP = true
+						case 8:
+							it.ExcellentWing3MP = true
+						}
+					case item.KindBCapeLord:
+						switch v {
+						case 1:
+							it.ExcellentWing2HP = true
+						case 2:
+							it.ExcellentWing2MP = true
+						case 4:
+							it.ExcellentWing2Ignore = true
+						case 8:
+							it.ExcellentWing2Leadership = true
+						}
+					case item.KindBCapeFighter:
+						switch v {
+						case 1:
+							it.ExcellentWing2HP = true
+						case 2:
+							it.ExcellentWing2MP = true
+						case 4:
+							it.ExcellentWing2Ignore = true
+						}
+					case item.KindBWingMonster:
+						switch v {
+						case 1:
+							it.ExcellentWing2Ignore = true
+						case 2:
+							it.ExcellentWing3Return = true
+						}
+					}
 				}
 			}
-			it.Calc()
 		case dropPlainItem:
 			it = DropManager.DropItem(m.Level)
 			if it == nil {
@@ -186,39 +239,43 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 			}
 		}
 		it.Durability = it.MaxDurability
-		if it.Type == item.TypeRegular {
-			skillRate := 0
-			luckyRate := 0
-			switch {
-			case dropExcellentItem:
-				skillRate = conf.CommonServer.GameServerInfo.ExcelItemSkillDropPercent
-				luckyRate = conf.CommonServer.GameServerInfo.ExcelItemSkillDropPercent
-			case dropPlainItem:
-				skillRate = conf.CommonServer.GameServerInfo.ItemSkillDropPercent
-				luckyRate = conf.CommonServer.GameServerInfo.ItemLuckyDropPercent
-			}
-			if !(it.KindA == item.KindAWeapon || it.KindB == item.KindBShield) {
-				skillRate = 0
-			}
-			if !(it.KindA == item.KindAWeapon || it.KindA == item.KindAArmor) {
-				luckyRate = 0
-			}
-			if rand.Intn(100) < skillRate {
-				it.Skill = true
-			}
-			if rand.Intn(100) < luckyRate {
-				it.Lucky = true
-			}
-			addtionRate := rand.Intn(3)
-			switch addtionRate {
-			case 0:
-				it.Addition = 0
-			case 1:
-				it.Addition = 4
-			case 2:
-				it.Addition = 8
-			}
+		skillRate := 0
+		luckyRate := 0
+		switch {
+		case dropExcellentItem:
+			skillRate = conf.CommonServer.GameServerInfo.ExcelItemSkillDropPercent
+			luckyRate = conf.CommonServer.GameServerInfo.ExcelItemLuckyDropPercent
+		case dropPlainItem:
+			skillRate = conf.CommonServer.GameServerInfo.ItemSkillDropPercent
+			luckyRate = conf.CommonServer.GameServerInfo.ItemLuckyDropPercent
 		}
+		if it.SkillIndex == 0 || it.Type == item.TypeCommon {
+			skillRate = 0
+		}
+		if !(it.KindA == item.KindAWeapon ||
+			it.KindA == item.KindAArmor ||
+			it.KindA == item.KindAWing) {
+			luckyRate = 0
+		}
+		if rand.Intn(100) < skillRate {
+			it.Skill = true
+		}
+		if rand.Intn(100) < luckyRate {
+			it.Lucky = true
+		}
+		addtionRate := rand.Intn(3)
+		if it.Type == item.TypeCommon {
+			addtionRate = 0
+		}
+		switch addtionRate {
+		case 0:
+			it.Addition = 0
+		case 1:
+			it.Addition = 4
+		case 2:
+			it.Addition = 8
+		}
+		it.Calc()
 	case dropMoney:
 		it = item.NewItem(14, 15)
 		// money := maps.MapManager.GetZen(m.MapNumber, m.Level)
@@ -231,6 +288,6 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 		it.Durability = money
 	}
 	if it != nil {
-		maps.MapManager.AddItem(m.MapNumber, m.X, m.Y, it.Copy())
+		maps.MapManager.AddItem(m.MapNumber, m.X, m.Y, it)
 	}
 }

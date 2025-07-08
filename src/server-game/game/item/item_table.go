@@ -67,13 +67,13 @@ func (table itemTable) GetItemBaseMust(i, j int) *ItemBase {
 }
 
 func (table itemTable) GetItemLevel(i, j, mlevel int) int {
-	itBase := table[i][j]
-	if !itBase.Drop {
+	it := table[i][j]
+	if !it.Drop {
 		return -1
 	}
-	itLevel := itBase.DropLevel
+	itLevel := it.DropLevel
 	if i == 13 {
-		itLevel = itBase.ReqLevel
+		itLevel = it.ReqLevel
 	}
 	if itLevel == 0 {
 		return -1
@@ -117,9 +117,10 @@ func (table itemTable) GetItemLevel(i, j, mlevel int) int {
 		return -1
 	}
 	// pendant or ring or common
-	if itBase.KindA == KindAPendant ||
-		itBase.KindA == KindARing ||
-		itBase.KindA == KindACommon {
+	if it.KindA == KindACommon ||
+		it.KindA == KindAPendant ||
+		it.KindA == KindARing ||
+		it.Type == TypeCommon {
 		return 0
 	}
 	if itLevel >= mlevel-18 && itLevel <= mlevel {
@@ -304,6 +305,6 @@ type ItemBase struct {
 	Overlap            int       `xml:"Overlap,attr"`
 	Name               string    `xml:"Name,attr"`
 	Annotation         string    `xml:"annotation,attr"`
-	ModelPath          string    `xml:"ModelPath,attr"`
-	ModelFile          string    `xml:"ModelFile,attr"`
+	// ModelPath          string    `xml:"ModelPath,attr"`
+	// ModelFile          string    `xml:"ModelFile,attr"`
 }

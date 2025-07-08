@@ -100,7 +100,7 @@ func (m *excellentDropManager) dropExcellentCount() int {
 	return 0
 }
 
-func (m *excellentDropManager) DropRegularExcellent(kindA int) []int {
+func (m *excellentDropManager) DropExcellent(kindA int) []int {
 	pool, ok := m.regulars[kindA]
 	if !ok {
 		return nil
