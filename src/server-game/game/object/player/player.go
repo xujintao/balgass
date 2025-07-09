@@ -1684,15 +1684,6 @@ func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
 
 func (p *Player) ProcessAction() {}
 
-func (p *Player) Action(msg *model.MsgAction) {
-	reply := model.MsgActionReply{
-		Index:  p.Index,
-		Action: msg.Action,
-		Dir:    msg.Dir,
-	}
-	p.PushViewport(&reply)
-}
-
 func (p *Player) Process1000ms() {
 	if p.ConnectState == object.ConnectStatePlaying {
 		p.recoverHPSD()

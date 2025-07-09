@@ -414,7 +414,8 @@ func (msg *MsgAttackDieReply) Marshal() ([]byte, error) {
 
 // pack(1)
 type MsgAction struct {
-	Dir    int
+	Dir int
+	// 122转向
 	Action int
 }
 
@@ -440,8 +441,9 @@ func (msg *MsgAction) Unmarshal(buf []byte) error {
 
 // pack(1)
 type MsgActionReply struct {
-	Index  int
-	Dir    int
+	Index int
+	Dir   int
+	// 18圣盾防御 120攻击 122转向
 	Action int
 	Target int
 }

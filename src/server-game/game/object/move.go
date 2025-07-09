@@ -255,3 +255,13 @@ func (obj *Object) Knockback(tobj *Object) {
 		Y: y,
 	})
 }
+
+func (obj *Object) Action(msg *model.MsgAction) {
+	reply := model.MsgActionReply{
+		Index:  obj.Index,
+		Action: msg.Action,
+		Dir:    msg.Dir,
+	}
+	defer obj.PushViewport(&reply)
+	obj.Dir = msg.Dir
+}
