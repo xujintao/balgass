@@ -163,6 +163,7 @@ func (obj *Object) UseSkillDeathStab(s *skill.Skill, tobj *Object) {
 		if vpobj != tobj &&
 			vpobj.Live &&
 			vpobj.Type != ObjectTypePlayer &&
+			vpobj.Type != ObjectTypeNPC &&
 			obj.CheckSkillFrustum(vpobj) {
 			obj.attack(vpobj, s, 0)
 		}

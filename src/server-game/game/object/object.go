@@ -602,7 +602,7 @@ type Object struct {
 	ItemDropRate              int // 道具掉落率
 	MoneyDropRate             int // 金钱掉落率
 	MoneyDrop                 int
-	Attribute                 int
+	Attribute                 int // 0:passive monster 1: invisible monster 2: normal monster
 	dieTime                   time.Time
 	dieRegen                  bool
 	MaxRegenTime              time.Duration // 最大重生时间

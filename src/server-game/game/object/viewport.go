@@ -186,7 +186,8 @@ func (obj *Object) createViewport() {
 		if tobj.ConnectState < ConnectStatePlaying ||
 			tobj.Index == obj.Index ||
 			(tobj.State != 1 && tobj.State != 2) ||
-			tobj.MapNumber != obj.MapNumber {
+			tobj.MapNumber != obj.MapNumber ||
+			tobj.Attribute == 1 { // invisible object
 			continue
 		}
 		if !obj.checkViewport(tobj.X, tobj.Y) {
