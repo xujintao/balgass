@@ -8,71 +8,77 @@ import (
 
 // Item represents a item
 type Item struct {
-	*ItemBase                    `json:"-"`
-	Position                     int    `json:"position"`
-	ID                           int    `json:"id"`      // serial
-	Section                      int    `json:"section"` // 0 ~ 15
-	Index                        int    `json:"index"`   // 0 ~ 511
-	Code                         int    `json:"-"`       // section*512 + index
-	Level                        int    `json:"level"`
-	Durability                   int    `json:"durability"`
-	Lucky                        bool   `json:"lucky,omitempty"`
-	Skill                        bool   `json:"skill,omitempty"`
-	Addition                     int    `json:"addition,omitempty"`                   // 0/4/8/12/16
-	ExcellentAttackRate          bool   `json:"excellent_attack_rate,omitempty"`      // bit5:卓越攻击几率10%
-	ExcellentAttackLevel         bool   `json:"excellent_attack_level,omitempty"`     // bit4:攻击力增加等级/20
-	ExcellentAttackPercent       bool   `json:"excellent_attack_percent,omitempty"`   // bit3:攻击力增加2%
-	ExcellentAttackSpeed         bool   `json:"excellent_attack_speed,omitempty"`     // bit2:攻击(魔法)速度增加7
-	ExcellentAttackHP            bool   `json:"excellent_attack_hp,omitempty"`        // bit1:杀死怪物时所获生命值增加生命值/8
-	ExcellentAttackMP            bool   `json:"excellent_attack_mp,omitempty"`        // bit0:杀死怪物时所获魔法值增加魔法值/8
-	ExcellentDefenseHP           bool   `json:"excellent_defense_hp,omitempty"`       // bit5:最大生命值增加4%
-	ExcellentDefenseMP           bool   `json:"excellent_defense_mp,omitempty"`       // bit4:最大魔法值增加4%
-	ExcellentDefenseReduce       bool   `json:"excellent_defense_reduce,omitempty"`   // bit3:伤害减少4%
-	ExcellentDefenseReflect      bool   `json:"excellent_defense_reflect,omitempty"`  // bit2:伤害反射5%
-	ExcellentDefenseRate         bool   `json:"excellent_defense_rate,omitempty"`     // bit1:防御成功率10%
-	ExcellentDefenseMoney        bool   `json:"excellent_defense_money,omitempty"`    // bit0:杀死怪物时所获金币增加30%
-	ExcellentWingKind1           bool   `json:"excellent_wing_kind1,omitempty"`       // bit5:Wing-Kind1 for 2D
-	ExcellentWingKind2           bool   `json:"excellent_wing_kind2,omitempty"`       // bit4:Wing-Kind2 for 2D/3D
-	ExcellentWing2Speed          bool   `json:"excellent_wing2_speed,omitempty"`      // bit4:攻击(魔法)速度增加5
-	ExcellentWing2AG             bool   `json:"excellent_wing2_ag,omitempty"`         // bit3:最大AG增加50
-	ExcellentWing2Leadership     bool   `json:"excellent_wing2_leadership,omitempty"` // bit3:声望增加10+5*level
-	ExcellentWing2Ignore         bool   `json:"excellent_wing2_ignore,omitempty"`     // bit2:无视防御伤害几率3%
-	ExcellentWing2MP             bool   `json:"excellent_wing2_mp,omitempty"`         // bit1:魔法值增加50+5*level
-	ExcellentWing2HP             bool   `json:"excellent_wing2_hp,omitempty"`         // bit0:生命值增加50+5*level
-	ExcellentWing3MP             bool   `json:"excellent_wing3_mp,omitempty"`         // bit3:魔法值完全恢复几率5%
-	ExcellentWing3HP             bool   `json:"excellent_wing3_hp,omitempty"`         // bit2:生命值完全恢复几率5%
-	ExcellentWing3Return         bool   `json:"excellent_wing3_return,omitempty"`     // bit1:反弹攻击力几率5%
-	ExcellentWing3Ignore         bool   `json:"excellent_wing3_ignore,omitempty"`     // bit0:无视防御伤害几率5%
-	Set                          int    `json:"set,omitempty"`
-	Option380                    bool   `json:"option380,omitempty"`
-	Period                       int    `json:"period,omitempty"`
-	HarmonyEffect                int    `json:"harmony_effect,omitempty"`
-	HarmonyLevel                 int    `json:"harmony_level,omitempty"`
-	HarmonyOption                int    `json:"harmony_option,omitempty"`
-	PentagramBonus               int    `json:"pentagram_bonus,omitempty"`
-	MuunRank                     int    `json:"muun_rank,omitempty"`
-	SocketBonus                  int    `json:"socket_bonus,omitempty"`
-	SocketSlots                  [5]int `json:"-"` // slot array
-	SocketSlot1                  int    `json:"socket_slot1,omitempty"`
-	SocketSlot2                  int    `json:"socket_slot2,omitempty"`
-	SocketSlot3                  int    `json:"socket_slot3,omitempty"`
-	SocketSlot4                  int    `json:"socket_slot4,omitempty"`
-	SocketSlot5                  int    `json:"socket_slot5,omitempty"`
-	MaxDurability                int    `json:"-"`
-	AttackMin                    int    `json:"-"`
-	AttackMax                    int    `json:"-"`
-	Magic                        int    `json:"-"`
-	Defense                      int    `json:"-"`
-	DefenseRate                  int    `json:"-"`
-	AdditionAttack               int    `json:"-"`
-	AdditionMagicAttack          int    `json:"-"`
-	AdditionCurseAttack          int    `json:"-"`
-	AdditionDefense              int    `json:"-"`
-	AdditionDefenseRate          int    `json:"-"`
-	AdditionRecoverHP            int    `json:"-"`
-	AdditionAbsorbDamagePercent5 int    `json:"-"`
-	AdditionAG50                 int    `json:"-"`
-	AdditionSpeed5               int    `json:"-"`
+	*ItemBase                        `json:"-"`
+	Position                         int    `json:"position"`
+	ID                               int    `json:"id"`      // serial
+	Section                          int    `json:"section"` // 0 ~ 15
+	Index                            int    `json:"index"`   // 0 ~ 511
+	Code                             int    `json:"-"`       // section*512 + index
+	Level                            int    `json:"level"`
+	Durability                       int    `json:"durability"`
+	Lucky                            bool   `json:"lucky,omitempty"`
+	Skill                            bool   `json:"skill,omitempty"`
+	Addition                         int    `json:"addition,omitempty"`                  // 0/4/8/12/16
+	ExcellentAttackRate              bool   `json:"excellent_attack_rate,omitempty"`     // bit5:卓越攻击几率10%
+	ExcellentAttackLevel             bool   `json:"excellent_attack_level,omitempty"`    // bit4:攻击力增加等级/20
+	ExcellentAttackPercent           bool   `json:"excellent_attack_percent,omitempty"`  // bit3:攻击力增加2%
+	ExcellentAttackSpeed             bool   `json:"excellent_attack_speed,omitempty"`    // bit2:攻击(魔法)速度增加7
+	ExcellentAttackHP                bool   `json:"excellent_attack_hp,omitempty"`       // bit1:杀死怪物时所获生命值增加生命值/8
+	ExcellentAttackMP                bool   `json:"excellent_attack_mp,omitempty"`       // bit0:杀死怪物时所获魔法值增加魔法值/8
+	ExcellentDefenseHP               bool   `json:"excellent_defense_hp,omitempty"`      // bit5:最大生命值增加4%
+	ExcellentDefenseMP               bool   `json:"excellent_defense_mp,omitempty"`      // bit4:最大魔法值增加4%
+	ExcellentDefenseReduce           bool   `json:"excellent_defense_reduce,omitempty"`  // bit3:伤害减少4%
+	ExcellentDefenseReflect          bool   `json:"excellent_defense_reflect,omitempty"` // bit2:伤害反射5%
+	ExcellentDefenseRate             bool   `json:"excellent_defense_rate,omitempty"`    // bit1:防御成功率10%
+	ExcellentDefenseMoney            bool   `json:"excellent_defense_money,omitempty"`   // bit0:杀死怪物时所获金币增加30%
+	ExcellentWingAdditionAttack      bool   `json:"excellent_wing_addition_attack,omitempty"`
+	ExcellentWingAdditionMagicAttack bool   `json:"excellent_wing_addition_magic_attack,omitempty"`
+	ExcellentWingAdditionCurseAttack bool   `json:"excellent_wing_addition_curse_attack,omitempty"`
+	ExcellentWingAdditionDefense     bool   `json:"excellent_wing_addition_defense,omitempty"`
+	ExcellentWingAdditionRecoverHP   bool   `json:"excellent_wing_addition_recover_hp,omitempty"`
+	ExcellentWing2Speed              bool   `json:"excellent_wing2_speed,omitempty"`      // 2D:攻击(魔法)速度增加5
+	ExcellentWing2AG                 bool   `json:"excellent_wing2_ag,omitempty"`         // 2D:最大AG增加50
+	ExcellentWing2Leadership         bool   `json:"excellent_wing2_leadership,omitempty"` // 2D:声望增加10+5*level
+	ExcellentWing2Ignore             bool   `json:"excellent_wing2_ignore,omitempty"`     // 2D:无视防御伤害几率3%
+	ExcellentWing2MP                 bool   `json:"excellent_wing2_mp,omitempty"`         // 2D:魔法值增加50+5*level
+	ExcellentWing2HP                 bool   `json:"excellent_wing2_hp,omitempty"`         // 2D:生命值增加50+5*level
+	ExcellentWing3MP                 bool   `json:"excellent_wing3_mp,omitempty"`         // 3D:魔法值完全恢复几率5%
+	ExcellentWing3HP                 bool   `json:"excellent_wing3_hp,omitempty"`         // 3D:生命值完全恢复几率5%
+	ExcellentWing3Return             bool   `json:"excellent_wing3_return,omitempty"`     // 3D:反弹攻击力几率5%
+	ExcellentWing3Ignore             bool   `json:"excellent_wing3_ignore,omitempty"`     // 3D:无视防御伤害几率5%
+	ExcellentWing25HP                bool   `json:"excellent_wing25_hp,omitempty"`        // 2.5D:生命值增加5%
+	ExcellentWing25Ignore            bool   `json:"excellent_wing25_ignore,omitempty"`    // 2.5D:无视防御伤害几率3%
+	Set                              int    `json:"set,omitempty"`
+	Option380                        bool   `json:"option380,omitempty"`
+	Period                           int    `json:"period,omitempty"`
+	HarmonyEffect                    int    `json:"harmony_effect,omitempty"`
+	HarmonyLevel                     int    `json:"harmony_level,omitempty"`
+	HarmonyOption                    int    `json:"harmony_option,omitempty"`
+	PentagramBonus                   int    `json:"pentagram_bonus,omitempty"`
+	MuunRank                         int    `json:"muun_rank,omitempty"`
+	SocketBonus                      int    `json:"socket_bonus,omitempty"`
+	SocketSlots                      [5]int `json:"-"` // slot array
+	SocketSlot1                      int    `json:"socket_slot1,omitempty"`
+	SocketSlot2                      int    `json:"socket_slot2,omitempty"`
+	SocketSlot3                      int    `json:"socket_slot3,omitempty"`
+	SocketSlot4                      int    `json:"socket_slot4,omitempty"`
+	SocketSlot5                      int    `json:"socket_slot5,omitempty"`
+	MaxDurability                    int    `json:"-"`
+	AttackMin                        int    `json:"-"`
+	AttackMax                        int    `json:"-"`
+	Magic                            int    `json:"-"`
+	Defense                          int    `json:"-"`
+	DefenseRate                      int    `json:"-"`
+	AdditionAttack                   int    `json:"-"`
+	AdditionMagicAttack              int    `json:"-"`
+	AdditionCurseAttack              int    `json:"-"`
+	AdditionDefense                  int    `json:"-"`
+	AdditionDefenseRate              int    `json:"-"`
+	AdditionRecoverHP                int    `json:"-"`
+	AdditionAbsorbDamagePercent5     int    `json:"-"`
+	AdditionAG50                     int    `json:"-"`
+	AdditionSpeed5                   int    `json:"-"`
+	Money                            int    `json:"-"`
 }
 
 // NewItem construct a item with section and index
@@ -161,10 +167,10 @@ func (it *Item) Calc() {
 	}
 
 	level := it.ItemBase.DropLevel
+	// calc required strength/dexterity/vitality/energy/leadership/level
 	if it.IsExcellent() || it.IsSet() {
 		level = it.ItemBase.DropLevel + 25
 	}
-	// calc required strength/dexterity/vitality/energy/leadership/level
 	// ...
 
 	// calc attack
@@ -303,98 +309,18 @@ func (it *Item) Calc() {
 		if it.Addition&0x04 != 0 {
 			it.AdditionSpeed5 = 5
 		}
-	case it.Code == Code(12, 0) || // Wings of Elf 精灵之翼
-		it.Code == Code(12, 132): // Small Wings of Elf 小精灵之翼
-		it.AdditionRecoverHP = it.Addition / 4
-	case it.Code == Code(12, 1) || // Wings of Heaven 天使之翼
-		it.Code == Code(12, 41) || // Wing of Curse 灾难之翼
-		it.Code == Code(12, 131) || // Small Wing of Curse 小灾难之翼
-		it.Code == Code(12, 133): // Small Wings of Heaven 小天空之翼
-		it.AdditionMagicAttack = it.Addition
-	case it.Code == Code(12, 2) || // Wings of Satan 恶魔之翼
-		it.Code == Code(13, 30) || // Cape of Lord 王者披风
-		it.Code == Code(12, 130) || // Small Cape of Lord 小王者披风
-		it.Code == Code(12, 134) || // Small Wings of Satan 小恶魔之翼
-		it.Code == Code(12, 135): // Little Warrior's Cloak 小武者披风
-		it.AdditionAttack = it.Addition
-	case it.Code == Code(12, 3): // Wings of Spirits 圣灵之翼
-		if it.ExcellentWingKind1 {
-			it.AdditionRecoverHP = it.Addition / 4
-		} else {
+	case it.KindA == KindAWing: // wings
+		switch {
+		case it.ExcellentWingAdditionAttack:
 			it.AdditionAttack = it.Addition
-		}
-	case it.Code == Code(12, 4): // Wings of Soul 魔魂之翼
-		if it.ExcellentWingKind1 {
+		case it.ExcellentWingAdditionMagicAttack:
 			it.AdditionMagicAttack = it.Addition
-		} else {
-			it.AdditionRecoverHP = it.Addition / 4
-		}
-	case it.Code == Code(12, 5) || // Wings of Dragon 飞龙之翼
-		it.Code == Code(12, 49): // Cape of Fighter 武者披风
-		if it.ExcellentWingKind1 {
-			it.AdditionAttack = it.Addition
-		} else {
-			it.AdditionRecoverHP = it.Addition / 4
-		}
-	case it.Code == Code(12, 6): // Wings of Darkness 暗黑之翼
-		if it.ExcellentWingKind1 {
-			it.AdditionAttack = it.Addition
-		} else {
-			it.AdditionMagicAttack = it.Addition
-		}
-	case it.Code == Code(12, 42): // Wind of Despair 绝望之翼
-		if it.ExcellentWingKind1 {
-			it.AdditionMagicAttack = it.Addition
-		} else {
+		case it.ExcellentWingAdditionCurseAttack:
 			it.AdditionCurseAttack = it.Addition
-		}
-	case it.Code == Code(12, 36) || // Wing of Storm 暴风之翼
-		it.Code == Code(12, 37) || // Wing of Eternal 时空之翼
-		it.Code == Code(12, 38) || // Wing of Illusion 幻影之翼
-		it.Code == Code(12, 39) || // Wing of Ruin 破灭之翼
-		it.Code == Code(12, 40) || // Cape of Emperor 帝王披风
-		it.Code == Code(12, 43) || // Wing of Dimension 次元之翼
-		it.Code == Code(12, 50): // Cape of Overrule 斗皇披风
-		switch {
-		case !it.ExcellentWingKind1 && !it.ExcellentWingKind2:
+		case it.ExcellentWingAdditionDefense:
+			it.AdditionDefense = it.Addition
+		case it.ExcellentWingAdditionRecoverHP:
 			it.AdditionRecoverHP = it.Addition / 4
-		case it.ExcellentWingKind1 && !it.ExcellentWingKind2:
-			switch it.Code {
-			case Code(12, 39): // Wing of Ruin 破灭之翼
-				it.AdditionMagicAttack = it.Addition
-			case Code(12, 43): // Wing of Dimension 次元之翼
-				it.AdditionCurseAttack = it.Addition
-			default:
-				it.AdditionDefense = it.Addition
-			}
-		default:
-			switch it.Code {
-			case Code(12, 37), Code(12, 43):
-				// Wing of Eternal 时空之翼 Wing of Dimension 次元之翼
-				it.AdditionMagicAttack = it.Addition
-			default:
-				it.AdditionAttack = it.Addition
-			}
-		}
-	case it.Code == Code(12, 262) || // Cloak of Death 死亡披风
-		it.Code == Code(12, 263) || // Wings of Chaos 混沌之翼
-		it.Code == Code(12, 264) || // Wings of Magic 魔力之翼
-		it.Code == Code(12, 265): // Wings of Life 生命之翼
-		switch {
-		case it.ExcellentWingKind2:
-			switch it.Code {
-			case Code(12, 264):
-				it.AdditionMagicAttack = it.Addition
-			default:
-				it.AdditionAttack = it.Addition
-			}
-		default:
-			switch it.Code {
-			case Code(12, 264):
-				it.AdditionCurseAttack = it.Addition
-			default:
-				it.AdditionRecoverHP = it.Addition / 4
-			}
 		}
 	}
 }
@@ -511,12 +437,43 @@ func (item *Item) Marshal() ([]byte, error) {
 		data[1] |= byte(1 << 7)
 	}
 	data[2] = byte(item.Durability)
-	if item.ExcellentAttackRate || item.ExcellentDefenseHP ||
-		item.ExcellentWingKind1 {
+	if item.ExcellentAttackRate || item.ExcellentDefenseHP {
 		data[3] |= 1 << 5
 	}
-	if item.ExcellentAttackLevel || item.ExcellentDefenseMP ||
-		item.ExcellentWing2Speed || item.ExcellentWingKind2 {
+	if item.ExcellentAttackLevel || item.ExcellentDefenseMP || item.ExcellentWing2Speed {
+		data[3] |= 1 << 4
+	}
+	switch {
+	case item.Code == Code(12, 3) && item.ExcellentWingAdditionRecoverHP, // Wings of Spirits 圣灵之翼
+		item.Code == Code(12, 4) && item.ExcellentWingAdditionMagicAttack,   // Wings of Soul 魔魂之翼
+		item.Code == Code(12, 5) && item.ExcellentWingAdditionAttack,        // Wings of Dragon 飞龙之翼
+		item.Code == Code(12, 6) && item.ExcellentWingAdditionAttack,        // Wings of Darkness 暗黑之翼
+		item.Code == Code(13, 30) && item.ExcellentWingAdditionAttack,       // Wings of Darkness 王者披风
+		item.Code == Code(12, 42) && item.ExcellentWingAdditionMagicAttack,  // Wing of Despair 绝望之翼
+		item.Code == Code(12, 49) && item.ExcellentWingAdditionAttack,       // Cape of Fighter 武者披风
+		item.Code == Code(12, 36) && item.ExcellentWingAdditionDefense,      // Wing of Storm 暴风之翼
+		item.Code == Code(12, 37) && item.ExcellentWingAdditionDefense,      // Wing of Eternal 时空之翼
+		item.Code == Code(12, 38) && item.ExcellentWingAdditionDefense,      // Wing of Illusion 幻影之翼
+		item.Code == Code(12, 39) && item.ExcellentWingAdditionMagicAttack,  // Wing of Ruin 破灭之翼
+		item.Code == Code(12, 40) && item.ExcellentWingAdditionDefense,      // Cape of Emperor 帝王披风
+		item.Code == Code(12, 43) && item.ExcellentWingAdditionCurseAttack,  // Wing of Dimension 次元之翼
+		item.Code == Code(12, 50) && item.ExcellentWingAdditionDefense,      // Cape of Overrule 斗皇披风
+		item.Code == Code(12, 262) && item.ExcellentWingAdditionRecoverHP,   // Cloak of Death 死亡披风
+		item.Code == Code(12, 263) && item.ExcellentWingAdditionRecoverHP,   // Wings of Chaos 混沌之翼
+		item.Code == Code(12, 264) && item.ExcellentWingAdditionCurseAttack, // Wings of Magic 魔力之翼
+		item.Code == Code(12, 265) && item.ExcellentWingAdditionRecoverHP:   // Wings of Life 生命之翼
+		data[3] |= 1 << 5
+	case item.Code == Code(12, 36) && item.ExcellentWingAdditionAttack, // Wing of Storm 暴风之翼
+		item.Code == Code(12, 37) && item.ExcellentWingAdditionMagicAttack,  // Wing of Eternal 时空之翼
+		item.Code == Code(12, 38) && item.ExcellentWingAdditionAttack,       // Wing of Illusion 幻影之翼
+		item.Code == Code(12, 39) && item.ExcellentWingAdditionAttack,       // Wing of Ruin 破灭之翼
+		item.Code == Code(12, 40) && item.ExcellentWingAdditionAttack,       // Cape of Emperor 帝王披风
+		item.Code == Code(12, 43) && item.ExcellentWingAdditionMagicAttack,  // Wing of Dimension 次元之翼
+		item.Code == Code(12, 50) && item.ExcellentWingAdditionAttack,       // Cape of Overrule 斗皇披风
+		item.Code == Code(12, 262) && item.ExcellentWingAdditionAttack,      // Cloak of Death 死亡披风
+		item.Code == Code(12, 263) && item.ExcellentWingAdditionAttack,      // Wings of Chaos 混沌之翼
+		item.Code == Code(12, 264) && item.ExcellentWingAdditionMagicAttack, // Wings of Magic 魔力之翼
+		item.Code == Code(12, 265) && item.ExcellentWingAdditionAttack:      // Wings of Life 生命之翼
 		data[3] |= 1 << 4
 	}
 	if item.ExcellentAttackPercent || item.ExcellentDefenseReduce ||
@@ -528,11 +485,11 @@ func (item *Item) Marshal() ([]byte, error) {
 		data[3] |= 1 << 2
 	}
 	if item.ExcellentAttackHP || item.ExcellentDefenseRate ||
-		item.ExcellentWing2MP || item.ExcellentWing3Return {
+		item.ExcellentWing2MP || item.ExcellentWing3Return || item.ExcellentWing25HP {
 		data[3] |= 1 << 1
 	}
 	if item.ExcellentAttackMP || item.ExcellentDefenseMoney ||
-		item.ExcellentWing2HP || item.ExcellentWing3Ignore {
+		item.ExcellentWing2HP || item.ExcellentWing3Ignore || item.ExcellentWing25Ignore {
 		data[3] |= 1 << 0
 	}
 	data[3] |= byte(item.Addition & 0x10 << 2)

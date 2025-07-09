@@ -179,7 +179,21 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 					}
 				case item.KindAWing:
 					switch it.KindB {
-					case item.KindBWing2nd:
+					case item.KindBWing2nd, item.KindBCapeLord, item.KindBCapeFighter:
+						// roll wing addition
+						wingAdd := rand.Intn(2)
+						switch wingAdd {
+						case 0:
+							if it.Code == item.Code(12, 4) || // Wings of Soul 魔魂之翼
+								it.Code == item.Code(12, 5) { // Wing of Despair 绝望之翼
+								it.ExcellentWingAdditionMagicAttack = true
+							} else {
+								it.ExcellentWingAdditionAttack = true
+							}
+						case 1:
+							it.ExcellentWingAdditionRecoverHP = true
+						}
+						// add wing excellent options
 						switch v {
 						case 1:
 							it.ExcellentWing2HP = true
@@ -188,11 +202,44 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 						case 4:
 							it.ExcellentWing2Ignore = true
 						case 8:
-							it.ExcellentWing2AG = true
+							switch it.KindB {
+							case item.KindBCapeLord:
+								it.ExcellentWing2Leadership = true
+							case item.KindBCapeFighter:
+							default:
+								it.ExcellentWing2AG = true
+							}
 						case 16:
-							it.ExcellentWing2Speed = true
+							switch it.KindB {
+							case item.KindBCapeLord:
+							case item.KindBCapeFighter:
+							default:
+								it.ExcellentWing2Speed = true
+							}
 						}
 					case item.KindBWing3rd:
+						// roll wing addition
+						wingAdd := rand.Intn(3)
+						switch wingAdd {
+						case 0:
+							if it.Code == item.Code(12, 39) { // Wing of Ruin 破灭之翼
+								it.ExcellentWingAdditionMagicAttack = true
+							} else if it.Code == item.Code(12, 43) { // Wing of Dimension 次元之翼
+								it.ExcellentWingAdditionCurseAttack = true
+							} else {
+								it.ExcellentWingAdditionDefense = true
+							}
+						case 1:
+							if it.Code == item.Code(12, 37) || // Wing of Eternal 时空之翼
+								it.Code == item.Code(12, 43) { // Wing of Dimension 次元之翼
+								it.ExcellentWingAdditionMagicAttack = true
+							} else {
+								it.ExcellentWingAdditionAttack = true
+							}
+						case 2:
+							it.ExcellentWingAdditionRecoverHP = true
+						}
+						// add wing excellent options
 						switch v {
 						case 1:
 							it.ExcellentWing3Ignore = true
@@ -203,32 +250,29 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 						case 8:
 							it.ExcellentWing3MP = true
 						}
-					case item.KindBCapeLord:
-						switch v {
-						case 1:
-							it.ExcellentWing2HP = true
-						case 2:
-							it.ExcellentWing2MP = true
-						case 4:
-							it.ExcellentWing2Ignore = true
-						case 8:
-							it.ExcellentWing2Leadership = true
-						}
-					case item.KindBCapeFighter:
-						switch v {
-						case 1:
-							it.ExcellentWing2HP = true
-						case 2:
-							it.ExcellentWing2MP = true
-						case 4:
-							it.ExcellentWing2Ignore = true
-						}
 					case item.KindBWingMonster:
+						// roll wing addition
+						wingAdd := rand.Intn(2)
+						switch wingAdd {
+						case 0:
+							if it.Code == item.Code(12, 264) { // Wings of Magic 魔力之翼
+								it.ExcellentWingAdditionCurseAttack = true
+							} else {
+								it.ExcellentWingAdditionRecoverHP = true
+							}
+						case 1:
+							if it.Code == item.Code(12, 264) { // Wings of Magic 魔力之翼
+								it.ExcellentWingAdditionMagicAttack = true
+							} else {
+								it.ExcellentWingAdditionAttack = true
+							}
+						}
+						// add wing excellent options
 						switch v {
 						case 1:
-							it.ExcellentWing2Ignore = true
+							it.ExcellentWing25Ignore = true
 						case 2:
-							it.ExcellentWing3Return = true
+							it.ExcellentWing25HP = true
 						}
 					}
 				}
