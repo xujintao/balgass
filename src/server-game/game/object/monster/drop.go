@@ -239,7 +239,7 @@ func (m *dropManager) DropItem(monsterLevel int) *item.Item {
 		return nil
 	}
 	it.Level = dit.level
-	return nil
+	return it
 }
 
 func (m *dropManager) DropItemExcellent(monsterLevel int) *item.Item {

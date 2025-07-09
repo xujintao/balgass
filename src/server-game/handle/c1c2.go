@@ -82,6 +82,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	switch api.action {
 	case "KeepLive":
 	case "Move", "Action", "Attack", "SetPosition", "UseSkill":
+	case "PickItem":
 	default:
 		slog.Debug("player action", "player", id, "action", api.action)
 	}
@@ -133,7 +134,7 @@ func (h *c1c2Handle) marshal(id int, msg any) (*c1c2.Response, error) {
 	case "CreateViewportItemReply", "CreateViewportPlayerReply", "CreateViewportMonsterReply",
 		"DestroyViewportItemReply", "DestroyViewportObjectReply":
 	case "MoveReply", "ActionReply", "SetPositionReply", "UseSkillReply":
-	case "ExperienceReply":
+	case "ExperienceReply", "PickItemReply":
 	default:
 		slog.Debug("player push", "player", id, "name", api.name)
 	}

@@ -143,6 +143,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 			if it == nil {
 				return
 			}
+			slog.Info("DieDropItem", "item", "excellent", "monster", m.Annotation, "item", it.Annotation)
 			drops := item.ExcellentDropManager.DropExcellent(int(it.KindA))
 			for _, v := range drops {
 				switch it.KindA {
@@ -237,6 +238,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 			if it == nil {
 				return
 			}
+			slog.Info("DieDropItem", "item", "plain", "monster", m.Annotation, "item", it.Annotation)
 		}
 		it.Durability = it.MaxDurability
 		skillRate := 0
