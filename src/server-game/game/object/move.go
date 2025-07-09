@@ -235,19 +235,18 @@ func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
 }
 
 func (obj *Object) Knockback(tobj *Object) {
-	dir := tobj.Dir
+	dir := (tobj.Dir + 4) % 8 // backward direction
 	if rand.Intn(3) == 0 {
-		// reverse dir
-		dir = (tobj.Dir + 4) % 8
+		dir = tobj.Dir // forward direction
 	}
 	dirPot := maps.Dirs[dir]
 	x := tobj.X + dirPot.X
 	y := tobj.Y + dirPot.Y
 	attr := maps.MapManager.GetMapAttr(tobj.MapNumber, x, y)
-	if attr&1 != 0 &&
-		attr&2 != 0 &&
-		attr&4 != 0 &&
-		attr&8 != 0 &&
+	if attr&1 != 0 ||
+		attr&2 != 0 ||
+		attr&4 != 0 ||
+		attr&8 != 0 ||
 		attr&16 != 0 {
 		return
 	}
