@@ -1568,11 +1568,7 @@ func (p *Player) CalcSetItem(base bool) {
 		if it.Durability == 0 {
 			continue
 		}
-		tierIndex := it.GetSetTierIndex()
-		if tierIndex == 0 {
-			continue
-		}
-		index := item.SetManager.GetSetIndex(it.Section, it.Index, tierIndex)
+		index := it.Set
 		if index <= 0 {
 			continue
 		}

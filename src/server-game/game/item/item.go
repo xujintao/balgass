@@ -126,10 +126,6 @@ func (it *Item) GetSkillIndex() int {
 	return 0
 }
 
-func (i *Item) GetSetTierIndex() int {
-	return i.Set & 3
-}
-
 func (it *Item) Calc() {
 	// calc dur
 	dur := it.ItemBase.Durability
@@ -494,7 +490,7 @@ func (item *Item) Marshal() ([]byte, error) {
 	}
 	data[3] |= byte(item.Addition & 0x10 << 2)
 	data[3] |= byte(item.Index & 0x100 >> 1)
-	data[4] = byte(item.Set)
+	data[4] = byte(SetManager.GetTierIndex(item.Section, item.Index, item.Set))
 	data[5] = byte(item.Period << 1)
 	if item.Option380 {
 		data[5] |= byte(1 << 3)

@@ -9,7 +9,8 @@ func init() {
 }
 
 type setItem struct {
-	tiers    [4]int
+	sets     map[int]int
+	tiers    map[int]int
 	mixLevel [2]int
 }
 
@@ -70,7 +71,18 @@ func (m *setManager) GetSetIndex(section, index, tierIndex int) int {
 	// 0x02=tier1=TierII
 	// 0x10=tier2=TierIII
 	// 0x20=tier3=TierIV
-	return m.items[section][index].tiers[tierIndex-1]
+	return m.items[section][index].sets[tierIndex]
+}
+
+func (m *setManager) GetTierIndex(section, index, setIndex int) int {
+	if setIndex <= 0 {
+		return 0
+	}
+	si, ok := m.items[section][index]
+	if !ok {
+		return 0
+	}
+	return si.tiers[setIndex]
 }
 
 func (m *setManager) GetSet(setIndex int, effectIndex int) *SetEffect {
@@ -126,11 +138,27 @@ func (m *setManager) init() {
 	for _, section := range setItemXml.Sections {
 		items := make(map[int]*setItem)
 		for _, item := range section.Items {
-			var sItem setItem
-			sItem.tiers[0] = item.TierI
-			sItem.tiers[1] = item.TierII
-			sItem.tiers[2] = item.TierIII
-			sItem.tiers[3] = item.TierIV
+			sItem := setItem{
+				sets:  make(map[int]int),
+				tiers: make(map[int]int),
+			}
+			sItem.sets[0x01] = item.TierI   // 0x01=tier0=TierI
+			sItem.sets[0x02] = item.TierII  // 0x02=tier1=TierII
+			sItem.sets[0x10] = item.TierIII // 0x10=tier2=TierIII
+			sItem.sets[0x20] = item.TierIV  // 0x20=tier3=TierIV
+			if item.TierI > 0 {
+				sItem.tiers[item.TierI] = 0x01
+			}
+			if item.TierII > 0 {
+				sItem.tiers[item.TierII] = 0x02
+			}
+			if item.TierIII > 0 {
+				sItem.tiers[item.TierIII] = 0x10
+			}
+			if item.TierIV > 0 {
+				sItem.tiers[item.TierIV] = 0x20
+			}
+
 			sItem.mixLevel[0] = item.MixLevelA
 			sItem.mixLevel[1] = item.MixLevelB
 			items[item.Index] = &sItem
