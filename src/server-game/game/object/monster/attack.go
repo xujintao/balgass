@@ -186,12 +186,12 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 						case 0:
 							if it.Code == item.Code(12, 4) || // Wings of Soul 魔魂之翼
 								it.Code == item.Code(12, 5) { // Wing of Despair 绝望之翼
-								it.ExcellentWingAdditionMagicAttack = true
+								it.WingAdditionMagicAttack = true
 							} else {
-								it.ExcellentWingAdditionAttack = true
+								it.WingAdditionAttack = true
 							}
 						case 1:
-							it.ExcellentWingAdditionRecoverHP = true
+							it.WingAdditionRecoverHP = true
 						}
 						// add wing excellent options
 						switch v {
@@ -223,21 +223,21 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 						switch wingAdd {
 						case 0:
 							if it.Code == item.Code(12, 39) { // Wing of Ruin 破灭之翼
-								it.ExcellentWingAdditionMagicAttack = true
+								it.WingAdditionMagicAttack = true
 							} else if it.Code == item.Code(12, 43) { // Wing of Dimension 次元之翼
-								it.ExcellentWingAdditionCurseAttack = true
+								it.WingAdditionCurseAttack = true
 							} else {
-								it.ExcellentWingAdditionDefense = true
+								it.WingAdditionDefense = true
 							}
 						case 1:
 							if it.Code == item.Code(12, 37) || // Wing of Eternal 时空之翼
 								it.Code == item.Code(12, 43) { // Wing of Dimension 次元之翼
-								it.ExcellentWingAdditionMagicAttack = true
+								it.WingAdditionMagicAttack = true
 							} else {
-								it.ExcellentWingAdditionAttack = true
+								it.WingAdditionAttack = true
 							}
 						case 2:
-							it.ExcellentWingAdditionRecoverHP = true
+							it.WingAdditionRecoverHP = true
 						}
 						// add wing excellent options
 						switch v {
@@ -256,15 +256,15 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 						switch wingAdd {
 						case 0:
 							if it.Code == item.Code(12, 264) { // Wings of Magic 魔力之翼
-								it.ExcellentWingAdditionCurseAttack = true
+								it.WingAdditionCurseAttack = true
 							} else {
-								it.ExcellentWingAdditionRecoverHP = true
+								it.WingAdditionRecoverHP = true
 							}
 						case 1:
 							if it.Code == item.Code(12, 264) { // Wings of Magic 魔力之翼
-								it.ExcellentWingAdditionMagicAttack = true
+								it.WingAdditionMagicAttack = true
 							} else {
-								it.ExcellentWingAdditionAttack = true
+								it.WingAdditionAttack = true
 							}
 						}
 						// add wing excellent options
