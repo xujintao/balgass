@@ -99,9 +99,11 @@ func (inv *Inventory) RemoveItem(position int, it *Item) {
 
 func (inv *Inventory) UnmarshalJSON(buf []byte) error {
 	inv.Size = 237
-	inv.PositionedItems.CheckFlagsForItem = inv.CheckFlagsForItem
-	inv.PositionedItems.SetFlagsForItem = inv.SetFlagsForItem
-	return inv.PositionedItems.UnmarshalJSON(buf)
+	return inv.PositionedItems.UnmarshalJSON(
+		buf,
+		inv.CheckFlagsForItem,
+		inv.SetFlagsForItem,
+	)
 }
 
 func (inv *Inventory) Scan(value any) error {

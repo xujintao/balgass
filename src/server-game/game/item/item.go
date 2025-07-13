@@ -1009,11 +1009,9 @@ func (item *Item) Unmarshal(buf []byte) error {
 }
 
 type PositionedItems struct {
-	Size              int
-	Items             []*Item
-	Flags             []bool
-	CheckFlagsForItem func(int, *Item) bool
-	SetFlagsForItem   func(int, *Item)
+	Size  int
+	Items []*Item
+	Flags []bool
 }
 
 func (pi PositionedItems) MarshalJSON() ([]byte, error) {
@@ -1032,7 +1030,11 @@ func (pi PositionedItems) MarshalJSON() ([]byte, error) {
 	return data, err
 }
 
-func (pi *PositionedItems) UnmarshalJSON(buf []byte) error {
+func (pi *PositionedItems) UnmarshalJSON(
+	buf []byte,
+	CheckFlagsForItem func(int, *Item) bool,
+	SetFlagsForItem func(int, *Item),
+) error {
 	var items []*Item
 	err := json.Unmarshal(buf, &items)
 	if err != nil {
@@ -1040,22 +1042,22 @@ func (pi *PositionedItems) UnmarshalJSON(buf []byte) error {
 	}
 	pi.Items = make([]*Item, pi.Size)
 	pi.Flags = make([]bool, pi.Size)
-	for _, v := range items {
-		v.Code = Code(v.Section, v.Index)
-		itemBase, err := ItemTable.GetItemBase(v.Section, v.Index)
+	for _, it := range items {
+		it.Code = Code(it.Section, it.Index)
+		itemBase, err := ItemTable.GetItemBase(it.Section, it.Index)
 		if err != nil {
 			return err
 		}
-		v.ItemBase = itemBase
-		v.Calc()
-		ok := pi.CheckFlagsForItem(v.Position, v)
+		it.ItemBase = itemBase
+		it.Calc()
+		ok := CheckFlagsForItem(it.Position, it)
 		if !ok {
 			slog.Error("pi.CheckFlagsForItem",
-				"position", v.Position, "name", v.Name, "annotation", v.Annotation)
+				"position", it.Position, "name", it.Name, "annotation", it.Annotation)
 			continue
 		}
-		pi.SetFlagsForItem(v.Position, v)
-		pi.Items[v.Position] = v
+		SetFlagsForItem(it.Position, it)
+		pi.Items[it.Position] = it
 	}
 	return nil
 }

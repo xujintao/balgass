@@ -76,9 +76,11 @@ func (w *Warehouse) RemoveItem(position int, it *Item) {
 
 func (w *Warehouse) UnmarshalJSON(buf []byte) error {
 	w.Size = 240
-	w.PositionedItems.CheckFlagsForItem = w.CheckFlagsForItem
-	w.PositionedItems.SetFlagsForItem = w.SetFlagsForItem
-	return w.PositionedItems.UnmarshalJSON(buf)
+	return w.PositionedItems.UnmarshalJSON(
+		buf,
+		w.CheckFlagsForItem,
+		w.SetFlagsForItem,
+	)
 }
 
 func (w *Warehouse) Scan(value any) error {
