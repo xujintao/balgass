@@ -1032,3 +1032,10 @@ func (obj *Object) PushSystemMsg(msg string) {
 	reply.Msg = msg
 	obj.Push(&reply)
 }
+
+func (obj *Object) PushMoney() {
+	obj.Push(&model.MsgMoneyReply{
+		Result: -2,
+		Money:  obj.GetMoney(),
+	})
+}

@@ -138,6 +138,13 @@ func (obj *Object) BuyItem(msg *model.MsgBuyItem) {
 	if position == -1 {
 		return
 	}
+	objMoney := obj.GetMoney()
+	if objMoney < sit.BuyMoney {
+		return
+	}
+	objMoney -= sit.BuyMoney
+	obj.SetMoney(objMoney)
+	obj.PushMoney()
 	it = obj.GetInventory().Items[position]
 	if it == nil {
 		obj.GetInventory().AddItem(position, sit)
@@ -176,10 +183,10 @@ func (obj *Object) SellItem(msg *model.MsgSellItem) {
 		return
 	}
 	objMoney := obj.GetMoney()
-	if objMoney+it.Money > MaxZen {
+	if objMoney+it.SellMoney > MaxZen {
 		return
 	}
-	objMoney += it.Money
+	objMoney += it.SellMoney
 	obj.SetMoney(objMoney)
 	obj.GetInventory().RemoveItem(msg.Position, it)
 	reply.Result = 1

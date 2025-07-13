@@ -202,11 +202,7 @@ func (obj *Object) MapMove(msg *model.MsgMapMove) {
 		if ok {
 			objMoney -= money
 			obj.SetMoney(objMoney)
-			reply := model.MsgMoneyReply{
-				Result: -2,
-				Money:  objMoney,
-			}
-			obj.Push(&reply)
+			obj.PushMoney()
 		}
 	})
 }

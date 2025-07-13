@@ -81,7 +81,8 @@ type Item struct {
 	AdditionAbsorbDamagePercent5 bool   `json:"-"`
 	AdditionAG50                 bool   `json:"-"`
 	AdditionSpeed5               bool   `json:"-"`
-	Money                        int    `json:"-"`
+	BuyMoney                     int    `json:"-"`
+	SellMoney                    int    `json:"-"`
 }
 
 // NewItem construct a item with section and index
@@ -127,6 +128,42 @@ func (it *Item) IsExcellent() bool {
 		it.ExcellentWing25Ignore
 }
 
+func (it *Item) ExcellentCount() int {
+	flags := []bool{
+		it.ExcellentAttackRate,
+		it.ExcellentAttackLevel,
+		it.ExcellentAttackPercent,
+		it.ExcellentAttackSpeed,
+		it.ExcellentAttackHP,
+		it.ExcellentAttackMP,
+		it.ExcellentDefenseHP,
+		it.ExcellentDefenseMP,
+		it.ExcellentDefenseReduce,
+		it.ExcellentDefenseReflect,
+		it.ExcellentDefenseRate,
+		it.ExcellentDefenseMoney,
+		it.ExcellentWing2Speed,
+		it.ExcellentWing2AG,
+		it.ExcellentWing2Leadership,
+		it.ExcellentWing2Ignore,
+		it.ExcellentWing2MP,
+		it.ExcellentWing2HP,
+		it.ExcellentWing3MP,
+		it.ExcellentWing3HP,
+		it.ExcellentWing3Return,
+		it.ExcellentWing3Ignore,
+		it.ExcellentWing25HP,
+		it.ExcellentWing25Ignore,
+	}
+	count := 0
+	for _, flag := range flags {
+		if flag {
+			count++
+		}
+	}
+	return count
+}
+
 func (i *Item) IsSet() bool {
 	return i.Set > 0
 }
@@ -141,27 +178,21 @@ func (it *Item) GetSkillIndex() int {
 	return 0
 }
 
-func (it *Item) Value() int {
+func (it *Item) CalculateMoney() {
 	money := 0
-	// return value for items with final money
-	if (it.Section == 12 || it.Section == 15) && it.ItemBase.Money != 0 {
-		money = it.ItemBase.Money
-		if money < 1000 {
-			if money >= 100 {
-				money = 10 * (money / 10)
-			}
-		} else {
-			money = 100 * (money / 100)
-		}
-		return money
-	}
-	// calculate value for special items
 	switch {
+	// use the money of simply items
+	case (it.Section == 12 || it.Section == 15) && it.ItemBase.Money != 0:
+		money = it.ItemBase.Money
+	// calculate the money of special items
 	case it.KindA == KindAWeapon && it.Code != Code(0, 41), // weapons exclude Pandora Pick (two-handed)
 		it.KindA == KindAArmor,
 		it.KindA == KindAWing:
 		// calculate level value
 		level := it.ItemBase.DropLevel + it.Level*3
+		if it.IsExcellent() {
+			level += 25
+		}
 		levelTable := []int{
 			0,   // 0
 			0,   // 1
@@ -213,9 +244,9 @@ func (it *Item) Value() int {
 		if it.IsExcellent() {
 			switch it.KindA {
 			case KindAWeapon, KindAArmor:
-				money += money
+				money += money * it.ExcellentCount()
 			case KindAWing:
-				money += int(float64(money) * 25.0 / 100.0)
+				money += int(float64(money)*25.0/100.0) * it.ExcellentCount()
 			}
 		}
 		if it.Type == Type380 {
@@ -551,7 +582,33 @@ func (it *Item) Value() int {
 	case it.Code == Code(14, 234): // Monster Summoning Scroll 怪物召唤书
 		money = 3000000
 	}
-	return money
+	// buy
+	buyMoney := money
+	if buyMoney >= 1000 {
+		buyMoney = buyMoney / 100 * 100
+	} else if buyMoney >= 100 {
+		buyMoney = buyMoney / 10 * 10
+	}
+	it.BuyMoney = buyMoney
+	// sell
+	sellMoney := money / conf.Price.Value.ItemSellPriceDivisor
+	if (it.KindA == KindAWeapon ||
+		it.KindA == KindAArmor ||
+		it.KindA == KindAWing ||
+		it.KindA == KindAHelper ||
+		it.KindA == KindAPendant ||
+		it.KindA == KindARing) &&
+		it.MaxDurability != 0 {
+		// discount
+		dur := float64(it.Durability) / float64(it.MaxDurability)
+		sellMoney = int(float64(sellMoney) * (0.4 + 0.6*dur))
+	}
+	if sellMoney >= 1000 {
+		sellMoney = sellMoney / 100 * 100
+	} else if sellMoney >= 100 {
+		sellMoney = sellMoney / 10 * 10
+	}
+	it.SellMoney = sellMoney
 }
 
 func (it *Item) Calc() {
@@ -749,7 +806,7 @@ func (it *Item) Calc() {
 	}
 
 	// calc money
-	it.Money = it.Value()
+	it.CalculateMoney()
 }
 
 // func (i *Item) GetExcelItem() int {
