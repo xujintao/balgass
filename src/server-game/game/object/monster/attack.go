@@ -144,7 +144,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 				return
 			}
 			slog.Info("DieDropItem", "item", "excellent", "monster", m.Annotation, "item", it.Annotation)
-			drops := item.ExcellentDropManager.DropExcellent(int(it.KindA))
+			drops := item.ExcellentDropManager.DropExcellent(it.KindA, it.KindB)
 			for _, v := range drops {
 				switch it.KindA {
 				case item.KindAWeapon, item.KindAPendant:
@@ -284,7 +284,11 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 			}
 			slog.Info("DieDropItem", "item", "plain", "monster", m.Annotation, "item", it.Annotation)
 		}
-		it.Durability = it.MaxDurability
+		if it.ItemBase.Durability <= 5 {
+			it.Durability = it.ItemBase.Durability
+		} else {
+			it.Durability = rand.Intn(it.ItemBase.Durability)
+		}
 		skillRate := 0
 		luckyRate := 0
 		switch {

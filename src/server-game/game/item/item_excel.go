@@ -93,17 +93,20 @@ func (m *excellentDropManager) dropExcellentCount() int {
 	offset := 0
 	for i, v := range m.multiple {
 		if num >= offset && num < v+offset {
-			return i
+			return i + 1
 		}
 		offset += v
 	}
 	return 0
 }
 
-func (m *excellentDropManager) DropExcellent(kindA int) []int {
-	pool, ok := m.regulars[kindA]
-	if !ok {
-		return nil
+func (m *excellentDropManager) DropExcellent(kindA itemKindA, kindB itemKindB) []int {
+	var pool []int
+	switch kindA {
+	case KindAWeapon, KindAPendant, KindAArmor, KindARing:
+		pool = m.regulars[int(kindA)]
+	case KindAWing:
+		pool = m.wings[int(kindB)]
 	}
 	n := len(pool)
 	if n <= 0 {
