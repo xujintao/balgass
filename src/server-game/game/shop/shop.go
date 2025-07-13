@@ -16,6 +16,7 @@ func init() {
 }
 
 type Shop struct {
+	*item.PositionedItems
 	NPCIndex     int    `xml:"NPCIndex,attr"`
 	MapNumber    int    `xml:"MapNumber,attr"`
 	PosX         int    `xml:"PosX,attr"`
@@ -24,27 +25,12 @@ type Shop struct {
 	VipType      int    `xml:"VipType,attr"`
 	GMShop       bool   `xml:"GMShop,attr"`
 	FileName     string `xml:"FileName,attr"`
-	Inventory    []*item.Item
-	MossMerchant bool `xml:"MossMerchant,attr"`
-	VIPType      int  `xml:"VIPType,attr"`
-	BattleCore   bool `xml:"BattleCore,attr"`
+	MossMerchant bool   `xml:"MossMerchant,attr"`
+	VIPType      int    `xml:"VIPType,attr"`
+	BattleCore   bool   `xml:"BattleCore,attr"`
 }
 
-var ShopManager shopManager
-
-type shopManager struct {
-	shopTable map[int]map[int]*Shop
-}
-
-func (m *shopManager) init() {
-	// ShopList was generated 2023-11-17 14:15:26 by https://xml-to-go.github.io/ in Ukraine.
-	type ShopList struct {
-		XMLName xml.Name `xml:"ShopList"`
-		Text    string   `xml:",chardata"`
-		Shop    []*Shop  `xml:"Shop"`
-	}
-	var shopList ShopList
-	conf.XML(conf.PathCommon, "IGC_ShopList.xml", &shopList)
+func (s *Shop) Scan(file string) {
 	// Shop was generated 2023-11-17 14:35:07 by https://xml-to-go.github.io/ in Ukraine.
 	type ShopInventory struct {
 		XMLName xml.Name `xml:"Shop"`
@@ -65,66 +51,48 @@ func (m *shopManager) init() {
 			Serial      int    `xml:"Serial,attr"`
 		} `xml:"Item"`
 	}
-	shopInventory := make(map[string][]*item.Item)
-	m.shopTable = make(map[int]map[int]*Shop)
-	for _, shop := range shopList.Shop {
-		v, ok := shopInventory[shop.FileName]
-		if !ok {
-			file := path.Join("Shops", shop.FileName)
-			var ShopInventory ShopInventory
-			conf.XML(conf.PathCommon, file, &ShopInventory)
-			inventory := make([]*item.Item, MaxShopItemCount)
-			var inventoryFlags [MaxShopItemCount]bool
-			for _, sitem := range ShopInventory.Item {
-				item := item.NewItem(sitem.Cat, sitem.Index)
-				item.Level = sitem.Level
-				item.Durability = sitem.Durability
-				item.Skill = sitem.Skill
-				item.Lucky = sitem.Luck
-				item.Addition = sitem.Option << 2
-				item.Calc()
-				if item.Durability == 0 {
-					item.Durability = item.MaxDurability
-				}
-				i := findShopInventoryFreePosition(inventoryFlags[:], item)
-				if i == -1 {
-					slog.Error("findShopInventoryFreePosition",
-						"shop", shop.FileName, "item", item.Annotation)
-					continue
-				}
-				setShopInventoryFlagsForItem(i, inventoryFlags[:], item)
-				inventory[i] = item
-			}
-			shopInventory[shop.FileName] = inventory
-			v = inventory
+	var shopInventory ShopInventory
+	conf.XML(conf.PathCommon, file, &shopInventory)
+	for _, sitem := range shopInventory.Item {
+		it := item.NewItem(sitem.Cat, sitem.Index)
+		it.Level = sitem.Level
+		it.Durability = sitem.Durability
+		it.Skill = sitem.Skill
+		it.Lucky = sitem.Luck
+		it.Addition = sitem.Option << 2
+		it.Calc()
+		if it.Durability == 0 {
+			it.Durability = it.MaxDurability
 		}
-		shop.Inventory = v
-		_, ok = m.shopTable[shop.NPCIndex]
-		if !ok {
-			m.shopTable[shop.NPCIndex] = make(map[int]*Shop)
+		i := s.FindFreePositionForItem(it)
+		if i == -1 {
+			slog.Error("FindFreePositionForItem",
+				"shop", s.FileName, "item", it.Annotation)
+			continue
 		}
-		m.shopTable[shop.NPCIndex][shop.MapNumber] = shop
+		s.SetFlagsForItem(i, it)
+		s.Items[i] = it
 	}
 }
 
-func findShopInventoryFreePosition(flags []bool, item *item.Item) int {
-	maxHeight := len(flags) / 8
+func (s *Shop) FindFreePositionForItem(it *item.Item) int {
+	maxHeight := len(s.Flags) / 8
 outer:
-	for i, v := range flags {
+	for i, v := range s.Flags {
 		if v {
 			continue
 		}
 		x := i % 8
 		y := i / 8
-		width := item.Width
-		height := item.Height
+		width := it.Width
+		height := it.Height
 		if x+width > 8 ||
 			y+height > maxHeight {
 			continue
 		}
 		for i := x; i < x+width; i++ {
 			for j := y; j < y+height; j++ {
-				if flags[i+8*j] {
+				if s.Flags[i+8*j] {
 					continue outer
 				}
 			}
@@ -134,15 +102,55 @@ outer:
 	return -1
 }
 
-func setShopInventoryFlagsForItem(position int, flags []bool, item *item.Item) {
+func (s *Shop) SetFlagsForItem(position int, it *item.Item) {
 	x := position % 8
 	y := position / 8
-	width := item.Width
-	height := item.Height
+	width := it.Width
+	height := it.Height
 	for i := x; i < x+width; i++ {
 		for j := y; j < y+height; j++ {
-			flags[i+8*j] = true
+			s.Flags[i+8*j] = true
 		}
+	}
+}
+
+var ShopManager shopManager
+
+type shopManager struct {
+	shopTable map[int]map[int]*Shop
+}
+
+func (m *shopManager) init() {
+	// ShopList was generated 2023-11-17 14:15:26 by https://xml-to-go.github.io/ in Ukraine.
+	type ShopList struct {
+		XMLName xml.Name `xml:"ShopList"`
+		Text    string   `xml:",chardata"`
+		Shop    []*Shop  `xml:"Shop"`
+	}
+	var shopList ShopList
+	conf.XML(conf.PathCommon, "IGC_ShopList.xml", &shopList)
+	shopItems := make(map[string]*item.PositionedItems)
+	m.shopTable = make(map[int]map[int]*Shop)
+	for _, shop := range shopList.Shop {
+		pi, ok := shopItems[shop.FileName]
+		if !ok {
+			pi = &item.PositionedItems{
+				Size:  MaxShopItemCount,
+				Items: make([]*item.Item, MaxShopItemCount),
+				Flags: make([]bool, MaxShopItemCount),
+			}
+			shop.PositionedItems = pi
+			file := path.Join("Shops", shop.FileName)
+			shop.Scan(file)
+			shopItems[shop.FileName] = pi
+		} else {
+			shop.PositionedItems = pi
+		}
+		_, ok = m.shopTable[shop.NPCIndex]
+		if !ok {
+			m.shopTable[shop.NPCIndex] = make(map[int]*Shop)
+		}
+		m.shopTable[shop.NPCIndex][shop.MapNumber] = shop
 	}
 }
 
@@ -155,7 +163,7 @@ func (m *shopManager) ForEachShop(f func(int, int, int, int, int)) {
 }
 
 func (m *shopManager) GetShopInventory(npcIndex, mapNumber int) []*item.Item {
-	return m.shopTable[npcIndex][mapNumber].Inventory
+	return m.shopTable[npcIndex][mapNumber].Items
 }
 
 func (m *shopManager) GetShopItem(npcIndex, mapNumber, position int) *item.Item {
