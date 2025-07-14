@@ -7,10 +7,16 @@ Game
 {% block content %}
 <div class="container">
   <div class="row">
-    <div class="col">
+    <div class="col mb-3">
       <canvas id="canvas" width="512" height="512"></canvas>
+      <div>
+        <button id="map-name" type="button" class="btn btn-light">Light</button>
+        <button id="map-monster" type="button" class="btn btn-danger">0</button>
+        <button id="map-npc" type="button" class="btn btn-success">0</button>
+        <button id="map-player" type="button" class="btn btn-primary">0</button>
+      </div>
     </div>
-    <div class="col">
+    <div class="col mb-3">
       <form>
         <div class="form-group row">
           <div id="map-buttons">
@@ -39,6 +45,10 @@ Game
     var input = document.getElementById("input");
     var output = document.getElementById("output");
     var canvas = document.getElementById("canvas");
+    var mapName = document.getElementById("map-name");
+    var mapMonster = document.getElementById("map-monster");
+    var mapNPC = document.getElementById("map-npc");
+    var mapPlayer = document.getElementById("map-player");
     var ctx = canvas.getContext("2d");
     ctx.transform(1, 0, 0, -1, 0, canvas.height);
     ctx.strokeRect(0, 0, 512, 512);
@@ -86,35 +96,43 @@ Game
         case "HandleErrorReply":
           break;
         case "SubscribeMapReply":
-          if (out.name == "map") {
-            bg = out.data;
-          }
-          if (out.name == "object") {
-            ctx.clearRect(0, 0, 512, 512);
-            ctx.fillStyle = "black";
-            bg.map((p) => {
-              drawPoint(p.x, p.y, 2);
-            });
-            ctx.fillStyle = "purple";
-            out.data.stands?.map((p) => {
-              drawPoint(p.x, p.y, 4);
-            });
-            ctx.fillStyle = "red";
-            out.data.monsters?.map((p) => {
-              drawPoint(p.x, p.y, 4);
-            });
-            ctx.fillStyle = "green";
-            out.data.npcs?.map((p) => {
-              drawPoint(p.x, p.y, 4);
-            });
-            ctx.fillStyle = "blue";
-            ctx.strokeStyle = "blue";
-            out.data.players?.map((p) => {
-              drawPoint(p.x, p.y, 4);
-              ctx.beginPath();
-              ctx.arc(p.x*2, p.y*2, 10, 0, Math.PI * 2);
-              ctx.stroke();
-            });
+          switch (out.name){
+            case "map-name":
+              mapName.textContent = out.data
+              break;
+            case "map-data":
+              bg = out.data;
+              break;
+            case "object":
+              ctx.clearRect(0, 0, 512, 512);
+              ctx.fillStyle = "black";
+              bg.map((p) => {
+                drawPoint(p.x, p.y, 2);
+              });
+              ctx.fillStyle = "purple";
+              out.data.stands?.map((p) => {
+                drawPoint(p.x, p.y, 4);
+              });
+              ctx.fillStyle = "red";
+              out.data.monsters?.map((p) => {
+                drawPoint(p.x, p.y, 4);
+              });
+              mapMonster.textContent = `monster: ${out.data.monsters?.length ?? 0}`
+              ctx.fillStyle = "green";
+              out.data.npcs?.map((p) => {
+                drawPoint(p.x, p.y, 4);
+              });
+              mapNPC.textContent = `npc: ${out.data.npcs?.length ?? 0}`
+              ctx.fillStyle = "blue";
+              ctx.strokeStyle = "blue";
+              out.data.players?.map((p) => {
+                drawPoint(p.x, p.y, 4);
+                ctx.beginPath();
+                ctx.arc(p.x*2, p.y*2, 10, 0, Math.PI * 2);
+                ctx.stroke();
+              });
+              mapPlayer.textContent = `player: ${out.data.players?.length ?? 0}`
+              break;
           }
           break;
         default:

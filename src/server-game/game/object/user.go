@@ -95,12 +95,17 @@ func (u *user) SubscribeMap(msg *model.MsgSubscribeMap) {
 	}
 	users[u] = struct{}{}
 
+	// reply map name
+	u.Push(&model.MsgSubscribeMapReply{
+		Name: "map-name",
+		Data: name,
+	})
+
 	// reply map data
-	reply := model.MsgSubscribeMapReply{
-		Name: "map",
+	u.Push(&model.MsgSubscribeMapReply{
+		Name: "map-data",
 		Data: maps.MapManager.GetMapPots(number),
-	}
-	u.Push(&reply)
+	})
 }
 
 func (u *user) unsubscribeMap() {
