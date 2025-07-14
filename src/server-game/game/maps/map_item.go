@@ -27,6 +27,9 @@ func (m *mapManager) RemoveItem(number, index int) {
 
 func (m *mapManager) ExpireItem(now time.Time) {
 	for _, v := range m.maps {
+		if v == nil {
+			continue
+		}
 		v.expireItem(now)
 	}
 }

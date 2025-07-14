@@ -2,10 +2,13 @@ package maps
 
 import (
 	"encoding/xml"
+	"fmt"
 	"log/slog"
 	"math/rand"
 	"os"
 	"path"
+	"regexp"
+	"strings"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
@@ -27,8 +30,10 @@ type zenDropSystem struct {
 }
 
 type mapManager struct {
-	maps [MAX_MAP_NUMBER]*_map
-	zen  zenDropSystem
+	mapNameNumber map[string]int
+	mapNumberName map[int]string
+	maps          [MAX_MAP_NUMBER]*_map
+	zen           zenDropSystem
 }
 
 func (m *mapManager) init() {
@@ -65,9 +70,36 @@ func (m *mapManager) init() {
 	}
 	var mapList MapList
 	conf.XML(conf.PathCommon, "IGC_MapList.xml", &mapList)
-
+	mapNameCount := make(map[string]int)
+	m.mapNameNumber = make(map[string]int)
+	m.mapNumberName = make(map[int]string)
 	for _, v := range mapList.DefaultMaps.Map {
 		number := v.Number
+		// mapNameNumber and mapNumberName
+		name := v.File
+		re := regexp.MustCompile(`^\d+_(.+)\.att$`)
+		matches := re.FindStringSubmatch(name)
+		if len(matches) == 2 {
+			name = matches[1]
+		} else {
+			name = strings.TrimSuffix(name, ".att")
+		}
+		// if name == "Null" {
+		// 	continue
+		// }
+		nameCount := 0
+		if _, ok := mapNameCount[name]; ok {
+			nameCount = mapNameCount[name]
+		}
+		newName := name
+		if nameCount >= 1 {
+			newName = fmt.Sprintf("%s%d", name, nameCount+1)
+		}
+		mapNameCount[name] = nameCount + 1
+		m.mapNameNumber[newName] = number
+		m.mapNumberName[number] = name
+
+		// MapTerrains
 		file := path.Join(conf.PathCommon, "MapTerrains", v.File)
 		mm := _map{}
 		mm.init(number, file)
@@ -124,6 +156,14 @@ func (m *mapManager) init() {
 		m.maps[v.Number].minMoney = v.MinMoneyCount
 		m.maps[v.Number].maxMoney = v.MaxMoneyCount
 	}
+}
+
+func (m *mapManager) GetMapNumber(name string) int {
+	return m.mapNameNumber[name]
+}
+
+func (m *mapManager) GetMapName(number int) string {
+	return m.mapNumberName[number]
 }
 
 func (m *mapManager) GetMapPots(number int) []*Pot {
@@ -184,6 +224,9 @@ func (m *mapManager) GetMapWeather(number int) int {
 
 func (m *mapManager) ProcessWeather(sender sender) {
 	for _, v := range m.maps {
+		if v == nil {
+			continue
+		}
 		v.processWeather(sender)
 	}
 }

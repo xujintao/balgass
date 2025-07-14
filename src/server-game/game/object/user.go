@@ -65,7 +65,8 @@ func (u *user) Test(msg *model.MsgTest) {
 }
 
 func (u *user) SubscribeMap(msg *model.MsgSubscribeMap) {
-	number := msg.Number
+	name := msg.Name
+	number := maps.MapManager.GetMapNumber(name)
 	if number < 0 || number >= maps.MAX_MAP_NUMBER {
 		resp := model.MsgSubscribeMapReply{
 			Err: "invalid map number",

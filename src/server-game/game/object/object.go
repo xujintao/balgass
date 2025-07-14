@@ -305,6 +305,18 @@ func (m *objectManager) Process100ms() {
 }
 
 func (m *objectManager) Process1000ms() {
+	for _, obj := range m.objects {
+		if obj == nil {
+			continue
+		}
+		obj.Process1000ms()
+		obj.processViewport() // 1->2
+		obj.processRegen()    // 4->1
+	}
+	m.ProcessUserSubscribe()
+}
+
+func (m *objectManager) ProcessUserSubscribe() {
 	type objects struct {
 		Players  []*maps.Pot `json:"players"`
 		Monsters []*maps.Pot `json:"monsters"`
@@ -315,15 +327,10 @@ func (m *objectManager) Process1000ms() {
 	for i := range m.mapSubscribeTable {
 		table[i] = &objects{Stands: maps.MapManager.GetMapStands(i)}
 	}
-
 	for _, obj := range m.objects {
 		if obj == nil {
 			continue
 		}
-		obj.Process1000ms()
-		obj.processViewport() // 1->2
-		obj.processRegen()    // 4->1
-
 		// process map subscripion
 		if _, ok := m.mapSubscribeTable[obj.MapNumber]; ok {
 			if !obj.Live {
@@ -337,7 +344,6 @@ func (m *objectManager) Process1000ms() {
 				table[obj.MapNumber].Monsters = append(table[obj.MapNumber].Monsters, &p)
 			case ObjectTypeNPC:
 				table[obj.MapNumber].Npcs = append(table[obj.MapNumber].Npcs, &p)
-			default:
 			}
 		}
 	}

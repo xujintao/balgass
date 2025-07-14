@@ -40,8 +40,10 @@ type testItem struct {
 }
 
 var testData = [...]testItem{
-	{wsIn{"SubscribeMap", &model.MsgSubscribeMap{Number: 0}},
-		wsOut{"SubscribeMapReply", &model.MsgSubscribeMapReply{}}},
+	{
+		wsIn{"SubscribeMap", &model.MsgSubscribeMap{Name: "Lorencia"}},
+		wsOut{"SubscribeMapReply", &model.MsgSubscribeMapReply{}},
+	},
 }
 
 func TestWSHandle(t *testing.T) {

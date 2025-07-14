@@ -33,7 +33,7 @@ type MsgHandleErrorReply struct {
 }
 
 type MsgSubscribeMap struct {
-	Number int `json:"number"`
+	Name string `json:"name"`
 }
 
 type MsgSubscribeMapReply struct {
