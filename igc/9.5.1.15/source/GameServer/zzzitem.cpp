@@ -704,7 +704,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	{
 		if ( p->SkillType != 0 )
 		{
-			this->m_Special[this->m_SpecialNum] = p->SkillType;
+			this->m_Special[this->m_SpecialNum] = p->SkillType; // 18 19 20 21 22 23 24 56 66 260 261
 			this->m_Option1 = 1;
 		}
 	}
@@ -721,7 +721,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		|| GetItemKindA(type) == ITEM_KIND_A_ARMOR
 		|| GetItemKindA(type) == ITEM_KIND_A_WING)
 		{
-			this->m_Special[this->m_SpecialNum] = 84;
+			this->m_Special[this->m_SpecialNum] = 84; // lucky
 			this->m_Option2 = 1;
 		}
 	}
@@ -739,28 +739,28 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		// weapon of physical append attack damage
 		if (type >= ITEMGET(0,0) && type < ITEMGET(5,0))
 		{
-			this->m_Special[this->m_SpecialNum] = 80;
+			this->m_Special[this->m_SpecialNum] = 80; // Addition Attack Damage
 			this->m_RequireStrength += Option3 * 4;
 		}
 
 		// weapon of magic append magic damage
 		if (type >= ITEMGET(5,0) && type < ITEMGET(6,0))
 		{
-			this->m_Special[this->m_SpecialNum] = 81;
+			this->m_Special[this->m_SpecialNum] = 81; // Addition Magic Damage
 			this->m_RequireStrength += Option3 * 4;
 		}
 		
 		// shield append defense rate
 		if ( type >= ITEMGET(6,0) && type < ITEMGET(7,0) )
 		{
-			this->m_Special[this->m_SpecialNum] = 82;
+			this->m_Special[this->m_SpecialNum] = 82; // Addition Defense Rate
 			this->m_RequireStrength +=  Option3 * 4;
 		}
 
 		// armor append defense
 		if ( type >= ITEMGET(7,0) && type < ITEMGET(12,0) )
 		{
-			this->m_Special[this->m_SpecialNum] = 83;
+			this->m_Special[this->m_SpecialNum] = 83; // Addition Defense
 			this->m_RequireStrength +=  Option3 * 4;
 		}
 
@@ -777,7 +777,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			}
 			else
 			{
-				this->m_Special[this->m_SpecialNum] = 85;
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover HP
 			}
 		}
 
@@ -786,16 +786,16 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		case ITEMGET(13,3): // Horn of Dinorant is also a wing in some ways
 			if ((this->m_Option3&0x01) != 0)
 			{
-				// this->m_Special[this->m_SpecialNum] = ?; // absorb damage 5%
+				// this->m_Special[this->m_SpecialNum] = ?; // Addition absorb damage 5%
 			}
 			if ((this->m_Option3&0x02) != 0)
 			{
-				this->m_Special[this->m_SpecialNum] = 103; // AG+50
+				this->m_Special[this->m_SpecialNum] = 103; // Addition AG+50
 				this->m_SpecialNum++;
 			}
 			if ((this->m_Option3&0x04) != 0)
 			{
-				this->m_Special[this->m_SpecialNum] = 104; // Speed +5
+				this->m_Special[this->m_SpecialNum] = 104; // Addition Speed +5
 				this->m_SpecialNum++;
 				this->m_AttackSpeed += 5;
 			}
@@ -805,54 +805,54 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		case ITEMGET(12,134): // Small Wings of Satan
 		case ITEMGET(12,130): // Small Cape of Lord
 		case ITEMGET(12,135): // Little Cape of Fighter
-			this->m_Special[this->m_SpecialNum] = 80;
+			this->m_Special[this->m_SpecialNum] = 80; // Addition Attack Damage
 			break;
 		case ITEMGET(12,1): // Wings of Heaven
 		case ITEMGET(12,41): // Wing of Curse
 		case ITEMGET(12,133): // Small Wings of Heaven
 		case ITEMGET(12,131): // Small Wing of Curse
-			this->m_Special[this->m_SpecialNum] = 81;
+			this->m_Special[this->m_SpecialNum] = 81; // Addition Magic Damage
 			break;
 		case ITEMGET(12,0):
 		case ITEMGET(12,132): // Small Wings of Elf
-			this->m_Special[this->m_SpecialNum] = 85;
+			this->m_Special[this->m_SpecialNum] = 85; // Addition Recover HP
 			break;
 		case ITEMGET(12,3): // Wings of Spirits
 			this->m_RequireStrength += Option3 * 4;
 			if ((this->m_NewOption&0x20) != 0)
 				// As for ELF, recover life is excellent
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover Life
 			else
-				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+				this->m_Special[this->m_SpecialNum] = 80; // Addition Attack Damage
 			break;
 		case ITEMGET(12,4): // Wings of Soul
 			this->m_RequireStrength += Option3 * 4;
 			if ((this->m_NewOption&0x20) != 0)
-				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+				this->m_Special[this->m_SpecialNum] = 81; // Addition Magic Damage
 			else
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover Life
 			break;
 		case ITEMGET(12,5): // Wings of Dragon
 		case ITEMGET(12,49): // Cape of Fighter
 			this->m_RequireStrength += Option3 * 4;
 			if ((this->m_NewOption&0x20) != 0)
-				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+				this->m_Special[this->m_SpecialNum] = 80; // Addition Attack Damage
 			else
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover Life
 			break;
 		case ITEMGET(12,6): // Wings of Darkness
 			this->m_RequireStrength +=  Option3 * 4;
 			if ((this->m_NewOption&0x20) != 0)
-				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+				this->m_Special[this->m_SpecialNum] = 80; // Addition Attack Damage
 			else
-				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+				this->m_Special[this->m_SpecialNum] = 81; // Addition Magic Damage
 			break;
 		case ITEMGET(12,42): // Wind of Despair
 			this->m_RequireStrength += Option3 * 4;
 			if ((this->m_NewOption&0x20) != 0)
-				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+				this->m_Special[this->m_SpecialNum] = 81; // Addition Magic Damage
 			else
-				this->m_Special[this->m_SpecialNum] = 113; // Curse Damage
+				this->m_Special[this->m_SpecialNum] = 113; // Addition Curse Damage
 			break;
 		case ITEMGET(12,36): // Wing of Storm
 		case ITEMGET(12,38): // Wing of Illusion
@@ -860,72 +860,72 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 		case ITEMGET(12,50): // Cape of Overrule
 			this->m_RequireStrength += Option3 * 4;
 			if ((this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0)
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover Life
 			else if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
 			else
-				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+				this->m_Special[this->m_SpecialNum] = 80; // Addition Attack Damage
 			break;
 		case ITEMGET(12,37): // Wing of Eternal
 			this->m_RequireStrength += Option3 * 4;
 			if ((this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0)
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover Life
 			else if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
 			else
-				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+				this->m_Special[this->m_SpecialNum] = 81; // Addition Magic Damage
 			break;
 		case ITEMGET(12,39): // Wing of Ruin
 			this->m_RequireStrength += Option3 * 4;
 			if ((this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0)
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover Life
 			else if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0)
-				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+				this->m_Special[this->m_SpecialNum] = 81; // Addition Magic Damage
 			else
-				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+				this->m_Special[this->m_SpecialNum] = 80; // Addition Attack Damage
 			break;
 		case ITEMGET(12,43): // Wing of Dimension
 			if ((this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0)
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover Life
 			else if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0)
-				this->m_Special[this->m_SpecialNum] = 113; // Curse Damage
+				this->m_Special[this->m_SpecialNum] = 113; // Addition Curse Damage
 			else
-				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+				this->m_Special[this->m_SpecialNum] = 81; // AdditionMagic Damage
 			break;
 		case ITEMGET(12,262): // Cap of Death
 		case ITEMGET(12,263): // Wings of Chaos
 		case ITEMGET(12,265): // Wings of Life
 			this->m_RequireStrength += Option3 * 4;
 			if ((this->m_NewOption&0x10) != 0)
-				this->m_Special[this->m_SpecialNum] = 80; // Attack Damage
+				this->m_Special[this->m_SpecialNum] = 80; // Addition Attack Damage
 			else
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover Life
 			break;
 		case ITEMGET(12,264): // Wings of Magic
 			this->m_RequireStrength +=  Option3 * 4;
 			if ((this->m_NewOption&0x10) != 0)
-				this->m_Special[this->m_SpecialNum] = 81; // Magic Damage
+				this->m_Special[this->m_SpecialNum] = 81; // Addition Magic Damage
 			else
-				this->m_Special[this->m_SpecialNum] = 113; // Curse Damage
+				this->m_Special[this->m_SpecialNum] = 113; // Addition Curse Damage
 			break;
 		case ITEMGET(12,266):
 		case ITEMGET(12,267):
 		case ITEMGET(12,268):
-			this->m_Special[this->m_SpecialNum] = 85;
+			this->m_Special[this->m_SpecialNum] = 85; // Addition Recover HP
 			break;
 		case ITEMGET(12,269):
 			this->m_RequireStrength += Option3 * 4;
 			if ((this->m_NewOption&0x20) != 0)
 				this->m_Special[this->m_SpecialNum] = 80; // Additional Damage
 			else
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover Life
 			break;
 		case ITEMGET(12,270):
 			this->m_RequireStrength += Option3 * 4;
 			if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) != 0)
 				this->m_Special[this->m_SpecialNum] = 80; // Additional Magic
 			else if ((this->m_NewOption&0x20) == 0 && (this->m_NewOption&0x10) == 0)
-				this->m_Special[this->m_SpecialNum] = 85; // Recover Life
+				this->m_Special[this->m_SpecialNum] = 85; // Addition Recover Life
 			else if ((this->m_NewOption&0x20) != 0 && (this->m_NewOption&0x10) == 0)
 				this->m_Special[this->m_SpecialNum] = 83; // Additional Defense
 			break;
@@ -933,7 +933,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	}
 	if (GetItemKindB(type) == ITEM_KIND_B_PENTAGRAM_ITEM)
 	{
-		this->m_Special[this->m_SpecialNum] = 108;
+		this->m_Special[this->m_SpecialNum] = 108; // excellent wing Ignore defense 5%
 	}
 	this->m_SpecialNum++;
 
@@ -1010,7 +1010,7 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 			}
 			if ((this->m_NewOption>>3&1) != 0)
 			{
-				this->m_Special[this->m_SpecialNum] = 94; // // Increases Attack 2%
+				this->m_Special[this->m_SpecialNum] = 94; // Increases Attack 2%
 				this->m_SpecialNum++;
 			}
 		}
@@ -1128,19 +1128,19 @@ void CItem::Convert(int type, BYTE Option1, BYTE Option2, BYTE Option3, BYTE Att
 	{
 		if ((this->m_NewOption&1) != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 108;
+			this->m_Special[this->m_SpecialNum] = 108; // excellent wing Ignore defense 5%
 			this->m_SpecialNum++;
 		}
 
 		if ((this->m_NewOption&2) != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 109;
+			this->m_Special[this->m_SpecialNum] = 109; // excellent wing Return Damage 5%
 			this->m_SpecialNum++;
 		}
 
 		if ((this->m_NewOption&4) != 0)
 		{
-			this->m_Special[this->m_SpecialNum] = 110;
+			this->m_Special[this->m_SpecialNum] = 110; // excellent wing Recovery HP 5%
 			this->m_SpecialNum++;
 		}
 	}
@@ -2180,24 +2180,24 @@ void CItem::Value()
 		{
 			switch ( this->m_Special[g] )
 			{
-				case 18:
-				case 19:
-				case 20:
-				case 21:
-				case 22:
-				case 23:
-				case 24:
-				case 56:
-				case 260:
-				case 261:
-					Gold += (UINT64)(Gold * 1.5);
+				case 18: // skill
+				case 19: // skill
+				case 20: // skill
+				case 21: // skill
+				case 22: // skill
+				case 23: // skill
+				case 24: // skill
+				case 56: // skill
+				case 260: // skill
+				case 261: // skill
+					Gold += (UINT64)(Gold * 1.5); 
 					break;
 
-				case 80:
-				case 81:
-				case 83:
-				case 85:
-				case 113:
+				case 80: // Addition Attack Damage
+				case 81: // Addition Magic Damage
+				case 83: // Addition Defense
+				case 85: // Addition Recover HP
+				case 113: // Addition Curse Damage
 					switch ( this->m_Option3 )
 					{
 						case 1:
@@ -2218,7 +2218,7 @@ void CItem::Value()
 					}
 					break;
 
-				case 82:
+				case 82: // Addition Defense Rate
 
 					switch ( this->m_Option3 )
 					{
@@ -2240,38 +2240,38 @@ void CItem::Value()
 					}
 					break;
 
-				case 84:
+				case 84: // lucky
 					Gold += (UINT64)(Gold * 25.0 / 100.0);
 					break;
 
-				case 86:
-				case 87:
-				case 88:
-				case 89:
-				case 90:
-				case 91:
-				case 92:
-				case 93:
-				case 94:
-				case 95:
-				case 96:
-				case 97:
-				case 98:
-				case 99:
+				case 86: // Increase Maximum Life 4%
+				case 87: // Increase Maximum Mana 4%
+				case 88: // Decreases Damage 4%
+				case 89: // Reflect Damage 5%
+				case 90: // Defense Success Rate 10%
+				case 91: // Increases the amount of Zen
+				case 92: // Excellent damage rate 10%
+				case 93: // Increase Attack/Level =20
+				case 94: // Increases Attack 2%
+				case 95: // Increase (Magic)Attack/Level =20
+				case 96: // Increases (Magic)Attack 2%
+				case 97: // Increase Attack (Wizardry) Speed 7
+				case 98: // Increases the amount of Life
+				case 99: // Increases the amount of Mana
 					Gold += Gold;
 					break;
 
-				case 100:
-				case 101:
-				case 102:
-				case 103:
-				case 104:
-				case 105:
-				case 108:
-				case 109:
-				case 110:
-				case 111:
-				case 114:
+				case 100: // excellent wing HP +50
+				case 101: // excellent wing MP +50
+				case 102: // excellent wing Ignore defense 3%
+				case 103: // excellent wing AG +50
+				case 104: // excellent wing Speed 5
+				case 105: // excellent wing Command 10
+				case 108: // excellent wing Ignore defense 5%
+				case 109: // excellent wing Return Damage 5%
+				case 110: // excellent wing Recovery HP 5%
+				case 111: // excellent wing Recovery MP 5%
+				case 114: // excellent wing
 					Gold += (UINT64)(Gold * 25.0 / 100.0);
 					break;
 
