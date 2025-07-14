@@ -193,7 +193,10 @@ def edit_entry(request, id):
 
 
 def game(request):
-    context = {"game_websocket_url": settings.GAME_WEBSOCKET_URL}
+    context = {
+        "game_websocket_url": settings.GAME_WEBSOCKET_URL,
+        "game_map_names": settings.GAME_MAP_NAMES,
+    }
     return render(request, "game.html", context)
 
 

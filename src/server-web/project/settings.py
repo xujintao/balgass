@@ -201,3 +201,28 @@ LOGGING = {
 # game api
 GAME_API_URL = os.environ.get("GAME_API_URL", "http://r2f2.com:8080/api/accounts")
 GAME_WEBSOCKET_URL = os.environ.get("GAME_WEBSOCKET_URL", "wss://r2f2.com/api/game")
+GAME_CONFIG_PATH = os.environ.get("GAME_CONFIG_PATH", "/etc/server-game-common")
+
+import xml.etree.ElementTree as ET
+import re
+
+# GAME_MAPS_NAMES_NUMBERS
+game_map_name_count = {}
+GAME_MAP_NAMES = []
+et = ET.parse(f"{GAME_CONFIG_PATH}/IGCData/IGC_MapList.xml")
+root = et.getroot()
+for emap in root.find("DefaultMaps"):
+    number = int(emap.get("Number", 0))
+    file = emap.get("File", "00_Lorencia.att")
+    match = re.match(r"\d+_(.+)\.att$", file)
+    name = match.group(1) if match else file.replace(".att", "")
+    if name == "Null":
+        continue
+    name_count = 0
+    if name in game_map_name_count:
+        name_count = game_map_name_count[name]
+    new_name = name
+    if name_count >= 1:
+        new_name = f"{name}{name_count+1}"
+    game_map_name_count[name] = name_count + 1
+    GAME_MAP_NAMES.append(new_name)
