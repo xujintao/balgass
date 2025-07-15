@@ -549,6 +549,7 @@ type Objecter interface {
 	SetMoney(int)
 	GetMoney() int
 	GetInventory() *item.Inventory
+	GetInventoryItem(int) *item.Item
 	GetWarehouse() *item.Warehouse
 	EquipmentChanged()
 	SetDelayRecoverHP(int, int)

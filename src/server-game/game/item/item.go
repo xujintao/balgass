@@ -611,6 +611,46 @@ func (it *Item) CalculateMoney() {
 	it.SellMoney = sellMoney
 }
 
+func (it *Item) CalculateRepairMoney(fast bool) int {
+	deltaDur := it.MaxDurability - it.Durability
+	if deltaDur == 0 {
+		return 0
+	}
+	money := it.BuyMoney / conf.Price.Value.ItemSellPriceDivisor
+	if it.Code == Code(13, 4) || it.Code == Code(13, 5) {
+		money = it.BuyMoney
+	}
+	if money > 400000000 {
+		money = 400000000
+	}
+	if money >= 1000 {
+		money = money / 100 * 100
+	} else if money >= 100 {
+		money = money / 10 * 10
+	}
+	repairMoney := math.Sqrt(float64(money))
+	repairMoney = 3.0 * repairMoney * math.Sqrt(repairMoney)
+	repairMoney = repairMoney * float64(deltaDur) / float64(it.MaxDurability)
+	repairMoney += 1
+	if it.Durability == 0 {
+		if it.Code == Code(13, 4) || it.Code == Code(13, 5) {
+			repairMoney *= 2
+		} else {
+			repairMoney *= 1.4
+		}
+	}
+	if fast {
+		repairMoney += repairMoney * 0.05
+	}
+	money = int(repairMoney)
+	if money >= 1000 {
+		money = money / 100 * 100
+	} else if money >= 100 {
+		money = money / 10 * 10
+	}
+	return money
+}
+
 func (it *Item) Calc() {
 	// calc dur
 	dur := it.ItemBase.Durability

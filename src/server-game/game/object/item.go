@@ -1,6 +1,7 @@
 package object
 
 import (
+	"log/slog"
 	"math"
 
 	"github.com/xujintao/balgass/src/server-game/game/item"
@@ -507,4 +508,58 @@ func (obj *Object) UseItem(msg *model.MsgUseItem) {
 			})
 		}
 	}
+}
+
+func (obj *Object) ValidateItemPosition(position int) bool {
+	ok := position >= 0 && position < obj.GetInventory().Size
+	if !ok {
+		slog.Warn("ValidateItemPosition", "position", position, "object", obj.Name)
+	}
+	return ok
+}
+
+func (obj *Object) repairItem(it *item.Item, fast bool) bool {
+	reply := model.MsgRepairItemReply{}
+	defer obj.Push(&reply)
+	money := it.CalculateRepairMoney(fast)
+	objMoney := obj.GetMoney()
+	if money > objMoney {
+		return false
+	}
+	objMoney -= money
+	obj.SetMoney(objMoney)
+	reply.Money = objMoney
+	it.Durability = it.MaxDurability
+	obj.Push(&model.MsgItemDurabilityReply{
+		Position:   it.Position,
+		Durability: it.Durability,
+		Flag:       0,
+	})
+	return true
+}
+
+func (obj *Object) RepairItem(msg *model.MsgRepairItem) {
+	if msg.Position == 0xFF {
+		for _, it := range obj.GetInventory().Items {
+			if it == nil {
+				continue
+			}
+			if !it.Repair {
+				continue
+			}
+			if ok := obj.repairItem(it, msg.Fast); !ok {
+				return
+			}
+		}
+		return
+	}
+	// validate
+	if !obj.ValidateItemPosition(msg.Position) {
+		return
+	}
+	it := obj.GetInventoryItem(msg.Position)
+	if !it.Repair {
+		return
+	}
+	obj.repairItem(it, msg.Fast)
 }

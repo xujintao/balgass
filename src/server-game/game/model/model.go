@@ -953,6 +953,30 @@ func (msg *MsgSellItemReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgRepairItem struct {
+	Position int
+	Fast     bool
+}
+
+func (msg *MsgRepairItem) Unmarshal(buf []byte) error {
+	br := bytes.NewReader(buf)
+	position, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Position = int(position)
+	fast, err := br.ReadByte()
+	if err != nil {
+		return err
+	}
+	msg.Fast = fast == 1
+	return nil
+}
+
+type MsgRepairItemReply struct {
+	MsgSellItemReply
+}
+
 type MsgMuunSystem struct{}
 
 func (msg *MsgMuunSystem) Unmarshal(buf []byte) error {

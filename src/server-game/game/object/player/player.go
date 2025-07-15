@@ -1561,7 +1561,7 @@ func (p *Player) CalcSetItem(base bool) {
 
 	sameWeapon := 0
 	sameRing := 0
-	for i, it := range p.Inventory.Items[0:object.InventoryWearSize] {
+	for i, it := range p.Inventory.WearingItems() {
 		if it == nil {
 			continue
 		}
@@ -1618,7 +1618,7 @@ func (p *Player) CalcSetItem(base bool) {
 }
 
 func (player *Player) Calc380Item() {
-	for _, wItem := range player.Inventory.Items[0:object.InventoryWearSize] {
+	for _, wItem := range player.Inventory.WearingItems() {
 		if wItem.Durability == 0 {
 			continue
 		}
@@ -2022,6 +2022,10 @@ func (p *Player) GetMoney() int {
 
 func (p *Player) GetInventory() *item.Inventory {
 	return &p.Inventory
+}
+
+func (p *Player) GetInventoryItem(position int) *item.Item {
+	return p.Inventory.Item(position)
 }
 
 func (p *Player) GetWarehouse() *item.Warehouse {

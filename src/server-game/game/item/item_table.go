@@ -44,6 +44,9 @@ func (table *itemTable) init() {
 			v.ReqClass[class.DarkLord] = v.DarkLord
 			v.ReqClass[class.RageFighter] = v.RageFighter
 			// v.ReqClass[class.GrowLancer] = v.GrowLancer
+			if i == 13 {
+				v.DropLevel = v.ReqLevel
+			}
 			t[i][v.Index] = v
 		}
 	}

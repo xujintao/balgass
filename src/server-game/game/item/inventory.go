@@ -5,8 +5,18 @@ import (
 	"fmt"
 )
 
+const INVENTORY_WEAR_SIZE = 12
+
 type Inventory struct {
 	PositionedItems
+}
+
+func (inv *Inventory) WearingItems() []*Item {
+	return inv.Items[:INVENTORY_WEAR_SIZE]
+}
+
+func (inv *Inventory) Item(position int) *Item {
+	return inv.Items[position]
 }
 
 func (inv *Inventory) CheckFlagsForItem(position int, it *Item) bool {
