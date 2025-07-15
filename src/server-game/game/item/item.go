@@ -190,9 +190,8 @@ func (it *Item) CalculateMoney() {
 		it.KindA == KindAWing,
 		it.KindA == KindAPendant,
 		it.KindA == KindARing:
-		// 1. calculate level value
 		level := it.ItemBase.DropLevel + it.Level*3
-		if it.IsExcellent() {
+		if it.IsExcellent() && it.KindA != KindAWing {
 			level += 25
 		}
 		levelTable := []int{
@@ -214,15 +213,15 @@ func (it *Item) CalculateMoney() {
 			365, // 15
 		}
 		level += levelTable[it.Level]
+		// 1. calculate level value
 		switch it.KindA {
-		case KindAWeapon,
-			KindAArmor,
-			KindAPendant,
-			KindARing:
+		case KindAWeapon, KindAArmor:
 			money = 100 + level*level*(level+40)/8
 			if it.KindA == KindAWeapon && !it.ItemBase.TwoHand {
 				money = money * 80 / 100
 			}
+		case KindAPendant, KindARing:
+			money = 100 + level*level*level
 		case KindAWing:
 			money = 40000000 + 11*level*level*(level+40)
 		}
@@ -235,6 +234,8 @@ func (it *Item) CalculateMoney() {
 			money += int(float64(money) * 25.0 / 100.0)
 		}
 		// 4. calculate addition value
+		switch it.KindA {
+		case KindAWeapon, KindAArmor, KindAWing:
 		switch it.Addition {
 		case 4:
 			money += int(float64(money) * 6.0 / 10.0)
@@ -244,17 +245,19 @@ func (it *Item) CalculateMoney() {
 			money += int(float64(money) * 28.0 / 10.0)
 		case 16:
 			money += int(float64(money) * 56.0 / 10.0)
+			}
+		case KindAPendant, KindARing:
+			money += money * (it.Addition / 4)
 		}
 		// 5. calculate excellent value
 		if it.IsExcellent() {
 			switch it.KindA {
-			case KindAWeapon,
-				KindAArmor,
-				KindAPendant,
-				KindARing:
+			case KindAWeapon, KindAArmor:
 				for i := it.ExcellentCount(); i > 0; i-- {
 					money += money
 				}
+			case KindAPendant, KindARing:
+				// nothing
 			case KindAWing:
 				for i := it.ExcellentCount(); i > 0; i-- {
 					money += int(float64(money) * 25.0 / 100.0)
