@@ -60,6 +60,10 @@ func (s *Shop) Scan(file string) {
 		it.Skill = sitem.Skill
 		it.Lucky = sitem.Luck
 		it.Addition = sitem.Option << 2
+		if it.KindA == item.KindAWing {
+			it.RandWingAdditionKind()
+		}
+		it.DecodeExcellent(sitem.Exc)
 		it.Calc()
 		if it.Durability == 0 {
 			it.Durability = it.MaxDurability

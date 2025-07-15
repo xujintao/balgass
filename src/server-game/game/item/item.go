@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"math"
+	"math/rand"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
@@ -164,6 +165,149 @@ func (it *Item) ExcellentCount() int {
 	return count
 }
 
+func (it *Item) RandWingAdditionKind() {
+	if it.KindA != KindAWing ||
+		it.KindB == KindBWing1st {
+		return
+	}
+	n := rand.Intn(2)
+	switch n {
+	case 0: // attack
+		switch it.Code {
+		case Code(12, 6), // Wings of Darkness 暗黑之翼
+			Code(12, 39): // Wing of Ruin 破灭之翼
+			n = rand.Intn(2)
+			switch n {
+			case 0:
+				it.WingAdditionMagicAttack = true
+			case 1:
+				it.WingAdditionAttack = true
+			}
+		case Code(12, 43), // Wing of Dimension 次元之翼
+			Code(12, 264): // Wings of Magic 魔力之翼
+			n = rand.Intn(2)
+			switch n {
+			case 0:
+				it.WingAdditionMagicAttack = true
+			case 1:
+				it.WingAdditionCurseAttack = true
+			}
+		case Code(12, 37), // Wing of Eternal 时空之翼
+			Code(12, 42): // Wing of Despair 绝望之翼
+			it.WingAdditionMagicAttack = true
+		default:
+			it.WingAdditionAttack = true
+		}
+	case 1: // defense
+		switch it.Code {
+		case Code(12, 36), // Wing of Storm 暴风之翼
+			Code(12, 38), // Wing of Illusion 幻影之翼
+			Code(12, 40), // Cape of Emperor 帝王披风
+			Code(12, 50): // Cape of Overrule 斗皇披风
+			n = rand.Intn(2)
+			switch n {
+			case 0:
+				it.WingAdditionDefense = true
+			case 1:
+				it.WingAdditionRecoverHP = true
+			}
+		default:
+			it.WingAdditionRecoverHP = true
+		}
+	}
+}
+
+func (it *Item) DecodeExcellent(code int) {
+	for i := 0; i < 6; i++ {
+		switch code & (1 << i) {
+		case 32:
+			switch {
+			case it.KindA == KindAWeapon,
+				it.KindA == KindAPendant:
+				it.ExcellentAttackRate = true
+			case it.KindA == KindAArmor,
+				it.KindA == KindARing:
+				it.ExcellentDefenseHP = true
+			}
+		case 16:
+			switch {
+			case it.KindA == KindAWeapon,
+				it.KindA == KindAPendant:
+				it.ExcellentAttackLevel = true
+			case it.KindA == KindAArmor,
+				it.KindA == KindARing:
+				it.ExcellentDefenseMP = true
+			case it.KindB == KindBWing2nd:
+				it.ExcellentWing2Speed = true
+			}
+		case 8:
+			switch {
+			case it.KindA == KindAWeapon,
+				it.KindA == KindAPendant:
+				it.ExcellentAttackPercent = true
+			case it.KindA == KindAArmor,
+				it.KindA == KindARing:
+				it.ExcellentDefenseReduce = true
+			case it.KindB == KindBWing2nd:
+				it.ExcellentWing2AG = true
+			case it.KindB == KindBCapeLord:
+				it.ExcellentWing2Leadership = true
+			case it.KindB == KindBWing3rd:
+				it.ExcellentWing3MP = true
+			}
+		case 4:
+			switch {
+			case it.KindA == KindAWeapon,
+				it.KindA == KindAPendant:
+				it.ExcellentAttackSpeed = true
+			case it.KindA == KindAArmor,
+				it.KindA == KindARing:
+				it.ExcellentDefenseReflect = true
+			case it.KindB == KindBWing2nd,
+				it.KindB == KindBCapeLord,
+				it.KindB == KindBCapeFighter:
+				it.ExcellentWing2Ignore = true
+			case it.KindB == KindBWing3rd:
+				it.ExcellentWing3HP = true
+			}
+		case 2:
+			switch {
+			case it.KindA == KindAWeapon,
+				it.KindA == KindAPendant:
+				it.ExcellentAttackHP = true
+			case it.KindA == KindAArmor,
+				it.KindA == KindARing:
+				it.ExcellentDefenseRate = true
+			case it.KindB == KindBWing2nd,
+				it.KindB == KindBCapeLord,
+				it.KindB == KindBCapeFighter:
+				it.ExcellentWing2MP = true
+			case it.KindB == KindBWingMonster:
+				it.ExcellentWing25HP = true
+			case it.KindB == KindBWing3rd:
+				it.ExcellentWing3Return = true
+			}
+		case 1:
+			switch {
+			case it.KindA == KindAWeapon,
+				it.KindA == KindAPendant:
+				it.ExcellentAttackMP = true
+			case it.KindA == KindAArmor,
+				it.KindA == KindARing:
+				it.ExcellentDefenseMoney = true
+			case it.KindB == KindBWing2nd,
+				it.KindB == KindBCapeLord,
+				it.KindB == KindBCapeFighter:
+				it.ExcellentWing2HP = true
+			case it.KindB == KindBWingMonster:
+				it.ExcellentWing25Ignore = true
+			case it.KindB == KindBWing3rd:
+				it.ExcellentWing3Ignore = true
+			}
+		}
+	}
+}
+
 func (i *Item) IsSet() bool {
 	return i.Set > 0
 }
@@ -236,15 +380,15 @@ func (it *Item) CalculateMoney() {
 		// 4. calculate addition value
 		switch it.KindA {
 		case KindAWeapon, KindAArmor, KindAWing:
-		switch it.Addition {
-		case 4:
-			money += int(float64(money) * 6.0 / 10.0)
-		case 8:
-			money += int(float64(money) * 14.0 / 10.0)
-		case 12:
-			money += int(float64(money) * 28.0 / 10.0)
-		case 16:
-			money += int(float64(money) * 56.0 / 10.0)
+			switch it.Addition {
+			case 4:
+				money += int(float64(money) * 6.0 / 10.0)
+			case 8:
+				money += int(float64(money) * 14.0 / 10.0)
+			case 12:
+				money += int(float64(money) * 28.0 / 10.0)
+			case 16:
+				money += int(float64(money) * 56.0 / 10.0)
 			}
 		case KindAPendant, KindARing:
 			money += money * (it.Addition / 4)

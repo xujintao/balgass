@@ -100,7 +100,7 @@ func (m *excellentDropManager) dropExcellentCount() int {
 	return 0
 }
 
-func (m *excellentDropManager) DropExcellent(kindA itemKindA, kindB itemKindB) []int {
+func (m *excellentDropManager) DropExcellent(kindA itemKindA, kindB itemKindB) int {
 	var pool []int
 	switch kindA {
 	case KindAWeapon, KindAPendant, KindAArmor, KindARing:
@@ -110,7 +110,7 @@ func (m *excellentDropManager) DropExcellent(kindA itemKindA, kindB itemKindB) [
 	}
 	n := len(pool)
 	if n <= 0 {
-		return nil
+		return 0
 	}
 	cnt := m.dropExcellentCount()
 	s1 := make(map[int]struct{})
@@ -123,9 +123,9 @@ func (m *excellentDropManager) DropExcellent(kindA itemKindA, kindB itemKindB) [
 			cnt--
 		}
 	}
-	var s2 []int
+	excel := 0
 	for k := range s1 {
-		s2 = append(s2, k)
+		excel |= 1 << k
 	}
-	return s2
+	return excel
 }
