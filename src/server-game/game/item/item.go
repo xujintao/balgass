@@ -1105,7 +1105,7 @@ func (pi *PositionedItems) UnmarshalJSON(
 		ok := CheckFlagsForItem(it.Position, it)
 		if !ok {
 			slog.Error("pi.CheckFlagsForItem",
-				"position", it.Position, "name", it.Name, "annotation", it.Annotation)
+				"position", it.Position, "name", it.Name)
 			continue
 		}
 		SetFlagsForItem(it.Position, it)

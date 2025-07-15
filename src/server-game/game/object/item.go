@@ -35,13 +35,11 @@ func (obj *Object) PickItem(msg *model.MsgPickItem) {
 	switch it2.Code {
 	case item.Code(14, 15): // zen
 		money := it2.Durability
-		objMoney := obj.GetMoney()
-		if objMoney+money > MaxZen {
+		if obj.Money+money > MaxZen {
 			return
 		}
-		objMoney += money
-		obj.SetMoney(objMoney)
-		reply.Money = objMoney
+		obj.Money += money
+		reply.Money = obj.Money
 		position = -2
 	default:
 		position = obj.GetInventory().FindFreePositionForItem(it2)
@@ -139,12 +137,10 @@ func (obj *Object) BuyItem(msg *model.MsgBuyItem) {
 	if position == -1 {
 		return
 	}
-	objMoney := obj.GetMoney()
-	if objMoney < sit.BuyMoney {
+	if obj.Money < sit.BuyMoney {
 		return
 	}
-	objMoney -= sit.BuyMoney
-	obj.SetMoney(objMoney)
+	obj.Money -= sit.BuyMoney
 	obj.PushMoney()
 	it = obj.GetInventory().Items[position]
 	if it == nil {
@@ -183,15 +179,13 @@ func (obj *Object) SellItem(msg *model.MsgSellItem) {
 	if it == nil {
 		return
 	}
-	objMoney := obj.GetMoney()
-	if objMoney+it.SellMoney > MaxZen {
+	if obj.Money+it.SellMoney > MaxZen {
 		return
 	}
-	objMoney += it.SellMoney
-	obj.SetMoney(objMoney)
+	obj.Money += it.SellMoney
 	obj.GetInventory().RemoveItem(msg.Position, it)
 	reply.Result = 1
-	reply.Money = objMoney
+	reply.Money = obj.Money
 }
 
 func (obj *Object) MoveItem(msg *model.MsgMoveItem) {
@@ -522,13 +516,11 @@ func (obj *Object) repairItem(it *item.Item, fast bool) bool {
 	reply := model.MsgRepairItemReply{}
 	defer obj.Push(&reply)
 	money := it.CalculateRepairMoney(fast)
-	objMoney := obj.GetMoney()
-	if money > objMoney {
+	if money > obj.Money {
 		return false
 	}
-	objMoney -= money
-	obj.SetMoney(objMoney)
-	reply.Money = objMoney
+	obj.Money -= money
+	reply.Money = obj.Money
 	it.Durability = it.MaxDurability
 	obj.Push(&model.MsgItemDurabilityReply{
 		Position:   it.Position,

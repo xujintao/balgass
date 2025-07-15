@@ -108,7 +108,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 	if rand.Intn(10000) < excellentDropRate {
 		// excellent item
 		dropExcellentItem = true
-		slog.Debug("DieDropItem", "item", "excellent", "monster", m.Annotation)
+		slog.Debug("DieDropItem", "item", "excellent", "monster", m.Name)
 	} else {
 		// roll plain item
 		plainDropRate := conf.CommonServer.GameServerInfo.ItemDropPercent
@@ -118,7 +118,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 		}
 		if rand.Intn(itemDropRate) < plainDropRate {
 			// plain item
-			slog.Debug("DieDropItem", "item", "plain", "monster", m.Annotation)
+			slog.Debug("DieDropItem", "item", "plain", "monster", m.Name)
 			dropPlainItem = true
 		} else {
 			// roll money
@@ -128,7 +128,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 			}
 			if rand.Intn(moneyDropRate) < 10 {
 				// money
-				// slog.Debug("DieDropItem", "item", "money", "monster", m.Annotation)
+				slog.Debug("DieDropItem", "item", "money", "monster", m.Name)
 				dropMoney = true
 			}
 		}
@@ -143,7 +143,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 			if it == nil {
 				return
 			}
-			slog.Info("DieDropItem", "item", "excellent", "monster", m.Annotation, "item", it.Annotation)
+			slog.Debug("DieDropItem", "item", "excellent", "monster", m.Name, "item", it.Name)
 			drops := item.ExcellentDropManager.DropExcellent(it.KindA, it.KindB)
 			for _, v := range drops {
 				switch it.KindA {
@@ -282,7 +282,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 			if it == nil {
 				return
 			}
-			slog.Info("DieDropItem", "item", "plain", "monster", m.Annotation, "item", it.Annotation)
+			slog.Debug("DieDropItem", "item", "plain", "monster", m.Name, "item", it.Name)
 		}
 		if it.ItemBase.Durability <= 5 {
 			it.Durability = it.ItemBase.Durability

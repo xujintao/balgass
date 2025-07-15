@@ -194,14 +194,12 @@ func (obj *Object) MapMove(msg *model.MsgMapMove) {
 	}
 	defer obj.Push(&reply)
 	maps.MapMoveManager.Move(msg.MoveIndex, func(gateNumber, level, money int) {
-		objMoney := obj.GetMoney()
-		if obj.Level < level || objMoney < money {
+		if obj.Level < level || obj.Money < money {
 			return
 		}
 		ok := obj.gateMove(gateNumber)
 		if ok {
-			objMoney -= money
-			obj.SetMoney(objMoney)
+			obj.Money -= money
 			obj.PushMoney()
 		}
 	})

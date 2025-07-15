@@ -67,7 +67,7 @@ func (s *Shop) Scan(file string) {
 		i := s.FindFreePositionForItem(it)
 		if i == -1 {
 			slog.Error("FindFreePositionForItem",
-				"shop", s.FileName, "item", it.Annotation)
+				"shop", s.FileName, "item", it.Name)
 			continue
 		}
 		s.SetFlagsForItem(i, it)

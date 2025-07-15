@@ -254,8 +254,8 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 	// debug
 	if conf.ServerEnv.Debug {
 		slog.Debug("attack",
-			"index", obj.Index, "annotation", obj.Annotation,
-			"target", tobj.Index, "annotation", tobj.Annotation,
+			"index", obj.Index, "name", obj.Name,
+			"target", tobj.Index, "name", tobj.Name,
 			"hp", tobj.HP)
 	}
 }

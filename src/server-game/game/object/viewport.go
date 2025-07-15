@@ -249,7 +249,7 @@ func (obj *Object) createViewport() {
 		if len(viewportItemReply.Items) > 0 {
 			var itemLine strings.Builder
 			for _, it := range viewportItemReply.Items {
-				itemLine.WriteString(fmt.Sprintf("(%d,%s)", it.Index, it.Item.Annotation))
+				itemLine.WriteString(fmt.Sprintf("(%d,%s)", it.Index, it.Item.Name))
 			}
 			s := itemLine.String()
 			slog.Debug("viewport add", "items", s)

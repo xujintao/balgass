@@ -246,8 +246,7 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 	m.CreateFrustum()
 	m.spawnDis = dis
 	m.PentagramMainAttribute = element
-	m.Name = mc.Name
-	m.Annotation = mc.Annotation
+	m.Name = fmt.Sprintf("%s %s", mc.Name, mc.Annotation)
 	m.Level = mc.Level
 	m.AttackMin = mc.DamageMin
 	m.AttackMax = mc.DamageMax

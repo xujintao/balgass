@@ -546,8 +546,6 @@ type Objecter interface {
 	GetMonsterDieGetMoney() float64
 	GetKnightGladiatorCalcSkillBonus() float64
 	GetImpaleSkillCalc() float64
-	SetMoney(int)
-	GetMoney() int
 	GetInventory() *item.Inventory
 	GetInventoryItem(int) *item.Item
 	GetWarehouse() *item.Warehouse
@@ -560,16 +558,23 @@ type Objecter interface {
 type Object struct {
 	Objecter
 	Index                     int
-	ConnectState              ConnectState
+	Name                      string
+	Type                      ObjectType // 1=Player 2=Monster 3=NPC
+	Class                     int
+	MapNumber                 int
+	X                         int
+	Y                         int
+	Dir                       int
+	Money                     int
+	NpcType                   NpcType
+	Level                     int
+	ConnectState              ConnectState // 1=Connected 2=Logged 3=Playing
 	Live                      bool
 	State                     int // 1:初始 2:视野 4:死亡 8:清理
 	StartX                    int
 	StartY                    int
-	X                         int // x坐标
-	Y                         int // y坐标
-	Dir                       int // 方向
-	TX                        int // 目标x坐标
-	TY                        int // 目标y坐标
+	TX                        int
+	TY                        int
 	pathX                     [15]int
 	pathY                     [15]int
 	pathDir                   [15]int
@@ -578,16 +583,8 @@ type Object struct {
 	pathTime                  time.Time
 	PathMoving                bool
 	delayLevel                int
-	MapNumber                 int        // 地图号
-	Type                      ObjectType // 对象种类：玩家，怪物，NPC
-	NpcType                   NpcType
-	Class                     int    // 对象类别。怪物和玩家都有类别
-	Name                      string // 对象名称
-	Annotation                string // 对象备注
-	Level                     int
 	HP                        int // HP
 	MaxHP                     int // MaxHP
-	ScriptMaxHP               int
 	MP                        int // MP
 	MaxMP                     int // MaxMP
 	SD                        int // SD
@@ -1043,6 +1040,6 @@ func (obj *Object) PushSystemMsg(msg string) {
 func (obj *Object) PushMoney() {
 	obj.Push(&model.MsgMoneyReply{
 		Result: -2,
-		Money:  obj.GetMoney(),
+		Money:  obj.Money,
 	})
 }

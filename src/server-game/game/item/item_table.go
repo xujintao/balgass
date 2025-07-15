@@ -47,6 +47,7 @@ func (table *itemTable) init() {
 			if i == 13 {
 				v.DropLevel = v.ReqLevel
 			}
+			v.Name = fmt.Sprintf("%s %s", v.Name, v.Annotation)
 			t[i][v.Index] = v
 		}
 	}

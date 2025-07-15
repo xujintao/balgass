@@ -99,7 +99,6 @@ type Player struct {
 	MasterPoint       int
 	MasterPointUsed   int
 	FruitPoint        int
-	Money             int
 	Strength          int
 	Dexterity         int
 	Vitality          int
@@ -659,7 +658,6 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// set player with character data
 	p.CharacterID = c.ID
 	p.Name = c.Name
-	p.Annotation = c.Name
 	p.Class = c.Class
 	p.ChangeUp = c.ChangeUp
 	p.Level = c.Level
@@ -2010,14 +2008,6 @@ func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {
 	p.SaveCharacter()
 	reply := model.MsgCloseWarehouseWindowReply{}
 	p.Push(&reply)
-}
-
-func (p *Player) SetMoney(money int) {
-	p.Money = money
-}
-
-func (p *Player) GetMoney() int {
-	return p.Money
 }
 
 func (p *Player) GetInventory() *item.Inventory {
