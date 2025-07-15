@@ -187,8 +187,10 @@ func (it *Item) CalculateMoney() {
 	// calculate the money of special items
 	case it.KindA == KindAWeapon && it.Code != Code(0, 41), // weapons exclude Pandora Pick (two-handed)
 		it.KindA == KindAArmor,
-		it.KindA == KindAWing:
-		// calculate level value
+		it.KindA == KindAWing,
+		it.KindA == KindAPendant,
+		it.KindA == KindARing:
+		// 1. calculate level value
 		level := it.ItemBase.DropLevel + it.Level*3
 		if it.IsExcellent() {
 			level += 25
@@ -213,7 +215,10 @@ func (it *Item) CalculateMoney() {
 		}
 		level += levelTable[it.Level]
 		switch it.KindA {
-		case KindAWeapon, KindAArmor:
+		case KindAWeapon,
+			KindAArmor,
+			KindAPendant,
+			KindARing:
 			money = 100 + level*level*(level+40)/8
 			if it.KindA == KindAWeapon && !it.ItemBase.TwoHand {
 				money = money * 80 / 100
@@ -221,11 +226,15 @@ func (it *Item) CalculateMoney() {
 		case KindAWing:
 			money = 40000000 + 11*level*level*(level+40)
 		}
-		// calculate skill value
+		// 2. calculate skill value
 		if it.Skill {
 			money += int(float64(money) * 1.5)
 		}
-		// calculate addition value
+		// 3. calculate lucky value
+		if it.Lucky {
+			money += int(float64(money) * 25.0 / 100.0)
+		}
+		// 4. calculate addition value
 		switch it.Addition {
 		case 4:
 			money += int(float64(money) * 6.0 / 10.0)
@@ -236,17 +245,20 @@ func (it *Item) CalculateMoney() {
 		case 16:
 			money += int(float64(money) * 56.0 / 10.0)
 		}
-		// calculate lucky value
-		if it.Lucky {
-			money += int(float64(money) * 25.0 / 100.0)
-		}
-		// calculate excellent value
+		// 5. calculate excellent value
 		if it.IsExcellent() {
 			switch it.KindA {
-			case KindAWeapon, KindAArmor:
-				money += money * it.ExcellentCount()
+			case KindAWeapon,
+				KindAArmor,
+				KindAPendant,
+				KindARing:
+				for i := it.ExcellentCount(); i > 0; i-- {
+					money += money
+				}
 			case KindAWing:
-				money += int(float64(money)*25.0/100.0) * it.ExcellentCount()
+				for i := it.ExcellentCount(); i > 0; i-- {
+					money += int(float64(money) * 25.0 / 100.0)
+				}
 			}
 		}
 		if it.Type == Type380 {
