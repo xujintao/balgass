@@ -331,26 +331,16 @@ pack(1)
 
 <img src="object-item.jpg">
 
-#### Pick Item Request
+#### Pick Item
 
-#### Pick Item Reply
+#### Drop Item
 
-#### Drop Item Request
+#### Buy Item
 
-#### Drop Item Reply
+#### Sell Item
 
-#### Buy Item Request
+#### Move Item
 
-#### Buy Item Reply
+#### Use Item
 
-#### Sell Item Request
-
-#### Sell Item Reply
-
-#### Move Item Request
-
-#### Move Item Reply
-
-#### Use Item Request
-
-#### Use Item Reply
+#### Repair Item

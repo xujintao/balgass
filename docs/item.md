@@ -53,6 +53,18 @@ bit4~bit7: item section 0~15
 field[6]~field[11]: for socket/pentagram/muun
 ```
 
+### Excellent Item
+
+| kind A         | kind B       | 32(1<<5)    | 16(1<<4)     | 8(1<<3)          | 4(1<<2)         | 2(1<<1)      | 1(1<<0)       |
+| -------------- | ------------ | ----------- | ------------ | ---------------- | --------------- | ------------ | ------------- |
+| weapon/pendant |              | attack rate | attack level | attack percent   | attack speed    | attack hp    | attack mp     |
+| armor/ring     |              | defense hp  | defense hp   | defense reduce   | defense reflect | defense rate | defense money |
+| wing           | wing 2D      |             | wing2 speed  | wing2 ag         | wing2 ignore    | wing2 mp     | wing2 hp      |
+| wing           | cape load    |             |              | wing2 leadership | wing2 ignore    | wing2 mp     | wing2 hp      |
+| wing           | cape fighter |             |              |                  | wing2 ignore    | wing2 mp     | wing2 hp      |
+| wing           | wing 3D      |             |              | wing3 mp         | wing3 hp        | wing3 return | wing3 ignore  |
+| wing           | wing 25D     |             |              |                  |                 | wing25 hp    | wing25 ignore |
+
 ### Inventory
 
 ```
