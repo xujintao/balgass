@@ -799,7 +799,7 @@ func (it *Item) CalculateRepairMoney(fast bool) int {
 		}
 	}
 	if fast {
-		repairMoney += repairMoney * 0.05
+		repairMoney *= 2.5
 	}
 	money = int(repairMoney)
 	if money >= 1000 {
