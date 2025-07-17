@@ -485,7 +485,7 @@ func (p *Player) Hack(msg *model.MsgHack) {
 	// slog.Warn("Hack placeholder")
 }
 
-func (p *Player) GetCharacterList(msg *model.MsgGetCharacterList) {
+func (p *Player) GetCharacterList(msg *model.MsgEmpty) {
 	reply := model.MsgGetCharacterListReply{}
 
 	// get account
@@ -786,7 +786,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// }()
 }
 
-func (p *Player) BattleCoreNotice(*model.MsgBattleCoreNotice) {
+func (p *Player) BattleCoreNotice(*model.MsgEmpty) {
 	// p.Push(&model.MsgBattleCoreNoticeReply{Notice: false})
 }
 
@@ -1437,7 +1437,7 @@ func (p *Player) UsePet(msg *model.MsgUsePet) {
 	}
 }
 
-func (p *Player) MapDataLoadingOK(msg *model.MsgMapDataLoadingOK) {}
+func (p *Player) MapDataLoadingOK(msg *model.MsgEmpty) {}
 
 func (p *Player) SaveCharacter() {
 	if p.Name == "" {
@@ -2003,11 +2003,11 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 	}
 }
 
-func (p *Player) CloseTalkWindow(msg *model.MsgCloseTalkWindow) {
+func (p *Player) CloseTalkWindow(msg *model.MsgEmpty) {
 	p.TargetNumber = -1
 }
 
-func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {
+func (p *Player) CloseWarehouseWindow(msg *model.MsgEmpty) {
 	account := model.Account{
 		ID:             p.AccountID,
 		Warehouse:      p.Warehouse,
@@ -2022,6 +2022,14 @@ func (p *Player) CloseWarehouseWindow(msg *model.MsgCloseWarehouseWindow) {
 	p.SaveCharacter()
 	reply := model.MsgCloseWarehouseWindowReply{}
 	p.Push(&reply)
+}
+
+func (p *Player) StartPartyNumberPosition(*model.MsgEmpty) {
+
+}
+
+func (p *Player) StopPartyNumberPosition(*model.MsgEmpty) {
+
 }
 
 func (p *Player) GetInventory() *item.Inventory {

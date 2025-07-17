@@ -16,6 +16,12 @@ import (
 	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
+type MsgEmpty struct{}
+
+func (*MsgEmpty) Unmarshal([]byte) error {
+	return nil
+}
+
 type MsgServerRegister struct {
 	Code    int
 	Percent int
@@ -874,12 +880,6 @@ func (msg *MsgTalkReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-type MsgCloseTalkWindow struct{}
-
-func (msg *MsgCloseTalkWindow) Unmarshal(buf []byte) error {
-	return nil
-}
-
 // pack(1)
 type MsgTypeItemListReply struct {
 	Type int
@@ -1018,12 +1018,6 @@ func (msg *MsgWarehouseMoneyReply) Marshal() ([]byte, error) {
 	binary.Write(&bw, binary.LittleEndian, uint32(msg.WarehouseMoney))
 	binary.Write(&bw, binary.LittleEndian, uint32(msg.InventoryMoney))
 	return bw.Bytes(), nil
-}
-
-type MsgCloseWarehouseWindow struct{}
-
-func (msg *MsgCloseWarehouseWindow) Unmarshal(buf []byte) error {
-	return nil
 }
 
 type MsgCloseWarehouseWindowReply struct{}
@@ -1536,12 +1530,6 @@ func (msg *MsgHack) Unmarshal(buf []byte) error {
 	}
 	msg.Flag2 = int(flag2)
 
-	return nil
-}
-
-type MsgGetCharacterList struct{}
-
-func (msg *MsgGetCharacterList) Unmarshal(buf []byte) error {
 	return nil
 }
 
@@ -2163,12 +2151,6 @@ func (msg *MsgSkillOneReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
-type MsgMapDataLoadingOK struct{}
-
-func (msg *MsgMapDataLoadingOK) Unmarshal(buf []byte) error {
-	return nil
-}
-
 type MsgCheckCharacter struct {
 	Name string
 }
@@ -2188,12 +2170,6 @@ func (msg *MsgCheckCharacter) Unmarshal(buf []byte) error {
 	}
 	msg.Name = utils.TrimStr(utf8[:])
 
-	return nil
-}
-
-type MsgBattleCoreNotice struct{}
-
-func (msg *MsgBattleCoreNotice) Unmarshal(buf []byte) error {
 	return nil
 }
 

@@ -474,7 +474,7 @@ type Objecter interface {
 	// 2. account and character
 	Login(*model.MsgLogin)
 	Logout(*model.MsgLogout)
-	GetCharacterList(*model.MsgGetCharacterList)
+	GetCharacterList(*model.MsgEmpty)
 	CreateCharacter(*model.MsgCreateCharacter)
 	DeleteCharacter(*model.MsgDeleteCharacter)
 	CheckCharacter(*model.MsgCheckCharacter)
@@ -491,28 +491,30 @@ type Objecter interface {
 	Chat(*model.MsgChat)
 	Whisper(*model.MsgWhisper)
 	Talk(*model.MsgTalk)
-	CloseTalkWindow(*model.MsgCloseTalkWindow)
-	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
+	CloseTalkWindow(*model.MsgEmpty)
+	CloseWarehouseWindow(*model.MsgEmpty)
 	// 5. Move
-	Move(*model.MsgMove)                         // implemented by Object
-	Teleport(*model.MsgTeleport)                 // implemented by Object
-	MapMove(*model.MsgMapMove)                   // implemented by Object
-	SetPosition(*model.MsgSetPosition)           // implemented by Object
-	MapDataLoadingOK(*model.MsgMapDataLoadingOK) //
-	Action(*model.MsgAction)                     // implemented by Object
+	Move(*model.MsgMove)               // implemented by Object
+	Teleport(*model.MsgTeleport)       // implemented by Object
+	MapMove(*model.MsgMapMove)         // implemented by Object
+	SetPosition(*model.MsgSetPosition) // implemented by Object
+	MapDataLoadingOK(*model.MsgEmpty)  //
+	Action(*model.MsgAction)           // implemented by Object
 	// 6. Attack
 	Attack(*model.MsgAttack) // implemented by Object
 	// 7. Skill
 	UseSkill(*model.MsgUseSkill) // implemented by Object
 	LearnMasterSkill(*model.MsgLearnMasterSkill)
 	// 8. Others
-	BattleCoreNotice(*model.MsgBattleCoreNotice)
+	BattleCoreNotice(*model.MsgEmpty)
 	AddLevelPoint(*model.MsgAddLevelPoint)
 	DefineMuKey(*model.MsgDefineMuKey)
 	DefineMuBot(*model.MsgDefineMuBot)
 	EnableMuBot(*model.MsgEnableMuBot)
 	UsePet(*model.MsgUsePet)
 	MuunSystem(*model.MsgMuunSystem)
+	StartPartyNumberPosition(*model.MsgEmpty)
+	StopPartyNumberPosition(*model.MsgEmpty)
 
 	// object actions implemented by derived object:
 	Addr() string
