@@ -2,6 +2,7 @@ package player
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"math"
 	"sort"
@@ -1939,11 +1940,6 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 	reply := model.MsgTalkReply{
 		Result: 0,
 	}
-	// validate
-	// if msg.Target >= len(object.ObjectManager.objects) {
-	// 	return
-	// }
-	// tobj := object.ObjectManager.objects[msg.Target]
 	tobj := object.ObjectManager.GetObject(msg.Target)
 	if tobj == nil {
 		return
@@ -1951,6 +1947,24 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 	if math.Abs(float64(p.X-tobj.X)) > 5 ||
 		math.Abs(float64(p.Y-tobj.Y)) > 5 {
 		return
+	}
+	if conf.ServerEnv.Debug {
+		slog.Debug("Talk",
+			"object", p.Name, "position", fmt.Sprintf("(%d,%d)", p.X, p.Y),
+			"target", tobj.Name, "position", fmt.Sprintf("(%d,%d)", tobj.X, tobj.Y))
+	}
+	// 1. Far: Move(Start) and Move(Stop) then Talk
+	// 2. Close: Move(Start) then Talk
+	// If object is close to the NPC, for example, object at (119,127)
+	// wants to talk to target(NPC578) at (117,126), client would send
+	// Talk request immediately instead of Move(Stop) request first,
+	// which means the object is still moving while talking.
+	// 3. Just right here: Talk directly
+	if p.PathMoving {
+		p.SetPosition(&model.MsgSetPosition{
+			X: p.TX,
+			Y: p.TY,
+		})
 	}
 	p.TargetNumber = tobj.Index
 	switch tobj.NpcType {

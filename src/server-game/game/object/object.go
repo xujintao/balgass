@@ -480,34 +480,38 @@ type Objecter interface {
 	CheckCharacter(*model.MsgCheckCharacter)
 	LoadCharacter(*model.MsgLoadCharacter)
 	// 3. item management
-	PickItem(*model.MsgPickItem) // implemented by Object
-	DropItem(*model.MsgDropItem) // implemented by Object
-	BuyItem(*model.MsgBuyItem)   // implemented by Object
-	SellItem(*model.MsgSellItem) // implemented by Object
-	MoveItem(*model.MsgMoveItem) // implemented by Object
-	UseItem(*model.MsgUseItem)   // implemented by Object
-	// 4. behavior management
+	PickItem(*model.MsgPickItem)     // implemented by Object
+	DropItem(*model.MsgDropItem)     // implemented by Object
+	BuyItem(*model.MsgBuyItem)       // implemented by Object
+	SellItem(*model.MsgSellItem)     // implemented by Object
+	MoveItem(*model.MsgMoveItem)     // implemented by Object
+	UseItem(*model.MsgUseItem)       // implemented by Object
+	RepairItem(*model.MsgRepairItem) // implemented by Object
+	// 4. talk related
 	Chat(*model.MsgChat)
 	Whisper(*model.MsgWhisper)
 	Talk(*model.MsgTalk)
 	CloseTalkWindow(*model.MsgCloseTalkWindow)
 	CloseWarehouseWindow(*model.MsgCloseWarehouseWindow)
-	Move(*model.MsgMove)               // implemented by Object
-	Attack(*model.MsgAttack)           // implemented by Object
-	UseSkill(*model.MsgUseSkill)       // implemented by Object
-	SetPosition(*model.MsgSetPosition) // implemented by Object
-	MapMove(*model.MsgMapMove)
-	MapDataLoadingOK(*model.MsgMapDataLoadingOK)
-	Teleport(*model.MsgTeleport)
-	Action(*model.MsgAction)
+	// 5. Move
+	Move(*model.MsgMove)                         // implemented by Object
+	Teleport(*model.MsgTeleport)                 // implemented by Object
+	MapMove(*model.MsgMapMove)                   // implemented by Object
+	SetPosition(*model.MsgSetPosition)           // implemented by Object
+	MapDataLoadingOK(*model.MsgMapDataLoadingOK) //
+	Action(*model.MsgAction)                     // implemented by Object
+	// 6. Attack
+	Attack(*model.MsgAttack) // implemented by Object
+	// 7. Skill
+	UseSkill(*model.MsgUseSkill) // implemented by Object
+	LearnMasterSkill(*model.MsgLearnMasterSkill)
+	// 8. Others
 	BattleCoreNotice(*model.MsgBattleCoreNotice)
 	AddLevelPoint(*model.MsgAddLevelPoint)
-	LearnMasterSkill(*model.MsgLearnMasterSkill)
 	DefineMuKey(*model.MsgDefineMuKey)
 	DefineMuBot(*model.MsgDefineMuBot)
 	EnableMuBot(*model.MsgEnableMuBot)
 	UsePet(*model.MsgUsePet)
-	// 5. Others
 	MuunSystem(*model.MsgMuunSystem)
 
 	// object actions implemented by derived object:
@@ -552,7 +556,6 @@ type Objecter interface {
 	EquipmentChanged()
 	SetDelayRecoverHP(int, int)
 	SetDelayRecoverSD(int, int)
-	decreaseItemDurability(int)
 }
 
 type Object struct {

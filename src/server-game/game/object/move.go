@@ -83,9 +83,9 @@ func (obj *Object) Move(msg *model.MsgMove) {
 	}
 	// debug
 	if conf.ServerEnv.Debug {
-		if msg.X != obj.X || msg.Y != obj.Y {
-			slog.Debug("Move object check",
-				"index", obj.Index, "name", obj.Name, "map", obj.MapNumber,
+		if obj.Type == ObjectTypePlayer {
+			slog.Debug("Move",
+				"index", obj.Index, "object", obj.Name, "map", obj.MapNumber,
 				"client_position", fmt.Sprintf("(%d,%d)", msg.X, msg.Y),
 				"server_position", fmt.Sprintf("(%d,%d)", obj.X, obj.Y),
 			)
