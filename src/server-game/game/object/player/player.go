@@ -87,29 +87,28 @@ type Player struct {
 	msgChan           chan any
 	cancel            context.CancelFunc
 	actioner          object.Actioner
-	AccountID         int
-	AccountName       string
-	AccountPassword   string
-	CharacterID       int
-	AuthLevel         int
-	Experience        int
-	NextExperience    int
-	LevelPoint        int
-	MasterExperience  int
-	MasterLevel       int
-	MasterPoint       int
-	MasterPointUsed   int
-	FruitPoint        int
-	Strength          int
-	Dexterity         int
-	Vitality          int
-	Energy            int
-	Leadership        int
-	AddStrength       int
-	AddDexterity      int
-	AddVitality       int
-	AddEnergy         int
-	AddLeadership     int
+	accountID         int
+	accountName       string
+	accountPassword   string
+	characterID       int
+	authLevel         int
+	experience        int
+	levelPoint        int
+	masterExperience  int
+	masterLevel       int
+	masterPoint       int
+	masterPointUsed   int
+	fruitPoint        int
+	strength          int
+	dexterity         int
+	vitality          int
+	energy            int
+	leadership        int
+	addStrength       int
+	addDexterity      int
+	addVitality       int
+	addEnergy         int
+	addLeadership     int
 	autoRecoverHPTick int
 	autoRecoverMPTick int
 	autoRecoverSDTime time.Time
@@ -128,15 +127,15 @@ type Player struct {
 	defenseRatePVP    int
 	magicSpeed        int // 魔攻速度
 	// curseSpell           int
-	Inventory          item.Inventory
-	InventoryExpansion int
-	Warehouse          item.Warehouse
-	WarehouseExpansion int
-	WarehouseMoney     int
-	ChangeUp           int // 1=1转 2=2转 3=3转
+	inventory          item.Inventory
+	inventoryExpansion int
+	warehouse          item.Warehouse
+	warehouseExpansion int
+	warehouseMoney     int
+	changeUp           int // 1=1转 2=2转 3=3转
 	// PKCount                    int
-	PKLevel int
-	Pet     *item.Item
+	pkLevel int
+	pet     *item.Item
 	// PKTime                     int
 	// PKTotalCount               int
 	// guild                *guild.GuildInfo
@@ -187,35 +186,35 @@ type Player struct {
 	// skillStrengthenHellFire2Count int
 	// skillStrengthenHellFire2Time  time.Time
 	// reqWarehouseOpen              int
-	IncreaseAttackMin             int     // 增加最小攻击(套装+洞装+大师技能)
-	IncreaseAttackMax             int     // 增加最大攻击(套装+洞装+大师技能)
-	IncreaseMagicAttack           int     // 增加魔攻(套装+洞装+大师技能)
-	IncreaseSkillAttack           int     // 增加技能攻击(套装+卓越+大师技能)
-	SetAddDamage                  int     // 增加伤害
-	CriticalAttackRate            int     // 幸运一击概率
-	CriticalAttackDamage          int     // 幸运一击伤害
-	ExcellentAttackRate           int     // 卓越一击概率
-	ExcellentAttackDamage         int     // 卓越一击伤害
-	MonsterDieGetHP               float64 // 杀怪回生(套装+卓越+大师技能)
-	MonsterDieGetMP               float64 // 杀怪回蓝(套装+卓越+大师技能)
-	MonsterDieGetMoney            float64 // 杀怪加钱(卓越)
-	ArmorReduceDamage             int     // 防具减少伤害(卓越+洞装)
-	WingIncreaseDamage            int     // 翅膀增加伤害
-	WingReduceDamage              int     // 翅膀减少伤害
-	HelperReduceDamage            int     // 天使减少伤害
-	PetIncreaseDamage             int     // pet增加伤害
-	PetReduceDamage               int     // pet减少伤害
-	ArmorReflectDamage            int     // 防具反射伤害(卓越+洞装)
-	DoubleDamageRate              int     // 双倍伤害(套装+大师技能)
-	IgnoreDefenseRate             int     // 无视防御(套装+翅膀+大师技能)
-	ReturnDamage                  int     // 反弹伤害(翅膀+大师技能)
-	RecoverMaxHP                  int     // 恢复最大生命(翅膀+大师技能)
-	RecoverMaxMP                  int     // 恢复最大魔法(翅膀+大师技能)
-	IncreaseTwoHandWeaponDamage   int     // 增加双手武器伤害
+	increaseAttackMin             int     // 增加最小攻击(套装+洞装+大师技能)
+	increaseAttackMax             int     // 增加最大攻击(套装+洞装+大师技能)
+	increaseMagicAttack           int     // 增加魔攻(套装+洞装+大师技能)
+	increaseSkillAttack           int     // 增加技能攻击(套装+卓越+大师技能)
+	setAddDamage                  int     // 增加伤害
+	criticalAttackRate            int     // 幸运一击概率
+	criticalAttackDamage          int     // 幸运一击伤害
+	excellentAttackRate           int     // 卓越一击概率
+	excellentAttackDamage         int     // 卓越一击伤害
+	monsterDieGetHP               float64 // 杀怪回生(套装+卓越+大师技能)
+	monsterDieGetMP               float64 // 杀怪回蓝(套装+卓越+大师技能)
+	monsterDieGetMoney            float64 // 杀怪加钱(卓越)
+	armorReduceDamage             int     // 防具减少伤害(卓越+洞装)
+	wingIncreaseDamage            int     // 翅膀增加伤害
+	wingReduceDamage              int     // 翅膀减少伤害
+	helperReduceDamage            int     // 天使减少伤害
+	petIncreaseDamage             int     // pet增加伤害
+	petReduceDamage               int     // pet减少伤害
+	armorReflectDamage            int     // 防具反射伤害(卓越+洞装)
+	doubleDamageRate              int     // 双倍伤害(套装+大师技能)
+	ignoreDefenseRate             int     // 无视防御(套装+翅膀+大师技能)
+	returnDamage                  int     // 反弹伤害(翅膀+大师技能)
+	recoverMaxHP                  int     // 恢复最大生命(翅膀+大师技能)
+	recoverMaxMP                  int     // 恢复最大魔法(翅膀+大师技能)
+	increaseTwoHandWeaponDamage   int     // 增加双手武器伤害
 	item380Effect                 item.Item380Effect
 	setFull                       bool
-	KnightGladiatorCalcSkillBonus float64
-	ImpaleSkillCalc               float64
+	knightGladiatorCalcSkillBonus float64
+	impaleSkillCalc               float64
 }
 
 func (p *Player) Addr() string {
@@ -424,10 +423,10 @@ func (p *Player) Login(msg *model.MsgLogin) {
 		resp.Result = 0
 		return
 	}
-	p.AccountID = account.ID
-	p.AccountName = account.Name
-	p.AccountPassword = account.Password
-	p.WarehouseExpansion = account.WarehouseExpansion
+	p.accountID = account.ID
+	p.accountName = account.Name
+	p.accountPassword = account.Password
+	p.warehouseExpansion = account.WarehouseExpansion
 	p.ConnectState = object.ConnectStateLogged
 
 	// async
@@ -490,7 +489,7 @@ func (p *Player) GetCharacterList(msg *model.MsgEmpty) {
 
 	// get account
 	reply.EnableCharacterClass = 0xFF
-	reply.WarehouseExpansion = p.WarehouseExpansion
+	reply.WarehouseExpansion = p.warehouseExpansion
 	p.Push(&model.MsgEnableCharacterClassReply{
 		Class: reply.EnableCharacterClass,
 	})
@@ -499,10 +498,10 @@ func (p *Player) GetCharacterList(msg *model.MsgEmpty) {
 	})
 
 	// get character list
-	chars, err := model.DB.GetCharacterList(p.AccountID)
+	chars, err := model.DB.GetCharacterList(p.accountID)
 	if err != nil {
 		slog.Error("GetCharacterList model.DB.GetCharacterList",
-			"err", err, "account", p.AccountName)
+			"err", err, "account", p.accountName)
 		return
 	}
 
@@ -530,15 +529,15 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	// validate msg
 	if msg.Name == "" || msg.Class > 6 {
 		slog.Error("CreateCharacter validate msg",
-			"msg", msg, "account", p.AccountName)
+			"msg", msg, "account", p.accountName)
 		return
 	}
 
 	// try to get an empty postion
-	chars, err := model.DB.GetCharacterList(p.AccountID)
+	chars, err := model.DB.GetCharacterList(p.accountID)
 	if err != nil {
 		slog.Error("CreateCharacter model.DB.GetCharacterList",
-			"err", err, "account", p.AccountName)
+			"err", err, "account", p.accountName)
 		return
 	}
 	position := 0
@@ -551,17 +550,17 @@ func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
 	}
 	if position > 4 {
 		slog.Error("CreateCharacter over max character count",
-			"account", p.AccountName)
+			"account", p.accountName)
 		return
 	}
 	// create character
 	c := CharacterTable[msg.Class]
-	c.AccountID = p.AccountID
+	c.AccountID = p.accountID
 	c.Position = position
 	c.Name = msg.Name
 	if err := model.DB.CreateCharacter(&c); err != nil {
 		slog.Error("CreateCharacter model.DB.CreateCharacter",
-			"err", err, "account", p.AccountName)
+			"err", err, "account", p.accountName)
 		return
 	}
 	// reply
@@ -583,7 +582,7 @@ func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
 	// validate msg
 	if msg.Name == "" || msg.Password == "" {
 		slog.Error("DeleteCharacter validate msg",
-			"msg", msg, "account", p.AccountName)
+			"msg", msg, "account", p.accountName)
 		return
 	}
 
@@ -594,9 +593,9 @@ func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
 	}
 
 	// delete character
-	if err := model.DB.DeleteCharacterByName(p.AccountID, msg.Name); err != nil {
+	if err := model.DB.DeleteCharacterByName(p.accountID, msg.Name); err != nil {
 		slog.Error("DeleteCharacter model.DB.DeleteCharacterByName",
-			"err", err, "account", p.AccountName, "character", msg.Name)
+			"err", err, "account", p.accountName, "character", msg.Name)
 		return
 	}
 
@@ -614,7 +613,7 @@ func (p *Player) DefineMuKey(msg *model.MsgDefineMuKey) {
 	if p.ConnectState != object.ConnectStatePlaying {
 		return
 	}
-	err := model.DB.UpdateCharacterMuKey(p.CharacterID, msg)
+	err := model.DB.UpdateCharacterMuKey(p.characterID, msg)
 	if err != nil {
 		slog.Error("model.DB.UpdateCharacterMuKey",
 			"err", err, "player", p.Name)
@@ -623,7 +622,7 @@ func (p *Player) DefineMuKey(msg *model.MsgDefineMuKey) {
 }
 
 func (p *Player) DefineMuBot(msg *model.MsgDefineMuBot) {
-	err := model.DB.UpdateCharacterMuBot(p.CharacterID, msg)
+	err := model.DB.UpdateCharacterMuBot(p.characterID, msg)
 	if err != nil {
 		slog.Error("model.DB.UpdateCharacterMuBot",
 			"err", err, "player", p.Name)
@@ -644,40 +643,40 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// validate msg
 	if msg.Name == "" || msg.Position < 0 || msg.Position > 4 {
 		slog.Error("LoadCharacter validate msg",
-			"msg", msg, "account", p.AccountName)
+			"msg", msg, "account", p.accountName)
 		return
 	}
 
 	// load character data from db
-	c, err := model.DB.GetCharacterByName(p.AccountID, msg.Name)
+	c, err := model.DB.GetCharacterByName(p.accountID, msg.Name)
 	if err != nil {
 		slog.Error("LoadCharacter model.DB.GetCharacterByName",
-			"err", err, "account", p.AccountName)
+			"err", err, "account", p.accountName)
 		return
 	}
 
 	// set player with character data
-	p.CharacterID = c.ID
+	p.characterID = c.ID
 	p.Name = c.Name
 	p.Class = c.Class
-	p.ChangeUp = c.ChangeUp
+	p.changeUp = c.ChangeUp
 	p.Level = c.Level
-	p.LevelPoint = c.LevelPoint
-	p.Experience = c.Experience
-	p.Strength = c.Strength
-	p.Dexterity = c.Dexterity
-	p.Vitality = c.Vitality
-	p.Energy = c.Energy
-	p.Leadership = c.Leadership
-	p.MasterLevel = c.MasterLevel
-	p.MasterPoint = c.MasterPoint
-	p.MasterExperience = c.MasterExperience
+	p.levelPoint = c.LevelPoint
+	p.experience = c.Experience
+	p.strength = c.Strength
+	p.dexterity = c.Dexterity
+	p.vitality = c.Vitality
+	p.energy = c.Energy
+	p.leadership = c.Leadership
+	p.masterLevel = c.MasterLevel
+	p.masterPoint = c.MasterPoint
+	p.masterExperience = c.MasterExperience
 	p.HP = c.HP
 	p.MP = c.MP
 	p.Skills = c.Skills
 	p.Skills.FillSkillData(p.Class)
-	p.Inventory = c.Inventory
-	p.InventoryExpansion = c.InventoryExpansion
+	p.inventory = c.Inventory
+	p.inventoryExpansion = c.InventoryExpansion
 	p.Money = c.Money
 	p.MapNumber = c.MapNumber
 	p.X, p.TX = c.X, c.X
@@ -694,13 +693,13 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Live = true
 	p.State = 1
 
-	experience := p.Experience
+	experience := p.experience
 	if p.IsMasterLevel() {
-		experience = p.MasterExperience
+		experience = p.masterExperience
 	}
 	nextExperience := exp.ExperienceTable[p.Level]
 	if p.IsMasterLevel() {
-		experience = exp.MasterExperienceTable[p.MasterLevel]
+		experience = exp.MasterExperienceTable[p.masterLevel]
 	}
 
 	// p.Push(&model.MsgResetGameReply{})
@@ -712,34 +711,34 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 		Dir:                p.Dir,
 		Experience:         experience,
 		NextExperience:     nextExperience,
-		LevelPoint:         p.LevelPoint,
-		Strength:           p.Strength,
-		Dexterity:          p.Dexterity,
-		Vitality:           p.Vitality,
-		Energy:             p.Energy,
-		Leadership:         p.Leadership,
+		LevelPoint:         p.levelPoint,
+		Strength:           p.strength,
+		Dexterity:          p.dexterity,
+		Vitality:           p.vitality,
+		Energy:             p.energy,
+		Leadership:         p.leadership,
 		Money:              p.Money,
-		PKLevel:            p.PKLevel,
+		PKLevel:            p.pkLevel,
 		CtlCode:            0,
 		AddPoint:           0,
 		MaxAddPoint:        122,
 		MinusPoint:         0,
 		MaxMinusPoint:      122,
-		InventoryExpansion: p.InventoryExpansion,
+		InventoryExpansion: p.inventoryExpansion,
 	})
 	p.LoadMiniMap()
 	p.findAndUsePet()
 
 	// reply inventory
 	p.Push(&model.MsgItemListReply{
-		Items: p.Inventory.Items,
+		Items: p.inventory.Items,
 	})
 	// reply master data
 	p.Push(&model.MsgMasterDataReply{
-		MasterLevel:          p.MasterLevel,
-		MasterExperience:     p.MasterExperience,
-		MasterNextExperience: exp.MasterExperienceTable[p.MasterLevel],
-		MasterPoint:          p.MasterPoint,
+		MasterLevel:          p.masterLevel,
+		MasterExperience:     p.masterExperience,
+		MasterNextExperience: exp.MasterExperienceTable[p.masterLevel],
+		MasterPoint:          p.masterPoint,
 	})
 	p.pushSkillList()
 	p.pushMasterSkillList()
@@ -757,13 +756,13 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 				X:                      p.X,
 				Y:                      p.Y,
 				Class:                  p.Class,
-				ChangeUp:               p.GetChangeUp(),
+				ChangeUp:               p.changeUp,
 				Inventory:              [9]*item.Item(p.GetInventory().Items[:9]),
 				Name:                   p.Name,
 				TX:                     p.TX,
 				TY:                     p.TY,
 				Dir:                    p.Dir,
-				PKLevel:                p.GetPKLevel(),
+				PKLevel:                p.pkLevel,
 				PentagramMainAttribute: p.PentagramAttributePattern,
 				MuunItem:               -1,
 				MuunSubItem:            -1,
@@ -793,24 +792,24 @@ func (p *Player) BattleCoreNotice(*model.MsgEmpty) {
 func (p *Player) AddLevelPoint(msg *model.MsgAddLevelPoint) {
 	reply := model.MsgAddLevelPointReply{}
 	defer p.Push(&reply)
-	if p.LevelPoint < 1 {
+	if p.levelPoint < 1 {
 		return
 	}
 	switch msg.Type {
 	case 0:
-		p.Strength++
+		p.strength++
 	case 1:
-		p.Dexterity++
+		p.dexterity++
 	case 2:
-		p.Vitality++
+		p.vitality++
 	case 3:
-		p.Energy++
+		p.energy++
 	case 4:
-		p.Leadership++
+		p.leadership++
 	default:
 		return
 	}
-	p.LevelPoint--
+	p.levelPoint--
 	p.calc()
 	reply.Type = 0x10 + msg.Type
 	switch msg.Type {
@@ -824,56 +823,56 @@ func (p *Player) AddLevelPoint(msg *model.MsgAddLevelPoint) {
 }
 
 func (p *Player) calc() {
-	leftHand := p.Inventory.Items[0]
-	rightHand := p.Inventory.Items[1]
-	glove := p.Inventory.Items[5]
-	boot := p.Inventory.Items[6]
-	wing := p.Inventory.Items[7]
-	helper := p.Inventory.Items[8]
+	leftHand := p.inventory.Items[0]
+	rightHand := p.inventory.Items[1]
+	glove := p.inventory.Items[5]
+	boot := p.inventory.Items[6]
+	wing := p.inventory.Items[7]
+	helper := p.inventory.Items[8]
 
-	p.AddStrength = 0
-	p.AddDexterity = 0
-	p.AddVitality = 0
-	p.AddEnergy = 0
-	p.AddLeadership = 0
-	p.IncreaseAttackMin = 0
-	p.IncreaseAttackMax = 0
-	p.IncreaseMagicAttack = 0
-	p.IncreaseSkillAttack = 0
-	p.SetAddDamage = 0
-	p.CriticalAttackRate = 0
-	p.CriticalAttackDamage = 0
-	p.ExcellentAttackRate = 0
-	p.ExcellentAttackDamage = 0
-	p.MonsterDieGetHP = 0
-	p.MonsterDieGetMP = 0
-	p.MonsterDieGetMoney = 0
-	p.ArmorReduceDamage = 0
-	p.ArmorReflectDamage = 0
-	p.IgnoreDefenseRate = 0
-	p.ReturnDamage = 0
-	p.RecoverMaxHP = 0
-	p.RecoverMaxMP = 0
-	p.WingIncreaseDamage = 0
-	p.WingReduceDamage = 0
-	p.HelperReduceDamage = 0
-	p.PetIncreaseDamage = 0
-	p.PetReduceDamage = 0
+	p.addStrength = 0
+	p.addDexterity = 0
+	p.addVitality = 0
+	p.addEnergy = 0
+	p.addLeadership = 0
+	p.increaseAttackMin = 0
+	p.increaseAttackMax = 0
+	p.increaseMagicAttack = 0
+	p.increaseSkillAttack = 0
+	p.setAddDamage = 0
+	p.criticalAttackRate = 0
+	p.criticalAttackDamage = 0
+	p.excellentAttackRate = 0
+	p.excellentAttackDamage = 0
+	p.monsterDieGetHP = 0
+	p.monsterDieGetMP = 0
+	p.monsterDieGetMoney = 0
+	p.armorReduceDamage = 0
+	p.armorReflectDamage = 0
+	p.ignoreDefenseRate = 0
+	p.returnDamage = 0
+	p.recoverMaxHP = 0
+	p.recoverMaxMP = 0
+	p.wingIncreaseDamage = 0
+	p.wingReduceDamage = 0
+	p.helperReduceDamage = 0
+	p.petIncreaseDamage = 0
+	p.petReduceDamage = 0
 
 	// wing item contribution
 	if wing != nil && wing.ExcellentWing2Leadership {
-		p.AddLeadership += 10 + 5*wing.Level
+		p.addLeadership += 10 + 5*wing.Level
 	}
 	// set item contribution
 	p.CalcSetItem(true)
 	// master skill contribution
 
-	strength := p.Strength + p.AddStrength
-	dexterity := p.Dexterity + p.AddDexterity
-	vitality := p.Vitality + p.AddVitality
-	energy := p.Energy + p.AddEnergy
-	leadership := p.Leadership + p.AddLeadership
-	level := p.Level + p.MasterLevel
+	strength := p.strength + p.addStrength
+	dexterity := p.dexterity + p.addDexterity
+	vitality := p.vitality + p.addVitality
+	energy := p.energy + p.addEnergy
+	leadership := p.leadership + p.addLeadership
+	level := p.Level + p.masterLevel
 
 	// base attack
 	leftAttackMin, leftAttackMax := 0, 0
@@ -1023,7 +1022,7 @@ func (p *Player) calc() {
 
 	// armor(shield|armor|wing) addition defense(rate)
 	for i := 1; i <= 7; i++ {
-		it := p.Inventory.Items[i]
+		it := p.inventory.Items[i]
 		if it != nil {
 			p.Defense += it.Defense
 			p.Defense += it.AdditionDefense
@@ -1046,7 +1045,7 @@ func (p *Player) calc() {
 	if boot != nil {
 		refer := boot.Code % item.MaxItemIndex
 		for i := 2; i <= 6; i++ {
-			it := p.Inventory.Items[i]
+			it := p.inventory.Items[i]
 			if it != nil && it.Code%item.MaxItemIndex == refer {
 				sameCount++
 				if it.Level > 9 {
@@ -1137,20 +1136,20 @@ func (p *Player) calc() {
 
 	p.CalcSetItem(false)
 	// set item contribution
-	leftAttackMin += p.IncreaseAttackMin
-	leftAttackMax += p.IncreaseAttackMax
-	rightAttackMin += p.IncreaseAttackMin
-	rightAttackMax += p.IncreaseAttackMax
+	leftAttackMin += p.increaseAttackMin
+	leftAttackMax += p.increaseAttackMax
+	rightAttackMin += p.increaseAttackMin
+	rightAttackMax += p.increaseAttackMax
 
 	// excellent item contribution
 	for i := 0; i < 12; i++ {
-		it := p.Inventory.Items[i]
+		it := p.inventory.Items[i]
 		if it != nil {
 			if it.Lucky {
-				p.CriticalAttackRate += 5
+				p.criticalAttackRate += 5
 			}
 			if it.ExcellentAttackRate {
-				p.ExcellentAttackRate += 10
+				p.excellentAttackRate += 10
 			}
 			if it.ExcellentAttackLevel {
 				value := level / 20
@@ -1182,10 +1181,10 @@ func (p *Player) calc() {
 				p.magicSpeed += 7
 			}
 			if it.ExcellentAttackHP {
-				p.MonsterDieGetHP += 1.0 / 8
+				p.monsterDieGetHP += 1.0 / 8
 			}
 			if it.ExcellentAttackMP {
-				p.MonsterDieGetMP += 1.0 / 8
+				p.monsterDieGetMP += 1.0 / 8
 			}
 			if it.ExcellentDefenseHP {
 				p.MaxHP += p.MaxHP * 4 / 100
@@ -1194,16 +1193,16 @@ func (p *Player) calc() {
 				p.MaxMP += p.MaxMP * 4 / 100
 			}
 			if it.ExcellentDefenseReduce {
-				p.ArmorReduceDamage += 4
+				p.armorReduceDamage += 4
 			}
 			if it.ExcellentDefenseReflect {
-				p.ArmorReflectDamage += 5
+				p.armorReflectDamage += 5
 			}
 			if it.ExcellentDefenseRate {
 				p.DefenseRate += p.DefenseRate * 10 / 100
 			}
 			if it.ExcellentDefenseMoney {
-				p.MonsterDieGetMoney += float64(30) / 100
+				p.monsterDieGetMoney += float64(30) / 100
 			}
 			if it.ExcellentWing2Speed {
 				p.AttackSpeed += 5
@@ -1213,7 +1212,7 @@ func (p *Player) calc() {
 				p.MaxAG += 50
 			}
 			if it.ExcellentWing2Ignore {
-				p.IgnoreDefenseRate += 3
+				p.ignoreDefenseRate += 3
 			}
 			if it.ExcellentWing2MP {
 				p.MaxMP += 50 + 5*it.Level
@@ -1222,16 +1221,16 @@ func (p *Player) calc() {
 				p.MaxHP += 50 + 5*it.Level
 			}
 			if it.ExcellentWing3Ignore {
-				p.IgnoreDefenseRate += 5
+				p.ignoreDefenseRate += 5
 			}
 			if it.ExcellentWing3Return {
-				p.ReturnDamage += 5
+				p.returnDamage += 5
 			}
 			if it.ExcellentWing3HP {
-				p.RecoverMaxHP += 5
+				p.recoverMaxHP += 5
 			}
 			if it.ExcellentWing3MP {
-				p.RecoverMaxMP += 5
+				p.recoverMaxMP += 5
 			}
 		}
 	}
@@ -1297,10 +1296,10 @@ func (p *Player) calc() {
 	if wing != nil {
 		wingIncreaseDamage := 0
 		formula.Wings_CalcIncAttack(wing.Code, wing.Level, &wingIncreaseDamage)
-		p.WingIncreaseDamage = wingIncreaseDamage - 100
+		p.wingIncreaseDamage = wingIncreaseDamage - 100
 		wingReduceDamage := 0
 		formula.Wings_CalcAbsorb(wing.Code, wing.Level, &wingReduceDamage)
-		p.WingReduceDamage = 100 - wingReduceDamage
+		p.wingReduceDamage = 100 - wingReduceDamage
 	}
 
 	// helper item contribution
@@ -1325,25 +1324,25 @@ func (p *Player) calc() {
 		p.magicSpeed += conf.PetRing.Pets.Demon.AddAttackSpeed
 	case p.equippedItem(helper, item.Code(13, 0)): // 守护天使
 		p.MaxHP += conf.PetRing.Pets.Angel.AddHP
-		p.HelperReduceDamage = conf.PetRing.Pets.Angel.ReduceDamagePercent
+		p.helperReduceDamage = conf.PetRing.Pets.Angel.ReduceDamagePercent
 	case p.equippedItem(helper, item.Code(13, 65)): // 强化天使
 		p.MaxHP += conf.PetRing.Pets.SpiritAngel.AddHP
-		p.HelperReduceDamage = conf.PetRing.Pets.SpiritAngel.ReduceDamagePercent
+		p.helperReduceDamage = conf.PetRing.Pets.SpiritAngel.ReduceDamagePercent
 	case p.equippedItem(helper, item.Code(13, 80)): // 熊猫
 		p.Defense += conf.PetRing.Pets.Panda.AddDefenseValue
 	}
 
 	// pet item contribution
-	if p.Pet != nil {
-		switch p.Pet.Code {
+	if p.pet != nil {
+		switch p.pet.Code {
 		case item.Code(13, 3): // Horn of Dinorant 彩云兽
-			p.PetIncreaseDamage = 15
-			p.PetReduceDamage = 10
+			p.petIncreaseDamage = 15
+			p.petReduceDamage = 10
 		case item.Code(13, 4): // Dark Horse 黑王马之角
-			p.PetReduceDamage = (30 + p.Pet.Level) / 2
+			p.petReduceDamage = (30 + p.pet.Level) / 2
 		case item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
-			p.PetIncreaseDamage = 33
-			p.PetReduceDamage = 10
+			p.petIncreaseDamage = 33
+			p.petReduceDamage = 10
 		}
 	}
 
@@ -1363,8 +1362,8 @@ func (p *Player) calc() {
 	}
 
 	// skill bonus
-	formula.Knight_Gladiator_CalcSkillBonus(p.Class, energy, &p.KnightGladiatorCalcSkillBonus)
-	formula.ImpaleSkillCalc(p.Class, energy, &p.ImpaleSkillCalc)
+	formula.Knight_Gladiator_CalcSkillBonus(p.Class, energy, &p.knightGladiatorCalcSkillBonus)
+	formula.ImpaleSkillCalc(p.Class, energy, &p.impaleSkillCalc)
 
 	// Push
 	p.Push(&model.MsgStatSpecReply{
@@ -1388,7 +1387,7 @@ func (p *Player) equippedItem(it *item.Item, code int) bool {
 }
 
 func (p *Player) findAndUsePet() {
-	for _, it := range p.Inventory.Items[12:204] {
+	for _, it := range p.inventory.Items[12:204] {
 		if it == nil {
 			continue
 		}
@@ -1398,7 +1397,7 @@ func (p *Player) findAndUsePet() {
 			item.Code(13, 4),  // Dark Horse 黑王马之角
 			item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
 			if it.HarmonyOption == 1 {
-				p.Pet = it
+				p.pet = it
 			}
 		}
 	}
@@ -1414,7 +1413,7 @@ func (p *Player) UsePet(msg *model.MsgUsePet) {
 	if msg.Position < 12 || msg.Position > 204 {
 		return
 	}
-	it := p.Inventory.Items[msg.Position]
+	it := p.inventory.Items[msg.Position]
 	if it == nil || it.Durability <= 0 {
 		return
 	}
@@ -1423,13 +1422,13 @@ func (p *Player) UsePet(msg *model.MsgUsePet) {
 		item.Code(13, 3),  // Horn of Dinorant 彩云兽
 		item.Code(13, 4),  // Dark Horse 黑王马之角
 		item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
-		if p.Pet != nil {
+		if p.pet != nil {
 			it.HarmonyOption = 0
-			p.Pet = nil
+			p.pet = nil
 			reply.Result = -1
 		} else {
 			it.HarmonyOption = 1
-			p.Pet = it
+			p.pet = it
 			reply.Result = -2
 		}
 		p.EquipmentChanged()
@@ -1444,28 +1443,28 @@ func (p *Player) SaveCharacter() {
 		return
 	}
 	c := model.Character{
-		ID:                 p.CharacterID,
-		ChangeUp:           p.ChangeUp,
+		ID:                 p.characterID,
+		ChangeUp:           p.changeUp,
 		MapNumber:          p.MapNumber,
 		X:                  p.X,
 		Y:                  p.Y,
 		Dir:                p.Dir,
 		Money:              p.Money,
-		Strength:           p.Strength,
-		Dexterity:          p.Dexterity,
-		Vitality:           p.Vitality,
-		Energy:             p.Energy,
-		Leadership:         p.Leadership,
+		Strength:           p.strength,
+		Dexterity:          p.dexterity,
+		Vitality:           p.vitality,
+		Energy:             p.energy,
+		Leadership:         p.leadership,
 		Level:              p.Level,
-		LevelPoint:         p.LevelPoint,
-		Experience:         p.Experience,
-		MasterLevel:        p.MasterLevel,
-		MasterPoint:        p.MasterPoint,
-		MasterExperience:   p.MasterExperience,
+		LevelPoint:         p.levelPoint,
+		Experience:         p.experience,
+		MasterLevel:        p.masterLevel,
+		MasterPoint:        p.masterPoint,
+		MasterExperience:   p.masterExperience,
 		HP:                 p.HP,
 		MP:                 p.MP,
-		InventoryExpansion: p.InventoryExpansion,
-		Inventory:          p.Inventory,
+		InventoryExpansion: p.inventoryExpansion,
+		Inventory:          p.inventory,
 		Skills:             p.Skills,
 	}
 	err := model.DB.UpdateCharacter(&c)
@@ -1477,15 +1476,15 @@ func (p *Player) SaveCharacter() {
 }
 
 func (p *Player) GetPKLevel() int {
-	return p.PKLevel
+	return p.pkLevel
 }
 
 func (p *Player) GetMasterLevel() int {
-	return p.MasterLevel
+	return p.masterLevel
 }
 
 func (p *Player) IsMasterLevel() bool {
-	return p.ChangeUp >= 2
+	return p.changeUp >= 2
 }
 
 func (p *Player) GetSkillMPAG(s *skill.Skill) (int, int) {
@@ -1496,27 +1495,27 @@ func (p *Player) addSetEffect(index item.SetEffectType, value int, base bool) {
 	if base {
 		switch index {
 		case item.SetEffectIncStrength:
-			p.AddStrength += value
+			p.addStrength += value
 		case item.SetEffectIncAgility:
-			p.AddDexterity += value
+			p.addDexterity += value
 		case item.SetEffectIncEnergy:
-			p.AddEnergy += value
+			p.addEnergy += value
 		case item.SetEffectIncVitality:
-			p.AddVitality += value
+			p.addVitality += value
 		case item.SetEffectIncLeadership:
-			p.AddLeadership += value
+			p.addLeadership += value
 		}
 	} else {
 		switch index {
 		case item.SetEffectIncAttackMin:
-			p.IncreaseAttackMin += value
+			p.increaseAttackMin += value
 		case item.SetEffectIncAttackMax:
-			p.IncreaseAttackMax += value
+			p.increaseAttackMax += value
 		case item.SetEffectIncMagicAttack:
 			p.magicAttackMin += value
 			p.magicAttackMax += value
 		case item.SetEffectIncDamage:
-			p.SetAddDamage += value
+			p.setAddDamage += value
 		case item.SetEffectIncAttackRate:
 			p.AttackRate += value
 		case item.SetEffectIncDefense:
@@ -1530,23 +1529,23 @@ func (p *Player) addSetEffect(index item.SetEffectType, value int, base bool) {
 		case item.SetEffectIncAG:
 			p.MaxAG += value
 		case item.SetEffectIncCritiDamageRate:
-			p.CriticalAttackRate += value
+			p.criticalAttackRate += value
 		case item.SetEffectIncCritiDamage:
-			p.CriticalAttackDamage += value
+			p.criticalAttackDamage += value
 		case item.SetEffectIncExcelDamageRate:
-			p.ExcellentAttackRate += value
+			p.excellentAttackRate += value
 		case item.SetEffectIncExcelDamage:
-			p.ExcellentAttackDamage += value
+			p.excellentAttackDamage += value
 		case item.SetEffectIncSkillAttack:
-			p.IncreaseSkillAttack += value
+			p.increaseSkillAttack += value
 		case item.SetEffectDoubleDamage:
-			p.DoubleDamageRate += value
+			p.doubleDamageRate += value
 		case item.SetEffectIgnoreDefense:
-			p.IgnoreDefenseRate += value
+			p.ignoreDefenseRate += value
 		case item.SetEffectIncShieldDefense:
 			p.MaxSD += value
 		case item.SetEffectIncTwoHandSwordDamage:
-			p.IncreaseTwoHandWeaponDamage += value
+			p.increaseTwoHandWeaponDamage += value
 		}
 	}
 }
@@ -1560,7 +1559,7 @@ func (p *Player) CalcSetItem(base bool) {
 
 	sameWeapon := 0
 	sameRing := 0
-	for i, it := range p.Inventory.WearingItems() {
+	for i, it := range p.inventory.WearingItems() {
 		if it == nil {
 			continue
 		}
@@ -1617,7 +1616,7 @@ func (p *Player) CalcSetItem(base bool) {
 }
 
 func (player *Player) Calc380Item() {
-	for _, wItem := range player.Inventory.WearingItems() {
+	for _, wItem := range player.inventory.WearingItems() {
 		if wItem.Durability == 0 {
 			continue
 		}
@@ -1655,18 +1654,18 @@ func (p *Player) pushMasterSkillList() {
 func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
 	reply := model.MsgLearnMasterSkillReply{
 		Result:           0,
-		MasterPoint:      p.MasterPoint,
+		MasterPoint:      p.masterPoint,
 		MasterSkillIndex: -1,
 	}
 	defer p.Push(&reply)
 
-	if p.MasterLevel <= 0 ||
-		p.MasterPoint <= 0 {
+	if p.masterLevel <= 0 ||
+		p.masterPoint <= 0 {
 		return
 	}
 
-	p.Skills.GetMaster(p.Class, msg.SkillIndex, p.MasterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
-		p.MasterPoint -= point
+	p.Skills.GetMaster(p.Class, msg.SkillIndex, p.masterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
+		p.masterPoint -= point
 		reply.Result = 1
 		reply.MasterPoint -= point
 		reply.MasterSkillUIIndex = uiIndex
@@ -1697,7 +1696,7 @@ func (p *Player) recoverHPSD() {
 			// base item recover HP
 			positions := []int{7, 9, 10, 11} // wing/pendant/ring
 			for _, n := range positions {
-				it := p.Inventory.Items[n]
+				it := p.inventory.Items[n]
 				if it != nil && it.Durability != 0 {
 					percent += float64(it.AdditionRecoverHP)
 				}
@@ -1853,14 +1852,14 @@ func (p *Player) Regen() {
 		MP:         p.MP,
 		SD:         p.SD,
 		AG:         p.AG,
-		Experience: int(p.Experience),
+		Experience: int(p.experience),
 		Money:      p.Money,
 	}
 	p.Push(&reply)
 }
 
 func (p *Player) GetChangeUp() int {
-	return p.ChangeUp
+	return p.changeUp
 }
 
 func (p *Player) PushChangedEquipment(it *item.Item) {
@@ -1874,11 +1873,11 @@ func (p *Player) PushChangedEquipment(it *item.Item) {
 func (p *Player) EquipmentChanged() {
 	// 1, change skill
 	newItemSkills := make(map[int]struct{})
-	primaryHandWeapon := p.Inventory.Items[0]
+	primaryHandWeapon := p.inventory.Items[0]
 	if primaryHandWeapon != nil && primaryHandWeapon.SkillIndex != 0 {
 		newItemSkills[primaryHandWeapon.SkillIndex] = struct{}{}
 	}
-	secondaryHandWeapon := p.Inventory.Items[1]
+	secondaryHandWeapon := p.inventory.Items[1]
 	if secondaryHandWeapon != nil && secondaryHandWeapon.SkillIndex != 0 {
 		newItemSkills[secondaryHandWeapon.SkillIndex] = struct{}{}
 	}
@@ -1922,15 +1921,15 @@ func (p *Player) EquipmentChanged() {
 
 func (p *Player) LimitUseItem(it *item.Item) bool {
 	if p.Level < it.ReqLevel ||
-		p.Strength+p.AddStrength < it.ReqStrength ||
-		p.Dexterity+p.AddDexterity < it.ReqDexterity ||
-		p.Vitality+p.AddVitality < it.ReqVitality ||
-		p.Energy+p.AddEnergy < it.ReqEnergy ||
-		p.Leadership+p.AddLeadership < it.ReqCommand {
+		p.strength+p.addStrength < it.ReqStrength ||
+		p.dexterity+p.addDexterity < it.ReqDexterity ||
+		p.vitality+p.addVitality < it.ReqVitality ||
+		p.energy+p.addEnergy < it.ReqEnergy ||
+		p.leadership+p.addLeadership < it.ReqCommand {
 		return true
 	}
 	reqClass := it.ReqClass[p.Class]
-	if reqClass == 0 || (reqClass > p.ChangeUp+1) {
+	if reqClass == 0 || (reqClass > p.changeUp+1) {
 		return true
 	}
 	return false
@@ -1978,7 +1977,7 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		shopItemListReply.Items = inventory
 		p.Push(&shopItemListReply)
 	case object.NpcTypeWarehouse:
-		account, err := model.DB.GetAccountByID(p.AccountID)
+		account, err := model.DB.GetAccountByID(p.accountID)
 		if err != nil {
 			slog.Error("Talk model.DB.GetAccountByID",
 				"err", err, "player", p.Name)
@@ -1986,14 +1985,14 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		}
 		reply.Result = 2
 		p.Push(&reply)
-		p.Warehouse = account.Warehouse
-		p.WarehouseMoney = account.WarehouseMoney
+		p.warehouse = account.Warehouse
+		p.warehouseMoney = account.WarehouseMoney
 		warehouseItemListReply := model.MsgTypeItemListReply{Type: 0}
 		warehouseItemListReply.Items = account.Warehouse.Items
 		p.Push(&warehouseItemListReply)
 		warehouseMoneyReply := model.MsgWarehouseMoneyReply{
 			Result:         1,
-			WarehouseMoney: p.WarehouseMoney,
+			WarehouseMoney: p.warehouseMoney,
 			InventoryMoney: p.Money,
 		}
 		p.Push(&warehouseMoneyReply)
@@ -2009,9 +2008,9 @@ func (p *Player) CloseTalkWindow(msg *model.MsgEmpty) {
 
 func (p *Player) CloseWarehouseWindow(msg *model.MsgEmpty) {
 	account := model.Account{
-		ID:             p.AccountID,
-		Warehouse:      p.Warehouse,
-		WarehouseMoney: p.WarehouseMoney,
+		ID:             p.accountID,
+		Warehouse:      p.warehouse,
+		WarehouseMoney: p.warehouseMoney,
 	}
 	err := model.DB.UpdateAccountWarehouse(&account)
 	if err != nil {
@@ -2033,15 +2032,15 @@ func (p *Player) StopPartyNumberPosition(*model.MsgEmpty) {
 }
 
 func (p *Player) GetInventory() *item.Inventory {
-	return &p.Inventory
+	return &p.inventory
 }
 
 func (p *Player) GetInventoryItem(position int) *item.Item {
-	return p.Inventory.Item(position)
+	return p.inventory.Item(position)
 }
 
 func (p *Player) GetWarehouse() *item.Warehouse {
-	return &p.Warehouse
+	return &p.warehouse
 }
 
 func (p *Player) SetDelayRecoverHP(hp, hpMax int) {

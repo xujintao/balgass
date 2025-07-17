@@ -19,75 +19,75 @@ func (p *Player) GetDefenseRatePVP() int {
 }
 
 func (p *Player) GetIgnoreDefenseRate() int {
-	return p.IgnoreDefenseRate
+	return p.ignoreDefenseRate
 }
 
 func (p *Player) GetCriticalAttackRate() int {
-	return p.CriticalAttackRate
+	return p.criticalAttackRate
 }
 
 func (p *Player) GetCriticalAttackDamage() int {
-	return p.CriticalAttackDamage
+	return p.criticalAttackDamage
 }
 
 func (p *Player) GetExcellentAttackRate() int {
-	return p.ExcellentAttackRate
+	return p.excellentAttackRate
 }
 
 func (p *Player) GetExcellentAttackDamage() int {
-	return p.ExcellentAttackDamage
+	return p.excellentAttackDamage
 }
 
 func (p *Player) GetMonsterDieGetHP() float64 {
-	return p.MonsterDieGetHP
+	return p.monsterDieGetHP
 }
 
 func (p *Player) GetMonsterDieGetMP() float64 {
-	return p.MonsterDieGetMP
+	return p.monsterDieGetMP
 }
 
 func (p *Player) GetAddDamage() int {
-	return p.SetAddDamage
+	return p.setAddDamage
 }
 
 func (p *Player) GetArmorReduceDamage() int {
-	return p.ArmorReduceDamage
+	return p.armorReduceDamage
 }
 
 func (p *Player) GetWingIncreaseDamage() int {
-	return p.WingIncreaseDamage
+	return p.wingIncreaseDamage
 }
 
 func (p *Player) GetWingReduceDamage() int {
-	return p.WingReduceDamage
+	return p.wingReduceDamage
 }
 
 func (p *Player) GetHelperReduceDamage() int {
-	return p.HelperReduceDamage
+	return p.helperReduceDamage
 }
 
 func (p *Player) GetPetIncreaseDamage() int {
-	return p.PetIncreaseDamage
+	return p.petIncreaseDamage
 }
 
 func (p *Player) GetPetReduceDamage() int {
-	return p.PetReduceDamage
+	return p.petReduceDamage
 }
 
 func (p *Player) GetDoubleDamageRate() int {
-	return p.DoubleDamageRate
+	return p.doubleDamageRate
 }
 
 func (p *Player) GetMonsterDieGetMoney() float64 {
-	return p.MonsterDieGetMoney
+	return p.monsterDieGetMoney
 }
 
 func (p *Player) GetKnightGladiatorCalcSkillBonus() float64 {
-	return p.KnightGladiatorCalcSkillBonus
+	return p.knightGladiatorCalcSkillBonus
 }
 
 func (p *Player) GetImpaleSkillCalc() float64 {
-	return p.ImpaleSkillCalc
+	return p.impaleSkillCalc
 }
 
 func (p *Player) Die(tobj *object.Object, damage int) {
@@ -103,31 +103,31 @@ func (p *Player) DieDropItem(*object.Object) {
 
 func (p *Player) LevelUp(addexp int) bool {
 	if !p.IsMasterLevel() {
-		p.Experience += addexp
+		p.experience += addexp
 		levelUpExp := exp.ExperienceTable[p.Level]
-		if p.Experience < levelUpExp {
+		if p.experience < levelUpExp {
 			return false
 		}
-		p.Experience = levelUpExp
+		p.experience = levelUpExp
 		p.Level++
 		switch class.Class(p.Class) {
 		case class.Magumsa,
 			class.DarkLord,
 			class.RageFighter,
 			class.GrowLancer:
-			p.LevelPoint += conf.CommonServer.GameServerInfo.LevelPoint7
+			p.levelPoint += conf.CommonServer.GameServerInfo.LevelPoint7
 		default:
-			p.LevelPoint += conf.CommonServer.GameServerInfo.LevelPoint5
+			p.levelPoint += conf.CommonServer.GameServerInfo.LevelPoint5
 		}
 	} else {
-		p.MasterExperience += addexp
-		levelUpExp := exp.MasterExperienceTable[p.MasterLevel]
-		if p.MasterExperience < levelUpExp {
+		p.masterExperience += addexp
+		levelUpExp := exp.MasterExperienceTable[p.masterLevel]
+		if p.masterExperience < levelUpExp {
 			return false
 		}
-		p.MasterExperience = levelUpExp
-		p.MasterLevel++
-		p.MasterPoint += conf.Common.General.MasterPointPerLevel
+		p.masterExperience = levelUpExp
+		p.masterLevel++
+		p.masterPoint += conf.Common.General.MasterPointPerLevel
 	}
 	p.calc()
 	p.HP = p.MaxHP
@@ -139,7 +139,7 @@ func (p *Player) LevelUp(addexp int) bool {
 	if !p.IsMasterLevel() {
 		reply := model.MsgLevelUpReply{
 			Level:      p.Level,
-			LevelPoint: p.LevelPoint,
+			LevelPoint: p.levelPoint,
 			MaxHP:      p.MaxHP,
 			MaxMP:      p.MaxMP,
 			MaxSD:      p.MaxSD,
@@ -148,9 +148,9 @@ func (p *Player) LevelUp(addexp int) bool {
 		p.Push(&reply)
 	} else {
 		reply := model.MsgMasterLevelUpReply{
-			MasterLevel:         p.MasterLevel,
+			MasterLevel:         p.masterLevel,
 			MasterPointPerLevel: conf.Common.General.MasterPointPerLevel,
-			MasterPoint:         p.MasterPoint,
+			MasterPoint:         p.masterPoint,
 			MaxMasterLevel:      conf.Common.General.MaxLevelMaster,
 			MaxHP:               p.MaxHP,
 			MaxMP:               p.MaxMP,
