@@ -467,63 +467,10 @@ type DelayMsg struct {
 }
 
 type Objecter interface {
-	// object actions:
-	// 1. connection safety
-	KeepLive(*model.MsgKeepLive)
-	Hack(*model.MsgHack)
-	// 2. account and character
-	Login(*model.MsgLogin)
-	Logout(*model.MsgLogout)
-	GetCharacterList(*model.MsgEmpty)
-	CreateCharacter(*model.MsgCreateCharacter)
-	DeleteCharacter(*model.MsgDeleteCharacter)
-	CheckCharacter(*model.MsgCheckCharacter)
-	LoadCharacter(*model.MsgLoadCharacter)
-	// 3. item management
-	PickItem(*model.MsgPickItem)     // implemented by Object
-	DropItem(*model.MsgDropItem)     // implemented by Object
-	BuyItem(*model.MsgBuyItem)       // implemented by Object
-	SellItem(*model.MsgSellItem)     // implemented by Object
-	MoveItem(*model.MsgMoveItem)     // implemented by Object
-	UseItem(*model.MsgUseItem)       // implemented by Object
-	RepairItem(*model.MsgRepairItem) // implemented by Object
-	// 4. talk related
-	Chat(*model.MsgChat)
-	Whisper(*model.MsgWhisper)
-	Talk(*model.MsgTalk)
-	CloseTalkWindow(*model.MsgEmpty)
-	CloseWarehouseWindow(*model.MsgEmpty)
-	// 5. Move
-	Move(*model.MsgMove)               // implemented by Object
-	Teleport(*model.MsgTeleport)       // implemented by Object
-	MapMove(*model.MsgMapMove)         // implemented by Object
-	SetPosition(*model.MsgSetPosition) // implemented by Object
-	MapDataLoadingOK(*model.MsgEmpty)  //
-	Action(*model.MsgAction)           // implemented by Object
-	// 6. Attack
-	Attack(*model.MsgAttack) // implemented by Object
-	// 7. Skill
-	UseSkill(*model.MsgUseSkill) // implemented by Object
-	LearnMasterSkill(*model.MsgLearnMasterSkill)
-	// 8. Others
-	BattleCoreNotice(*model.MsgEmpty)
-	AddLevelPoint(*model.MsgAddLevelPoint)
-	DefineMuKey(*model.MsgDefineMuKey)
-	DefineMuBot(*model.MsgDefineMuBot)
-	EnableMuBot(*model.MsgEnableMuBot)
-	UsePet(*model.MsgUsePet)
-	MuunSystem(*model.MsgMuunSystem)
-	StartPartyNumberPosition(*model.MsgEmpty)
-	StopPartyNumberPosition(*model.MsgEmpty)
-
 	// object actions implemented by derived object:
 	Addr() string
 	Offline()
 	Push(any)
-	GetPKLevel() int
-	GetMasterLevel() int
-	IsMasterLevel() bool
-	GetSkillMPAG(s *skill.Skill) (int, int)
 	ProcessAction()
 	Process1000ms()
 	SpawnPosition()
@@ -531,7 +478,17 @@ type Objecter interface {
 	LevelUp(int) bool
 	DieDropItem(*Object)
 	Regen()
+	EquipmentChanged()
+	GetPKLevel() int
+	GetMasterLevel() int
+	IsMasterLevel() bool
+	GetSkillMPAG(s *skill.Skill) (int, int)
 	GetChangeUp() int
+	GetInventory() *item.Inventory
+	GetInventoryItem(int) *item.Item
+	GetWarehouse() *item.Warehouse
+	SetDelayRecoverHP(int, int)
+	SetDelayRecoverSD(int, int)
 	GetAttackRatePVP() int
 	GetDefenseRatePVP() int
 	GetIgnoreDefenseRate() int
@@ -552,12 +509,52 @@ type Objecter interface {
 	GetMonsterDieGetMoney() float64
 	GetKnightGladiatorCalcSkillBonus() float64
 	GetImpaleSkillCalc() float64
-	GetInventory() *item.Inventory
-	GetInventoryItem(int) *item.Item
-	GetWarehouse() *item.Warehouse
-	EquipmentChanged()
-	SetDelayRecoverHP(int, int)
-	SetDelayRecoverSD(int, int)
+
+	// object actions:
+	// 1. item management
+	PickItem(*model.MsgPickItem)     // implemented by Object
+	DropItem(*model.MsgDropItem)     // implemented by Object
+	BuyItem(*model.MsgBuyItem)       // implemented by Object
+	SellItem(*model.MsgSellItem)     // implemented by Object
+	MoveItem(*model.MsgMoveItem)     // implemented by Object
+	UseItem(*model.MsgUseItem)       // implemented by Object
+	RepairItem(*model.MsgRepairItem) // implemented by Object
+	// 2. Move
+	Move(*model.MsgMove)               // implemented by Object
+	Teleport(*model.MsgTeleport)       // implemented by Object
+	MapMove(*model.MsgMapMove)         // implemented by Object
+	SetPosition(*model.MsgSetPosition) // implemented by Object
+	Action(*model.MsgAction)           // implemented by Object
+	// 3. Skill and Attack
+	UseSkill(*model.MsgUseSkill) // implemented by Object
+	Attack(*model.MsgAttack)     // implemented by Object
+	// 4. chat
+	Chat(*model.MsgChat)       // implemented by Object
+	Whisper(*model.MsgWhisper) // implemented by Object
+	// 5. player related
+	Login(*model.MsgLogin)                       // implemented by Player
+	Logout(*model.MsgLogout)                     // implemented by Player
+	GetCharacterList(*model.MsgEmpty)            // implemented by Player
+	CreateCharacter(*model.MsgCreateCharacter)   // implemented by Player
+	DeleteCharacter(*model.MsgDeleteCharacter)   // implemented by Player
+	CheckCharacter(*model.MsgCheckCharacter)     // implemented by Player
+	LoadCharacter(*model.MsgLoadCharacter)       // implemented by Player
+	Talk(*model.MsgTalk)                         // implemented by Player
+	CloseTalkWindow(*model.MsgEmpty)             // implemented by Player
+	CloseWarehouseWindow(*model.MsgEmpty)        // implemented by Player
+	KeepLive(*model.MsgKeepLive)                 // implemented by Player
+	Hack(*model.MsgHack)                         // implemented by Player
+	BattleCoreNotice(*model.MsgEmpty)            // implemented by Player
+	MapDataLoadingOK(*model.MsgEmpty)            // implemented by Player
+	AddLevelPoint(*model.MsgAddLevelPoint)       // implemented by Player
+	LearnMasterSkill(*model.MsgLearnMasterSkill) // implemented by Player
+	DefineMuKey(*model.MsgDefineMuKey)           // implemented by Player
+	DefineMuBot(*model.MsgDefineMuBot)           // implemented by Player
+	EnableMuBot(*model.MsgEnableMuBot)           // implemented by Player
+	UsePet(*model.MsgUsePet)                     // implemented by Player
+	MuunSystem(*model.MsgMuunSystem)             // implemented by Player
+	StartPartyNumberPosition(*model.MsgEmpty)    // implemented by Player
+	StopPartyNumberPosition(*model.MsgEmpty)     // implemented by Player
 }
 
 type Object struct {

@@ -116,7 +116,7 @@ type Player struct {
 	delayRecoverHPMax int
 	delayRecoverSD    int
 	delayRecoverSDMax int
-	RecoverHP         int // 恢复生命(翅膀+项链+大师技能)
+	recoverHP         int // 恢复生命(翅膀+项链+大师技能)
 	magic             int
 	magicAttackMin    int // 魔攻min
 	magicAttackMax    int // 魔攻max
@@ -227,7 +227,7 @@ func (p *Player) Offline() {
 	}
 	p.offline = true
 	// todo
-	p.SaveCharacter()
+	p.saveCharacter()
 	p.cancel()
 }
 
@@ -242,6 +242,168 @@ func (p *Player) Push(msg any) {
 		return
 	}
 	p.msgChan <- msg
+}
+
+func (p *Player) ProcessAction() {}
+
+func (p *Player) Process1000ms() {
+	if p.ConnectState == object.ConnectStatePlaying {
+		p.recoverHPSD()
+		p.recoverMPAG()
+	}
+}
+
+func (p *Player) recoverHPSD() {
+	change := false
+	if p.HP < p.MaxHP {
+		// auto recover HP
+		p.autoRecoverHPTick++
+		if p.autoRecoverHPTick >= 7 {
+			p.autoRecoverHPTick = 0
+			percent := 0.0
+			// base item recover HP
+			positions := []int{7, 9, 10, 11} // wing/pendant/ring
+			for _, n := range positions {
+				it := p.inventory.Items[n]
+				if it != nil && it.Durability != 0 {
+					percent += float64(it.AdditionRecoverHP)
+				}
+			}
+			// master skill recover HP
+			percent += 0.0
+			if percent != 0.0 {
+				hp := p.HP
+				hp += int(float64(p.MaxHP) * percent / 100)
+				switch {
+				case hp < 1:
+					hp = 1
+				case hp > p.MaxHP:
+					hp = p.MaxHP
+				}
+				p.HP = hp
+				change = true
+			}
+		}
+	} else {
+		p.autoRecoverHPTick = 0
+	}
+
+	// auto recover SD
+	if p.SD < p.MaxSD {
+		if conf.CommonServer.GameServerInfo.SDAutoRefillSafeZoneEnable {
+			attr := maps.MapManager.GetMapAttr(p.MapNumber, p.X, p.Y)
+			if attr&1 == 1 {
+				now := time.Now()
+				if now.After(p.autoRecoverSDTime.Add(time.Second * 1)) {
+					p.autoRecoverSDTime = now
+					expressionA := float64(p.MaxSD) / 30
+					expressionB := 100.0 // 380 option
+					sd := p.SD
+					sd += int(expressionA * expressionB / 100)
+					switch {
+					case sd < 1:
+						sd = 1
+					case sd > p.MaxSD:
+						sd = p.MaxSD
+					}
+					p.SD = sd
+					change = true
+				}
+			}
+		}
+	}
+
+	// posion delay recover hp
+	if p.delayRecoverHP > 0 {
+		hp := p.delayRecoverHPMax / 2
+		if p.delayRecoverHP > hp {
+			p.delayRecoverHP -= hp
+		} else {
+			hp = p.delayRecoverHP
+			p.delayRecoverHP = 0
+		}
+		if p.HP < p.MaxHP {
+			hp += p.HP
+			switch {
+			case hp < 1:
+				hp = 1
+			case hp > p.MaxHP:
+				hp = p.MaxHP
+			}
+			p.HP = hp
+			change = true
+		}
+	}
+
+	// posion delay recover SD
+	if p.delayRecoverSD > 0 {
+		sd := p.delayRecoverSDMax / 2
+		if p.delayRecoverSD > sd {
+			p.delayRecoverSD -= sd
+		} else {
+			sd = p.delayRecoverSD
+			p.delayRecoverSD = 0
+		}
+		if p.SD < p.MaxSD {
+			sd += p.SD
+			if sd > p.MaxSD {
+				sd = p.MaxSD
+			}
+			p.SD = sd
+			change = true
+		}
+	}
+
+	if change {
+		p.PushHPSD(p.HP, p.SD)
+	}
+}
+
+func (p *Player) recoverMPAG() {
+	p.autoRecoverMPTick++
+	if p.autoRecoverMPTick < 3 {
+		return
+	}
+	p.autoRecoverMPTick = 0
+	change := false
+	if p.MP < p.MaxMP {
+		// base recover MP
+		percent := 3.7
+		// master skill recover MP
+		percent += 0
+		mp := p.MP
+		mp += int(float64(p.MaxMP) * percent / 100)
+		switch {
+		case mp < 1:
+			mp = 1
+		case mp > p.MaxMP:
+			mp = p.MaxMP
+		}
+		p.MP = mp
+		change = true
+	}
+	if p.AG < p.MaxAG {
+		// base recover AG
+		percent := 3.0
+		// master skill recover AG
+		percent += 0
+		if p.Class == int(class.Knight) {
+			percent = 5
+		}
+		ag := p.AG
+		ag += 5 + int(float64(p.MaxAG)*percent/100)
+		switch {
+		case ag < 1:
+			ag = 1
+		case ag > p.MaxAG:
+			ag = p.MaxAG
+		}
+		p.AG = ag
+		change = true
+	}
+	if change {
+		p.PushMPAG(p.MP, p.AG)
+	}
 }
 
 func (p *Player) SpawnPosition() {
@@ -353,473 +515,24 @@ func (p *Player) SpawnPosition() {
 	})
 }
 
-func (p *Player) MuunSystem(msg *model.MsgMuunSystem) {
-	// slog.Warn("MuunSystem placeholder")
-}
-
-func (p *Player) Chat(msg *model.MsgChat) {
-	l := len(msg.Msg)
-	if l == 0 {
-		return
-	}
-	switch {
-	case msg.Msg[0] == '!' && l > 2: // global announcement
-		return
-	case msg.Msg[0] == '/' && l > 1: // command
-		return
-	case msg.Msg[0] == '~' || msg.Msg[0] == ']': // party
-		return
-	case msg.Msg[0] == '$': // gens
-		return
-	case msg.Msg[0] == '@': //guild
-		return
-	default:
-		reply := model.MsgChatReply{MsgChat: *msg}
-		p.PushViewport(&reply)
-	}
-}
-
-func (p *Player) Whisper(msg *model.MsgWhisper) {
-	if len(msg.Name) == 0 {
-		return
-	}
-	if p.Name == msg.Name {
-		return
-	}
-	tobj := object.ObjectManager.GetPlayerByName(msg.Name)
-	if tobj == nil {
-		reply := model.MsgWhisperReplyFailed{
-			Flag: 0,
-		}
-		p.Push(&reply)
-		return
-	}
-	reply := model.MsgWhisperReply{}
-	reply.Name = p.Name
-	reply.Msg = msg.Msg
-	tobj.Push(&reply)
-}
-
-func (p *Player) KeepLive(msg *model.MsgKeepLive) {
-	// slog.Warn("KeepLive placeholder")
-}
-
-func (p *Player) Login(msg *model.MsgLogin) {
-	// validate msg
-	resp := model.MsgLoginReply{Result: 1}
-	defer p.Push(&resp)
-	account, err := model.DB.GetAccountByName(msg.Account)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			resp.Result = 2
-			return
-		}
-		slog.Error("Login model.DB.GetAccountByName",
-			"err", err, "account", msg.Account)
-		resp.Result = 7
-		return
-	}
-	if account.Password != msg.Password {
-		resp.Result = 0
-		return
-	}
-	p.accountID = account.ID
-	p.accountName = account.Name
-	p.accountPassword = account.Password
-	p.warehouseExpansion = account.WarehouseExpansion
-	p.ConnectState = object.ConnectStateLogged
-
-	// async
-	// go func() {
-	// 	account, err := model.DB.GetAccountByName(msg.Account)
-	// 	p.actioner.PlayerAction(p.index, "SetAccount", &model.MsgSetAccount{
-	// 		MsgLogin: msg,
-	// 		Account:  account,
-	// 		Err:      err,
-	// 	})
-	// }()
-}
-
-// func (p *Player) SetAccount(msg *model.MsgSetAccount) {
-// 	resp := model.MsgLoginReply{Result: 1}
-// 	defer p.Push(&resp)
-// 	login := msg.MsgLogin
-// 	account := msg.Account
-// 	err := msg.Err
-// 	if err != nil {
-// 		if err == gorm.ErrRecordNotFound {
-// 			resp.Result = 2
-// 			return
-// 		}
-// 		slog.Error("model.DB.GetAccountByName",
-// 			"err", err, "account", account.Name)
-// 		resp.Result = 7
-// 		return
-// 	}
-// 	if account.Password != login.Password {
-// 		resp.Result = 0
-// 		return
-// 	}
-// }
-
-func (p *Player) Logout(msg *model.MsgLogout) {
-	maps.MapManager.ClearMapAttrStand(p.MapNumber, p.TX, p.TY)
-	defer p.Push(&model.MsgLogoutReply{Flag: msg.Flag})
-	switch msg.Flag {
-	case 0: // close game
-	case 1: // back to pick character
-		// offline to login state.\
-		p.ConnectState = object.ConnectStateLogged
-		p.SaveCharacter()
-		p.Reset()
-	case 2: // back to pick server
-		// offline to init state.
-		// Do not close connection
-	default:
-		slog.Error("Logout", "flag", msg.Flag, "player", p.Name)
-	}
-}
-
-func (p *Player) Hack(msg *model.MsgHack) {
-	// slog.Warn("Hack placeholder")
-}
-
-func (p *Player) GetCharacterList(msg *model.MsgEmpty) {
-	reply := model.MsgGetCharacterListReply{}
-
-	// get account
-	reply.EnableCharacterClass = 0xFF
-	reply.WarehouseExpansion = p.warehouseExpansion
-	p.Push(&model.MsgEnableCharacterClassReply{
-		Class: reply.EnableCharacterClass,
-	})
-	p.Push(&model.MsgResetCharacterReply{
-		Reset: "012345678901234567",
-	})
-
-	// get character list
-	chars, err := model.DB.GetCharacterList(p.accountID)
-	if err != nil {
-		slog.Error("GetCharacterList model.DB.GetCharacterList",
-			"err", err, "account", p.accountName)
-		return
-	}
-
-	reply.CharacterList = make([]*model.MsgCharacter, len(chars))
-	for i, c := range chars {
-		reply.CharacterList[i] = &model.MsgCharacter{
-			Index: c.Position,
-			Name:  c.Name,
-			Level: c.Level,
-			// Level:       c.Level + c.MasterLevel,
-			Class:       c.Class,
-			ChangeUp:    c.ChangeUp,
-			Inventory:   [9]*item.Item(c.Inventory.Items[:9]),
-			GuildStatus: 0xFF,
-			PKLevel:     0,
-		}
+func (p *Player) Regen() {
+	p.HP = p.MaxHP
+	p.SD = p.MaxSD
+	p.MP = p.MaxMP
+	p.AG = p.MaxAG
+	reply := model.MsgReloadCharacterReply{
+		X:          p.X,
+		Y:          p.Y,
+		MapNumber:  p.MapNumber,
+		Dir:        p.Dir,
+		HP:         p.HP,
+		MP:         p.MP,
+		SD:         p.SD,
+		AG:         p.AG,
+		Experience: int(p.experience),
+		Money:      p.Money,
 	}
 	p.Push(&reply)
-}
-
-func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
-	reply := model.MsgCreateCharacterReply{Result: 0}
-	defer p.Push(&reply)
-
-	// validate msg
-	if msg.Name == "" || msg.Class > 6 {
-		slog.Error("CreateCharacter validate msg",
-			"msg", msg, "account", p.accountName)
-		return
-	}
-
-	// try to get an empty postion
-	chars, err := model.DB.GetCharacterList(p.accountID)
-	if err != nil {
-		slog.Error("CreateCharacter model.DB.GetCharacterList",
-			"err", err, "account", p.accountName)
-		return
-	}
-	position := 0
-	for i, char := range chars {
-		if i != char.Position {
-			position = i
-			break
-		}
-		position++
-	}
-	if position > 4 {
-		slog.Error("CreateCharacter over max character count",
-			"account", p.accountName)
-		return
-	}
-	// create character
-	c := CharacterTable[msg.Class]
-	c.AccountID = p.accountID
-	c.Position = position
-	c.Name = msg.Name
-	if err := model.DB.CreateCharacter(&c); err != nil {
-		slog.Error("CreateCharacter model.DB.CreateCharacter",
-			"err", err, "account", p.accountName)
-		return
-	}
-	// reply
-	reply.Result = 1
-	reply.Name = c.Name
-	reply.Index = c.Position
-	reply.Level = c.Level
-	reply.Class = c.Class
-}
-
-func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
-	reply := model.MsgDeleteCharacterReply{Result: 0}
-	defer p.Push(&reply)
-
-	if p.ConnectState == object.ConnectStatePlaying {
-		return
-	}
-
-	// validate msg
-	if msg.Name == "" || msg.Password == "" {
-		slog.Error("DeleteCharacter validate msg",
-			"msg", msg, "account", p.accountName)
-		return
-	}
-
-	// check password
-	if msg.Password != "1234567" {
-		reply.Result = 2
-		return
-	}
-
-	// delete character
-	if err := model.DB.DeleteCharacterByName(p.accountID, msg.Name); err != nil {
-		slog.Error("DeleteCharacter model.DB.DeleteCharacterByName",
-			"err", err, "account", p.accountName, "character", msg.Name)
-		return
-	}
-
-	// reply
-	reply.Result = 1
-}
-
-func (p *Player) CheckCharacter(msg *model.MsgCheckCharacter) {
-	p.Push(&model.MsgCheckCharacterReply{
-		Result: 0,
-	})
-}
-
-func (p *Player) DefineMuKey(msg *model.MsgDefineMuKey) {
-	if p.ConnectState != object.ConnectStatePlaying {
-		return
-	}
-	err := model.DB.UpdateCharacterMuKey(p.characterID, msg)
-	if err != nil {
-		slog.Error("model.DB.UpdateCharacterMuKey",
-			"err", err, "player", p.Name)
-		return
-	}
-}
-
-func (p *Player) DefineMuBot(msg *model.MsgDefineMuBot) {
-	err := model.DB.UpdateCharacterMuBot(p.characterID, msg)
-	if err != nil {
-		slog.Error("model.DB.UpdateCharacterMuBot",
-			"err", err, "player", p.Name)
-		return
-	}
-}
-
-func (p *Player) EnableMuBot(msg *model.MsgEnableMuBot) {
-	reply := model.MsgEnableMuBotReply{Flag: msg.Flag}
-	defer p.Push(&reply)
-	switch msg.Flag {
-	case 0:
-	case 1:
-	}
-}
-
-func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
-	// validate msg
-	if msg.Name == "" || msg.Position < 0 || msg.Position > 4 {
-		slog.Error("LoadCharacter validate msg",
-			"msg", msg, "account", p.accountName)
-		return
-	}
-
-	// load character data from db
-	c, err := model.DB.GetCharacterByName(p.accountID, msg.Name)
-	if err != nil {
-		slog.Error("LoadCharacter model.DB.GetCharacterByName",
-			"err", err, "account", p.accountName)
-		return
-	}
-
-	// set player with character data
-	p.characterID = c.ID
-	p.Name = c.Name
-	p.Class = c.Class
-	p.changeUp = c.ChangeUp
-	p.Level = c.Level
-	p.levelPoint = c.LevelPoint
-	p.experience = c.Experience
-	p.strength = c.Strength
-	p.dexterity = c.Dexterity
-	p.vitality = c.Vitality
-	p.energy = c.Energy
-	p.leadership = c.Leadership
-	p.masterLevel = c.MasterLevel
-	p.masterPoint = c.MasterPoint
-	p.masterExperience = c.MasterExperience
-	p.HP = c.HP
-	p.MP = c.MP
-	p.Skills = c.Skills
-	p.Skills.FillSkillData(p.Class)
-	p.inventory = c.Inventory
-	p.inventoryExpansion = c.InventoryExpansion
-	p.Money = c.Money
-	p.MapNumber = c.MapNumber
-	p.X, p.TX = c.X, c.X
-	p.Y, p.TY = c.Y, c.Y
-	p.Dir = c.Dir
-	if p.Level <= 10 {
-		p.SpawnPosition()
-	}
-	maps.MapManager.SetMapAttrStand(p.MapNumber, p.TX, p.TY)
-	p.CreateFrustum()
-	p.MoveSpeed = 1000
-	p.MaxRegenTime = 4 * time.Second
-	p.ConnectState = object.ConnectStatePlaying
-	p.Live = true
-	p.State = 1
-
-	experience := p.experience
-	if p.IsMasterLevel() {
-		experience = p.masterExperience
-	}
-	nextExperience := exp.ExperienceTable[p.Level]
-	if p.IsMasterLevel() {
-		experience = exp.MasterExperienceTable[p.masterLevel]
-	}
-
-	// p.Push(&model.MsgResetGameReply{})
-	// reply
-	p.Push(&model.MsgLoadCharacterReply{
-		X:                  p.X,
-		Y:                  p.Y,
-		MapNumber:          p.MapNumber,
-		Dir:                p.Dir,
-		Experience:         experience,
-		NextExperience:     nextExperience,
-		LevelPoint:         p.levelPoint,
-		Strength:           p.strength,
-		Dexterity:          p.dexterity,
-		Vitality:           p.vitality,
-		Energy:             p.energy,
-		Leadership:         p.leadership,
-		Money:              p.Money,
-		PKLevel:            p.pkLevel,
-		CtlCode:            0,
-		AddPoint:           0,
-		MaxAddPoint:        122,
-		MinusPoint:         0,
-		MaxMinusPoint:      122,
-		InventoryExpansion: p.inventoryExpansion,
-	})
-	p.LoadMiniMap()
-	p.findAndUsePet()
-
-	// reply inventory
-	p.Push(&model.MsgItemListReply{
-		Items: p.inventory.Items,
-	})
-	// reply master data
-	p.Push(&model.MsgMasterDataReply{
-		MasterLevel:          p.masterLevel,
-		MasterExperience:     p.masterExperience,
-		MasterNextExperience: exp.MasterExperienceTable[p.masterLevel],
-		MasterPoint:          p.masterPoint,
-	})
-	p.pushSkillList()
-	p.pushMasterSkillList()
-
-	p.Push(&model.MsgMuKeyReply{
-		MsgMuKey: c.MuKey,
-	})
-	p.Push(&model.MsgMuBotReply{
-		MsgMuBot: c.MuBot,
-	})
-	p.Push(&model.MsgCreateViewportPlayerReply{
-		Players: []*model.CreateViewportPlayer{
-			{
-				Index:                  p.Index,
-				X:                      p.X,
-				Y:                      p.Y,
-				Class:                  p.Class,
-				ChangeUp:               p.changeUp,
-				Inventory:              [9]*item.Item(p.GetInventory().Items[:9]),
-				Name:                   p.Name,
-				TX:                     p.TX,
-				TY:                     p.TY,
-				Dir:                    p.Dir,
-				PKLevel:                p.pkLevel,
-				PentagramMainAttribute: p.PentagramAttributePattern,
-				MuunItem:               -1,
-				MuunSubItem:            -1,
-				MuunRideItem:           -1,
-				Level:                  p.Level,
-				MaxHP:                  p.MaxHP,
-				HP:                     p.HP,
-				ServerCode:             0,
-			},
-		},
-	})
-
-	// client will calculate character after receiving inventory msg and master msg
-	// calculate
-	p.calc()
-
-	// go func() {
-	// 	time.Sleep(100 * time.Millisecond) // get character info
-	// 	p.actioner.PlayerAction(p.index, "SetCharacter", &model.MsgSetCharacter{Name: msg.Name})
-	// }()
-}
-
-func (p *Player) BattleCoreNotice(*model.MsgEmpty) {
-	// p.Push(&model.MsgBattleCoreNoticeReply{Notice: false})
-}
-
-func (p *Player) AddLevelPoint(msg *model.MsgAddLevelPoint) {
-	reply := model.MsgAddLevelPointReply{}
-	defer p.Push(&reply)
-	if p.levelPoint < 1 {
-		return
-	}
-	switch msg.Type {
-	case 0:
-		p.strength++
-	case 1:
-		p.dexterity++
-	case 2:
-		p.vitality++
-	case 3:
-		p.energy++
-	case 4:
-		p.leadership++
-	default:
-		return
-	}
-	p.levelPoint--
-	p.calc()
-	reply.Type = 0x10 + msg.Type
-	switch msg.Type {
-	case 2:
-		reply.MaxHPMP = p.MaxHP
-	case 3:
-		reply.MaxHPMP = p.MaxMP
-	}
-	reply.MaxSD = p.MaxSD
-	reply.MaxAG = p.MaxAG
 }
 
 func (p *Player) calc() {
@@ -864,7 +577,7 @@ func (p *Player) calc() {
 		p.addLeadership += 10 + 5*wing.Level
 	}
 	// set item contribution
-	p.CalcSetItem(true)
+	p.calcSetItem(true)
 	// master skill contribution
 
 	strength := p.strength + p.addStrength
@@ -1028,7 +741,7 @@ func (p *Player) calc() {
 			p.Defense += it.AdditionDefense
 			p.DefenseRate += it.SuccessfulBlocking
 			p.DefenseRate += it.AdditionDefenseRate
-			p.RecoverHP = it.AdditionRecoverHP
+			p.recoverHP = it.AdditionRecoverHP
 		}
 	}
 
@@ -1134,7 +847,7 @@ func (p *Player) calc() {
 		p.MaxAG = f(0.15, 0.2, 0.3, 1.0, 0)
 	}
 
-	p.CalcSetItem(false)
+	p.calcSetItem(false)
 	// set item contribution
 	leftAttackMin += p.increaseAttackMin
 	leftAttackMax += p.increaseAttackMax
@@ -1379,6 +1092,55 @@ func (p *Player) calc() {
 	p.PushMPAG(p.MP, p.AG)
 }
 
+func (p *Player) EquipmentChanged() {
+	// 1, change skill
+	newItemSkills := make(map[int]struct{})
+	primaryHandWeapon := p.inventory.Items[0]
+	if primaryHandWeapon != nil && primaryHandWeapon.SkillIndex != 0 {
+		newItemSkills[primaryHandWeapon.SkillIndex] = struct{}{}
+	}
+	secondaryHandWeapon := p.inventory.Items[1]
+	if secondaryHandWeapon != nil && secondaryHandWeapon.SkillIndex != 0 {
+		newItemSkills[secondaryHandWeapon.SkillIndex] = struct{}{}
+	}
+	oldItemSkills := make(map[int]struct{})
+	for _, s := range p.Skills {
+		if s.Index < 300 && s.SkillBase.ItemSkill {
+			oldItemSkills[s.Index] = struct{}{}
+		}
+	}
+	var needLearnSkills []int
+	for newSkill := range newItemSkills {
+		if _, ok := oldItemSkills[newSkill]; !ok {
+			needLearnSkills = append(needLearnSkills, newSkill)
+		}
+	}
+	var needForgetSkills []int
+	for oldSkill := range oldItemSkills {
+		if _, ok := newItemSkills[oldSkill]; !ok {
+			needForgetSkills = append(needForgetSkills, oldSkill)
+		}
+	}
+	for _, index := range needLearnSkills {
+		if s, ok := p.LearnSkill(index); ok {
+			p.Push(&model.MsgSkillOneReply{
+				Flag:  -2,
+				Skill: s,
+			})
+		}
+	}
+	for _, index := range needForgetSkills {
+		if s, ok := p.ForgetSkill(index); ok {
+			p.Push(&model.MsgSkillOneReply{
+				Flag:  -1,
+				Skill: s,
+			})
+		}
+	}
+	// 2, calculate player
+	p.calc()
+}
+
 func (p *Player) equippedItem(it *item.Item, code int) bool {
 	if it == nil || it.Durability == 0 {
 		return false
@@ -1403,42 +1165,7 @@ func (p *Player) findAndUsePet() {
 	}
 }
 
-func (p *Player) UsePet(msg *model.MsgUsePet) {
-	reply := model.MsgUsePetReply{
-		Position: msg.Position,
-		Result:   0,
-	}
-	defer p.Push(&reply)
-
-	if msg.Position < 12 || msg.Position > 204 {
-		return
-	}
-	it := p.inventory.Items[msg.Position]
-	if it == nil || it.Durability <= 0 {
-		return
-	}
-	switch it.Code {
-	case item.Code(13, 2), // Horn of Uniria 兽角
-		item.Code(13, 3),  // Horn of Dinorant 彩云兽
-		item.Code(13, 4),  // Dark Horse 黑王马之角
-		item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
-		if p.pet != nil {
-			it.HarmonyOption = 0
-			p.pet = nil
-			reply.Result = -1
-		} else {
-			it.HarmonyOption = 1
-			p.pet = it
-			reply.Result = -2
-		}
-		p.EquipmentChanged()
-		p.PushChangedEquipment(it)
-	}
-}
-
-func (p *Player) MapDataLoadingOK(msg *model.MsgEmpty) {}
-
-func (p *Player) SaveCharacter() {
+func (p *Player) saveCharacter() {
 	if p.Name == "" {
 		return
 	}
@@ -1469,7 +1196,7 @@ func (p *Player) SaveCharacter() {
 	}
 	err := model.DB.UpdateCharacter(&c)
 	if err != nil {
-		slog.Error("SaveCharacter model.DB.UpdateCharacter",
+		slog.Error("saveCharacter model.DB.UpdateCharacter",
 			"err", err, "player", p.Name)
 		return
 	}
@@ -1550,7 +1277,7 @@ func (p *Player) addSetEffect(index item.SetEffectType, value int, base bool) {
 	}
 }
 
-func (p *Player) CalcSetItem(base bool) {
+func (p *Player) calcSetItem(base bool) {
 	type set struct {
 		index int
 		count int
@@ -1615,7 +1342,7 @@ func (p *Player) CalcSetItem(base bool) {
 	}
 }
 
-func (player *Player) Calc380Item() {
+func (player *Player) calc380Item() {
 	for _, wItem := range player.inventory.WearingItems() {
 		if wItem.Durability == 0 {
 			continue
@@ -1651,218 +1378,11 @@ func (p *Player) pushMasterSkillList() {
 	p.Push(&model.MsgMasterSkillListReply{Skills: skills})
 }
 
-func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
-	reply := model.MsgLearnMasterSkillReply{
-		Result:           0,
-		MasterPoint:      p.masterPoint,
-		MasterSkillIndex: -1,
-	}
-	defer p.Push(&reply)
-
-	if p.masterLevel <= 0 ||
-		p.masterPoint <= 0 {
-		return
-	}
-
-	p.Skills.GetMaster(p.Class, msg.SkillIndex, p.masterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
-		p.masterPoint -= point
-		reply.Result = 1
-		reply.MasterPoint -= point
-		reply.MasterSkillUIIndex = uiIndex
-		reply.MasterSkillIndex = index
-		reply.MasterSkillLevel = level
-		reply.MasterSkillCurValue = curValue
-		reply.MasterSkillNextValue = NextValue
-	})
-}
-
-func (p *Player) ProcessAction() {}
-
-func (p *Player) Process1000ms() {
-	if p.ConnectState == object.ConnectStatePlaying {
-		p.recoverHPSD()
-		p.recoverMPAG()
-	}
-}
-
-func (p *Player) recoverHPSD() {
-	change := false
-	if p.HP < p.MaxHP {
-		// auto recover HP
-		p.autoRecoverHPTick++
-		if p.autoRecoverHPTick >= 7 {
-			p.autoRecoverHPTick = 0
-			percent := 0.0
-			// base item recover HP
-			positions := []int{7, 9, 10, 11} // wing/pendant/ring
-			for _, n := range positions {
-				it := p.inventory.Items[n]
-				if it != nil && it.Durability != 0 {
-					percent += float64(it.AdditionRecoverHP)
-				}
-			}
-			// master skill recover HP
-			percent += 0.0
-			if percent != 0.0 {
-				hp := p.HP
-				hp += int(float64(p.MaxHP) * percent / 100)
-				switch {
-				case hp < 1:
-					hp = 1
-				case hp > p.MaxHP:
-					hp = p.MaxHP
-				}
-				p.HP = hp
-				change = true
-			}
-		}
-	} else {
-		p.autoRecoverHPTick = 0
-	}
-
-	// auto recover SD
-	if p.SD < p.MaxSD {
-		if conf.CommonServer.GameServerInfo.SDAutoRefillSafeZoneEnable {
-			attr := maps.MapManager.GetMapAttr(p.MapNumber, p.X, p.Y)
-			if attr&1 == 1 {
-				now := time.Now()
-				if now.After(p.autoRecoverSDTime.Add(time.Second * 1)) {
-					p.autoRecoverSDTime = now
-					expressionA := float64(p.MaxSD) / 30
-					expressionB := 100.0 // 380 option
-					sd := p.SD
-					sd += int(expressionA * expressionB / 100)
-					switch {
-					case sd < 1:
-						sd = 1
-					case sd > p.MaxSD:
-						sd = p.MaxSD
-					}
-					p.SD = sd
-					change = true
-				}
-			}
-		}
-	}
-
-	// posion delay recover hp
-	if p.delayRecoverHP > 0 {
-		hp := p.delayRecoverHPMax / 2
-		if p.delayRecoverHP > hp {
-			p.delayRecoverHP -= hp
-		} else {
-			hp = p.delayRecoverHP
-			p.delayRecoverHP = 0
-		}
-		if p.HP < p.MaxHP {
-			hp += p.HP
-			switch {
-			case hp < 1:
-				hp = 1
-			case hp > p.MaxHP:
-				hp = p.MaxHP
-			}
-			p.HP = hp
-			change = true
-		}
-	}
-
-	// posion delay recover SD
-	if p.delayRecoverSD > 0 {
-		sd := p.delayRecoverSDMax / 2
-		if p.delayRecoverSD > sd {
-			p.delayRecoverSD -= sd
-		} else {
-			sd = p.delayRecoverSD
-			p.delayRecoverSD = 0
-		}
-		if p.SD < p.MaxSD {
-			sd += p.SD
-			if sd > p.MaxSD {
-				sd = p.MaxSD
-			}
-			p.SD = sd
-			change = true
-		}
-	}
-
-	if change {
-		p.PushHPSD(p.HP, p.SD)
-	}
-}
-
-func (p *Player) recoverMPAG() {
-	p.autoRecoverMPTick++
-	if p.autoRecoverMPTick < 3 {
-		return
-	}
-	p.autoRecoverMPTick = 0
-	change := false
-	if p.MP < p.MaxMP {
-		// base recover MP
-		percent := 3.7
-		// master skill recover MP
-		percent += 0
-		mp := p.MP
-		mp += int(float64(p.MaxMP) * percent / 100)
-		switch {
-		case mp < 1:
-			mp = 1
-		case mp > p.MaxMP:
-			mp = p.MaxMP
-		}
-		p.MP = mp
-		change = true
-	}
-	if p.AG < p.MaxAG {
-		// base recover AG
-		percent := 3.0
-		// master skill recover AG
-		percent += 0
-		if p.Class == int(class.Knight) {
-			percent = 5
-		}
-		ag := p.AG
-		ag += 5 + int(float64(p.MaxAG)*percent/100)
-		switch {
-		case ag < 1:
-			ag = 1
-		case ag > p.MaxAG:
-			ag = p.MaxAG
-		}
-		p.AG = ag
-		change = true
-	}
-	if change {
-		p.PushMPAG(p.MP, p.AG)
-	}
-}
-
-func (p *Player) Regen() {
-	p.HP = p.MaxHP
-	p.SD = p.MaxSD
-	p.MP = p.MaxMP
-	p.AG = p.MaxAG
-	reply := model.MsgReloadCharacterReply{
-		X:          p.X,
-		Y:          p.Y,
-		MapNumber:  p.MapNumber,
-		Dir:        p.Dir,
-		HP:         p.HP,
-		MP:         p.MP,
-		SD:         p.SD,
-		AG:         p.AG,
-		Experience: int(p.experience),
-		Money:      p.Money,
-	}
-	p.Push(&reply)
-}
-
 func (p *Player) GetChangeUp() int {
 	return p.changeUp
 }
 
-func (p *Player) PushChangedEquipment(it *item.Item) {
+func (p *Player) pushChangedEquipment(it *item.Item) {
 	reply := model.MsgChangeEquipmentReply{
 		Number: p.Index,
 		Item:   it,
@@ -1870,56 +1390,7 @@ func (p *Player) PushChangedEquipment(it *item.Item) {
 	p.PushViewport(&reply)
 }
 
-func (p *Player) EquipmentChanged() {
-	// 1, change skill
-	newItemSkills := make(map[int]struct{})
-	primaryHandWeapon := p.inventory.Items[0]
-	if primaryHandWeapon != nil && primaryHandWeapon.SkillIndex != 0 {
-		newItemSkills[primaryHandWeapon.SkillIndex] = struct{}{}
-	}
-	secondaryHandWeapon := p.inventory.Items[1]
-	if secondaryHandWeapon != nil && secondaryHandWeapon.SkillIndex != 0 {
-		newItemSkills[secondaryHandWeapon.SkillIndex] = struct{}{}
-	}
-	oldItemSkills := make(map[int]struct{})
-	for _, s := range p.Skills {
-		if s.Index < 300 && s.SkillBase.ItemSkill {
-			oldItemSkills[s.Index] = struct{}{}
-		}
-	}
-	var needLearnSkills []int
-	for newSkill := range newItemSkills {
-		if _, ok := oldItemSkills[newSkill]; !ok {
-			needLearnSkills = append(needLearnSkills, newSkill)
-		}
-	}
-	var needForgetSkills []int
-	for oldSkill := range oldItemSkills {
-		if _, ok := newItemSkills[oldSkill]; !ok {
-			needForgetSkills = append(needForgetSkills, oldSkill)
-		}
-	}
-	for _, index := range needLearnSkills {
-		if s, ok := p.LearnSkill(index); ok {
-			p.Push(&model.MsgSkillOneReply{
-				Flag:  -2,
-				Skill: s,
-			})
-		}
-	}
-	for _, index := range needForgetSkills {
-		if s, ok := p.ForgetSkill(index); ok {
-			p.Push(&model.MsgSkillOneReply{
-				Flag:  -1,
-				Skill: s,
-			})
-		}
-	}
-	// 2, calculate player
-	p.calc()
-}
-
-func (p *Player) LimitUseItem(it *item.Item) bool {
+func (p *Player) limitUseItem(it *item.Item) bool {
 	if p.Level < it.ReqLevel ||
 		p.strength+p.addStrength < it.ReqStrength ||
 		p.dexterity+p.addDexterity < it.ReqDexterity ||
@@ -1933,6 +1404,375 @@ func (p *Player) LimitUseItem(it *item.Item) bool {
 		return true
 	}
 	return false
+}
+
+func (p *Player) GetInventory() *item.Inventory {
+	return &p.inventory
+}
+
+func (p *Player) GetInventoryItem(position int) *item.Item {
+	return p.inventory.Item(position)
+}
+
+func (p *Player) GetWarehouse() *item.Warehouse {
+	return &p.warehouse
+}
+
+func (p *Player) SetDelayRecoverHP(hp, hpMax int) {
+	p.delayRecoverHP = hp
+	p.delayRecoverHPMax = hpMax
+}
+
+func (p *Player) SetDelayRecoverSD(sd, sdMax int) {
+	p.delayRecoverSD = sd
+	p.delayRecoverSDMax = sdMax
+}
+
+func (p *Player) Login(msg *model.MsgLogin) {
+	// validate msg
+	resp := model.MsgLoginReply{Result: 1}
+	defer p.Push(&resp)
+	account, err := model.DB.GetAccountByName(msg.Account)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			resp.Result = 2
+			return
+		}
+		slog.Error("Login model.DB.GetAccountByName",
+			"err", err, "account", msg.Account)
+		resp.Result = 7
+		return
+	}
+	if account.Password != msg.Password {
+		resp.Result = 0
+		return
+	}
+	p.accountID = account.ID
+	p.accountName = account.Name
+	p.accountPassword = account.Password
+	p.warehouseExpansion = account.WarehouseExpansion
+	p.ConnectState = object.ConnectStateLogged
+
+	// async
+	// go func() {
+	// 	account, err := model.DB.GetAccountByName(msg.Account)
+	// 	p.actioner.PlayerAction(p.index, "SetAccount", &model.MsgSetAccount{
+	// 		MsgLogin: msg,
+	// 		Account:  account,
+	// 		Err:      err,
+	// 	})
+	// }()
+}
+
+// func (p *Player) SetAccount(msg *model.MsgSetAccount) {
+// 	resp := model.MsgLoginReply{Result: 1}
+// 	defer p.Push(&resp)
+// 	login := msg.MsgLogin
+// 	account := msg.Account
+// 	err := msg.Err
+// 	if err != nil {
+// 		if err == gorm.ErrRecordNotFound {
+// 			resp.Result = 2
+// 			return
+// 		}
+// 		slog.Error("model.DB.GetAccountByName",
+// 			"err", err, "account", account.Name)
+// 		resp.Result = 7
+// 		return
+// 	}
+// 	if account.Password != login.Password {
+// 		resp.Result = 0
+// 		return
+// 	}
+// }
+
+func (p *Player) Logout(msg *model.MsgLogout) {
+	maps.MapManager.ClearMapAttrStand(p.MapNumber, p.TX, p.TY)
+	defer p.Push(&model.MsgLogoutReply{Flag: msg.Flag})
+	switch msg.Flag {
+	case 0: // close game
+	case 1: // back to pick character
+		// offline to login state.\
+		p.ConnectState = object.ConnectStateLogged
+		p.saveCharacter()
+		p.Reset()
+	case 2: // back to pick server
+		// offline to init state.
+		// Do not close connection
+	default:
+		slog.Error("Logout", "flag", msg.Flag, "player", p.Name)
+	}
+}
+
+func (p *Player) GetCharacterList(msg *model.MsgEmpty) {
+	reply := model.MsgGetCharacterListReply{}
+
+	// get account
+	reply.EnableCharacterClass = 0xFF
+	reply.WarehouseExpansion = p.warehouseExpansion
+	p.Push(&model.MsgEnableCharacterClassReply{
+		Class: reply.EnableCharacterClass,
+	})
+	p.Push(&model.MsgResetCharacterReply{
+		Reset: "012345678901234567",
+	})
+
+	// get character list
+	chars, err := model.DB.GetCharacterList(p.accountID)
+	if err != nil {
+		slog.Error("GetCharacterList model.DB.GetCharacterList",
+			"err", err, "account", p.accountName)
+		return
+	}
+
+	reply.CharacterList = make([]*model.MsgCharacter, len(chars))
+	for i, c := range chars {
+		reply.CharacterList[i] = &model.MsgCharacter{
+			Index: c.Position,
+			Name:  c.Name,
+			Level: c.Level,
+			// Level:       c.Level + c.MasterLevel,
+			Class:       c.Class,
+			ChangeUp:    c.ChangeUp,
+			Inventory:   [9]*item.Item(c.Inventory.Items[:9]),
+			GuildStatus: 0xFF,
+			PKLevel:     0,
+		}
+	}
+	p.Push(&reply)
+}
+
+func (p *Player) CreateCharacter(msg *model.MsgCreateCharacter) {
+	reply := model.MsgCreateCharacterReply{Result: 0}
+	defer p.Push(&reply)
+
+	// validate msg
+	if msg.Name == "" || msg.Class > 6 {
+		slog.Error("CreateCharacter validate msg",
+			"msg", msg, "account", p.accountName)
+		return
+	}
+
+	// try to get an empty postion
+	chars, err := model.DB.GetCharacterList(p.accountID)
+	if err != nil {
+		slog.Error("CreateCharacter model.DB.GetCharacterList",
+			"err", err, "account", p.accountName)
+		return
+	}
+	position := 0
+	for i, char := range chars {
+		if i != char.Position {
+			position = i
+			break
+		}
+		position++
+	}
+	if position > 4 {
+		slog.Error("CreateCharacter over max character count",
+			"account", p.accountName)
+		return
+	}
+	// create character
+	c := CharacterTable[msg.Class]
+	c.AccountID = p.accountID
+	c.Position = position
+	c.Name = msg.Name
+	if err := model.DB.CreateCharacter(&c); err != nil {
+		slog.Error("CreateCharacter model.DB.CreateCharacter",
+			"err", err, "account", p.accountName)
+		return
+	}
+	// reply
+	reply.Result = 1
+	reply.Name = c.Name
+	reply.Index = c.Position
+	reply.Level = c.Level
+	reply.Class = c.Class
+}
+
+func (p *Player) DeleteCharacter(msg *model.MsgDeleteCharacter) {
+	reply := model.MsgDeleteCharacterReply{Result: 0}
+	defer p.Push(&reply)
+
+	if p.ConnectState == object.ConnectStatePlaying {
+		return
+	}
+
+	// validate msg
+	if msg.Name == "" || msg.Password == "" {
+		slog.Error("DeleteCharacter validate msg",
+			"msg", msg, "account", p.accountName)
+		return
+	}
+
+	// check password
+	if msg.Password != "1234567" {
+		reply.Result = 2
+		return
+	}
+
+	// delete character
+	if err := model.DB.DeleteCharacterByName(p.accountID, msg.Name); err != nil {
+		slog.Error("DeleteCharacter model.DB.DeleteCharacterByName",
+			"err", err, "account", p.accountName, "character", msg.Name)
+		return
+	}
+
+	// reply
+	reply.Result = 1
+}
+
+func (p *Player) CheckCharacter(msg *model.MsgCheckCharacter) {
+	p.Push(&model.MsgCheckCharacterReply{
+		Result: 0,
+	})
+}
+
+func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
+	// validate msg
+	if msg.Name == "" || msg.Position < 0 || msg.Position > 4 {
+		slog.Error("LoadCharacter validate msg",
+			"msg", msg, "account", p.accountName)
+		return
+	}
+
+	// load character data from db
+	c, err := model.DB.GetCharacterByName(p.accountID, msg.Name)
+	if err != nil {
+		slog.Error("LoadCharacter model.DB.GetCharacterByName",
+			"err", err, "account", p.accountName)
+		return
+	}
+
+	// set player with character data
+	p.characterID = c.ID
+	p.Name = c.Name
+	p.Class = c.Class
+	p.changeUp = c.ChangeUp
+	p.Level = c.Level
+	p.levelPoint = c.LevelPoint
+	p.experience = c.Experience
+	p.strength = c.Strength
+	p.dexterity = c.Dexterity
+	p.vitality = c.Vitality
+	p.energy = c.Energy
+	p.leadership = c.Leadership
+	p.masterLevel = c.MasterLevel
+	p.masterPoint = c.MasterPoint
+	p.masterExperience = c.MasterExperience
+	p.HP = c.HP
+	p.MP = c.MP
+	p.Skills = c.Skills
+	p.Skills.FillSkillData(p.Class)
+	p.inventory = c.Inventory
+	p.inventoryExpansion = c.InventoryExpansion
+	p.Money = c.Money
+	p.MapNumber = c.MapNumber
+	p.X, p.TX = c.X, c.X
+	p.Y, p.TY = c.Y, c.Y
+	p.Dir = c.Dir
+	if p.Level <= 10 {
+		p.SpawnPosition()
+	}
+	maps.MapManager.SetMapAttrStand(p.MapNumber, p.TX, p.TY)
+	p.CreateFrustum()
+	p.MoveSpeed = 1000
+	p.MaxRegenTime = 4 * time.Second
+	p.ConnectState = object.ConnectStatePlaying
+	p.Live = true
+	p.State = 1
+
+	experience := p.experience
+	if p.IsMasterLevel() {
+		experience = p.masterExperience
+	}
+	nextExperience := exp.ExperienceTable[p.Level]
+	if p.IsMasterLevel() {
+		experience = exp.MasterExperienceTable[p.masterLevel]
+	}
+
+	// p.Push(&model.MsgResetGameReply{})
+	// reply
+	p.Push(&model.MsgLoadCharacterReply{
+		X:                  p.X,
+		Y:                  p.Y,
+		MapNumber:          p.MapNumber,
+		Dir:                p.Dir,
+		Experience:         experience,
+		NextExperience:     nextExperience,
+		LevelPoint:         p.levelPoint,
+		Strength:           p.strength,
+		Dexterity:          p.dexterity,
+		Vitality:           p.vitality,
+		Energy:             p.energy,
+		Leadership:         p.leadership,
+		Money:              p.Money,
+		PKLevel:            p.pkLevel,
+		CtlCode:            0,
+		AddPoint:           0,
+		MaxAddPoint:        122,
+		MinusPoint:         0,
+		MaxMinusPoint:      122,
+		InventoryExpansion: p.inventoryExpansion,
+	})
+	p.LoadMiniMap()
+	p.findAndUsePet()
+
+	// reply inventory
+	p.Push(&model.MsgItemListReply{
+		Items: p.inventory.Items,
+	})
+	// reply master data
+	p.Push(&model.MsgMasterDataReply{
+		MasterLevel:          p.masterLevel,
+		MasterExperience:     p.masterExperience,
+		MasterNextExperience: exp.MasterExperienceTable[p.masterLevel],
+		MasterPoint:          p.masterPoint,
+	})
+	p.pushSkillList()
+	p.pushMasterSkillList()
+
+	p.Push(&model.MsgMuKeyReply{
+		MsgMuKey: c.MuKey,
+	})
+	p.Push(&model.MsgMuBotReply{
+		MsgMuBot: c.MuBot,
+	})
+	p.Push(&model.MsgCreateViewportPlayerReply{
+		Players: []*model.CreateViewportPlayer{
+			{
+				Index:                  p.Index,
+				X:                      p.X,
+				Y:                      p.Y,
+				Class:                  p.Class,
+				ChangeUp:               p.changeUp,
+				Inventory:              [9]*item.Item(p.GetInventory().Items[:9]),
+				Name:                   p.Name,
+				TX:                     p.TX,
+				TY:                     p.TY,
+				Dir:                    p.Dir,
+				PKLevel:                p.pkLevel,
+				PentagramMainAttribute: p.PentagramAttributePattern,
+				MuunItem:               -1,
+				MuunSubItem:            -1,
+				MuunRideItem:           -1,
+				Level:                  p.Level,
+				MaxHP:                  p.MaxHP,
+				HP:                     p.HP,
+				ServerCode:             0,
+			},
+		},
+	})
+
+	// client will calculate character after receiving inventory msg and master msg
+	// calculate
+	p.calc()
+
+	// go func() {
+	// 	time.Sleep(100 * time.Millisecond) // get character info
+	// 	p.actioner.PlayerAction(p.index, "SetCharacter", &model.MsgSetCharacter{Name: msg.Name})
+	// }()
 }
 
 func (p *Player) Talk(msg *model.MsgTalk) {
@@ -2018,37 +1858,137 @@ func (p *Player) CloseWarehouseWindow(msg *model.MsgEmpty) {
 			"err", err, "player", p.Name)
 		return
 	}
-	p.SaveCharacter()
+	p.saveCharacter()
 	reply := model.MsgCloseWarehouseWindowReply{}
 	p.Push(&reply)
 }
 
-func (p *Player) StartPartyNumberPosition(*model.MsgEmpty) {
+func (p *Player) KeepLive(msg *model.MsgKeepLive)      {}
+func (p *Player) Hack(msg *model.MsgHack)              {}
+func (p *Player) BattleCoreNotice(*model.MsgEmpty)     {}
+func (p *Player) MapDataLoadingOK(msg *model.MsgEmpty) {}
 
+func (p *Player) AddLevelPoint(msg *model.MsgAddLevelPoint) {
+	reply := model.MsgAddLevelPointReply{}
+	defer p.Push(&reply)
+	if p.levelPoint < 1 {
+		return
+	}
+	switch msg.Type {
+	case 0:
+		p.strength++
+	case 1:
+		p.dexterity++
+	case 2:
+		p.vitality++
+	case 3:
+		p.energy++
+	case 4:
+		p.leadership++
+	default:
+		return
+	}
+	p.levelPoint--
+	p.calc()
+	reply.Type = 0x10 + msg.Type
+	switch msg.Type {
+	case 2:
+		reply.MaxHPMP = p.MaxHP
+	case 3:
+		reply.MaxHPMP = p.MaxMP
+	}
+	reply.MaxSD = p.MaxSD
+	reply.MaxAG = p.MaxAG
 }
 
-func (p *Player) StopPartyNumberPosition(*model.MsgEmpty) {
+func (p *Player) LearnMasterSkill(msg *model.MsgLearnMasterSkill) {
+	reply := model.MsgLearnMasterSkillReply{
+		Result:           0,
+		MasterPoint:      p.masterPoint,
+		MasterSkillIndex: -1,
+	}
+	defer p.Push(&reply)
 
+	if p.masterLevel <= 0 ||
+		p.masterPoint <= 0 {
+		return
+	}
+
+	p.Skills.GetMaster(p.Class, msg.SkillIndex, p.masterPoint, func(point, uiIndex, index, level int, curValue, NextValue float32) {
+		p.masterPoint -= point
+		reply.Result = 1
+		reply.MasterPoint -= point
+		reply.MasterSkillUIIndex = uiIndex
+		reply.MasterSkillIndex = index
+		reply.MasterSkillLevel = level
+		reply.MasterSkillCurValue = curValue
+		reply.MasterSkillNextValue = NextValue
+	})
 }
 
-func (p *Player) GetInventory() *item.Inventory {
-	return &p.inventory
+func (p *Player) DefineMuKey(msg *model.MsgDefineMuKey) {
+	if p.ConnectState != object.ConnectStatePlaying {
+		return
+	}
+	err := model.DB.UpdateCharacterMuKey(p.characterID, msg)
+	if err != nil {
+		slog.Error("model.DB.UpdateCharacterMuKey",
+			"err", err, "player", p.Name)
+		return
+	}
 }
 
-func (p *Player) GetInventoryItem(position int) *item.Item {
-	return p.inventory.Item(position)
+func (p *Player) DefineMuBot(msg *model.MsgDefineMuBot) {
+	err := model.DB.UpdateCharacterMuBot(p.characterID, msg)
+	if err != nil {
+		slog.Error("model.DB.UpdateCharacterMuBot",
+			"err", err, "player", p.Name)
+		return
+	}
 }
 
-func (p *Player) GetWarehouse() *item.Warehouse {
-	return &p.warehouse
+func (p *Player) EnableMuBot(msg *model.MsgEnableMuBot) {
+	reply := model.MsgEnableMuBotReply{Flag: msg.Flag}
+	defer p.Push(&reply)
+	switch msg.Flag {
+	case 0:
+	case 1:
+	}
 }
 
-func (p *Player) SetDelayRecoverHP(hp, hpMax int) {
-	p.delayRecoverHP = hp
-	p.delayRecoverHPMax = hpMax
+func (p *Player) UsePet(msg *model.MsgUsePet) {
+	reply := model.MsgUsePetReply{
+		Position: msg.Position,
+		Result:   0,
+	}
+	defer p.Push(&reply)
+
+	if msg.Position < 12 || msg.Position > 204 {
+		return
+	}
+	it := p.inventory.Items[msg.Position]
+	if it == nil || it.Durability <= 0 {
+		return
+	}
+	switch it.Code {
+	case item.Code(13, 2), // Horn of Uniria 兽角
+		item.Code(13, 3),  // Horn of Dinorant 彩云兽
+		item.Code(13, 4),  // Dark Horse 黑王马之角
+		item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
+		if p.pet != nil {
+			it.HarmonyOption = 0
+			p.pet = nil
+			reply.Result = -1
+		} else {
+			it.HarmonyOption = 1
+			p.pet = it
+			reply.Result = -2
+		}
+		p.EquipmentChanged()
+		p.pushChangedEquipment(it)
+	}
 }
 
-func (p *Player) SetDelayRecoverSD(sd, sdMax int) {
-	p.delayRecoverSD = sd
-	p.delayRecoverSDMax = sdMax
-}
+func (p *Player) MuunSystem(msg *model.MsgMuunSystem)      {}
+func (p *Player) StartPartyNumberPosition(*model.MsgEmpty) {}
+func (p *Player) StopPartyNumberPosition(*model.MsgEmpty)  {}
