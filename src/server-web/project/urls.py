@@ -38,4 +38,5 @@ urlpatterns = [
     path("edit_entry/<int:id>/", views.edit_entry, name="edit_entry"),
     path("game/", views.game, name="game"),
     path("game/accounts/", views.game_accounts, name="accounts"),
+    path("items/", views.items, name="items"),
 ]

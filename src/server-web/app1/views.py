@@ -241,3 +241,10 @@ def game_accounts(request):
         context["get_account_list_message"] = "request server failed"
     context["form"] = form
     return render(request, "accounts.html", context)
+
+
+def items(request):
+    context = {
+        "items": settings.ITEMS,
+    }
+    return render(request, "items.html", context)

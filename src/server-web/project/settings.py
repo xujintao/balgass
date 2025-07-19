@@ -202,21 +202,23 @@ LOGGING = {
 GAME_API_URL = os.environ.get("GAME_API_URL", "http://r2f2.com:8080/api/accounts")
 GAME_WEBSOCKET_URL = os.environ.get("GAME_WEBSOCKET_URL", "wss://r2f2.com/api/game")
 GAME_CONFIG_PATH = os.environ.get("GAME_CONFIG_PATH", "/etc/server-game-common")
+GAME_CONFIG_PATH = f"{GAME_CONFIG_PATH}/IGCData"
 
-
+# load all files
 import sys
+import xml.etree.ElementTree as ET
+import re
 
-if "collectstatic" not in sys.argv:
-    # GAME_MAPS_NAMES_NUMBERS
-    import xml.etree.ElementTree as ET
-    import re
+GAME_MAP_NAMES = []
+ITEMS = []
 
+
+# load map
+def load_map():
     game_map_name_count = {}
-    GAME_MAP_NAMES = []
-    et = ET.parse(f"{GAME_CONFIG_PATH}/IGCData/IGC_MapList.xml")
+    et = ET.parse(f"{GAME_CONFIG_PATH}/IGC_MapList.xml")
     root = et.getroot()
     for emap in root.find("DefaultMaps"):
-        number = int(emap.get("Number", 0))
         file = emap.get("File", "00_Lorencia.att")
         match = re.match(r"\d+_(.+)\.att$", file)
         name = match.group(1) if match else file.replace(".att", "")
@@ -230,3 +232,29 @@ if "collectstatic" not in sys.argv:
             new_name = f"{name}{name_count+1}"
         game_map_name_count[name] = name_count + 1
         GAME_MAP_NAMES.append(new_name)
+
+
+# load item
+def load_item():
+    et = ET.parse(f"{GAME_CONFIG_PATH}/Items/IGC_ItemList.xml")
+    root = et.getroot()
+    for esection in root.findall("Section"):
+        section_id = int(esection.get("Index"))
+        for eitem in esection.findall("Item"):
+            item_id = int(eitem.get("Index"))
+            item_name = eitem.get("Name")
+            item_annotation = eitem.get("annotation")
+            if item_name == "" or item_annotation == "":
+                continue
+            item_name = f"{item_name} {item_annotation}"
+            item = {
+                "section": section_id,
+                "index": item_id,
+                "name": item_name,
+            }
+            ITEMS.append(item)
+
+
+if "collectstatic" not in sys.argv:
+    load_map()
+    load_item()

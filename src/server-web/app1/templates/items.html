@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}
+Items 道具
+{% endblock title %}
+{% block content %}
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">Section</th>
+      <th scope="col">Index</th>
+      <th scope="col">Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td>{{ item.section }}</td>
+      <td>{{ item.index }}</td>
+      <td>{{ item.name }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock content %}
