@@ -3,22 +3,46 @@
 Items 道具
 {% endblock title %}
 {% block content %}
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th scope="col">Section</th>
-      <th scope="col">Index</th>
-      <th scope="col">Name</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for item in items %}
-    <tr>
-      <td>{{ item.section }}</td>
-      <td>{{ item.index }}</td>
-      <td>{{ item.name }}</td>
-    </tr>
+<div>
+  <div>
+    {% for keyword in keywords %}
+    <a
+      class="btn btn-light"
+      href="{% url 'items' %}?kind={{ keyword }}"
+      role="button"
+      >{{ keyword }}</a
+    >
     {% endfor %}
-  </tbody>
-</table>
+  </div>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Section</th>
+        <th scope="col">Index</th>
+        <th scope="col">Name</th>
+        <th scope="col">Skill</th>
+        <th scope="col">Two Hand</th>
+        <th scope="col">Excellent</th>
+        <th scope="col">Min Attack</th>
+        <th scope="col">Max Attack</th>
+        <th scope="col">Attack Speed</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ item.section }}</td>
+        <td>{{ item.index }}</td>
+        <td>{{ item.name }}</td>
+        <td>{{ item.skill }}</td>
+        <td>{{ item.two_hand }}</td>
+        <td>{{ item.excellent }}</td>
+        <td>{{ item.damage_min }}</td>
+        <td>{{ item.damage_max }}</td>
+        <td>{{ item.attack_speed }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock content %}

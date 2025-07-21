@@ -244,7 +244,18 @@ def game_accounts(request):
 
 
 def items(request):
+    keywords = settings.GAME_ITEMS_KEYWORDS
+    kind = request.GET.get("kind", "sword")
+    kind_indexs = settings.GAME_ITEMS_KINDS.get(kind)
+    items = []
+    for index in kind_indexs:
+        item = settings.GAME_ITEMS.get(index)
+        if item is None:
+            continue
+        items.append(item)
     context = {
-        "items": settings.ITEMS,
+        "keywords": keywords,
+        "kind": kind,
+        "items": items,
     }
     return render(request, "items.html", context)

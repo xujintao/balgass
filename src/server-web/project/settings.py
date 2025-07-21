@@ -210,7 +210,15 @@ import xml.etree.ElementTree as ET
 import re
 
 GAME_MAP_NAMES = []
-ITEMS = []
+GAME_SKILLS = {}
+GAME_ITEMS = {}
+GAME_ITEMS_SWORD_INDEXS = []
+GAME_ITEMS_CLAW_INDEXS = []
+GAME_ITEMS_KEYWORDS = ["sword", "claw"]
+GAME_ITEMS_KINDS = {
+    "sword": GAME_ITEMS_SWORD_INDEXS,
+    "claw": GAME_ITEMS_CLAW_INDEXS,
+}
 
 
 # load map
@@ -234,27 +242,66 @@ def load_map():
         GAME_MAP_NAMES.append(new_name)
 
 
+# load skill
+def load_skill():
+    et = ET.parse(f"{GAME_CONFIG_PATH}/Skills/IGC_SkillList.xml")
+    root = et.getroot()
+    for eskill in root.findall("Skill"):
+        skill_index = int(eskill.get("Index"))
+        skill_name = eskill.get("Name")
+        skill_annotation = eskill.get("anotation")
+        skill_name = f"{skill_name} {skill_annotation}"
+        skill = {
+            "index": skill_index,
+            "name": skill_name,
+        }
+        GAME_SKILLS[skill_index] = skill
+
+
 # load item
 def load_item():
     et = ET.parse(f"{GAME_CONFIG_PATH}/Items/IGC_ItemList.xml")
     root = et.getroot()
     for esection in root.findall("Section"):
-        section_id = int(esection.get("Index"))
+        section_index = int(esection.get("Index"))
         for eitem in esection.findall("Item"):
-            item_id = int(eitem.get("Index"))
+            item_index = int(eitem.get("Index"))
             item_name = eitem.get("Name")
             item_annotation = eitem.get("annotation")
             if item_name == "" or item_annotation == "":
                 continue
             item_name = f"{item_name} {item_annotation}"
+            item_skill_index = int(eitem.get("SkillIndex"))
+            item_skill_name = ""
+            skill = GAME_SKILLS.get(item_skill_index)
+            if skill is not None:
+                item_skill_name = skill["name"]
+            item_two_hand = eitem.get("TwoHand") == "1"
+            item_excellent = eitem.get("Option") == "1"
+            item_damage_min = int(eitem.get("DamageMin", 0))
+            item_damage_max = int(eitem.get("DamageMax", 0))
+            item_attack_speed = int(eitem.get("AttackSpeed", 0))
             item = {
-                "section": section_id,
-                "index": item_id,
+                "section": section_index,
+                "index": item_index,
                 "name": item_name,
+                "skill": item_skill_name,
+                "two_hand": item_two_hand,
+                "excellent": item_excellent,
+                "damage_min": item_damage_min,
+                "damage_max": item_damage_max,
+                "attack_speed": item_attack_speed,
             }
-            ITEMS.append(item)
+            GAME_ITEMS[(section_index, item_index)] = item
+            item_kind_b = int(eitem.get("KindB"))
+            match item_kind_b:
+                case 1 | 2:
+                    GAME_ITEMS_SWORD_INDEXS.append((section_index, item_index))
+                case 3:
+                    GAME_ITEMS_CLAW_INDEXS.append((section_index, item_index))
 
 
 if "collectstatic" not in sys.argv:
     load_map()
+    load_skill()
     load_item()
