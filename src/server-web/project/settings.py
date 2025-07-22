@@ -218,7 +218,53 @@ GAME_ITEMS_AXE_INDEXS = []
 GAME_ITEMS_MACE_INDEXS = []
 GAME_ITEMS_SCEPTER_INDEXS = []
 GAME_ITEMS_SPEAR_INDEXS = []
-GAME_ITEMS_KEYWORDS = ["sword", "claw", "axe", "mace", "scepter", "spear"]
+GAME_ITEMS_BOW_INDEXS = []
+GAME_ITEMS_CROSSBOW_INDEXS = []
+GAME_ITEMS_STAFF_INDEXS = []
+GAME_ITEMS_STICK_INDEXS = []
+GAME_ITEMS_BOOK_INDEXS = []
+GAME_ITEMS_SHIELD_INDEXS = []
+GAME_ITEMS_HELMET_INDEXS = []
+GAME_ITEMS_ARMOR_INDEXS = []
+GAME_ITEMS_PANTS_INDEXS = []
+GAME_ITEMS_GLOVES_INDEXS = []
+GAME_ITEMS_BOOTS_INDEXS = []
+GAME_ITEMS_WING_INDEXS = []
+GAME_ITEMS_WEAPON_KEYWORDS = [
+    "sword",
+    "claw",
+    "axe",
+    "mace",
+    "scepter",
+    "spear",
+    "bow",
+    "crossbow",
+    "staff",
+    "stick",
+    "book",
+    "shield",
+]
+GAME_ITEMS_ARMOR_KEYWORDS = [
+    "helmet",
+    "armor",
+    "pants",
+    "gloves",
+    "boots",
+]
+GAME_ITEMS_WING_KEYWORDS = ["wing"]
+GAME_ITEMS_STAFF_LIKE_KEYWORDS = [
+    "staff",
+    "stick",
+    "book",
+]
+GAME_ITEMS_SHIELD_LIKE_KEYWORDS = [
+    "shield",
+]
+GAME_ITEMS_KEYWORDS = [
+    GAME_ITEMS_WEAPON_KEYWORDS,
+    GAME_ITEMS_ARMOR_KEYWORDS,
+    GAME_ITEMS_WING_KEYWORDS,
+]
 GAME_ITEMS_KINDS = {
     "sword": GAME_ITEMS_SWORD_INDEXS,
     "claw": GAME_ITEMS_CLAW_INDEXS,
@@ -226,6 +272,18 @@ GAME_ITEMS_KINDS = {
     "mace": GAME_ITEMS_MACE_INDEXS,
     "scepter": GAME_ITEMS_SCEPTER_INDEXS,
     "spear": GAME_ITEMS_SPEAR_INDEXS,
+    "bow": GAME_ITEMS_BOW_INDEXS,
+    "crossbow": GAME_ITEMS_CROSSBOW_INDEXS,
+    "staff": GAME_ITEMS_STAFF_INDEXS,
+    "stick": GAME_ITEMS_STICK_INDEXS,
+    "book": GAME_ITEMS_BOOK_INDEXS,
+    "shield": GAME_ITEMS_SHIELD_INDEXS,
+    "helmet": GAME_ITEMS_HELMET_INDEXS,
+    "armor": GAME_ITEMS_ARMOR_INDEXS,
+    "pants": GAME_ITEMS_PANTS_INDEXS,
+    "gloves": GAME_ITEMS_GLOVES_INDEXS,
+    "boots": GAME_ITEMS_BOOTS_INDEXS,
+    "wing": GAME_ITEMS_WING_INDEXS,
 }
 
 
@@ -289,6 +347,10 @@ def load_item():
             item_damage_min = int(eitem.get("DamageMin", 0))
             item_damage_max = int(eitem.get("DamageMax", 0))
             item_attack_speed = int(eitem.get("AttackSpeed", 0))
+            item_move_speed = int(eitem.get("WalkSpeed", 0))
+            item_defense = int(eitem.get("Defense", 0))
+            item_defense_rate = int(eitem.get("SuccessfulBlocking", 0))
+            item_magic_power = int(eitem.get("MagicPower", 0))
             item = {
                 "section": section_index,
                 "index": item_index,
@@ -299,8 +361,13 @@ def load_item():
                 "damage_min": item_damage_min,
                 "damage_max": item_damage_max,
                 "attack_speed": item_attack_speed,
+                "move_speed": item_move_speed,
+                "defense": item_defense,
+                "defense_rate": item_defense_rate,
+                "magic_power": item_magic_power,
             }
             GAME_ITEMS[(section_index, item_index)] = item
+            item_kind_a = int(eitem.get("KindA"))
             item_kind_b = int(eitem.get("KindB"))
             match item_kind_b:
                 case 1 | 2:
@@ -315,6 +382,30 @@ def load_item():
                     GAME_ITEMS_SCEPTER_INDEXS.append((section_index, item_index))
                 case 7:
                     GAME_ITEMS_SPEAR_INDEXS.append((section_index, item_index))
+                case 8:
+                    GAME_ITEMS_BOW_INDEXS.append((section_index, item_index))
+                case 9:
+                    GAME_ITEMS_CROSSBOW_INDEXS.append((section_index, item_index))
+                case 12:
+                    GAME_ITEMS_STAFF_INDEXS.append((section_index, item_index))
+                case 13:
+                    GAME_ITEMS_STICK_INDEXS.append((section_index, item_index))
+                case 14:
+                    GAME_ITEMS_BOOK_INDEXS.append((section_index, item_index))
+                case 15:
+                    GAME_ITEMS_SHIELD_INDEXS.append((section_index, item_index))
+                case 16:
+                    GAME_ITEMS_HELMET_INDEXS.append((section_index, item_index))
+                case 17:
+                    GAME_ITEMS_ARMOR_INDEXS.append((section_index, item_index))
+                case 18:
+                    GAME_ITEMS_PANTS_INDEXS.append((section_index, item_index))
+                case 19:
+                    GAME_ITEMS_GLOVES_INDEXS.append((section_index, item_index))
+                case 20:
+                    GAME_ITEMS_BOOTS_INDEXS.append((section_index, item_index))
+                case _ if item_kind_a == 6:
+                    GAME_ITEMS_WING_INDEXS.append((section_index, item_index))
 
 
 if "collectstatic" not in sys.argv:

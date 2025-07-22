@@ -4,18 +4,23 @@ Items 道具
 {% endblock title %}
 {% block content %}
 <div class="container">
-  <div class="row mb-3">
-    {% for keyword in keywords %}
-    <a
-      class="btn btn-outline-dark mr-2"
-      href="{% url 'items' %}?kind={{ keyword }}"
-      role="button"
-      >{{ keyword }}</a
-    >
+  <div class="row">
+    {% for keywords in all_keywords %}
+    <div class="mb-3">
+      {% for keyword in keywords %}
+      <a
+        class="btn btn-outline-dark mr-2"
+        href="{% url 'items' %}?kind={{ keyword }}"
+        role="button"
+        >{{ keyword }}
+      </a>
+      {% endfor %}
+    </div>
     {% endfor %}
   </div>
   <div class="row">
     <table class="table table-hover">
+      {% if render_weapon %}
       <thead class="thead-dark">
         <tr>
           <th scope="col">Section</th>
@@ -44,8 +49,106 @@ Items 道具
         </tr>
         {% endfor %}
       </tbody>
+      {% elif render_staff_like %}
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Section</th>
+          <th scope="col">Index</th>
+          <th scope="col">Name</th>
+          <th scope="col">Skill</th>
+          <th scope="col">Two Hand</th>
+          <th scope="col">Excellent</th>
+          <th scope="col">Min Attack</th>
+          <th scope="col">Max Attack</th>
+          <th scope="col">Attack Speed</th>
+          <th scope="col">Magic Power</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.section }}</td>
+          <td>{{ item.index }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.skill }}</td>
+          <td>{{ item.two_hand }}</td>
+          <td>{{ item.excellent }}</td>
+          <td>{{ item.damage_min }}</td>
+          <td>{{ item.damage_max }}</td>
+          <td>{{ item.attack_speed }}</td>
+          <td>{{ item.magic_power }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% elif render_shield_like %}
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Section</th>
+          <th scope="col">Index</th>
+          <th scope="col">Name</th>
+          <th scope="col">Skill</th>
+          <th scope="col">Excellent</th>
+          <th scope="col">Defense</th>
+          <th scope="col">Defense Rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.section }}</td>
+          <td>{{ item.index }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.skill }}</td>
+          <td>{{ item.excellent }}</td>
+          <td>{{ item.defense }}</td>
+          <td>{{ item.defense_rate }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% elif render_armor %}
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Section</th>
+          <th scope="col">Index</th>
+          <th scope="col">Name</th> 
+          <th scope="col">Excellent</th>
+          <th scope="col">Defense</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.section }}</td>
+          <td>{{ item.index }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.excellent }}</td>
+          <td>{{ item.defense }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% elif render_wing %}
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Section</th>
+          <th scope="col">Index</th>
+          <th scope="col">Name</th> 
+          <th scope="col">Excellent</th>
+          <th scope="col">Defense</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.section }}</td>
+          <td>{{ item.index }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.excellent }}</td>
+          <td>{{ item.defense }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% endif %}
     </table>
   </div>
-
 </div>
 {% endblock content %}
