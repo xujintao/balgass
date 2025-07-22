@@ -214,10 +214,18 @@ GAME_SKILLS = {}
 GAME_ITEMS = {}
 GAME_ITEMS_SWORD_INDEXS = []
 GAME_ITEMS_CLAW_INDEXS = []
-GAME_ITEMS_KEYWORDS = ["sword", "claw"]
+GAME_ITEMS_AXE_INDEXS = []
+GAME_ITEMS_MACE_INDEXS = []
+GAME_ITEMS_SCEPTER_INDEXS = []
+GAME_ITEMS_SPEAR_INDEXS = []
+GAME_ITEMS_KEYWORDS = ["sword", "claw", "axe", "mace", "scepter", "spear"]
 GAME_ITEMS_KINDS = {
     "sword": GAME_ITEMS_SWORD_INDEXS,
     "claw": GAME_ITEMS_CLAW_INDEXS,
+    "axe": GAME_ITEMS_AXE_INDEXS,
+    "mace": GAME_ITEMS_MACE_INDEXS,
+    "scepter": GAME_ITEMS_SCEPTER_INDEXS,
+    "spear": GAME_ITEMS_SPEAR_INDEXS,
 }
 
 
@@ -299,6 +307,14 @@ def load_item():
                     GAME_ITEMS_SWORD_INDEXS.append((section_index, item_index))
                 case 3:
                     GAME_ITEMS_CLAW_INDEXS.append((section_index, item_index))
+                case 4:
+                    GAME_ITEMS_AXE_INDEXS.append((section_index, item_index))
+                case 5:
+                    GAME_ITEMS_MACE_INDEXS.append((section_index, item_index))
+                case 6:
+                    GAME_ITEMS_SCEPTER_INDEXS.append((section_index, item_index))
+                case 7:
+                    GAME_ITEMS_SPEAR_INDEXS.append((section_index, item_index))
 
 
 if "collectstatic" not in sys.argv:
