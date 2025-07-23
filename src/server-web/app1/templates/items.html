@@ -4,12 +4,12 @@ Items 道具
 {% endblock title %}
 {% block content %}
 <div class="container">
-  <div class="row">
+  <div class="row mb-2">
     {% for keywords in all_keywords %}
-    <div class="mb-3">
+    <div>
       {% for keyword in keywords %}
       <a
-        class="btn btn-outline-dark mr-2"
+        class="btn btn-outline-dark mr-2 mb-2"
         href="{% url 'items' %}?kind={{ keyword }}"
         role="button"
         >{{ keyword }}
@@ -144,6 +144,23 @@ Items 道具
           <td>{{ item.name }}</td>
           <td>{{ item.excellent }}</td>
           <td>{{ item.defense }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% elif render_set %}
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Index</th>
+          <th scope="col">Name</th>
+          <th scope="col">Items</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.index }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.items }}</td>
         </tr>
         {% endfor %}
       </tbody>

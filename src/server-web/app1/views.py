@@ -245,25 +245,39 @@ def game_accounts(request):
 
 def items(request):
     kind = request.GET.get("kind", "sword")
-    kind_indexs = settings.GAME_ITEMS_KINDS.get(kind)
-    if kind in settings.GAME_ITEMS_STAFF_LIKE_KEYWORDS:
+    kind_indexs = settings.GAME_ITEM_KINDS.get(kind)
+    if kind in settings.GAME_ITEM_STAFF_LIKE_KEYWORDS:
         kind = "staff-like"
-    elif kind in settings.GAME_ITEMS_SHIELD_LIKE_KEYWORDS:
+    elif kind in settings.GAME_ITEM_SHIELD_LIKE_KEYWORDS:
         kind = "shield-like"
-    elif kind in settings.GAME_ITEMS_WEAPON_KEYWORDS:
+    elif kind in settings.GAME_ITEM_WEAPON_KEYWORDS:
         kind = "weapon"
-    elif kind in settings.GAME_ITEMS_ARMOR_KEYWORDS:
+    elif kind in settings.GAME_ITEM_ARMOR_KEYWORDS:
         kind = "armor"
-    elif kind in settings.GAME_ITEMS_WING_KEYWORDS:
+    elif kind in settings.GAME_ITEM_WING_KEYWORDS:
         kind = "wing"
+    elif kind in settings.GAME_ITEM_SET_KEYWORDS:
+        kind = "set"
     else:
         kind = None
     items = []
-    for index in kind_indexs:
-        item = settings.GAME_ITEMS.get(index)
-        if item is None:
-            continue
-        items.append(item)
+    if kind == "set":
+        sets = settings.GAME_ITEM_SET_INDEXS
+        for set in sets:
+            set_items = []
+            for index in set["item_indexs"]:
+                item = settings.GAME_ITEMS.get(index)
+                if item is None:
+                    continue
+                set_items.append(item["name"])
+            set["items"] = set_items
+            items.append(set)
+    else:
+        for index in kind_indexs:
+            item = settings.GAME_ITEMS.get(index)
+            if item is None:
+                continue
+            items.append(item)
     context = {
         "all_keywords": settings.GAME_ITEMS_KEYWORDS,
         "render_weapon": kind == "weapon",
@@ -271,6 +285,7 @@ def items(request):
         "render_shield_like": kind == "shield-like",
         "render_armor": kind == "armor",
         "render_wing": kind == "wing",
+        "render_set": kind == "set",
         "items": items,
     }
     return render(request, "items.html", context)
