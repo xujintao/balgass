@@ -245,21 +245,22 @@ def game_accounts(request):
 
 def items(request):
     kind = request.GET.get("kind", "sword")
+    render_kind = "weapon"
     kind_indexs = settings.GAME_ITEM_KINDS.get(kind)
     if kind in settings.GAME_ITEM_STAFF_LIKE_KEYWORDS:
-        kind = "staff-like"
-    elif kind in settings.GAME_ITEM_SHIELD_LIKE_KEYWORDS:
-        kind = "shield-like"
+        render_kind = "staff-like"
+    elif kind in settings.GAME_ITEM_SHIELD_KEYWORDS:
+        render_kind = "shield"
+    elif kind in settings.GAME_ITEM_GLOVES_KEYWORDS:
+        render_kind = "gloves"
     elif kind in settings.GAME_ITEM_WEAPON_KEYWORDS:
-        kind = "weapon"
+        render_kind = "weapon"
     elif kind in settings.GAME_ITEM_ARMOR_KEYWORDS:
-        kind = "armor"
+        render_kind = "armor"
     elif kind in settings.GAME_ITEM_WING_KEYWORDS:
-        kind = "wing"
+        render_kind = "wing"
     elif kind in settings.GAME_ITEM_SET_KEYWORDS:
-        kind = "set"
-    else:
-        kind = None
+        render_kind = "set"
     items = []
     if kind == "set":
         sets = settings.GAME_ITEM_SET_INDEXS
@@ -280,12 +281,14 @@ def items(request):
             items.append(item)
     context = {
         "all_keywords": settings.GAME_ITEMS_KEYWORDS,
-        "render_weapon": kind == "weapon",
-        "render_staff_like": kind == "staff-like",
-        "render_shield_like": kind == "shield-like",
-        "render_armor": kind == "armor",
-        "render_wing": kind == "wing",
-        "render_set": kind == "set",
+        "kind": kind,
+        "render_weapon": render_kind == "weapon",
+        "render_staff_like": render_kind == "staff-like",
+        "render_shield": render_kind == "shield",
+        "render_gloves": render_kind == "gloves",
+        "render_armor": render_kind == "armor",
+        "render_wing": render_kind == "wing",
+        "render_set": render_kind == "set",
         "items": items,
     }
     return render(request, "items.html", context)

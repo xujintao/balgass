@@ -209,6 +209,7 @@ import sys
 import xml.etree.ElementTree as ET
 import re
 
+# containers
 GAME_MAP_NAMES = []
 GAME_SKILLS = {}
 GAME_ITEMS = {}
@@ -231,6 +232,7 @@ GAME_ITEM_GLOVES_INDEXS = []
 GAME_ITEM_BOOTS_INDEXS = []
 GAME_ITEM_WING_INDEXS = []
 GAME_ITEM_SET_INDEXS = []
+# keywords
 GAME_ITEM_WEAPON_KEYWORDS = [
     "sword",
     "claw",
@@ -259,15 +261,17 @@ GAME_ITEM_STAFF_LIKE_KEYWORDS = [
     "stick",
     "book",
 ]
-GAME_ITEM_SHIELD_LIKE_KEYWORDS = [
+GAME_ITEM_SHIELD_KEYWORDS = [
     "shield",
+]
+GAME_ITEM_GLOVES_KEYWORDS = [
+    "gloves",
 ]
 GAME_ITEMS_KEYWORDS = [
     GAME_ITEM_WEAPON_KEYWORDS,
-    GAME_ITEM_ARMOR_KEYWORDS,
-    GAME_ITEM_WING_KEYWORDS,
-    GAME_ITEM_SET_KEYWORDS,
+    GAME_ITEM_ARMOR_KEYWORDS + GAME_ITEM_WING_KEYWORDS + GAME_ITEM_SET_KEYWORDS,
 ]
+# index table
 GAME_ITEM_KINDS = {
     "sword": GAME_ITEM_SWORD_INDEXS,
     "claw": GAME_ITEM_CLAW_INDEXS,
@@ -348,11 +352,12 @@ def load_item():
                 item_skill_name = skill["name"]
             else:
                 item_skill_name = "-"
-            item_two_hand = eitem.get("TwoHand") == "1"
-            item_excellent = eitem.get("Option") == "1"
+            item_two_hand = "Yes" if eitem.get("TwoHand") == "1" else "-"
+            item_excellent = "Yes" if eitem.get("Option") == "1" else "-"
             item_damage_min = int(eitem.get("DamageMin", 0))
             item_damage_max = int(eitem.get("DamageMax", 0))
             item_attack_speed = int(eitem.get("AttackSpeed", 0))
+            item_attack_speed = "-" if item_attack_speed == 0 else item_attack_speed
             item_move_speed = int(eitem.get("WalkSpeed", 0))
             item_defense = int(eitem.get("Defense", 0))
             item_defense_rate = int(eitem.get("SuccessfulBlocking", 0))
