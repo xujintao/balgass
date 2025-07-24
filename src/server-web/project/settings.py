@@ -231,6 +231,8 @@ GAME_ITEM_PANTS_INDEXS = []
 GAME_ITEM_GLOVES_INDEXS = []
 GAME_ITEM_BOOTS_INDEXS = []
 GAME_ITEM_WING_INDEXS = []
+GAME_ITEM_PENDANT_INDEXS = []
+GAME_ITEM_RING_INDEXS = []
 GAME_ITEM_SET_INDEXS = []
 # keywords
 GAME_ITEM_WEAPON_KEYWORDS = [
@@ -253,24 +255,22 @@ GAME_ITEM_ARMOR_KEYWORDS = [
     "pants",
     "gloves",
     "boots",
-]
-GAME_ITEM_WING_KEYWORDS = ["wing"]
-GAME_ITEM_SET_KEYWORDS = ["set"]
-GAME_ITEM_STAFF_LIKE_KEYWORDS = [
-    "staff",
-    "stick",
-    "book",
-]
-GAME_ITEM_SHIELD_KEYWORDS = [
-    "shield",
-]
-GAME_ITEM_GLOVES_KEYWORDS = [
-    "gloves",
+    "wing",
+    "pendant",
+    "ring",
+    "set",
 ]
 GAME_ITEMS_KEYWORDS = [
     GAME_ITEM_WEAPON_KEYWORDS,
-    GAME_ITEM_ARMOR_KEYWORDS + GAME_ITEM_WING_KEYWORDS + GAME_ITEM_SET_KEYWORDS,
+    GAME_ITEM_ARMOR_KEYWORDS,
 ]
+GAME_ITEM_STAFF_LIKE_KEYWORDS = ["staff", "stick", "book"]
+GAME_ITEM_SHIELD_KEYWORDS = ["shield"]
+GAME_ITEM_GLOVES_KEYWORDS = ["gloves"]
+GAME_ITEM_WING_KEYWORDS = ["wing"]
+GAME_ITEM_PENDANT_KEYWORDS = ["pendant"]
+GAME_ITEM_RING_KEYWORDS = ["ring"]
+GAME_ITEM_SET_KEYWORDS = ["set"]
 # index table
 GAME_ITEM_KINDS = {
     "sword": GAME_ITEM_SWORD_INDEXS,
@@ -291,6 +291,8 @@ GAME_ITEM_KINDS = {
     "gloves": GAME_ITEM_GLOVES_INDEXS,
     "boots": GAME_ITEM_BOOTS_INDEXS,
     "wing": GAME_ITEM_WING_INDEXS,
+    "pendant": GAME_ITEM_PENDANT_INDEXS,
+    "ring": GAME_ITEM_RING_INDEXS,
     "set": GAME_ITEM_SET_INDEXS,
 }
 
@@ -378,7 +380,7 @@ def load_item():
                 "magic_power": item_magic_power,
             }
             GAME_ITEMS[(section_index, item_index)] = item
-            item_kind_a = int(eitem.get("KindA"))
+            # item_kind_a = int(eitem.get("KindA"))
             item_kind_b = int(eitem.get("KindB"))
             match item_kind_b:
                 case 1 | 2:
@@ -415,8 +417,27 @@ def load_item():
                     GAME_ITEM_GLOVES_INDEXS.append((section_index, item_index))
                 case 20:
                     GAME_ITEM_BOOTS_INDEXS.append((section_index, item_index))
-                case _ if item_kind_a == 6:
+                case 23 | 24 | 25 | 26 | 27 | 28:
+                    match item_kind_b:
+                        case 23:
+                            item["wing_kind"] = "1D"
+                        case 24 | 26 | 27:
+                            item["wing_kind"] = "2D"
+                        case 25:
+                            item["wing_kind"] = "3D"
+                        case 28:
+                            item["wing_kind"] = "2D5"
                     GAME_ITEM_WING_INDEXS.append((section_index, item_index))
+                case 29 | 30:
+                    if item_kind_b == 29:
+                        item["pendant_attack"] = "Yes"
+                        item["pendant_magic_attack"] = "-"
+                    elif item_kind_b == 30:
+                        item["pendant_attack"] = "-"
+                        item["pendant_magic_attack"] = "Yes"
+                    GAME_ITEM_PENDANT_INDEXS.append((section_index, item_index))
+                case 31:
+                    GAME_ITEM_RING_INDEXS.append((section_index, item_index))
 
 
 # load set

@@ -253,14 +253,18 @@ def items(request):
         render_kind = "shield"
     elif kind in settings.GAME_ITEM_GLOVES_KEYWORDS:
         render_kind = "gloves"
+    elif kind in settings.GAME_ITEM_WING_KEYWORDS:
+        render_kind = "wing"
+    elif kind in settings.GAME_ITEM_PENDANT_KEYWORDS:
+        render_kind = "pendant"
+    elif kind in settings.GAME_ITEM_RING_KEYWORDS:
+        render_kind = "ring"
+    elif kind in settings.GAME_ITEM_SET_KEYWORDS:
+        render_kind = "set"
     elif kind in settings.GAME_ITEM_WEAPON_KEYWORDS:
         render_kind = "weapon"
     elif kind in settings.GAME_ITEM_ARMOR_KEYWORDS:
         render_kind = "armor"
-    elif kind in settings.GAME_ITEM_WING_KEYWORDS:
-        render_kind = "wing"
-    elif kind in settings.GAME_ITEM_SET_KEYWORDS:
-        render_kind = "set"
     items = []
     if kind == "set":
         sets = settings.GAME_ITEM_SET_INDEXS
@@ -279,16 +283,20 @@ def items(request):
             if item is None:
                 continue
             items.append(item)
+        if render_kind == "wing":
+            items = sorted(items, key=lambda item: item["wing_kind"])
     context = {
         "all_keywords": settings.GAME_ITEMS_KEYWORDS,
         "kind": kind,
-        "render_weapon": render_kind == "weapon",
         "render_staff_like": render_kind == "staff-like",
         "render_shield": render_kind == "shield",
         "render_gloves": render_kind == "gloves",
-        "render_armor": render_kind == "armor",
         "render_wing": render_kind == "wing",
+        "render_pendant": render_kind == "pendant",
+        "render_ring": render_kind == "ring",
         "render_set": render_kind == "set",
+        "render_weapon": render_kind == "weapon",
+        "render_armor": render_kind == "armor",
         "items": items,
     }
     return render(request, "items.html", context)
