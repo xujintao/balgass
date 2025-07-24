@@ -86,11 +86,13 @@
       </div>
     </nav>
 
-    <main role="main" class="container mb-4">
-      <div class="mb-2">
+    <main role="main" class="container">
+      <div role="page_header" class="mb-3">
         {% block page_header %}{% endblock page_header %}
       </div>
-      <div>{% block content %}{% endblock content %}</div>
+      <div role="content" class="mb-3">
+        {% block content %}{% endblock content %}
+      </div>
     </main>
   </body>
 </html>
