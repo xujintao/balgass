@@ -355,7 +355,7 @@ def load_item():
             else:
                 item_skill_name = "-"
             item_two_hand = "Yes" if eitem.get("TwoHand") == "1" else "-"
-            item_excellent = "Yes" if eitem.get("Option") == "1" else "-"
+            item_excellent = eitem.get("Option") == "1"
             item_damage_min = int(eitem.get("DamageMin", 0))
             item_damage_max = int(eitem.get("DamageMax", 0))
             item_attack_speed = int(eitem.get("AttackSpeed", 0))
@@ -364,6 +364,30 @@ def load_item():
             item_defense = int(eitem.get("Defense", 0))
             item_defense_rate = int(eitem.get("SuccessfulBlocking", 0))
             item_magic_power = int(eitem.get("MagicPower", 0))
+            item_drop_level = int(eitem.get("DropLevel", 0))
+            item_damage_detail = []
+            if item_damage_min > 0 and item_damage_max > 0:
+                for i in range(16):
+                    damage_delta = i * 3
+                    excellent_damage_delta = (
+                        item_damage_min * 25 / item_drop_level + 5 + i * 3
+                    )
+                    if i >= 10:
+                        extra = (i - 9) * (i - 8) / 2
+                        damage_delta += extra
+                        excellent_damage_delta += extra
+                    damage_min = int(item_damage_min + damage_delta)
+                    damage_max = int(item_damage_max + damage_delta)
+                    excellent_damage_min = int(item_damage_min + excellent_damage_delta)
+                    excellent_damage_max = int(item_damage_max + excellent_damage_delta)
+                    damage_detail = {
+                        "level": i,
+                        "damage_min": damage_min,
+                        "damage_max": damage_max,
+                        "excellent_damage_min": excellent_damage_min,
+                        "excellent_damage_max": excellent_damage_max,
+                    }
+                    item_damage_detail.append(damage_detail)
             item = {
                 "section": section_index,
                 "index": item_index,
@@ -371,8 +395,7 @@ def load_item():
                 "skill": item_skill_name,
                 "two_hand": item_two_hand,
                 "excellent": item_excellent,
-                "damage_min": item_damage_min,
-                "damage_max": item_damage_max,
+                "damage_detail": item_damage_detail,
                 "attack_speed": item_attack_speed,
                 "move_speed": item_move_speed,
                 "defense": item_defense,
