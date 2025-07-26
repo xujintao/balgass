@@ -285,6 +285,8 @@ def items(request):
             items.append(item)
         if render_kind == "wing":
             items = sorted(items, key=lambda item: item["wing_kind"])
+        else:
+            items = sorted(items, key=lambda item: item["drop_level"])
     context = {
         "all_keywords": settings.GAME_ITEMS_KEYWORDS,
         "kind": kind,

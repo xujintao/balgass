@@ -356,6 +356,7 @@ def load_item():
                 item_skill_name = "-"
             item_two_hand = "Yes" if eitem.get("TwoHand") == "1" else "-"
             item_excellent = eitem.get("Option") == "1"
+            item_drop_level = int(eitem.get("DropLevel") or eitem.get("ReqLevel", "0"))
             item_damage_min = int(eitem.get("DamageMin", 0))
             item_damage_max = int(eitem.get("DamageMax", 0))
             item_attack_speed = int(eitem.get("AttackSpeed", 0))
@@ -364,28 +365,69 @@ def load_item():
             item_defense = int(eitem.get("Defense", 0))
             item_defense_rate = int(eitem.get("SuccessfulBlocking", 0))
             item_magic_power = int(eitem.get("MagicPower", 0))
-            item_drop_level = int(eitem.get("DropLevel", 0))
+            item_require_strength = int(eitem.get("ReqStrength", 0))
+            item_require_dexterity = int(eitem.get("ReqDexterity", 0))
             item_damage_detail = []
             if item_damage_min > 0 and item_damage_max > 0:
                 for i in range(16):
                     damage_delta = i * 3
                     excellent_damage_delta = (
-                        item_damage_min * 25 / item_drop_level + 5 + i * 3
+                        item_damage_min * 25 / item_drop_level + 5 + damage_delta
                     )
+                    require_delta = item_drop_level
+                    excellent_require_delta = require_delta + 25
                     if i >= 10:
                         extra = (i - 9) * (i - 8) / 2
                         damage_delta += extra
                         excellent_damage_delta += extra
                     damage_min = int(item_damage_min + damage_delta)
                     damage_max = int(item_damage_max + damage_delta)
+                    require_strength = int(
+                        item_require_strength * (require_delta + i * 3) * 3 / 100 + 20
+                    )
+                    require_strength = (
+                        require_strength if item_require_strength > 0 else "-"
+                    )
+                    require_dexterity = int(
+                        item_require_dexterity * (require_delta + i * 3) * 3 / 100 + 20
+                    )
+                    require_dexterity = (
+                        require_dexterity if item_require_dexterity > 0 else "-"
+                    )
                     excellent_damage_min = int(item_damage_min + excellent_damage_delta)
                     excellent_damage_max = int(item_damage_max + excellent_damage_delta)
+                    excellent_require_strength = int(
+                        item_require_strength
+                        * (excellent_require_delta + i * 3)
+                        * 3
+                        / 100
+                        + 20
+                    )
+                    excellent_require_strength = (
+                        excellent_require_strength if item_require_strength > 0 else "-"
+                    )
+                    excellent_require_dexterity = int(
+                        item_require_dexterity
+                        * (excellent_require_delta + i * 3)
+                        * 3
+                        / 100
+                        + 20
+                    )
+                    excellent_require_dexterity = (
+                        excellent_require_dexterity
+                        if item_require_dexterity > 0
+                        else "-"
+                    )
                     damage_detail = {
                         "level": i,
                         "damage_min": damage_min,
                         "damage_max": damage_max,
+                        "require_strength": require_strength,
+                        "require_dexterity": require_dexterity,
                         "excellent_damage_min": excellent_damage_min,
                         "excellent_damage_max": excellent_damage_max,
+                        "excellent_require_strength": excellent_require_strength,
+                        "excellent_require_dexterity": excellent_require_dexterity,
                     }
                     item_damage_detail.append(damage_detail)
             item = {
@@ -395,6 +437,7 @@ def load_item():
                 "skill": item_skill_name,
                 "two_hand": item_two_hand,
                 "excellent": item_excellent,
+                "drop_level": item_drop_level,
                 "damage_detail": item_damage_detail,
                 "attack_speed": item_attack_speed,
                 "move_speed": item_move_speed,
