@@ -25,7 +25,6 @@ Items 道具
         <th scope="col">Name</th>
         <th scope="col">Two Hand</th>
         <th scope="col">Attack Speed</th>
-        <th scope="col">Magic Power</th>
       </tr>
     </thead>
     <tbody>
@@ -34,7 +33,6 @@ Items 道具
         <td>{{ item.name }}</td>
         <td>{{ item.two_hand }}</td>
         <td>{{ item.attack_speed }}</td>
-        <td>{{ item.magic_power }}%</td>
       </tr>
       <tr class="collapse" id="detail-{{ item.section }}-{{ item.index }}">
         <td colspan="4">
@@ -45,16 +43,20 @@ Items 道具
                   <th scope="col">Level</th>
                   <th scope="col">Min Attack(Excellent)</th>
                   <th scope="col">Max Attack(Excellent)</th>
+                  <th scope="col">Magic Power(Excellent)</th>
                   <th scope="col">Require Strength(Excellent)</th>
                   <th scope="col">Require Dexterity(Excellent)</th>
                 </tr>
               </thead>
               <tbody>
-                {% for detail in item.damage_detail %}
+                {% for detail in item.detail %}
                 <tr>
                   <td>{{ detail.level }}</td>
                   <td>{{ detail.damage_min }}({{ detail.excellent_damage_min }})</td>
                   <td>{{ detail.damage_max }}({{ detail.excellent_damage_max }})</td>
+                  <td>{{ detail.magic_power }}%({{ detail.excellent_magic_power }}%)</td>
+                  <td>{{ detail.require_strength }}({{ detail.excellent_require_strength }})</td>
+                  <td>{{ detail.require_dexterity }}({{ detail.excellent_require_dexterity }})</td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -193,7 +195,7 @@ Items 道具
                 </tr>
               </thead>
               <tbody>
-                {% for detail in item.damage_detail %}
+                {% for detail in item.detail %}
                 <tr>
                   <td>{{ detail.level }}</td>
                   <td>{{ detail.damage_min }}({{ detail.excellent_damage_min }})</td>

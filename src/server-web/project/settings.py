@@ -367,21 +367,36 @@ def load_item():
             item_magic_power = int(eitem.get("MagicPower", 0))
             item_require_strength = int(eitem.get("ReqStrength", 0))
             item_require_dexterity = int(eitem.get("ReqDexterity", 0))
-            item_damage_detail = []
-            if item_damage_min > 0 and item_damage_max > 0:
+            item_detail = []
+            if (item_damage_min > 0 and item_damage_max > 0) or item_magic_power > 0:
                 for i in range(16):
+                    # damage
                     damage_delta = i * 3
                     excellent_damage_delta = (
                         item_damage_min * 25 / item_drop_level + 5 + damage_delta
                     )
-                    require_delta = item_drop_level
-                    excellent_require_delta = require_delta + 25
+                    # magic power
+                    magic_delta = i * 3
+                    excellent_magic_delta = (
+                        item_magic_power * 25 / item_drop_level + 5 + magic_delta
+                    )
                     if i >= 10:
                         extra = (i - 9) * (i - 8) / 2
                         damage_delta += extra
                         excellent_damage_delta += extra
+                        magic_delta += extra
+                        excellent_magic_delta += extra
                     damage_min = int(item_damage_min + damage_delta)
                     damage_max = int(item_damage_max + damage_delta)
+                    excellent_damage_min = int(item_damage_min + excellent_damage_delta)
+                    excellent_damage_max = int(item_damage_max + excellent_damage_delta)
+                    magic_power = int((item_magic_power + magic_delta) / 2 + i * 2)
+                    excellent_magic_power = int(
+                        (item_magic_power + excellent_magic_delta) / 2 + i * 2
+                    )
+                    # require
+                    require_delta = item_drop_level
+                    excellent_require_delta = require_delta + 25
                     require_strength = int(
                         item_require_strength * (require_delta + i * 3) * 3 / 100 + 20
                     )
@@ -394,8 +409,6 @@ def load_item():
                     require_dexterity = (
                         require_dexterity if item_require_dexterity > 0 else "-"
                     )
-                    excellent_damage_min = int(item_damage_min + excellent_damage_delta)
-                    excellent_damage_max = int(item_damage_max + excellent_damage_delta)
                     excellent_require_strength = int(
                         item_require_strength
                         * (excellent_require_delta + i * 3)
@@ -418,18 +431,20 @@ def load_item():
                         if item_require_dexterity > 0
                         else "-"
                     )
-                    damage_detail = {
+                    detail = {
                         "level": i,
                         "damage_min": damage_min,
                         "damage_max": damage_max,
+                        "magic_power": magic_power,
                         "require_strength": require_strength,
                         "require_dexterity": require_dexterity,
                         "excellent_damage_min": excellent_damage_min,
                         "excellent_damage_max": excellent_damage_max,
+                        "excellent_magic_power": excellent_magic_power,
                         "excellent_require_strength": excellent_require_strength,
                         "excellent_require_dexterity": excellent_require_dexterity,
                     }
-                    item_damage_detail.append(damage_detail)
+                    item_detail.append(detail)
             item = {
                 "section": section_index,
                 "index": item_index,
@@ -438,12 +453,11 @@ def load_item():
                 "two_hand": item_two_hand,
                 "excellent": item_excellent,
                 "drop_level": item_drop_level,
-                "damage_detail": item_damage_detail,
                 "attack_speed": item_attack_speed,
                 "move_speed": item_move_speed,
                 "defense": item_defense,
                 "defense_rate": item_defense_rate,
-                "magic_power": item_magic_power,
+                "detail": item_detail,
             }
             GAME_ITEMS[(section_index, item_index)] = item
             # item_kind_a = int(eitem.get("KindA"))
