@@ -341,6 +341,9 @@ def load_item():
     for esection in root.findall("Section"):
         section_index = int(esection.get("Index"))
         for eitem in esection.findall("Item"):
+            item_type = int(eitem.get("Type"))
+            if item_type == 4:
+                continue
             item_index = int(eitem.get("Index"))
             item_name = eitem.get("Name")
             item_annotation = eitem.get("annotation")
@@ -367,84 +370,146 @@ def load_item():
             item_magic_power = int(eitem.get("MagicPower", 0))
             item_require_strength = int(eitem.get("ReqStrength", 0))
             item_require_dexterity = int(eitem.get("ReqDexterity", 0))
+            # item_kind_a = int(eitem.get("KindA"))
+            item_kind_b = int(eitem.get("KindB"))
             item_detail = []
-            if (item_damage_min > 0 and item_damage_max > 0) or item_magic_power > 0:
-                for i in range(16):
-                    # damage
-                    damage_delta = i * 3
-                    excellent_damage_delta = (
-                        item_damage_min * 25 / item_drop_level + 5 + damage_delta
-                    )
-                    # magic power
-                    magic_delta = i * 3
-                    excellent_magic_delta = (
-                        item_magic_power * 25 / item_drop_level + 5 + magic_delta
-                    )
+            for i in range(16):
+                # damage
+                # magic power
+                damage_min = item_damage_min
+                damage_max = item_damage_max
+                excellent_damage_min = item_damage_min
+                excellent_damage_max = item_damage_max
+                magic_power = item_magic_power
+                excellent_magic_power = item_magic_power
+                if (damage_min > 0 and damage_max > 0) or magic_power > 0:
+                    delta = i * 3
+                    excellent_delta = delta + damage_min * 25 / item_drop_level + 5
                     if i >= 10:
                         extra = (i - 9) * (i - 8) / 2
-                        damage_delta += extra
-                        excellent_damage_delta += extra
-                        magic_delta += extra
-                        excellent_magic_delta += extra
-                    damage_min = int(item_damage_min + damage_delta)
-                    damage_max = int(item_damage_max + damage_delta)
-                    excellent_damage_min = int(item_damage_min + excellent_damage_delta)
-                    excellent_damage_max = int(item_damage_max + excellent_damage_delta)
-                    magic_power = int((item_magic_power + magic_delta) / 2 + i * 2)
+                        delta += extra
+                        excellent_delta += extra
+                    damage_min = int(damage_min + delta)
+                    damage_max = int(damage_max + delta)
+                    excellent_damage_min = int(excellent_damage_min + excellent_delta)
+                    excellent_damage_max = int(excellent_damage_max + excellent_delta)
+                    magic_power = int((magic_power + delta) / 2 + i * 2)
                     excellent_magic_power = int(
-                        (item_magic_power + excellent_magic_delta) / 2 + i * 2
+                        (excellent_magic_power + excellent_delta) / 2 + i * 2
                     )
-                    # require
-                    require_delta = item_drop_level
-                    excellent_require_delta = require_delta + 25
-                    require_strength = int(
-                        item_require_strength * (require_delta + i * 3) * 3 / 100 + 20
+                # defense
+                defense = item_defense
+                excellent_defense = item_defense
+                if defense > 0:
+                    match item_kind_b:
+                        case 15:  # shield
+                            delta = i * 4
+                            excellent_delta = (
+                                delta + defense * 20 / (item_drop_level + 25) + 2
+                            )
+                            if i >= 10:
+                                extra = (i - 9) * (i - 8) / 2
+                                delta += extra
+                                excellent_delta += extra
+                        case 23 | 28:  # 1D 2.5D
+                            delta = i * 3
+                            if i >= 10:
+                                extra = (i - 9) * (i - 8) / 2
+                                delta += extra
+                                excellent_delta += extra
+                        case 24 | 27:  # 2D CapeFighter
+                            delta = i * 2
+                            if i >= 10:
+                                extra = (i - 9) * (i - 8) / 2 + i - 9
+                                delta += extra
+                                excellent_delta += extra
+                        case 26:  # CapeLord
+                            delta = i * 2 + 15
+                            if i >= 10:
+                                extra = (i - 9) * (i - 8) / 2 + i - 9
+                                delta += extra
+                                excellent_delta += extra
+                        case 25:  # 3D
+                            delta = i * 4
+                            if i >= 10:
+                                extra = (i - 9) * (i - 8) / 2
+                                delta += extra
+                                excellent_delta += extra
+                        case _:
+                            delta = i * 3
+                            excellent_delta = (
+                                delta
+                                + defense * 12 / item_drop_level
+                                + item_drop_level / 5
+                                + 4
+                            )
+                            if i >= 10:
+                                extra = (i - 9) * (i - 8) / 2
+                                delta += extra
+                                excellent_delta += extra
+                    defense = int(defense + delta)
+                    excellent_defense += int(excellent_defense + excellent_delta)
+                # defense rate
+                defense_rate = item_defense_rate
+                excellent_defense_rate = item_defense_rate
+                if defense_rate > 0:
+                    delta = i * 3
+                    excellent_delta = delta + defense_rate * 25 / item_drop_level + 5
+                    if i >= 10:
+                        extra = (i - 9) * (i - 8) / 2
+                        delta += extra
+                        excellent_delta += extra
+                    defense_rate = int(defense_rate + delta)
+                    excellent_defense_rate = int(
+                        excellent_defense_rate + excellent_delta
                     )
-                    require_strength = (
-                        require_strength if item_require_strength > 0 else "-"
-                    )
-                    require_dexterity = int(
-                        item_require_dexterity * (require_delta + i * 3) * 3 / 100 + 20
-                    )
-                    require_dexterity = (
-                        require_dexterity if item_require_dexterity > 0 else "-"
-                    )
-                    excellent_require_strength = int(
-                        item_require_strength
-                        * (excellent_require_delta + i * 3)
-                        * 3
-                        / 100
-                        + 20
-                    )
-                    excellent_require_strength = (
-                        excellent_require_strength if item_require_strength > 0 else "-"
-                    )
-                    excellent_require_dexterity = int(
-                        item_require_dexterity
-                        * (excellent_require_delta + i * 3)
-                        * 3
-                        / 100
-                        + 20
-                    )
-                    excellent_require_dexterity = (
-                        excellent_require_dexterity
-                        if item_require_dexterity > 0
-                        else "-"
-                    )
-                    detail = {
-                        "level": i,
-                        "damage_min": damage_min,
-                        "damage_max": damage_max,
-                        "magic_power": magic_power,
-                        "require_strength": require_strength,
-                        "require_dexterity": require_dexterity,
-                        "excellent_damage_min": excellent_damage_min,
-                        "excellent_damage_max": excellent_damage_max,
-                        "excellent_magic_power": excellent_magic_power,
-                        "excellent_require_strength": excellent_require_strength,
-                        "excellent_require_dexterity": excellent_require_dexterity,
-                    }
-                    item_detail.append(detail)
+                # require
+                require_delta = item_drop_level
+                excellent_require_delta = require_delta + 25
+                require_strength = int(
+                    item_require_strength * (require_delta + i * 3) * 3 / 100 + 20
+                )
+                require_strength = (
+                    require_strength if item_require_strength > 0 else "-"
+                )
+                require_dexterity = int(
+                    item_require_dexterity * (require_delta + i * 3) * 3 / 100 + 20
+                )
+                require_dexterity = (
+                    require_dexterity if item_require_dexterity > 0 else "-"
+                )
+                excellent_require_strength = int(
+                    item_require_strength * (excellent_require_delta + i * 3) * 3 / 100
+                    + 20
+                )
+                excellent_require_strength = (
+                    excellent_require_strength if item_require_strength > 0 else "-"
+                )
+                excellent_require_dexterity = int(
+                    item_require_dexterity * (excellent_require_delta + i * 3) * 3 / 100
+                    + 20
+                )
+                excellent_require_dexterity = (
+                    excellent_require_dexterity if item_require_dexterity > 0 else "-"
+                )
+                level_detail = {
+                    "level": i,
+                    "damage_min": damage_min,
+                    "damage_max": damage_max,
+                    "excellent_damage_min": excellent_damage_min,
+                    "excellent_damage_max": excellent_damage_max,
+                    "magic_power": magic_power,
+                    "excellent_magic_power": excellent_magic_power,
+                    "defense": defense,
+                    "excellent_defense": excellent_defense,
+                    "defense_rate": defense_rate,
+                    "excellent_defense_rate": excellent_defense_rate,
+                    "require_strength": require_strength,
+                    "require_dexterity": require_dexterity,
+                    "excellent_require_strength": excellent_require_strength,
+                    "excellent_require_dexterity": excellent_require_dexterity,
+                }
+                item_detail.append(level_detail)
             item = {
                 "section": section_index,
                 "index": item_index,
@@ -460,8 +525,6 @@ def load_item():
                 "detail": item_detail,
             }
             GAME_ITEMS[(section_index, item_index)] = item
-            # item_kind_a = int(eitem.get("KindA"))
-            item_kind_b = int(eitem.get("KindB"))
             match item_kind_b:
                 case 1 | 2:
                     GAME_ITEM_SWORD_INDEXS.append((section_index, item_index))

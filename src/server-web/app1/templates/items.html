@@ -67,17 +67,39 @@ Items 道具
       <tr>
         <th scope="col">Name</th>
         <th scope="col">Skill</th>
-        <th scope="col">Defense</th>
-        <th scope="col">Defense Rate</th>
       </tr>
     </thead>
     <tbody>
       {% for item in items %}
-      <tr>
+      <tr data-toggle="collapse" data-target="#detail-{{ item.section }}-{{ item.index }}" class="clickable">
         <td>{{ item.name }}</td>
         <td>{{ item.skill }}</td>
-        <td>{{ item.defense }}</td>
-        <td>{{ item.defense_rate }}</td>
+      </tr>
+      <tr class="collapse" id="detail-{{ item.section }}-{{ item.index }}">
+        <td colspan="4">
+          <div class="pl-5">
+            <table class="table table-sm table-hover">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">Level</th>
+                  <th scope="col">Defense(Excellent)</th>
+                  <th scope="col">Defense Rate(Excellent)</th>
+                  <th scope="col">Require Strength/Dexterity(Excellent)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for detail in item.detail %}
+                <tr>
+                  <td>{{ detail.level }}</td>
+                  <td>{{ detail.defense }}({{ detail.excellent_defense }})</td>
+                  <td>{{ detail.defense_rate }}({{ detail.excellent_defense_rate }})</td>
+                  <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}({{ detail.excellent_require_strength }}/{{ detail.excellent_require_dexterity }})</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -85,16 +107,38 @@ Items 道具
     <thead class="thead-dark">
       <tr>
         <th scope="col">Name</th> 
-        <th scope="col">Defense</th>
         <th scope="col">Attack Speed</th>
       </tr>
     </thead>
     <tbody>
       {% for item in items %}
-      <tr>
+      <tr data-toggle="collapse" data-target="#detail-{{ item.section }}-{{ item.index }}" class="clickable">
         <td>{{ item.name }}</td>
-        <td>{{ item.defense }}</td>
         <td>{{ item.attack_speed }}</td>
+      </tr>
+      <tr class="collapse" id="detail-{{ item.section }}-{{ item.index }}">
+        <td colspan="4">
+          <div class="pl-5">
+            <table class="table table-sm table-hover">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">Level</th>
+                  <th scope="col">Defense(Excellent)</th>
+                  <th scope="col">Require Strength/Dexterity(Excellent)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for detail in item.detail %}
+                <tr>
+                  <td>{{ detail.level }}</td>
+                  <td>{{ detail.defense }}({{ detail.excellent_defense }})</td>
+                  <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}({{ detail.excellent_require_strength }}/{{ detail.excellent_require_dexterity }})</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -102,16 +146,36 @@ Items 道具
     <thead class="thead-dark">
       <tr>
         <th scope="col">Name</th> 
-        <th scope="col">Defense</th>
         <th scope="col">Kind</th>
       </tr>
     </thead>
     <tbody>
       {% for item in items %}
-      <tr>
+      <tr data-toggle="collapse" data-target="#detail-{{ item.section }}-{{ item.index }}" class="clickable">
         <td>{{ item.name }}</td>
-        <td>{{ item.defense }}</td>
         <td>{{ item.wing_kind }}</td>
+      </tr>
+      <tr class="collapse" id="detail-{{ item.section }}-{{ item.index }}">
+        <td colspan="4">
+          <div class="pl-5">
+            <table class="table table-sm table-hover">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">Level</th>
+                  <th scope="col">Defense</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for detail in item.detail %}
+                <tr>
+                  <td>{{ detail.level }}</td>
+                  <td>{{ detail.defense }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -207,14 +271,36 @@ Items 道具
     <thead class="thead-dark">
       <tr>
         <th scope="col">Name</th> 
-        <th scope="col">Defense</th>
       </tr>
     </thead>
     <tbody>
       {% for item in items %}
-      <tr>
+      <tr data-toggle="collapse" data-target="#detail-{{ item.section }}-{{ item.index }}" class="clickable">
         <td>{{ item.name }}</td>
-        <td>{{ item.defense }}</td>
+      </tr>
+      <tr class="collapse" id="detail-{{ item.section }}-{{ item.index }}">
+        <td colspan="4">
+          <div class="pl-5">
+            <table class="table table-sm table-hover">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">Level</th>
+                  <th scope="col">Defense(Excellent)</th>
+                  <th scope="col">Require Strength/Dexterity(Excellent)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for detail in item.detail %}
+                <tr>
+                  <td>{{ detail.level }}</td>
+                  <td>{{ detail.defense }}({{ detail.excellent_defense }})</td>
+                  <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}({{ detail.excellent_require_strength }}/{{ detail.excellent_require_dexterity }})</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
