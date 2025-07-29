@@ -359,6 +359,8 @@ def load_item():
                 item_skill_name = "-"
             item_two_hand = "Yes" if eitem.get("TwoHand") == "1" else "-"
             item_excellent = eitem.get("Option") == "1"
+            if item_type in [2, 6, 7]:  # Socket Item/Archangel Item/Chaos Item
+                item_excellent = False
             item_drop_level = int(eitem.get("DropLevel") or eitem.get("ReqLevel", "0"))
             item_damage_min = int(eitem.get("DamageMin", 0))
             item_damage_max = int(eitem.get("DamageMax", 0))

@@ -38,6 +38,7 @@ Items 道具
         <td colspan="4">
           <div class="pl-5">
             <table class="table table-sm table-hover">
+              {% if item.excellent %}
               <thead class="thead-light">
                 <tr>
                   <th scope="col">Level</th>
@@ -56,6 +57,26 @@ Items 道具
                 </tr>
                 {% endfor %}
               </tbody>
+              {% else %}
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">Level</th>
+                  <th scope="col">Attack</th>
+                  <th scope="col">Magic Power</th>
+                  <th scope="col">Require Strength/Dexterity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for detail in item.detail %}
+                <tr>
+                  <td>{{ detail.level }}</td>
+                  <td>{{ detail.damage_min }}~{{ detail.damage_max }}</td>
+                  <td>{{ detail.magic_power }}%</td>
+                  <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              {% endif %}
             </table>
           </div>
         </td>
@@ -79,6 +100,7 @@ Items 道具
         <td colspan="4">
           <div class="pl-5">
             <table class="table table-sm table-hover">
+              {% if item.excellent %}
               <thead class="thead-light">
                 <tr>
                   <th scope="col">Level</th>
@@ -97,6 +119,26 @@ Items 道具
                 </tr>
                 {% endfor %}
               </tbody>
+              {% else %}
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">Level</th>
+                  <th scope="col">Defense</th>
+                  <th scope="col">Defense Rate</th>
+                  <th scope="col">Require Strength/Dexterity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for detail in item.detail %}
+                <tr>
+                  <td>{{ detail.level }}</td>
+                  <td>{{ detail.defense }}</td>
+                  <td>{{ detail.defense_rate }}</td>
+                  <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              {% endif %}
             </table>
           </div>
         </td>
@@ -120,6 +162,7 @@ Items 道具
         <td colspan="4">
           <div class="pl-5">
             <table class="table table-sm table-hover">
+              {% if item.excellent %}
               <thead class="thead-light">
                 <tr>
                   <th scope="col">Level</th>
@@ -136,6 +179,24 @@ Items 道具
                 </tr>
                 {% endfor %}
               </tbody>
+              {% else %}
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">Level</th>
+                  <th scope="col">Defense</th>
+                  <th scope="col">Require Strength/Dexterity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for detail in item.detail %}
+                <tr>
+                  <td>{{ detail.level }}</td>
+                  <td>{{ detail.defense }}</td>
+                  <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              {% endif %}
             </table>
           </div>
         </td>
@@ -245,6 +306,7 @@ Items 道具
         <td colspan="4">
           <div class="pl-5">
             <table class="table table-sm table-hover">
+              {% if item.excellent %}
               <thead class="thead-light">
                 <tr>
                   <th scope="col">Level</th>
@@ -261,6 +323,24 @@ Items 道具
                 </tr>
                 {% endfor %}
               </tbody>
+              {% else %}
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">Level</th>
+                  <th scope="col">Attack</th>
+                  <th scope="col">Require Strength/Dexterity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for detail in item.detail %}
+                <tr>
+                  <td>{{ detail.level }}</td>
+                  <td>{{ detail.damage_min }}~{{ detail.damage_max }}</td>
+                  <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              {% endif %}
             </table>
           </div>
         </td>
@@ -282,6 +362,7 @@ Items 道具
         <td colspan="4">
           <div class="pl-5">
             <table class="table table-sm table-hover">
+              {% if item.excellent %}
               <thead class="thead-light">
                 <tr>
                   <th scope="col">Level</th>
@@ -298,6 +379,24 @@ Items 道具
                 </tr>
                 {% endfor %}
               </tbody>
+              {% else %}
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">Level</th>
+                  <th scope="col">Defense</th>
+                  <th scope="col">Require Strength/Dexterity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for detail in item.detail %}
+                <tr>
+                  <td>{{ detail.level }}</td>
+                  <td>{{ detail.defense }}</td>
+                  <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              {% endif %}
             </table>
           </div>
         </td>
