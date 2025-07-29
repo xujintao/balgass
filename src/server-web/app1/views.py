@@ -18,6 +18,7 @@ def home(request):
     topics = models.Topic.objects.all()
     entries = models.Entry.objects.all()
     context = {"users": users, "topics": topics, "entries": entries}
+    context["active_url_home"] = True
     return render(request, "home.html", context)
 
 
@@ -126,6 +127,7 @@ def user(request, name):
 def topics(request):
     topics = models.Topic.objects.filter(owner=request.user).order_by("date_added")
     context = {"topics": topics}
+    context["active_url_topics"] = True
     return render(request, "topics.html", context)
 
 
@@ -197,6 +199,7 @@ def game(request):
         "game_websocket_url": settings.GAME_WEBSOCKET_URL,
         "game_map_names": settings.GAME_MAP_NAMES,
     }
+    context["active_url_game"] = True
     return render(request, "game.html", context)
 
 
@@ -301,4 +304,5 @@ def items(request):
         "render_armor": render_kind == "armor",
         "items": items,
     }
+    context["active_url_items"] = True
     return render(request, "items.html", context)

@@ -17,7 +17,11 @@
 
   <body>
     <nav class="navbar navbar-expand-md navbar-light bg-light mb-4 border">
-      <a class="navbar-brand" href="{% url 'home' %}">Home</a>
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link {% if active_url_home %}active{% endif %}" href="{% url 'home' %}">Home</a>
+        </li>
+      </ul>
       <button
         class="navbar-toggler"
         type="button"
@@ -32,13 +36,13 @@
       <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'topics' %}">Topics</a>
+            <a class="nav-link {% if active_url_topics %}active{% endif %}" href="{% url 'topics' %}">Topics</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'items' %}">Items</a>
+            <a class="nav-link {% if active_url_items %}active{% endif %}" href="{% url 'items' %}">Items</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'game' %}">Game</a>
+            <a class="nav-link {% if active_url_game %}active{% endif %}" href="{% url 'game' %}">Game</a>
           </li>
         </ul>
         <form class="form-inline my-2 my-lg-0 d-none d-md-flex">
