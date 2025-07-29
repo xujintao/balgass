@@ -403,14 +403,8 @@ def load_item():
                 if defense > 0:
                     match item_kind_b:
                         case 15:  # shield
-                            delta = i * 4
-                            excellent_delta = (
-                                delta + defense * 20 / (item_drop_level + 25) + 2
-                            )
-                            if i >= 10:
-                                extra = (i - 9) * (i - 8) / 2
-                                delta += extra
-                                excellent_delta += extra
+                            delta = i
+                            excellent_delta = delta
                         case 23 | 28:  # 1D 2.5D
                             delta = i * 3
                             if i >= 10:
@@ -448,7 +442,7 @@ def load_item():
                                 delta += extra
                                 excellent_delta += extra
                     defense = int(defense + delta)
-                    excellent_defense += int(excellent_defense + excellent_delta)
+                    excellent_defense = int(excellent_defense + excellent_delta)
                 # defense rate
                 defense_rate = item_defense_rate
                 excellent_defense_rate = item_defense_rate

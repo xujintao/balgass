@@ -901,13 +901,6 @@ func (it *Item) Calc() {
 		switch it.KindB {
 		case KindBShield:
 			delta += it.Level
-			if it.IsSet() || it.IsExcellent() {
-				delta += defense*20/level + 2
-			}
-			delta += it.Level * 3
-			if it.Level >= 10 {
-				delta += (it.Level - 9) * (it.Level - 8) / 2
-			}
 		case KindBWing1st, KindBWingMonster:
 			delta += it.Level * 3
 			if it.Level >= 10 {
