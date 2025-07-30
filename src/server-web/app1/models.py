@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from django import forms
 
@@ -32,6 +33,33 @@ class CustomUserCreationForm(UserCreationForm):
             if hasattr(self, "save_m2m"):
                 self.save_m2m()
         return user
+
+
+class CustomAuthenticationForm(AuthenticationForm):
+    username = forms.CharField(label="Username or Email")
+
+    def clean(self):
+        username = self.cleaned_data.get("username")
+        password = self.cleaned_data.get("password")
+        if username is not None and password:
+            # use username as username
+            self.user_cache = authenticate(
+                self.request, username=username, password=password
+            )
+            if self.user_cache is None:
+                # use username as email
+                try:
+                    user = User.objects.get(email=username)
+                    self.user_cache = authenticate(
+                        self.request, username=user.username, password=password
+                    )
+                except User.DoesNotExist:
+                    pass
+        if self.user_cache is None:
+            raise self.get_invalid_login_error()
+        else:
+            self.confirm_login_allowed(self.user_cache)
+        return self.cleaned_data
 
 
 class Topic(models.Model):

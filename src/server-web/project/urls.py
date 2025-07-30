@@ -22,6 +22,7 @@ from app1 import views
 urlpatterns = [
     path("admin2/", admin.site.urls),
     path("", views.home, name="home"),
+    path("login/", views.CustomLoginView.as_view(), name="login"),
     path("", include("django.contrib.auth.urls")),
     path("signup/", views.signup, name="signup"),
     path(

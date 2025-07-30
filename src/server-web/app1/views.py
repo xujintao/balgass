@@ -78,6 +78,19 @@ def send_verification_email(user, request):
     send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
 
 
+from django.contrib.auth.views import LoginView
+
+
+# login context
+class CustomLoginView(LoginView):
+    form_class = models.CustomAuthenticationForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active_url_login"] = True
+        return context
+
+
 @login_required
 def resend_verification_email(request):
     if request.method != "POST":
