@@ -26,12 +26,14 @@ urlpatterns = [
     path("", include("django.contrib.auth.urls")),
     path("signup/", views.signup, name="signup"),
     path(
-        "resend_verification_email/",
+        "resend-verification-email/",
         views.resend_verification_email,
         name="resend_verification_email",
     ),
+    path("verification-sent", views.verification_sent, name="verification_sent"),
     path("verify/<uidb64>/<token>/", views.verify, name="verify"),
-    path("user/<str:name>/", views.user, name="user"),
+    path("user/<str:name>/", views.user, name="user"),  # profile
+    path("settings/", views.user_settings, name="settings"),  # settings
     path("topics/", views.topics, name="topics"),
     path("topics/<int:id>/", views.topic, name="topic"),
     path("new_topic/", views.new_topic, name="new_topic"),

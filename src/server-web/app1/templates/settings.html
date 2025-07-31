@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block title %}
+Settings
+{% endblock title %}
+
+{% block page_header %}
+<h3>Settings</h3>
+{% endblock page_header %}
+
+{% block content %}
+<div class="row mx-auto" style="max-width: 600px">
+  <div class="col-3">
+    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+      <button class="btn-sm btn-light nav-link active" id="v-pills-profile-tab" data-toggle="pill" data-target="#v-pills-profile" type="button" role="tab" aria-controls="v-pills-profile" aria-selected="true">Profile</button>
+      <button class="btn-sm btn-light nav-link" id="v-pills-password-tab" data-toggle="pill" data-target="#v-pills-password" type="button" role="tab" aria-controls="v-pills-password" aria-selected="false">Password</button>
+    </div>
+  </div>
+  <div class="col-9">
+    <div class="tab-content" id="v-pills-tabContent">
+      <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">
+        <form action="{% url 'settings' %}" method="post" class="form">
+            {% csrf_token %} {% bootstrap_form form %}
+            <button name="submit" class="btn btn-primary w-100">Update profile</button>
+        </form>
+      </div>
+      <div class="tab-pane fade" id="v-pills-password" role="tabpanel" aria-labelledby="v-pills-password-tab">
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'password_change' %}" role="button">Change password</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

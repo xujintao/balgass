@@ -62,6 +62,47 @@ class CustomAuthenticationForm(AuthenticationForm):
         return self.cleaned_data
 
 
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = (
+            "username",
+            "email",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._old_username = self.instance.username
+        self._old_email = self.instance.email
+
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+        user_id = self.instance.id
+        if User.objects.filter(username=username).exclude(id=user_id).exists():
+            raise forms.ValidationError("Username already exists")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        user_id = self.instance.id
+        if User.objects.filter(email=email).exclude(id=user_id).exists():
+            raise forms.ValidationError("Email already exists")
+        return email
+
+    def save(self, commit=True):
+        need_save = False
+        need_verify = False
+        updated_user = super().save(commit=False)
+        if self.cleaned_data["username"] != self._old_username:
+            need_save = True
+        if self.cleaned_data["email"] != self._old_email:
+            need_save = True
+            need_verify = True
+        if commit and need_save:
+            updated_user.save()
+        return updated_user, need_verify
+
+
 class Topic(models.Model):
     text = models.CharField(max_length=200)
     date_added = models.DateTimeField(auto_now_add=True)

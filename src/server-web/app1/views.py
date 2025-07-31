@@ -29,6 +29,22 @@ def get_client_ip(request):
     return request.META.get("REMOTE_ADDR")
 
 
+def send_verification_email(user, request):
+    from django.utils.http import urlsafe_base64_encode
+    from django.utils.encoding import force_bytes
+    from django.urls import reverse
+    from django.core.mail import send_mail
+
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    verification_link = request.build_absolute_uri(
+        reverse("verify", kwargs={"uidb64": uid, "token": token})
+    )
+    subject = "Verify your email address"
+    message = f"Click the link to verify your email address: {verification_link}"
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+
+
 def signup(request):
     context = {"turnstile_sign_up_site_key": settings.TURNSTILE_SIGN_UP_SITE_KEY}
     if request.method != "POST":
@@ -51,7 +67,7 @@ def signup(request):
                     new_user.save()
                     models.Profile.objects.create(user=new_user, email_verified=False)
                     send_verification_email(new_user, request)
-                    return render(request, "registration/verification_sent.html")
+                    return redirect("verification_sent")
                     # login(request, new_user)
                     # return redirect("home")
             else:
@@ -62,20 +78,10 @@ def signup(request):
     return render(request, "registration/signup.html", context)
 
 
-def send_verification_email(user, request):
-    from django.utils.http import urlsafe_base64_encode
-    from django.utils.encoding import force_bytes
-    from django.urls import reverse
-    from django.core.mail import send_mail
-
-    token = default_token_generator.make_token(user)
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    verification_link = request.build_absolute_uri(
-        reverse("verify", kwargs={"uidb64": uid, "token": token})
-    )
-    subject = "Verify your email address"
-    message = f"Click the link to verify your email address: {verification_link}"
-    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+def verification_sent(request):
+    user = request.user
+    context = {"email": user.email}
+    return render(request, "registration/verification_sent.html", context)
 
 
 from django.contrib.auth.views import LoginView
@@ -100,7 +106,7 @@ def resend_verification_email(request):
         if user.profile.email_verified:
             return redirect("home")
         send_verification_email(user, request)
-        return render(request, "registration/verification_sent.html")
+        return redirect("verification_sent")
 
 
 def verify(request, uidb64, token):
@@ -134,6 +140,25 @@ def user(request, name):
         else:
             context["other"] = other
     return render(request, "user.html", context)
+
+
+@login_required
+def user_settings(request):
+    form = models.UserUpdateForm(instance=request.user)
+    if request.method == "POST":
+        form = models.UserUpdateForm(data=request.POST, instance=request.user)
+        if form.is_valid():
+            updated_user, need_verify = form.save()
+            if need_verify:
+                profile = updated_user.profile
+                profile.email_verified = False
+                profile.save()
+                send_verification_email(updated_user, request)
+                return redirect("verification_sent")
+            else:
+                return redirect("settings")
+    context = {"form": form}
+    return render(request, "settings.html", context)
 
 
 @login_required
