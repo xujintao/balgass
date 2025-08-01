@@ -21,12 +21,17 @@ Settings
     <div class="tab-content" id="v-pills-tabContent">
       <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">
         <form action="{% url 'settings' %}" method="post" class="form">
-            {% csrf_token %} {% bootstrap_form form %}
+            {% csrf_token %} {% bootstrap_form form_update_profile %}
+            <input type="hidden" name="update-profile" value="1" />
             <button name="submit" class="btn btn-primary w-100">Update profile</button>
         </form>
       </div>
       <div class="tab-pane fade" id="v-pills-password" role="tabpanel" aria-labelledby="v-pills-password-tab">
-        <a class="btn btn-outline-secondary btn-sm" href="{% url 'password_change' %}" role="button">Change password</a>
+        <form action="{% url 'settings' %}" method="post" class="form">
+            {% csrf_token %} {% bootstrap_form form_change_password %}
+            <input type="hidden" name="change-password" value="1" />
+            <button name="submit" class="btn btn-outline-secondary">Change password</button>
+        </form>
       </div>
     </div>
   </div>

@@ -62,7 +62,7 @@ class CustomAuthenticationForm(AuthenticationForm):
         return self.cleaned_data
 
 
-class UserUpdateForm(forms.ModelForm):
+class UpdateProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = (

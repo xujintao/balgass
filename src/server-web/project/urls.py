@@ -17,13 +17,14 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
 from app1 import views
 
 urlpatterns = [
     path("admin2/", admin.site.urls),
     path("", views.home, name="home"),
     path("login/", views.CustomLoginView.as_view(), name="login"),
-    path("", include("django.contrib.auth.urls")),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("signup/", views.signup, name="signup"),
     path(
         "resend-verification-email/",
@@ -34,6 +35,11 @@ urlpatterns = [
     path("verify/<uidb64>/<token>/", views.verify, name="verify"),
     path("user/<str:name>/", views.user, name="user"),  # profile
     path("settings/", views.user_settings, name="settings"),  # settings
+    path(
+        "password_change/done/",
+        auth_views.PasswordChangeDoneView.as_view(),
+        name="password_change_done",
+    ),
     path("topics/", views.topics, name="topics"),
     path("topics/<int:id>/", views.topic, name="topic"),
     path("new_topic/", views.new_topic, name="new_topic"),

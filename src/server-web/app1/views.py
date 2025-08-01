@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.http import Http404
 from . import models
+from django.contrib.auth.forms import PasswordChangeForm
 import requests
 import json
 import logging
@@ -144,20 +145,35 @@ def user(request, name):
 
 @login_required
 def user_settings(request):
-    form = models.UserUpdateForm(instance=request.user)
+    form_update_profile = models.UpdateProfileForm(instance=request.user)
+    form_change_password = PasswordChangeForm(user=request.user)
     if request.method == "POST":
-        form = models.UserUpdateForm(data=request.POST, instance=request.user)
-        if form.is_valid():
-            updated_user, need_verify = form.save()
-            if need_verify:
-                profile = updated_user.profile
-                profile.email_verified = False
-                profile.save()
-                send_verification_email(updated_user, request)
-                return redirect("verification_sent")
-            else:
-                return redirect("settings")
-    context = {"form": form}
+        if "update-profile" in request.POST:
+            form_update_profile = models.UpdateProfileForm(
+                data=request.POST, instance=request.user
+            )
+            if form_update_profile.is_valid():
+                updated_user, need_verify = form_update_profile.save()
+                if need_verify:
+                    profile = updated_user.profile
+                    profile.email_verified = False
+                    profile.save()
+                    send_verification_email(updated_user, request)
+                    return redirect("verification_sent")
+                else:
+                    return redirect("settings")
+        elif "change-password" in request.POST:
+            form_change_password = PasswordChangeForm(
+                data=request.POST, user=request.user
+            )
+            if form_change_password.is_valid():
+                user = form_change_password.save()
+                update_session_auth_hash(request, user)
+                return redirect("password_change_done")
+    context = {
+        "form_update_profile": form_update_profile,
+        "form_change_password": form_change_password,
+    }
     return render(request, "settings.html", context)
 
 
