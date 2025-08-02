@@ -65,15 +65,14 @@ class CustomAuthenticationForm(AuthenticationForm):
 class UpdateProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = (
-            "username",
-            "email",
-        )
+        fields = ("username", "email", "date_joined")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._old_username = self.instance.username
         self._old_email = self.instance.email
+        self.fields["email"].disabled = True
+        self.fields["date_joined"].disabled = True
 
     def clean_username(self):
         username = self.cleaned_data.get("username")
