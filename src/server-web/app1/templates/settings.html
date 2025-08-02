@@ -30,7 +30,10 @@ Settings
         <form action="{% url 'settings' %}" method="post" class="form">
             {% csrf_token %} {% bootstrap_form form_change_password %}
             <input type="hidden" name="change-password" value="1" />
-            <button name="submit" class="btn btn-outline-secondary">Change password</button>
+            <div class="d-flex justify-content-between align-items-center">
+              <button name="submit" class="btn btn-outline-secondary">Change password</button>
+              <a href="{% url 'password_reset' %}">Forget password?</a>
+            </div>
         </form>
       </div>
     </div>

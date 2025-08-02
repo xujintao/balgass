@@ -12,7 +12,10 @@ Login
       <h5 class="card-title">Log in to your account.</h5>
       <form action="{% url 'login' %}" method="post" class="form">
         {% csrf_token %} {% bootstrap_form form %}
-        <button name="submit" class="btn btn-primary w-100">Log in</button>
+        <div class="d-flex justify-content-between align-items-center">
+          <button name="submit" class="btn btn-primary w-50">Log in</button>
+          <a href="{% url 'password_reset' %}">Forget password?</a>
+        </div>
         <input type="hidden" name="next" value="{% url 'home' %}" />
       </form>
     </div>
