@@ -267,7 +267,6 @@ GAME_ITEMS_KEYWORDS = [
     GAME_ITEM_WEAPON_KEYWORDS,
     GAME_ITEM_ARMOR_KEYWORDS,
 ]
-GAME_ITEM_STAFF_LIKE_KEYWORDS = ["staff", "stick", "book"]
 GAME_ITEM_SHIELD_KEYWORDS = ["shield"]
 GAME_ITEM_GLOVES_KEYWORDS = ["gloves"]
 GAME_ITEM_WING_KEYWORDS = ["wing"]
@@ -379,8 +378,7 @@ def load_item():
             item_kind_b = int(eitem.get("KindB"))
             item_detail = []
             for i in range(16):
-                # damage
-                # magic power
+                # damage magic power
                 damage_min = item_damage_min
                 damage_max = item_damage_max
                 excellent_damage_min = item_damage_min
@@ -394,14 +392,28 @@ def load_item():
                         extra = (i - 9) * (i - 8) / 2
                         delta += extra
                         excellent_delta += extra
-                    damage_min = int(damage_min + delta)
-                    damage_max = int(damage_max + delta)
-                    excellent_damage_min = int(excellent_damage_min + excellent_delta)
-                    excellent_damage_max = int(excellent_damage_max + excellent_delta)
-                    magic_power = int((magic_power + delta) / 2 + i * 2)
-                    excellent_magic_power = int(
-                        (excellent_magic_power + excellent_delta) / 2 + i * 2
-                    )
+                    if damage_min > 0 and damage_max > 0:
+                        damage_min = int(damage_min + delta)
+                        damage_max = int(damage_max + delta)
+                        excellent_damage_min = int(
+                            excellent_damage_min + excellent_delta
+                        )
+                        excellent_damage_max = int(
+                            excellent_damage_max + excellent_delta
+                        )
+                    else:
+                        damage_min = "-"
+                        damage_max = "-"
+                        excellent_damage_min = "-"
+                        excellent_damage_max = "-"
+                    if magic_power > 0:
+                        magic_power = int((magic_power + delta) / 2 + i * 2)
+                        excellent_magic_power = int(
+                            (excellent_magic_power + excellent_delta) / 2 + i * 2
+                        )
+                    else:
+                        magic_power = "-"
+                        excellent_magic_power = "-"
                 # defense
                 defense = item_defense
                 excellent_defense = item_defense

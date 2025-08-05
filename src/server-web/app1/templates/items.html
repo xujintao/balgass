@@ -311,6 +311,7 @@ Items 道具
                 <tr>
                   <th scope="col">Level</th>
                   <th scope="col">Attack(Excellent)</th>
+                  <th scope="col">Magic Power(Excellent)</th>
                   <th scope="col">Require Strength/Dexterity(Excellent)</th>
                 </tr>
               </thead>
@@ -319,6 +320,7 @@ Items 道具
                 <tr>
                   <td>{{ detail.level }}</td>
                   <td>{{ detail.damage_min }}~{{ detail.damage_max }}({{ detail.excellent_damage_min }}~{{ detail.excellent_damage_max }})</td>
+                  <td>{{ detail.magic_power }}%({{ detail.excellent_magic_power }}%)</td>
                   <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}({{ detail.excellent_require_strength }}/{{ detail.excellent_require_dexterity }})</td>
                 </tr>
                 {% endfor %}
@@ -328,6 +330,7 @@ Items 道具
                 <tr>
                   <th scope="col">Level</th>
                   <th scope="col">Attack</th>
+                  <th scope="col">Magic Power</th>
                   <th scope="col">Require Strength/Dexterity</th>
                 </tr>
               </thead>
@@ -336,6 +339,7 @@ Items 道具
                 <tr>
                   <td>{{ detail.level }}</td>
                   <td>{{ detail.damage_min }}~{{ detail.damage_max }}</td>
+                  <td>{{ detail.magic_power }}%</td>
                   <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}</td>
                 </tr>
                 {% endfor %}

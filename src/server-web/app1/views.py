@@ -304,9 +304,7 @@ def items(request):
     kind = request.GET.get("kind", "sword")
     render_kind = "weapon"
     kind_indexs = settings.GAME_ITEM_KINDS.get(kind)
-    if kind in settings.GAME_ITEM_STAFF_LIKE_KEYWORDS:
-        render_kind = "staff-like"
-    elif kind in settings.GAME_ITEM_SHIELD_KEYWORDS:
+    if kind in settings.GAME_ITEM_SHIELD_KEYWORDS:
         render_kind = "shield"
     elif kind in settings.GAME_ITEM_GLOVES_KEYWORDS:
         render_kind = "gloves"
@@ -347,7 +345,6 @@ def items(request):
     context = {
         "all_keywords": settings.GAME_ITEMS_KEYWORDS,
         "kind": kind,
-        "render_staff_like": render_kind == "staff-like",
         "render_shield": render_kind == "shield",
         "render_gloves": render_kind == "gloves",
         "render_wing": render_kind == "wing",
