@@ -381,8 +381,10 @@ def load_item():
                 # damage magic power
                 damage_min = item_damage_min
                 damage_max = item_damage_max
+                damage = item_damage_min
                 excellent_damage_min = item_damage_min
                 excellent_damage_max = item_damage_max
+                excellent_damage = damage
                 magic_power = item_magic_power
                 excellent_magic_power = item_magic_power
                 if (damage_min > 0 and damage_max > 0) or magic_power > 0:
@@ -395,22 +397,26 @@ def load_item():
                     if damage_min > 0 and damage_max > 0:
                         damage_min = int(damage_min + delta)
                         damage_max = int(damage_max + delta)
+                        damage = f"{damage_min}-{damage_max}"
                         excellent_damage_min = int(
                             excellent_damage_min + excellent_delta
                         )
                         excellent_damage_max = int(
                             excellent_damage_max + excellent_delta
                         )
+                        excellent_damage = (
+                            f"{excellent_damage_min}-{excellent_damage_max}"
+                        )
                     else:
-                        damage_min = "-"
-                        damage_max = "-"
-                        excellent_damage_min = "-"
-                        excellent_damage_max = "-"
+                        damage = "-"
+                        excellent_damage = "-"
                     if magic_power > 0:
                         magic_power = int((magic_power + delta) / 2 + i * 2)
+                        magic_power = f"{magic_power}%"
                         excellent_magic_power = int(
                             (excellent_magic_power + excellent_delta) / 2 + i * 2
                         )
+                        excellent_magic_power = f"{excellent_magic_power}%"
                     else:
                         magic_power = "-"
                         excellent_magic_power = "-"
@@ -505,10 +511,8 @@ def load_item():
                 )
                 level_detail = {
                     "level": i,
-                    "damage_min": damage_min,
-                    "damage_max": damage_max,
-                    "excellent_damage_min": excellent_damage_min,
-                    "excellent_damage_max": excellent_damage_max,
+                    "damage": damage,
+                    "excellent_damage": excellent_damage,
                     "magic_power": magic_power,
                     "excellent_magic_power": excellent_magic_power,
                     "defense": defense,

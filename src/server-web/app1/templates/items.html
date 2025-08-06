@@ -19,71 +19,7 @@ Items 道具
 </div>
 <div class="mb-2">
   <table class="table table-sm table-hover">
-    {% if render_staff_like %}
-    <thead class="thead-dark">
-      <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Two Hand</th>
-        <th scope="col">Attack Speed</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for item in items %}
-      <tr data-toggle="collapse" data-target="#detail-{{ item.section }}-{{ item.index }}" class="clickable">
-        <td>{{ item.name }}</td>
-        <td>{{ item.two_hand }}</td>
-        <td>{{ item.attack_speed }}</td>
-      </tr>
-      <tr class="collapse" id="detail-{{ item.section }}-{{ item.index }}">
-        <td colspan="4">
-          <div class="pl-5">
-            <table class="table table-sm table-hover">
-              {% if item.excellent %}
-              <thead class="thead-light">
-                <tr>
-                  <th scope="col">Level</th>
-                  <th scope="col">Attack(Excellent)</th>
-                  <th scope="col">Magic Power(Excellent)</th>
-                  <th scope="col">Require Strength/Dexterity(Excellent)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for detail in item.detail %}
-                <tr>
-                  <td>{{ detail.level }}</td>
-                  <td>{{ detail.damage_min }}~{{ detail.damage_max }}({{ detail.excellent_damage_min }}~{{ detail.excellent_damage_max }})</td>
-                  <td>{{ detail.magic_power }}%({{ detail.excellent_magic_power }}%)</td>
-                  <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}({{ detail.excellent_require_strength }}/{{ detail.excellent_require_dexterity }})</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-              {% else %}
-              <thead class="thead-light">
-                <tr>
-                  <th scope="col">Level</th>
-                  <th scope="col">Attack</th>
-                  <th scope="col">Magic Power</th>
-                  <th scope="col">Require Strength/Dexterity</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for detail in item.detail %}
-                <tr>
-                  <td>{{ detail.level }}</td>
-                  <td>{{ detail.damage_min }}~{{ detail.damage_max }}</td>
-                  <td>{{ detail.magic_power }}%</td>
-                  <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-              {% endif %}
-            </table>
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-    {% elif render_shield %}
+    {% if render_shield %}
     <thead class="thead-dark">
       <tr>
         <th scope="col">Name</th>
@@ -319,8 +255,8 @@ Items 道具
                 {% for detail in item.detail %}
                 <tr>
                   <td>{{ detail.level }}</td>
-                  <td>{{ detail.damage_min }}~{{ detail.damage_max }}({{ detail.excellent_damage_min }}~{{ detail.excellent_damage_max }})</td>
-                  <td>{{ detail.magic_power }}%({{ detail.excellent_magic_power }}%)</td>
+                  <td>{{ detail.damage }}({{ detail.excellent_damage }})</td>
+                  <td>{{ detail.magic_power }}({{ detail.excellent_magic_power }})</td>
                   <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}({{ detail.excellent_require_strength }}/{{ detail.excellent_require_dexterity }})</td>
                 </tr>
                 {% endfor %}
@@ -338,8 +274,8 @@ Items 道具
                 {% for detail in item.detail %}
                 <tr>
                   <td>{{ detail.level }}</td>
-                  <td>{{ detail.damage_min }}~{{ detail.damage_max }}</td>
-                  <td>{{ detail.magic_power }}%</td>
+                  <td>{{ detail.damage }}</td>
+                  <td>{{ detail.magic_power }}</td>
                   <td>{{ detail.require_strength }}/{{ detail.require_dexterity }}</td>
                 </tr>
                 {% endfor %}
