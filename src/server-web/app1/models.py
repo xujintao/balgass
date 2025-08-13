@@ -156,3 +156,35 @@ class AccountForm(forms.Form):
         widget=forms.PasswordInput(),
         max_length=10,
     )
+
+
+class ItemConfigForm(forms.Form):
+    item_section = forms.IntegerField(widget=forms.HiddenInput)
+    item_index = forms.IntegerField(widget=forms.HiddenInput)
+    level = forms.IntegerField(
+        label="Level", min_value=0, max_value=15, initial=0, widget=forms.HiddenInput
+    )
+    excellent = forms.MultipleChoiceField(
+        label="Excellent",
+        choices=[
+            ("excellent_attack_rate", "Chance of doing Excellent damage"),
+            ("excellent_attack_level", "Increase Attack/Level"),
+            ("excellent_attack_percent", "Increases Attack"),
+            ("excellent_attack_speed", "Increase Attack (Wizardry) Speed"),
+            (
+                "excellent_attack_hp",
+                "Increases the amount of Life received for hunting monsters",
+            ),
+            (
+                "excellent_attack_mp",
+                "Increases the amount of Mana received for hunting monsters",
+            ),
+        ],
+        widget=forms.CheckboxSelectMultiple,
+    )
+    additional = forms.TypedChoiceField(
+        label="Additional",
+        choices=[(0, "+0"), (4, "+4"), (8, "+8"), (12, "+12"), (16, "+16")],
+        coerce=int,
+        widget=forms.RadioSelect,
+    )

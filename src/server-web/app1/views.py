@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.http import Http404
@@ -337,6 +338,7 @@ def items(request):
             item = settings.GAME_ITEMS.get(index)
             if item is None:
                 continue
+            item["form"] = models.ItemConfigForm(initial={"item_id": index})
             items.append(item)
         if render_kind == "wing":
             items = sorted(items, key=lambda item: item["wing_kind"])
@@ -357,3 +359,26 @@ def items(request):
     }
     context["active_url_items"] = True
     return render(request, "items.html", context)
+
+
+@login_required
+@require_POST
+def add_to_cart_or_buy(request):
+    form = models.ItemConfigForm(request.POST)
+    logger.info(form.errors)
+    if form.is_valid():
+        item_section = form.cleaned_data["item_section"]
+        item_index = form.cleaned_data["item_index"]
+        level = form.cleaned_data["level"]
+        excellent = form.cleaned_data["excellent"]
+        additional = form.cleaned_data["additional"]
+        action = request.POST.get("action")
+        if action == "cart":
+            # cart = get_user_cart(request.user)
+            # cart.add_item(item_id=item_id, level=level, excellent=excellent, additional=additional)
+            pass
+        elif action == "buy":
+            # order = create_order_from_item(...)
+            pass
+        return redirect("items")
+    return redirect("items")
