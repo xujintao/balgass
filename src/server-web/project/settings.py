@@ -634,7 +634,7 @@ def load_set():
         GAME_ITEM_SET_INDEXS.append(_set)
 
 
-if "collectstatic" not in sys.argv:
+if not any(cmd in sys.argv for cmd in ["collectstatic", "makemigrations", "migrate"]):
     load_map()
     load_skill()
     load_item()

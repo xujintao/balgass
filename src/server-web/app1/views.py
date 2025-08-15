@@ -379,6 +379,14 @@ def add_to_cart_or_buy(request):
             pass
         elif action == "buy":
             # order = create_order_from_item(...)
-            pass
+            order = models.Order.objects.create(user=request.user)
+            models.OrderItem.objects.create(
+                order=order,
+                item_section=item_section,
+                item_index=item_index,
+                level=level,
+                excellent=excellent,
+                additional=additional,
+            )
         return redirect("items")
     return redirect("items")

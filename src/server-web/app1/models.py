@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from django import forms
+import uuid
 
 
 # Create your models here.
@@ -188,3 +189,29 @@ class ItemConfigForm(forms.Form):
         coerce=int,
         widget=forms.RadioSelect,
     )
+
+
+class Order(models.Model):
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("PAID", "Paid"),
+        ("SHIPPING", "Shipping"),
+        ("SHIPPED", "Shipped"),
+        ("COMPLETED", "Completed"),
+        ("CANCELLED", "Cancelled"),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    item_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    item_section = models.CharField(max_length=50)
+    item_index = models.CharField(max_length=50)
+    level = models.PositiveIntegerField()
+    excellent = models.JSONField(default=list)
+    additional = models.IntegerField()
+    quantity = models.PositiveIntegerField(default=1)
