@@ -209,8 +209,8 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     item_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    item_section = models.CharField(max_length=50)
-    item_index = models.CharField(max_length=50)
+    item_section = models.IntegerField()
+    item_index = models.IntegerField()
     level = models.PositiveIntegerField()
     excellent = models.JSONField(default=list)
     additional = models.IntegerField()

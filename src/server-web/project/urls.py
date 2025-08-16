@@ -67,4 +67,5 @@ urlpatterns = [
     path("game/accounts/", views.game_accounts, name="accounts"),
     path("items/", views.items, name="items"),
     path("add_to_cart/", views.add_to_cart_or_buy, name="add_to_cart"),
+    path("orders/", views.orders, name="orders"),
 ]

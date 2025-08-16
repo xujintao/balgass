@@ -390,3 +390,23 @@ def add_to_cart_or_buy(request):
             )
         return redirect("items")
     return redirect("items")
+
+
+@login_required
+def orders(request):
+    orders = (
+        models.Order.objects.filter(user=request.user)
+        .prefetch_related("orderitem_set")
+        .order_by("-created_at")
+    )
+    for order in orders:
+        order.items = order.orderitem_set.all()
+        for item in order.items:
+            it = settings.GAME_ITEMS.get((item.item_section, item.item_index))
+            if it:
+                item.item_name = it["name"]
+            else:
+                item.item_name = "Unknown Item"
+    context = {"orders": orders}
+    context["active_url_orders"] = True
+    return render(request, "orders.html", context)

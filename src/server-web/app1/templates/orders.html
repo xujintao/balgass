@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %} My Orders {% endblock title %}
+{% block page_header %} <h3>My Orders</h3> {% endblock page_header %}
+{% block content %}
+<div class="list-group">
+  {% for order in orders %}
+  <div class="list-group-item">
+    <div>
+      Order Number: {{ order.id }}
+      <small class="text-muted">
+        {{ order.get_status_display }} ({{ order.created_at|date:"Y-m-d H:i" }})
+      </small>
+    </div>
+    <div class="row mt-2">
+      {% for item in order.orderitem_set.all %}
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <h6 class="card-title">{{ item.item_name }}</h6>
+            <p class="card-text">
+              <strong>Level:</strong> {{ item.level }}<br />
+              <strong>Excellent:</strong><br />
+              {% for excel_option in item.excellent %}
+              {{ excel_option }}<br />
+              {% endfor %}
+              <strong>Additional:</strong> {{ item.additional }}
+            </p>
+            <button class="btn btn-primary">Assign to</button>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <p class="text-muted">No items</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="list-group-item text-center text-muted">
+    No orders yet
+  </div>
+  {% endfor %}
+</div>
+{% endblock content %}

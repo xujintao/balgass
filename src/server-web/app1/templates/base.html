@@ -70,11 +70,14 @@
             </a>
             <div class="dropdown-menu dropdown-menu-right">
               <a class="dropdown-item" href="{% url 'user' user.username %}">
-                My profile
+                My Profile
+              </a>
+              <a class="dropdown-item" href="{% url 'orders' %}">
+                My Orders
               </a>
               {% if user.profile.email_verified %}
               <a class="dropdown-item" href="{% url 'accounts'%}">
-                Game accounts
+                Game Accounts
               </a>
               {% endif %}
               <a class="dropdown-item" href="{% url 'settings'%}">
