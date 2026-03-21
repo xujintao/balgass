@@ -15,6 +15,10 @@ python3 --version
 python3 -m venv venv
 ```
 
+```
+. venv/bin/activate
+```
+
 3 Install django
 
 ```

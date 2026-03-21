@@ -7,7 +7,6 @@ WORKDIR ${SERVER_WEB}
 RUN set -ex; \
     apt-get update; \
     apt-get install -y tzdata; \
-    apt-get install -y gcc libpq-dev; \
     rm -rf /var/lib/apt/lists/*; \
     pip install --no-cache-dir -r ${SERVER_WEB}/requirements.txt; \
     python manage.py collectstatic --noinput
