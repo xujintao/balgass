@@ -30,7 +30,10 @@ func NewPlayer(conn Conn) *player {
 		for {
 			select {
 			case msg := <-p.msgChan:
-				p.conn.Write(msg)
+				err := p.conn.Write(msg)
+				if err != nil {
+					log.Printf("p.conn.Write [err]%v [msg]%v\n", err, msg)
+				}
 			case <-ctx.Done():
 				close(p.msgChan)
 				p.conn.Close()

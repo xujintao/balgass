@@ -56,8 +56,12 @@ var (
 )
 
 func init() {
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to get working directory, %v", err)
+	}
+	log.Printf("[WD]%s", wd)
 	PathConfig = os.Getenv("CONFIG_PATH")
-	log.Printf("[PWD]%s", os.Getenv("PWD"))
 	if PathConfig == "" {
 		PathConfig = "."
 		log.Printf("$CONFIG_PATH is %q, use default %q", "", PathConfig)
