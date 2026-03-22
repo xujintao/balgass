@@ -187,7 +187,7 @@ func (c *conn) serve(ctx context.Context) {
 		if h := c.server.Handler; h != nil {
 			h.OnClose(ctx)
 		}
-		c.close()
+		// c.close()
 	}()
 
 	ctx, cancelCtx := context.WithCancel(ctx)
