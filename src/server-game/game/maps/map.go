@@ -17,10 +17,6 @@ func init() {
 	MapManager.init()
 }
 
-type sender interface {
-	SendWeather(int, int)
-}
-
 var MapManager mapManager
 
 type zenDropSystem struct {
@@ -222,12 +218,17 @@ func (m *mapManager) GetMapWeather(number int) int {
 	return m.maps[number].getWeather()
 }
 
-func (m *mapManager) ProcessWeather(sender sender) {
+// ProcessWeather is called every 1000ms, and it will determine
+// whether the weather should change, and if so, it will
+// send the weather change message to players in the same map.
+// weather: 0=clear 1=rain 2=snow
+// Need dissamble client to confirm
+func (m *mapManager) ProcessWeather(send func(int, int)) {
 	for _, v := range m.maps {
 		if v == nil {
 			continue
 		}
-		v.processWeather(sender)
+		v.processWeather(send)
 	}
 }
 
@@ -414,14 +415,18 @@ func (m *_map) getWeather() int {
 	return m.weather
 }
 
-func (m *_map) processWeather(sender sender) {
+func (m *_map) processWeather(send func(int, int)) {
 	m.cnt--
 	if m.cnt <= 0 {
-		m.cnt = rand.Intn(10) + 10
+		// m.cnt = rand.Intn(10) + 10 // 10-20 seconds
+		m.cnt = 10 * 60 // 10 minutes
 		weather1 := rand.Intn(3)
 		weather2 := rand.Intn(10)
-		m.weather = weather1<<4 | weather2
-		sender.SendWeather(m.number, m.weather)
+		weather := weather1<<4 | weather2
+		if weather != m.weather {
+			m.weather = weather
+			send(m.number, m.weather)
+		}
 	}
 }
 

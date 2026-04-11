@@ -221,6 +221,22 @@ func (m *objectManager) GetPlayerByName(name string) *Object {
 	return nil
 }
 
+// SendWeather sends weather change message to players.
+// Later we can refer to viewport player to use
+// subscribe/publish mechanism to send weather change message,
+// but currently we just send to all players in the same map.
+func (m *objectManager) SendWeather(number, weather int) {
+	for _, tobj := range m.objects[m.playerStartIndex:] {
+		if tobj == nil {
+			continue
+		}
+		if tobj.MapNumber != number {
+			continue
+		}
+		tobj.PushWeather(weather)
+	}
+}
+
 func (m *objectManager) GetPlayerPercent() int {
 	return m.playerCount / m.maxPlayerCount * 100
 }
@@ -1043,5 +1059,11 @@ func (obj *Object) PushMoney() {
 	obj.Push(&model.MsgMoneyReply{
 		Result: -2,
 		Money:  obj.Money,
+	})
+}
+
+func (obj *Object) PushWeather(weather int) {
+	obj.Push(&model.MsgWeatherReply{
+		Weather: weather,
 	})
 }

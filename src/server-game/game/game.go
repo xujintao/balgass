@@ -160,7 +160,7 @@ func (g *game) Start() {
 				// fmt.Println("100ms", time.Since(start).Milliseconds())
 				if cnt%10 == 0 { // 1s
 					// start := time.Now()
-					maps.MapManager.ProcessWeather(g)
+					maps.MapManager.ProcessWeather(object.ObjectManager.SendWeather)
 					object.ObjectManager.Process1000ms()
 					maps.MapManager.ExpireItem(time.Now())
 					g.serverRegisterChan <- &model.MsgServerRegister{
@@ -299,10 +299,4 @@ func (g *game) Command(name string, msg any) (any, error) {
 	g.commandRequestChan <- &commandReq
 	commandResp := <-commandReq.commandResponseChan
 	return commandResp.data, commandResp.err
-}
-
-func (g *game) SendWeather(number, weather int) {
-	// if number == 0 {
-	// slog.Info("SendWeather", "number", number, "weather", weather)
-	// }
 }

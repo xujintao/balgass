@@ -129,6 +129,16 @@ func (msg *MsgWhisperReplyFailed) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgWeatherReply struct {
+	Weather int
+}
+
+func (msg *MsgWeatherReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.Weather))
+	return bw.Bytes(), nil
+}
+
 type CreateViewportPlayer struct {
 	Index                  int
 	X                      int

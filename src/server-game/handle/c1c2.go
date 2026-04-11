@@ -285,6 +285,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x00, "ChatReply", (*model.MsgChatReply)(nil)},
 	{0, false, 0xC1, 0x02, "WhisperReply", (*model.MsgWhisperReply)(nil)},
 	{0, false, 0xC1, 0x0C, "WhisperReplyFailed", (*model.MsgWhisperReplyFailed)(nil)},
+	{0, false, 0xC1, 0x0F, "WeatherReply", (*model.MsgWeatherReply)(nil)},
 	{0, false, 0xC1, 0x11, "AttackDamageReply", (*model.MsgAttackDamageReply)(nil)},
 	{0, false, 0xC2, 0x12, "CreateViewportPlayerReply", (*model.MsgCreateViewportPlayerReply)(nil)},
 	{0, false, 0xC2, 0x13, "CreateViewportMonsterReply", (*model.MsgCreateViewportMonsterReply)(nil)},

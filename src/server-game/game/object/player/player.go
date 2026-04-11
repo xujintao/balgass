@@ -1764,6 +1764,8 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 			},
 		},
 	})
+	// reply weather
+	p.PushWeather(maps.MapManager.GetMapWeather(p.MapNumber))
 
 	// client will calculate character after receiving inventory msg and master msg
 	// calculate
