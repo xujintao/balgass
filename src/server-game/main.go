@@ -26,7 +26,7 @@ func main() {
 	game.Game.Start()
 
 	// start tcp server
-	slog.Info("start tcp server")
+	slog.Info("start tcp(c1c2) server")
 	tcpServer := c1c2.Server{
 		Addr:    fmt.Sprintf(":%d", conf.Server.GameServerInfo.Port),
 		Handler: &handle.C1C2Handle,
@@ -56,7 +56,7 @@ func main() {
 	}
 
 	// close tcp server
-	slog.Info("close tcp server")
+	slog.Info("close tcp(c1c2) server")
 	tcpServer.Close()
 
 	// close http server

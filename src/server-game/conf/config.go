@@ -13,75 +13,6 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-var (
-	PathConfig string
-	PathCommon string
-
-	// SeasonX represents protocol compatibility with seasonX
-	SeasonX bool
-
-	// ServerEnv
-	ServerEnv configServerEnv
-
-	// Server server config
-	Server configServer
-
-	// ConnectMember connect memeber config
-	ConnectMember configConnectMember
-
-	// VipSystem vip system config
-	VipSystem configVipSystem
-
-	// Common represents common config
-	Common configCommon
-
-	CommonServer configCommonServer
-
-	// ChaosBox represents chaosBox mix rate
-	ChaosBox configChaosBox
-
-	// PetRing represents pet and ring
-	PetRing configPetRing
-
-	// OffTrade represents personal shop works when player is offline
-	OffTrade configOffTrade
-
-	// CalcChar represents calculate percent config
-	CalcChar configCalcCharacter
-
-	// PK represents PlayerKillSystem config
-	PK configPK
-
-	// Price represents item price
-	Price configItemPrice
-
-	// Events represents event config for every server
-	Events configEvents
-
-	// MapServer
-	MapServers configMapServer
-)
-
-func init() {
-	ENV(&ServerEnv)
-	PathConfig = ServerEnv.PathConfig
-	PathCommon = ServerEnv.PathCommon
-	INI(PathConfig, "GameServer.ini", &Server)
-	XML(PathConfig, "IGC_ConnectMember.xml", &ConnectMember)
-	XML(PathConfig, "IGC_VipSettings.xml", &VipSystem)
-	INI(path.Join(PathCommon, "Data"), "CommonServer.cfg", &CommonServer)
-	PathCommon = path.Join(PathCommon, "IGCData")
-	INI(PathCommon, "IGC_Common.ini", &Common)
-	XML(PathCommon, "IGC_ChaosBox.xml", &ChaosBox)
-	XML(PathCommon, "IGC_PetSettings.xml", &PetRing)
-	XML(PathCommon, "IGC_OffTrade.xml", &OffTrade)
-	XML(PathCommon, "IGC_CalcCharacter.xml", &CalcChar)
-	XML(PathCommon, "IGC_PlayerKillSystem.xml", &PK)
-	INI(PathCommon, "IGC_PriceSettings.ini", &Price)
-	XML(PathCommon, "events.xml", &Events)
-	XML(PathCommon, "IGC_MapServerInfo.xml", &MapServers)
-}
-
 func ENV(v any) {
 	err := envconfig.Process("", v)
 	if err != nil {
@@ -130,11 +61,13 @@ func INI(dir, file string, v interface{}) {
 	slog.Info("load INI", "file", file)
 	f, err := ini.Load(file)
 	if err != nil {
-		slog.Error("ini.Load", "err", err)
+		slog.Error("Failed to load INI file",
+			"file", file, "error", err)
 		os.Exit(1)
 	}
 	if err := f.MapTo(v); err != nil {
-		slog.Error("f.MapTo", "err", err)
+		slog.Error("Failed to map INI file to struct",
+			"file", file, "error", err)
 		os.Exit(1)
 	}
 }
@@ -144,11 +77,13 @@ func XML(dir, file string, v interface{}) {
 	slog.Info("load XML", "file", file)
 	buf, err := os.ReadFile(file)
 	if err != nil {
-		slog.Error("os.ReadFile", "err", err)
+		slog.Error("Failed to read XML file",
+			"file", file, "error", err)
 		os.Exit(1)
 	}
 	if err := xml.Unmarshal(buf, v); err != nil {
-		slog.Error("xml.Unmarshal", "err", err)
+		slog.Error("Failed to unmarshal XML file",
+			"file", file, "error", err)
 		os.Exit(1)
 	}
 }
@@ -158,15 +93,86 @@ func JSON(dir, file string, v interface{}) {
 	slog.Info("load JSON", "file", file)
 	f, err := os.Open(file)
 	if err != nil {
-		slog.Error("os.Open", "err", err)
+		slog.Error("Failed to open JSON file",
+			"file", file, "error", err)
 		os.Exit(1)
 	}
 	err = json.NewDecoder(f).Decode(v)
 	if err != nil {
-		slog.Error("json.NewDecoder(f).Decode", "err", err)
+		slog.Error("Failed to decode JSON file",
+			"file", file, "error", err)
 		os.Exit(1)
 	}
 }
+
+func init() {
+	ENV(&ServerEnv)
+	PathConfig = ServerEnv.PathConfig
+	PathCommon = ServerEnv.PathCommon
+	INI(PathConfig, "GameServer.ini", &Server)
+	XML(PathConfig, "IGC_ConnectMember.xml", &ConnectMember)
+	XML(PathConfig, "IGC_VipSettings.xml", &VipSystem)
+	INI(path.Join(PathCommon, "Data"), "CommonServer.cfg", &CommonServer)
+	PathCommon = path.Join(PathCommon, "IGCData")
+	INI(PathCommon, "IGC_Common.ini", &Common)
+	XML(PathCommon, "IGC_ChaosBox.xml", &ChaosBox)
+	XML(PathCommon, "IGC_PetSettings.xml", &PetRing)
+	XML(PathCommon, "IGC_OffTrade.xml", &OffTrade)
+	XML(PathCommon, "IGC_CalcCharacter.xml", &CalcChar)
+	XML(PathCommon, "IGC_PlayerKillSystem.xml", &PK)
+	INI(PathCommon, "IGC_PriceSettings.ini", &Price)
+	XML(PathCommon, "events.xml", &Events)
+	XML(PathCommon, "IGC_MapServerInfo.xml", &MapServers)
+}
+
+var (
+	PathConfig string
+	PathCommon string
+
+	// SeasonX represents protocol compatibility with seasonX
+	SeasonX bool
+
+	// ServerEnv
+	ServerEnv configServerEnv
+
+	// Server server config
+	Server configServer
+
+	// ConnectMember connect memeber config
+	ConnectMember configConnectMember
+
+	// VipSystem vip system config
+	VipSystem configVipSystem
+
+	// Common represents common config
+	Common configCommon
+
+	CommonServer configCommonServer
+
+	// ChaosBox represents chaosBox mix rate
+	ChaosBox configChaosBox
+
+	// PetRing represents pet and ring
+	PetRing configPetRing
+
+	// OffTrade represents personal shop works when player is offline
+	OffTrade configOffTrade
+
+	// CalcChar represents calculate percent config
+	CalcChar configCalcCharacter
+
+	// PK represents PlayerKillSystem config
+	PK configPK
+
+	// Price represents item price
+	Price configItemPrice
+
+	// Events represents event config for every server
+	Events configEvents
+
+	// MapServer
+	MapServers configMapServer
+)
 
 type configServerEnv struct {
 	Debug      bool     `envconfig:"DEBUG" default:"false"`
