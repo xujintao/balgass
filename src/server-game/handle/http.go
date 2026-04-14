@@ -1,18 +1,12 @@
 package handle
 
 import (
-	"encoding/json"
-	"fmt"
 	"log/slog"
-	"net/http"
-	"os"
-	"reflect"
 	"strconv"
 	"text/template"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/gorilla/websocket"
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game"
 	"github.com/xujintao/balgass/src/server-game/game/model"
@@ -20,7 +14,6 @@ import (
 
 func init() {
 	HTTPHandle.init()
-	wsHandleDefault.init()
 }
 
 var HTTPHandle httpHandle
@@ -38,10 +31,10 @@ func (h *httpHandle) init() {
 	h.Engine = gin.Default()
 	h.validate = validator.New()
 	h.GET("/", h.handleHome)
-	h.GET("/api/game", h.handleGame)
 	h.POST("/api/accounts", h.CreateAccount, h.handleErr)
 	h.GET("/api/accounts", h.GetAccountList, h.handleErr)
 	h.DELETE("/api/accounts/:id", h.DeleteAccount, h.handleErr)
+	h.GET("/api/game", h.handleGame)
 }
 
 func (h *httpHandle) setErr(c *gin.Context, service int, err error) {
@@ -238,172 +231,6 @@ func (h *httpHandle) DeleteAccount(c *gin.Context) {
 	c.JSON(200, gin.H{})
 }
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
-type wsconn struct {
-	*websocket.Conn
-	addr string
-}
-
-func (c *wsconn) Addr() string {
-	return c.addr
-}
-
-func (c *wsconn) Write(msg any) error {
-	reply, err := wsHandleDefault.addAction(msg)
-	if err != nil {
-		slog.Error("(*wsconn).Write wsHandleDefault.addAction", "err", err)
-		return err
-	}
-	err = c.WriteJSON(reply)
-	if err != nil {
-		slog.Error("(*wsconn).Write c.WriteJSON", "err", err)
-		return err
-	}
-	return nil
-}
-
 func (h *httpHandle) handleGame(c *gin.Context) {
 	handleGame(c.Writer, c.Request)
-}
-
-func handleGame(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		slog.Error("upgrader.Upgrade", "err", err)
-		return
-	}
-	addr := r.RemoteAddr
-	if realIP := r.Header.Get("X-Real-IP"); realIP != "" {
-		addr = realIP
-	}
-	conn := wsconn{Conn: c, addr: addr}
-	writeErr := func(s string) {
-		msg := model.MsgHandleErrorReply{
-			Err: s,
-		}
-		conn.Write(&msg)
-	}
-	id, err := game.Game.UserConn(&conn)
-	if err != nil {
-		writeErr(err.Error())
-		conn.Close()
-		return
-	}
-	defer game.Game.UserCloseConn(id)
-	for {
-		var req map[string]any
-		err := conn.ReadJSON(&req)
-		if err != nil {
-			slog.Error("conn.ReadJSON", "err", err, "addr", conn.Addr())
-			return
-		}
-		actionField, ok := req["action"]
-		if !ok {
-			s := "websocket request has no action field"
-			slog.Error(s, "addr", conn.Addr())
-			writeErr(s)
-			continue
-		}
-		action, ok := actionField.(string)
-		if !ok {
-			s := "websocket request action field is not a string"
-			slog.Error(s, "addr", conn.Addr())
-			writeErr(s)
-			continue
-		}
-		inField, ok := req["in"]
-		if !ok {
-			s := fmt.Sprintf("websocket request [action]%s has no in field", action)
-			slog.Error(s, "addr", conn.Addr())
-			writeErr(s)
-			continue
-		}
-		data, err := json.Marshal(inField)
-		if err != nil {
-			s := fmt.Sprintf("websocket request [action]%s in field is not a valid json", action)
-			slog.Error(s, "err", err, "addr", conn.Addr())
-			writeErr(s)
-			continue
-		}
-		wsHandleDefault.Handle(id, action, data)
-	}
-}
-
-var wsHandleDefault wsHandle
-
-type wsHandle struct {
-	wsIns  map[string]*wsIn
-	wsOuts map[any]*wsOut
-}
-
-func (h *wsHandle) init() {
-	// ingress
-	h.wsIns = make(map[string]*wsIn)
-	for _, v := range wsIns {
-		h.wsIns[v.action] = v
-	}
-	// egress
-	h.wsOuts = make(map[any]*wsOut)
-	for _, v := range wsOuts {
-		t := reflect.TypeOf(v.msg)
-		if t.Kind() != reflect.Ptr {
-			slog.Error("wsOut msg field must be a pointer", "action", v.action)
-			os.Exit(1)
-		}
-		h.wsOuts[t] = v
-	}
-}
-
-func (h *wsHandle) Handle(id int, action string, data []byte) {
-	var api *wsIn
-	var ok bool
-	if api, ok = h.wsIns[action]; !ok {
-		slog.Error("invalid websocket request", "action", action)
-		return
-	}
-	msg := reflect.New(reflect.TypeOf(api.msg).Elem()).Interface()
-	if err := json.Unmarshal(data, msg); err != nil {
-		slog.Error("json.Unmarshal", "err", err, "action", action)
-		return
-	}
-	game.Game.UserAction(id, api.action, msg)
-}
-
-func (h *wsHandle) addAction(msg any) (map[string]any, error) {
-	v := reflect.ValueOf(msg)
-	t := v.Type()
-	api, ok := h.wsOuts[t]
-	if !ok {
-		err := fmt.Errorf("%s has not yet be registered to wsOuts table", t.String())
-		return nil, err
-	}
-	reply := map[string]any{
-		"action": api.action,
-		"out":    msg,
-	}
-	return reply, nil
-}
-
-type wsIn struct {
-	action string
-	msg    any
-}
-type wsOut struct {
-	action string
-	msg    any
-}
-
-var wsIns = [...]*wsIn{
-	{"SubscribeMap", (*model.MsgSubscribeMap)(nil)},
-	// {"SubscribePlayer", nil},
-}
-
-var wsOuts = [...]*wsOut{
-	{"HandleErrorReply", (*model.MsgHandleErrorReply)(nil)},
-	{"SubscribeMapReply", (*model.MsgSubscribeMapReply)(nil)},
 }

@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	C1C2Handle.init(apiIns[:], apiOuts[:])
+	C1C2Handle.init()
 }
 
 // C1C2Handle a c1c2 handle
@@ -27,7 +27,7 @@ type c1c2Handle struct {
 	apiOuts map[any]*apiOut
 }
 
-func (h *c1c2Handle) init(apiIns []*apiIn, apiOuts []*apiOut) {
+func (h *c1c2Handle) init() {
 	// ingress
 	h.apiIns = make(map[int]*apiIn)
 	for _, v := range apiIns {

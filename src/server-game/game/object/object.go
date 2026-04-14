@@ -266,7 +266,12 @@ func (m *objectManager) GetOnlineObjectsNumber() *model.MsgGetOnlineObjectNumber
 
 func (m *objectManager) AddUser(conn Conn) (int, error) {
 	if m.userCount >= m.maxUserCount {
-		return -1, fmt.Errorf("over max user count")
+		s := "over max user count"
+		msg := model.MsgHandleErrorReply{
+			Err: s,
+		}
+		conn.Write(&msg)
+		return -1, fmt.Errorf(s)
 	}
 	index := m.lastUserIndex
 	cnt := m.maxUserCount

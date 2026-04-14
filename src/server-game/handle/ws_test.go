@@ -19,9 +19,9 @@ func (c *testWSConn) Addr() string {
 }
 
 func (c *testWSConn) Write(msg any) error {
-	reply, err := wsHandleDefault.addAction(msg)
+	reply, err := WSHandle.marshal(msg)
 	if err != nil {
-		c.t.Errorf("addAction failed [err]%v\n", err)
+		c.t.Errorf("marshal failed [err]%v\n", err)
 		return err
 	}
 	if reply["action"] == testData[len(testData)-1].out.action {
@@ -67,7 +67,7 @@ func TestWSHandle(t *testing.T) {
 			t.Error(err)
 			break
 		}
-		wsHandleDefault.Handle(id, action, data)
+		WSHandle.Handle(id, action, data)
 	}
 	<-ctx.Done()
 }
