@@ -16,7 +16,8 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${fileDirname}",
+            // "program": "${fileDirname}",
+            "program": "${workspaceFolder}",
             "env": {
                 "CONFIG_PATH": "${env:HOME}/balgass/config/server-connect"
             }

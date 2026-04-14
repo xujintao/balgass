@@ -20,10 +20,10 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${fileDirname}",
+            // "program": "${fileDirname}",
+            "program": "${workspaceFolder}",
             "envFile": "${workspaceFolder}/../../config/server-game/.env",
         }
     ]
 }
-
 ```
