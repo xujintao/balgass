@@ -3,7 +3,8 @@ package object
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
 
 	"github.com/xujintao/balgass/src/server-connect/conf"
 	"github.com/xujintao/balgass/src/server-connect/service/model"
@@ -15,7 +16,8 @@ func init() {
 	_, err := fmt.Sscanf(AutoUpdate.VerStr, "%d.%d.%d",
 		&AutoUpdate.Ver.Major, &AutoUpdate.Ver.Minor, &AutoUpdate.Ver.Patch)
 	if err != nil {
-		log.Fatalf("fmt.Sscanf Failed [err]%v", err)
+		slog.Error("fmt.Sscanf Failed", "err", err)
+		os.Exit(1)
 	}
 }
 
@@ -32,7 +34,8 @@ func NewPlayer(conn Conn) *player {
 			case msg := <-p.msgChan:
 				err := p.conn.Write(msg)
 				if err != nil {
-					log.Printf("p.conn.Write [err]%v [msg]%v\n", err, msg)
+					slog.Error("p.conn.Write Failed",
+						"err", err, "msg", msg)
 				}
 			case <-ctx.Done():
 				close(p.msgChan)
@@ -64,8 +67,8 @@ func (p *player) Offline() {
 
 func (p *player) Push(msg any) {
 	if p.offline {
-		log.Printf("Still pushing [msg]%v to [player]%d that alread offline\n",
-			msg, p.index)
+		slog.Warn("Still pushing",
+			"msg", msg, "player", p.index)
 		return
 	}
 	if len(p.msgChan) > 80 {

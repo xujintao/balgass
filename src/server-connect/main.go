@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,11 +21,11 @@ func main() {
 	errChan := make(chan error, 2)
 
 	// start service
-	log.Println("start service")
+	slog.Info("start service")
 	service.Service.Start()
 
 	// start tcp server
-	log.Println("start tcp server")
+	slog.Info("start tcp(c1c2) server")
 	tcpServer := c1c2.Server{
 		Addr:    fmt.Sprintf(":%d", conf.Net.TCPPort),
 		Handler: &handle.C1C2Handle,
@@ -36,7 +36,7 @@ func main() {
 	}()
 
 	// start udp server
-	log.Println("start udp server")
+	slog.Info("start udp(c1c2) server")
 	udpServer := c1c2.ServerUDP{
 		Addr:    fmt.Sprintf(":%d", conf.Net.UDPPort),
 		Handler: &handle.C1C2Handle,
@@ -48,21 +48,22 @@ func main() {
 	// wait signal and error
 	select {
 	case s := <-exit:
-		log.Printf("exit [signal]%s\n", s.String())
+		slog.Info("exit", "signal", s.String())
 	case err := <-errChan:
-		log.Fatalf("server failed: [err]%v\n", err)
+		slog.Error("<-errChan", "err", err)
+		os.Exit(1)
 	}
 
 	// close tcp server
-	log.Println("close tcp server")
+	slog.Info("close tcp(c1c2) server")
 	tcpServer.Close()
 
 	// close udp server
-	log.Println("close udp server")
+	slog.Info("close udp(c1c2) server")
 	udpServer.Close()
 
 	// close service
-	log.Println("close service")
+	slog.Info("close service")
 	service.Service.Close()
 
 	time.Sleep(2 * time.Second)

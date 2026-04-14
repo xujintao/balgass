@@ -6,7 +6,8 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
 	"reflect"
 
 	"github.com/xujintao/balgass/src/c1c2"
@@ -30,19 +31,21 @@ func (h *c1c2Handle) init() {
 	h.apiIns = make(map[int]*apiIn)
 	for _, v := range apiIns {
 		if vv, ok := h.apiIns[v.code]; ok {
-			log.Fatalf("duplicated api code[%d] action[%s] with code[%d] action[%s]\n",
-				v.code, v.action, vv.code, vv.action)
+			slog.Error("apiIns duplicated",
+				"code", v.code, "action", v.action,
+				"with code", vv.code, "action", vv.action)
+			os.Exit(1)
 		}
 		h.apiIns[v.code] = v
 	}
-
 	// egress
 	h.apiOuts = make(map[any]*apiOut)
 	for _, v := range apiOuts {
 		t := reflect.TypeOf(v.msg)
 		if t.Kind() != reflect.Ptr {
-			log.Fatalf("api code[%d] name[%s] msg field must be a pointer\n",
-				v.code, v.name)
+			slog.Error("apiOut msg field must be a pointer",
+				"code", v.code, "name", v.name)
+			os.Exit(1)
 		}
 		h.apiOuts[t] = v
 	}
@@ -60,13 +63,13 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	code := int(req.Body[0])
 	if api, ok = h.apiIns[code]; !ok {
 		if len(req.Body) < 2 {
-			log.Printf("invalid api [body]%s\n", hex.EncodeToString(req.Body))
+			slog.Error("invalid api", "body", hex.EncodeToString(req.Body))
 			return
 		}
 		codes := []byte{req.Body[0], req.Body[1]}
 		code = int(binary.BigEndian.Uint16(codes))
 		if api, ok = h.apiIns[code]; !ok {
-			log.Printf("invalid api [body]%s\n", hex.EncodeToString(req.Body))
+			slog.Error("invalid api", "body", hex.EncodeToString(req.Body))
 			return
 		}
 		req.Body = req.Body[1:]
@@ -75,7 +78,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 
 	t := reflect.TypeOf(api.msg)
 	if _, ok := t.MethodByName("Unmarshal"); !ok {
-		log.Printf("can't find Unmarshal method [msg]%s\n", t.String())
+		slog.Error("can't find Unmarshal method", "msg", t.String())
 		return
 	}
 	msg := reflect.New(t.Elem())
@@ -83,7 +86,8 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	out := msg.MethodByName("Unmarshal").Call(in)
 	err := out[0].Interface()
 	if err != nil {
-		log.Printf("Unmarshal failed [msg]%s [err]%v", msg.String(), err)
+		slog.Error("Unmarshal failed",
+			"msg", msg.String(), "err", err)
 		return
 	}
 	service.Service.PlayerAction(id, api.action, msg.Interface())
@@ -174,7 +178,7 @@ func (h *c1c2Handle) HandleUDP(req *c1c2.Request, res *c1c2.Response) bool {
 		codes := []byte{req.Body[0], req.Body[1]}
 		code = int(binary.BigEndian.Uint16(codes))
 		if api, ok = h.apiIns[code]; !ok {
-			log.Printf("invalid api [body]%v\n", req.Body)
+			slog.Info("invalid api", "body", hex.EncodeToString(req.Body))
 			return false
 		}
 		req.Body = req.Body[1:]
@@ -186,11 +190,11 @@ func (h *c1c2Handle) HandleUDP(req *c1c2.Request, res *c1c2.Response) bool {
 	out := msg.MethodByName("Unmarshal").Call(in)
 	err := out[0].Interface()
 	if err != nil {
-		log.Printf("%s UnMarshal failed", msg.String())
+		slog.Error("UnMarshal failed",
+			"msg", msg.String(), "err", err)
 		return false
 	}
 	service.Service.ServerAction(api.action, msg.Interface())
-
 	return false
 }
 

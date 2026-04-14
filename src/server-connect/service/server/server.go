@@ -2,7 +2,7 @@ package server
 
 import (
 	"encoding/xml"
-	"log"
+	"log/slog"
 	"sort"
 	"time"
 
@@ -69,8 +69,12 @@ func (m *serverManager) Register(msg *model.MsgRegister) {
 			State:  msg.ServerState,
 			t:      t,
 		}
-		log.Printf("[code]%d [name]%s [ip]%s [port]%d [visible]%v online\n",
-			config.Code, config.Name, config.IP, config.Port, config.Visible)
+		slog.Info("server online",
+			"code", config.Code,
+			"name", config.Name,
+			"ip", config.IP,
+			"port", config.Port,
+			"visible", config.Visible)
 	} else {
 		// refresh
 		s.State = msg.ServerState
@@ -82,8 +86,12 @@ func (m *serverManager) Unregister(msg *model.MsgUnregister) {
 	if s, ok := m.servers[msg.Code]; ok {
 		delete(m.servers, msg.Code)
 		config := s.Config
-		log.Printf("[code]%d [name]%s [ip]%s [port]%d [visible]%v offline\n",
-			config.Code, config.Name, config.IP, config.Port, config.Visible)
+		slog.Info("server offline",
+			"code", config.Code,
+			"name", config.Name,
+			"ip", config.IP,
+			"port", config.Port,
+			"visible", config.Visible)
 	}
 }
 

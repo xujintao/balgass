@@ -18,9 +18,7 @@
             "mode": "auto",
             // "program": "${fileDirname}",
             "program": "${workspaceFolder}",
-            "env": {
-                "CONFIG_PATH": "${env:HOME}/balgass/config/server-connect"
-            }
+            "envFile": "${workspaceFolder}/../../config/server-connect/.env",
         }
     ]
 }

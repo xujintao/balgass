@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"log"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -97,7 +97,7 @@ func TestC1C2Handle(t *testing.T) {
 		return nil
 	}
 	conn.Close = func() error {
-		log.Println("CloseConn is called")
+		slog.Info("CloseConn is called")
 		return nil
 	}
 	id, err := C1C2Handle.OnConn(&conn)
