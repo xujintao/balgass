@@ -22,3 +22,4 @@
 *.json
 *.dat
 out
+/.codex
