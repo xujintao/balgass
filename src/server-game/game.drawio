@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36">
   <diagram name="Page-1" id="6jKJ9kW5HnMQktypH7YM">
-    <mxGraphModel dx="1168" dy="746" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1755" dy="789" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -34,7 +34,7 @@
         <mxCell id="1GFjHBw0EiZksIkDQrPH-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;div&gt;(*handle.c1c2Handle) OnConn(...)&lt;/div&gt;&lt;div&gt;&lt;div&gt;(*handle.c1c2Handle) OnClose(...)&lt;/div&gt;&lt;/div&gt;&lt;div&gt;(*handle.c1c2Handle) Handle(...)&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;(*handle.c1c2Handle) marshal(...)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="240" x="245" y="420" as="geometry" />
         </mxCell>
-        <mxCell id="1GFjHBw0EiZksIkDQrPH-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="server" vertex="1">
+        <mxCell id="1GFjHBw0EiZksIkDQrPH-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="network" vertex="1">
           <mxGeometry height="30" width="60" x="65" y="230" as="geometry" />
         </mxCell>
         <mxCell id="1GFjHBw0EiZksIkDQrPH-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="handle" vertex="1">
