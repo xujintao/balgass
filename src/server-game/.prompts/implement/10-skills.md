@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：普通技能、大师技能、技能学习、技能消耗、技能范围、技能 CD、Combo。
 
 本模块覆盖普通技能、大师技能、技能学习、技能列表、技能使用、资源消耗、目标校验、范围命中、冷却防挂、Buff/状态、Combo、协议与测试。战斗伤害主体归对象系统和公式系统，本模块只记录技能选择、技能规则、技能效果入口和协议边界。

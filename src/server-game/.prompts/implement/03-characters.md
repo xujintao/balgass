@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：角色列表、创建/删除/检查角色、加载角色、角色 DB 模型、进入游戏初始化、角色保存、角色在线唯一性。
 
 本模块覆盖角色列表、创建角色、删除角色、检查角色名、加载角色、角色 DB 模型、角色外观帧、进入游戏初始化、角色保存、回选角与角色在线唯一性。账号认证、登录安全、账号管理 API 和账号态清理归账号系统；对象移动、视野、攻击、技能、道具交互归对象系统；DataServer/JoinServer 请求响应、跨服迁移认证和中心保存通道归 `28-external-comm.md`。GM 查角色、踢角色、锁定/解锁、后台删除入口和审计归 `29-ops.md`。

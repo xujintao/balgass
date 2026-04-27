@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：ConnectServer、JoinServer、DataServer、ExDB、MapServer、跨服通信、请求响应、重连与服务状态。
 
 本模块覆盖 GameServer 与外部服务之间的通信基础设施：ConnectServer 注册、JoinServer 登录态、DataServer 持久化通道、ExDB 扩展通道、MapServer 跨服通信、协议编解码、请求响应、超时重连、服务状态和业务适配接口。外部通信系统不拥有账号、角色、地图、战盟、好友、邮件、活动、个人商店等业务语义；业务模块只通过本模块发送领域请求并接收结果。运营管理系统需要跨服公告、踢线、封禁、中心服务同步时，通过本模块投递。

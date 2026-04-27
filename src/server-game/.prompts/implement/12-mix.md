@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：Chaos Box、Jewel Mix、Socket Mix、Pentagram Mix、翅膀合成、合成事务。
 
 本模块覆盖 `GameServer` 中 ChaosBox 主合成、宝石组合/拆分、翅膀/披风/高级翅膀、事件物品、宠物/坐骑、Harmony、380、Socket、Pentagram、概率费用与合成事务。当前 `server-game` 已有部分协议入口、NPC 类型、配置结构和道具字段，但核心合成流程、材料校验、事务处理与结果生成仍基本缺失。

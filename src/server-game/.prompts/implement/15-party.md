@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：组队邀请、响应、队伍列表、退队/踢出、队长、队友坐标、队伍血条、组队匹配、事件入场授权。
 
 本模块覆盖组队邀请、响应、队伍生命周期、成员列表、队长、退队/踢出、队伍聊天、队友坐标/血条/Buff 同步、组队匹配、事件入场授权，以及经验、掉落、任务、地图、Gens 对组队的联动边界。普通聊天和私聊仍归对象系统入口；组队聊天只记录队伍路由能力。

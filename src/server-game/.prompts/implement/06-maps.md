@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：地图数据、地图属性、阻挡、安全区、Gate、MoveCommand、小地图、地图对象容器。
 
 本模块覆盖地图数据、地形属性、站位占用、随机坐标、路径与墙体、Gate、MoveCommand、小地图、地图物品、天气/经验/Zen、跨服地图归属与地图侧出生/刷怪点位。对象移动、视野、攻击、死亡归对象系统；怪物 AI 主体归 `25-monster-ai.md`；移动作弊、穿墙审计、异常坐标处罚归 `27-security.md`；跨服迁移请求、地图服认证和外部服状态归 `28-external-comm.md`；本模块只提供地图规则和路径能力。

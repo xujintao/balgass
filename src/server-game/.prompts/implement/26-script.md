@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：Lua 运行时、WZ/SMD 解析、脚本调用、Go/Lua 绑定、脚本化 Bag、任务/副本/Buff 脚本基础设施。
 
 本模块覆盖脚本基础设施：Lua VM 生命周期、Lua 文件加载、Lua 函数调用、Go/Lua 绑定、WZ/SMD 文本脚本解析、脚本错误处理、脚本热重载、自检和测试工具。脚本系统不拥有公式、掉落、任务、Buff、副本、活动、怪物 AI 等业务语义；这些模块只调用脚本系统执行脚本或解析配置。GameServer 中 `MuLua`、`LuaFun`、`LuaExport`、`LuaBag`、`QuestExpLuaBind`、`DoppelgangerLua`、`BuffScriptLoader`、`ReadScript/WzMemScript` 均存在真实调用链，server-game 当前只有公式包私有 Lua wrapper，尚无通用脚本系统。

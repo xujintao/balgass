@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：Gens 加入/退出、阵营信息、BattleZone、贡献点、排名、奖励、PK 惩罚、Gens 跨系统限制。
 
 本模块覆盖 Gens 阵营加入/退出、阵营信息、BattleZone、贡献点、排名、奖励、PK 惩罚、阵营聊天，以及 Gens 对组队、战盟、联盟、掉落、移动和私聊的限制。Gens 不是战盟子模块，而是独立阵营/PVP/排行系统。

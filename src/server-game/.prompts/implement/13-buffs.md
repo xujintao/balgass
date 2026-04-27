@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：Buff 定义、BuffSlot、增删查清、持续时间、数值效果、Debuff、状态限制、期限 Buff、协议同步。
 
 本模块覆盖 `GameServer` 中 Buff 定义、BuffSlot、Effect、持续时间、增删查清、数值应用、Debuff、技能来源、道具/期限来源、视野同步、经验加成和协议下发。当前 `server-game` 只有 `EffectList`、`MaxBuffEffect`、部分宠物/戒指 buff 配置和攻击效果包体，尚未形成独立 Buff 生命周期和状态同步系统。

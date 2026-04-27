@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：怪物基础掉落、金币、卓越、Bag、事件掉落、指定掉落、套装掉落、掉落归属、掉落倍率。
 
 本模块覆盖怪物死亡掉落、普通物品、卓越物品、金币、Bag 掉落、事件掉落、指定掉落、套装掉落、掉落倍率、掉落归属、地图落物和掉落物品属性生成。`server-game` 已有基础怪物掉落雏形，本模块不是从零开始；但 `GameServer` 中 Bag、特殊掉落、活动掉落、归属与倍率等完整掉落链路仍大部分未覆盖。本模块只记录“掉落”边界，不把任务奖励、商城奖励、活动结算奖励、GremoryCase、积分或现金币奖励作为核心范围。Bag 业务和掉落结果归本模块，LuaBag 的脚本运行时、Lua 函数调用和 Go/Lua 绑定归 `26-script.md`。

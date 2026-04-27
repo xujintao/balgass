@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：经验来源、经验分配、等级提升、大师等级、经验倍率应用、经验结果下发。
 
 本模块覆盖经验表、经验倍率、怪物击杀经验、普通升级、大师经验、大师升级、组队经验、经验附加来源、经验扣减、协议下发和测试。具体经验公式归公式系统，本模块只记录经验流程、状态变化、倍率应用和协议边界。

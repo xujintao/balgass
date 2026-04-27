@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：老任务、新任务、任务条件、任务进度、任务奖励、职业任务。
 
 本模块覆盖 `GameServer` 中老任务 `QuestInfo`、扩展任务 `Quests`、新任务 `QuestExp` 三套任务逻辑，并映射到 `server-game` 当前协议入口、角色状态、道具、NPC、怪物击杀、奖励与持久化的实现缺口。当前 `server-game` 主要只有任务相关 opcode 入口，尚未形成独立任务业务系统。

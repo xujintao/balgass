@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：启动、主循环、网络、协议、定时器、配置、日志。
 
 本模块覆盖 server-game 的进程生命周期、配置日志、网络入口、协议分发、请求串行化、Tick 调度、关闭流程与运行时诊断。GameServer 的 Win32/IOCP/窗口模型只作为运行语义参考；Go 版以 `main`、goroutine、channel、context、`net/http`、C1/C2 TCP server 和 WebSocket 为运行时主体。ConnectServer/JoinServer/DataServer/ExDB/MapServer 通信归 `28-external-comm.md`，运行时只负责启动和关闭外部通信组件；HTTP/WS 管理入口、维护关闭、运行状态展示和后台命令归 `29-ops.md`；封包加密、CheckSum、CRC、包频率和安全处罚策略归 `27-security.md`，运行时只负责在收发包边界调用安全系统。

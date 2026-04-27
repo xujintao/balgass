@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：EventChip、Rena、Lotto、LuckyCoin、BonusEvent、节日掉落、普通地图入侵活动。
 
 普通活动系统拥有 EventChip、Rena、Lotto、LuckyCoin、BonusEvent、节日掉落和普通地图入侵活动的业务规则；活动积分、抽奖记录、跨服状态同步等外部服务通信归 `28-external-comm.md`；GM 手动开关活动、重载、跳阶段和运营公告入口归 `29-ops.md`。

@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：模拟连接、模拟登录、模拟选角、模拟在线、断线重连、压测、开发调试命令。
 
 本模块覆盖开发和压测用途的模拟玩家能力，包括 fake connection、模拟登录、模拟选角、模拟在线、断线重连、批量压测、调试命令和压测观测。测试Bot/压测系统不是游戏业务 Bot，不提供 Buffer、Trade、BotShop、HideSeek 等地图服务功能；也不是玩家自己的 MuBot/OfflineLevelling 挂机系统。

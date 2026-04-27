@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：语言包、随机数、数学工具、路径/配置辅助、通用解析辅助、基础诊断 helper。
 
 本模块覆盖语言包、随机数、数学工具、路径/配置辅助、通用解析辅助和基础诊断 helper。基础工具系统不拥有业务规则，不直接修改玩家、对象、道具、地图、经济或运营状态；它只提供可复用的底层能力，供运行时、对象、地图、掉落、技能、脚本、运营等系统调用。

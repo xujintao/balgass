@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：职业基础数值、属性点、角色重算、攻击/防御/攻速/命中公式、装备/技能/经验/经济公式。
 
 本模块覆盖 server-game 中所有“怎么算”的规则，包括 Lua 公式桥接、职业基础攻击、防御/命中/攻速、角色重算、HP/MP/SD/AG、StatSpec、装备/翅膀/宠物/技能修正、经验等级与战斗结算。流程模块只调用公式，不在各自模块内重复公式实现。GameServer 的 `ObjCalCharacter`、`ExpManager`、`MagicDamage`、`MasterLevelSkillTreeSystem` 与战斗经验函数作为业务参考；Go 版当前保留 Lua wrapper 与 `Player.calc()` 的实现方向，后续通用 Lua 运行时、签名调用、脚本加载和热重载基础设施归 `26-script.md`。

@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：登录、登出、登录态、账号认证、安全校验、账号在线唯一性、账号模型、账号管理 API、账号仓库归属。
 
 本模块覆盖账号登录、登出、登录态、账号模型、登录包解析、账号认证、安全校验、账号在线唯一性、账号管理 API、账号仓库归属与账号态清理。角色列表、创建/删除/检查/加载角色、角色保存和进入游戏初始化归角色系统。JoinServer/DataServer/中心在线态通信归 `28-external-comm.md`，账号系统只定义登录业务语义和本地状态约束。后台账号创建/查询/删除、封号/解封入口和操作审计归 `29-ops.md`。

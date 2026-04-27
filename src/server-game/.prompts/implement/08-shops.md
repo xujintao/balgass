@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：NPC 商店、买卖、修理、售出回购、特殊商店、CashShop 边界、商店事务。
 
 本模块覆盖 NPC 商店配置、库存、NPC 绑定、Talk 打开、购买、出售、修理、价格限制、售出回购、特殊商店、协议与测试。个人商店已独立为 `20-personal-shops.md`；现金商城只作为协议边界记录，不在本模块展开完整业务。

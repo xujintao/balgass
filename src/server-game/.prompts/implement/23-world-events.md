@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：CastleSiege、Crywolf、Kanturu、Raklion、ArcaBattle、AcheronGuardian。
 
 本模块覆盖 CastleSiege、Crywolf、Kanturu、Raklion、ArcaBattle、AcheronGuardian 这类世界地图级大型事件。世界事件系统是状态机和规则编排层，不拥有战盟、对象、地图、道具、掉落、经验、Buff、商店等底层能力；它负责事件阶段、地图状态、NPC/机关、Boss/怪物、占领/排名、税率/惩罚/奖励等规则，再调用对应基础系统完成实际操作。GM 手动开关、跳阶段、设置城主/状态和运营广播入口归 `29-ops.md`。BloodCastle、DevilSquare、ChaosCastle、IllusionTemple、ImperialGuardian、DoppelGanger 归 `21-dungeons.md`；EventChip、Rena、Lotto、LuckyCoin、BonusEvent、节日掉落和普通地图入侵归 `22-events.md`。

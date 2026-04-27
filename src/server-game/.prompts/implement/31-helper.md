@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：MuHelper、MuBot、OfflineLevelling、自动战斗、自动拾取、自动修理、挂机计费、挂机限制。
 
 本模块覆盖玩家自己的自动化挂机能力，包括 MuHelper、MuBot、OfflineLevelling、挂机配置保存、启停状态、自动战斗、自动拾取、自动修理、挂机计费、挂机限制和状态同步。助手挂机系统不拥有对象、地图、技能、经验、掉落、道具、经济、安全或运营规则；它只编排玩家自动化行为，并调用对应业务系统完成实际动作。

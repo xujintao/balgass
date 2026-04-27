@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：Buffer Bot、Trade Bot、BotShop、HideSeek Bot、Bot对象、Bot外观装备、Bot交互事务。
 
 本模块覆盖服务器放置在地图中的服务型 Bot，包括 Buffer Bot、Trade/Alchemist Bot、BotShop、HideSeek Bot、Bot 对象创建、外观装备、地图坐标、交互事务和 Bot 专属日志。服务Bot系统不等同于玩家自己的 MuBot/OfflineLevelling，也不等同于 server-game 当前 `game/bot` 的模拟连接/压测工具。

@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：玩家交易请求、响应、交易栏物品、金币、确认、取消、成交、失败回滚、交易状态冲突。
 
 本模块覆盖玩家面对面交易请求、响应、交易栏物品、交易金币、确认按钮、取消、成交、失败回滚、交易状态冲突和事务安全。NPC 商店归 `08-shops.md`，个人商店归 `20-personal-shops.md`；本模块只负责玩家与玩家之间的直接交易。交易禁用处罚、异常交易审计和请求限流归 `27-security.md`，本模块在入口查询安全状态并上报异常证据；跨服移动状态和中心服务通知归 `28-external-comm.md`。

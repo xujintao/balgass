@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：Helper 宠物、坐骑、DarkHorse、DarkSpirit、Fenrir、Muun、召唤技能、召唤物。
 
 本模块覆盖玩家附属实体和附属效果：Helper 宠物、坐骑、DarkHorse、DarkSpirit、Fenrir、Muun、变身戒指、召唤技能和召唤物。宠物与召唤系统不拥有基础物品、背包、公式、Buff 生命周期、合成和普通怪物 AI；它负责宠物启用状态、宠物经验/等级/耐久、宠物命令、Muun 背包/效果/进化/兑换、召唤物创建和清理，再调用对象、道具、公式、经验、技能、Buff、合成等系统完成底层操作。宠物/坐骑合成归 `12-mix.md`，普通 Buff 生命周期归 `13-buffs.md`，普通怪物 AI 归 `25-monster-ai.md`。

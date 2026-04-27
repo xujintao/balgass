@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：好友列表、好友申请、删除好友、在线状态、Memo 邮件、邮件读取/删除/列表、好友聊天室邀请。
 
 本模块覆盖好友列表、好友申请、申请等待、删除好友、在线状态、Memo 邮件写入/读取/删除/列表、好友聊天室邀请，以及登录/下线时的状态同步。聊天系统不单列；好友聊天室只记录邀请和入口，不展开成通用聊天基础设施。

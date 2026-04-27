@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：GM、后台 API、公告、维护控制、在线统计、踢人/封禁/禁言入口、运营审计。
 
 本模块覆盖 GM 权限、GM 命令、HTTP/WS 后台管理入口、公告与系统消息、维护控制、在线统计、人工踢人/封禁/禁言入口、运营日志和审计。运营管理系统不拥有账号认证、角色生命周期、对象行为、安全自动判定、活动状态机、外部通信、VIP 权益效果或 CashShop 商城交易；它只提供后台入口、权限控制、操作编排和审计记录，并调用对应业务系统执行。

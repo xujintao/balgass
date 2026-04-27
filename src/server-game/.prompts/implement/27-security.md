@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：封包校验、CRC、AntiHack 心跳、速度检测、移动检测、攻击检测、聊天限流、处罚与审计。
 
 本模块覆盖封包与协议安全、CheckSum/CRC、AntiHack 心跳、攻击速度检测、多段攻击检测、技能距离检测、移动异常检测、聊天/行为限流、Penalty/Ban/Kick 和安全审计。安全风控系统不拥有战斗伤害、技能效果、地图规则、聊天业务、交易业务或账号登录业务；这些业务模块在入口处调用安全系统，安全系统返回通过、拒绝、记录、限制、踢线或封禁等结果。人工封禁/解封、后台处罚入口和审计查看归 `29-ops.md`；跨服踢线、中心封禁、禁重连通知等外部服务调用归 `28-external-comm.md`。

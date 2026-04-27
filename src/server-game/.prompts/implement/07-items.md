@@ -4,6 +4,14 @@
 
 ## 背景
 
+你现在位于 Go 项目 `server-game` 的仓库根目录：
+
+/home/pi/balgass/src/server-game
+
+另有 C++ 参考项目 `GameServer`：
+
+/home/pi/balgass-igc/igc/9.5.1.15/source/GameServer
+
 `server-game` 参考 C++ `GameServer` 重构而来。本模块在总表中的定位是：物品定义、背包、仓库、装备栏、耐久、套装、卓越、Socket、Pentagram。
 
 本模块覆盖物品基础表、物品实例、协议编码、背包/仓库容器、装备穿戴、拾取/丢弃/买卖/修理/使用、掉落生成、卓越/幸运/套装/380/Harmony/Socket/Pentagram/期限道具。地图地面物品容器、商店、合成分别归地图系统、商店系统、合成系统；本模块只记录道具侧的实例、属性、容器和调用边界。
