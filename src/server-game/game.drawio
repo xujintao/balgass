@@ -1,10 +1,10 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36">
   <diagram name="Page-1" id="6jKJ9kW5HnMQktypH7YM">
-    <mxGraphModel dx="1755" dy="789" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1168" dy="746" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="1GFjHBw0EiZksIkDQrPH-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;" value="" vertex="1">
+        <mxCell id="1GFjHBw0EiZksIkDQrPH-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" value="" vertex="1">
           <mxGeometry height="400" width="1120" x="25" y="190" as="geometry" />
         </mxCell>
         <mxCell id="1GFjHBw0EiZksIkDQrPH-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">

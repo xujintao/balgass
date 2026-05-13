@@ -2,7 +2,7 @@
 
 ## Diagram
 
-<img src="game.jpg">
+<img src="game.drawio.svg">
 
 ## Debug
 
