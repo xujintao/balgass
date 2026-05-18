@@ -110,6 +110,15 @@ func (g *game) Start() {
 				if player == nil {
 					break
 				}
+				if playerAction.auth && !playerAction.policy.Allow(player.ConnectState) {
+					slog.Warn("player action unauthorized",
+						"player", id,
+						"action", action,
+						"connect_state", player.ConnectState,
+						"min_state", playerAction.policy.MinState,
+						"max_state", playerAction.policy.MaxState)
+					break
+				}
 				// player.Chat(msg)
 				t := reflect.TypeOf(player)
 				if _, ok := t.MethodByName(action); !ok {
@@ -217,10 +226,41 @@ type closeConnRequest struct {
 	closeConnResponseChan chan struct{}
 }
 
+type PlayerActionPolicy struct {
+	MinState object.ConnectState
+	MaxState object.ConnectState
+}
+
+func (p PlayerActionPolicy) Allow(state object.ConnectState) bool {
+	if state < p.MinState {
+		return false
+	}
+	return p.MaxState == object.ConnectStateEmpty || state <= p.MaxState
+}
+
+var (
+	ConnPhase = PlayerActionPolicy{
+		MinState: object.ConnectStateConnected,
+	}
+	SignPhase = PlayerActionPolicy{
+		MinState: object.ConnectStateConnected,
+		MaxState: object.ConnectStateConnected,
+	}
+	AcctPhase = PlayerActionPolicy{
+		MinState: object.ConnectStateLogged,
+		MaxState: object.ConnectStateLogged,
+	}
+	PlayPhase = PlayerActionPolicy{
+		MinState: object.ConnectStatePlaying,
+	}
+)
+
 type actionRequest struct {
 	id     int
 	action string
 	msg    any
+	auth   bool
+	policy PlayerActionPolicy
 }
 
 func (g *game) PlayerConn(conn object.Conn) (int, error) {
@@ -247,6 +287,17 @@ func (g *game) PlayerAction(id int, action string, msg any) {
 		id:     id,
 		action: action,
 		msg:    msg,
+	}
+	g.playerActionChan <- &actionReq
+}
+
+func (g *game) PlayerActionAuth(id int, action string, msg any, policy PlayerActionPolicy) {
+	actionReq := actionRequest{
+		id:     id,
+		action: action,
+		msg:    msg,
+		auth:   true,
+		policy: policy,
 	}
 	g.playerActionChan <- &actionReq
 }

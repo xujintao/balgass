@@ -93,12 +93,6 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 		// return
 	}
 
-	// authenticate/authorize
-	// if game.GetAuthLevel(ctx) < int(api.level) {
-	// 	slog.Warn("api not authrized", "player", id, "action", api.action)
-	// 	return
-	// }
-
 	// cbi.Unmarshal(req.Body, api.msg)
 	t := reflect.TypeOf(api.msg)
 	if _, ok := t.MethodByName("Unmarshal"); !ok {
@@ -114,7 +108,7 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 		slog.Error("Unmarshal", "err", err, "msg", msg.String())
 		return
 	}
-	game.Game.PlayerAction(id, api.action, msg.Interface())
+	game.Game.PlayerActionAuth(id, api.action, msg.Interface(), api.policy)
 }
 
 func (h *c1c2Handle) marshal(id int, msg any) (*c1c2.Response, error) {
@@ -208,19 +202,10 @@ func (h *c1c2Handle) OnClose(ctx context.Context) {
 	game.Game.PlayerCloseConn(id)
 }
 
-type AuthLevel int
-
-const (
-	Guest AuthLevel = iota
-	Player
-	GM
-	Admin
-)
-
 type apiIn struct {
 	id     int
 	enc    bool
-	level  AuthLevel
+	policy game.PlayerActionPolicy
 	code   int
 	action string
 	msg    any
@@ -236,49 +221,49 @@ type apiOut struct {
 }
 
 var apiIns = [...]*apiIn{
-	{0, false, Player, 0x00, "Chat", (*model.MsgChat)(nil)},
-	{0, false, Player, 0x02, "Whisper", (*model.MsgWhisper)(nil)},
-	{0, false, Player, 0x0E, "KeepLive", (*model.MsgKeepLive)(nil)},
-	{0, false, Player, 0x11, "Attack", (*model.MsgAttack)(nil)},           // s9
-	{0, false, Player, 0x15, "SetPosition", (*model.MsgSetPosition)(nil)}, // s9
-	{0, false, Player, 0x18, "Action", (*model.MsgAction)(nil)},
-	{0, false, Player, 0x19, "UseSkill", (*model.MsgUseSkill)(nil)},
-	{0, false, Player, 0x1C, "Teleport", (*model.MsgTeleport)(nil)},
-	{0, false, Player, 0x22, "PickItem", (*model.MsgPickItem)(nil)},
-	{0, false, Player, 0x23, "DropItem", (*model.MsgDropItem)(nil)},
-	{0, false, Player, 0x24, "MoveItem", (*model.MsgMoveItem)(nil)},
-	{0, false, Player, 0x26, "UseItem", (*model.MsgUseItem)(nil)},
-	{0, false, Player, 0x30, "Talk", (*model.MsgTalk)(nil)},
-	{0, false, Player, 0x31, "CloseTalkWindow", (*model.MsgEmpty)(nil)},
-	{0, false, Player, 0x32, "BuyItem", (*model.MsgBuyItem)(nil)},
-	{0, false, Player, 0x33, "SellItem", (*model.MsgSellItem)(nil)},
-	{0, false, Player, 0x34, "RepairItem", (*model.MsgRepairItem)(nil)},
-	{0, false, Player, 0x4E11, "MuunSystem", (*model.MsgMuunSystem)(nil)},
-	{0, false, Player, 0x82, "CloseWarehouseWindow", (*model.MsgEmpty)(nil)},
-	{0, false, Player, 0x8E02, "MapMove", (*model.MsgMapMove)(nil)},
-	{0, false, Player, 0xAE, "DefineMuBot", (*model.MsgDefineMuBot)(nil)},
-	{0, false, Player, 0xBF20, "UsePet", (*model.MsgUsePet)(nil)},
-	{0, false, Player, 0xBF51, "EnableMuBot", (*model.MsgEnableMuBot)(nil)},
-	{0, false, Player, 0xD4, "Move", (*model.MsgMove)(nil)},               // s9
-	{0, false, Player, 0xD7, "Move", (*model.MsgMove)(nil)},               // 1.04R
-	{0, false, Player, 0xD9, "Attack", (*model.MsgAttack)(nil)},           // 1.04R
-	{0, false, Player, 0xDA, "SetPosition", (*model.MsgSetPosition)(nil)}, // 1.04R
-	{0, false, Player, 0xE701, "StartPartyNumberPosition", (*model.MsgEmpty)(nil)},
-	{0, false, Player, 0xE702, "StopPartyNumberPosition", (*model.MsgEmpty)(nil)},
-	{0, false, Guest, 0xF101, "Login", (*model.MsgLogin)(nil)},
-	{0, false, Player, 0xF102, "Logout", (*model.MsgLogout)(nil)},
-	{0, false, Player, 0xF103, "Hack", (*model.MsgHack)(nil)},
-	{0, false, Player, 0xF300, "GetCharacterList", (*model.MsgEmpty)(nil)},
-	{0, false, Player, 0xF301, "CreateCharacter", (*model.MsgCreateCharacter)(nil)},
-	{0, false, Player, 0xF302, "DeleteCharacter", (*model.MsgDeleteCharacter)(nil)},
-	{0, false, Player, 0xF303, "LoadCharacter", (*model.MsgLoadCharacter)(nil)},
-	{0, false, Player, 0xF306, "AddLevelPoint", (*model.MsgAddLevelPoint)(nil)},
-	{0, false, Player, 0xF312, "MapDataLoadingOK", (*model.MsgEmpty)(nil)},
-	{0, false, Player, 0xF315, "CheckCharacter", (*model.MsgCheckCharacter)(nil)},
-	{0, false, Player, 0xF326, "BattleCoreNotice", (*model.MsgEmpty)(nil)},
-	{0, false, Player, 0xF330, "DefineMuKey", (*model.MsgDefineMuKey)(nil)},
-	{0, false, Player, 0xF352, "LearnMasterSkill", (*model.MsgLearnMasterSkill)(nil)},
-	{0, false, Player, 0xFFFF, "Test", (*model.MsgTest)(nil)},
+	{0, false, game.PlayPhase, 0x00, "Chat", (*model.MsgChat)(nil)},
+	{0, false, game.PlayPhase, 0x02, "Whisper", (*model.MsgWhisper)(nil)},
+	{0, false, game.ConnPhase, 0x0E, "KeepLive", (*model.MsgKeepLive)(nil)},
+	{0, false, game.PlayPhase, 0x11, "Attack", (*model.MsgAttack)(nil)},           // s9
+	{0, false, game.PlayPhase, 0x15, "SetPosition", (*model.MsgSetPosition)(nil)}, // s9
+	{0, false, game.PlayPhase, 0x18, "Action", (*model.MsgAction)(nil)},
+	{0, false, game.PlayPhase, 0x19, "UseSkill", (*model.MsgUseSkill)(nil)},
+	{0, false, game.PlayPhase, 0x1C, "Teleport", (*model.MsgTeleport)(nil)},
+	{0, false, game.PlayPhase, 0x22, "PickItem", (*model.MsgPickItem)(nil)},
+	{0, false, game.PlayPhase, 0x23, "DropItem", (*model.MsgDropItem)(nil)},
+	{0, false, game.PlayPhase, 0x24, "MoveItem", (*model.MsgMoveItem)(nil)},
+	{0, false, game.PlayPhase, 0x26, "UseItem", (*model.MsgUseItem)(nil)},
+	{0, false, game.PlayPhase, 0x30, "Talk", (*model.MsgTalk)(nil)},
+	{0, false, game.PlayPhase, 0x31, "CloseTalkWindow", (*model.MsgEmpty)(nil)},
+	{0, false, game.PlayPhase, 0x32, "BuyItem", (*model.MsgBuyItem)(nil)},
+	{0, false, game.PlayPhase, 0x33, "SellItem", (*model.MsgSellItem)(nil)},
+	{0, false, game.PlayPhase, 0x34, "RepairItem", (*model.MsgRepairItem)(nil)},
+	{0, false, game.PlayPhase, 0x4E11, "MuunSystem", (*model.MsgMuunSystem)(nil)},
+	{0, false, game.PlayPhase, 0x82, "CloseWarehouseWindow", (*model.MsgEmpty)(nil)},
+	{0, false, game.PlayPhase, 0x8E02, "MapMove", (*model.MsgMapMove)(nil)},
+	{0, false, game.PlayPhase, 0xAE, "DefineMuBot", (*model.MsgDefineMuBot)(nil)},
+	{0, false, game.PlayPhase, 0xBF20, "UsePet", (*model.MsgUsePet)(nil)},
+	{0, false, game.PlayPhase, 0xBF51, "EnableMuBot", (*model.MsgEnableMuBot)(nil)},
+	{0, false, game.PlayPhase, 0xD4, "Move", (*model.MsgMove)(nil)},               // s9
+	{0, false, game.PlayPhase, 0xD7, "Move", (*model.MsgMove)(nil)},               // 1.04R
+	{0, false, game.PlayPhase, 0xD9, "Attack", (*model.MsgAttack)(nil)},           // 1.04R
+	{0, false, game.PlayPhase, 0xDA, "SetPosition", (*model.MsgSetPosition)(nil)}, // 1.04R
+	{0, false, game.PlayPhase, 0xE701, "StartPartyNumberPosition", (*model.MsgEmpty)(nil)},
+	{0, false, game.PlayPhase, 0xE702, "StopPartyNumberPosition", (*model.MsgEmpty)(nil)},
+	{0, false, game.SignPhase, 0xF101, "Login", (*model.MsgLogin)(nil)},
+	{0, false, game.PlayPhase, 0xF102, "Logout", (*model.MsgLogout)(nil)},
+	{0, false, game.PlayPhase, 0xF103, "Hack", (*model.MsgHack)(nil)},
+	{0, false, game.AcctPhase, 0xF300, "GetCharacterList", (*model.MsgEmpty)(nil)},
+	{0, false, game.AcctPhase, 0xF301, "CreateCharacter", (*model.MsgCreateCharacter)(nil)},
+	{0, false, game.AcctPhase, 0xF302, "DeleteCharacter", (*model.MsgDeleteCharacter)(nil)},
+	{0, false, game.AcctPhase, 0xF303, "LoadCharacter", (*model.MsgLoadCharacter)(nil)},
+	{0, false, game.PlayPhase, 0xF306, "AddLevelPoint", (*model.MsgAddLevelPoint)(nil)},
+	{0, false, game.PlayPhase, 0xF312, "MapDataLoadingOK", (*model.MsgEmpty)(nil)},
+	{0, false, game.AcctPhase, 0xF315, "CheckCharacter", (*model.MsgCheckCharacter)(nil)},
+	{0, false, game.PlayPhase, 0xF326, "BattleCoreNotice", (*model.MsgEmpty)(nil)},
+	{0, false, game.PlayPhase, 0xF330, "DefineMuKey", (*model.MsgDefineMuKey)(nil)},
+	{0, false, game.PlayPhase, 0xF352, "LearnMasterSkill", (*model.MsgLearnMasterSkill)(nil)},
+	{0, false, game.PlayPhase, 0xFFFF, "Test", (*model.MsgTest)(nil)},
 }
 
 var apiOuts = [...]*apiOut{
