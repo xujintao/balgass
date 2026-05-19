@@ -1,5 +1,7 @@
-export CONFIG_PATH=~/github.com/xujintao/balgass/src/server-game
-export COMMON_PATH=~/github.com/xujintao/balgass/config/common/IGCData
-# printenv
+#!/bin/sh
+
+set -a
+. "${HOME}/balgass/config/server-game/.env"
+set +a
+
 go test ./...
-# go test -v ./...
