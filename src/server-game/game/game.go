@@ -183,12 +183,12 @@ func (g *game) Start() {
 			}
 		}
 	}()
-	// g.Command("AddBot", &model.MsgAddBot{Name: "bot1"})
-	// g.Command("AddBot", &model.MsgAddBot{Name: "bot2"})
-	// g.Command("AddBot", &model.MsgAddBot{Name: "bot3"})
-	// g.Command("AddBot", &model.MsgAddBot{Name: "bot4"})
-	// g.Command("AddBot", &model.MsgAddBot{Name: "bot5"})
-	// g.Command("DeleteBot", &model.MsgDeleteBot{Name: "bot5"})
+	// g.Command("AddBot", &model.MsgAddBot{Account: "account1", Password: "password", Name: "bot1"})
+	// g.Command("AddBot", &model.MsgAddBot{Account: "account2", Password: "password", Name: "bot2"})
+	// g.Command("AddBot", &model.MsgAddBot{Account: "account3", Password: "password", Name: "bot3"})
+	// g.Command("AddBot", &model.MsgAddBot{Account: "account4", Password: "password", Name: "bot4"})
+	// g.Command("AddBot", &model.MsgAddBot{Account: "account5", Password: "password", Name: "bot5"})
+	// g.Command("DeleteBot", &model.MsgDeleteBot{Account: "account5", Name: "bot5"})
 }
 
 func (g *game) Close() {
@@ -207,7 +207,7 @@ func (g *game) Close() {
 		}
 		time.Sleep(1 * time.Second)
 	}
-	bot.BotManager.DeleteAllBots()
+	g.Command("DeleteAllBots", &model.MsgEmpty{})
 	g.cancel()
 }
 
@@ -351,3 +351,10 @@ func (g *game) Command(name string, msg any) (any, error) {
 	commandResp := <-commandReq.commandResponseChan
 	return commandResp.data, commandResp.err
 }
+
+// func (g *game) CommandAsync(name string, msg any) {
+// 	g.commandRequestChan <- &commandRequest{
+// 		name: name,
+// 		msg:  msg,
+// 	}
+// }

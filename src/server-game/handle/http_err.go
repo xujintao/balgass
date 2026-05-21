@@ -51,6 +51,12 @@ const (
 	GetAccountListDB
 	DeleteAccountMissingParam
 	DeleteAccountDB
+	AddBotBind
+	AddBotValidate
+	AddBotCommand
+	DeleteBotBind
+	DeleteBotValidate
+	DeleteBotCommand
 )
 
 var configErrors = [...]*ConfigError{
@@ -62,4 +68,10 @@ var configErrors = [...]*ConfigError{
 	{GetAccountListDB, 500, "get account list db failed", nil},
 	{DeleteAccountMissingParam, 500, "delete account missing param", nil},
 	{DeleteAccountDB, 500, "delete account db failed", nil},
+	{AddBotBind, 400, "add bot bind body failed", nil},
+	{AddBotValidate, 400, "add bot validate body failed", nil},
+	{AddBotCommand, 500, "add bot command failed", nil},
+	{DeleteBotBind, 400, "delete bot bind body failed", nil},
+	{DeleteBotValidate, 400, "delete bot validate body failed", nil},
+	{DeleteBotCommand, 500, "delete bot command failed", nil},
 }

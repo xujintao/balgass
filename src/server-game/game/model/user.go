@@ -1,17 +1,22 @@
 package model
 
 type MsgAddBot struct {
-	Name string `json:"name"`
+	Account  string `json:"account" validate:"required"`
+	Password string `json:"password" validate:"required"`
+	Name     string `json:"name" validate:"required"`
 }
 
 type MsgAddBotReply struct {
+	Key string `json:"key"`
 }
 
 type MsgDeleteBot struct {
-	Name string `json:"name"`
+	Account string `json:"account" validate:"required"`
+	Name    string `json:"name" validate:"required"`
 }
 
 type MsgDeleteBotReply struct {
+	Key string `json:"key"`
 }
 
 type MsgOfflineAllObjects struct {

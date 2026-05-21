@@ -11,12 +11,20 @@ var Command command
 type command struct{}
 
 func (*command) AddBot(msg *model.MsgAddBot) (any, error) {
-	bot.BotManager.AddBot(msg.Name)
-	return nil, nil
+	return bot.BotManager.AddBot(msg)
 }
 
 func (*command) DeleteBot(msg *model.MsgDeleteBot) (any, error) {
-	bot.BotManager.DeleteBot(msg.Name)
+	return bot.BotManager.DeleteBot(msg)
+}
+
+// func (*command) CloseBot(msg *bot.MsgCloseBot) (any, error) {
+// 	bot.BotManager.CloseBot(msg)
+// 	return nil, nil
+// }
+
+func (*command) DeleteAllBots(msg any) (any, error) {
+	bot.BotManager.DeleteAllBots()
 	return nil, nil
 }
 

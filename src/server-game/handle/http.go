@@ -34,6 +34,8 @@ func (h *httpHandle) init() {
 	h.POST("/api/accounts", h.CreateAccount, h.handleErr)
 	h.GET("/api/accounts", h.GetAccountList, h.handleErr)
 	h.DELETE("/api/accounts/:id", h.DeleteAccount, h.handleErr)
+	h.POST("/api/bots", h.AddBot, h.handleErr)
+	h.DELETE("/api/bots", h.DeleteBot, h.handleErr)
 	h.GET("/api/game", h.handleGame)
 }
 
@@ -229,6 +231,42 @@ func (h *httpHandle) DeleteAccount(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{})
+}
+
+func (h *httpHandle) AddBot(c *gin.Context) {
+	in := model.MsgAddBot{}
+	if err := c.ShouldBind(&in); err != nil {
+		h.setErr(c, AddBotBind, err)
+		return
+	}
+	if err := h.validate.Struct(&in); err != nil {
+		h.setErr(c, AddBotValidate, err)
+		return
+	}
+	out, err := game.Game.Command("AddBot", &in)
+	if err != nil {
+		h.setErr(c, AddBotCommand, err)
+		return
+	}
+	c.JSON(200, out)
+}
+
+func (h *httpHandle) DeleteBot(c *gin.Context) {
+	in := model.MsgDeleteBot{}
+	if err := c.ShouldBind(&in); err != nil {
+		h.setErr(c, DeleteBotBind, err)
+		return
+	}
+	if err := h.validate.Struct(&in); err != nil {
+		h.setErr(c, DeleteBotValidate, err)
+		return
+	}
+	out, err := game.Game.Command("DeleteBot", &in)
+	if err != nil {
+		h.setErr(c, DeleteBotCommand, err)
+		return
+	}
+	c.JSON(200, out)
 }
 
 func (h *httpHandle) handleGame(c *gin.Context) {
