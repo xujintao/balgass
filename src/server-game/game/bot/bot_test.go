@@ -142,7 +142,8 @@ func TestBotReachesPlaying(t *testing.T) {
 	if err := conn.Write(&model.MsgLoadCharacterReply{}); err != nil {
 		t.Fatalf("Write(load character) error = %v", err)
 	}
-	waitState(t, b, botStatePlaying)
+	assertNoCommand(t, g)
+	assertNoClose(t, g)
 }
 
 func TestBotCloseCallsPlayerCloseConn(t *testing.T) {
@@ -168,7 +169,6 @@ func TestBotCloseCallsPlayerCloseConn(t *testing.T) {
 	if err := conn.Close(); err != nil {
 		t.Fatalf("conn.Close() error = %v", err)
 	}
-	waitState(t, b, botStateOffline)
 	assertNoCommand(t, g)
 }
 
@@ -192,7 +192,6 @@ func TestBotConnCloseCommandsDeleteBot(t *testing.T) {
 
 	command := waitCommand(t, g)
 	assertDeleteBotCommand(t, command, "account1", "char1")
-	waitState(t, b, botStateOffline)
 	assertNoClose(t, g)
 }
 
@@ -295,18 +294,6 @@ func waitBotID(t *testing.T, b *bot, id int) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatalf("bot id = %d, want %d", b.id.Load(), id)
-}
-
-func waitState(t *testing.T, b *bot, state botState) {
-	t.Helper()
-	deadline := time.Now().Add(time.Second)
-	for time.Now().Before(deadline) {
-		if b.state == state {
-			return
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	t.Fatalf("state = %d, want %d", b.state, state)
 }
 
 func assertDeleteBotCommand(t *testing.T, command testCommand, account, name string) {

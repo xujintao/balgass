@@ -124,7 +124,6 @@ func newbot(conf botConfig, game game) (*bot, error) {
 			case msg := <-b.msgChan:
 				b.handle(msg)
 			case <-ctx.Done():
-				b.state = botStateOffline
 				return
 			}
 		}
@@ -146,18 +145,6 @@ type game interface {
 	Command(string, any) (any, error)
 }
 
-type botState int
-
-const (
-	botStateConnecting botState = iota
-	botStateConnected
-	botStateLoggingIn
-	botStateLoggedIn
-	botStateLoadingCharacter
-	botStatePlaying
-	botStateOffline
-)
-
 type bot struct {
 	key      string
 	account  string
@@ -167,36 +154,23 @@ type bot struct {
 	cancel   context.CancelFunc
 	id       atomic.Int64
 	msgChan  chan any
-	state    botState
 }
 
 func (b *bot) handle(msg any) {
 	switch msg := msg.(type) {
 	case *model.MsgConnectReply:
-		if b.state != botStateConnecting {
-			return
-		}
 		if msg.Result != 1 {
 			b.fail(fmt.Errorf("connect failed: result %d", msg.Result))
 			return
 		}
-		b.state = botStateConnected
 		b.login()
 	case *model.MsgLoginReply:
-		if b.state != botStateLoggingIn {
-			return
-		}
 		if msg.Result != 1 {
 			b.fail(fmt.Errorf("login failed: result %d", msg.Result))
 			return
 		}
-		b.state = botStateLoggedIn
 		b.loadCharacter()
 	case *model.MsgLoadCharacterReply:
-		if b.state != botStateLoadingCharacter {
-			return
-		}
-		b.state = botStatePlaying
 		slog.Info("bot playing", "key", b.key, "player", b.id.Load())
 	}
 }
@@ -235,7 +209,6 @@ func (c *botConn) Close() error {
 }
 
 func (b *bot) connect() {
-	b.state = botStateConnecting
 	c := botConn{b}
 	id, err := b.game.PlayerConn(&c)
 	if err != nil {
@@ -246,7 +219,6 @@ func (b *bot) connect() {
 }
 
 func (b *bot) login() {
-	b.state = botStateLoggingIn
 	b.game.PlayerAction(int(b.id.Load()), "Login", &model.MsgLogin{
 		Account:  b.account,
 		Password: b.password,
@@ -254,11 +226,10 @@ func (b *bot) login() {
 }
 
 func (b *bot) loadCharacter() {
-	b.state = botStateLoadingCharacter
 	b.game.PlayerAction(int(b.id.Load()), "LoadCharacter", &model.MsgLoadCharacter{Name: b.name})
 }
 
 func (b *bot) fail(err error) {
-	slog.Error("bot failed", "err", err, "key", b.key, "state", b.state)
+	slog.Error("bot failed", "err", err, "key", b.key)
 	b.game.Command("DeleteBot", &model.MsgDeleteBot{Account: b.account, Name: b.name})
 }
