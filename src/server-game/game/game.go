@@ -12,6 +12,7 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/bot"
 	"github.com/xujintao/balgass/src/server-game/game/cmd"
+	"github.com/xujintao/balgass/src/server-game/game/fixture"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
@@ -189,6 +190,7 @@ func (g *game) Start() {
 	// g.Command("AddBot", &model.MsgAddBot{Account: "account4", Password: "password", Name: "bot4"})
 	// g.Command("AddBot", &model.MsgAddBot{Account: "account5", Password: "password", Name: "bot5"})
 	// g.Command("DeleteBot", &model.MsgDeleteBot{Account: "account5", Name: "bot5"})
+	fixture.Start(g)
 }
 
 func (g *game) Close() {

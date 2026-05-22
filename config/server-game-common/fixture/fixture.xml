@@ -1,0 +1,108 @@
+<Fixture Enable="false" Mode="grow">
+  <Accounts>
+    <Account Name="botacc01" Password="botpass" UserEmail="botacc01@test.local"/>
+    <Account Name="botacc02" Password="botpass" UserEmail="botacc02@test.local"/>
+    <Account Name="botacc03" Password="botpass" UserEmail="botacc03@test.local"/>
+    <Account Name="botacc04" Password="botpass" UserEmail="botacc04@test.local"/>
+    <Account Name="botacc05" Password="botpass" UserEmail="botacc05@test.local"/>
+    <Account Name="botacc06" Password="botpass" UserEmail="botacc06@test.local"/>
+    <Account Name="botacc07" Password="botpass" UserEmail="botacc07@test.local"/>
+    <Account Name="botacc08" Password="botpass" UserEmail="botacc08@test.local"/>
+    <Account Name="botacc09" Password="botpass" UserEmail="botacc09@test.local"/>
+    <Account Name="botacc10" Password="botpass" UserEmail="botacc10@test.local"/>
+  </Accounts>
+  <Characters>
+    <Character Account="botacc01" Name="b01c0" Class="0" Position="0"/>
+    <Character Account="botacc01" Name="b01c1" Class="1" Position="1"/>
+    <Character Account="botacc01" Name="b01c2" Class="2" Position="2"/>
+    <Character Account="botacc01" Name="b01c3" Class="3" Position="3"/>
+    <Character Account="botacc01" Name="b01c4" Class="4" Position="4"/>
+    <Character Account="botacc01" Name="b01c5" Class="5" Position="5"/>
+    <Character Account="botacc01" Name="b01c6" Class="6" Position="6"/>
+    <Character Account="botacc01" Name="b01c7" Class="7" Position="7"/>
+    <Character Account="botacc02" Name="b02c0" Class="0" Position="0"/>
+    <Character Account="botacc02" Name="b02c1" Class="1" Position="1"/>
+    <Character Account="botacc02" Name="b02c2" Class="2" Position="2"/>
+    <Character Account="botacc02" Name="b02c3" Class="3" Position="3"/>
+    <Character Account="botacc02" Name="b02c4" Class="4" Position="4"/>
+    <Character Account="botacc02" Name="b02c5" Class="5" Position="5"/>
+    <Character Account="botacc02" Name="b02c6" Class="6" Position="6"/>
+    <Character Account="botacc02" Name="b02c7" Class="7" Position="7"/>
+    <Character Account="botacc03" Name="b03c0" Class="0" Position="0"/>
+    <Character Account="botacc03" Name="b03c1" Class="1" Position="1"/>
+    <Character Account="botacc03" Name="b03c2" Class="2" Position="2"/>
+    <Character Account="botacc03" Name="b03c3" Class="3" Position="3"/>
+    <Character Account="botacc03" Name="b03c4" Class="4" Position="4"/>
+    <Character Account="botacc03" Name="b03c5" Class="5" Position="5"/>
+    <Character Account="botacc03" Name="b03c6" Class="6" Position="6"/>
+    <Character Account="botacc03" Name="b03c7" Class="7" Position="7"/>
+    <Character Account="botacc04" Name="b04c0" Class="0" Position="0"/>
+    <Character Account="botacc04" Name="b04c1" Class="1" Position="1"/>
+    <Character Account="botacc04" Name="b04c2" Class="2" Position="2"/>
+    <Character Account="botacc04" Name="b04c3" Class="3" Position="3"/>
+    <Character Account="botacc04" Name="b04c4" Class="4" Position="4"/>
+    <Character Account="botacc04" Name="b04c5" Class="5" Position="5"/>
+    <Character Account="botacc04" Name="b04c6" Class="6" Position="6"/>
+    <Character Account="botacc04" Name="b04c7" Class="7" Position="7"/>
+    <Character Account="botacc05" Name="b05c0" Class="0" Position="0"/>
+    <Character Account="botacc05" Name="b05c1" Class="1" Position="1"/>
+    <Character Account="botacc05" Name="b05c2" Class="2" Position="2"/>
+    <Character Account="botacc05" Name="b05c3" Class="3" Position="3"/>
+    <Character Account="botacc05" Name="b05c4" Class="4" Position="4"/>
+    <Character Account="botacc05" Name="b05c5" Class="5" Position="5"/>
+    <Character Account="botacc05" Name="b05c6" Class="6" Position="6"/>
+    <Character Account="botacc05" Name="b05c7" Class="7" Position="7"/>
+    <Character Account="botacc06" Name="b06c0" Class="0" Position="0"/>
+    <Character Account="botacc06" Name="b06c1" Class="1" Position="1"/>
+    <Character Account="botacc06" Name="b06c2" Class="2" Position="2"/>
+    <Character Account="botacc06" Name="b06c3" Class="3" Position="3"/>
+    <Character Account="botacc06" Name="b06c4" Class="4" Position="4"/>
+    <Character Account="botacc06" Name="b06c5" Class="5" Position="5"/>
+    <Character Account="botacc06" Name="b06c6" Class="6" Position="6"/>
+    <Character Account="botacc06" Name="b06c7" Class="7" Position="7"/>
+    <Character Account="botacc07" Name="b07c0" Class="0" Position="0"/>
+    <Character Account="botacc07" Name="b07c1" Class="1" Position="1"/>
+    <Character Account="botacc07" Name="b07c2" Class="2" Position="2"/>
+    <Character Account="botacc07" Name="b07c3" Class="3" Position="3"/>
+    <Character Account="botacc07" Name="b07c4" Class="4" Position="4"/>
+    <Character Account="botacc07" Name="b07c5" Class="5" Position="5"/>
+    <Character Account="botacc07" Name="b07c6" Class="6" Position="6"/>
+    <Character Account="botacc07" Name="b07c7" Class="7" Position="7"/>
+    <Character Account="botacc08" Name="b08c0" Class="0" Position="0"/>
+    <Character Account="botacc08" Name="b08c1" Class="1" Position="1"/>
+    <Character Account="botacc08" Name="b08c2" Class="2" Position="2"/>
+    <Character Account="botacc08" Name="b08c3" Class="3" Position="3"/>
+    <Character Account="botacc08" Name="b08c4" Class="4" Position="4"/>
+    <Character Account="botacc08" Name="b08c5" Class="5" Position="5"/>
+    <Character Account="botacc08" Name="b08c6" Class="6" Position="6"/>
+    <Character Account="botacc08" Name="b08c7" Class="7" Position="7"/>
+    <Character Account="botacc09" Name="b09c0" Class="0" Position="0"/>
+    <Character Account="botacc09" Name="b09c1" Class="1" Position="1"/>
+    <Character Account="botacc09" Name="b09c2" Class="2" Position="2"/>
+    <Character Account="botacc09" Name="b09c3" Class="3" Position="3"/>
+    <Character Account="botacc09" Name="b09c4" Class="4" Position="4"/>
+    <Character Account="botacc09" Name="b09c5" Class="5" Position="5"/>
+    <Character Account="botacc09" Name="b09c6" Class="6" Position="6"/>
+    <Character Account="botacc09" Name="b09c7" Class="7" Position="7"/>
+    <Character Account="botacc10" Name="b10c0" Class="0" Position="0"/>
+    <Character Account="botacc10" Name="b10c1" Class="1" Position="1"/>
+    <Character Account="botacc10" Name="b10c2" Class="2" Position="2"/>
+    <Character Account="botacc10" Name="b10c3" Class="3" Position="3"/>
+    <Character Account="botacc10" Name="b10c4" Class="4" Position="4"/>
+    <Character Account="botacc10" Name="b10c5" Class="5" Position="5"/>
+    <Character Account="botacc10" Name="b10c6" Class="6" Position="6"/>
+    <Character Account="botacc10" Name="b10c7" Class="7" Position="7"/>
+  </Characters>
+  <Bots>
+    <Bot Account="botacc01" Password="botpass" Name="b01c0"/>
+    <Bot Account="botacc02" Password="botpass" Name="b02c1"/>
+    <Bot Account="botacc03" Password="botpass" Name="b03c2"/>
+    <Bot Account="botacc04" Password="botpass" Name="b04c3"/>
+    <Bot Account="botacc05" Password="botpass" Name="b05c4"/>
+    <Bot Account="botacc06" Password="botpass" Name="b06c5"/>
+    <Bot Account="botacc07" Password="botpass" Name="b07c6"/>
+    <Bot Account="botacc08" Password="botpass" Name="b08c0"/>
+    <Bot Account="botacc09" Password="botpass" Name="b09c1"/>
+    <Bot Account="botacc10" Password="botpass" Name="b10c2"/>
+  </Bots>
+</Fixture>

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 )
@@ -38,8 +39,7 @@ func (c *conn) Close() error {
 }
 
 func TestGame(t *testing.T) {
-	Game.Start()
-	defer Game.Close()
+	defer startGameWithoutFixture(t)()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	conn := conn{
@@ -128,8 +128,7 @@ func TestPlayerActionPolicyAllow(t *testing.T) {
 }
 
 func TestPlayerActionAuth(t *testing.T) {
-	Game.Start()
-	defer Game.Close()
+	defer startGameWithoutFixture(t)()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	conn := conn{
@@ -160,8 +159,7 @@ func TestPlayerActionAuth(t *testing.T) {
 }
 
 func TestPlayerActionWithoutPolicy(t *testing.T) {
-	Game.Start()
-	defer Game.Close()
+	defer startGameWithoutFixture(t)()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	conn := conn{
@@ -181,5 +179,16 @@ func TestPlayerActionWithoutPolicy(t *testing.T) {
 	case <-ctx.Done():
 	case <-time.After(time.Second):
 		t.Fatal("internal player action should be trusted without policy")
+	}
+}
+
+func startGameWithoutFixture(t *testing.T) func() {
+	t.Helper()
+	pathCommon := conf.ServerEnv.PathCommon
+	conf.ServerEnv.PathCommon = t.TempDir()
+	Game.Start()
+	return func() {
+		Game.Close()
+		conf.ServerEnv.PathCommon = pathCommon
 	}
 }
