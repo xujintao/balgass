@@ -410,18 +410,6 @@ type EffectList struct {
 	EffectDuration int
 }
 
-const (
-	MaxViewportNum = 75
-)
-
-type Viewport struct {
-	State  int
-	Number int
-	Type   int
-	// index  int
-	Dis int
-}
-
 type HitDamage struct {
 	Number      uint16
 	HitDamage   int

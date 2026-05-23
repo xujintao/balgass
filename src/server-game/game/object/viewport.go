@@ -47,10 +47,32 @@ func (obj *Object) CreateFrustum() {
 	}
 }
 
+const (
+	MaxViewportNum = 75
+)
+
+type Viewport struct {
+	State  int
+	Number int
+	Type   int
+	// index  int
+	Dis int
+}
+
+func (vp *Viewport) reset() {
+	vp.State = 0
+	vp.Number = -1
+	vp.Type = int(ObjectTypeEmpty)
+	// vp.index = -1
+	vp.Dis = 0
+}
+
 func (obj *Object) initViewport() {
 	for i := 0; i < MaxViewportNum; i++ {
-		obj.Viewports[i] = &Viewport{State: 0, Number: -1}
-		obj.ViewportsPassive[i] = &Viewport{State: 0, Number: -1}
+		obj.Viewports[i] = &Viewport{}
+		obj.Viewports[i].reset()
+		obj.ViewportsPassive[i] = &Viewport{}
+		obj.ViewportsPassive[i].reset()
 	}
 }
 
@@ -71,7 +93,7 @@ func (obj *Object) checkViewport(x, y int) bool {
 	return true
 }
 
-func (obj *Object) addViewport(index, type_ int) bool {
+func (obj *Object) addViewportItem(index int) bool {
 	for _, vp := range obj.Viewports {
 		if vp.Number == index {
 			return false
@@ -81,7 +103,7 @@ func (obj *Object) addViewport(index, type_ int) bool {
 		if vp.State == 0 {
 			vp.State = 1
 			vp.Number = index
-			vp.Type = type_
+			vp.Type = 5
 			obj.ViewportsNum++
 			return true
 		}
@@ -89,19 +111,55 @@ func (obj *Object) addViewport(index, type_ int) bool {
 	return false
 }
 
-func (obj *Object) addViewportPassive(index, type_ int) bool {
-	for _, vp := range obj.ViewportsPassive {
-		if vp.Number == index {
+func (obj *Object) addViewportObject(tobj *Object) bool {
+	// add active viewport
+	ok := false
+	for _, vp := range obj.Viewports {
+		if vp.Number == tobj.Index {
 			return false
 		}
 	}
-	for _, vp := range obj.ViewportsPassive {
+	for _, vp := range obj.Viewports {
 		if vp.State == 0 {
 			vp.State = 1
-			vp.Number = index
-			vp.Type = type_
-			obj.ViewportsPassiveNum++
+			vp.Number = tobj.Index
+			vp.Type = int(tobj.Type) // 1,2,3
+			obj.ViewportsNum++
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return false
+	}
+
+	// subscribe passive viewport
+	ok = false
+	for _, vp := range tobj.ViewportsPassive {
+		if vp.Number == obj.Index {
 			return true
+		}
+	}
+	for _, vpp := range tobj.ViewportsPassive {
+		if vpp.State == 0 {
+			vpp.State = 1
+			vpp.Number = obj.Index
+			vpp.Type = int(obj.Type)
+			tobj.ViewportsPassiveNum++
+			ok = true
+			break
+		}
+	}
+	if ok {
+		return true
+	}
+
+	// rollback active viewport
+	for _, vp := range obj.Viewports {
+		if vp.Number == tobj.Index {
+			vp.reset()
+			obj.ViewportsNum--
+			break
 		}
 	}
 	return false
@@ -110,34 +168,55 @@ func (obj *Object) addViewportPassive(index, type_ int) bool {
 func (obj *Object) removeViewport(i int) {
 	// remove active viewport
 	vp := obj.Viewports[i]
-	vp.State = 0
 	target := vp.Number
-	vp.Number = -1
+	_type := vp.Type
+	vp.reset()
 	obj.ViewportsNum--
 
 	// remove passive viewport
+	if _type == 5 {
+		return
+	}
 	tobj := ObjectManager.objects[target]
 	if tobj == nil {
 		return
 	}
 	for _, vpp := range tobj.ViewportsPassive {
-		if vpp.State == 1 && vpp.Number == target {
-			vpp.State = 0
-			vpp.Number = -1
+		if vpp.State == 1 && vpp.Number == obj.Index {
+			vpp.reset()
 			tobj.ViewportsPassiveNum--
-			// break
+			break
 		}
 	}
 }
 
 func (obj *Object) clearViewport() {
+	// clear active viewport
 	for i := 0; i < MaxViewportNum; i++ {
-		obj.Viewports[i].State = 0
-		obj.Viewports[i].Number = -1
-		obj.ViewportsPassive[i].State = 0
-		obj.ViewportsPassive[i].Number = -1
+		vp := obj.Viewports[i]
+		// reverse lookup passive viewport
+		if vp.State == 1 {
+			if vp.Type != 5 {
+				tobj := ObjectManager.objects[vp.Number]
+				if tobj != nil {
+					for _, vpp := range tobj.ViewportsPassive {
+						if vpp.State == 1 && vpp.Number == obj.Index {
+							vpp.reset()
+							tobj.ViewportsPassiveNum--
+							break
+						}
+					}
+				}
+			}
+		}
+		vp.reset()
 	}
 	obj.ViewportsNum = 0
+
+	// clear passive viewport
+	for i := 0; i < MaxViewportNum; i++ {
+		obj.ViewportsPassive[i].reset()
+	}
 	obj.ViewportsPassiveNum = 0
 }
 
@@ -153,7 +232,7 @@ func (obj *Object) createViewport() {
 			if !obj.checkViewport(x, y) {
 				return
 			}
-			ok := obj.addViewport(index, 5)
+			ok := obj.addViewportItem(index)
 			if ok {
 				i := model.CreateViewportItem{
 					Index: index,
@@ -193,9 +272,8 @@ func (obj *Object) createViewport() {
 		if !obj.checkViewport(tobj.X, tobj.Y) {
 			continue
 		}
-		ok := obj.addViewport(tobj.Index, int(tobj.Type))
+		ok := obj.addViewportObject(tobj)
 		if ok {
-			tobj.addViewportPassive(obj.Index, int(obj.Type))
 			if obj.Type == ObjectTypePlayer {
 				switch tobj.Type {
 				case ObjectTypePlayer:
