@@ -8,3 +8,4 @@ set +a
 go test ./game/bot
 go test -race ./game/bot
 go test ./game/fixture
+go test ./game/object
