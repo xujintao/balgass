@@ -162,7 +162,6 @@ type CreateViewportPlayer struct {
 	BuffEffects            []int
 }
 
-// pack(1)
 type MsgCreateViewportPlayerReply struct {
 	Players []*CreateViewportPlayer
 }
@@ -171,6 +170,9 @@ func (msg *MsgCreateViewportPlayerReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	bw.WriteByte(byte(len(msg.Players)))
 	for _, player := range msg.Players {
+		// accourding to c++ server PMSG_VIEWPORTCREATE struct
+		// Due to player.ServerCode, we need to padding the player data.
+		paddingMark := bw.Len()
 		binary.Write(&bw, binary.BigEndian, uint16(player.Index))
 		bw.WriteByte(byte(player.X))
 		bw.WriteByte(byte(player.Y))
@@ -205,6 +207,10 @@ func (msg *MsgCreateViewportPlayerReply) Marshal() ([]byte, error) {
 		bw.WriteByte(byte(len(player.BuffEffects)))
 		for _, buff := range player.BuffEffects {
 			bw.WriteByte(byte(buff))
+		}
+		paddingMark = bw.Len() - paddingMark
+		if paddingMark%2 != 0 {
+			bw.WriteByte(0) // padding to even length
 		}
 	}
 	return bw.Bytes(), nil
