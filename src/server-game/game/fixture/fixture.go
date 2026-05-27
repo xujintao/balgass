@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
-	"path"
+	"strconv"
 	"strings"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
@@ -15,293 +14,270 @@ import (
 	"gorm.io/gorm"
 )
 
+func init() {
+	Fixture.init()
+}
+
 const (
-	testBotFixtureFile = "fixture.xml"
-	testBotModeReset   = "reset"
-	testBotModeGrow    = "grow"
+	ModeReset   string = "reset"
+	ModeGrow    string = "grow"
+	ModeDefault string = ModeReset
 )
 
-// Game is the command surface needed to start fixture bots.
-type Game interface {
+type game interface {
 	Command(string, any) (any, error)
 }
 
-// Start loads configured test bot seed data and starts bots when enabled.
-func Start(game Game) {
-	file := path.Join(conf.ServerEnv.PathCommon, "fixture", testBotFixtureFile)
-	err := startFixture(file, game, databaseFixtureStore{}, playerCharacterTemplate)
-	if err != nil {
-		slog.Error("test bot fixture failed", "err", err, "file", file)
-	}
+var Fixture fixture
+
+func Start(game game) {
+	Fixture.Start(game)
 }
 
-type testBotFixture struct {
+type fixture struct {
 	Enable     bool
 	Mode       string
-	Accounts   []model.Account
-	Characters []fixtureCharacter
-	Bots       []model.MsgAddBot
-}
-
-type rawTestBotFixture struct {
-	XMLName    xml.Name              `xml:"Fixture"`
-	Enable     bool                  `xml:"Enable,attr"`
-	Mode       string                `xml:"Mode,attr"`
-	Accounts   []rawFixtureAccount   `xml:"Accounts>Account"`
-	Characters []rawFixtureCharacter `xml:"Characters>Character"`
-	Bots       []rawFixtureBot       `xml:"Bots>Bot"`
-}
-
-type rawFixtureAccount struct {
-	Name      string `xml:"Name,attr"`
-	Password  string `xml:"Password,attr"`
-	UserEmail string `xml:"UserEmail,attr"`
-}
-
-type rawFixtureCharacter struct {
-	Account  string `xml:"Account,attr"`
-	Name     string `xml:"Name,attr"`
-	Class    *int   `xml:"Class,attr"`
-	Position *int   `xml:"Position,attr"`
-	Level    *int   `xml:"Level,attr"`
-}
-
-type rawFixtureBot struct {
-	Account  string `xml:"Account,attr"`
-	Password string `xml:"Password,attr"`
-	Name     string `xml:"Name,attr"`
-}
-
-type fixtureCharacter struct {
-	Account   string
-	Character model.Character
-}
-
-type fixtureTemplateFunc func(class int) (model.Character, bool)
-
-type fixtureStore interface {
-	UpsertFixtureAccount(account model.Account, reset bool) (*model.Account, error)
-	UpsertFixtureCharacter(character model.Character, reset bool) error
-}
-
-func startFixture(file string, game Game, store fixtureStore, template fixtureTemplateFunc) error {
-	fixture, err := loadTestBotFixture(file, template)
-	if err != nil {
-		return err
+	Accounts   []*model.Account
+	Characters []*struct {
+		Account   string
+		Character model.Character
 	}
-	if fixture == nil {
-		return nil
+	Bots []*model.MsgAddBot
+}
+
+func (f *fixture) init() {
+	// Fixture was generated 2026-05-26 17:44:23 by https://xml-to-go.github.io/ in Ukraine.
+	type FixtureConfig struct {
+		XMLName  xml.Name `xml:"Fixture"`
+		Text     string   `xml:",chardata"`
+		Enable   string   `xml:"Enable,attr"`
+		Mode     string   `xml:"Mode,attr"`
+		Accounts struct {
+			Text    string `xml:",chardata"`
+			Account []struct {
+				Text      string `xml:",chardata"`
+				Name      string `xml:"Name,attr"`
+				Password  string `xml:"Password,attr"`
+				UserEmail string `xml:"UserEmail,attr"`
+			} `xml:"Account"`
+		} `xml:"Accounts"`
+		Characters struct {
+			Text      string `xml:",chardata"`
+			Character []struct {
+				Text     string `xml:",chardata"`
+				Account  string `xml:"Account,attr"`
+				Name     string `xml:"Name,attr"`
+				Class    string `xml:"Class,attr"`
+				Position string `xml:"Position,attr"`
+			} `xml:"Character"`
+		} `xml:"Characters"`
+		Bots struct {
+			Text string `xml:",chardata"`
+			Bot  []struct {
+				Text     string `xml:",chardata"`
+				Account  string `xml:"Account,attr"`
+				Password string `xml:"Password,attr"`
+				Name     string `xml:"Name,attr"`
+			} `xml:"Bot"`
+		} `xml:"Bots"`
 	}
-	if !fixture.Enable {
-		return nil
+	var fc FixtureConfig
+	conf.XML(conf.ServerEnv.PathCommon, "fixture/fixture.xml", &fc)
+
+	// Convert FixtureConfig to fixture.
+	// enable
+	f.Enable = strings.EqualFold(strings.TrimSpace(fc.Enable), "true")
+	if !f.Enable {
+		return
 	}
 
-	reset := fixture.Mode == testBotModeReset
-	accountIDs := make(map[string]int, len(fixture.Accounts))
-	for _, account := range fixture.Accounts {
-		saved, err := store.UpsertFixtureAccount(account, reset)
+	// mode
+	mode := strings.ToLower(strings.TrimSpace(fc.Mode))
+	if mode == "" {
+		mode = ModeDefault
+	}
+	switch mode {
+	case ModeReset, ModeGrow:
+		f.Mode = mode
+	default:
+		slog.Error("unknown fixture mode", "mode", fc.Mode)
+		f.Enable = false
+		return
+	}
+
+	// accounts
+	accounts := make(map[string]struct{}, len(fc.Accounts.Account))
+	f.Accounts = make([]*model.Account, 0, len(fc.Accounts.Account))
+	for _, v := range fc.Accounts.Account {
+		account := &model.Account{
+			Name:      strings.TrimSpace(v.Name),
+			Password:  strings.TrimSpace(v.Password),
+			UserEmail: strings.TrimSpace(v.UserEmail),
+		}
+		if account.Name == "" || account.Password == "" || account.UserEmail == "" {
+			slog.Error("fixture account requires name, password and user_email", "account", account.Name)
+			continue
+		}
+		key := fixtureKey(account.Name)
+		if _, ok := accounts[key]; ok {
+			slog.Error("duplicated fixture account", "account", account.Name)
+			continue
+		}
+		accounts[key] = struct{}{}
+		f.Accounts = append(f.Accounts, account)
+	}
+
+	// characters
+	characters := make(map[string]struct{}, len(fc.Characters.Character))
+	accountCharacters := make(map[string]struct{}, len(fc.Characters.Character))
+	nextPosition := make(map[string]int)
+	f.Characters = make([]*struct {
+		Account   string
+		Character model.Character
+	}, 0, len(fc.Characters.Character))
+	for _, v := range fc.Characters.Character {
+		account := strings.TrimSpace(v.Account)
+		name := strings.TrimSpace(v.Name)
+		classText := strings.TrimSpace(v.Class)
+		if account == "" || name == "" || classText == "" {
+			slog.Error("fixture character requires account, name and class", "account", account, "character", name)
+			continue
+		}
+		accountKey := fixtureKey(account)
+		if _, ok := accounts[accountKey]; !ok {
+			slog.Error("fixture character references missing account", "account", account, "character", name)
+			continue
+		}
+		nameKey := fixtureKey(name)
+		if _, ok := characters[nameKey]; ok {
+			slog.Error("duplicated fixture character", "character", name)
+			continue
+		}
+		accountCharacterKey := accountKey + ":" + nameKey
+		if _, ok := accountCharacters[accountCharacterKey]; ok {
+			slog.Error("duplicated fixture account character", "account", account, "character", name)
+			continue
+		}
+
+		class, err := strconv.Atoi(classText)
 		if err != nil {
-			slog.Error("test bot fixture account seed failed", "err", err, "account", account.Name)
+			slog.Error("invalid fixture character class", "account", account, "character", name, "class", v.Class, "err", err)
+			continue
+		}
+		character, ok := player.CharacterTable[class]
+		if !ok {
+			slog.Error("fixture character class not found", "account", account, "character", name, "class", class)
+			continue
+		}
+		character.ID = 0
+		character.AccountID = 0
+		character.Name = name
+		character.Class = class
+		if positionText := strings.TrimSpace(v.Position); positionText != "" {
+			position, err := strconv.Atoi(positionText)
+			if err != nil {
+				slog.Error("invalid fixture character position", "account", account, "character", name, "position", v.Position, "err", err)
+				continue
+			}
+			character.Position = position
+		} else {
+			character.Position = nextPosition[accountKey]
+		}
+		if character.Position >= nextPosition[accountKey] {
+			nextPosition[accountKey] = character.Position + 1
+		}
+		characters[nameKey] = struct{}{}
+		accountCharacters[accountCharacterKey] = struct{}{}
+		f.Characters = append(f.Characters, &struct {
+			Account   string
+			Character model.Character
+		}{
+			Account:   account,
+			Character: character,
+		})
+	}
+
+	// bots
+	bots := make(map[string]struct{}, len(fc.Bots.Bot))
+	f.Bots = make([]*model.MsgAddBot, 0, len(fc.Bots.Bot))
+	for _, v := range fc.Bots.Bot {
+		bot := &model.MsgAddBot{
+			Account:  strings.TrimSpace(v.Account),
+			Password: strings.TrimSpace(v.Password),
+			Name:     strings.TrimSpace(v.Name),
+		}
+		if bot.Account == "" || bot.Password == "" || bot.Name == "" {
+			slog.Error("fixture bot requires account, password and name", "account", bot.Account, "character", bot.Name)
+			continue
+		}
+		accountKey := fixtureKey(bot.Account)
+		if _, ok := accounts[accountKey]; !ok {
+			slog.Error("fixture bot references missing account", "account", bot.Account, "character", bot.Name)
+			continue
+		}
+		if _, ok := accountCharacters[accountKey+":"+fixtureKey(bot.Name)]; !ok {
+			slog.Error("fixture bot references missing character", "account", bot.Account, "character", bot.Name)
+			continue
+		}
+		key := botKey(bot.Account, bot.Name)
+		if _, ok := bots[key]; ok {
+			slog.Error("duplicated fixture bot", "bot", key)
+			continue
+		}
+		bots[key] = struct{}{}
+		f.Bots = append(f.Bots, bot)
+	}
+}
+
+func (f *fixture) Start(game game) {
+	if !f.Enable {
+		slog.Info("fixture is disabled")
+		return
+	}
+	slog.Info("starting fixture", "mode", f.Mode)
+
+	// accounts
+	reset := f.Mode == ModeReset
+	store := databaseFixtureStore{}
+	accountIDs := make(map[string]int, len(f.Accounts))
+	for _, account := range f.Accounts {
+		if account == nil {
+			continue
+		}
+		saved, err := store.UpsertFixtureAccount(*account, reset)
+		if err != nil {
+			slog.Error("fixture account seed failed", "err", err, "account", account.Name)
 			continue
 		}
 		accountIDs[fixtureKey(saved.Name)] = saved.ID
 	}
 
-	for _, character := range fixture.Characters {
-		accountID, ok := accountIDs[fixtureKey(character.Account)]
-		if !ok {
-			slog.Error("test bot fixture character seed skipped", "account", character.Account, "character", character.Character.Name)
+	// characters
+	for _, c := range f.Characters {
+		if c == nil {
 			continue
 		}
-		c := character.Character
-		c.AccountID = accountID
-		if err := store.UpsertFixtureCharacter(c, reset); err != nil {
-			slog.Error("test bot fixture character seed failed", "err", err, "account", character.Account, "character", c.Name)
+		accountID, ok := accountIDs[fixtureKey(c.Account)]
+		if !ok {
+			slog.Error("fixture character seed skipped", "account", c.Account, "character", c.Character.Name)
+			continue
+		}
+		character := c.Character
+		character.AccountID = accountID
+		if err := store.UpsertFixtureCharacter(character, reset); err != nil {
+			slog.Error("fixture character seed failed", "err", err, "account", c.Account, "character", character.Name)
 		}
 	}
 
-	for _, bot := range fixture.Bots {
-		if _, err := game.Command("AddBot", &bot); err != nil {
+	// bots
+	for _, bot := range f.Bots {
+		if bot == nil {
+			continue
+		}
+		if _, err := game.Command("AddBot", bot); err != nil {
 			slog.Error("test bot fixture add bot failed", "err", err, "account", bot.Account, "character", bot.Name)
 		}
 	}
-	return nil
-}
-
-func loadTestBotFixture(file string, template fixtureTemplateFunc) (*testBotFixture, error) {
-	if _, err := os.Stat(file); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	raw := rawTestBotFixture{}
-	conf.XML(path.Dir(file), path.Base(file), &raw)
-	return parseRawTestBotFixture(raw, template)
-}
-
-func parseTestBotFixture(buf []byte, template fixtureTemplateFunc) (*testBotFixture, error) {
-	raw := rawTestBotFixture{}
-	if err := xml.Unmarshal(buf, &raw); err != nil {
-		return nil, err
-	}
-	return parseRawTestBotFixture(raw, template)
-}
-
-func parseRawTestBotFixture(raw rawTestBotFixture, template fixtureTemplateFunc) (*testBotFixture, error) {
-	mode := strings.ToLower(strings.TrimSpace(raw.Mode))
-	if mode == "" {
-		mode = testBotModeReset
-	}
-	if !raw.Enable {
-		return &testBotFixture{
-			Enable: raw.Enable,
-			Mode:   mode,
-		}, nil
-	}
-	switch mode {
-	case testBotModeReset, testBotModeGrow:
-	default:
-		return nil, fmt.Errorf("unknown test bot fixture mode: %s", raw.Mode)
-	}
-
-	accounts, err := parseFixtureAccounts(raw.Accounts)
-	if err != nil {
-		return nil, err
-	}
-	characters, err := parseFixtureCharacters(raw.Characters, accounts, template)
-	if err != nil {
-		return nil, err
-	}
-	bots, err := parseFixtureBots(raw.Bots, accounts, characters)
-	if err != nil {
-		return nil, err
-	}
-
-	return &testBotFixture{
-		Enable:     raw.Enable,
-		Mode:       mode,
-		Accounts:   accounts,
-		Characters: characters,
-		Bots:       bots,
-	}, nil
-}
-
-func parseFixtureAccounts(raw []rawFixtureAccount) ([]model.Account, error) {
-	seen := make(map[string]struct{}, len(raw))
-	accounts := make([]model.Account, 0, len(raw))
-	for _, rawAccount := range raw {
-		account := model.Account{
-			Name:      strings.TrimSpace(rawAccount.Name),
-			Password:  strings.TrimSpace(rawAccount.Password),
-			UserEmail: strings.TrimSpace(rawAccount.UserEmail),
-		}
-		if account.Name == "" || account.Password == "" || account.UserEmail == "" {
-			return nil, errors.New("test bot fixture account requires name, password and user_email")
-		}
-		key := fixtureKey(account.Name)
-		if _, ok := seen[key]; ok {
-			return nil, fmt.Errorf("duplicated test bot fixture account: %s", account.Name)
-		}
-		seen[key] = struct{}{}
-		accounts = append(accounts, account)
-	}
-	return accounts, nil
-}
-
-func parseFixtureCharacters(raw []rawFixtureCharacter, accounts []model.Account, template fixtureTemplateFunc) ([]fixtureCharacter, error) {
-	accountSet := make(map[string]struct{}, len(accounts))
-	for _, account := range accounts {
-		accountSet[fixtureKey(account.Name)] = struct{}{}
-	}
-	seenName := make(map[string]struct{}, len(raw))
-	seenAccountName := make(map[string]struct{}, len(raw))
-	nextPosition := make(map[string]int)
-	characters := make([]fixtureCharacter, 0, len(raw))
-	for _, rawCharacter := range raw {
-		rawCharacter.Account = strings.TrimSpace(rawCharacter.Account)
-		rawCharacter.Name = strings.TrimSpace(rawCharacter.Name)
-		if rawCharacter.Account == "" || rawCharacter.Name == "" || rawCharacter.Class == nil {
-			return nil, errors.New("test bot fixture character requires account, name and class")
-		}
-		accountKey := fixtureKey(rawCharacter.Account)
-		if _, ok := accountSet[accountKey]; !ok {
-			return nil, fmt.Errorf("test bot fixture character references missing account: %s", rawCharacter.Account)
-		}
-		nameKey := fixtureKey(rawCharacter.Name)
-		if _, ok := seenName[nameKey]; ok {
-			return nil, fmt.Errorf("duplicated test bot fixture character: %s", rawCharacter.Name)
-		}
-		seenName[nameKey] = struct{}{}
-		accountNameKey := accountKey + ":" + nameKey
-		if _, ok := seenAccountName[accountNameKey]; ok {
-			return nil, fmt.Errorf("duplicated test bot fixture account character: %s:%s", rawCharacter.Account, rawCharacter.Name)
-		}
-		seenAccountName[accountNameKey] = struct{}{}
-
-		character, ok := template(*rawCharacter.Class)
-		if !ok {
-			return nil, fmt.Errorf("test bot fixture character class not found: %d", *rawCharacter.Class)
-		}
-		character.ID = 0
-		character.AccountID = 0
-		character.Name = rawCharacter.Name
-		character.Class = *rawCharacter.Class
-		if rawCharacter.Level != nil {
-			character.Level = *rawCharacter.Level
-		}
-		if rawCharacter.Position == nil {
-			character.Position = nextPosition[accountKey]
-		} else {
-			character.Position = *rawCharacter.Position
-		}
-		if character.Position >= nextPosition[accountKey] {
-			nextPosition[accountKey] = character.Position + 1
-		}
-		characters = append(characters, fixtureCharacter{
-			Account:   rawCharacter.Account,
-			Character: character,
-		})
-	}
-	return characters, nil
-}
-
-func parseFixtureBots(raw []rawFixtureBot, accounts []model.Account, characters []fixtureCharacter) ([]model.MsgAddBot, error) {
-	accountSet := make(map[string]struct{}, len(accounts))
-	for _, account := range accounts {
-		accountSet[fixtureKey(account.Name)] = struct{}{}
-	}
-	characterSet := make(map[string]struct{}, len(characters))
-	for _, character := range characters {
-		characterSet[fixtureKey(character.Account)+":"+fixtureKey(character.Character.Name)] = struct{}{}
-	}
-
-	seen := make(map[string]struct{}, len(raw))
-	bots := make([]model.MsgAddBot, 0, len(raw))
-	for _, rawBot := range raw {
-		bot := model.MsgAddBot{
-			Account:  strings.TrimSpace(rawBot.Account),
-			Password: strings.TrimSpace(rawBot.Password),
-			Name:     strings.TrimSpace(rawBot.Name),
-		}
-		if bot.Account == "" || bot.Password == "" || bot.Name == "" {
-			return nil, errors.New("test bot fixture bot requires account, password and name")
-		}
-		accountKey := fixtureKey(bot.Account)
-		if _, ok := accountSet[accountKey]; !ok {
-			return nil, fmt.Errorf("test bot fixture bot references missing account: %s", bot.Account)
-		}
-		if _, ok := characterSet[accountKey+":"+fixtureKey(bot.Name)]; !ok {
-			return nil, fmt.Errorf("test bot fixture bot references missing character: %s:%s", bot.Account, bot.Name)
-		}
-		key := botKey(bot.Account, bot.Name)
-		if _, ok := seen[key]; ok {
-			return nil, fmt.Errorf("duplicated test bot fixture bot: %s", key)
-		}
-		seen[key] = struct{}{}
-		bots = append(bots, bot)
-	}
-	return bots, nil
 }
 
 func fixtureKey(s string) string {
@@ -310,11 +286,6 @@ func fixtureKey(s string) string {
 
 func botKey(account, name string) string {
 	return fixtureKey(account) + ":" + fixtureKey(name)
-}
-
-func playerCharacterTemplate(class int) (model.Character, bool) {
-	character, ok := player.CharacterTable[class]
-	return character, ok
 }
 
 type databaseFixtureStore struct{}
