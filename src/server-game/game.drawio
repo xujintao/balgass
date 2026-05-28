@@ -1,9 +1,12 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36">
   <diagram name="Page-1" id="6jKJ9kW5HnMQktypH7YM">
-    <mxGraphModel dx="983" dy="628" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="2006" dy="901" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="iYQvRohviqxVnqvONyb6-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" value="" vertex="1">
+          <mxGeometry height="810" width="1150" x="10" y="10" as="geometry" />
+        </mxCell>
         <mxCell id="1GFjHBw0EiZksIkDQrPH-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;fontStyle=0;fillColor=none;" value="" vertex="1">
           <mxGeometry height="320" width="680" x="120" y="40" as="geometry" />
         </mxCell>
@@ -46,8 +49,8 @@
         <mxCell id="1GFjHBw0EiZksIkDQrPH-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=16;fontStyle=0" value="(*game.game) PlayerConn(...) sync&lt;div&gt;(*game.game) PlayerCloseConn(...) sync&lt;/div&gt;&lt;div&gt;(*game.game) PlayerAction(...) async&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="300" x="140" y="230" as="geometry" />
         </mxCell>
-        <mxCell id="1GFjHBw0EiZksIkDQrPH-17" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1;fontSize=16;" value="game/game" vertex="1">
-          <mxGeometry height="30" width="70" x="130" y="40" as="geometry" />
+        <mxCell id="1GFjHBw0EiZksIkDQrPH-17" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1;fontSize=16;" value="game/runtime" vertex="1">
+          <mxGeometry height="30" width="110" x="120" y="40" as="geometry" />
         </mxCell>
         <mxCell id="1GFjHBw0EiZksIkDQrPH-18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=0" value="commandRequestChan" vertex="1">
           <mxGeometry height="20" width="210" x="470" y="90" as="geometry" />
@@ -149,31 +152,13 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="Q7I8BBEHgRll0Fr49KTz-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=0;fontSize=16;" value="game/cmd" vertex="1">
-          <mxGeometry height="40" width="80" x="880" y="40" as="geometry" />
+          <mxGeometry height="40" width="80" x="840" y="120" as="geometry" />
         </mxCell>
         <mxCell id="Q7I8BBEHgRll0Fr49KTz-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=0;fontSize=16;" value="game/bot" vertex="1">
-          <mxGeometry height="40" width="80" x="880" y="120" as="geometry" />
+          <mxGeometry height="40" width="80" x="1060" y="40" as="geometry" />
         </mxCell>
         <mxCell id="Q7I8BBEHgRll0Fr49KTz-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=0;fontSize=16;" value="game/object" vertex="1">
-          <mxGeometry height="40" width="100" x="880" y="200" as="geometry" />
-        </mxCell>
-        <mxCell id="Q7I8BBEHgRll0Fr49KTz-7" edge="1" parent="1" source="1GFjHBw0EiZksIkDQrPH-26" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fontSize=16;" target="Q7I8BBEHgRll0Fr49KTz-3" value="">
-          <mxGeometry height="50" relative="1" width="50" as="geometry">
-            <mxPoint x="530" y="340" as="sourcePoint" />
-            <mxPoint x="580" y="290" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Q7I8BBEHgRll0Fr49KTz-8" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=16;" target="Q7I8BBEHgRll0Fr49KTz-4" value="">
-          <mxGeometry height="50" relative="1" width="50" as="geometry">
-            <mxPoint x="780" y="200" as="sourcePoint" />
-            <mxPoint x="580" y="290" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Q7I8BBEHgRll0Fr49KTz-9" edge="1" parent="1" source="1GFjHBw0EiZksIkDQrPH-26" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fontSize=16;" target="Q7I8BBEHgRll0Fr49KTz-5" value="">
-          <mxGeometry height="50" relative="1" width="50" as="geometry">
-            <mxPoint x="530" y="340" as="sourcePoint" />
-            <mxPoint x="580" y="290" as="targetPoint" />
-          </mxGeometry>
+          <mxGeometry height="40" width="100" x="840" y="240" as="geometry" />
         </mxCell>
         <mxCell id="Q7I8BBEHgRll0Fr49KTz-10" parent="1" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fontSize=16;" value="cloud" vertex="1">
           <mxGeometry height="80" width="120" x="80" y="580" as="geometry" />
@@ -195,6 +180,9 @@
             <mxPoint x="530" y="550" as="sourcePoint" />
             <mxPoint x="580" y="500" as="targetPoint" />
           </mxGeometry>
+        </mxCell>
+        <mxCell id="pKTyv2kLMenKT-LaSIaI-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=0;fontSize=16;" value="game/fixture" vertex="1">
+          <mxGeometry height="40" width="100" x="920" y="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
