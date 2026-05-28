@@ -12,7 +12,6 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/bot"
 	"github.com/xujintao/balgass/src/server-game/game/cmd"
-	"github.com/xujintao/balgass/src/server-game/game/fixture"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
@@ -184,13 +183,9 @@ func (g *game) Start() {
 			}
 		}
 	}()
-	// g.Command("AddBot", &model.MsgAddBot{Account: "account1", Password: "password", Name: "bot1"})
-	// g.Command("AddBot", &model.MsgAddBot{Account: "account2", Password: "password", Name: "bot2"})
-	// g.Command("AddBot", &model.MsgAddBot{Account: "account3", Password: "password", Name: "bot3"})
-	// g.Command("AddBot", &model.MsgAddBot{Account: "account4", Password: "password", Name: "bot4"})
-	// g.Command("AddBot", &model.MsgAddBot{Account: "account5", Password: "password", Name: "bot5"})
-	// g.Command("DeleteBot", &model.MsgDeleteBot{Account: "account5", Name: "bot5"})
-	fixture.Start(g)
+	if _, err := g.Command("StartFixture", &model.MsgEmpty{}); err != nil {
+		slog.Error("start fixture failed", "err", err)
+	}
 }
 
 func (g *game) Close() {

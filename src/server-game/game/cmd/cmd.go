@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/xujintao/balgass/src/server-game/game/bot"
+	"github.com/xujintao/balgass/src/server-game/game/fixture"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 )
@@ -18,14 +19,13 @@ func (*command) DeleteBot(msg *model.MsgDeleteBot) (any, error) {
 	return bot.BotManager.DeleteBot(msg)
 }
 
-// func (*command) CloseBot(msg *bot.MsgCloseBot) (any, error) {
-// 	bot.BotManager.CloseBot(msg)
-// 	return nil, nil
-// }
-
 func (*command) DeleteAllBots(msg any) (any, error) {
 	bot.BotManager.DeleteAllBots()
 	return nil, nil
+}
+
+func (*command) StartFixture(msg any) (any, error) {
+	return nil, fixture.Fixture.Start()
 }
 
 func (*command) OfflineAllObjects(msg any) (any, error) {

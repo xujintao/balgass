@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/bot"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object/player"
 	"gorm.io/gorm"
@@ -24,15 +25,7 @@ const (
 	ModeDefault string = ModeReset
 )
 
-type game interface {
-	Command(string, any) (any, error)
-}
-
 var Fixture fixture
-
-func Start(game game) {
-	Fixture.Start(game)
-}
 
 type fixture struct {
 	Enable     bool
@@ -229,10 +222,10 @@ func (f *fixture) init() {
 	}
 }
 
-func (f *fixture) Start(game game) {
+func (f *fixture) Start() error {
 	if !f.Enable {
 		slog.Info("fixture is disabled")
-		return
+		return nil
 	}
 	slog.Info("starting fixture", "mode", f.Mode)
 
@@ -270,14 +263,15 @@ func (f *fixture) Start(game game) {
 	}
 
 	// bots
-	for _, bot := range f.Bots {
-		if bot == nil {
+	for _, b := range f.Bots {
+		if b == nil {
 			continue
 		}
-		if _, err := game.Command("AddBot", bot); err != nil {
-			slog.Error("test bot fixture add bot failed", "err", err, "account", bot.Account, "character", bot.Name)
+		if _, err := bot.BotManager.AddBot(b); err != nil {
+			slog.Error("test bot fixture add bot failed", "err", err, "account", b.Account, "character", b.Name)
 		}
 	}
+	return nil
 }
 
 func fixtureKey(s string) string {
