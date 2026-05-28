@@ -1,7 +1,6 @@
 package handle
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 )
@@ -39,7 +38,7 @@ type ConfigError struct {
 }
 
 func (ce *ConfigError) Error() string {
-	return fmt.Sprintf("[description]%s [err]%v", ce.Description, ce.err)
+	return ce.err.Error()
 }
 
 const (
@@ -57,6 +56,11 @@ const (
 	DeleteBotBind
 	DeleteBotValidate
 	DeleteBotCommand
+	CommandBind
+	CommandValidate
+	CommandActionInvalid
+	CommandInInvalid
+	CommandExec
 )
 
 var configErrors = [...]*ConfigError{
@@ -74,4 +78,9 @@ var configErrors = [...]*ConfigError{
 	{DeleteBotBind, 400, "delete bot bind body failed", nil},
 	{DeleteBotValidate, 400, "delete bot validate body failed", nil},
 	{DeleteBotCommand, 500, "delete bot command failed", nil},
+	{CommandBind, 400, "command body failed", nil},
+	{CommandValidate, 400, "command validate failed", nil},
+	{CommandActionInvalid, 400, "command action is invalid", nil},
+	{CommandInInvalid, 400, "command in field is invalid", nil},
+	{CommandExec, 500, "command exec failed", nil},
 }

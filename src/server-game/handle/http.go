@@ -1,7 +1,9 @@
 package handle
 
 import (
+	"encoding/json"
 	"log/slog"
+	"reflect"
 	"strconv"
 	"text/template"
 
@@ -21,6 +23,7 @@ var HTTPHandle httpHandle
 type httpHandle struct {
 	*gin.Engine
 	validate *validator.Validate
+	commands map[string]*command
 }
 
 func (h *httpHandle) init() {
@@ -30,6 +33,10 @@ func (h *httpHandle) init() {
 	}
 	h.Engine = gin.Default()
 	h.validate = validator.New()
+	h.commands = make(map[string]*command)
+	for _, cmd := range commands {
+		h.commands[cmd.Action] = cmd
+	}
 	h.GET("/", h.handleHome)
 	h.POST("/api/accounts", h.CreateAccount, h.handleErr)
 	h.GET("/api/accounts", h.GetAccountList, h.handleErr)
@@ -37,23 +44,23 @@ func (h *httpHandle) init() {
 	h.POST("/api/bots", h.AddBot, h.handleErr)
 	h.DELETE("/api/bots", h.DeleteBot, h.handleErr)
 	h.GET("/api/game", h.handleGame)
+	h.POST("/api/command", h.handleCommand, h.handleErr)
 }
 
 func (h *httpHandle) setErr(c *gin.Context, service int, err error) {
 	defer c.Next()
 	err = MakeError(service, err)
 	c.Set("err", err)
+	c.Set("path", c.FullPath())
 }
 
 func (h *httpHandle) handleErr(c *gin.Context) {
 	defer c.Next()
 	err, ok := c.Get("err")
 	if ok {
-		ce, ok := err.(*ConfigError)
-		if !ok {
-			ce = MakeError(Unknown, nil)
-		}
-		slog.Info(c.HandlerName(), "err", ce)
+		ce := err.(*ConfigError)
+		path, _ := c.Get("path")
+		slog.Error("http", "path", path.(string), "description", ce.Description, "err", ce.Error())
 		c.JSON(ce.Code, gin.H{
 			"message": ce.Description,
 		})
@@ -271,4 +278,57 @@ func (h *httpHandle) DeleteBot(c *gin.Context) {
 
 func (h *httpHandle) handleGame(c *gin.Context) {
 	handleGame(c.Writer, c.Request)
+}
+
+func (h *httpHandle) handleCommand(c *gin.Context) {
+	type commandRequest struct {
+		Action string          `json:"action" validate:"required"`
+		In     json.RawMessage `json:"in"`
+	}
+	req := commandRequest{}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		h.setErr(c, CommandBind, err)
+		return
+	}
+	if err := h.validate.Struct(&req); err != nil {
+		h.setErr(c, CommandValidate, err)
+		return
+	}
+	var cmd *command
+	var ok bool
+	if cmd, ok = h.commands[req.Action]; !ok {
+		h.setErr(c, CommandActionInvalid, nil)
+		return
+	}
+	in := reflect.New(reflect.TypeOf(cmd.In).Elem()).Interface()
+	data := req.In
+	if len(data) == 0 {
+		data = []byte("{}")
+	}
+	if err := json.Unmarshal(data, in); err != nil {
+		h.setErr(c, CommandInInvalid, err)
+		return
+	}
+	out, err := game.Game.Command(req.Action, in)
+	if err != nil {
+		h.setErr(c, CommandExec, err)
+		return
+	}
+	c.JSON(200, gin.H{
+		"action": req.Action,
+		"out":    out,
+	})
+}
+
+type command struct {
+	Action string `json:"action"`
+	In     any    `json:"in"`
+}
+
+var commands = [...]*command{
+	{"CreateAccount", (*model.Account)(nil)},
+	{"GetAccountList", (*model.Account)(nil)},
+	{"DeleteAccount", (*model.Account)(nil)},
+	{"AddBot", (*model.MsgAddBot)(nil)},
+	{"DeleteBot", (*model.MsgDeleteBot)(nil)},
 }
