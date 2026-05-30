@@ -2,9 +2,12 @@ package player
 
 import (
 	"context"
+	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"log/slog"
 	"math"
+	"os"
 	"sort"
 	"time"
 
@@ -22,17 +25,89 @@ import (
 )
 
 func init() {
-	var characterList []*model.Character
-	conf.JSON(conf.PathCommon, "players/character.json", &characterList)
-	CharacterTable = make(characterTable)
-	for _, c := range characterList {
-		CharacterTable[c.Class] = *c
-	}
+	CharacterTable.init()
 }
 
 var CharacterTable characterTable
 
 type characterTable map[int]model.Character
+
+func (table *characterTable) init() {
+	type ClassTable struct {
+		XMLName xml.Name `xml:"ClassTable"`
+		Class   []struct {
+			Annotation string  `xml:"Annotation,attr"`
+			Class      int     `xml:"Class,attr"`
+			Level      int     `xml:"Level,attr"`
+			MapNumber  int     `xml:"MapNumber,attr"`
+			Strength   int     `xml:"Strength,attr"`
+			Dexterity  int     `xml:"Dexterity,attr"`
+			Vitality   int     `xml:"Vitality,attr"`
+			Energy     int     `xml:"Energy,attr"`
+			Leadership int     `xml:"Leadership,attr"`
+			HP         int     `xml:"HP,attr"`
+			MP         int     `xml:"MP,attr"`
+			LevelHP    float32 `xml:"LevelHP,attr"`
+			LevelMP    float32 `xml:"LevelMP,attr"`
+			VitalityHP float32 `xml:"VitalityHP,attr"`
+			EnergyMP   float32 `xml:"EnergyMP,attr"`
+			Skills     struct {
+				Skill []struct {
+					Index int `xml:"Index,attr" json:"index"`
+				} `xml:"Skill"`
+			} `xml:"Skills"`
+			Inventories struct {
+				Inventory []struct {
+					Position   int `xml:"Position,attr" json:"position"`
+					Section    int `xml:"Section,attr" json:"section"`
+					Index      int `xml:"Index,attr" json:"index"`
+					Durability int `xml:"Durability,attr" json:"durability"`
+				} `xml:"Inventory"`
+			} `xml:"Inventories"`
+		} `xml:"Class"`
+	}
+	var ct ClassTable
+	conf.XML(conf.ServerEnv.PathCommon, "class/class.xml", &ct)
+	t := make(characterTable)
+	for _, v := range ct.Class {
+		c := model.Character{
+			Class:      v.Class,
+			Level:      v.Level,
+			MapNumber:  v.MapNumber,
+			Strength:   v.Strength,
+			Dexterity:  v.Dexterity,
+			Vitality:   v.Vitality,
+			Energy:     v.Energy,
+			Leadership: v.Leadership,
+			HP:         v.HP,
+			MP:         v.MP,
+			LevelHP:    v.LevelHP,
+			LevelMP:    v.LevelMP,
+			VitalityHP: v.VitalityHP,
+			EnergyMP:   v.EnergyMP,
+		}
+		skills, err := json.Marshal(v.Skills.Skill)
+		if err != nil {
+			slog.Error("marshal character class skills", "class", v.Class, "err", err)
+			os.Exit(1)
+		}
+		if err := c.Skills.UnmarshalJSON(skills); err != nil {
+			slog.Error("unmarshal character class skills", "class", v.Class, "err", err)
+			os.Exit(1)
+		}
+		inventory, err := json.Marshal(v.Inventories.Inventory)
+		if err != nil {
+			slog.Error("marshal character class inventory", "class", v.Class, "err", err)
+			os.Exit(1)
+		}
+		if err := c.Inventory.UnmarshalJSON(inventory); err != nil {
+			slog.Error("unmarshal character class inventory", "class", v.Class, "err", err)
+			os.Exit(1)
+		}
+		t[c.Class] = c
+	}
+	*table = t
+}
 
 func NewPlayer(conn object.Conn, actioner object.Actioner) (int, error) {
 	// register the new player to object manager

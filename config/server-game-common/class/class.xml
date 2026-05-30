@@ -1,0 +1,76 @@
+<ClassTable>
+  <Class Annotation="wizard" Class="0" Level="1" MapNumber="0" Strength="18" Dexterity="18" Vitality="15" Energy="30" Leadership="0" HP="60" MP="60" LevelHP="1" LevelMP="2" VitalityHP="1" EnergyMP="2">
+    <Skills>
+      <Skill Index="17"/>
+      <Skill Index="45"/>
+    </Skills>
+    <Inventories>
+      <Inventory Position="0" Section="5" Index="0" Durability="20"/>
+    </Inventories>
+  </Class>
+  <Class Annotation="knight" Class="1" Level="1" MapNumber="0" Strength="28" Dexterity="20" Vitality="25" Energy="10" Leadership="0" HP="110" MP="20" LevelHP="2" LevelMP="0.5" VitalityHP="3" EnergyMP="1">
+    <Skills>
+      <Skill Index="44"/>
+    </Skills>
+    <Inventories>
+      <Inventory Position="0" Section="1" Index="0" Durability="18"/>
+      <Inventory Position="1" Section="6" Index="0" Durability="22"/>
+    </Inventories>
+  </Class>
+  <Class Annotation="elf" Class="2" Level="1" MapNumber="3" Strength="22" Dexterity="25" Vitality="20" Energy="15" Leadership="0" HP="80" MP="30" LevelHP="1" LevelMP="1.5" VitalityHP="2" EnergyMP="1.5">
+    <Skills>
+      <Skill Index="46"/>
+    </Skills>
+    <Inventories>
+      <Inventory Position="0" Section="4" Index="15" Durability="255"/>
+      <Inventory Position="1" Section="4" Index="0" Durability="22"/>
+    </Inventories>
+  </Class>
+  <Class Annotation="magumsa" Class="3" Level="1" MapNumber="0" Strength="26" Dexterity="26" Vitality="26" Energy="26" Leadership="0" HP="110" MP="60" LevelHP="1" LevelMP="1" VitalityHP="2" EnergyMP="2">
+    <Skills>
+      <Skill Index="57"/>
+      <Skill Index="73"/>
+    </Skills>
+    <Inventories>
+      <Inventory Position="0" Section="0" Index="1" Durability="22"/>
+      <Inventory Position="1" Section="6" Index="0" Durability="22"/>
+    </Inventories>
+  </Class>
+  <Class Annotation="darkload" Class="4" Level="1" MapNumber="0" Strength="26" Dexterity="20" Vitality="20" Energy="15" Leadership="24" HP="25" MP="90" LevelHP="1.5" LevelMP="1" VitalityHP="2" EnergyMP="1.5">
+    <Skills>
+      <Skill Index="60"/>
+      <Skill Index="74"/>
+    </Skills>
+    <Inventories>
+      <Inventory Position="0" Section="0" Index="1" Durability="22"/>
+      <Inventory Position="1" Section="6" Index="0" Durability="22"/>
+    </Inventories>
+  </Class>
+  <Class Annotation="summoner" Class="5" Level="1" MapNumber="51" Strength="21" Dexterity="21" Vitality="18" Energy="23" Leadership="0" HP="70" MP="40" LevelHP="1" LevelMP="1.5" VitalityHP="2" EnergyMP="1.5">
+    <Skills>
+      <Skill Index="45"/>
+    </Skills>
+    <Inventories>
+      <Inventory Position="0" Section="1" Index="0" Durability="18"/>
+      <Inventory Position="1" Section="6" Index="0" Durability="22"/>
+    </Inventories>
+  </Class>
+  <Class Annotation="ragefighter" Class="6" Level="1" MapNumber="0" Strength="32" Dexterity="27" Vitality="25" Energy="20" Leadership="0" HP="100" MP="40" LevelHP="1.3" LevelMP="1" VitalityHP="2" EnergyMP="1.3">
+    <Skills>
+      <Skill Index="269"/>
+    </Skills>
+    <Inventories>
+      <Inventory Position="0" Section="1" Index="0" Durability="18"/>
+      <Inventory Position="1" Section="6" Index="0" Durability="22"/>
+    </Inventories>
+  </Class>
+  <Class Annotation="growlancer" Class="7" Level="1" MapNumber="0" Strength="30" Dexterity="30" Vitality="25" Energy="24" Leadership="0" HP="110" MP="40" LevelHP="2" LevelMP="1" VitalityHP="2" EnergyMP="1">
+    <Skills>
+      <Skill Index="275"/>
+    </Skills>
+    <Inventories>
+      <Inventory Position="0" Section="1" Index="0" Durability="18"/>
+      <Inventory Position="1" Section="6" Index="0" Durability="22"/>
+    </Inventories>
+  </Class>
+</ClassTable>
