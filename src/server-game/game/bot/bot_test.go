@@ -37,6 +37,17 @@ func newTestGame() *testGame {
 	}
 }
 
+func newTestBotConfig(game game) botConfig {
+	return botConfig{
+		key:       "account1:char1",
+		account:   "account1",
+		password:  "password",
+		name:      "char1",
+		game:      game,
+		resources: &resources{},
+	}
+}
+
 func (g *testGame) PlayerConn(conn object.Conn) (int, error) {
 	if g.playerConnErr != nil {
 		return -1, g.playerConnErr
@@ -101,12 +112,7 @@ func TestBotManagerDeleteMissing(t *testing.T) {
 
 func TestBotReachesPlaying(t *testing.T) {
 	g := newTestGame()
-	b, err := newbot(botConfig{
-		key:      "account1:char1",
-		account:  "account1",
-		password: "password",
-		name:     "char1",
-	}, g)
+	b, err := newbot(newTestBotConfig(g))
 	if err != nil {
 		t.Fatalf("newbot() error = %v", err)
 	}
@@ -148,12 +154,7 @@ func TestBotReachesPlaying(t *testing.T) {
 
 func TestBotCloseCallsPlayerCloseConn(t *testing.T) {
 	g := newTestGame()
-	b, err := newbot(botConfig{
-		key:      "account1:char1",
-		account:  "account1",
-		password: "password",
-		name:     "char1",
-	}, g)
+	b, err := newbot(newTestBotConfig(g))
 	if err != nil {
 		t.Fatalf("newbot() error = %v", err)
 	}
@@ -174,12 +175,7 @@ func TestBotCloseCallsPlayerCloseConn(t *testing.T) {
 
 func TestBotConnCloseCommandsDeleteBot(t *testing.T) {
 	g := newTestGame()
-	b, err := newbot(botConfig{
-		key:      "account1:char1",
-		account:  "account1",
-		password: "password",
-		name:     "char1",
-	}, g)
+	b, err := newbot(newTestBotConfig(g))
 	if err != nil {
 		t.Fatalf("newbot() error = %v", err)
 	}
@@ -197,12 +193,7 @@ func TestBotConnCloseCommandsDeleteBot(t *testing.T) {
 
 func TestBotLoginFailureCommandsDeleteBot(t *testing.T) {
 	g := newTestGame()
-	_, err := newbot(botConfig{
-		key:      "account1:char1",
-		account:  "account1",
-		password: "password",
-		name:     "char1",
-	}, g)
+	_, err := newbot(newTestBotConfig(g))
 	if err != nil {
 		t.Fatalf("newbot() error = %v", err)
 	}
@@ -237,6 +228,29 @@ func TestBotManagerCleansUpAfterConnectFailure(t *testing.T) {
 	}
 	if len(m.bots) != 0 {
 		t.Fatalf("bot count = %d, want 0", len(m.bots))
+	}
+}
+
+func TestBotIgnoresQueuedReplyAfterClose(t *testing.T) {
+	g := newTestGame()
+	b, err := newbot(newTestBotConfig(g))
+	if err != nil {
+		t.Fatalf("newbot() error = %v", err)
+	}
+	conn := waitConn(t, g)
+	waitBotID(t, b, 1)
+
+	b.close()
+	_ = waitClose(t, g)
+	b.handle(&model.MsgLoginReply{Result: 1})
+
+	select {
+	case action := <-g.actions:
+		t.Fatalf("unexpected action after close = %#v", action)
+	case <-time.After(50 * time.Millisecond):
+	}
+	if err := conn.Close(); err != nil {
+		t.Fatalf("conn.Close() error = %v", err)
 	}
 }
 

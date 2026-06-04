@@ -7,7 +7,9 @@ import (
 	"log/slog"
 	"strings"
 	"sync/atomic"
+	"time"
 
+	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 )
@@ -23,11 +25,17 @@ type botManager struct {
 	bots         map[string]*bot
 	maxBotNumber int
 	game         game
+	resources    *resources
 }
 
 func (m *botManager) init() {
 	m.bots = make(map[string]*bot)
 	m.maxBotNumber = 1000
+	resources, err := getDefaultResources()
+	if err != nil {
+		panic(fmt.Errorf("load bot resources: %w", err))
+	}
+	m.resources = resources
 }
 
 func (m *botManager) Register(game game) {
@@ -53,11 +61,13 @@ func (m *botManager) AddBot(msg *model.MsgAddBot) (*model.MsgAddBotReply, error)
 		return nil, fmt.Errorf("bot already exists: %s", key)
 	}
 	b, err := newbot(botConfig{
-		key:      key,
-		account:  account,
-		password: password,
-		name:     name,
-	}, m.game)
+		key:       key,
+		account:   account,
+		password:  password,
+		name:      name,
+		game:      m.game,
+		resources: m.resources,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +109,8 @@ func botKey(account, name string) string {
 }
 
 // bot
-func newbot(conf botConfig, game game) (*bot, error) {
-	if game == nil {
+func newbot(conf botConfig) (*bot, error) {
+	if conf.game == nil {
 		return nil, errors.New("game is nil")
 	}
 	b := &bot{
@@ -108,8 +118,10 @@ func newbot(conf botConfig, game game) (*bot, error) {
 		account:  conf.account,
 		password: conf.password,
 		name:     conf.name,
-		game:     game,
+		game:     conf.game,
 		msgChan:  make(chan any, 100),
+		world:    newWorld(conf.resources),
+		policy:   newRulePolicy(conf.resources),
 	}
 	b.id.Store(-1)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -119,10 +131,14 @@ func newbot(conf botConfig, game game) (*bot, error) {
 			close(b.msgChan)
 		}()
 		b.connect()
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
 		for {
 			select {
 			case msg := <-b.msgChan:
 				b.handle(msg)
+			case now := <-ticker.C:
+				b.tick(now)
 			case <-ctx.Done():
 				return
 			}
@@ -132,10 +148,12 @@ func newbot(conf botConfig, game game) (*bot, error) {
 }
 
 type botConfig struct {
-	key      string
-	account  string
-	password string
-	name     string
+	key       string
+	account   string
+	password  string
+	name      string
+	game      game
+	resources *resources
 }
 
 type game interface {
@@ -146,23 +164,30 @@ type game interface {
 }
 
 type bot struct {
-	key      string
-	account  string
-	password string
-	name     string
-	game     game
-	cancel   context.CancelFunc
-	id       atomic.Int64
-	msgChan  chan any
+	key          string
+	account      string
+	password     string
+	name         string
+	game         game
+	cancel       context.CancelFunc
+	id           atomic.Int64
+	msgChan      chan any
+	world        *world
+	policy       Policy
+	nextDecision time.Time
 }
 
 func (b *bot) handle(msg any) {
+	if b.id.Load() < 0 {
+		return
+	}
 	switch msg := msg.(type) {
 	case *model.MsgConnectReply:
 		if msg.Result != 1 {
 			b.fail(fmt.Errorf("connect failed: result %d", msg.Result))
 			return
 		}
+		b.world.setSelfIndex(msg.ID)
 		b.login()
 	case *model.MsgLoginReply:
 		if msg.Result != 1 {
@@ -171,7 +196,11 @@ func (b *bot) handle(msg any) {
 		}
 		b.loadCharacter()
 	case *model.MsgLoadCharacterReply:
+		b.world.setCharacter(msg)
 		slog.Info("bot playing", "key", b.key, "player", b.id.Load())
+		b.nextDecision = time.Now().Add(b.decisionDelay())
+	default:
+		b.world.handle(msg)
 	}
 }
 
@@ -232,4 +261,62 @@ func (b *bot) loadCharacter() {
 func (b *bot) fail(err error) {
 	slog.Error("bot failed", "err", err, "key", b.key)
 	b.game.Command("DeleteBot", &model.MsgDeleteBot{Account: b.account, Name: b.name})
+}
+
+func (b *bot) tick(now time.Time) {
+	b.world.advance(now)
+	if !b.world.playing || now.Before(b.nextDecision) {
+		return
+	}
+	b.nextDecision = now.Add(b.decisionDelay())
+	b.execute(b.policy.Decide(b.world.snapshot(now)), now)
+}
+
+func (b *bot) decisionDelay() time.Duration {
+	return 500 * time.Millisecond
+}
+
+func (b *bot) execute(action Action, now time.Time) {
+	id := int(b.id.Load())
+	if id < 0 {
+		return
+	}
+	switch action.Kind {
+	case ActionMove:
+		if len(action.Path) == 0 || b.world.moving() {
+			return
+		}
+		path := make(maps.Path, len(action.Path))
+		dirs := make([]int, len(action.Path))
+		from := b.world.self.position()
+		for i, pos := range action.Path {
+			path[i] = &maps.Pot{X: pos.X, Y: pos.Y}
+			dirs[i] = calcDir(from, pos)
+			from = pos
+		}
+		b.world.startMove(action.Path, now)
+		b.game.PlayerAction(id, "Move", &model.MsgMove{
+			X:    b.world.self.X,
+			Y:    b.world.self.Y,
+			Dir:  b.world.self.Dir,
+			Dirs: dirs,
+			Path: path,
+		})
+	case ActionAttack:
+		target, ok := b.world.objects[action.Target]
+		if !ok || !target.Alive || !target.Attackable {
+			return
+		}
+		dir := calcDir(b.world.self.position(), target.position())
+		b.world.self.Dir = dir
+		b.game.PlayerAction(id, "Attack", &model.MsgAttack{
+			Target: action.Target,
+			Action: 120,
+			Dir:    dir,
+		})
+	case ActionChat:
+		b.game.PlayerAction(id, "Chat", &model.MsgChat{Name: b.name, Msg: action.Text})
+	case ActionWhisper:
+		b.game.PlayerAction(id, "Whisper", &model.MsgWhisper{MsgChat: model.MsgChat{Name: action.Name, Msg: action.Text}})
+	}
 }
