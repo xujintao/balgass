@@ -2,7 +2,6 @@ package bot
 
 import (
 	"sort"
-	"time"
 )
 
 type ActionKind int
@@ -28,8 +27,7 @@ type Policy interface {
 }
 
 type rulePolicy struct {
-	resources  *resources
-	nextAttack time.Time
+	resources *resources
 }
 
 func newRulePolicy(resources *resources) Policy {
@@ -45,10 +43,6 @@ func (p *rulePolicy) Decide(snapshot Snapshot) Action {
 	targets := visibleTargets(snapshot)
 	for _, target := range targets {
 		if pathDistance(snapshot.Self.position(), target.position()) <= 1 {
-			if snapshot.Now.Before(p.nextAttack) {
-				return Action{}
-			}
-			p.nextAttack = snapshot.Now.Add(p.attackDelay())
 			return Action{Kind: ActionAttack, Target: target.Index}
 		}
 		if path := p.pathToActor(snapshot, target); len(path) > 0 {
@@ -146,10 +140,6 @@ func (p *rulePolicy) pathToSpawnArea(snapshot Snapshot) []Position {
 		}
 	}
 	return nil
-}
-
-func (p *rulePolicy) attackDelay() time.Duration {
-	return 800 * time.Millisecond
 }
 
 func limitPath(path []Position) []Position {

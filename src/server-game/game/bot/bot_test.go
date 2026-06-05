@@ -330,6 +330,15 @@ func assertNoCommand(t *testing.T, g *testGame) {
 	}
 }
 
+func assertNoAction(t *testing.T, g *testGame) {
+	t.Helper()
+	select {
+	case action := <-g.actions:
+		t.Fatalf("unexpected PlayerAction = %#v", action)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
 func assertNoClose(t *testing.T, g *testGame) {
 	t.Helper()
 	select {

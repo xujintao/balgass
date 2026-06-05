@@ -174,7 +174,24 @@ type bot struct {
 	msgChan      chan any
 	world        *world
 	policy       Policy
+	action       actionExecution
 	nextDecision time.Time
+}
+
+type actionExecutionKind int
+
+const (
+	actionExecutionIdle actionExecutionKind = iota
+	actionExecutionMoving
+	actionExecutionAttacking
+)
+
+const defaultAttackInterval = 800 * time.Millisecond
+
+type actionExecution struct {
+	kind       actionExecutionKind
+	target     int
+	nextAttack time.Time
 }
 
 func (b *bot) handle(msg any) {
@@ -264,8 +281,14 @@ func (b *bot) fail(err error) {
 }
 
 func (b *bot) tick(now time.Time) {
-	b.world.advance(now)
-	if !b.world.playing || now.Before(b.nextDecision) {
+	if !b.world.playing {
+		b.action = actionExecution{}
+		return
+	}
+	if b.advanceAction(now) {
+		return
+	}
+	if now.Before(b.nextDecision) {
 		return
 	}
 	b.nextDecision = now.Add(b.decisionDelay())
@@ -274,6 +297,38 @@ func (b *bot) tick(now time.Time) {
 
 func (b *bot) decisionDelay() time.Duration {
 	return 500 * time.Millisecond
+}
+
+func (b *bot) advanceAction(now time.Time) bool {
+	switch b.action.kind {
+	case actionExecutionMoving:
+		b.world.advance(now)
+		if !b.world.self.Alive || !b.world.moving() {
+			b.action = actionExecution{}
+		}
+		return true
+	case actionExecutionAttacking:
+		target, ok := b.world.objects[b.action.target]
+		if !b.world.self.Alive ||
+			!ok ||
+			!target.Alive ||
+			!target.Attackable ||
+			pathDistance(b.world.self.position(), target.position()) > 1 {
+			b.action = actionExecution{}
+			return true
+		}
+		if now.Before(b.action.nextAttack) {
+			return true
+		}
+		if b.attack(target) {
+			b.action.nextAttack = now.Add(defaultAttackInterval)
+		} else {
+			b.action = actionExecution{}
+		}
+		return true
+	default:
+		return false
+	}
 }
 
 func (b *bot) execute(action Action, now time.Time) {
@@ -302,21 +357,40 @@ func (b *bot) execute(action Action, now time.Time) {
 			Dirs: dirs,
 			Path: path,
 		})
+		b.action = actionExecution{kind: actionExecutionMoving}
 	case ActionAttack:
 		target, ok := b.world.objects[action.Target]
-		if !ok || !target.Alive || !target.Attackable {
+		if !ok ||
+			!target.Alive ||
+			!target.Attackable ||
+			pathDistance(b.world.self.position(), target.position()) > 1 {
 			return
 		}
-		dir := calcDir(b.world.self.position(), target.position())
-		b.world.self.Dir = dir
-		b.game.PlayerAction(id, "Attack", &model.MsgAttack{
-			Target: action.Target,
-			Action: 120,
-			Dir:    dir,
-		})
+		if b.attack(target) {
+			b.action = actionExecution{
+				kind:       actionExecutionAttacking,
+				target:     action.Target,
+				nextAttack: now.Add(defaultAttackInterval),
+			}
+		}
 	case ActionChat:
 		b.game.PlayerAction(id, "Chat", &model.MsgChat{Name: b.name, Msg: action.Text})
 	case ActionWhisper:
 		b.game.PlayerAction(id, "Whisper", &model.MsgWhisper{MsgChat: model.MsgChat{Name: action.Name, Msg: action.Text}})
 	}
+}
+
+func (b *bot) attack(target Actor) bool {
+	id := int(b.id.Load())
+	if id < 0 {
+		return false
+	}
+	dir := calcDir(b.world.self.position(), target.position())
+	b.world.self.Dir = dir
+	b.game.PlayerAction(id, "Attack", &model.MsgAttack{
+		Target: target.Index,
+		Action: 120,
+		Dir:    dir,
+	})
+	return true
 }
