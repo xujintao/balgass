@@ -121,7 +121,7 @@ func newbot(conf botConfig) (*bot, error) {
 		game:     conf.game,
 		msgChan:  make(chan any, 100),
 		world:    newWorld(conf.resources),
-		policy:   newRulePolicy(conf.resources),
+		policy:   newRulePolicy(conf.resources, conf.key),
 	}
 	b.id.Store(-1)
 	ctx, cancel := context.WithCancel(context.Background())
