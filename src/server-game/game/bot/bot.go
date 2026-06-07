@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
+	"reflect"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -25,12 +27,23 @@ type botManager struct {
 	bots         map[string]*bot
 	maxBotNumber int
 	game         game
+	apis         map[any]*api
 	resources    *resources
 }
 
 func (m *botManager) init() {
 	m.bots = make(map[string]*bot)
 	m.maxBotNumber = 1000
+	m.apis = make(map[any]*api)
+	for _, v := range apis {
+		t := reflect.TypeOf(v.msg)
+		if t.Kind() != reflect.Ptr {
+			slog.Error("api msg field must be a pointer",
+				"handle", v.handle)
+			os.Exit(1)
+		}
+		m.apis[t] = v
+	}
 	resources, err := getDefaultResources()
 	if err != nil {
 		panic(fmt.Errorf("load bot resources: %w", err))
@@ -66,6 +79,7 @@ func (m *botManager) AddBot(msg *model.MsgAddBot) (*model.MsgAddBotReply, error)
 		password:  password,
 		name:      name,
 		game:      m.game,
+		apis:      m.apis,
 		resources: m.resources,
 	})
 	if err != nil {
@@ -119,6 +133,7 @@ func newbot(conf botConfig) (*bot, error) {
 		password: conf.password,
 		name:     conf.name,
 		game:     conf.game,
+		apis:     conf.apis,
 		msgChan:  make(chan any, 100),
 		world:    newWorld(conf.resources),
 		policy:   newRulePolicy(conf.resources, conf.key),
@@ -153,6 +168,7 @@ type botConfig struct {
 	password  string
 	name      string
 	game      game
+	apis      map[any]*api
 	resources *resources
 }
 
@@ -169,6 +185,7 @@ type bot struct {
 	password     string
 	name         string
 	game         game
+	apis         map[any]*api
 	cancel       context.CancelFunc
 	id           atomic.Int64
 	msgChan      chan any
@@ -195,30 +212,24 @@ type actionExecution struct {
 }
 
 func (b *bot) handle(msg any) {
-	if b.id.Load() < 0 {
+	if b.id.Load() < 0 || msg == nil {
 		return
 	}
-	switch msg := msg.(type) {
-	case *model.MsgConnectReply:
-		if msg.Result != 1 {
-			b.fail(fmt.Errorf("connect failed: result %d", msg.Result))
-			return
-		}
-		b.world.setSelfIndex(msg.ID)
-		b.login()
-	case *model.MsgLoginReply:
-		if msg.Result != 1 {
-			b.fail(fmt.Errorf("login failed: result %d", msg.Result))
-			return
-		}
-		b.loadCharacter()
-	case *model.MsgLoadCharacterReply:
-		b.world.setCharacter(msg)
-		slog.Info("bot playing", "key", b.key, "player", b.id.Load())
-		b.nextDecision = time.Now().Add(b.decisionDelay())
-	default:
-		b.world.handle(msg)
+	t := reflect.TypeOf(msg)
+	api, ok := b.apis[t]
+	if !ok {
+		// slog.Error("bot received unregistered msg", "key", b.key, "msg", t.String())
+		return
 	}
+	handler := reflect.ValueOf(b).MethodByName(api.handle)
+	if !handler.IsValid() {
+		handler = reflect.ValueOf(b.world).MethodByName(api.handle)
+	}
+	if !handler.IsValid() {
+		slog.Error("bot has no method to handle msg", "key", b.key, "handle", api.handle)
+		return
+	}
+	handler.Call([]reflect.Value{reflect.ValueOf(msg)})
 }
 
 func (b *bot) close() {
@@ -264,20 +275,56 @@ func (b *bot) connect() {
 	b.id.Store(int64(id))
 }
 
-func (b *bot) login() {
+func (b *bot) fail(err error) {
+	slog.Error("bot failed", "err", err, "key", b.key)
+	b.game.Command("DeleteBot", &model.MsgDeleteBot{Account: b.account, Name: b.name})
+}
+
+func (b *bot) HandleConnectReply(msg *model.MsgConnectReply) {
+	if msg.Result != 1 {
+		b.fail(fmt.Errorf("connect failed: result %d", msg.Result))
+		return
+	}
+	b.world.setSelfIndex(msg.ID)
 	b.game.PlayerAction(int(b.id.Load()), "Login", &model.MsgLogin{
 		Account:  b.account,
 		Password: b.password,
 	})
 }
 
-func (b *bot) loadCharacter() {
+func (b *bot) HandleLoginReply(msg *model.MsgLoginReply) {
+	if msg.Result != 1 {
+		b.fail(fmt.Errorf("login failed: result %d", msg.Result))
+		return
+	}
 	b.game.PlayerAction(int(b.id.Load()), "LoadCharacter", &model.MsgLoadCharacter{Name: b.name})
 }
 
-func (b *bot) fail(err error) {
-	slog.Error("bot failed", "err", err, "key", b.key)
-	b.game.Command("DeleteBot", &model.MsgDeleteBot{Account: b.account, Name: b.name})
+func (b *bot) HandleLoadCharacterReply(msg *model.MsgLoadCharacterReply) {
+	b.world.setCharacter(msg)
+	slog.Info("bot playing", "key", b.key, "player", b.id.Load())
+	b.nextDecision = time.Now().Add(b.decisionDelay())
+}
+
+type api struct {
+	msg    any
+	handle string
+}
+
+var apis = [...]*api{
+	{(*model.MsgConnectReply)(nil), "HandleConnectReply"},
+	{(*model.MsgLoginReply)(nil), "HandleLoginReply"},
+	{(*model.MsgLoadCharacterReply)(nil), "HandleLoadCharacterReply"},
+	{(*model.MsgCreateViewportPlayerReply)(nil), "HandleCreateViewportPlayerReply"},
+	{(*model.MsgCreateViewportMonsterReply)(nil), "HandleCreateViewportMonsterReply"},
+	{(*model.MsgDestroyViewportObjectReply)(nil), "HandleDestroyViewportObjectReply"},
+	{(*model.MsgMoveReply)(nil), "HandleMoveReply"},
+	{(*model.MsgSetPositionReply)(nil), "HandleSetPositionReply"},
+	{(*model.MsgAttackHPReply)(nil), "HandleAttackHPReply"},
+	{(*model.MsgAttackDieReply)(nil), "HandleAttackDieReply"},
+	{(*model.MsgTeleportReply)(nil), "HandleTeleportReply"},
+	{(*model.MsgReloadCharacterReply)(nil), "HandleReloadCharacterReply"},
+	{(*model.MsgHPReply)(nil), "HandleHPReply"},
 }
 
 func (b *bot) tick(now time.Time) {

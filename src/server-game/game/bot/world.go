@@ -72,74 +72,141 @@ func newWorld(resources *resources) *world {
 	}
 }
 
-func (w *world) handle(msg any) {
-	switch msg := msg.(type) {
-	case *model.MsgCreateViewportPlayerReply:
-		for _, player := range msg.Players {
-			actor := Actor{
-				Index:     player.Index,
-				Class:     player.Class,
-				MapNumber: w.self.MapNumber,
-				X:         player.X,
-				Y:         player.Y,
-				TX:        player.TX,
-				TY:        player.TY,
-				Dir:       player.Dir,
-				HP:        player.HP,
-				MaxHP:     player.MaxHP,
-				Alive:     player.HP > 0,
-			}
-			if actor.Index == w.self.Index {
-				w.mergeSelf(actor)
-				continue
-			}
-			w.players[actor.Index] = actor
+func (w *world) HandleCreateViewportPlayerReply(msg *model.MsgCreateViewportPlayerReply) {
+	for _, player := range msg.Players {
+		actor := Actor{
+			Index:     player.Index,
+			Class:     player.Class,
+			MapNumber: w.self.MapNumber,
+			X:         player.X,
+			Y:         player.Y,
+			TX:        player.TX,
+			TY:        player.TY,
+			Dir:       player.Dir,
+			HP:        player.HP,
+			MaxHP:     player.MaxHP,
+			Alive:     player.HP > 0,
 		}
-	case *model.MsgCreateViewportMonsterReply:
-		for _, monster := range msg.Monsters {
-			w.objects[monster.Index] = Actor{
-				Index:      monster.Index,
-				Class:      monster.Class,
-				MapNumber:  w.self.MapNumber,
-				X:          monster.X,
-				Y:          monster.Y,
-				TX:         monster.TX,
-				TY:         monster.TY,
-				Dir:        monster.Dir,
-				HP:         monster.HP,
-				MaxHP:      monster.MaxHP,
-				Alive:      monster.HP > 0,
-				Attackable: w.resources.attackable(monster.Class),
-			}
+		if actor.Index == w.self.Index {
+			w.mergeSelf(actor)
+			continue
 		}
-	case *model.MsgDestroyViewportObjectReply:
-		for _, actor := range msg.Objects {
-			delete(w.players, actor.Index)
-			delete(w.objects, actor.Index)
+		w.players[actor.Index] = actor
+	}
+}
+
+func (w *world) HandleCreateViewportMonsterReply(msg *model.MsgCreateViewportMonsterReply) {
+	for _, monster := range msg.Monsters {
+		w.objects[monster.Index] = Actor{
+			Index:      monster.Index,
+			Class:      monster.Class,
+			MapNumber:  w.self.MapNumber,
+			X:          monster.X,
+			Y:          monster.Y,
+			TX:         monster.TX,
+			TY:         monster.TY,
+			Dir:        monster.Dir,
+			HP:         monster.HP,
+			MaxHP:      monster.MaxHP,
+			Alive:      monster.HP > 0,
+			Attackable: w.resources.attackable(monster.Class),
 		}
-	case *model.MsgMoveReply:
-		w.handleMoveReply(msg)
-	case *model.MsgSetPositionReply:
-		w.handleSetPositionReply(msg)
-	case *model.MsgAttackHPReply:
-		w.handleAttackHPReply(msg)
-	case *model.MsgAttackDieReply:
-		w.markDead(msg.Target)
-	case *model.MsgTeleportReply:
-		w.clearSight()
-		w.setSelfPosition(msg.MapNumber, msg.X, msg.Y, msg.Dir)
-	case *model.MsgReloadCharacterReply:
-		w.clearSight()
-		w.setSelfPosition(msg.MapNumber, msg.X, msg.Y, msg.Dir)
+	}
+}
+
+func (w *world) HandleDestroyViewportObjectReply(msg *model.MsgDestroyViewportObjectReply) {
+	for _, actor := range msg.Objects {
+		delete(w.players, actor.Index)
+		delete(w.objects, actor.Index)
+	}
+}
+
+func (w *world) HandleMoveReply(msg *model.MsgMoveReply) {
+	if msg.Number == w.self.Index {
+		w.self.TX = msg.X
+		w.self.TY = msg.Y
+		w.self.Dir = msg.Dir >> 4
+		return
+	}
+	actor, ok := w.players[msg.Number]
+	if ok {
+		actor.X, actor.Y = msg.X, msg.Y
+		actor.TX, actor.TY = msg.X, msg.Y
+		actor.Dir = msg.Dir >> 4
+		w.players[msg.Number] = actor
+		return
+	}
+	actor, ok = w.objects[msg.Number]
+	if ok {
+		actor.X, actor.Y = msg.X, msg.Y
+		actor.TX, actor.TY = msg.X, msg.Y
+		actor.Dir = msg.Dir >> 4
+		w.objects[msg.Number] = actor
+	}
+}
+
+func (w *world) HandleSetPositionReply(msg *model.MsgSetPositionReply) {
+	if msg.Number == w.self.Index {
+		w.setSelfPosition(w.self.MapNumber, msg.X, msg.Y, w.self.Dir)
+		return
+	}
+	actor, ok := w.players[msg.Number]
+	if ok {
+		actor.X, actor.Y = msg.X, msg.Y
+		actor.TX, actor.TY = msg.X, msg.Y
+		w.players[msg.Number] = actor
+		return
+	}
+	actor, ok = w.objects[msg.Number]
+	if ok {
+		actor.X, actor.Y = msg.X, msg.Y
+		actor.TX, actor.TY = msg.X, msg.Y
+		w.objects[msg.Number] = actor
+	}
+}
+
+func (w *world) HandleAttackHPReply(msg *model.MsgAttackHPReply) {
+	if msg.Target == w.self.Index {
 		w.self.HP = msg.HP
-		w.self.Alive = msg.HP > 0
-	case *model.MsgHPReply:
-		if msg.Position == -1 {
-			w.self.HP = msg.HP
-			if msg.HP <= 0 {
-				w.markDead(w.self.Index)
-			}
+		w.self.MaxHP = msg.MaxHP
+		if msg.HP <= 0 {
+			w.markDead(msg.Target)
 		}
+		return
+	}
+	actor, ok := w.objects[msg.Target]
+	if !ok {
+		return
+	}
+	actor.HP = msg.HP
+	actor.MaxHP = msg.MaxHP
+	actor.Alive = msg.HP > 0
+	w.objects[msg.Target] = actor
+}
+
+func (w *world) HandleAttackDieReply(msg *model.MsgAttackDieReply) {
+	w.markDead(msg.Target)
+}
+
+func (w *world) HandleTeleportReply(msg *model.MsgTeleportReply) {
+	w.clearSight()
+	w.setSelfPosition(msg.MapNumber, msg.X, msg.Y, msg.Dir)
+}
+
+func (w *world) HandleReloadCharacterReply(msg *model.MsgReloadCharacterReply) {
+	w.clearSight()
+	w.setSelfPosition(msg.MapNumber, msg.X, msg.Y, msg.Dir)
+	w.self.HP = msg.HP
+	w.self.Alive = msg.HP > 0
+}
+
+func (w *world) HandleHPReply(msg *model.MsgHPReply) {
+	if msg.Position != -1 {
+		return
+	}
+	w.self.HP = msg.HP
+	if msg.HP <= 0 {
+		w.markDead(w.self.Index)
 	}
 }
 
@@ -181,69 +248,6 @@ func (w *world) clearSight() {
 	clear(w.players)
 	clear(w.objects)
 	w.movement = movement{}
-}
-
-func (w *world) handleMoveReply(msg *model.MsgMoveReply) {
-	if msg.Number == w.self.Index {
-		w.self.TX = msg.X
-		w.self.TY = msg.Y
-		w.self.Dir = msg.Dir >> 4
-		return
-	}
-	actor, ok := w.players[msg.Number]
-	if ok {
-		actor.X, actor.Y = msg.X, msg.Y
-		actor.TX, actor.TY = msg.X, msg.Y
-		actor.Dir = msg.Dir >> 4
-		w.players[msg.Number] = actor
-		return
-	}
-	actor, ok = w.objects[msg.Number]
-	if ok {
-		actor.X, actor.Y = msg.X, msg.Y
-		actor.TX, actor.TY = msg.X, msg.Y
-		actor.Dir = msg.Dir >> 4
-		w.objects[msg.Number] = actor
-	}
-}
-
-func (w *world) handleSetPositionReply(msg *model.MsgSetPositionReply) {
-	if msg.Number == w.self.Index {
-		w.setSelfPosition(w.self.MapNumber, msg.X, msg.Y, w.self.Dir)
-		return
-	}
-	actor, ok := w.players[msg.Number]
-	if ok {
-		actor.X, actor.Y = msg.X, msg.Y
-		actor.TX, actor.TY = msg.X, msg.Y
-		w.players[msg.Number] = actor
-		return
-	}
-	actor, ok = w.objects[msg.Number]
-	if ok {
-		actor.X, actor.Y = msg.X, msg.Y
-		actor.TX, actor.TY = msg.X, msg.Y
-		w.objects[msg.Number] = actor
-	}
-}
-
-func (w *world) handleAttackHPReply(msg *model.MsgAttackHPReply) {
-	if msg.Target == w.self.Index {
-		w.self.HP = msg.HP
-		w.self.MaxHP = msg.MaxHP
-		if msg.HP <= 0 {
-			w.markDead(msg.Target)
-		}
-		return
-	}
-	actor, ok := w.objects[msg.Target]
-	if !ok {
-		return
-	}
-	actor.HP = msg.HP
-	actor.MaxHP = msg.MaxHP
-	actor.Alive = msg.HP > 0
-	w.objects[msg.Target] = actor
 }
 
 func (w *world) markDead(index int) {

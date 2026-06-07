@@ -44,6 +44,7 @@ func newTestBotConfig(game game) botConfig {
 		password:  "password",
 		name:      "char1",
 		game:      game,
+		apis:      BotManager.apis,
 		resources: &resources{},
 	}
 }

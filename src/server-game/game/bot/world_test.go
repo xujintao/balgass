@@ -15,7 +15,7 @@ func TestWorldMoveReplyDoesNotTeleportSelf(t *testing.T) {
 	now := time.Now()
 	world.startMove([]Position{{X: 2, Y: 1}, {X: 3, Y: 1}}, now)
 
-	world.handle(&model.MsgMoveReply{Number: 7, X: 3, Y: 1, Dir: 3 << 4})
+	world.HandleMoveReply(&model.MsgMoveReply{Number: 7, X: 3, Y: 1, Dir: 3 << 4})
 	if world.self.X != 1 || world.self.Y != 1 {
 		t.Fatalf("self position = (%d,%d), want (1,1)", world.self.X, world.self.Y)
 	}
@@ -39,7 +39,7 @@ func TestWorldReloadClearsSightAndRevivesSelf(t *testing.T) {
 	world.self.Alive = false
 	world.objects[1] = Actor{Index: 1, Alive: true}
 
-	world.handle(&model.MsgReloadCharacterReply{MapNumber: 0, X: 10, Y: 20, Dir: 3, HP: 100})
+	world.HandleReloadCharacterReply(&model.MsgReloadCharacterReply{MapNumber: 0, X: 10, Y: 20, Dir: 3, HP: 100})
 
 	if !world.self.Alive || world.self.X != 10 || world.self.Y != 20 {
 		t.Fatalf("self = %#v, want revived at (10,20)", world.self)
