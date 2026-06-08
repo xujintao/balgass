@@ -493,6 +493,7 @@ type Objecter interface {
 	IsMasterLevel() bool
 	GetSkillMPAG(s *skill.Skill) (int, int)
 	GetChangeUp() int
+	CanUseItem(*item.Item) bool
 	GetInventory() *item.Inventory
 	GetInventoryItem(int) *item.Item
 	GetWarehouse() *item.Warehouse

@@ -1481,6 +1481,10 @@ func (p *Player) limitUseItem(it *item.Item) bool {
 	return false
 }
 
+func (p *Player) CanUseItem(it *item.Item) bool {
+	return !p.limitUseItem(it)
+}
+
 func (p *Player) GetInventory() *item.Inventory {
 	return &p.inventory
 }

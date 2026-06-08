@@ -485,6 +485,9 @@ func (obj *Object) UseItem(msg *model.MsgUseItem) {
 	case it.Code == item.Code(14, 224): // Bless of Light (Greater) 光的祝福
 	case it.Code >= item.Code(14, 263) && it.Code <= item.Code(14, 264): // Bless of Light 光之祝福
 	case it.KindA == item.KindASkill:
+		if !obj.CanUseItem(it) {
+			return
+		}
 		// (15, 18) // Scroll of Nova 星辰一怒术
 		skillIndex := it.SkillIndex
 		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石

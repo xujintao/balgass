@@ -6,7 +6,34 @@ import (
 	"testing"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/class"
+	"github.com/xujintao/balgass/src/server-game/game/item"
 )
+
+func TestCanUseItemChecksRequirements(t *testing.T) {
+	p := Player{}
+	p.Class = int(class.Wizard)
+	p.Level = 20
+	p.energy = 30
+	p.changeUp = 0
+	it := &item.Item{ItemBase: &item.ItemBase{
+		ReqLevel:  20,
+		ReqEnergy: 30,
+		ReqClass:  [8]int{class.Wizard: 1},
+	}}
+	if !p.CanUseItem(it) {
+		t.Fatal("CanUseItem() = false, want true")
+	}
+	it.ReqEnergy = 31
+	if p.CanUseItem(it) {
+		t.Fatal("CanUseItem() = true with insufficient energy")
+	}
+	it.ReqEnergy = 30
+	it.ReqClass[class.Wizard] = 2
+	if p.CanUseItem(it) {
+		t.Fatal("CanUseItem() = true without required change-up")
+	}
+}
 
 func TestCharacterTableInitLoadsXML(t *testing.T) {
 	pathCommon := conf.ServerEnv.PathCommon
