@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36">
   <diagram name="Page-1" id="6jKJ9kW5HnMQktypH7YM">
-    <mxGraphModel dx="2006" dy="901" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1245" dy="796" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -25,7 +25,7 @@
         <mxCell id="1GFjHBw0EiZksIkDQrPH-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=16;fontStyle=0" value="c12(tcp)" vertex="1">
           <mxGeometry height="40" width="80" x="280" y="700" as="geometry" />
         </mxCell>
-        <mxCell id="1GFjHBw0EiZksIkDQrPH-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=0" value="(*handle.httpHandle) CreateAccount(...)&lt;div&gt;(*handle.httpHandle) GetAccount(...)&lt;/div&gt;&lt;div&gt;(*handle.httpHandle) DeleteAccount(...)&lt;/div&gt;&lt;div&gt;(*handle.httpHandle) handleGame(...)&lt;/div&gt;" vertex="1">
+        <mxCell id="1GFjHBw0EiZksIkDQrPH-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=15;fontStyle=0" value="(*handle.httpHandle) HandleHome(...)&lt;div&gt;(*handle.httpHandle) HandleGame(...)&lt;/div&gt;&lt;div&gt;(*handle.httpHandle) HandleCommand(...)&lt;/div&gt;" vertex="1">
           <mxGeometry height="80" width="290" x="440" y="480" as="geometry" />
         </mxCell>
         <mxCell id="1GFjHBw0EiZksIkDQrPH-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=16;fontStyle=0" value="&lt;div&gt;(*handle.wsHandle) OnConn(...)&lt;/div&gt;&lt;div&gt;(*handle.wsHandle) OnClose(...)&lt;/div&gt;&lt;div&gt;(*handle.wsHandle) Handle(...)&lt;/div&gt;&lt;div&gt;(*handle.wsHandle) marshal(...)&lt;/div&gt;" vertex="1">
@@ -183,6 +183,18 @@
         </mxCell>
         <mxCell id="pKTyv2kLMenKT-LaSIaI-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=0;fontSize=16;" value="game/fixture" vertex="1">
           <mxGeometry height="40" width="100" x="920" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="8C28lStLXgHkK_Xta4Tk-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;align=left;" value="object move&lt;br&gt;object viewport&lt;br&gt;object attack&lt;br&gt;object action&lt;br&gt;object item&lt;br&gt;object skill" vertex="1">
+          <mxGeometry height="160" width="120" x="940" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="8C28lStLXgHkK_Xta4Tk-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;" value="game/maps" vertex="1">
+          <mxGeometry height="40" width="120" x="880" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="8C28lStLXgHkK_Xta4Tk-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;" value="game/items" vertex="1">
+          <mxGeometry height="40" width="120" x="880" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="8C28lStLXgHkK_Xta4Tk-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;" value="game/skills" vertex="1">
+          <mxGeometry height="40" width="120" x="880" y="560" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
