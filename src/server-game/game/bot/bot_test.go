@@ -5,8 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/game/class"
+	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
+	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
 
 type testGame struct {
@@ -44,7 +47,6 @@ func newTestBotConfig(game game) botConfig {
 		password:  "password",
 		name:      "char1",
 		game:      game,
-		apis:      BotManager.apis,
 		resources: &resources{},
 	}
 }
@@ -232,26 +234,74 @@ func TestBotManagerCleansUpAfterConnectFailure(t *testing.T) {
 	}
 }
 
-func TestBotIgnoresQueuedReplyAfterClose(t *testing.T) {
-	g := newTestGame()
-	b, err := newbot(newTestBotConfig(g))
-	if err != nil {
-		t.Fatalf("newbot() error = %v", err)
-	}
-	conn := waitConn(t, g)
-	waitBotID(t, b, 1)
+func TestBotLearnsInventorySkillAfterInitialStateArrives(t *testing.T) {
+	for _, order := range []string{"items-first", "skills-first"} {
+		t.Run(order, func(t *testing.T) {
+			g := newTestGame()
+			resources := &resources{}
+			b := &bot{
+				game:   g,
+				world:  newWorld(resources),
+				policy: newRulePolicy(resources, "account1:char1"),
+			}
+			b.executor = newExecutor(b)
+			b.id.Store(7)
+			b.world.phase = PhasePlaying
+			b.world.self = Actor{Index: 7, Alive: true}
+			b.world.setCharacter(&model.MsgLoadCharacterReply{HP: 100})
+			b.world.mergeSelf(Actor{
+				Class: int(class.Wizard),
+				Level: 1,
+				HP:    100,
+			})
+			base := &item.ItemBase{
+				KindA:      item.KindASkill,
+				SkillIndex: skill.SkillIndexFireBall,
+			}
+			base.ReqClass[class.Wizard] = 1
+			book := &item.Item{
+				ItemBase: base,
+				Code:     item.Code(15, 0),
+				ID:       123,
+			}
+			items := make([]*item.Item, 13)
+			items[12] = book
+			now := time.Unix(0, 0)
 
-	b.close()
-	_ = waitClose(t, g)
-	b.handle(&model.MsgLoginReply{Result: 1})
+			if order == "items-first" {
+				b.world.Handle(&model.MsgItemListReply{Items: items})
+				b.tick(now)
+				assertNoAction(t, g)
+				b.world.Handle(&model.MsgSkillListReply{})
+			} else {
+				b.world.Handle(&model.MsgSkillListReply{})
+				b.tick(now)
+				assertNoAction(t, g)
+				b.world.Handle(&model.MsgItemListReply{Items: items})
+			}
 
-	select {
-	case action := <-g.actions:
-		t.Fatalf("unexpected action after close = %#v", action)
-	case <-time.After(50 * time.Millisecond):
-	}
-	if err := conn.Close(); err != nil {
-		t.Fatalf("conn.Close() error = %v", err)
+			b.tick(now.Add(100 * time.Millisecond))
+			action := waitAction(t, g)
+			if action.action != "UseItem" {
+				t.Fatalf("action = %#v, want UseItem", action)
+			}
+			msg := action.msg.(*model.MsgUseItem)
+			if msg.SrcPosition != 12 || msg.DstPosition != 0 {
+				t.Fatalf("use item msg = %#v, want source 12", msg)
+			}
+
+			b.tick(now.Add(200 * time.Millisecond))
+			assertNoAction(t, g)
+			b.world.Handle(&model.MsgSkillOneReply{
+				Flag: -2,
+				Skill: &skill.Skill{
+					SkillBase: &skill.SkillBase{Index: skill.SkillIndexFireBall},
+					Index:     skill.SkillIndexFireBall,
+				},
+			})
+			b.tick(now.Add(300 * time.Millisecond))
+			assertNoAction(t, g)
+		})
 	}
 }
 
