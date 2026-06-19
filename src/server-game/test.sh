@@ -1,5 +1,6 @@
 #!/bin/sh
 
+set -e
 set -a
 . "${HOME}/balgass/config/server-game/.env"
 set +a

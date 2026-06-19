@@ -64,68 +64,87 @@ func newRulePolicy(resources *resources, seed string) Policy {
 }
 
 func (p *rulePolicy) Decide(now time.Time, world WorldSnapshot, execution ExecutorSnapshot) Action {
+	traceWorld := world
+	finish := func(reason string, action Action, extra map[string]interface{}) Action {
+		tracePolicyDecision(p.seed, traceWorld, execution, reason, action, extra)
+		return action
+	}
 	switch world.Phase {
 	case PhaseDisconnected:
 		if execution.CurrentAction.Kind == ActionConnect {
-			return Action{}
+			return finish("connect_pending", Action{}, nil)
 		}
-		return Action{Kind: ActionConnect}
+		return finish("connect", Action{Kind: ActionConnect}, nil)
 	case PhaseConnected:
 		if execution.CurrentAction.Kind == ActionLogin {
-			return Action{}
+			return finish("login_pending", Action{}, nil)
 		}
-		return Action{Kind: ActionLogin}
+		return finish("login", Action{Kind: ActionLogin}, nil)
 	case PhaseLoggedIn:
 		if execution.CurrentAction.Kind == ActionLoadCharacter {
-			return Action{}
+			return finish("load_character_pending", Action{}, nil)
 		}
-		return Action{Kind: ActionLoadCharacter}
+		return finish("load_character", Action{Kind: ActionLoadCharacter}, nil)
 	case PhaseFailed:
 		if execution.CurrentAction.Kind == ActionStop {
-			return Action{}
+			return finish("stop_pending", Action{}, nil)
 		}
-		return Action{Kind: ActionStop, Text: world.Failure}
+		return finish("stop", Action{Kind: ActionStop, Text: world.Failure}, map[string]interface{}{
+			"failure": world.Failure,
+		})
 	case PhasePlaying:
 	default:
-		return Action{}
+		return finish("unsupported_phase", Action{}, nil)
 	}
 	if execution.PositionVersion != world.PositionVersion {
-		return Action{
+		return finish("sync_position", Action{
 			Kind:            ActionSyncPosition,
 			SelfPosition:    world.Self.position(),
 			Dir:             world.Self.Dir,
 			PositionVersion: world.PositionVersion,
 			CancelCurrent:   execution.Move.Active,
-		}
+		}, map[string]interface{}{
+			"world_position_version":     world.PositionVersion,
+			"execution_position_version": execution.PositionVersion,
+		})
 	}
 	if execution.CurrentAction.Kind == ActionLearnSkill {
 		if !world.learnedSkill(execution.CurrentAction.Skill) {
-			return Action{}
+			return finish("learn_skill_pending", Action{}, map[string]interface{}{
+				"skill": execution.CurrentAction.Skill,
+			})
 		}
-		return Action{Kind: ActionCancel}
+		return finish("learn_skill_done_cancel", Action{Kind: ActionCancel}, map[string]interface{}{
+			"skill": execution.CurrentAction.Skill,
+		})
 	}
 	if !world.Self.Alive {
 		if execution.CurrentAction.Kind != ActionNone || execution.Move.Active {
-			return Action{Kind: ActionCancel}
+			return finish("dead_cancel", Action{Kind: ActionCancel}, nil)
 		}
-		return Action{}
+		return finish("dead_idle", Action{}, nil)
 	}
 	if execution.Move.Active {
 		if !now.Before(execution.Move.NextStepAt) {
-			return continueMoveAction(execution)
+			return finish("continue_move", continueMoveAction(execution), nil)
 		}
-		return Action{}
+		return finish("move_wait", Action{}, map[string]interface{}{
+			"next_step_at": execution.Move.NextStepAt.Format(time.RFC3339Nano),
+		})
 	}
 	if (execution.CurrentAction.Kind == ActionAttack ||
 		execution.CurrentAction.Kind == ActionUseSkill) &&
 		now.Before(execution.ReadyAt) {
-		return Action{}
+		return finish("attack_cooldown", Action{}, map[string]interface{}{
+			"ready_at": execution.ReadyAt.Format(time.RFC3339Nano),
+		})
 	}
 
 	snapshot := world
 	snapshot.Self.X = execution.Position.X
 	snapshot.Self.Y = execution.Position.Y
 	snapshot.Self.Dir = execution.Dir
+	traceWorld = snapshot
 	combatSkill, hasSkill := bestCombatSkill(snapshot)
 	targets := p.visibleTargets(snapshot)
 	for _, target := range targets {
@@ -136,36 +155,60 @@ func (p *rulePolicy) Decide(now time.Time, world WorldSnapshot, execution Execut
 		if pathDistance(snapshot.Self.position(), target.position()) <= attackRange {
 			dir := calcDir(snapshot.Self.position(), target.position())
 			if hasSkill {
-				return Action{
+				return finish("use_skill", Action{
 					Kind:    ActionUseSkill,
 					Target:  target.Index,
 					Skill:   combatSkill.Index,
 					Dir:     dir,
 					ReadyAt: now.Add(skillInterval(combatSkill, world)),
-				}
+				}, map[string]interface{}{
+					"target":       traceActor(target),
+					"targets":      len(targets),
+					"attack_range": attackRange,
+					"skill":        combatSkill.Index,
+				})
 			}
-			return Action{
+			return finish("attack", Action{
 				Kind:    ActionAttack,
 				Target:  target.Index,
 				Dir:     dir,
 				ReadyAt: now.Add(speedInterval(world.AttackSpeed)),
-			}
+			}, map[string]interface{}{
+				"target":       traceActor(target),
+				"targets":      len(targets),
+				"attack_range": attackRange,
+			})
 		}
 		if path := p.pathToActor(snapshot, target, attackRange); len(path) > 0 {
-			return moveAction(now, execution, world.PositionVersion, limitPath(path))
+			limitedPath := limitPath(path)
+			return finish("move_to_target", moveAction(now, execution, world.PositionVersion, limitedPath), map[string]interface{}{
+				"target":       traceActor(target),
+				"targets":      len(targets),
+				"attack_range": attackRange,
+				"path_len":     len(path),
+				"path_end":     path[len(path)-1],
+			})
 		}
 	}
 	if len(snapshot.LearnSkills) > 0 {
 		learn := snapshot.LearnSkills[0]
-		return Action{Kind: ActionLearnSkill, Skill: learn.Index, Position: learn.Position}
+		return finish("learn_skill", Action{Kind: ActionLearnSkill, Skill: learn.Index, Position: learn.Position}, map[string]interface{}{
+			"learn_skills": len(snapshot.LearnSkills),
+			"skill":        learn.Index,
+			"position":     learn.Position,
+		})
 	}
 	if path := p.pathToSpawnArea(snapshot); len(path) > 0 {
-		return moveAction(now, execution, world.PositionVersion, limitPath(path))
+		limitedPath := limitPath(path)
+		return finish("move_to_spawn_area", moveAction(now, execution, world.PositionVersion, limitedPath), map[string]interface{}{
+			"path_len": len(path),
+			"path_end": path[len(path)-1],
+		})
 	}
 	if execution.CurrentAction.Kind != ActionNone {
-		return Action{Kind: ActionCancel}
+		return finish("cancel_current", Action{Kind: ActionCancel}, nil)
 	}
-	return Action{}
+	return finish("none", Action{}, nil)
 }
 
 func moveAction(now time.Time, execution ExecutorSnapshot, positionVersion uint64, path []Position) Action {

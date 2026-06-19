@@ -175,11 +175,13 @@ var (
 )
 
 type configServerEnv struct {
-	Debug      bool     `envconfig:"DEBUG" default:"false"`
-	LogLevel   string   `envconfig:"LOG_LEVEL" default:"info"`
-	LogFile    []string `envconfig:"LOG_FILE" default:"-"`
-	PathConfig string   `envconfig:"PATH_CONFIG" default:"."`
-	PathCommon string   `envconfig:"PATH_COMMON" default:"."`
+	Debug                bool     `envconfig:"DEBUG" default:"false"`
+	LogLevel             string   `envconfig:"LOG_LEVEL" default:"info"`
+	LogFile              []string `envconfig:"LOG_FILE" default:"-"`
+	PathConfig           string   `envconfig:"PATH_CONFIG" default:"."`
+	PathCommon           string   `envconfig:"PATH_COMMON" default:"."`
+	TraceBotPolicyEnable bool     `envconfig:"TRACE_BOT_POLICY_ENABLE" default:"false"`
+	TraceBotPolicyFile   string   `envconfig:"TRACE_BOT_POLICY_FILE" default:"/tmp/server-game-bot-policy.jsonl"`
 }
 
 type configServer struct {
