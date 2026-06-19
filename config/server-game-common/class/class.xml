@@ -36,7 +36,7 @@
       <Inventory Position="1" Section="6" Index="0" Durability="22"/>
     </Inventories>
   </Class>
-  <Class Annotation="darkload" Class="4" Level="1" MapNumber="0" Strength="26" Dexterity="20" Vitality="20" Energy="15" Leadership="24" HP="25" MP="90" LevelHP="1.5" LevelMP="1" VitalityHP="2" EnergyMP="1.5">
+  <Class Annotation="darkload" Class="4" Level="1" MapNumber="0" Strength="26" Dexterity="20" Vitality="20" Energy="15" Leadership="24" HP="90" MP="40" LevelHP="1.5" LevelMP="1" VitalityHP="2" EnergyMP="1.5">
     <Skills>
       <Skill Index="60"/>
       <Skill Index="74"/>
