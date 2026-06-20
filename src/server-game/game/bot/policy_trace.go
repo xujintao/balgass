@@ -171,8 +171,12 @@ func actionKindName(kind ActionKind) string {
 		return "cancel"
 	case ActionAttack:
 		return "attack"
+	case ActionContinueAttack:
+		return "continue_attack"
 	case ActionUseSkill:
 		return "use_skill"
+	case ActionContinueUseSkill:
+		return "continue_use_skill"
 	case ActionChat:
 		return "chat"
 	case ActionWhisper:

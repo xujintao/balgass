@@ -92,7 +92,11 @@ func (e *executor) Execute(action Action) {
 		e.cancel()
 	case ActionAttack:
 		e.attack(action)
+	case ActionContinueAttack:
+		e.attack(action)
 	case ActionUseSkill:
+		e.useSkill(action)
+	case ActionContinueUseSkill:
 		e.useSkill(action)
 	case ActionChat:
 		e.chat(action)

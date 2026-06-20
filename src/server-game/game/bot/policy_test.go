@@ -41,28 +41,6 @@ func TestRulePolicyUsesExecutorPendingAndMovementState(t *testing.T) {
 	); action.Kind != ActionNone {
 		t.Fatalf("pending connect action = %#v, want none", action)
 	}
-
-	now := time.Unix(1, 0)
-	world := WorldSnapshot{
-		Phase: PhasePlaying,
-		Self:  Actor{Alive: true},
-	}
-	execution := ExecutorSnapshot{
-		Position: Position{X: 1, Y: 1},
-		Move: MoveSnapshot{
-			Active:     true,
-			Path:       []Position{{X: 2, Y: 1}},
-			NextStepAt: now.Add(time.Millisecond),
-		},
-	}
-	if action := policy.Decide(now, world, execution); action.Kind != ActionNone {
-		t.Fatalf("move before next step action = %#v, want none", action)
-	}
-
-	execution.Move.NextStepAt = now
-	if action := policy.Decide(now, world, execution); action.Kind != ActionContinueMove {
-		t.Fatalf("due move action = %#v, want continue move", action)
-	}
 }
 
 func TestRulePolicyExplicitlySyncsAuthoritativePosition(t *testing.T) {

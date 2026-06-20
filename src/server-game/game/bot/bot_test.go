@@ -281,6 +281,8 @@ func TestBotLearnsInventorySkillAfterInitialStateArrives(t *testing.T) {
 			}
 
 			b.tick(now.Add(100 * time.Millisecond))
+			assertNoAction(t, g)
+			b.tick(now.Add(time.Second))
 			action := waitAction(t, g)
 			if action.action != "UseItem" {
 				t.Fatalf("action = %#v, want UseItem", action)
@@ -290,7 +292,7 @@ func TestBotLearnsInventorySkillAfterInitialStateArrives(t *testing.T) {
 				t.Fatalf("use item msg = %#v, want source 12", msg)
 			}
 
-			b.tick(now.Add(200 * time.Millisecond))
+			b.tick(now.Add(1100 * time.Millisecond))
 			assertNoAction(t, g)
 			b.world.Handle(&model.MsgSkillOneReply{
 				Flag: -2,
@@ -299,8 +301,15 @@ func TestBotLearnsInventorySkillAfterInitialStateArrives(t *testing.T) {
 					Index:     skill.SkillIndexFireBall,
 				},
 			})
-			b.tick(now.Add(300 * time.Millisecond))
+			b.tick(now.Add(1200 * time.Millisecond))
 			assertNoAction(t, g)
+			if b.executor.current.Kind != ActionLearnSkill {
+				t.Fatal("learn skill pending released before next full decision")
+			}
+			b.tick(now.Add(2 * time.Second))
+			if b.executor.current.Kind == ActionLearnSkill {
+				t.Fatal("learn skill action remained pending after next full decision")
+			}
 		})
 	}
 }
@@ -310,7 +319,7 @@ func waitConn(t *testing.T, g *testGame) object.Conn {
 	select {
 	case conn := <-g.conns:
 		return conn
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		t.Fatal("timeout waiting for PlayerConn")
 	}
 	return nil
@@ -321,7 +330,7 @@ func waitAction(t *testing.T, g *testGame) testAction {
 	select {
 	case action := <-g.actions:
 		return action
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		t.Fatal("timeout waiting for PlayerAction")
 	}
 	return testAction{}
@@ -332,7 +341,7 @@ func waitClose(t *testing.T, g *testGame) int {
 	select {
 	case id := <-g.closes:
 		return id
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		t.Fatal("timeout waiting for PlayerCloseConn")
 	}
 	return 0
@@ -343,7 +352,7 @@ func waitCommand(t *testing.T, g *testGame) testCommand {
 	select {
 	case command := <-g.commands:
 		return command
-	case <-time.After(time.Second):
+	case <-time.After(2 * time.Second):
 		t.Fatal("timeout waiting for Command")
 	}
 	return testCommand{}
@@ -351,7 +360,7 @@ func waitCommand(t *testing.T, g *testGame) testCommand {
 
 func waitBotID(t *testing.T, b *bot, id int) {
 	t.Helper()
-	deadline := time.Now().Add(time.Second)
+	deadline := time.Now().Add(2 * time.Second)
 	for time.Now().Before(deadline) {
 		if int(b.id.Load()) == id {
 			return

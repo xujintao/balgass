@@ -108,6 +108,11 @@ func botKey(account, name string) string {
 }
 
 // bot
+const (
+	botIntervalTick     = 100 * time.Millisecond
+	botIntervalDecision = time.Second
+)
+
 func newbot(conf botConfig) (*bot, error) {
 	if conf.game == nil {
 		return nil, errors.New("game is nil")
@@ -130,7 +135,7 @@ func newbot(conf botConfig) (*bot, error) {
 		defer func() {
 			close(b.msgChan)
 		}()
-		ticker := time.NewTicker(100 * time.Millisecond)
+		ticker := time.NewTicker(botIntervalTick)
 		defer ticker.Stop()
 		for {
 			select {
@@ -163,17 +168,18 @@ type game interface {
 }
 
 type bot struct {
-	key      string
-	account  string
-	password string
-	name     string
-	game     game
-	cancel   context.CancelFunc
-	id       atomic.Int64
-	msgChan  chan any
-	world    *world
-	policy   Policy
-	executor *executor
+	key            string
+	account        string
+	password       string
+	name           string
+	game           game
+	cancel         context.CancelFunc
+	id             atomic.Int64
+	msgChan        chan any
+	world          *world
+	policy         Policy
+	executor       *executor
+	nextDecisionAt time.Time
 }
 
 func (b *bot) close() {
@@ -217,6 +223,14 @@ func (b *bot) fail(err error) {
 func (b *bot) tick(now time.Time) {
 	worldSnapshot := b.world.Snapshot()
 	executorSnapshot := b.executor.Snapshot()
+	if action, ok := continueAction(now, worldSnapshot, executorSnapshot); ok {
+		b.executor.Execute(action)
+		return
+	}
+	if !b.nextDecisionAt.IsZero() && now.Before(b.nextDecisionAt) {
+		return
+	}
 	action := b.policy.Decide(now, worldSnapshot, executorSnapshot)
+	b.nextDecisionAt = now.Add(botIntervalDecision)
 	b.executor.Execute(action)
 }

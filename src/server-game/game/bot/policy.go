@@ -24,7 +24,9 @@ const (
 	ActionSyncPosition
 	ActionCancel
 	ActionAttack
+	ActionContinueAttack
 	ActionUseSkill
+	ActionContinueUseSkill
 	ActionChat
 	ActionWhisper
 )
@@ -124,21 +126,6 @@ func (p *rulePolicy) Decide(now time.Time, world WorldSnapshot, execution Execut
 		}
 		return finish("dead_idle", Action{}, nil)
 	}
-	if execution.Move.Active {
-		if !now.Before(execution.Move.NextStepAt) {
-			return finish("continue_move", continueMoveAction(execution), nil)
-		}
-		return finish("move_wait", Action{}, map[string]interface{}{
-			"next_step_at": execution.Move.NextStepAt.Format(time.RFC3339Nano),
-		})
-	}
-	if (execution.CurrentAction.Kind == ActionAttack ||
-		execution.CurrentAction.Kind == ActionUseSkill) &&
-		now.Before(execution.ReadyAt) {
-		return finish("attack_cooldown", Action{}, map[string]interface{}{
-			"ready_at": execution.ReadyAt.Format(time.RFC3339Nano),
-		})
-	}
 
 	snapshot := world
 	snapshot.Self.X = execution.Position.X
@@ -155,25 +142,14 @@ func (p *rulePolicy) Decide(now time.Time, world WorldSnapshot, execution Execut
 		if pathDistance(snapshot.Self.position(), target.position()) <= attackRange {
 			dir := calcDir(snapshot.Self.position(), target.position())
 			if hasSkill {
-				return finish("use_skill", Action{
-					Kind:    ActionUseSkill,
-					Target:  target.Index,
-					Skill:   combatSkill.Index,
-					Dir:     dir,
-					ReadyAt: now.Add(skillInterval(combatSkill, world)),
-				}, map[string]interface{}{
+				return finish("use_skill", useSkillAction(now, world, combatSkill, target, dir), map[string]interface{}{
 					"target":       traceActor(target),
 					"targets":      len(targets),
 					"attack_range": attackRange,
 					"skill":        combatSkill.Index,
 				})
 			}
-			return finish("attack", Action{
-				Kind:    ActionAttack,
-				Target:  target.Index,
-				Dir:     dir,
-				ReadyAt: now.Add(speedInterval(world.AttackSpeed)),
-			}, map[string]interface{}{
+			return finish("attack", attackAction(now, world, target, dir), map[string]interface{}{
 				"target":       traceActor(target),
 				"targets":      len(targets),
 				"attack_range": attackRange,
@@ -223,6 +199,87 @@ func moveAction(now time.Time, execution ExecutorSnapshot, positionVersion uint6
 	}
 }
 
+func attackAction(now time.Time, world WorldSnapshot, target Actor, dir int) Action {
+	return Action{
+		Kind:    ActionAttack,
+		Target:  target.Index,
+		Dir:     dir,
+		ReadyAt: now.Add(speedInterval(world.AttackSpeed)),
+	}
+}
+
+func useSkillAction(now time.Time, world WorldSnapshot, combatSkill CombatSkill, target Actor, dir int) Action {
+	return Action{
+		Kind:    ActionUseSkill,
+		Target:  target.Index,
+		Skill:   combatSkill.Index,
+		Dir:     dir,
+		ReadyAt: now.Add(skillInterval(combatSkill, world)),
+	}
+}
+
+type continuation struct {
+	kind  ActionKind
+	dueAt time.Time
+}
+
+func continueAction(now time.Time, world WorldSnapshot, execution ExecutorSnapshot) (Action, bool) {
+	currentKind := execution.CurrentAction.Kind
+	if execution.Move.Active {
+		currentKind = ActionMove
+	}
+	var cont continuation
+	switch currentKind {
+	case ActionMove, ActionContinueMove:
+		cont = continuation{
+			kind:  ActionContinueMove,
+			dueAt: execution.Move.NextStepAt,
+		}
+	case ActionAttack, ActionContinueAttack:
+		cont = continuation{
+			kind:  ActionContinueAttack,
+			dueAt: execution.ReadyAt,
+		}
+	case ActionUseSkill, ActionContinueUseSkill:
+		cont = continuation{
+			kind:  ActionContinueUseSkill,
+			dueAt: execution.ReadyAt,
+		}
+	default:
+		return Action{}, false
+	}
+	if now.Before(cont.dueAt) {
+		return Action{}, true
+	}
+	switch cont.kind {
+	case ActionContinueMove:
+		if !execution.Move.Active ||
+			execution.Move.PathNext < 0 ||
+			execution.Move.PathNext >= len(execution.Move.Path) {
+			return Action{Kind: ActionCancel}, true
+		}
+		return continueMoveAction(execution), true
+	case ActionContinueAttack:
+		target, ok := world.object(execution.CurrentAction.Target)
+		if !ok || !validAttackTarget(world, execution, target, 1) {
+			return Action{Kind: ActionCancel}, true
+		}
+		return continueAttackAction(now, world, execution), true
+	case ActionContinueUseSkill:
+		combatSkill, ok := world.combatSkill(execution.CurrentAction.Skill)
+		if !ok || world.MP < combatSkill.MP || world.AG < combatSkill.AG {
+			return Action{Kind: ActionCancel}, true
+		}
+		target, ok := world.object(execution.CurrentAction.Target)
+		if !ok || !validAttackTarget(world, execution, target, combatSkill.Distance) {
+			return Action{Kind: ActionCancel}, true
+		}
+		return continueUseSkillAction(now, world, execution), true
+	default:
+		return Action{Kind: ActionCancel}, true
+	}
+}
+
 func continueMoveAction(execution ExecutorSnapshot) Action {
 	next := execution.Move.Path[execution.Move.PathNext]
 	pathNext := execution.Move.PathNext + 1
@@ -238,6 +295,36 @@ func continueMoveAction(execution ExecutorSnapshot) Action {
 		)
 	}
 	return action
+}
+
+func continueAttackAction(now time.Time, world WorldSnapshot, execution ExecutorSnapshot) Action {
+	return Action{
+		Kind:    ActionContinueAttack,
+		Target:  execution.CurrentAction.Target,
+		Dir:     execution.CurrentAction.Dir,
+		ReadyAt: now.Add(speedInterval(world.AttackSpeed)),
+	}
+}
+
+func continueUseSkillAction(now time.Time, world WorldSnapshot, execution ExecutorSnapshot) Action {
+	combatSkill, _ := world.combatSkill(execution.CurrentAction.Skill)
+	return Action{
+		Kind:    ActionContinueUseSkill,
+		Target:  execution.CurrentAction.Target,
+		Skill:   execution.CurrentAction.Skill,
+		Dir:     execution.CurrentAction.Dir,
+		ReadyAt: now.Add(skillInterval(combatSkill, world)),
+	}
+}
+
+func validAttackTarget(world WorldSnapshot, execution ExecutorSnapshot, target Actor, attackRange int) bool {
+	if attackRange < 1 {
+		attackRange = 1
+	}
+	return target.Alive &&
+		target.Attackable &&
+		target.MapNumber == world.Self.MapNumber &&
+		pathDistance(execution.Position, target.position()) <= attackRange
 }
 
 func speedInterval(speed int) time.Duration {
