@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
@@ -2443,8 +2444,8 @@ func (msg *MsgLearnMasterSkillReply) Marshal() ([]byte, error) {
 	binary.Write(&bw, binary.LittleEndian, uint32(msg.MasterSkillUIIndex))
 	binary.Write(&bw, binary.LittleEndian, uint32(msg.MasterSkillIndex))
 	binary.Write(&bw, binary.LittleEndian, uint32(msg.MasterSkillLevel))
-	binary.Write(&bw, binary.LittleEndian, uint32(msg.MasterSkillCurValue))
-	binary.Write(&bw, binary.LittleEndian, uint32(msg.MasterSkillNextValue))
+	binary.Write(&bw, binary.LittleEndian, math.Float32bits(msg.MasterSkillCurValue))
+	binary.Write(&bw, binary.LittleEndian, math.Float32bits(msg.MasterSkillNextValue))
 	return bw.Bytes(), nil
 }
 
@@ -2460,8 +2461,8 @@ func (msg *MsgMasterSkillListReply) Marshal() ([]byte, error) {
 		bw.WriteByte(byte(v.MasterSkillUIIndex))
 		bw.WriteByte(byte(v.MasterSkillLevel))
 		bw.Write([]byte{0, 0}) // padding
-		binary.Write(&bw, binary.LittleEndian, uint32(v.MasterSkillCurValue))
-		binary.Write(&bw, binary.LittleEndian, uint32(v.MasterSkillNextValue))
+		binary.Write(&bw, binary.LittleEndian, math.Float32bits(v.MasterSkillCurValue))
+		binary.Write(&bw, binary.LittleEndian, math.Float32bits(v.MasterSkillNextValue))
 		binary.Write(&bw, binary.LittleEndian, uint32(0)) // unknown field
 	}
 	return bw.Bytes(), nil

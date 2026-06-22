@@ -1,6 +1,10 @@
 package skill
 
 import (
+	"fmt"
+	"log/slog"
+	"os"
+
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/class"
 )
@@ -115,6 +119,7 @@ type SkillBase struct {
 	DarkLord       int    `xml:"DarkLord,attr"`
 	Summoner       int    `xml:"Summoner,attr"`
 	RageFighter    int    `xml:"RageFighter,attr"`
+	GrowLancer     int    `xml:"GrowLancer,attr"`
 	ReqClass       [8]int `xml:"-"`
 	Rank           int    `xml:"Rank,attr"`
 	Group          int    `xml:"Group,attr"`
@@ -165,6 +170,15 @@ func (m *skillManager) init() {
 	conf.XML(conf.PathCommon, "Skills/IGC_SkillList.xml", &skillList)
 	m.skillTable = make(map[int]*SkillBase)
 	for _, v := range skillList.Skills {
+		if v == nil {
+			m.fatalf("nil skill entry in Skills/IGC_SkillList.xml")
+		}
+		if v.Index <= 0 {
+			m.fatalf("invalid skill index %d", v.Index)
+		}
+		if _, ok := m.skillTable[v.Index]; ok {
+			m.fatalf("duplicate skill index %d", v.Index)
+		}
 		v.ReqClass[class.Wizard] = v.DarkWizard
 		v.ReqClass[class.Knight] = v.DarkKnight
 		v.ReqClass[class.Elf] = v.FairyElf
@@ -172,7 +186,7 @@ func (m *skillManager) init() {
 		v.ReqClass[class.DarkLord] = v.DarkLord
 		v.ReqClass[class.Summoner] = v.Summoner
 		v.ReqClass[class.RageFighter] = v.RageFighter
-		// v.ReqClass[class.GrowLancer] = v.GrowLancer
+		v.ReqClass[class.GrowLancer] = v.GrowLancer
 		m.skillTable[v.Index] = v
 	}
 
@@ -199,13 +213,51 @@ func (m *skillManager) init() {
 		128: class.GrowLancer,
 	}
 	// m.masterSkillTable = make(map[int]*MasterSkillBase)
-	for _, class := range masterSkillTree.Class {
-		for _, tree := range class.Tree {
+	for _, classNode := range masterSkillTree.Class {
+		classID, ok := id2class[classNode.ID]
+		if !ok {
+			m.fatalf("invalid master skill class id %d", classNode.ID)
+		}
+		for _, tree := range classNode.Tree {
+			if tree.Type < 0 || tree.Type >= 3 {
+				m.fatalf("invalid master skill tree type %d for class id %d", tree.Type, classNode.ID)
+			}
 			for _, skill := range tree.Skills {
+				if skill == nil {
+					m.fatalf("nil master skill entry for class id %d tree type %d", classNode.ID, tree.Type)
+				}
+				if _, ok := m.skillTable[skill.SkillID]; !ok {
+					m.fatalf("master skill %d references missing skill id %d", skill.Index, skill.SkillID)
+				}
+				if skill.ReqMinPoint <= 0 {
+					m.fatalf("master skill %d has invalid ReqMinPoint %d", skill.Index, skill.ReqMinPoint)
+				}
+				if skill.MaxPoint <= 0 || skill.ReqMinPoint > skill.MaxPoint {
+					m.fatalf("master skill %d has invalid MaxPoint %d", skill.Index, skill.MaxPoint)
+				}
+				if skill.ParentSkill1 != 0 {
+					if _, ok := m.skillTable[skill.ParentSkill1]; !ok {
+						m.fatalf("master skill %d references missing parent skill %d", skill.SkillID, skill.ParentSkill1)
+					}
+				}
+				if skill.ParentSkill2 != 0 {
+					if _, ok := m.skillTable[skill.ParentSkill2]; !ok {
+						m.fatalf("master skill %d references missing parent skill %d", skill.SkillID, skill.ParentSkill2)
+					}
+				}
 				index := skill.Index%36 - 1
+				if index < 0 {
+					m.fatalf("master skill %d has invalid index %d", skill.SkillID, skill.Index)
+				}
 				rank := index >> 2
 				pos := index % 4
-				m.masterSkillTable[id2class[class.ID]][tree.Type][rank][pos] = skill
+				if rank < 0 || rank >= 9 || pos < 0 || pos >= 4 {
+					m.fatalf("master skill %d maps to invalid rank/pos %d/%d", skill.SkillID, rank, pos)
+				}
+				if m.masterSkillTable[classID][tree.Type][rank][pos] != nil {
+					m.fatalf("duplicate master skill slot class %d tree %d rank %d pos %d", classID, tree.Type, rank, pos)
+				}
+				m.masterSkillTable[classID][tree.Type][rank][pos] = skill
 			}
 		}
 	}
@@ -229,7 +281,16 @@ func (m *skillManager) init() {
 	// fulfill masterSkillVauleTable by lua script
 }
 
+func (m *skillManager) fatalf(format string, args ...any) {
+	err := fmt.Errorf(format, args...)
+	slog.Error("load skill config", "err", err)
+	os.Exit(1)
+}
+
 func (m *skillManager) getMasterSkillBase(class, index int) (*MasterSkillBase, bool) {
+	if class < 0 || class >= len(m.masterSkillTable) {
+		return nil, false
+	}
 	for t := 0; t < 3; t++ {
 		for rank := 0; rank < 9; rank++ {
 			for pos := 0; pos < 4; pos++ {

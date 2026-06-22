@@ -83,6 +83,15 @@ func (obj *Object) getDamage(s *skill.Skill, t int) int {
 	case 0: // normal attack skill
 		damageMin = obj.AttackMin
 		damageMax = obj.AttackMax
+	case skill.SkillIndexPoison, // 1毒咒
+		skill.SkillIndexMeteorite,  // 2陨石
+		skill.SkillIndexLightning,  // 3掌心雷
+		skill.SkillIndexFireBall,   // 4火球
+		skill.SkillIndexFlame,      // 5火龙
+		skill.SkillIndexIce,        // 7冰封
+		skill.SkillIndexEnergyBall: // 17能量球
+		damageMin = s.DamageMin
+		damageMax = s.DamageMax
 	case skill.SkillIndexFallingSlash, // 19地裂斩(武器)
 		skill.SkillIndexLunge,             // 20牙突刺(武器)
 		skill.SkillIndexUppercut,          // 21升龙击(武器)

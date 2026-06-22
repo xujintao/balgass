@@ -203,7 +203,7 @@ func (m *objectManager) DeletePlayer(id int) {
 }
 
 func (m *objectManager) GetObject(id int) *Object {
-	if id >= m.maxObjectCount {
+	if id < 0 || id >= m.maxObjectCount {
 		return nil
 	}
 	return m.objects[id]
@@ -629,6 +629,7 @@ type Object struct {
 	PentagramAttackRate       int
 	PentagramDefense          int
 	Skills                    skill.Skills
+	skillUseTimes             map[int]time.Time
 	FrustumX                  [MaxArrayFrustum]int
 	FrustumY                  [MaxArrayFrustum]int
 	SkillFrustumX             [MaxArrayFrustum]int

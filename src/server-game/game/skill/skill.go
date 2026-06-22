@@ -133,15 +133,13 @@ func (s Skills) GetMaster(class, index, point int, f func(point, uiIndex, index,
 	}
 	pSkill1 := masterSkillBase.ParentSkill1
 	if pSkill1 != 0 {
-		_, ok := SkillManager.skillTable[pSkill1]
-		if !ok {
+		if !s.hasRequiredParentSkill(class, pSkill1) {
 			return false
 		}
 	}
 	pSkill2 := masterSkillBase.ParentSkill2
 	if pSkill2 != 0 {
-		_, ok := SkillManager.skillTable[pSkill2]
-		if !ok {
+		if !s.hasRequiredParentSkill(class, pSkill2) {
 			return false
 		}
 	}
@@ -150,11 +148,14 @@ func (s Skills) GetMaster(class, index, point int, f func(point, uiIndex, index,
 	}
 	ss, ok := s[index]
 	if ok {
-		if ss.Level+masterSkillBase.ReqMinPoint > 20 {
+		if ss.Level+masterSkillBase.ReqMinPoint > masterSkillBase.MaxPoint {
 			return false
 		}
 		ss.Level += masterSkillBase.ReqMinPoint
 	} else {
+		if masterSkillBase.ReqMinPoint > masterSkillBase.MaxPoint {
+			return false
+		}
 		ss = &Skill{
 			SkillBase: skillBase,
 			Index:     index,
@@ -170,6 +171,18 @@ func (s Skills) GetMaster(class, index, point int, f func(point, uiIndex, index,
 	// }
 	f(masterSkillBase.ReqMinPoint, masterSkillBase.Index, int(index), ss.Level, ss.CurValue, ss.NextValue)
 	return true
+}
+
+func (s Skills) hasRequiredParentSkill(class, index int) bool {
+	parent, ok := s[index]
+	if !ok {
+		return false
+	}
+	parentBase, ok := SkillManager.getMasterSkillBase(class, index)
+	if !ok {
+		return parent.Level > 0
+	}
+	return parent.Level >= parentBase.ReqMinPoint
 }
 
 func (s Skills) Put(index int) (*Skill, bool) {
@@ -259,6 +272,9 @@ func (s Skills) ForEachActiveSkill(f func(*Skill)) {
 
 func (s Skills) ForEachMasterSkill(f func(index, level int, curValue, nextValue float32)) {
 	for _, ss := range s {
+		if ss.Index < 300 || ss.UIIndex == 0 {
+			continue
+		}
 		f(ss.UIIndex, ss.Level, ss.CurValue, ss.NextValue)
 	}
 }
