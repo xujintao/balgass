@@ -236,6 +236,7 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 		m.Type = object.ObjectTypeMonster
 	}
 	m.Class = class
+	m.Hidden = isHiddenMonsterClass(class)
 	m.MapNumber = mapNumber
 	m.spawnStartX = startX
 	m.spawnStartY = startY
@@ -309,6 +310,12 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 	}
 	m.Objecter = &m
 	return &m.Object
+}
+
+func isHiddenMonsterClass(class int) bool {
+	return class >= 100 && class <= 110 ||
+		class == 523 ||
+		class == 689
 }
 
 type actionState struct {

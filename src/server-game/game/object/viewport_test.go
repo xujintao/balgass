@@ -1,6 +1,10 @@
 package object
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/xujintao/balgass/src/server-game/game/model"
+)
 
 func newViewportTestObject(index int, typ ObjectType) *Object {
 	obj := &Object{
@@ -227,5 +231,43 @@ func TestClearViewportClearsActivePassiveAndReverseLinks(t *testing.T) {
 	}
 	if target.ViewportsPassiveNum != 0 {
 		t.Fatalf("target ViewportsPassiveNum = %d, want 0", target.ViewportsPassiveNum)
+	}
+}
+
+func TestCreateViewportExcludesHiddenMonster(t *testing.T) {
+	viewerActor := &skillTestActor{}
+	viewer := newViewportTestObject(32, ObjectTypePlayer)
+	viewer.Objecter = viewerActor
+	viewer.ConnectState = ConnectStatePlaying
+	viewer.State = 1
+	viewer.MapNumber = 0
+	viewer.X, viewer.Y = 130, 130
+	viewer.TX, viewer.TY = viewer.X, viewer.Y
+	viewer.CreateFrustum()
+
+	hidden := newViewportTestObject(5, ObjectTypeMonster)
+	hidden.ConnectState = ConnectStatePlaying
+	hidden.Live = true
+	hidden.State = 1
+	hidden.Class = 105
+	hidden.Hidden = true
+	hidden.MapNumber = viewer.MapNumber
+	hidden.X, hidden.Y = viewer.X, viewer.Y
+	hidden.TX, hidden.TY = hidden.X, hidden.Y
+
+	withTestObjectManager(t, viewer, hidden)
+
+	viewer.createViewport()
+
+	if _, ok := findViewport(viewer.Viewports, hidden.Index); ok {
+		t.Fatal("hidden monster was added to the player's viewport")
+	}
+	if _, ok := findViewport(hidden.ViewportsPassive, viewer.Index); ok {
+		t.Fatal("hidden monster subscribed the player to its passive viewport")
+	}
+	for _, message := range viewerActor.messages {
+		if _, ok := message.(*model.MsgCreateViewportMonsterReply); ok {
+			t.Fatal("MsgCreateViewportMonsterReply was pushed for hidden monster")
+		}
 	}
 }

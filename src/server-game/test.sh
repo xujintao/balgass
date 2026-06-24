@@ -11,4 +11,5 @@ go test -race ./game/bot
 go test ./game/fixture
 go test ./game/object
 go test ./game/object/player
+go test ./game/object/monster
 go test ./game/skill
