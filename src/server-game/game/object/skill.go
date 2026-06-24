@@ -127,23 +127,39 @@ func (obj *Object) runSkill(tobj *Object, s *skill.Skill) bool {
 		})
 		return true
 	case skill.SkillIndexPoison, // 1毒咒
-		skill.SkillIndexMeteorite,     // 2陨石
-		skill.SkillIndexLightning,     // 3掌心雷
-		skill.SkillIndexFireBall,      // 4火球
-		skill.SkillIndexFlame,         // 5火龙
-		skill.SkillIndexIce,           // 7冰封
-		skill.SkillIndexEnergyBall,    // 17能量球(初始)
-		skill.SkillIndexFallingSlash,  // 19地裂斩(武器)
-		skill.SkillIndexLunge,         // 20牙突刺(武器)
-		skill.SkillIndexUppercut,      // 21升龙击(武器)
-		skill.SkillIndexCyclone,       // 22旋风斩(武器)
-		skill.SkillIndexSlash,         // 23天地十字剑(武器)
-		skill.SkillIndexTripleShot,    // 24多重箭(武器)
-		skill.SkillIndexTwistingSlash, // 41霹雳回旋斩
-		skill.SkillIndexRagefulBlow,   // 42雷霆裂闪
-		skill.SkillIndexImpale,        // 47钻云枪
-		skill.SkillIndexPenetration,   // 52穿透箭
-		skill.SkillIndexPowerSlash:    // 56天雷闪(武器)
+		skill.SkillIndexMeteorite,         // 2陨石
+		skill.SkillIndexLightning,         // 3掌心雷
+		skill.SkillIndexFireBall,          // 4火球
+		skill.SkillIndexFlame,             // 5火龙
+		skill.SkillIndexIce,               // 7冰封
+		skill.SkillIndexTwister,           // 8龙卷风
+		skill.SkillIndexEvilSpirit,        // 9黑龙波
+		skill.SkillIndexPowerWave,         // 11真空波
+		skill.SkillIndexAquaBeam,          // 12极光
+		skill.SkillIndexCometFall,         // 13爆炎
+		skill.SkillIndexEnergyBall,        // 17能量球(初始)
+		skill.SkillIndexFallingSlash,      // 19地裂斩(武器)
+		skill.SkillIndexLunge,             // 20牙突刺(武器)
+		skill.SkillIndexUppercut,          // 21升龙击(武器)
+		skill.SkillIndexCyclone,           // 22旋风斩(武器)
+		skill.SkillIndexSlash,             // 23天地十字剑(武器)
+		skill.SkillIndexTripleShot,        // 24多重箭(武器)
+		skill.SkillIndexDecay,             // 38单毒炎
+		skill.SkillIndexIceStorm,          // 39暴风雪
+		skill.SkillIndexTwistingSlash,     // 41霹雳回旋斩
+		skill.SkillIndexRagefulBlow,       // 42雷霆裂闪
+		skill.SkillIndexCrescentMoonSlash, // 44半月斩(攻城)
+		skill.SkillIndexImpale,            // 47钻云枪
+		skill.SkillIndexFireBreath,        // 49流星焰(彩云兽)
+		skill.SkillIndexIceArrow,          // 51冰封箭
+		skill.SkillIndexPenetration,       // 52穿透箭
+		skill.SkillIndexFireSlash,         // 55玄月斩
+		skill.SkillIndexPowerSlash,        // 56天雷闪(武器)
+		skill.SkillIndexSpiralSlash,       // 57风舞回旋斩(攻城)
+		skill.SkillIndexForce,             // 60冲击(初始)
+		skill.SkillIndexFireBurst,         // 61星云火链
+		skill.SkillIndexElectricSpike,     // 65圣极光
+		skill.SkillIndexForceWave:         // 66冲击波
 		obj.runAttackSkill(tobj, s)
 		switch s.Index {
 		case skill.SkillIndexLightning, // 3掌心雷

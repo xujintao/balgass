@@ -339,7 +339,7 @@ func speedInterval(speed int) time.Duration {
 func skillInterval(combatSkill CombatSkill, world WorldSnapshot) time.Duration {
 	var interval time.Duration
 	switch combatSkill.Type {
-	case skillTypePhysical:
+	case skillTypeSiege, skillTypePhysical:
 		interval = speedInterval(world.AttackSpeed)
 	case skillTypeMagic:
 		interval = speedInterval(world.MagicSpeed)

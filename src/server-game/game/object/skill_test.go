@@ -1,6 +1,8 @@
 package object
 
 import (
+	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -231,14 +233,90 @@ func TestUseSkillUnknownImplementedSkillDoesNotCostResources(t *testing.T) {
 	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
 	target, _ := newSkillTestObject(2, ObjectTypeMonster)
 	withTestObjectManager(t, caster, target)
-	learnSkillForTest(t, caster, skill.SkillIndexEvilSpirit)
+	learnSkillForTest(t, caster, skill.SkillIndexHellFire)
 	mp, ag := caster.MP, caster.AG
 
-	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: skill.SkillIndexEvilSpirit})
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: skill.SkillIndexHellFire})
 
 	assertResourceUnchanged(t, caster, mp, ag)
 	if hasMessage[model.MsgMPReply](actor.messages) {
 		t.Fatal("resource reply was sent for unimplemented skill")
+	}
+}
+
+func TestUseSkillExpandedAttackSkills(t *testing.T) {
+	for _, index := range []int{
+		skill.SkillIndexTwister,
+		skill.SkillIndexEvilSpirit,
+		skill.SkillIndexPowerWave,
+		skill.SkillIndexAquaBeam,
+		skill.SkillIndexCometFall,
+		skill.SkillIndexDecay,
+		skill.SkillIndexIceStorm,
+		skill.SkillIndexIceArrow,
+		skill.SkillIndexFireSlash,
+		skill.SkillIndexForce,
+		skill.SkillIndexFireBurst,
+		skill.SkillIndexElectricSpike,
+		skill.SkillIndexForceWave,
+	} {
+		t.Run(fmt.Sprintf("skill_%d", index), func(t *testing.T) {
+			rand.Seed(1)
+			caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+			target, _ := newSkillTestObject(2, ObjectTypeMonster)
+			withTestObjectManager(t, caster, target)
+			caster.MP = 1000
+			caster.MaxMP = 1000
+			caster.AG = 1000
+			caster.MaxAG = 1000
+			caster.AttackRate = 1000000
+			target.HP = 10000
+			target.MaxHP = 10000
+			s := learnSkillForTest(t, caster, index)
+			targetHP := target.HP
+
+			caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: index})
+
+			if caster.MP != 1000-s.ManaUsage || caster.AG != 1000-s.BPUsage {
+				t.Fatalf("resources = %d/%d, want %d/%d",
+					caster.MP, caster.AG, 1000-s.ManaUsage, 1000-s.BPUsage)
+			}
+			if target.HP >= targetHP {
+				t.Fatalf("target HP = %d, want below %d", target.HP, targetHP)
+			}
+			if !hasMessage[model.MsgUseSkillReply](actor.messages) {
+				t.Fatal("skill success reply was not sent")
+			}
+			if !hasMessage[model.MsgMPReply](actor.messages) {
+				t.Fatal("resource reply was not sent")
+			}
+		})
+	}
+}
+
+func TestExpandedSkillDamageSource(t *testing.T) {
+	for _, tt := range []struct {
+		name       string
+		index      int
+		wantDamage int
+	}{
+		{name: "table damage", index: skill.SkillIndexEvilSpirit, wantDamage: 70},
+		{name: "ice arrow physical damage", index: skill.SkillIndexIceArrow, wantDamage: 30},
+		{name: "fire slash physical damage", index: skill.SkillIndexFireSlash, wantDamage: 30},
+		{name: "dark lord physical damage", index: skill.SkillIndexFireBurst, wantDamage: 30},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			caster, _ := newSkillTestObject(1, ObjectTypePlayer)
+			caster.AttackMin = 30
+			caster.AttackMax = 30
+			s := learnSkillForTest(t, caster, tt.index)
+			s.DamageMin = 70
+			s.DamageMax = 70
+
+			if damage := caster.getDamage(s, 0); damage != tt.wantDamage {
+				t.Fatalf("damage = %d, want %d", damage, tt.wantDamage)
+			}
+		})
 	}
 }
 

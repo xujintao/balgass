@@ -116,7 +116,7 @@ func TestWorldSnapshotRejectsUnsupportedSkillType(t *testing.T) {
 	world.skills[skill.SkillIndexPowerSlash] = &skill.Skill{
 		SkillBase: &skill.SkillBase{
 			Index:    skill.SkillIndexPowerSlash,
-			Type:     -1,
+			Type:     2,
 			Distance: 5,
 		},
 		Index: skill.SkillIndexPowerSlash,

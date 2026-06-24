@@ -406,6 +406,10 @@ func TestAttackContinuesAfterCooldownWithoutFullDecision(t *testing.T) {
 	if got := skillInterval(combatSkill, WorldSnapshot{AttackSpeed: 100}); got != 267*time.Millisecond {
 		t.Fatalf("physical skill interval = %v, want 267ms", got)
 	}
+	combatSkill = CombatSkill{Type: skillTypeSiege}
+	if got := skillInterval(combatSkill, WorldSnapshot{AttackSpeed: 100}); got != 267*time.Millisecond {
+		t.Fatalf("siege skill interval = %v, want 267ms", got)
+	}
 }
 
 func TestSkillContinuesAfterCooldownWithoutFullDecision(t *testing.T) {

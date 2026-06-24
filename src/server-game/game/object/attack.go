@@ -89,7 +89,14 @@ func (obj *Object) getDamage(s *skill.Skill, t int) int {
 		skill.SkillIndexFireBall,   // 4火球
 		skill.SkillIndexFlame,      // 5火龙
 		skill.SkillIndexIce,        // 7冰封
-		skill.SkillIndexEnergyBall: // 17能量球
+		skill.SkillIndexTwister,    // 8龙卷风
+		skill.SkillIndexEvilSpirit, // 9黑龙波
+		skill.SkillIndexPowerWave,  // 11真空波
+		skill.SkillIndexAquaBeam,   // 12极光
+		skill.SkillIndexCometFall,  // 13爆炎
+		skill.SkillIndexEnergyBall, // 17能量球
+		skill.SkillIndexDecay,      // 38单毒炎
+		skill.SkillIndexIceStorm:   // 39暴风雪
 		damageMin = s.DamageMin
 		damageMax = s.DamageMax
 	case skill.SkillIndexFallingSlash, // 19地裂斩(武器)
@@ -103,6 +110,7 @@ func (obj *Object) getDamage(s *skill.Skill, t int) int {
 		skill.SkillIndexCrescentMoonSlash, // 44半月斩(攻城)
 		skill.SkillIndexFireBreath,        // 49流星焰(彩云兽)
 		skill.SkillIndexFireSlash,         // 55玄月斩
+		skill.SkillIndexPowerSlash,        // 56天雷闪(武器)
 		skill.SkillIndexSpiralSlash:       // 57风舞回旋斩(攻城)
 		damageMin = obj.AttackMin
 		damageMax = obj.AttackMax
@@ -113,6 +121,15 @@ func (obj *Object) getDamage(s *skill.Skill, t int) int {
 		damageMax = obj.AttackMax
 		damageMin = int(float64(damageMin) * obj.GetImpaleSkillCalc())
 		damageMax = int(float64(damageMax) * obj.GetImpaleSkillCalc())
+	case skill.SkillIndexTripleShot, // 24多重箭(武器)
+		skill.SkillIndexIceArrow,      // 51冰封箭
+		skill.SkillIndexPenetration,   // 52穿透箭
+		skill.SkillIndexForce,         // 60冲击(初始)
+		skill.SkillIndexFireBurst,     // 61星云火链
+		skill.SkillIndexElectricSpike, // 65圣极光
+		skill.SkillIndexForceWave:     // 66冲击波
+		damageMin = obj.AttackMin
+		damageMax = obj.AttackMax
 	default:
 		damageMin = obj.AttackMin
 		damageMax = obj.AttackMax
