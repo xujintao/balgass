@@ -90,11 +90,31 @@ func (*Monster) GetImpaleSkillCalc() float64 {
 	return 1.0
 }
 
+func (*Monster) GetMagicAttackMin() int {
+	return 0
+}
+
+func (*Monster) GetMagicAttackMax() int {
+	return 0
+}
+
+func (*Monster) GetStrength() int {
+	return 0
+}
+
+func (*Monster) GetDexterity() int {
+	return 0
+}
+
 func (*Monster) GetEnergy() int {
 	return 0
 }
 
 func (*Monster) GetVitality() int {
+	return 0
+}
+
+func (*Monster) GetLeadership() int {
 	return 0
 }
 

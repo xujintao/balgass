@@ -493,8 +493,13 @@ type Objecter interface {
 	GetMasterLevel() int
 	IsMasterLevel() bool
 	GetSkillMPAG(s *skill.Skill) (int, int)
+	GetMagicAttackMin() int
+	GetMagicAttackMax() int
+	GetStrength() int
+	GetDexterity() int
 	GetEnergy() int
 	GetVitality() int
+	GetLeadership() int
 	GetChangeUp() int
 	CanUseItem(*item.Item) bool
 	GetInventory() *item.Inventory

@@ -13,55 +13,77 @@ import (
 )
 
 type skillTestActor struct {
-	messages []any
-	energy   int
-	vitality int
+	messages       []any
+	magicAttackMin int
+	magicAttackMax int
+	strength       int
+	dexterity      int
+	energy         int
+	vitality       int
+	leadership     int
+	knightRate     float64
+	impaleRate     float64
 }
 
-func (*skillTestActor) Addr() string                              { return "test" }
-func (*skillTestActor) Offline()                                  {}
-func (a *skillTestActor) Push(msg any)                            { a.messages = append(a.messages, msg) }
-func (*skillTestActor) ProcessAction()                            {}
-func (*skillTestActor) Process1000ms()                            {}
-func (*skillTestActor) SpawnPosition()                            {}
-func (*skillTestActor) Die(*Object, int)                          {}
-func (*skillTestActor) LevelUp(int) bool                          { return false }
-func (*skillTestActor) DieDropItem(*Object)                       {}
-func (*skillTestActor) Regen()                                    {}
-func (*skillTestActor) EquipmentChanged()                         {}
-func (*skillTestActor) GetPKLevel() int                           { return 0 }
-func (*skillTestActor) GetMasterLevel() int                       { return 0 }
-func (*skillTestActor) IsMasterLevel() bool                       { return false }
-func (*skillTestActor) GetSkillMPAG(s *skill.Skill) (int, int)    { return s.ManaUsage, s.BPUsage }
-func (a *skillTestActor) GetEnergy() int                          { return a.energy }
-func (a *skillTestActor) GetVitality() int                        { return a.vitality }
-func (*skillTestActor) GetChangeUp() int                          { return 0 }
-func (*skillTestActor) CanUseItem(*item.Item) bool                { return true }
-func (*skillTestActor) GetInventory() *item.Inventory             { return nil }
-func (*skillTestActor) GetInventoryItem(int) *item.Item           { return nil }
-func (*skillTestActor) GetWarehouse() *item.Warehouse             { return nil }
-func (*skillTestActor) SetDelayRecoverHP(int, int)                {}
-func (*skillTestActor) SetDelayRecoverSD(int, int)                {}
-func (*skillTestActor) GetAttackRatePVP() int                     { return 1000 }
-func (*skillTestActor) GetDefenseRatePVP() int                    { return 1 }
-func (*skillTestActor) GetIgnoreDefenseRate() int                 { return 0 }
-func (*skillTestActor) GetCriticalAttackRate() int                { return 0 }
-func (*skillTestActor) GetCriticalAttackDamage() int              { return 0 }
-func (*skillTestActor) GetExcellentAttackRate() int               { return 0 }
-func (*skillTestActor) GetExcellentAttackDamage() int             { return 0 }
-func (*skillTestActor) GetMonsterDieGetHP() float64               { return 0 }
-func (*skillTestActor) GetMonsterDieGetMP() float64               { return 0 }
-func (*skillTestActor) GetAddDamage() int                         { return 0 }
-func (*skillTestActor) GetArmorReduceDamage() int                 { return 0 }
-func (*skillTestActor) GetWingIncreaseDamage() int                { return 0 }
-func (*skillTestActor) GetWingReduceDamage() int                  { return 0 }
-func (*skillTestActor) GetHelperReduceDamage() int                { return 0 }
-func (*skillTestActor) GetPetIncreaseDamage() int                 { return 0 }
-func (*skillTestActor) GetPetReduceDamage() int                   { return 0 }
-func (*skillTestActor) GetDoubleDamageRate() int                  { return 0 }
-func (*skillTestActor) GetMonsterDieGetMoney() float64            { return 0 }
-func (*skillTestActor) GetKnightGladiatorCalcSkillBonus() float64 { return 1 }
-func (*skillTestActor) GetImpaleSkillCalc() float64               { return 1 }
+func (*skillTestActor) Addr() string                           { return "test" }
+func (*skillTestActor) Offline()                               {}
+func (a *skillTestActor) Push(msg any)                         { a.messages = append(a.messages, msg) }
+func (*skillTestActor) ProcessAction()                         {}
+func (*skillTestActor) Process1000ms()                         {}
+func (*skillTestActor) SpawnPosition()                         {}
+func (*skillTestActor) Die(*Object, int)                       {}
+func (*skillTestActor) LevelUp(int) bool                       { return false }
+func (*skillTestActor) DieDropItem(*Object)                    {}
+func (*skillTestActor) Regen()                                 {}
+func (*skillTestActor) EquipmentChanged()                      {}
+func (*skillTestActor) GetPKLevel() int                        { return 0 }
+func (*skillTestActor) GetMasterLevel() int                    { return 0 }
+func (*skillTestActor) IsMasterLevel() bool                    { return false }
+func (*skillTestActor) GetSkillMPAG(s *skill.Skill) (int, int) { return s.ManaUsage, s.BPUsage }
+func (a *skillTestActor) GetMagicAttackMin() int               { return a.magicAttackMin }
+func (a *skillTestActor) GetMagicAttackMax() int               { return a.magicAttackMax }
+func (a *skillTestActor) GetStrength() int                     { return a.strength }
+func (a *skillTestActor) GetDexterity() int                    { return a.dexterity }
+func (a *skillTestActor) GetEnergy() int                       { return a.energy }
+func (a *skillTestActor) GetVitality() int                     { return a.vitality }
+func (a *skillTestActor) GetLeadership() int                   { return a.leadership }
+func (*skillTestActor) GetChangeUp() int                       { return 0 }
+func (*skillTestActor) CanUseItem(*item.Item) bool             { return true }
+func (*skillTestActor) GetInventory() *item.Inventory          { return nil }
+func (*skillTestActor) GetInventoryItem(int) *item.Item        { return nil }
+func (*skillTestActor) GetWarehouse() *item.Warehouse          { return nil }
+func (*skillTestActor) SetDelayRecoverHP(int, int)             {}
+func (*skillTestActor) SetDelayRecoverSD(int, int)             {}
+func (*skillTestActor) GetAttackRatePVP() int                  { return 1000 }
+func (*skillTestActor) GetDefenseRatePVP() int                 { return 1 }
+func (*skillTestActor) GetIgnoreDefenseRate() int              { return 0 }
+func (*skillTestActor) GetCriticalAttackRate() int             { return 0 }
+func (*skillTestActor) GetCriticalAttackDamage() int           { return 0 }
+func (*skillTestActor) GetExcellentAttackRate() int            { return 0 }
+func (*skillTestActor) GetExcellentAttackDamage() int          { return 0 }
+func (*skillTestActor) GetMonsterDieGetHP() float64            { return 0 }
+func (*skillTestActor) GetMonsterDieGetMP() float64            { return 0 }
+func (*skillTestActor) GetAddDamage() int                      { return 0 }
+func (*skillTestActor) GetArmorReduceDamage() int              { return 0 }
+func (*skillTestActor) GetWingIncreaseDamage() int             { return 0 }
+func (*skillTestActor) GetWingReduceDamage() int               { return 0 }
+func (*skillTestActor) GetHelperReduceDamage() int             { return 0 }
+func (*skillTestActor) GetPetIncreaseDamage() int              { return 0 }
+func (*skillTestActor) GetPetReduceDamage() int                { return 0 }
+func (*skillTestActor) GetDoubleDamageRate() int               { return 0 }
+func (*skillTestActor) GetMonsterDieGetMoney() float64         { return 0 }
+func (a *skillTestActor) GetKnightGladiatorCalcSkillBonus() float64 {
+	if a.knightRate != 0 {
+		return a.knightRate
+	}
+	return 1
+}
+func (a *skillTestActor) GetImpaleSkillCalc() float64 {
+	if a.impaleRate != 0 {
+		return a.impaleRate
+	}
+	return 1
+}
 func (*skillTestActor) PickItem(*model.MsgPickItem)               {}
 func (*skillTestActor) DropItem(*model.MsgDropItem)               {}
 func (*skillTestActor) BuyItem(*model.MsgBuyItem)                 {}
@@ -415,20 +437,68 @@ func TestExpandedSkillDamageSource(t *testing.T) {
 	for _, tt := range []struct {
 		name       string
 		index      int
+		setup      func(*Object, *skillTestActor)
 		wantDamage int
 	}{
-		{name: "table damage", index: skill.SkillIndexEvilSpirit, wantDamage: 70},
-		{name: "ice arrow physical damage", index: skill.SkillIndexIceArrow, wantDamage: 30},
-		{name: "fire slash physical damage", index: skill.SkillIndexFireSlash, wantDamage: 30},
-		{name: "dark lord physical damage", index: skill.SkillIndexFireBurst, wantDamage: 30},
+		{
+			name:  "magic skill adds magic attack",
+			index: skill.SkillIndexEvilSpirit,
+			setup: func(caster *Object, actor *skillTestActor) {
+				actor.magicAttackMin = 20
+				actor.magicAttackMax = 20
+			},
+			wantDamage: 90,
+		},
+		{
+			name:  "knight skill adds skill damage before bonus",
+			index: skill.SkillIndexFallingSlash,
+			setup: func(caster *Object, actor *skillTestActor) {
+				actor.knightRate = 2
+			},
+			wantDamage: 200,
+		},
+		{
+			name:       "power slash uses gladiator formula",
+			index:      skill.SkillIndexPowerSlash,
+			wantDamage: 200,
+		},
+		{
+			name:       "elf skill uses elf formula",
+			index:      skill.SkillIndexIceArrow,
+			wantDamage: 200,
+		},
+		{
+			name:       "triple shot uses elf formula",
+			index:      skill.SkillIndexTripleShot,
+			wantDamage: 200,
+		},
+		{
+			name:  "dark lord skill uses lord formula",
+			index: skill.SkillIndexFireBurst,
+			setup: func(caster *Object, actor *skillTestActor) {
+				actor.energy = 100
+			},
+			wantDamage: 205,
+		},
+		{
+			name:  "force wave uses lord formula",
+			index: skill.SkillIndexForceWave,
+			setup: func(caster *Object, actor *skillTestActor) {
+				actor.energy = 100
+			},
+			wantDamage: 205,
+		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			caster, _ := newSkillTestObject(1, ObjectTypePlayer)
+			caster, actor := newSkillTestObject(1, ObjectTypePlayer)
 			caster.AttackMin = 30
 			caster.AttackMax = 30
 			s := learnSkillForTest(t, caster, tt.index)
 			s.DamageMin = 70
 			s.DamageMax = 70
+			if tt.setup != nil {
+				tt.setup(caster, actor)
+			}
 
 			if damage := caster.getDamage(s, 0); damage != tt.wantDamage {
 				t.Fatalf("damage = %d, want %d", damage, tt.wantDamage)

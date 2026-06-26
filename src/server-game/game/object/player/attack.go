@@ -90,12 +90,32 @@ func (p *Player) GetImpaleSkillCalc() float64 {
 	return p.impaleSkillCalc
 }
 
+func (p *Player) GetMagicAttackMin() int {
+	return p.magicAttackMin
+}
+
+func (p *Player) GetMagicAttackMax() int {
+	return p.magicAttackMax
+}
+
+func (p *Player) GetStrength() int {
+	return p.strength + p.addStrength
+}
+
+func (p *Player) GetDexterity() int {
+	return p.dexterity + p.addDexterity
+}
+
 func (p *Player) GetEnergy() int {
 	return p.energy + p.addEnergy
 }
 
 func (p *Player) GetVitality() int {
 	return p.vitality + p.addVitality
+}
+
+func (p *Player) GetLeadership() int {
+	return p.leadership + p.addLeadership
 }
 
 func (p *Player) Die(tobj *object.Object, damage int) {

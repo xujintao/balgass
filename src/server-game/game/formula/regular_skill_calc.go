@@ -8,6 +8,18 @@ func ImpaleSkillCalc(class, energy int, rate *float64) {
 	call(f.RegularSkillCacl, "ImpaleSkillCalc", "iii>d", class, 1, energy, rate)
 }
 
+func Elf_CalcSkillBonus(damage, energy int, out *int) {
+	call(f.RegularSkillCacl, "Elf_CalcSkillBonus", "ii>i", damage, energy, out)
+}
+
+func GladiatorPowerSlash(damage, energy int, out *int) {
+	call(f.RegularSkillCacl, "GladiatorPowerSlash", "ii>i", damage, energy, out)
+}
+
+func Lord_CalcSkillBonus(damage, energy int, out *int) {
+	call(f.RegularSkillCacl, "Lord_CalcSkillBonus", "ii>i", damage, energy, out)
+}
+
 func ElfHeal(class, index, targetIndex, energy int, addLife *int) {
 	call(f.RegularSkillCacl, "ElfHeal", "iiii>i", class, index, targetIndex, energy, addLife)
 }

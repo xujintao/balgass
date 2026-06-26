@@ -7,6 +7,7 @@ import (
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/exp"
+	"github.com/xujintao/balgass/src/server-game/game/formula"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
@@ -97,8 +98,8 @@ func (obj *Object) getDamage(s *skill.Skill, t int) int {
 		skill.SkillIndexEnergyBall, // 17能量球
 		skill.SkillIndexDecay,      // 38单毒炎
 		skill.SkillIndexIceStorm:   // 39暴风雪
-		damageMin = s.DamageMin
-		damageMax = s.DamageMax
+		damageMin = obj.GetMagicAttackMin() + s.DamageMin
+		damageMax = obj.GetMagicAttackMax() + s.DamageMax
 	case skill.SkillIndexFallingSlash, // 19地裂斩(武器)
 		skill.SkillIndexLunge,             // 20牙突刺(武器)
 		skill.SkillIndexUppercut,          // 21升龙击(武器)
@@ -110,26 +111,36 @@ func (obj *Object) getDamage(s *skill.Skill, t int) int {
 		skill.SkillIndexCrescentMoonSlash, // 44半月斩(攻城)
 		skill.SkillIndexFireBreath,        // 49流星焰(彩云兽)
 		skill.SkillIndexFireSlash,         // 55玄月斩
-		skill.SkillIndexPowerSlash,        // 56天雷闪(武器)
 		skill.SkillIndexSpiralSlash:       // 57风舞回旋斩(攻城)
-		damageMin = obj.AttackMin
-		damageMax = obj.AttackMax
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
 		damageMin = int(float64(damageMin) * obj.GetKnightGladiatorCalcSkillBonus())
 		damageMax = int(float64(damageMax) * obj.GetKnightGladiatorCalcSkillBonus())
 	case skill.SkillIndexImpale: // 47钻云枪
-		damageMin = obj.AttackMin
-		damageMax = obj.AttackMax
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
 		damageMin = int(float64(damageMin) * obj.GetImpaleSkillCalc())
 		damageMax = int(float64(damageMax) * obj.GetImpaleSkillCalc())
+	case skill.SkillIndexPowerSlash: // 56天雷闪(武器)
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.GladiatorPowerSlash(damageMin, obj.GetEnergy(), &damageMin)
+		formula.GladiatorPowerSlash(damageMax, obj.GetEnergy(), &damageMax)
 	case skill.SkillIndexTripleShot, // 24多重箭(武器)
-		skill.SkillIndexIceArrow,      // 51冰封箭
-		skill.SkillIndexPenetration,   // 52穿透箭
-		skill.SkillIndexForce,         // 60冲击(初始)
+		skill.SkillIndexIceArrow,    // 51冰封箭
+		skill.SkillIndexPenetration: // 52穿透箭
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.Elf_CalcSkillBonus(damageMin, obj.GetEnergy(), &damageMin)
+		formula.Elf_CalcSkillBonus(damageMax, obj.GetEnergy(), &damageMax)
+	case skill.SkillIndexForce, // 60冲击(初始)
 		skill.SkillIndexFireBurst,     // 61星云火链
 		skill.SkillIndexElectricSpike, // 65圣极光
 		skill.SkillIndexForceWave:     // 66冲击波
-		damageMin = obj.AttackMin
-		damageMax = obj.AttackMax
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.Lord_CalcSkillBonus(damageMin, obj.GetEnergy(), &damageMin)
+		formula.Lord_CalcSkillBonus(damageMax, obj.GetEnergy(), &damageMax)
 	default:
 		damageMin = obj.AttackMin
 		damageMax = obj.AttackMax
