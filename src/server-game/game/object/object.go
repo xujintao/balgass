@@ -331,6 +331,7 @@ func (m *objectManager) Process1000ms() {
 			continue
 		}
 		obj.Process1000ms()
+		obj.processSkillEffect()
 		obj.processViewport() // 1->2
 		obj.processRegen()    // 4->1
 	}
@@ -492,6 +493,8 @@ type Objecter interface {
 	GetMasterLevel() int
 	IsMasterLevel() bool
 	GetSkillMPAG(s *skill.Skill) (int, int)
+	GetEnergy() int
+	GetVitality() int
 	GetChangeUp() int
 	CanUseItem(*item.Item) bool
 	GetInventory() *item.Inventory
@@ -631,6 +634,7 @@ type Object struct {
 	PentagramDefense          int
 	Skills                    skill.Skills
 	skillUseTimes             map[int]time.Time
+	skillEffects              map[int]*skillEffect
 	FrustumX                  [MaxArrayFrustum]int
 	FrustumY                  [MaxArrayFrustum]int
 	SkillFrustumX             [MaxArrayFrustum]int
@@ -905,6 +909,7 @@ type Object struct {
 func (obj *Object) Init() {
 	obj.TargetNumber = -1
 	obj.initSkill()
+	obj.initSkillEffect()
 	obj.initViewport()
 	obj.initMessage()
 }
@@ -914,6 +919,7 @@ func (obj *Object) Reset() {
 	obj.TargetNumber = -1
 	obj.Live = false
 	obj.clearSkill()
+	obj.clearSkillEffect()
 	obj.clearViewport()
 }
 

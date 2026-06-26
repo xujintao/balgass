@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/game/class"
+	"github.com/xujintao/balgass/src/server-game/game/formula"
 	"github.com/xujintao/balgass/src/server-game/game/math2"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
@@ -45,7 +47,7 @@ func (obj *Object) UseSkill(msg *model.MsgUseSkill) {
 	if !ok {
 		return
 	}
-	if !obj.runSkill(tobj, s) {
+	if !obj.useSkill(tobj, s) {
 		return
 	}
 	obj.MP -= mp
@@ -116,16 +118,8 @@ func (obj *Object) UseSkillReply(tobj *Object, s *skill.Skill, success bool) {
 	obj.PushViewport(&reply)
 }
 
-func (obj *Object) runSkill(tobj *Object, s *skill.Skill) bool {
+func (obj *Object) useSkill(tobj *Object, s *skill.Skill) bool {
 	switch s.Index {
-	case skill.SkillIndexDefense: // 18圣盾防御
-		obj.PushViewport(&model.MsgActionReply{
-			Index:  obj.Index,
-			Action: int(skill.SkillIndexDefense),
-			Dir:    obj.Dir,
-			Target: tobj.Index,
-		})
-		return true
 	case skill.SkillIndexPoison, // 1毒咒
 		skill.SkillIndexMeteorite,         // 2陨石
 		skill.SkillIndexLightning,         // 3掌心雷
@@ -160,7 +154,7 @@ func (obj *Object) runSkill(tobj *Object, s *skill.Skill) bool {
 		skill.SkillIndexFireBurst,         // 61星云火链
 		skill.SkillIndexElectricSpike,     // 65圣极光
 		skill.SkillIndexForceWave:         // 66冲击波
-		obj.runAttackSkill(tobj, s)
+		obj.useSkillAttack(tobj, s)
 		switch s.Index {
 		case skill.SkillIndexLightning, // 3掌心雷
 			skill.SkillIndexFallingSlash, // 19地裂斩(武器)
@@ -172,13 +166,29 @@ func (obj *Object) runSkill(tobj *Object, s *skill.Skill) bool {
 		}
 		return true
 	case skill.SkillIndexDeathStab: // 43袭风刺
-		obj.UseSkillDeathStab(s, tobj)
+		obj.useSkillDeathStab(s, tobj)
 		return true
+	case skill.SkillIndexDefense: // 18圣盾防御
+		obj.PushViewport(&model.MsgActionReply{
+			Index:  obj.Index,
+			Action: int(skill.SkillIndexDefense),
+			Dir:    obj.Dir,
+			Target: tobj.Index,
+		})
+		return true
+	case skill.SkillIndexHeal: // 26治疗
+		return obj.useSkillHeal(tobj, s)
+	case skill.SkillIndexGreaterDefense: // 27防御
+		return obj.useSkillGreaterDefense(tobj, s)
+	case skill.SkillIndexGreaterAttack: // 28攻击
+		return obj.useSkillGreaterAttack(tobj, s)
+	case skill.SkillIndexSwellHP: // 48生命之光
+		return obj.useSkillSwellHP(tobj, s)
 	}
 	return false
 }
 
-func (obj *Object) runAttackSkill(tobj *Object, s *skill.Skill) {
+func (obj *Object) useSkillAttack(tobj *Object, s *skill.Skill) {
 	obj.UseSkillReply(tobj, s, true)
 	obj.attack(tobj, s, 0)
 }
@@ -220,7 +230,7 @@ func (obj *Object) CheckSkillFrustum(tobj *Object) bool {
 	return true
 }
 
-func (obj *Object) UseSkillDeathStab(s *skill.Skill, tobj *Object) {
+func (obj *Object) useSkillDeathStab(s *skill.Skill, tobj *Object) {
 	obj.UseSkillReply(tobj, s, true)
 	obj.attack(tobj, s, 0)
 	if rand.Intn(100)%3 == 0 {
@@ -237,4 +247,84 @@ func (obj *Object) UseSkillDeathStab(s *skill.Skill, tobj *Object) {
 			obj.attack(vpobj, s, 0)
 		}
 	})
+}
+
+func (obj *Object) useSkillHeal(tobj *Object, s *skill.Skill) bool {
+	if obj.Class != int(class.Elf) || !tobj.canReceiveSupportSkill() {
+		return false
+	}
+	addLife := 0
+	formula.ElfHeal(tobj.Class, obj.Index, tobj.Index, obj.GetEnergy(), &addLife)
+	if addLife <= 0 {
+		return false
+	}
+	tobj.HP += addLife
+	if tobj.HP > tobj.MaxHP {
+		tobj.HP = tobj.MaxHP
+	}
+	obj.UseSkillReply(tobj, s, true)
+	tobj.PushHPSD(tobj.HP, tobj.SD)
+	return true
+}
+
+func (obj *Object) useSkillGreaterDefense(tobj *Object, s *skill.Skill) bool {
+	if obj.Class != int(class.Elf) || !tobj.canReceiveSupportSkill() {
+		return false
+	}
+	defense, duration := 0.0, 0.0
+	formula.ElfDefense(tobj.Class, obj.Index, tobj.Index, obj.GetEnergy(), &defense, &duration)
+	if defense <= 0 || duration <= 0 {
+		return false
+	}
+	tobj.addSkillEffect(s.Index, &skillEffect{
+		defense: int(defense),
+		expire:  time.Now().Add(time.Duration(duration) * time.Second),
+	})
+	obj.UseSkillReply(tobj, s, true)
+	return true
+}
+
+func (obj *Object) useSkillGreaterAttack(tobj *Object, s *skill.Skill) bool {
+	if obj.Class != int(class.Elf) || !tobj.canReceiveSupportSkill() {
+		return false
+	}
+	attack, duration := 0.0, 0.0
+	formula.ElfAttack(tobj.Class, obj.Index, tobj.Index, obj.GetEnergy(), &attack, &duration)
+	if attack <= 0 || duration <= 0 {
+		return false
+	}
+	tobj.addSkillEffect(s.Index, &skillEffect{
+		attack: int(attack),
+		expire: time.Now().Add(time.Duration(duration) * time.Second),
+	})
+	obj.UseSkillReply(tobj, s, true)
+	return true
+}
+
+func (obj *Object) useSkillSwellHP(tobj *Object, s *skill.Skill) bool {
+	if (obj.Class != int(class.Knight) && obj.Class != int(class.Magumsa)) || !tobj.canReceiveSupportSkill() {
+		return false
+	}
+	addLifeRate := 0.0
+	duration := 0
+	formula.KnightSkillAddLife(obj.GetVitality(), obj.GetEnergy(), 0, &addLifeRate, &duration)
+	addHP := int(float64(tobj.MaxHP) * addLifeRate / 100)
+	if addHP <= 0 || duration <= 0 {
+		return false
+	}
+	tobj.addSkillEffect(s.Index, &skillEffect{
+		maxHP:  addHP,
+		expire: time.Now().Add(time.Duration(duration) * time.Second),
+	})
+	obj.UseSkillReply(tobj, s, true)
+	tobj.PushMaxHPSD(tobj.MaxHP, tobj.MaxSD)
+	tobj.PushHPSD(tobj.HP, tobj.SD)
+	return true
+}
+
+func (obj *Object) canReceiveSupportSkill() bool {
+	if obj.Type == ObjectTypePlayer {
+		return true
+	}
+	return obj.Index >= ObjectManager.maxMonsterCount && obj.Index < ObjectManager.playerStartIndex
 }

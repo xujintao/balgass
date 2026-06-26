@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
@@ -13,6 +14,8 @@ import (
 
 type skillTestActor struct {
 	messages []any
+	energy   int
+	vitality int
 }
 
 func (*skillTestActor) Addr() string                              { return "test" }
@@ -30,6 +33,8 @@ func (*skillTestActor) GetPKLevel() int                           { return 0 }
 func (*skillTestActor) GetMasterLevel() int                       { return 0 }
 func (*skillTestActor) IsMasterLevel() bool                       { return false }
 func (*skillTestActor) GetSkillMPAG(s *skill.Skill) (int, int)    { return s.ManaUsage, s.BPUsage }
+func (a *skillTestActor) GetEnergy() int                          { return a.energy }
+func (a *skillTestActor) GetVitality() int                        { return a.vitality }
 func (*skillTestActor) GetChangeUp() int                          { return 0 }
 func (*skillTestActor) CanUseItem(*item.Item) bool                { return true }
 func (*skillTestActor) GetInventory() *item.Inventory             { return nil }
@@ -241,6 +246,118 @@ func TestUseSkillUnknownImplementedSkillDoesNotCostResources(t *testing.T) {
 	assertResourceUnchanged(t, caster, mp, ag)
 	if hasMessage[model.MsgMPReply](actor.messages) {
 		t.Fatal("resource reply was sent for unimplemented skill")
+	}
+}
+
+func TestUseSkillHealRestoresHPAndCostsResources(t *testing.T) {
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	target, targetActor := newSkillTestObject(2, ObjectTypePlayer)
+	withTestObjectManager(t, caster, target)
+	caster.Class = int(class.Elf)
+	actor.energy = 100
+	target.HP = 80
+	target.MaxHP = 100
+	s := learnSkillForTest(t, caster, skill.SkillIndexHeal)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: skill.SkillIndexHeal})
+
+	if target.HP != target.MaxHP {
+		t.Fatalf("target HP = %d, want %d", target.HP, target.MaxHP)
+	}
+	if caster.MP != 100-s.ManaUsage || caster.AG != 100-s.BPUsage {
+		t.Fatalf("resources = %d/%d, want %d/%d", caster.MP, caster.AG, 100-s.ManaUsage, 100-s.BPUsage)
+	}
+	if !hasMessage[model.MsgUseSkillReply](actor.messages) {
+		t.Fatal("skill success reply was not sent")
+	}
+	if !hasMessage[model.MsgHPReply](targetActor.messages) {
+		t.Fatal("target HP reply was not sent")
+	}
+}
+
+func TestUseSkillSupportSkillFailureDoesNotCostResources(t *testing.T) {
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypePlayer)
+	withTestObjectManager(t, caster, target)
+	caster.Class = int(class.Wizard)
+	learnSkillForTest(t, caster, skill.SkillIndexHeal)
+	mp, ag := caster.MP, caster.AG
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: skill.SkillIndexHeal})
+
+	assertResourceUnchanged(t, caster, mp, ag)
+	if hasMessage[model.MsgMPReply](actor.messages) {
+		t.Fatal("resource reply was sent for rejected support skill")
+	}
+}
+
+func TestUseSkillGreaterAttackExpires(t *testing.T) {
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypePlayer)
+	withTestObjectManager(t, caster, target)
+	caster.Class = int(class.Elf)
+	actor.energy = 100
+	target.AttackMin = 10
+	target.AttackMax = 10
+	learnSkillForTest(t, caster, skill.SkillIndexGreaterAttack)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: skill.SkillIndexGreaterAttack})
+
+	if damage := target.getDamage(skill.Skill0, 0); damage <= 10 {
+		t.Fatalf("damage = %d, want above 10", damage)
+	}
+	target.skillEffects[skill.SkillIndexGreaterAttack].expire = time.Now().Add(-time.Second)
+	target.processSkillEffect()
+	if damage := target.getDamage(skill.Skill0, 0); damage != 10 {
+		t.Fatalf("expired damage = %d, want 10", damage)
+	}
+}
+
+func TestUseSkillGreaterDefenseExpires(t *testing.T) {
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypePlayer)
+	withTestObjectManager(t, caster, target)
+	caster.Class = int(class.Elf)
+	actor.energy = 100
+	target.Defense = 10
+	learnSkillForTest(t, caster, skill.SkillIndexGreaterDefense)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: skill.SkillIndexGreaterDefense})
+
+	if target.Defense <= 10 {
+		t.Fatalf("target defense = %d, want above 10", target.Defense)
+	}
+	target.skillEffects[skill.SkillIndexGreaterDefense].expire = time.Now().Add(-time.Second)
+	target.processSkillEffect()
+	if target.Defense != 10 {
+		t.Fatalf("expired target defense = %d, want 10", target.Defense)
+	}
+}
+
+func TestUseSkillSwellHPExpiresAndClampsHP(t *testing.T) {
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	target, targetActor := newSkillTestObject(2, ObjectTypePlayer)
+	withTestObjectManager(t, caster, target)
+	caster.Class = int(class.Knight)
+	actor.energy = 100
+	actor.vitality = 200
+	target.HP = 100
+	target.MaxHP = 100
+	learnSkillForTest(t, caster, skill.SkillIndexSwellHP)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: skill.SkillIndexSwellHP})
+
+	if target.MaxHP <= 100 {
+		t.Fatalf("target MaxHP = %d, want above 100", target.MaxHP)
+	}
+	target.HP = target.MaxHP
+	target.skillEffects[skill.SkillIndexSwellHP].expire = time.Now().Add(-time.Second)
+	target.processSkillEffect()
+	if target.MaxHP != 100 || target.HP != 100 {
+		t.Fatalf("expired HP/MaxHP = %d/%d, want 100/100", target.HP, target.MaxHP)
+	}
+	if !hasMessage[model.MsgHPReply](targetActor.messages) {
+		t.Fatal("target HP reply was not sent")
 	}
 }
 

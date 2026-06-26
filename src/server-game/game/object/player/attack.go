@@ -90,6 +90,14 @@ func (p *Player) GetImpaleSkillCalc() float64 {
 	return p.impaleSkillCalc
 }
 
+func (p *Player) GetEnergy() int {
+	return p.energy + p.addEnergy
+}
+
+func (p *Player) GetVitality() int {
+	return p.vitality + p.addVitality
+}
+
 func (p *Player) Die(tobj *object.Object, damage int) {
 	// drop experience
 	p.DieDropExperience()

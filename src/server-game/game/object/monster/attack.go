@@ -90,6 +90,14 @@ func (*Monster) GetImpaleSkillCalc() float64 {
 	return 1.0
 }
 
+func (*Monster) GetEnergy() int {
+	return 0
+}
+
+func (*Monster) GetVitality() int {
+	return 0
+}
+
 func (m *Monster) Die(tobj *object.Object, damage int) {
 	// give experience to target
 	m.DieGiveExperience(tobj, damage)
