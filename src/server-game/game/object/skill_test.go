@@ -271,6 +271,28 @@ func TestUseSkillUnknownImplementedSkillDoesNotCostResources(t *testing.T) {
 	}
 }
 
+func TestUseSkillDeferredSummonerSkillsDoNotCostResources(t *testing.T) {
+	for _, index := range []int{
+		skill.SkillIndexDrainLife,
+		skill.SkillIndexSummonerExplosion,
+	} {
+		t.Run(fmt.Sprintf("skill_%d", index), func(t *testing.T) {
+			caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+			target, _ := newSkillTestObject(2, ObjectTypeMonster)
+			withTestObjectManager(t, caster, target)
+			learnSkillForTest(t, caster, index)
+			mp, ag := caster.MP, caster.AG
+
+			caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: index})
+
+			assertResourceUnchanged(t, caster, mp, ag)
+			if hasMessage[model.MsgMPReply](actor.messages) {
+				t.Fatal("resource reply was sent for deferred summoner skill")
+			}
+		})
+	}
+}
+
 func TestUseSkillHealRestoresHPAndCostsResources(t *testing.T) {
 	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
 	target, targetActor := newSkillTestObject(2, ObjectTypePlayer)
@@ -325,12 +347,12 @@ func TestUseSkillGreaterAttackExpires(t *testing.T) {
 
 	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: skill.SkillIndexGreaterAttack})
 
-	if damage := target.getDamage(skill.Skill0, 0); damage <= 10 {
+	if damage := target.getDamage(skill.Skill0, 0, nil); damage <= 10 {
 		t.Fatalf("damage = %d, want above 10", damage)
 	}
 	target.skillEffects[skill.SkillIndexGreaterAttack].expire = time.Now().Add(-time.Second)
 	target.processSkillEffect()
-	if damage := target.getDamage(skill.Skill0, 0); damage != 10 {
+	if damage := target.getDamage(skill.Skill0, 0, nil); damage != 10 {
 		t.Fatalf("expired damage = %d, want 10", damage)
 	}
 }
@@ -398,6 +420,10 @@ func TestUseSkillExpandedAttackSkills(t *testing.T) {
 		skill.SkillIndexFireBurst,
 		skill.SkillIndexElectricSpike,
 		skill.SkillIndexForceWave,
+		skill.SkillIndexChainLightning,
+		skill.SkillIndexLightningShock,
+		skill.SkillIndexMultiShot,
+		skill.SkillIndexKillingBlow,
 	} {
 		t.Run(fmt.Sprintf("skill_%d", index), func(t *testing.T) {
 			rand.Seed(1)
@@ -438,6 +464,7 @@ func TestExpandedSkillDamageSource(t *testing.T) {
 		name       string
 		index      int
 		setup      func(*Object, *skillTestActor)
+		targetType ObjectType
 		wantDamage int
 	}{
 		{
@@ -473,6 +500,11 @@ func TestExpandedSkillDamageSource(t *testing.T) {
 			wantDamage: 200,
 		},
 		{
+			name:       "multi shot uses elf formula",
+			index:      skill.SkillIndexMultiShot,
+			wantDamage: 200,
+		},
+		{
 			name:  "dark lord skill uses lord formula",
 			index: skill.SkillIndexFireBurst,
 			setup: func(caster *Object, actor *skillTestActor) {
@@ -488,9 +520,76 @@ func TestExpandedSkillDamageSource(t *testing.T) {
 			},
 			wantDamage: 205,
 		},
+		{
+			name:  "summoner magic skill adds magic attack",
+			index: skill.SkillIndexLightningShock,
+			setup: func(caster *Object, actor *skillTestActor) {
+				actor.magicAttackMin = 20
+				actor.magicAttackMax = 20
+			},
+			wantDamage: 90,
+		},
+		{
+			name:  "strike of destruction uses strike formula",
+			index: skill.SkillIndexStrikeDestruction,
+			setup: func(caster *Object, actor *skillTestActor) {
+				actor.energy = 100
+			},
+			wantDamage: 210,
+		},
+		{
+			name:       "flame strike uses flame formula",
+			index:      skill.SkillIndexFlameStrike,
+			wantDamage: 200,
+		},
+		{
+			name:  "chain lightning uses single target formula",
+			index: skill.SkillIndexChainLightning,
+			setup: func(caster *Object, actor *skillTestActor) {
+				actor.magicAttackMin = 20
+				actor.magicAttackMax = 20
+			},
+			wantDamage: 90,
+		},
+		{
+			name:  "rage fighter vitality skill uses vitality formula",
+			index: skill.SkillIndexKillingBlow,
+			setup: func(caster *Object, actor *skillTestActor) {
+				actor.vitality = 100
+			},
+			wantDamage: 60,
+		},
+		{
+			name:  "dark side uses dexterity and energy formula",
+			index: skill.SkillIndexDarkSide,
+			setup: func(caster *Object, actor *skillTestActor) {
+				actor.dexterity = 80
+				actor.energy = 100
+			},
+			wantDamage: 144,
+		},
+		{
+			name:       "dragon slasher uses player target formula",
+			index:      skill.SkillIndexDragonSlasher,
+			setup:      func(caster *Object, actor *skillTestActor) { actor.energy = 100 },
+			targetType: ObjectTypePlayer,
+			wantDamage: 60,
+		},
+		{
+			name:       "dragon slasher uses monster target formula",
+			index:      skill.SkillIndexDragonSlasher,
+			setup:      func(caster *Object, actor *skillTestActor) { actor.energy = 100 },
+			targetType: ObjectTypeMonster,
+			wantDamage: 480,
+		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+			targetType := tt.targetType
+			if targetType == ObjectTypeEmpty {
+				targetType = ObjectTypeMonster
+			}
+			target, _ := newSkillTestObject(2, targetType)
 			caster.AttackMin = 30
 			caster.AttackMax = 30
 			s := learnSkillForTest(t, caster, tt.index)
@@ -500,7 +599,7 @@ func TestExpandedSkillDamageSource(t *testing.T) {
 				tt.setup(caster, actor)
 			}
 
-			if damage := caster.getDamage(s, 0); damage != tt.wantDamage {
+			if damage := caster.getDamage(s, 0, target); damage != tt.wantDamage {
 				t.Fatalf("damage = %d, want %d", damage, tt.wantDamage)
 			}
 		})

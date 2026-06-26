@@ -20,6 +20,54 @@ func Lord_CalcSkillBonus(damage, energy int, out *int) {
 	call(f.RegularSkillCacl, "Lord_CalcSkillBonus", "ii>i", damage, energy, out)
 }
 
+func ChainLightningCalc(damage, targetNumber int, out *int) {
+	call(f.RegularSkillCacl, "ChainLightningCalc", "ii>i", damage, targetNumber, out)
+}
+
+func StrikeOfDestructionCalc(damage, energy int, out *int) {
+	call(f.RegularSkillCacl, "StrikeOfDestructionCalc", "ii>i", damage, energy, out)
+}
+
+func FlameStrikeCalc(damage int, out *int) {
+	call(f.RegularSkillCacl, "FlameStrikeCalc", "i>i", damage, out)
+}
+
+func ChaoticDiseierCalc(damage, energy int, out *int) {
+	call(f.RegularSkillCacl, "ChaoticDiseierCalc", "ii>i", damage, energy, out)
+}
+
+func RageFighterKillingBlow(damage, vitality int, out *int) {
+	call(f.RegularSkillCacl, "RageFighterKillingBlow", "ii>i", damage, vitality, out)
+}
+
+func RageFighterBeastUppercut(damage, vitality int, out *int) {
+	call(f.RegularSkillCacl, "RageFighterBeastUppercut", "ii>i", damage, vitality, out)
+}
+
+func RageFighterChainDrive(damage, vitality int, out *int) {
+	call(f.RegularSkillCacl, "RageFighterChainDrive", "ii>i", damage, vitality, out)
+}
+
+func RageFighterDarkSideIncDamage(damage, dexterity, energy int, out *int) {
+	call(f.RegularSkillCacl, "RageFighterDarkSideIncDamage", "iii>i", damage, dexterity, energy, out)
+}
+
+func RageFighterDragonRoar(damage, energy int, out *int) {
+	call(f.RegularSkillCacl, "RageFighterDragonRoar", "ii>i", damage, energy, out)
+}
+
+func RageFighterDragonSlasher(damage, energy, targetType int, out *int) {
+	call(f.RegularSkillCacl, "RageFighterDragonSlasher", "iii>i", damage, energy, targetType, out)
+}
+
+func RageFighterCharge(damage, vitality int, out *int) {
+	call(f.RegularSkillCacl, "RageFighterCharge", "ii>i", damage, vitality, out)
+}
+
+func RageFighterPhoenixShot(damage, vitality int, out *int) {
+	call(f.RegularSkillCacl, "RageFighterPhoenixShot", "ii>i", damage, vitality, out)
+}
+
 func ElfHeal(class, index, targetIndex, energy int, addLife *int) {
 	call(f.RegularSkillCacl, "ElfHeal", "iiii>i", class, index, targetIndex, energy, addLife)
 }

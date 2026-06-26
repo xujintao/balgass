@@ -14,77 +14,116 @@ func init() {
 }
 
 const (
-	SkillIndexPoison             int        = 1 + iota // 毒咒
-	SkillIndexMeteorite                                // 陨石
-	SkillIndexLightning                                // 掌心雷
-	SkillIndexFireBall                                 // 火球
-	SkillIndexFlame                                    // 火龙
-	SkillIndexTeleport                                 // 瞬间移动
-	SkillIndexIce                                      // 冰封
-	SkillIndexTwister                                  // 龙卷风
-	SkillIndexEvilSpirit                               // 黑龙波
-	SkillIndexHellFire                                 // 地狱火
-	SkillIndexPowerWave                                // 真空波
-	SkillIndexAquaBeam                                 // 极光
-	SkillIndexCometFall                                // 爆炎
-	SkillIndexInferno                                  // 毁灭烈焰
-	SkillIndexTeleportAlly                             // 小挪移
-	SkillIndexSoulBarrier                              // 守护之魂
-	SkillIndexEnergyBall                               // 能量球
-	SkillIndexDefense                                  // 圣盾防御
-	SkillIndexFallingSlash                             // 地裂斩(武器)
-	SkillIndexLunge                                    // 牙突刺(武器)
-	SkillIndexUppercut                                 // 升龙击(武器)
-	SkillIndexCyclone                                  // 旋风斩(武器)
-	SkillIndexSlash                                    // 天地十字剑(武器)
-	SkillIndexTripleShot                               // 多重箭(武器)
-	SkillIndexHeal               = 2 + iota            // 治疗
-	SkillIndexGreaterDefense                           // 防御
-	SkillIndexGreaterAttack                            // 攻击
-	SkillIndexSummonGoblin       = 3 + iota            // 召唤哥布林
-	SkillIndexSummonStoneGolem                         // 召唤石巨人
-	SkillIndexSummonAssassin                           // 召唤暗杀者
-	SkillIndexSummonEliteYeti                          // 召唤雪人王
-	SkillIndexSummonDarkKnight                         // 召唤暗黑骑士
-	SkillIndexSummonBali                               // 召唤巴里
-	SkillIndexSummonSoldier                            // 召唤黄金斗士
-	SkillIndexDecay              = 4 + iota            // 单毒炎
-	SkillIndexIceStorm                                 // 暴风雪
-	SkillIndexNova                                     // 星辰一怒
-	SkillIndexTwistingSlash                            // 霹雳回旋斩
-	SkillIndexRagefulBlow                              // 雷霆裂闪
-	SkillIndexDeathStab                                // 袭风刺
-	SkillIndexCrescentMoonSlash                        // 半月斩(攻城)
-	SkillIndexLance                                    // 回旋刃(攻城)
-	SkillIndexStarfall                                 // 天堂之箭(攻城)
-	SkillIndexImpale                                   // 钻云枪
-	SkillIndexSwellHP                                  // 生命之光
-	SkillIndexFireBreath                               // 流星焰(彩云兽)
-	SkillIndexDevilFire                                // Flame of Evil (Monster)
-	SkillIndexIceArrow                                 // 冰封箭
-	SkillIndexPenetration                              // 穿透箭
-	SkillIndexFireSlash          = 6 + iota            // 玄月斩
-	SkillIndexPowerSlash                               // 天雷闪(武器)
-	SkillIndexSpiralSlash                              // 风舞回旋斩(攻城)
-	SkillIndexForce              = 8 + iota            // 冲击
-	SkillIndexFireBurst                                // 星云火链
-	SkillIndexEarthshake                               // 地裂(黑王马)
-	SkillIndexSummon                                   // 星云召唤
-	SkillIndexAddCriticalDamage                        // 致命圣印
-	SkillIndexElectricSpike                            // 圣极光
-	SkillIndexForceWave                                // 冲击波
-	SkillIndexStun                                     // Stun
-	SkillIndexCancelStun                               // CancelStun
-	SkillIndexSwellMP                                  // SwellMP
-	SkillIndexInvisibility                             // Invisibility
-	SkillIndexCancelInvisibility                       // CancelInvisibility
-	SkillIndexAbolishMagic                             // AbolishMagic
-	SkillIndexMPRays                                   // 幻魔光束(攻城)
-	SkillIndexFireBlast                                // 神圣火焰(攻城)
-	SkillIndexPlasmaStorm        = 9 + iota            // 闪电链(炎狼兽)
-	SkillIndexInfinityArrow                            // 无影箭
-	SkillIndexFireScream                               // 火舞旋风
-	SkillIndexExplosion                                // Explosion
+	SkillIndexPoison             = 1   // 毒咒
+	SkillIndexMeteorite          = 2   // 陨石
+	SkillIndexLightning          = 3   // 掌心雷
+	SkillIndexFireBall           = 4   // 火球
+	SkillIndexFlame              = 5   // 火龙
+	SkillIndexTeleport           = 6   // 瞬间移动
+	SkillIndexIce                = 7   // 冰封
+	SkillIndexTwister            = 8   // 龙卷风
+	SkillIndexEvilSpirit         = 9   // 黑龙波
+	SkillIndexHellFire           = 10  // 地狱火
+	SkillIndexPowerWave          = 11  // 真空波
+	SkillIndexAquaBeam           = 12  // 极光
+	SkillIndexCometFall          = 13  // 爆炎
+	SkillIndexInferno            = 14  // 毁灭烈焰
+	SkillIndexTeleportAlly       = 15  // 小挪移
+	SkillIndexSoulBarrier        = 16  // 守护之魂
+	SkillIndexEnergyBall         = 17  // 能量球
+	SkillIndexDefense            = 18  // 圣盾防御
+	SkillIndexFallingSlash       = 19  // 地裂斩(武器)
+	SkillIndexLunge              = 20  // 牙突刺(武器)
+	SkillIndexUppercut           = 21  // 升龙击(武器)
+	SkillIndexCyclone            = 22  // 旋风斩(武器)
+	SkillIndexSlash              = 23  // 天地十字剑(武器)
+	SkillIndexTripleShot         = 24  // 多重箭(武器)
+	SkillIndexHeal               = 26  // 治疗
+	SkillIndexGreaterDefense     = 27  // 防御
+	SkillIndexGreaterAttack      = 28  // 攻击
+	SkillIndexSummonGoblin       = 30  // 召唤哥布林
+	SkillIndexSummonStoneGolem   = 31  // 召唤石巨人
+	SkillIndexSummonAssassin     = 32  // 召唤暗杀者
+	SkillIndexSummonEliteYeti    = 33  // 召唤雪人王
+	SkillIndexSummonDarkKnight   = 34  // 召唤暗黑骑士
+	SkillIndexSummonBali         = 35  // 召唤巴里
+	SkillIndexSummonSoldier      = 36  // 召唤黄金斗士
+	SkillIndexDecay              = 38  // 单毒炎
+	SkillIndexIceStorm           = 39  // 暴风雪
+	SkillIndexNova               = 40  // 星辰一怒
+	SkillIndexTwistingSlash      = 41  // 霹雳回旋斩
+	SkillIndexRagefulBlow        = 42  // 雷霆裂闪
+	SkillIndexDeathStab          = 43  // 袭风刺
+	SkillIndexCrescentMoonSlash  = 44  // 半月斩(攻城)
+	SkillIndexLance              = 45  // 回旋刃(攻城)
+	SkillIndexStarfall           = 46  // 天堂之箭(攻城)
+	SkillIndexImpale             = 47  // 钻云枪
+	SkillIndexSwellHP            = 48  // 生命之光
+	SkillIndexFireBreath         = 49  // 流星焰(彩云兽)
+	SkillIndexDevilFire          = 50  // Flame of Evil (Monster)
+	SkillIndexIceArrow           = 51  // 冰封箭
+	SkillIndexPenetration        = 52  // 穿透箭
+	SkillIndexFireSlash          = 55  // 玄月斩
+	SkillIndexPowerSlash         = 56  // 天雷闪(武器)
+	SkillIndexSpiralSlash        = 57  // 风舞回旋斩(攻城)
+	SkillIndexForce              = 60  // 冲击
+	SkillIndexFireBurst          = 61  // 星云火链
+	SkillIndexEarthshake         = 62  // 地裂(黑王马)
+	SkillIndexSummon             = 63  // 星云召唤
+	SkillIndexAddCriticalDamage  = 64  // 致命圣印
+	SkillIndexElectricSpike      = 65  // 圣极光
+	SkillIndexForceWave          = 66  // 冲击波
+	SkillIndexStun               = 67  // Stun
+	SkillIndexCancelStun         = 68  // CancelStun
+	SkillIndexSwellMP            = 69  // SwellMP
+	SkillIndexInvisibility       = 70  // Invisibility
+	SkillIndexCancelInvisibility = 71  // CancelInvisibility
+	SkillIndexAbolishMagic       = 72  // AbolishMagic
+	SkillIndexMPRays             = 73  // 幻魔光束(攻城)
+	SkillIndexFireBlast          = 74  // 神圣火焰(攻城)
+	SkillIndexPlasmaStorm        = 76  // 闪电链(炎狼兽)
+	SkillIndexInfinityArrow      = 77  // 无影箭
+	SkillIndexFireScream         = 78  // 火舞旋风
+	SkillIndexExplosion          = 79  // Explosion
+	SkillIndexSummonMonster      = 200 // Summon Monster
+	SkillIndexMagicImmunity      = 201 // Magic Attack Immunity
+	SkillIndexPhysicalImmunity   = 202 // Physical Attack Immunity
+	SkillIndexPotionOfBless      = 203 // Potion of Bless
+	SkillIndexPotionOfSoul       = 204 // Potion of Soul
+	SkillIndexSpellOfProtection  = 210 // Spell of Protection
+	SkillIndexSpellOfRestriction = 211 // Spell of Restriction
+	SkillIndexSpellOfPursuit     = 212 // Spell of Pursuit
+	SkillIndexShieldBurn         = 213 // Shied-Burn
+	SkillIndexDrainLife          = 214 // 摄魂咒
+	SkillIndexChainLightning     = 215 // 链雷咒
+	SkillIndexDamageReflection   = 217 // 伤害反射
+	SkillIndexBerserker          = 218 // 狂暴术
+	SkillIndexSleep              = 219 // 昏睡
+	SkillIndexWeakness           = 221 // 虚弱阵
+	SkillIndexInnovation         = 222 // 破御阵
+	SkillIndexSummonerExplosion  = 223 // 爆裂
+	SkillIndexRequiem            = 224 // 刺袭
+	SkillIndexPollution          = 225 // 污染
+	SkillIndexLightningShock     = 230 // 烈光闪
+	SkillIndexStrikeDestruction  = 232 // 破坏一击
+	SkillIndexExpansionWizardry  = 233 // 法神附体
+	SkillIndexRecovery           = 234 // 防护值恢复
+	SkillIndexMultiShot          = 235 // 五重箭
+	SkillIndexFlameStrike        = 236 // 火剑袭
+	SkillIndexGiganticStorm      = 237 // 闪电轰顶
+	SkillIndexChaoticDiseier     = 238 // 黑暗之力
+	SkillIndexDoppelgangerSelf   = 239 // Doppelganger Self Explosion Skill
+	SkillIndexKillingBlow        = 260 // 幽冥青狼拳
+	SkillIndexBeastUppercut      = 261 // 斗气爆裂拳
+	SkillIndexChainDrive         = 262 // 回旋踢
+	SkillIndexDarkSide           = 263 // 幽冥光速拳
+	SkillIndexDragonRoar         = 264 // 炎龙拳
+	SkillIndexDragonSlasher      = 265 // 噬血之龙
+	SkillIndexIgnoreDefense      = 266 // 斗神-破
+	SkillIndexIncreaseHealth     = 267 // 斗神-命
+	SkillIndexIncreaseBlock      = 268 // 斗神-御
+	SkillIndexCharge             = 269 // 冲锋(攻城)
+	SkillIndexPhoenixShot        = 270 // 神圣气旋
 )
 
 var SkillManager skillManager

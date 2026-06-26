@@ -76,7 +76,7 @@ func (obj *Object) getDefense(attacker *Object, t int) int {
 	return defense
 }
 
-func (obj *Object) getDamage(s *skill.Skill, t int) int {
+func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 	// get (physical/magic/curse/special)damage from skill type
 	damageMin := 0
 	damageMax := 0
@@ -85,21 +85,28 @@ func (obj *Object) getDamage(s *skill.Skill, t int) int {
 		damageMin = obj.AttackMin
 		damageMax = obj.AttackMax
 	case skill.SkillIndexPoison, // 1毒咒
-		skill.SkillIndexMeteorite,  // 2陨石
-		skill.SkillIndexLightning,  // 3掌心雷
-		skill.SkillIndexFireBall,   // 4火球
-		skill.SkillIndexFlame,      // 5火龙
-		skill.SkillIndexIce,        // 7冰封
-		skill.SkillIndexTwister,    // 8龙卷风
-		skill.SkillIndexEvilSpirit, // 9黑龙波
-		skill.SkillIndexPowerWave,  // 11真空波
-		skill.SkillIndexAquaBeam,   // 12极光
-		skill.SkillIndexCometFall,  // 13爆炎
-		skill.SkillIndexEnergyBall, // 17能量球
-		skill.SkillIndexDecay,      // 38单毒炎
-		skill.SkillIndexIceStorm:   // 39暴风雪
+		skill.SkillIndexMeteorite,      // 2陨石
+		skill.SkillIndexLightning,      // 3掌心雷
+		skill.SkillIndexFireBall,       // 4火球
+		skill.SkillIndexFlame,          // 5火龙
+		skill.SkillIndexIce,            // 7冰封
+		skill.SkillIndexTwister,        // 8龙卷风
+		skill.SkillIndexEvilSpirit,     // 9黑龙波
+		skill.SkillIndexPowerWave,      // 11真空波
+		skill.SkillIndexAquaBeam,       // 12极光
+		skill.SkillIndexCometFall,      // 13爆炎
+		skill.SkillIndexEnergyBall,     // 17能量球
+		skill.SkillIndexDecay,          // 38单毒炎
+		skill.SkillIndexIceStorm,       // 39暴风雪
+		skill.SkillIndexLightningShock, // 230烈光闪
+		skill.SkillIndexGiganticStorm:  // 237闪电轰顶
 		damageMin = obj.GetMagicAttackMin() + s.DamageMin
 		damageMax = obj.GetMagicAttackMax() + s.DamageMax
+	case skill.SkillIndexChainLightning: // 215链雷咒
+		damageMin = obj.GetMagicAttackMin() + s.DamageMin
+		damageMax = obj.GetMagicAttackMax() + s.DamageMax
+		formula.ChainLightningCalc(damageMin, 1, &damageMin)
+		formula.ChainLightningCalc(damageMax, 1, &damageMax)
 	case skill.SkillIndexFallingSlash, // 19地裂斩(武器)
 		skill.SkillIndexLunge,             // 20牙突刺(武器)
 		skill.SkillIndexUppercut,          // 21升龙击(武器)
@@ -116,6 +123,11 @@ func (obj *Object) getDamage(s *skill.Skill, t int) int {
 		damageMax = obj.AttackMax + s.DamageMax
 		damageMin = int(float64(damageMin) * obj.GetKnightGladiatorCalcSkillBonus())
 		damageMax = int(float64(damageMax) * obj.GetKnightGladiatorCalcSkillBonus())
+	case skill.SkillIndexStrikeDestruction: // 232破坏一击
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.StrikeOfDestructionCalc(damageMin, obj.GetEnergy(), &damageMin)
+		formula.StrikeOfDestructionCalc(damageMax, obj.GetEnergy(), &damageMax)
 	case skill.SkillIndexImpale: // 47钻云枪
 		damageMin = obj.AttackMin + s.DamageMin
 		damageMax = obj.AttackMax + s.DamageMax
@@ -127,20 +139,77 @@ func (obj *Object) getDamage(s *skill.Skill, t int) int {
 		formula.GladiatorPowerSlash(damageMin, obj.GetEnergy(), &damageMin)
 		formula.GladiatorPowerSlash(damageMax, obj.GetEnergy(), &damageMax)
 	case skill.SkillIndexTripleShot, // 24多重箭(武器)
+		skill.SkillIndexStarfall,    // 46天堂之箭(攻城)
 		skill.SkillIndexIceArrow,    // 51冰封箭
-		skill.SkillIndexPenetration: // 52穿透箭
+		skill.SkillIndexPenetration, // 52穿透箭
+		skill.SkillIndexMultiShot:   // 235五重箭
 		damageMin = obj.AttackMin + s.DamageMin
 		damageMax = obj.AttackMax + s.DamageMax
 		formula.Elf_CalcSkillBonus(damageMin, obj.GetEnergy(), &damageMin)
 		formula.Elf_CalcSkillBonus(damageMax, obj.GetEnergy(), &damageMax)
+	case skill.SkillIndexFlameStrike: // 236火剑袭
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.FlameStrikeCalc(damageMin, &damageMin)
+		formula.FlameStrikeCalc(damageMax, &damageMax)
 	case skill.SkillIndexForce, // 60冲击(初始)
 		skill.SkillIndexFireBurst,     // 61星云火链
 		skill.SkillIndexElectricSpike, // 65圣极光
-		skill.SkillIndexForceWave:     // 66冲击波
+		skill.SkillIndexForceWave,     // 66冲击波
+		skill.SkillIndexFireScream:    // 78火舞旋风
 		damageMin = obj.AttackMin + s.DamageMin
 		damageMax = obj.AttackMax + s.DamageMax
 		formula.Lord_CalcSkillBonus(damageMin, obj.GetEnergy(), &damageMin)
 		formula.Lord_CalcSkillBonus(damageMax, obj.GetEnergy(), &damageMax)
+	case skill.SkillIndexChaoticDiseier: // 238黑暗之力
+		damageMin = obj.GetMagicAttackMin() + s.DamageMin
+		damageMax = obj.GetMagicAttackMax() + s.DamageMax
+		formula.ChaoticDiseierCalc(damageMin, obj.GetEnergy(), &damageMin)
+		formula.ChaoticDiseierCalc(damageMax, obj.GetEnergy(), &damageMax)
+	case skill.SkillIndexKillingBlow: // 260幽冥青狼拳
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.RageFighterKillingBlow(damageMin, obj.GetVitality(), &damageMin)
+		formula.RageFighterKillingBlow(damageMax, obj.GetVitality(), &damageMax)
+	case skill.SkillIndexBeastUppercut: // 261斗气爆裂拳
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.RageFighterBeastUppercut(damageMin, obj.GetVitality(), &damageMin)
+		formula.RageFighterBeastUppercut(damageMax, obj.GetVitality(), &damageMax)
+	case skill.SkillIndexChainDrive: // 262回旋踢
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.RageFighterChainDrive(damageMin, obj.GetVitality(), &damageMin)
+		formula.RageFighterChainDrive(damageMax, obj.GetVitality(), &damageMax)
+	case skill.SkillIndexDarkSide: // 263幽冥光速拳
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.RageFighterDarkSideIncDamage(damageMin, obj.GetDexterity(), obj.GetEnergy(), &damageMin)
+		formula.RageFighterDarkSideIncDamage(damageMax, obj.GetDexterity(), obj.GetEnergy(), &damageMax)
+	case skill.SkillIndexDragonRoar: // 264炎龙拳
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.RageFighterDragonRoar(damageMin, obj.GetEnergy(), &damageMin)
+		formula.RageFighterDragonRoar(damageMax, obj.GetEnergy(), &damageMax)
+	case skill.SkillIndexDragonSlasher: // 265噬血之龙
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		targetType := int(ObjectTypeMonster)
+		if tobj != nil {
+			targetType = int(tobj.Type)
+		}
+		formula.RageFighterDragonSlasher(damageMin, obj.GetEnergy(), targetType, &damageMin)
+		formula.RageFighterDragonSlasher(damageMax, obj.GetEnergy(), targetType, &damageMax)
+	case skill.SkillIndexCharge: // 269冲锋(攻城)
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.RageFighterCharge(damageMin, obj.GetVitality(), &damageMin)
+		formula.RageFighterCharge(damageMax, obj.GetVitality(), &damageMax)
+	case skill.SkillIndexPhoenixShot: // 270神圣气旋
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.RageFighterPhoenixShot(damageMin, obj.GetVitality(), &damageMin)
+		formula.RageFighterPhoenixShot(damageMax, obj.GetVitality(), &damageMax)
 	default:
 		damageMin = obj.AttackMin
 		damageMax = obj.AttackMax
@@ -192,7 +261,7 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 		}
 		// normal attack --> physical attack
 		// skill attack --> physical/magic/curse attack
-		damage = obj.getDamage(s, damageType)
+		damage = obj.getDamage(s, damageType, tobj)
 		// 3. calc attack damage
 		damage = damage - defense
 		if damage < 0 {

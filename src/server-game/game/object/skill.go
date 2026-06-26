@@ -143,6 +143,7 @@ func (obj *Object) useSkill(tobj *Object, s *skill.Skill) bool {
 		skill.SkillIndexTwistingSlash,     // 41霹雳回旋斩
 		skill.SkillIndexRagefulBlow,       // 42雷霆裂闪
 		skill.SkillIndexCrescentMoonSlash, // 44半月斩(攻城)
+		skill.SkillIndexStarfall,          // 46天堂之箭(攻城)
 		skill.SkillIndexImpale,            // 47钻云枪
 		skill.SkillIndexFireBreath,        // 49流星焰(彩云兽)
 		skill.SkillIndexIceArrow,          // 51冰封箭
@@ -153,7 +154,23 @@ func (obj *Object) useSkill(tobj *Object, s *skill.Skill) bool {
 		skill.SkillIndexForce,             // 60冲击(初始)
 		skill.SkillIndexFireBurst,         // 61星云火链
 		skill.SkillIndexElectricSpike,     // 65圣极光
-		skill.SkillIndexForceWave:         // 66冲击波
+		skill.SkillIndexForceWave,         // 66冲击波
+		skill.SkillIndexFireScream,        // 78火舞旋风
+		skill.SkillIndexChainLightning,    // 215链雷咒
+		skill.SkillIndexLightningShock,    // 230烈光闪
+		skill.SkillIndexStrikeDestruction, // 232破坏一击
+		skill.SkillIndexMultiShot,         // 235五重箭
+		skill.SkillIndexFlameStrike,       // 236火剑袭
+		skill.SkillIndexGiganticStorm,     // 237闪电轰顶
+		skill.SkillIndexChaoticDiseier,    // 238黑暗之力
+		skill.SkillIndexKillingBlow,       // 260幽冥青狼拳
+		skill.SkillIndexBeastUppercut,     // 261斗气爆裂拳
+		skill.SkillIndexChainDrive,        // 262回旋踢
+		skill.SkillIndexDarkSide,          // 263幽冥光速拳
+		skill.SkillIndexDragonRoar,        // 264炎龙拳
+		skill.SkillIndexDragonSlasher,     // 265噬血之龙
+		skill.SkillIndexCharge,            // 269冲锋(攻城)
+		skill.SkillIndexPhoenixShot:       // 270神圣气旋
 		obj.useSkillAttack(tobj, s)
 		switch s.Index {
 		case skill.SkillIndexLightning, // 3掌心雷
