@@ -6,6 +6,7 @@ import (
 
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
+	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
 
 type ExecutorSnapshot struct {
@@ -219,6 +220,36 @@ func (e *executor) useSkill(action Action) {
 	e.current = cloneAction(action)
 	e.dir = action.Dir
 	e.readyAt = action.ReadyAt
+	switch action.Skill {
+	case skill.SkillIndexFlame, // 5火龙
+		skill.SkillIndexTwister,     // 8龙卷风
+		skill.SkillIndexEvilSpirit,  // 9黑龙波
+		skill.SkillIndexAquaBeam,    // 12极光
+		skill.SkillIndexCometFall,   // 13爆炎
+		skill.SkillIndexTripleShot,  // 24多重箭(武器)
+		skill.SkillIndexImpale,      // 47钻云枪
+		skill.SkillIndexPenetration, // 52穿透箭
+		skill.SkillIndexFireSlash,   // 55玄月斩
+		skill.SkillIndexFireScream:  // 78火舞旋风
+		magicKey := 0
+		if action.Skill == skill.SkillIndexEvilSpirit {
+			magicKey = 1
+		}
+		e.bot.game.PlayerAction(int(e.bot.id.Load()), "UseSkillDuration", &model.MsgUseSkillDuration{
+			Target:   action.Target,
+			Skill:    action.Skill,
+			Dir:      action.Dir,
+			MagicKey: magicKey,
+		})
+		e.bot.game.PlayerAction(int(e.bot.id.Load()), "UseSkillAttackMultiTarget", &model.MsgUseSkillAttackMultiTarget{
+			Skill: action.Skill,
+			Targets: []model.MultiTarget{{
+				Target:   action.Target,
+				MagicKey: magicKey,
+			}},
+		})
+		return
+	}
 	e.bot.game.PlayerAction(int(e.bot.id.Load()), "UseSkill", &model.MsgUseSkill{
 		Target: action.Target,
 		Skill:  action.Skill,

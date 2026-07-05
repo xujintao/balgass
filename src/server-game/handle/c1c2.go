@@ -81,7 +81,8 @@ func (h *c1c2Handle) Handle(ctx context.Context, req *c1c2.Request) {
 	// debug
 	switch api.action {
 	case "KeepLive":
-	case "Move", "Action", "Attack", "SetPosition", "UseSkill":
+	case "Move", "Action", "Attack", "SetPosition",
+		"UseSkill", "UseSkillDuration", "UseSkillAttackMultiTarget":
 	case "PickItem":
 	default:
 		slog.Debug("player action", "player", id, "action", api.action)
@@ -229,6 +230,8 @@ var apiIns = [...]*apiIn{
 	{0, false, game.PlayPhase, 0x18, "Action", (*model.MsgAction)(nil)},
 	{0, false, game.PlayPhase, 0x19, "UseSkill", (*model.MsgUseSkill)(nil)},
 	{0, false, game.PlayPhase, 0x1C, "Teleport", (*model.MsgTeleport)(nil)},
+	{0, false, game.PlayPhase, 0x1D, "UseSkillAttackMultiTarget", (*model.MsgUseSkillAttackMultiTarget)(nil)}, // 1.04R
+	{0, false, game.PlayPhase, 0x1E, "UseSkillDuration", (*model.MsgUseSkillDuration)(nil)},
 	{0, false, game.PlayPhase, 0x22, "PickItem", (*model.MsgPickItem)(nil)},
 	{0, false, game.PlayPhase, 0x23, "DropItem", (*model.MsgDropItem)(nil)},
 	{0, false, game.PlayPhase, 0x24, "MoveItem", (*model.MsgMoveItem)(nil)},
@@ -244,10 +247,11 @@ var apiIns = [...]*apiIn{
 	{0, false, game.PlayPhase, 0xAE, "DefineMuBot", (*model.MsgDefineMuBot)(nil)},
 	{0, false, game.PlayPhase, 0xBF20, "UsePet", (*model.MsgUsePet)(nil)},
 	{0, false, game.PlayPhase, 0xBF51, "EnableMuBot", (*model.MsgEnableMuBot)(nil)},
-	{0, false, game.PlayPhase, 0xD4, "Move", (*model.MsgMove)(nil)},               // s9
-	{0, false, game.PlayPhase, 0xD7, "Move", (*model.MsgMove)(nil)},               // 1.04R
-	{0, false, game.PlayPhase, 0xD9, "Attack", (*model.MsgAttack)(nil)},           // 1.04R
-	{0, false, game.PlayPhase, 0xDA, "SetPosition", (*model.MsgSetPosition)(nil)}, // 1.04R
+	{0, false, game.PlayPhase, 0xD4, "Move", (*model.MsgMove)(nil)},                                           // s9
+	{0, false, game.PlayPhase, 0xD7, "Move", (*model.MsgMove)(nil)},                                           // 1.04R
+	{0, false, game.PlayPhase, 0xD9, "Attack", (*model.MsgAttack)(nil)},                                       // 1.04R
+	{0, false, game.PlayPhase, 0xDA, "SetPosition", (*model.MsgSetPosition)(nil)},                             // 1.04R
+	{0, false, game.PlayPhase, 0xDF, "UseSkillAttackMultiTarget", (*model.MsgUseSkillAttackMultiTarget)(nil)}, // s9
 	{0, false, game.PlayPhase, 0xE701, "StartPartyNumberPosition", (*model.MsgEmpty)(nil)},
 	{0, false, game.PlayPhase, 0xE702, "StopPartyNumberPosition", (*model.MsgEmpty)(nil)},
 	{0, false, game.SignPhase, 0xF101, "Login", (*model.MsgLogin)(nil)},
@@ -279,6 +283,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x17, "AttackDieReply", (*model.MsgAttackDieReply)(nil)},
 	{0, false, 0xC1, 0x18, "ActionReply", (*model.MsgActionReply)(nil)},
 	{0, false, 0xC3, 0x19, "UseSkillReply", (*model.MsgUseSkillReply)(nil)},
+	{0, false, 0xC3, 0x1E, "UseSkillDurationReply", (*model.MsgUseSkillDurationReply)(nil)},
 	{0, false, 0xC3, 0x1C, "TeleportReply", (*model.MsgTeleportReply)(nil)},
 	{0, false, 0xC2, 0x20, "CreateViewportItemReply", (*model.MsgCreateViewportItemReply)(nil)},
 	{0, false, 0xC2, 0x21, "DestroyViewportItemReply", (*model.MsgDestroyViewportItemReply)(nil)},

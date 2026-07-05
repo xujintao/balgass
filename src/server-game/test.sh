@@ -13,3 +13,4 @@ go test ./game/object
 go test ./game/object/player
 go test ./game/object/monster
 go test ./game/skill
+go test ./game/model

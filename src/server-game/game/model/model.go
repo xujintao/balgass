@@ -512,6 +512,76 @@ func (msg *MsgUseSkill) Unmarshal(buf []byte) error {
 }
 
 // pack(1)
+type MsgUseSkillDuration struct {
+	X         int
+	Y         int
+	Dir       int
+	Skill     int
+	Target    int
+	Dis       int
+	TargetPos int
+	MagicKey  int
+}
+
+func (msg *MsgUseSkillDuration) Unmarshal(buf []byte) error {
+	if len(buf) < 10 {
+		return errors.New("MsgUseSkillDuration: invalid size")
+	}
+	msg.X = int(buf[0])
+	msg.Skill = int(binary.BigEndian.Uint16([]byte{buf[1], buf[3]}))
+	msg.Y = int(buf[2])
+	msg.Dir = int(buf[4])
+	msg.Target = int(binary.BigEndian.Uint16([]byte{buf[5], buf[7]}))
+	msg.Dis = int(buf[6])
+	msg.TargetPos = int(buf[8])
+	msg.MagicKey = int(buf[9])
+	return nil
+}
+
+type MultiTarget struct {
+	Target   int
+	MagicKey int
+}
+
+// pack(1)
+type MsgUseSkillAttackMultiTarget struct {
+	Skill   int
+	X       int
+	Y       int
+	Serial  int
+	Targets []MultiTarget
+}
+
+func (msg *MsgUseSkillAttackMultiTarget) Unmarshal(buf []byte) error {
+	if len(buf) < 6 {
+		return errors.New("MsgUseSkillAttackMultiTarget: invalid size")
+	}
+	count := int(buf[1])
+	if count < 1 {
+		return errors.New("MsgUseSkillAttackMultiTarget: invalid target count")
+	}
+	if len(buf) < 6+count*3 {
+		return errors.New("MsgUseSkillAttackMultiTarget: truncated targets")
+	}
+	msg.Skill = int(binary.BigEndian.Uint16([]byte{buf[0], buf[2]}))
+	msg.X = int(buf[3])
+	msg.Serial = int(buf[4])
+	msg.Y = int(buf[5])
+	if count > 5 {
+		count = 5
+	}
+	msg.Targets = make([]MultiTarget, count)
+	for i := range msg.Targets {
+		offset := 6 + i*3
+		msg.Targets[i] = MultiTarget{
+			Target:   int(binary.BigEndian.Uint16([]byte{buf[offset], buf[offset+2]})),
+			MagicKey: int(buf[offset+1]),
+		}
+	}
+	return nil
+}
+
+// pack(1)
 type MsgUseSkillReply struct {
 	Index  int
 	Skill  int
@@ -523,6 +593,27 @@ func (msg *MsgUseSkillReply) Marshal() ([]byte, error) {
 	binary.Write(&bw, binary.BigEndian, uint16(msg.Index))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.Skill))
 	binary.Write(&bw, binary.BigEndian, uint16(msg.Target))
+	return bw.Bytes(), nil
+}
+
+// pack(1)
+type MsgUseSkillDurationReply struct {
+	X     int
+	Y     int
+	Dir   int
+	Skill int
+	Index int
+}
+
+func (msg *MsgUseSkillDurationReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.X))
+	bw.WriteByte(byte(msg.Y))
+	bw.WriteByte(byte(msg.Dir))
+	bw.WriteByte(byte(msg.Skill >> 8))
+	bw.WriteByte(byte(msg.Index >> 8))
+	bw.WriteByte(byte(msg.Skill))
+	bw.WriteByte(byte(msg.Index))
 	return bw.Bytes(), nil
 }
 

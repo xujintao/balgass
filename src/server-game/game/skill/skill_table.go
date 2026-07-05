@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/class"
@@ -30,7 +31,7 @@ const (
 	SkillIndexInferno            = 14  // 毁灭烈焰
 	SkillIndexTeleportAlly       = 15  // 小挪移
 	SkillIndexSoulBarrier        = 16  // 守护之魂
-	SkillIndexEnergyBall         = 17  // 能量球
+	SkillIndexEnergyBall         = 17  // 能量球(初始)
 	SkillIndexDefense            = 18  // 圣盾防御
 	SkillIndexFallingSlash       = 19  // 地裂斩(武器)
 	SkillIndexLunge              = 20  // 牙突刺(武器)
@@ -66,7 +67,7 @@ const (
 	SkillIndexFireSlash          = 55  // 玄月斩
 	SkillIndexPowerSlash         = 56  // 天雷闪(武器)
 	SkillIndexSpiralSlash        = 57  // 风舞回旋斩(攻城)
-	SkillIndexForce              = 60  // 冲击
+	SkillIndexForce              = 60  // 冲击(初始)
 	SkillIndexFireBurst          = 61  // 星云火链
 	SkillIndexEarthshake         = 62  // 地裂(黑王马)
 	SkillIndexSummon             = 63  // 星云召唤
@@ -194,10 +195,14 @@ type masterSkillValue struct {
 	values    [21]float32
 }
 
+type skillHitBox [36][21][21]byte
+
 type skillManager struct {
 	skillTable            map[int]*SkillBase
 	masterSkillTable      [8][3][9][4]*MasterSkillBase
 	masterSkillValueTable [30]masterSkillValue
+	spearHitBox           skillHitBox
+	electricHitBox        skillHitBox
 }
 
 func (m *skillManager) init() {
@@ -228,6 +233,8 @@ func (m *skillManager) init() {
 		v.ReqClass[class.GrowLancer] = v.GrowLancer
 		m.skillTable[v.Index] = v
 	}
+	m.spearHitBox = m.loadHitBox("Skills/IGC_SkillSpear.hit")
+	m.electricHitBox = m.loadHitBox("Skills/IGC_SkillElect.hit")
 
 	// array -> map
 	type MasterSkillTree struct {
@@ -318,6 +325,47 @@ func (m *skillManager) init() {
 	// fmt.Println(1)
 
 	// fulfill masterSkillVauleTable by lua script
+}
+
+func (m *skillManager) loadHitBox(file string) skillHitBox {
+	buf, err := os.ReadFile(path.Join(conf.PathCommon, file))
+	if err != nil {
+		m.fatalf("read %s: %v", file, err)
+	}
+	const size = 36 * 21 * 21
+	if len(buf) != size {
+		m.fatalf("%s has invalid size %d, want %d", file, len(buf), size)
+	}
+	var hitBox skillHitBox
+	offset := 0
+	for dir := range hitBox {
+		for y := range hitBox[dir] {
+			copy(hitBox[dir][y][:], buf[offset:offset+21])
+			offset += 21
+		}
+	}
+	return hitBox
+}
+
+func (m *skillManager) CheckSpearHitBox(angle, x, y, targetX, targetY int) bool {
+	return m.spearHitBox.check(angle, x, y, targetX, targetY)
+}
+
+func (m *skillManager) CheckElectricHitBox(angle, x, y, targetX, targetY int) bool {
+	return m.electricHitBox.check(angle, x, y, targetX, targetY)
+}
+
+func (h *skillHitBox) check(angle, x, y, targetX, targetY int) bool {
+	angle %= 360
+	if angle < 0 {
+		angle += 360
+	}
+	dx := targetX - x
+	dy := targetY - y
+	if dx < -10 || dx > 10 || dy < -10 || dy > 10 {
+		return false
+	}
+	return h[angle/10][dy+10][dx+10] != 0
 }
 
 func (m *skillManager) fatalf(format string, args ...any) {

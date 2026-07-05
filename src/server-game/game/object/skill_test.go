@@ -84,19 +84,23 @@ func (a *skillTestActor) GetImpaleSkillCalc() float64 {
 	}
 	return 1
 }
-func (*skillTestActor) PickItem(*model.MsgPickItem)               {}
-func (*skillTestActor) DropItem(*model.MsgDropItem)               {}
-func (*skillTestActor) BuyItem(*model.MsgBuyItem)                 {}
-func (*skillTestActor) SellItem(*model.MsgSellItem)               {}
-func (*skillTestActor) MoveItem(*model.MsgMoveItem)               {}
-func (*skillTestActor) UseItem(*model.MsgUseItem)                 {}
-func (*skillTestActor) RepairItem(*model.MsgRepairItem)           {}
-func (*skillTestActor) Move(*model.MsgMove)                       {}
-func (*skillTestActor) Teleport(*model.MsgTeleport)               {}
-func (*skillTestActor) MapMove(*model.MsgMapMove)                 {}
-func (*skillTestActor) SetPosition(*model.MsgSetPosition)         {}
-func (*skillTestActor) Action(*model.MsgAction)                   {}
-func (*skillTestActor) UseSkill(*model.MsgUseSkill)               {}
+func (*skillTestActor) PickItem(*model.MsgPickItem)       {}
+func (*skillTestActor) DropItem(*model.MsgDropItem)       {}
+func (*skillTestActor) BuyItem(*model.MsgBuyItem)         {}
+func (*skillTestActor) SellItem(*model.MsgSellItem)       {}
+func (*skillTestActor) MoveItem(*model.MsgMoveItem)       {}
+func (*skillTestActor) UseItem(*model.MsgUseItem)         {}
+func (*skillTestActor) RepairItem(*model.MsgRepairItem)   {}
+func (*skillTestActor) Move(*model.MsgMove)               {}
+func (*skillTestActor) Teleport(*model.MsgTeleport)       {}
+func (*skillTestActor) MapMove(*model.MsgMapMove)         {}
+func (*skillTestActor) SetPosition(*model.MsgSetPosition) {}
+func (*skillTestActor) Action(*model.MsgAction)           {}
+func (*skillTestActor) UseSkill(*model.MsgUseSkill)       {}
+func (*skillTestActor) UseSkillDuration(*model.MsgUseSkillDuration) {
+}
+func (*skillTestActor) UseSkillAttackMultiTarget(*model.MsgUseSkillAttackMultiTarget) {
+}
 func (*skillTestActor) Attack(*model.MsgAttack)                   {}
 func (*skillTestActor) Chat(*model.MsgChat)                       {}
 func (*skillTestActor) Whisper(*model.MsgWhisper)                 {}
@@ -176,6 +180,16 @@ func hasMessage[T any](messages []any) bool {
 		}
 	}
 	return false
+}
+
+func countMessages[T any](messages []any) int {
+	count := 0
+	for _, msg := range messages {
+		if _, ok := msg.(*T); ok {
+			count++
+		}
+	}
+	return count
 }
 
 func TestUseSkillRejectsInvalidRequestsWithoutResourceCost(t *testing.T) {
@@ -407,15 +421,10 @@ func TestUseSkillSwellHPExpiresAndClampsHP(t *testing.T) {
 
 func TestUseSkillExpandedAttackSkills(t *testing.T) {
 	for _, index := range []int{
-		skill.SkillIndexTwister,
-		skill.SkillIndexEvilSpirit,
 		skill.SkillIndexPowerWave,
-		skill.SkillIndexAquaBeam,
-		skill.SkillIndexCometFall,
 		skill.SkillIndexDecay,
 		skill.SkillIndexIceStorm,
 		skill.SkillIndexIceArrow,
-		skill.SkillIndexFireSlash,
 		skill.SkillIndexForce,
 		skill.SkillIndexFireBurst,
 		skill.SkillIndexElectricSpike,
@@ -626,5 +635,376 @@ func TestUseSkillAttackSuccessCostsResourcesAndDamagesTarget(t *testing.T) {
 	}
 	if !hasMessage[model.MsgMPReply](actor.messages) {
 		t.Fatal("resource reply was not sent")
+	}
+}
+
+func TestUseSkillAttackAreaTargetsNearbyMonsters(t *testing.T) {
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypeMonster)
+	nearby, _ := newSkillTestObject(3, ObjectTypeMonster)
+	far, _ := newSkillTestObject(4, ObjectTypeMonster)
+	player, _ := newSkillTestObject(5, ObjectTypePlayer)
+	npc, _ := newSkillTestObject(6, ObjectTypeNPC)
+	withTestObjectManager(t, caster, target, nearby, far, player, npc)
+
+	caster.MP, caster.MaxMP = 1000, 1000
+	caster.AG, caster.MaxAG = 1000, 1000
+	caster.AttackRate = 1_000_000
+	target.X, target.Y = 11, 10
+	nearby.X, nearby.Y = 12, 10
+	far.X, far.Y = 16, 10
+	player.X, player.Y = 12, 11
+	npc.X, npc.Y = 12, 9
+	for _, obj := range []*Object{target, nearby, far, player, npc} {
+		obj.HP = 1000
+		obj.MaxHP = 1000
+		if !caster.addViewportObject(obj) {
+			t.Fatalf("addViewportObject(%d) = false", obj.Index)
+		}
+	}
+	s := learnSkillForTest(t, caster, skill.SkillIndexDecay)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
+
+	if target.HP >= target.MaxHP || nearby.HP >= nearby.MaxHP {
+		t.Fatalf("area targets HP = %d/%d, want both damaged", target.HP, nearby.HP)
+	}
+	if far.HP != far.MaxHP || player.HP != player.MaxHP || npc.HP != npc.MaxHP {
+		t.Fatalf("excluded targets HP = %d/%d/%d, want unchanged", far.HP, player.HP, npc.HP)
+	}
+	if caster.MP != 1000-s.ManaUsage || caster.AG != 1000-s.BPUsage {
+		t.Fatalf("resources = %d/%d, want %d/%d", caster.MP, caster.AG, 1000-s.ManaUsage, 1000-s.BPUsage)
+	}
+	if got := countMessages[model.MsgUseSkillReply](actor.messages); got != 1 {
+		t.Fatalf("skill success replies = %d, want 1", got)
+	}
+	if got := countMessages[model.MsgMPReply](actor.messages); got != 1 {
+		t.Fatalf("resource replies = %d, want 1", got)
+	}
+}
+
+func TestUseSkillAttackFrustumTargetsFrontMonsters(t *testing.T) {
+	caster, _ := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypeMonster)
+	front, _ := newSkillTestObject(3, ObjectTypeMonster)
+	behind, _ := newSkillTestObject(4, ObjectTypeMonster)
+	withTestObjectManager(t, caster, target, front, behind)
+
+	caster.AttackRate = 1_000_000
+	target.X, target.Y = 10, 13
+	front.X, front.Y = 11, 12
+	behind.X, behind.Y = 10, 8
+	for _, obj := range []*Object{target, front, behind} {
+		obj.HP = 1000
+		obj.MaxHP = 1000
+		if !caster.addViewportObject(obj) {
+			t.Fatalf("addViewportObject(%d) = false", obj.Index)
+		}
+	}
+	s := learnSkillForTest(t, caster, skill.SkillIndexPowerSlash)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
+
+	if target.HP >= target.MaxHP || front.HP >= front.MaxHP {
+		t.Fatalf("front targets HP = %d/%d, want both damaged", target.HP, front.HP)
+	}
+	if behind.HP != behind.MaxHP {
+		t.Fatalf("behind target HP = %d, want %d", behind.HP, behind.MaxHP)
+	}
+}
+
+func TestUseSkillAttackAreaSelfUsesCasterPosition(t *testing.T) {
+	caster, _ := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypeMonster)
+	nearCaster, _ := newSkillTestObject(3, ObjectTypeMonster)
+	nearTarget, _ := newSkillTestObject(4, ObjectTypeMonster)
+	withTestObjectManager(t, caster, target, nearCaster, nearTarget)
+
+	caster.AttackRate = 1_000_000
+	target.X, target.Y = 12, 10
+	nearCaster.X, nearCaster.Y = 10, 12
+	nearTarget.X, nearTarget.Y = 14, 10
+	for _, obj := range []*Object{target, nearCaster, nearTarget} {
+		obj.HP, obj.MaxHP = 1000, 1000
+		if !caster.addViewportObject(obj) {
+			t.Fatalf("addViewportObject(%d) = false", obj.Index)
+		}
+	}
+	s := learnSkillForTest(t, caster, skill.SkillIndexTwistingSlash)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
+
+	if target.HP >= target.MaxHP || nearCaster.HP >= nearCaster.MaxHP {
+		t.Fatalf("caster area targets HP = %d/%d, want both damaged", target.HP, nearCaster.HP)
+	}
+	if nearTarget.HP != nearTarget.MaxHP {
+		t.Fatalf("target-centered monster HP = %d, want %d", nearTarget.HP, nearTarget.MaxHP)
+	}
+}
+
+func TestUseSkillAttackHitBoxes(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		index int
+	}{
+		{name: "spear", index: skill.SkillIndexForce},
+		{name: "electric", index: skill.SkillIndexElectricSpike},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			caster, _ := newSkillTestObject(1, ObjectTypePlayer)
+			target, _ := newSkillTestObject(2, ObjectTypeMonster)
+			front, _ := newSkillTestObject(3, ObjectTypeMonster)
+			behind, _ := newSkillTestObject(4, ObjectTypeMonster)
+			withTestObjectManager(t, caster, target, front, behind)
+
+			caster.AttackRate = 1_000_000
+			target.X, target.Y = 10, 12
+			front.X, front.Y = 10, 13
+			behind.X, behind.Y = 10, 7
+			for _, obj := range []*Object{target, front, behind} {
+				obj.HP, obj.MaxHP = 1000, 1000
+				if !caster.addViewportObject(obj) {
+					t.Fatalf("addViewportObject(%d) = false", obj.Index)
+				}
+			}
+			s := learnSkillForTest(t, caster, tt.index)
+
+			caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
+
+			if target.HP >= target.MaxHP || front.HP >= front.MaxHP {
+				t.Fatalf("hitbox targets HP = %d/%d, want both damaged", target.HP, front.HP)
+			}
+			if behind.HP != behind.MaxHP {
+				t.Fatalf("behind target HP = %d, want %d", behind.HP, behind.MaxHP)
+			}
+		})
+	}
+}
+
+func TestUseSkillChainLightningSelectsThreeTargets(t *testing.T) {
+	caster, _ := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypeMonster)
+	near1, _ := newSkillTestObject(3, ObjectTypeMonster)
+	near2, _ := newSkillTestObject(4, ObjectTypeMonster)
+	extra, _ := newSkillTestObject(5, ObjectTypeMonster)
+	withTestObjectManager(t, caster, target, near1, near2, extra)
+
+	caster.AttackRate = 1_000_000
+	target.X, target.Y = 11, 10
+	near1.X, near1.Y = 12, 10
+	near2.X, near2.Y = 13, 10
+	extra.X, extra.Y = 14, 10
+	for _, obj := range []*Object{target, near1, near2, extra} {
+		obj.HP, obj.MaxHP = 1000, 1000
+		if !caster.addViewportObject(obj) {
+			t.Fatalf("addViewportObject(%d) = false", obj.Index)
+		}
+	}
+	s := learnSkillForTest(t, caster, skill.SkillIndexChainLightning)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
+
+	if target.HP >= target.MaxHP || near1.HP >= near1.MaxHP || near2.HP >= near2.MaxHP {
+		t.Fatalf("chain targets HP = %d/%d/%d, want all damaged", target.HP, near1.HP, near2.HP)
+	}
+	if extra.HP != extra.MaxHP {
+		t.Fatalf("fourth target HP = %d, want %d", extra.HP, extra.MaxHP)
+	}
+}
+
+func TestUseSkillDarkSideSelectsFiveTargets(t *testing.T) {
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypeMonster)
+	withTestObjectManager(t, caster, target)
+
+	caster.AttackRate = 1_000_000
+	actor.dexterity = 80
+	actor.energy = 100
+	target.X, target.Y = 11, 10
+	target.HP, target.MaxHP = 1000, 1000
+	targets := []*Object{target}
+	for i, position := range [][2]int{{10, 11}, {11, 11}, {9, 11}, {10, 12}, {10, 13}} {
+		obj, _ := newSkillTestObject(i+3, ObjectTypeMonster)
+		obj.X, obj.Y = position[0], position[1]
+		obj.HP, obj.MaxHP = 1000, 1000
+		ObjectManager.objects[obj.Index] = obj
+		targets = append(targets, obj)
+	}
+	for _, obj := range targets {
+		if !caster.addViewportObject(obj) {
+			t.Fatalf("addViewportObject(%d) = false", obj.Index)
+		}
+	}
+	s := learnSkillForTest(t, caster, skill.SkillIndexDarkSide)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
+
+	for _, obj := range targets[:5] {
+		if obj.HP >= obj.MaxHP {
+			t.Fatalf("target %d HP = %d, want damaged", obj.Index, obj.HP)
+		}
+	}
+	if extra := targets[5]; extra.HP != extra.MaxHP {
+		t.Fatalf("sixth target HP = %d, want %d", extra.HP, extra.MaxHP)
+	}
+}
+
+func TestUseSkillDurationMultiTargetCostsOnceAndDamagesTargets(t *testing.T) {
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	target1, _ := newSkillTestObject(2, ObjectTypeMonster)
+	target2, _ := newSkillTestObject(3, ObjectTypeMonster)
+	withTestObjectManager(t, caster, target1, target2)
+
+	caster.MP, caster.MaxMP = 1000, 1000
+	caster.AG, caster.MaxAG = 1000, 1000
+	caster.AttackRate = 1_000_000
+	target1.X, target1.Y = 11, 10
+	target2.X, target2.Y = 12, 10
+	for _, target := range []*Object{target1, target2} {
+		target.HP, target.MaxHP = 1000, 1000
+		if !caster.addViewportObject(target) {
+			t.Fatalf("addViewportObject(%d) = false", target.Index)
+		}
+	}
+	s := learnSkillForTest(t, caster, skill.SkillIndexTwister)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target1.Index, Skill: s.Index})
+	assertResourceUnchanged(t, caster, 1000, 1000)
+	if target1.HP != target1.MaxHP {
+		t.Fatalf("legacy use target HP = %d, want %d", target1.HP, target1.MaxHP)
+	}
+
+	caster.UseSkillDuration(&model.MsgUseSkillDuration{
+		Target: target1.Index,
+		Skill:  s.Index,
+		Dir:    3,
+	})
+	wantMP, wantAG := 1000-s.ManaUsage, 1000-s.BPUsage
+	if caster.MP != wantMP || caster.AG != wantAG {
+		t.Fatalf("resources = %d/%d, want %d/%d", caster.MP, caster.AG, wantMP, wantAG)
+	}
+	if target1.HP != target1.MaxHP || target2.HP != target2.MaxHP {
+		t.Fatalf("duration cast damaged targets: %d/%d", target1.HP, target2.HP)
+	}
+	if got := countMessages[model.MsgUseSkillDurationReply](actor.messages); got != 1 {
+		t.Fatalf("duration replies = %d, want 1", got)
+	}
+
+	caster.UseSkillAttackMultiTarget(&model.MsgUseSkillAttackMultiTarget{
+		Skill: s.Index,
+		Targets: []model.MultiTarget{
+			{Target: target1.Index},
+			{Target: target2.Index},
+		},
+	})
+
+	if target1.HP >= target1.MaxHP || target2.HP >= target2.MaxHP {
+		t.Fatalf("multi targets HP = %d/%d, want both damaged", target1.HP, target2.HP)
+	}
+	if caster.MP != wantMP || caster.AG != wantAG {
+		t.Fatalf("resources after hits = %d/%d, want %d/%d", caster.MP, caster.AG, wantMP, wantAG)
+	}
+	if got := countMessages[model.MsgMPReply](actor.messages); got != 1 {
+		t.Fatalf("resource replies = %d, want 1", got)
+	}
+	if got := countMessages[model.MsgUseSkillReply](actor.messages); got != 0 {
+		t.Fatalf("regular skill replies = %d, want 0", got)
+	}
+}
+
+func TestUseSkillAttackMultiTargetRejectsInvalidState(t *testing.T) {
+	for _, tt := range []struct {
+		name       string
+		skillIndex int
+		setup      func(caster, target *Object)
+		msg        model.MsgUseSkillAttackMultiTarget
+	}{
+		{
+			name:       "not cast",
+			skillIndex: skill.SkillIndexTwister,
+			msg: model.MsgUseSkillAttackMultiTarget{
+				Skill: skill.SkillIndexTwister,
+				Targets: []model.MultiTarget{{
+					Target: 2,
+				}},
+			},
+		},
+		{
+			name:       "skill mismatch",
+			skillIndex: skill.SkillIndexTwister,
+			setup: func(caster, target *Object) {
+				caster.UseSkillDuration(&model.MsgUseSkillDuration{
+					Target: target.Index,
+					Skill:  skill.SkillIndexTwister,
+				})
+			},
+			msg: model.MsgUseSkillAttackMultiTarget{
+				Skill: skill.SkillIndexFlame,
+				Targets: []model.MultiTarget{{
+					Target: 2,
+				}},
+			},
+		},
+		{
+			name:       "expired cast",
+			skillIndex: skill.SkillIndexTwister,
+			setup: func(caster, target *Object) {
+				caster.UseSkillDuration(&model.MsgUseSkillDuration{
+					Target: target.Index,
+					Skill:  skill.SkillIndexTwister,
+				})
+				caster.durationSkill.startedAt = time.Now().Add(-9 * time.Second)
+			},
+			msg: model.MsgUseSkillAttackMultiTarget{
+				Skill: skill.SkillIndexTwister,
+				Targets: []model.MultiTarget{{
+					Target: 2,
+				}},
+			},
+		},
+		{
+			name:       "invalid evil spirit key",
+			skillIndex: skill.SkillIndexEvilSpirit,
+			setup: func(caster, target *Object) {
+				caster.UseSkillDuration(&model.MsgUseSkillDuration{
+					Target:   target.Index,
+					Skill:    skill.SkillIndexEvilSpirit,
+					MagicKey: 1,
+				})
+			},
+			msg: model.MsgUseSkillAttackMultiTarget{
+				Skill: skill.SkillIndexEvilSpirit,
+				Targets: []model.MultiTarget{{
+					Target:   2,
+					MagicKey: 2,
+				}},
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			caster, _ := newSkillTestObject(1, ObjectTypePlayer)
+			target, _ := newSkillTestObject(2, ObjectTypeMonster)
+			withTestObjectManager(t, caster, target)
+			caster.MP, caster.MaxMP = 1000, 1000
+			caster.AG, caster.MaxAG = 1000, 1000
+			caster.AttackRate = 1_000_000
+			target.X = caster.X + 1
+			target.HP, target.MaxHP = 1000, 1000
+			if !caster.addViewportObject(target) {
+				t.Fatal("addViewportObject() = false")
+			}
+			learnSkillForTest(t, caster, tt.skillIndex)
+			if tt.setup != nil {
+				tt.setup(caster, target)
+			}
+			mp, ag := caster.MP, caster.AG
+
+			caster.UseSkillAttackMultiTarget(&tt.msg)
+
+			if target.HP != target.MaxHP {
+				t.Fatalf("target HP = %d, want %d", target.HP, target.MaxHP)
+			}
+			assertResourceUnchanged(t, caster, mp, ag)
+		})
 	}
 }

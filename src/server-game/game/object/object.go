@@ -469,6 +469,13 @@ type skillInfo struct {
 	circleShieldRate     float32
 }
 
+type durationSkillState struct {
+	index     int
+	startedAt time.Time
+	count     int
+	magicKeys [61]time.Time
+}
+
 type DelayMsg struct {
 	code    int
 	subcode int
@@ -544,8 +551,10 @@ type Objecter interface {
 	SetPosition(*model.MsgSetPosition) // implemented by Object
 	Action(*model.MsgAction)           // implemented by Object
 	// 3. Skill and Attack
-	UseSkill(*model.MsgUseSkill) // implemented by Object
-	Attack(*model.MsgAttack)     // implemented by Object
+	UseSkill(*model.MsgUseSkill)                                   // implemented by Object
+	UseSkillDuration(*model.MsgUseSkillDuration)                   // implemented by Object
+	UseSkillAttackMultiTarget(*model.MsgUseSkillAttackMultiTarget) // implemented by Object
+	Attack(*model.MsgAttack)                                       // implemented by Object
 	// 4. chat
 	Chat(*model.MsgChat)       // implemented by Object
 	Whisper(*model.MsgWhisper) // implemented by Object
@@ -640,6 +649,7 @@ type Object struct {
 	Skills                    skill.Skills
 	skillUseTimes             map[int]time.Time
 	skillEffects              map[int]*skillEffect
+	durationSkill             durationSkillState
 	FrustumX                  [MaxArrayFrustum]int
 	FrustumY                  [MaxArrayFrustum]int
 	SkillFrustumX             [MaxArrayFrustum]int

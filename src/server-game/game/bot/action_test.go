@@ -457,6 +457,41 @@ func TestSkillContinuesAfterCooldownWithoutFullDecision(t *testing.T) {
 	}
 }
 
+func TestExecutorUsesDurationMultiTargetSkill(t *testing.T) {
+	g := newTestGame()
+	b := newUnitBot(g, newRulePolicy(&resources{}, "account1:char1"))
+	b.id.Store(7)
+
+	b.executor.Execute(Action{
+		Kind:   ActionUseSkill,
+		Target: 9,
+		Skill:  skill.SkillIndexEvilSpirit,
+		Dir:    3,
+	})
+
+	cast := waitAction(t, g)
+	if cast.action != "UseSkillDuration" {
+		t.Fatalf("cast action = %q, want UseSkillDuration", cast.action)
+	}
+	castMsg, ok := cast.msg.(*model.MsgUseSkillDuration)
+	if !ok || castMsg.Target != 9 || castMsg.Skill != skill.SkillIndexEvilSpirit ||
+		castMsg.Dir != 3 || castMsg.MagicKey != 1 {
+		t.Fatalf("cast message = %#v", cast.msg)
+	}
+
+	hit := waitAction(t, g)
+	if hit.action != "UseSkillAttackMultiTarget" {
+		t.Fatalf("hit action = %q, want UseSkillAttackMultiTarget", hit.action)
+	}
+	hitMsg, ok := hit.msg.(*model.MsgUseSkillAttackMultiTarget)
+	if !ok || hitMsg.Skill != skill.SkillIndexEvilSpirit ||
+		len(hitMsg.Targets) != 1 ||
+		hitMsg.Targets[0].Target != 9 ||
+		hitMsg.Targets[0].MagicKey != 1 {
+		t.Fatalf("hit message = %#v", hit.msg)
+	}
+}
+
 func TestAttackContinuationCancelsWhenTargetIsInvalid(t *testing.T) {
 	g := newTestGame()
 	policy := newRulePolicy(&resources{}, "account1:char1")
