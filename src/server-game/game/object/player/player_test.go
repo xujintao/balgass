@@ -4,10 +4,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/item"
+	"github.com/xujintao/balgass/src/server-game/game/model"
+	"github.com/xujintao/balgass/src/server-game/game/object"
 )
 
 func TestCanUseItemChecksRequirements(t *testing.T) {
@@ -32,6 +35,78 @@ func TestCanUseItemChecksRequirements(t *testing.T) {
 	it.ReqClass[class.Wizard] = 2
 	if p.CanUseItem(it) {
 		t.Fatal("CanUseItem() = true without required change-up")
+	}
+}
+
+func TestAutoSaveSchedule(t *testing.T) {
+	now := time.Date(2026, 7, 18, 12, 0, 0, 0, time.UTC)
+	tests := []struct {
+		name             string
+		player           Player
+		wantAutoSaveTime time.Time
+	}{
+		{
+			name: "not playing",
+			player: Player{
+				Object:       object.Object{Name: "hero", ConnectState: object.ConnectStateLogged},
+				autoSaveTime: now.Add(-autoSaveInterval),
+			},
+			wantAutoSaveTime: now.Add(-autoSaveInterval),
+		},
+		{
+			name: "empty character name",
+			player: Player{
+				Object:       object.Object{ConnectState: object.ConnectStatePlaying},
+				autoSaveTime: now.Add(-autoSaveInterval),
+			},
+			wantAutoSaveTime: now.Add(-autoSaveInterval),
+		},
+		{
+			name: "not due",
+			player: Player{
+				Object:       object.Object{Name: "hero", ConnectState: object.ConnectStatePlaying},
+				autoSaveTime: now.Add(-autoSaveInterval + time.Second),
+			},
+			wantAutoSaveTime: now.Add(-autoSaveInterval + time.Second),
+		},
+		{
+			name: "initializes missing save time",
+			player: Player{
+				Object: object.Object{Name: "hero", ConnectState: object.ConnectStatePlaying},
+			},
+			wantAutoSaveTime: now,
+		},
+		{
+			name: "refreshes due save time",
+			player: Player{
+				Object:       object.Object{Name: "hero", ConnectState: object.ConnectStatePlaying},
+				autoSaveTime: now.Add(-autoSaveInterval),
+			},
+			wantAutoSaveTime: now,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.player.autoSave(now)
+			if !tt.player.autoSaveTime.Equal(tt.wantAutoSaveTime) {
+				t.Fatalf("autoSaveTime = %v, want %v", tt.player.autoSaveTime, tt.wantAutoSaveTime)
+			}
+		})
+	}
+}
+
+func TestLoadWarehouseMarksWarehouseOpen(t *testing.T) {
+	p := Player{}
+	p.loadWarehouse(&model.Account{
+		WarehouseMoney: 321,
+	})
+
+	if !p.warehouseOpen {
+		t.Fatal("warehouseOpen = false, want true")
+	}
+	if p.warehouseMoney != 321 {
+		t.Fatalf("warehouseMoney = %d, want 321", p.warehouseMoney)
 	}
 }
 

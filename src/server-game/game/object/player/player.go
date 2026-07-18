@@ -31,6 +31,8 @@ func init() {
 
 var CharacterTable characterTable
 
+const autoSaveInterval = 10 * time.Minute
+
 type characterTable map[int]model.Character
 
 func (table *characterTable) init() {
@@ -187,6 +189,7 @@ type Player struct {
 	addLeadership     int
 	autoRecoverHPTick int
 	autoRecoverMPTick int
+	autoSaveTime      time.Time
 	autoRecoverSDTime time.Time
 	delayRecoverHP    int
 	delayRecoverHPMax int
@@ -206,6 +209,7 @@ type Player struct {
 	inventory          item.Inventory
 	inventoryExpansion int
 	warehouse          item.Warehouse
+	warehouseOpen      bool
 	warehouseExpansion int
 	warehouseMoney     int
 	changeUp           int // 1=1转 2=2转 3=3转
@@ -326,6 +330,7 @@ func (p *Player) Process1000ms() {
 	if p.ConnectState == object.ConnectStatePlaying {
 		p.recoverHPSD()
 		p.recoverMPAG()
+		p.autoSave(time.Now())
 	}
 }
 
@@ -1274,8 +1279,44 @@ func (p *Player) saveCharacter() {
 	if err != nil {
 		slog.Error("saveCharacter model.DB.UpdateCharacter",
 			"err", err, "player", p.Name)
+	}
+}
+
+func (p *Player) saveWarehouse() {
+	account := model.Account{
+		ID:             p.accountID,
+		Warehouse:      p.warehouse,
+		WarehouseMoney: p.warehouseMoney,
+	}
+	err := model.DB.UpdateAccountWarehouse(&account)
+	if err != nil {
+		slog.Error("saveWarehouse model.DB.UpdateAccountWarehouse",
+			"err", err, "player", p.Name)
+	}
+}
+
+func (p *Player) loadWarehouse(account *model.Account) {
+	p.warehouse = account.Warehouse
+	p.warehouseMoney = account.WarehouseMoney
+	p.warehouseOpen = true
+}
+
+func (p *Player) autoSave(now time.Time) {
+	if p.ConnectState != object.ConnectStatePlaying || p.Name == "" {
 		return
 	}
+	if p.autoSaveTime.IsZero() {
+		p.autoSaveTime = now
+		return
+	}
+	if now.Sub(p.autoSaveTime) < autoSaveInterval {
+		return
+	}
+	p.autoSaveTime = now
+	if p.warehouseOpen {
+		p.saveWarehouse()
+	}
+	p.saveCharacter()
 }
 
 func (p *Player) GetPKLevel() int {
@@ -1807,6 +1848,8 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.MoveSpeed = 1000
 	p.MaxRegenTime = 4 * time.Second
 	p.ConnectState = object.ConnectStatePlaying
+	p.autoSaveTime = time.Now()
+	p.warehouseOpen = false
 	p.Live = true
 	p.State = 1
 
@@ -1954,8 +1997,7 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		}
 		reply.Result = 2
 		p.Push(&reply)
-		p.warehouse = account.Warehouse
-		p.warehouseMoney = account.WarehouseMoney
+		p.loadWarehouse(account)
 		warehouseItemListReply := model.MsgTypeItemListReply{Type: 0}
 		warehouseItemListReply.Items = account.Warehouse.Items
 		p.Push(&warehouseItemListReply)
@@ -1976,17 +2018,8 @@ func (p *Player) CloseTalkWindow(msg *model.MsgEmpty) {
 }
 
 func (p *Player) CloseWarehouseWindow(msg *model.MsgEmpty) {
-	account := model.Account{
-		ID:             p.accountID,
-		Warehouse:      p.warehouse,
-		WarehouseMoney: p.warehouseMoney,
-	}
-	err := model.DB.UpdateAccountWarehouse(&account)
-	if err != nil {
-		slog.Error("CloseWarehouseWindow model.DB.UpdateAccountWarehouse",
-			"err", err, "player", p.Name)
-		return
-	}
+	p.saveWarehouse()
+	p.warehouseOpen = false
 	p.saveCharacter()
 	reply := model.MsgCloseWarehouseWindowReply{}
 	p.Push(&reply)
