@@ -14,3 +14,5 @@ go test ./game/object/player
 go test ./game/object/monster
 go test ./game/skill
 go test ./game/model
+go test ./game/formula
+go test ./handle

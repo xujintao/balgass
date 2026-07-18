@@ -83,3 +83,63 @@ func ElfDefense(class, index, targetIndex, energy int, defense, duration *float6
 func KnightSkillAddLife(vitality, energy, partyBonus int, addLifeRate *float64, duration *int) {
 	call(f.RegularSkillCacl, "KnightSkillAddLife", "iii>di", vitality, energy, partyBonus, addLifeRate, duration)
 }
+
+func WizardMagicDefense(index, targetIndex, dexterity, energy int, effect *float64, duration *int) {
+	call(f.RegularSkillCacl, "WizardMagicDefense", "iiii>di", index, targetIndex, dexterity, energy, effect, duration)
+}
+
+func DarkLordCriticalDamage(leadership, energy int, effect, duration *int) {
+	call(f.RegularSkillCacl, "DarkLordCriticalDamage", "ii>ii", leadership, energy, effect, duration)
+}
+
+func ElfShieldRecovery(energy, level int, effect *float64) {
+	call(f.RegularSkillCacl, "ElfShieldRecovery", "ii>d", energy, level, effect)
+}
+
+func SummonerDrainLifeMonster(energy, monsterLevel int, addHP *int) {
+	call(f.RegularSkillCacl, "SummonerDrainLife_Monster", "ii>i", energy, monsterLevel, addHP)
+}
+
+func SummonerDamageReflect(energy int, effect, duration *int) {
+	call(f.RegularSkillCacl, "SummonerDamageReflect", "i>ii", energy, effect, duration)
+}
+
+func SummonerBerserker(energy int, up, down, duration *int) {
+	call(f.RegularSkillCacl, "SummonerBerserker", "i>iii", energy, up, down, duration)
+}
+
+func SummonerBerserkerAttackDamage(strength, dexterity int, min, max *int) {
+	call(f.RegularSkillCacl, "SummonerBerserkerAttackDamage", "ii>ii", strength, dexterity, min, max)
+}
+
+func SummonerBerserkerMagicDamage(effect, energy int, min, max *float64) {
+	call(f.RegularSkillCacl, "SummonerBerserkerMagicDamage", "ii>dd", effect, energy, min, max)
+}
+
+func SummonerBerserkerCurseDamage(effect, energy int, min, max *float64) {
+	call(f.RegularSkillCacl, "SummonerBerserkerCurseDamage", "ii>dd", effect, energy, min, max)
+}
+
+func SleepMonster(energy, curse, monsterLevel int, rate, duration *int) {
+	call(f.RegularSkillCacl, "Sleep_Monster", "iii>ii", energy, curse, monsterLevel, rate, duration)
+}
+
+func SummonerWeaknessMonster(energy, curse, monsterLevel int, rate, effect, duration *int) {
+	call(f.RegularSkillCacl, "SummonerWeakness_Monster", "iii>iii", energy, curse, monsterLevel, rate, effect, duration)
+}
+
+func SummonerInnovationMonster(energy, curse, monsterLevel int, rate, effect, duration *int) {
+	call(f.RegularSkillCacl, "SummonerInnovation_Monster", "iii>iii", energy, curse, monsterLevel, rate, effect, duration)
+}
+
+func ExplosionDotDamage(damage, masterEffect int, dot, duration *int) {
+	call(f.RegularSkillCacl, "ExplosionDotDamage", "ii>ii", damage, masterEffect, dot, duration)
+}
+
+func RequiemDotDamage(damage int, dot, duration *int) {
+	call(f.RegularSkillCacl, "RequiemDotDamage", "i>ii", damage, dot, duration)
+}
+
+func FenrirSkillCalc(damage, level, masterLevel int, out *int) {
+	call(f.RegularSkillCacl, "FenrirSkillCalc", "iii>i", damage, level, masterLevel, out)
+}

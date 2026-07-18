@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/game/class"
+	"github.com/xujintao/balgass/src/server-game/game/effect"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
@@ -42,6 +43,11 @@ func (*skillTestActor) IsMasterLevel() bool                    { return false }
 func (*skillTestActor) GetSkillMPAG(s *skill.Skill) (int, int) { return s.ManaUsage, s.BPUsage }
 func (a *skillTestActor) GetMagicAttackMin() int               { return a.magicAttackMin }
 func (a *skillTestActor) GetMagicAttackMax() int               { return a.magicAttackMax }
+func (*skillTestActor) GetCurseAttackMin() int                 { return 0 }
+func (*skillTestActor) GetCurseAttackMax() int                 { return 0 }
+func (*skillTestActor) GetCurse() int                          { return 0 }
+func (*skillTestActor) GetActivePetCode() int                  { return -1 }
+func (*skillTestActor) UseSkillAmmo(*skill.Skill, bool) bool   { return true }
 func (a *skillTestActor) GetStrength() int                     { return a.strength }
 func (a *skillTestActor) GetDexterity() int                    { return a.dexterity }
 func (a *skillTestActor) GetEnergy() int                       { return a.energy }
@@ -270,7 +276,7 @@ func TestUseSkillRejectsInvalidRequestsWithoutResourceCost(t *testing.T) {
 	}
 }
 
-func TestUseSkillUnknownImplementedSkillDoesNotCostResources(t *testing.T) {
+func TestUseSkillRejectsDurationSkillWithoutResourceCost(t *testing.T) {
 	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
 	target, _ := newSkillTestObject(2, ObjectTypeMonster)
 	withTestObjectManager(t, caster, target)
@@ -285,7 +291,7 @@ func TestUseSkillUnknownImplementedSkillDoesNotCostResources(t *testing.T) {
 	}
 }
 
-func TestUseSkillDeferredSummonerSkillsDoNotCostResources(t *testing.T) {
+func TestUseSkillRejectsDurationSummonerSkillsWithoutResourceCost(t *testing.T) {
 	for _, index := range []int{
 		skill.SkillIndexDrainLife,
 		skill.SkillIndexSummonerExplosion,
@@ -304,6 +310,89 @@ func TestUseSkillDeferredSummonerSkillsDoNotCostResources(t *testing.T) {
 				t.Fatal("resource reply was sent for deferred summoner skill")
 			}
 		})
+	}
+}
+
+func TestSkillEffectConflictAndExpiration(t *testing.T) {
+	target, _ := newSkillTestObject(1, ObjectTypePlayer)
+	first := &effect.Effect{
+		BuffIndex: 9001,
+		Category:  777,
+		Slow:      true,
+		Expire:    time.Now().Add(time.Minute),
+	}
+	if !target.addEffect(first) {
+		t.Fatal("addEffect(first) = false")
+	}
+	if target.delayLevel != 1 {
+		t.Fatalf("delay level = %d, want 1", target.delayLevel)
+	}
+
+	second := &effect.Effect{
+		BuffIndex: 9002,
+		Category:  777,
+		Defense:   10,
+		Expire:    time.Now().Add(time.Minute),
+	}
+	if !target.addEffect(second) {
+		t.Fatal("addEffect(second) = false")
+	}
+	if target.delayLevel != 0 || target.Defense != 10 || len(target.effects) != 1 {
+		t.Fatalf("replaced effect state = delay:%d defense:%d count:%d", target.delayLevel, target.Defense, len(target.effects))
+	}
+
+	second.Expire = time.Now().Add(-time.Second)
+	target.processEffect()
+	if target.Defense != 0 || len(target.effects) != 0 {
+		t.Fatalf("expired effect state = defense:%d count:%d", target.Defense, len(target.effects))
+	}
+}
+
+func TestDamageReflectionIsDelayed(t *testing.T) {
+	attacker, _ := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypeMonster)
+	withTestObjectManager(t, attacker, target)
+	if !target.addEffect(&effect.Effect{
+		BuffIndex: effect.BuffDamageReflection,
+		Reflect:   100,
+		Expire:    time.Now().Add(time.Minute),
+	}) {
+		t.Fatal("addEffect() = false")
+	}
+
+	attacker.attack(target, nil, 20, true)
+	if attacker.HP != attacker.MaxHP {
+		t.Fatalf("attacker HP before delay = %d, want %d", attacker.HP, attacker.MaxHP)
+	}
+	for _, msg := range target.msgs {
+		if msg.code == 9 {
+			msg.time = time.Now().Add(-time.Millisecond)
+		}
+	}
+	target.processDelayMsg()
+	if attacker.HP != attacker.MaxHP-20 {
+		t.Fatalf("attacker HP after delay = %d, want %d", attacker.HP, attacker.MaxHP-20)
+	}
+}
+
+func TestUseSkillSoulBarrierAddsDamageReduction(t *testing.T) {
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypePlayer)
+	withTestObjectManager(t, caster, target)
+	caster.Class = int(class.Wizard)
+	caster.MP, caster.MaxMP = 1000, 1000
+	actor.dexterity = 100
+	actor.energy = 200
+	s := learnSkillForTest(t, caster, skill.SkillIndexSoulBarrier)
+
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
+
+	barrier := target.effect(effect.BuffSoulBarrier)
+	if barrier == nil || barrier.DamageReduction <= 0 || barrier.ManaRate <= 0 {
+		t.Fatalf("soul barrier effect = %#v", barrier)
+	}
+	if caster.MP != 1000-s.ManaUsage {
+		t.Fatalf("MP = %d, want %d", caster.MP, 1000-s.ManaUsage)
 	}
 }
 
@@ -364,8 +453,8 @@ func TestUseSkillGreaterAttackExpires(t *testing.T) {
 	if damage := target.getDamage(skill.Skill0, 0, nil); damage <= 10 {
 		t.Fatalf("damage = %d, want above 10", damage)
 	}
-	target.skillEffects[skill.SkillIndexGreaterAttack].expire = time.Now().Add(-time.Second)
-	target.processSkillEffect()
+	target.effects[effect.BuffAttackPower].Expire = time.Now().Add(-time.Second)
+	target.processEffect()
 	if damage := target.getDamage(skill.Skill0, 0, nil); damage != 10 {
 		t.Fatalf("expired damage = %d, want 10", damage)
 	}
@@ -385,8 +474,8 @@ func TestUseSkillGreaterDefenseExpires(t *testing.T) {
 	if target.Defense <= 10 {
 		t.Fatalf("target defense = %d, want above 10", target.Defense)
 	}
-	target.skillEffects[skill.SkillIndexGreaterDefense].expire = time.Now().Add(-time.Second)
-	target.processSkillEffect()
+	target.effects[effect.BuffDefensePower].Expire = time.Now().Add(-time.Second)
+	target.processEffect()
 	if target.Defense != 10 {
 		t.Fatalf("expired target defense = %d, want 10", target.Defense)
 	}
@@ -409,8 +498,8 @@ func TestUseSkillSwellHPExpiresAndClampsHP(t *testing.T) {
 		t.Fatalf("target MaxHP = %d, want above 100", target.MaxHP)
 	}
 	target.HP = target.MaxHP
-	target.skillEffects[skill.SkillIndexSwellHP].expire = time.Now().Add(-time.Second)
-	target.processSkillEffect()
+	target.effects[effect.BuffSwellHP].Expire = time.Now().Add(-time.Second)
+	target.processEffect()
 	if target.MaxHP != 100 || target.HP != 100 {
 		t.Fatalf("expired HP/MaxHP = %d/%d, want 100/100", target.HP, target.MaxHP)
 	}

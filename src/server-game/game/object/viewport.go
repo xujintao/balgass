@@ -255,6 +255,9 @@ func (obj *Object) createViewport() {
 		start = 0 // 玩家能看到所有对象
 	case ObjectTypeMonster, ObjectTypeNPC:
 		start = ObjectManager.maxMonsterCount // 怪物看不见怪物
+		if obj.IsSummon() {
+			start = 0
+		}
 	}
 	var viewportPlayerReply model.MsgCreateViewportPlayerReply
 	var viewportMonsterReply model.MsgCreateViewportMonsterReply
@@ -294,6 +297,7 @@ func (obj *Object) createViewport() {
 						MaxHP:                  tobj.MaxHP,
 						HP:                     tobj.HP,
 						ServerCode:             0,
+						BuffEffects:            tobj.activeBuffIndexes(),
 					}
 					viewportPlayerReply.Players = append(viewportPlayerReply.Players, &p)
 				case ObjectTypeMonster, ObjectTypeNPC:
@@ -309,6 +313,7 @@ func (obj *Object) createViewport() {
 						Level:                  tobj.Level,
 						MaxHP:                  tobj.MaxHP,
 						HP:                     tobj.HP,
+						BuffEffects:            tobj.activeBuffIndexes(),
 					}
 					viewportMonsterReply.Monsters = append(viewportMonsterReply.Monsters, &m)
 				}

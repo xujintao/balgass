@@ -10,6 +10,7 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
+	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
 
 func (obj *Object) CalcDistance(tobj *Object) int {
@@ -22,6 +23,10 @@ func (obj *Object) CalcDistance(tobj *Object) int {
 }
 
 func (obj *Object) processMove() {
+	if obj.cannotAct() {
+		obj.PathMoving = false
+		return
+	}
 	if obj.ConnectState < ConnectStatePlaying ||
 		!obj.Live ||
 		obj.State != 2 ||
@@ -168,6 +173,9 @@ func (obj *Object) gateMove(gateNumber int) bool {
 		obj.Push(&reply)
 		maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
 		if obj.MapNumber != mapNumber {
+			if obj.summonIndex >= 0 {
+				ObjectManager.DeleteCallMonster(obj.summonIndex)
+			}
 			obj.MapNumber = mapNumber
 			obj.LoadMiniMap()
 		}
@@ -184,7 +192,44 @@ func (obj *Object) gateMove(gateNumber int) bool {
 
 func (obj *Object) Teleport(msg *model.MsgTeleport) {
 	obj.PathMoving = false
-	obj.gateMove(msg.GateNumber)
+	if msg.GateNumber != 0 {
+		obj.gateMove(msg.GateNumber)
+		return
+	}
+	if obj.Type != ObjectTypePlayer || !obj.Live || obj.cannotAct() {
+		return
+	}
+	s, ok := obj.Skills[skill.SkillIndexTeleport]
+	if !ok || !obj.checkSkillDelay(s) {
+		return
+	}
+	mp, ag := obj.GetSkillMPAG(s)
+	if obj.MP < mp || obj.AG < ag {
+		return
+	}
+	dx := obj.X - msg.X
+	dy := obj.Y - msg.Y
+	if int(math.Sqrt(float64(dx*dx+dy*dy))) > s.Distance ||
+		!maps.MapManager.CheckMapAttrStand(obj.MapNumber, msg.X, msg.Y) ||
+		!maps.MapManager.CheckMapNoWall(obj.MapNumber, obj.X, obj.Y, msg.X, msg.Y) {
+		return
+	}
+	maps.MapManager.ClearMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
+	obj.X, obj.Y = msg.X, msg.Y
+	obj.TX, obj.TY = msg.X, msg.Y
+	obj.CreateFrustum()
+	maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
+	obj.useSkillReply(obj, s, true)
+	obj.Push(&model.MsgTeleportReply{
+		MapNumber: obj.MapNumber,
+		X:         obj.X,
+		Y:         obj.Y,
+		Dir:       obj.Dir,
+	})
+	obj.MP -= mp
+	obj.AG -= ag
+	obj.skillUseTimes[s.Index] = time.Now()
+	obj.PushMPAG(obj.MP, obj.AG)
 }
 
 func (obj *Object) MapMove(msg *model.MsgMapMove) {

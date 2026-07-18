@@ -221,11 +221,23 @@ func (e *executor) useSkill(action Action) {
 	e.dir = action.Dir
 	e.readyAt = action.ReadyAt
 	switch action.Skill {
+	case skill.SkillIndexNova: // 40星辰一怒
+		e.bot.game.PlayerAction(int(e.bot.id.Load()), "UseSkill", &model.MsgUseSkill{
+			Target: 58,
+			Skill:  action.Skill,
+		})
+		e.bot.game.PlayerAction(int(e.bot.id.Load()), "UseSkill", &model.MsgUseSkill{
+			Target: action.Target,
+			Skill:  action.Skill,
+		})
+		return
 	case skill.SkillIndexFlame, // 5火龙
 		skill.SkillIndexTwister,     // 8龙卷风
 		skill.SkillIndexEvilSpirit,  // 9黑龙波
+		skill.SkillIndexHellFire,    // 10地狱火
 		skill.SkillIndexAquaBeam,    // 12极光
 		skill.SkillIndexCometFall,   // 13爆炎
+		skill.SkillIndexInferno,     // 14毁灭烈焰
 		skill.SkillIndexTripleShot,  // 24多重箭(武器)
 		skill.SkillIndexImpale,      // 47钻云枪
 		skill.SkillIndexPenetration, // 52穿透箭
@@ -247,6 +259,19 @@ func (e *executor) useSkill(action Action) {
 				Target:   action.Target,
 				MagicKey: magicKey,
 			}},
+		})
+		return
+	case skill.SkillIndexLance, // 45回旋刃(攻城)
+		skill.SkillIndexEarthshake,        // 62地裂(黑王马)
+		skill.SkillIndexPlasmaStorm,       // 76闪电链(炎狼兽)
+		skill.SkillIndexDrainLife,         // 214摄魂咒
+		skill.SkillIndexSummonerExplosion, // 223爆裂
+		skill.SkillIndexRequiem,           // 224刺袭
+		skill.SkillIndexPollution:         // 225污染
+		e.bot.game.PlayerAction(int(e.bot.id.Load()), "UseSkillDuration", &model.MsgUseSkillDuration{
+			Target: action.Target,
+			Skill:  action.Skill,
+			Dir:    action.Dir,
 		})
 		return
 	}

@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/effect"
+	"github.com/xujintao/balgass/src/server-game/game/formula"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
@@ -106,32 +108,77 @@ func (om *objectManager) AddMonster(newMonster func() *Object) (*Object, error) 
 	return m, nil
 }
 
-// func (m *objectManager) AddCallMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) (int, error) {
-// 	if m.callMonsterCount > m.maxCallMonsterCount {
-// 		return -1, fmt.Errorf("over max call monster count")
-// 	}
-// 	index := m.lastCallMonsterIndex
-// 	cnt := m.maxCallMonsterCount
-// 	for cnt > 0 {
-// 		index++
-// 		if index >= m.playerStartIndex {
-// 			index = m.callMonsterStartIndex
-// 		}
-// 		if m.objects[index] == nil {
-// 			break
-// 		}
-// 		cnt--
-// 	}
-// 	if cnt == 0 {
-// 		panic(fmt.Errorf("have no free call monster index"))
-// 	}
-// 	m.lastCallMonsterIndex = index
-// 	m.callMonsterCount++
-// 	monster := NewMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element)
-// 	monster.index = index
-// 	m.objects[index] = &monster.object
-// 	return index, nil
-// }
+type NewCallMonster func(class, mapNumber, x, y int) *Object
+
+var newCallMonster NewCallMonster
+
+func RegisterNewCallMonster(fn NewCallMonster) {
+	newCallMonster = fn
+}
+
+func (m *objectManager) AddCallMonster(owner *Object, class int) (*Object, error) {
+	if owner == nil || newCallMonster == nil {
+		return nil, fmt.Errorf("new call monster is not ready")
+	}
+	if owner.MapNumber == maps.Icarus ||
+		owner.MapNumber >= maps.ChaosCastle1 && owner.MapNumber <= maps.ChaosCastle6 ||
+		owner.MapNumber == maps.ChaosCastle7 ||
+		owner.MapNumber == maps.ChaosCastleSurvival {
+		return nil, fmt.Errorf("summon is not allowed on map %d", owner.MapNumber)
+	}
+	if owner.summonIndex >= 0 {
+		m.DeleteCallMonster(owner.summonIndex)
+	}
+	if m.callMonsterCount >= m.maxCallMonsterCount {
+		return nil, fmt.Errorf("over max call monster count")
+	}
+	index := m.lastCallMonsterIndex
+	cnt := m.maxCallMonsterCount
+	for cnt > 0 {
+		index++
+		if index >= m.playerStartIndex {
+			index = m.callMonsterStartIndex
+		}
+		if m.objects[index] == nil {
+			break
+		}
+		cnt--
+	}
+	if cnt == 0 {
+		return nil, fmt.Errorf("have no free call monster index")
+	}
+	x, y := maps.MapManager.GetMapRandomPos(owner.MapNumber, owner.X-1, owner.Y-1, owner.X+2, owner.Y+2)
+	monster := newCallMonster(class, owner.MapNumber, x, y)
+	if monster == nil {
+		return nil, fmt.Errorf("failed to create call monster %d", class)
+	}
+	m.lastCallMonsterIndex = index
+	m.callMonsterCount++
+	monster.Index = index
+	monster.summonOwner = owner.Index
+	monster.MaxRegenTime = 0
+	owner.summonIndex = index
+	m.objects[index] = monster
+	return monster, nil
+}
+
+func (m *objectManager) DeleteCallMonster(index int) {
+	if index < m.callMonsterStartIndex || index >= m.playerStartIndex {
+		return
+	}
+	monster := m.objects[index]
+	if monster == nil {
+		return
+	}
+	if owner := m.GetObject(monster.summonOwner); owner != nil {
+		owner.summonIndex = -1
+		owner.Push(&model.MsgSummonHPReply{Percent: 0})
+	}
+	maps.MapManager.ClearMapAttrStand(monster.MapNumber, monster.TX, monster.TY)
+	monster.Reset()
+	m.objects[index] = nil
+	m.callMonsterCount--
+}
 
 type Conn interface {
 	Addr() string
@@ -193,6 +240,9 @@ func (m *objectManager) DeletePlayer(id int) {
 	if p == nil {
 		return
 	}
+	if p.summonIndex >= 0 {
+		m.DeleteCallMonster(p.summonIndex)
+	}
 	p.Offline()
 	slog.Info("player offline", "id", p.Index, "addr", p.Addr())
 
@@ -207,6 +257,23 @@ func (m *objectManager) GetObject(id int) *Object {
 		return nil
 	}
 	return m.objects[id]
+}
+
+func (obj *Object) IsSummon() bool {
+	return obj.summonOwner >= 0
+}
+
+func (obj *Object) SummonOwner() int {
+	return obj.summonOwner
+}
+
+func (obj *Object) HasBuff(index int) bool {
+	for _, eff := range obj.effects {
+		if eff.BuffIndex == index {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *objectManager) GetPlayerByName(name string) *Object {
@@ -321,6 +388,7 @@ func (m *objectManager) Process100ms() {
 		}
 		obj.processMove()
 		obj.processDelayMsg()
+		obj.processNovaSkill()
 		obj.ProcessAction()
 	}
 }
@@ -331,7 +399,7 @@ func (m *objectManager) Process1000ms() {
 			continue
 		}
 		obj.Process1000ms()
-		obj.processSkillEffect()
+		obj.processEffect()
 		obj.processViewport() // 1->2
 		obj.processRegen()    // 4->1
 	}
@@ -473,7 +541,16 @@ type durationSkillState struct {
 	index     int
 	startedAt time.Time
 	count     int
+	x         int
+	y         int
+	dir       int
 	magicKeys [61]time.Time
+}
+
+type novaSkillState struct {
+	startedAt time.Time
+	lastTick  time.Time
+	count     int
 }
 
 type DelayMsg struct {
@@ -502,6 +579,11 @@ type Objecter interface {
 	GetSkillMPAG(s *skill.Skill) (int, int)
 	GetMagicAttackMin() int
 	GetMagicAttackMax() int
+	GetCurseAttackMin() int
+	GetCurseAttackMax() int
+	GetCurse() int
+	GetActivePetCode() int
+	UseSkillAmmo(*skill.Skill, bool) bool
 	GetStrength() int
 	GetDexterity() int
 	GetEnergy() int
@@ -648,8 +730,12 @@ type Object struct {
 	PentagramDefense          int
 	Skills                    skill.Skills
 	skillUseTimes             map[int]time.Time
-	skillEffects              map[int]*skillEffect
+	effects                   effect.Effects
 	durationSkill             durationSkillState
+	novaSkill                 novaSkillState
+	chainLightningTarget      int
+	summonIndex               int
+	summonOwner               int
 	FrustumX                  [MaxArrayFrustum]int
 	FrustumY                  [MaxArrayFrustum]int
 	SkillFrustumX             [MaxArrayFrustum]int
@@ -923,8 +1009,10 @@ type Object struct {
 
 func (obj *Object) Init() {
 	obj.TargetNumber = -1
+	obj.summonIndex = -1
+	obj.summonOwner = -1
 	obj.initSkill()
-	obj.initSkillEffect()
+	obj.initEffect()
 	obj.initViewport()
 	obj.initMessage()
 }
@@ -932,9 +1020,11 @@ func (obj *Object) Init() {
 func (obj *Object) Reset() {
 	obj.Name = ""
 	obj.TargetNumber = -1
+	obj.summonIndex = -1
+	obj.summonOwner = -1
 	obj.Live = false
 	obj.clearSkill()
-	obj.clearSkillEffect()
+	obj.clearEffect()
 	obj.clearViewport()
 }
 
@@ -1044,6 +1134,55 @@ func (obj *Object) processDelayMsg() {
 				break
 			}
 			obj.DieRecoverHPMP(tobj)
+		case 4: // delayed skill attack
+			tobj := ObjectManager.GetObject(msg.sender)
+			s := obj.Skills[msg.subcode]
+			if tobj == nil || s == nil || !obj.Live || !tobj.Live ||
+				obj.MapNumber != tobj.MapNumber || tobj.Type != ObjectTypeMonster {
+				break
+			}
+			damage := obj.attack(tobj, s, 0, true)
+			if s.Index == skill.SkillIndexDrainLife && damage > 0 {
+				addHP := 0
+				formula.SummonerDrainLifeMonster(obj.GetEnergy(), tobj.Level, &addHP)
+				obj.HP += addHP
+				if obj.HP > obj.MaxHP {
+					obj.HP = obj.MaxHP
+				}
+				obj.PushHPSD(obj.HP, obj.SD)
+			}
+		case 7: // delayed curse debuff
+			tobj := ObjectManager.GetObject(msg.sender)
+			s := obj.Skills[msg.subcode]
+			if tobj != nil && s != nil {
+				obj.useSkillCurseDebuffTarget(tobj, s)
+			}
+		case 8: // Fire Scream delayed explosion
+			center := ObjectManager.GetObject(msg.sender)
+			s := obj.Skills[msg.subcode]
+			if center == nil || s == nil || !center.Live || obj.MapNumber != center.MapNumber {
+				break
+			}
+			count := 0
+			obj.ForEachViewportObject(func(tobj *Object) {
+				if count >= skill.Settings.FireScreamMaxAttackCount ||
+					!tobj.Live || tobj.Type != ObjectTypeMonster ||
+					center.CalcDistance(tobj) > skill.Settings.FireScreamExplosionDistance {
+					return
+				}
+				damage := obj.getDamage(s, 0, tobj) * skill.Settings.FireScreamExplosionDamage / 10000
+				if damage < 1 {
+					damage = 1
+				}
+				count++
+				obj.attack(tobj, s, damage, true)
+			})
+		case 9: // delayed reflected damage
+			tobj := ObjectManager.GetObject(msg.sender)
+			if tobj == nil || !tobj.Live || !obj.Live || obj.MapNumber != tobj.MapNumber {
+				break
+			}
+			obj.attack(tobj, nil, msg.subcode, false)
 		}
 		msg.code = -1
 	}

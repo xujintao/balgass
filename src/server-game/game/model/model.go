@@ -624,23 +624,75 @@ type MsgTeleport struct {
 }
 
 func (msg *MsgTeleport) Unmarshal(buf []byte) error {
-	br := bytes.NewReader(buf)
-
-	// padding 1 byte
-	_, err := br.ReadByte()
-	if err != nil {
-		return err
+	if len(buf) < 5 {
+		return errors.New("MsgTeleport: invalid size")
 	}
-
-	// GateNumber
-	var GateNumber uint16
-	err = binary.Read(br, binary.LittleEndian, &GateNumber)
-	if err != nil {
-		return err
-	}
-	msg.GateNumber = int(GateNumber)
-
+	msg.GateNumber = int(binary.LittleEndian.Uint16(buf[1:3]))
+	msg.X = int(buf[3])
+	msg.Y = int(buf[4])
 	return nil
+}
+
+type MsgEffectStateReply struct {
+	State     int
+	Index     int
+	BuffIndex int
+}
+
+func (msg *MsgEffectStateReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(byte(msg.State))
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Index))
+	bw.WriteByte(byte(msg.BuffIndex))
+	return bw.Bytes(), nil
+}
+
+type MsgEffectReply struct {
+	OptionType  int
+	EffectType  int
+	Option      int
+	LeftTime    int
+	BuffIndex   int
+	EffectValue int
+}
+
+func (msg *MsgEffectReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	bw.WriteByte(0) // padding 1 byte
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.OptionType))
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.EffectType))
+	bw.WriteByte(byte(msg.Option))
+	bw.Write([]byte{0, 0, 0}) // padding 3 bytes
+	binary.Write(&bw, binary.LittleEndian, int32(msg.LeftTime))
+	bw.WriteByte(byte(msg.BuffIndex))
+	bw.Write(make([]byte, 12))
+	bw.WriteByte(0) // padding 1 byte
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.EffectValue))
+	return bw.Bytes(), nil
+}
+
+type MsgNovaCountReply struct {
+	Index int
+	Type  int
+	Count int
+}
+
+func (msg *MsgNovaCountReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Index))
+	bw.WriteByte(0) // padding 1 byte
+	binary.Write(&bw, binary.LittleEndian, uint16(msg.Type))
+	bw.WriteByte(byte(msg.Count))
+	bw.WriteByte(0) // padding 1 byte
+	return bw.Bytes(), nil
+}
+
+type MsgSummonHPReply struct {
+	Percent int
+}
+
+func (msg *MsgSummonHPReply) Marshal() ([]byte, error) {
+	return []byte{byte(msg.Percent)}, nil
 }
 
 type MsgTeleportReply struct {

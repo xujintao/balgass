@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/effect"
 	"github.com/xujintao/balgass/src/server-game/game/exp"
 	"github.com/xujintao/balgass/src/server-game/game/formula"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
@@ -73,6 +74,11 @@ func (obj *Object) getDefense(attacker *Object, t int) int {
 			}
 		}
 	}
+	reduction := obj.effects.DefenseReduction()
+	defense -= defense * reduction / 100
+	if defense < 0 {
+		defense = 0
+	}
 	return defense
 }
 
@@ -92,21 +98,20 @@ func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 		skill.SkillIndexIce,            // 7冰封
 		skill.SkillIndexTwister,        // 8龙卷风
 		skill.SkillIndexEvilSpirit,     // 9黑龙波
+		skill.SkillIndexHellFire,       // 10地狱火
 		skill.SkillIndexPowerWave,      // 11真空波
 		skill.SkillIndexAquaBeam,       // 12极光
 		skill.SkillIndexCometFall,      // 13爆炎
+		skill.SkillIndexInferno,        // 14毁灭烈焰
 		skill.SkillIndexEnergyBall,     // 17能量球
 		skill.SkillIndexDecay,          // 38单毒炎
 		skill.SkillIndexIceStorm,       // 39暴风雪
+		skill.SkillIndexLance,          // 45回旋刃(攻城)
+		skill.SkillIndexDrainLife,      // 214摄魂咒
 		skill.SkillIndexLightningShock, // 230烈光闪
 		skill.SkillIndexGiganticStorm:  // 237闪电轰顶
-		damageMin = obj.GetMagicAttackMin() + s.DamageMin
-		damageMax = obj.GetMagicAttackMax() + s.DamageMax
-	case skill.SkillIndexChainLightning: // 215链雷咒
-		damageMin = obj.GetMagicAttackMin() + s.DamageMin
-		damageMax = obj.GetMagicAttackMax() + s.DamageMax
-		formula.ChainLightningCalc(damageMin, 1, &damageMin)
-		formula.ChainLightningCalc(damageMax, 1, &damageMax)
+		damageMin = obj.GetMagicAttackMin() + obj.effects.MagicMin() + s.DamageMin
+		damageMax = obj.GetMagicAttackMax() + obj.effects.MagicMax() + s.DamageMax
 	case skill.SkillIndexFallingSlash, // 19地裂斩(武器)
 		skill.SkillIndexLunge,             // 20牙突刺(武器)
 		skill.SkillIndexUppercut,          // 21升龙击(武器)
@@ -123,11 +128,39 @@ func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 		damageMax = obj.AttackMax + s.DamageMax
 		damageMin = int(float64(damageMin) * obj.GetKnightGladiatorCalcSkillBonus())
 		damageMax = int(float64(damageMax) * obj.GetKnightGladiatorCalcSkillBonus())
-	case skill.SkillIndexStrikeDestruction: // 232破坏一击
+	case skill.SkillIndexTripleShot, // 24多重箭(武器)
+		skill.SkillIndexStarfall,    // 46天堂之箭(攻城)
+		skill.SkillIndexIceArrow,    // 51冰封箭
+		skill.SkillIndexPenetration, // 52穿透箭
+		skill.SkillIndexMultiShot:   // 235五重箭
 		damageMin = obj.AttackMin + s.DamageMin
 		damageMax = obj.AttackMax + s.DamageMax
-		formula.StrikeOfDestructionCalc(damageMin, obj.GetEnergy(), &damageMin)
-		formula.StrikeOfDestructionCalc(damageMax, obj.GetEnergy(), &damageMax)
+		formula.Elf_CalcSkillBonus(damageMin, obj.GetEnergy(), &damageMin)
+		formula.Elf_CalcSkillBonus(damageMax, obj.GetEnergy(), &damageMax)
+	case skill.SkillIndexForce, // 60冲击(初始)
+		skill.SkillIndexFireBurst,     // 61星云火链
+		skill.SkillIndexEarthshake,    // 62地裂(黑王马)
+		skill.SkillIndexElectricSpike, // 65圣极光
+		skill.SkillIndexForceWave,     // 66冲击波
+		skill.SkillIndexFireScream:    // 78火舞旋风
+		damageMin = obj.AttackMin + s.DamageMin
+		damageMax = obj.AttackMax + s.DamageMax
+		formula.Lord_CalcSkillBonus(damageMin, obj.GetEnergy(), &damageMin)
+		formula.Lord_CalcSkillBonus(damageMax, obj.GetEnergy(), &damageMax)
+	case skill.SkillIndexSummonerExplosion, // 223爆裂
+		skill.SkillIndexRequiem,   // 224刺袭
+		skill.SkillIndexPollution: // 225污染
+		damageMin = obj.GetCurseAttackMin() + obj.effects.CurseMin() + s.DamageMin
+		damageMax = obj.GetCurseAttackMax() + obj.effects.CurseMax() + s.DamageMax
+	case skill.SkillIndexNova: // 40星辰一怒
+		chargeTable := [...]int{0, 20, 50, 99, 160, 225, 325, 425, 550, 700, 880, 1090, 1320}
+		count := obj.novaSkill.count
+		if count < 0 || count >= len(chargeTable) {
+			count = 0
+		}
+		base := obj.GetStrength()/2 + chargeTable[count]
+		damageMin = base + obj.GetMagicAttackMin()
+		damageMax = base + obj.GetMagicAttackMax()
 	case skill.SkillIndexImpale: // 47钻云枪
 		damageMin = obj.AttackMin + s.DamageMin
 		damageMax = obj.AttackMax + s.DamageMax
@@ -138,29 +171,41 @@ func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 		damageMax = obj.AttackMax + s.DamageMax
 		formula.GladiatorPowerSlash(damageMin, obj.GetEnergy(), &damageMin)
 		formula.GladiatorPowerSlash(damageMax, obj.GetEnergy(), &damageMax)
-	case skill.SkillIndexTripleShot, // 24多重箭(武器)
-		skill.SkillIndexStarfall,    // 46天堂之箭(攻城)
-		skill.SkillIndexIceArrow,    // 51冰封箭
-		skill.SkillIndexPenetration, // 52穿透箭
-		skill.SkillIndexMultiShot:   // 235五重箭
+	case skill.SkillIndexPlasmaStorm: // 76闪电链(炎狼兽)
+		switch obj.Class {
+		case 0, 5:
+			damageMin = obj.GetStrength()/5 + obj.GetDexterity()/5 + obj.GetVitality()/7 + obj.GetEnergy()/3
+		case 1, 3, 6:
+			damageMin = obj.GetStrength()/3 + obj.GetDexterity()/5 + obj.GetVitality()/5 + obj.GetEnergy()/7
+		case 2:
+			damageMin = obj.GetStrength()/5 + obj.GetDexterity()/3 + obj.GetVitality()/7 + obj.GetEnergy()/5
+		default:
+			damageMin = obj.GetStrength()/5 + obj.GetDexterity()/5 + obj.GetVitality()/7 + obj.GetEnergy()/3 + obj.GetLeadership()/3
+		}
+		damageMax = damageMin
+		damageMin += s.DamageMin
+		damageMax += s.DamageMax
+		formula.FenrirSkillCalc(damageMin, obj.Level, obj.GetMasterLevel(), &damageMin)
+		formula.FenrirSkillCalc(damageMax, obj.Level, obj.GetMasterLevel(), &damageMax)
+	case skill.SkillIndexChainLightning: // 215链雷咒
+		damageMin = obj.GetMagicAttackMin() + s.DamageMin
+		damageMax = obj.GetMagicAttackMax() + s.DamageMax
+		targetNumber := obj.chainLightningTarget
+		if targetNumber < 1 || targetNumber > 3 {
+			targetNumber = 1
+		}
+		formula.ChainLightningCalc(damageMin, targetNumber, &damageMin)
+		formula.ChainLightningCalc(damageMax, targetNumber, &damageMax)
+	case skill.SkillIndexStrikeDestruction: // 232破坏一击
 		damageMin = obj.AttackMin + s.DamageMin
 		damageMax = obj.AttackMax + s.DamageMax
-		formula.Elf_CalcSkillBonus(damageMin, obj.GetEnergy(), &damageMin)
-		formula.Elf_CalcSkillBonus(damageMax, obj.GetEnergy(), &damageMax)
+		formula.StrikeOfDestructionCalc(damageMin, obj.GetEnergy(), &damageMin)
+		formula.StrikeOfDestructionCalc(damageMax, obj.GetEnergy(), &damageMax)
 	case skill.SkillIndexFlameStrike: // 236火剑袭
 		damageMin = obj.AttackMin + s.DamageMin
 		damageMax = obj.AttackMax + s.DamageMax
 		formula.FlameStrikeCalc(damageMin, &damageMin)
 		formula.FlameStrikeCalc(damageMax, &damageMax)
-	case skill.SkillIndexForce, // 60冲击(初始)
-		skill.SkillIndexFireBurst,     // 61星云火链
-		skill.SkillIndexElectricSpike, // 65圣极光
-		skill.SkillIndexForceWave,     // 66冲击波
-		skill.SkillIndexFireScream:    // 78火舞旋风
-		damageMin = obj.AttackMin + s.DamageMin
-		damageMax = obj.AttackMax + s.DamageMax
-		formula.Lord_CalcSkillBonus(damageMin, obj.GetEnergy(), &damageMin)
-		formula.Lord_CalcSkillBonus(damageMax, obj.GetEnergy(), &damageMax)
 	case skill.SkillIndexChaoticDiseier: // 238黑暗之力
 		damageMin = obj.GetMagicAttackMin() + s.DamageMin
 		damageMax = obj.GetMagicAttackMax() + s.DamageMax
@@ -221,6 +266,7 @@ func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 	case 3:
 		damage = damageMax
 		damage += obj.GetCriticalAttackDamage()
+		damage += obj.effects.CriticalDamage()
 	case 2:
 		damage = damageMax
 		damage += damage * 20 / 100
@@ -235,8 +281,9 @@ func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 	return damage
 }
 
-func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
+func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int, allowReflect bool) int {
 	damageType := 0
+	calculated := damage == 0
 	if damage == 0 && !obj.CheckMiss(tobj) {
 		if s == nil {
 			s = skill.Skill0
@@ -244,7 +291,7 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 
 		// 1. calc target defense
 		// rand ignore target defense and get target defense
-		ignoreDefenseRate := obj.GetIgnoreDefenseRate()
+		ignoreDefenseRate := obj.GetIgnoreDefenseRate() + obj.effects.IgnoreDefense()
 		if rand.Intn(10000) < ignoreDefenseRate*100 {
 			damageType = 1
 		}
@@ -285,11 +332,21 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 			damage = 0
 		}
 	}
+	reduction := obj.effects.AttackReduction()
+	damage -= damage * reduction / 100
+	if barrier := tobj.effect(effect.BuffSoulBarrier); barrier != nil && damage > 0 {
+		mana := tobj.MP * barrier.ManaRate / 1000
+		if mana < tobj.MP {
+			tobj.MP -= mana
+			damage -= damage * barrier.DamageReduction / 100
+			tobj.PushMPAG(tobj.MP, tobj.AG)
+		}
+	}
 	// 9. reflect damage
 	// 10. return damage
 	// 11. rand double damage
 	doubleDamageRate := obj.GetDoubleDamageRate()
-	if rand.Intn(10000) < doubleDamageRate*100 {
+	if calculated && rand.Intn(10000) < doubleDamageRate*100 {
 		damage *= 2
 	}
 	// 12. target recover all hp/mp/sd
@@ -309,6 +366,19 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 	tobj.HP -= damage
 	if tobj.HP <= 0 {
 		tobj.HP = 0
+	}
+	if damage > 0 {
+		tobj.removeSleepEffect()
+		obj.applySkillEffect(tobj, s, damage)
+		if allowReflect {
+			reflect := tobj.effects.Reflect()
+			if reflect > 0 && obj.Live {
+				reflectedDamage := damage * reflect / 100
+				if reflectedDamage > 0 {
+					tobj.AddDelayMsg(9, reflectedDamage, 10, obj.Index)
+				}
+			}
+		}
 	}
 
 	// Push attack damage reply
@@ -345,6 +415,9 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 		tobj.Live = false
 		tobj.State = 4
 		tobj.dieTime = time.Now()
+		tobj.removeAllEffects()
+		tobj.durationSkill = durationSkillState{}
+		tobj.novaSkill = novaSkillState{}
 		tobj.Die(obj, damage)
 		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.TX, tobj.TY)
 		tobj.dieRegen = true
@@ -356,6 +429,11 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 			Killer: obj.Index,
 		}
 		tobj.PushViewport(&attackDieReply)
+		if tobj.IsSummon() {
+			ObjectManager.DeleteCallMonster(tobj.Index)
+		} else if tobj.summonIndex >= 0 {
+			ObjectManager.DeleteCallMonster(tobj.summonIndex)
+		}
 	}
 	// debug
 	if conf.ServerEnv.Debug {
@@ -364,9 +442,13 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int) {
 			"target", tobj.Index, "name", tobj.Name,
 			"hp", tobj.HP)
 	}
+	return damage
 }
 
 func (obj *Object) Attack(msg *model.MsgAttack) {
+	if obj.cannotAct() {
+		return
+	}
 	tobj := ObjectManager.objects[msg.Target]
 	if tobj == nil {
 		slog.Error("Attack target is nil", "index", obj.Index, "target", msg.Target)
@@ -380,7 +462,7 @@ func (obj *Object) Attack(msg *model.MsgAttack) {
 		Target: tobj.Index,
 	}
 	obj.PushViewport(&reply)
-	obj.attack(tobj, nil, 0)
+	obj.attack(tobj, nil, 0, true)
 }
 
 func (obj *Object) DieGiveExperience(tobj *Object, damage int) {

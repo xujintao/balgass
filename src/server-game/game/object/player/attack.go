@@ -98,6 +98,25 @@ func (p *Player) GetMagicAttackMax() int {
 	return p.magicAttackMax
 }
 
+func (p *Player) GetCurseAttackMin() int {
+	return p.curseAttackMin
+}
+
+func (p *Player) GetCurseAttackMax() int {
+	return p.curseAttackMax
+}
+
+func (p *Player) GetCurse() int {
+	return p.curse
+}
+
+func (p *Player) GetActivePetCode() int {
+	if p.pet == nil || p.pet.Durability <= 0 {
+		return -1
+	}
+	return p.pet.Code
+}
+
 func (p *Player) GetStrength() int {
 	return p.strength + p.addStrength
 }

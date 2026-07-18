@@ -18,10 +18,12 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
 
-func SpawnMonster() {
+func init() {
 	MonsterTable.init()
 	DropManager.init()
+}
 
+func SpawnMonster() {
 	// MonsterSpawn was generated 2023-07-17 16:05:41 by https://xml-to-go.github.io/ in Ukraine.
 	type MonsterSpawn struct {
 		XMLName xml.Name `xml:"MonsterSpawn"`
@@ -128,6 +130,10 @@ func SpawnMonster() {
 			os.Exit(1)
 		}
 		obj.NpcType = object.NpcTypeShop
+	})
+
+	object.RegisterNewCallMonster(func(class, mapNumber, x, y int) *object.Object {
+		return newMonster(class, mapNumber, x, y, x, y, 2, 15, 0)
 	})
 }
 
@@ -368,6 +374,10 @@ func (m *Monster) GetSkillMPAG(s *skill.Skill) (int, int) {
 	return 0, 0
 }
 
+func (*Monster) UseSkillAmmo(*skill.Skill, bool) bool {
+	return true
+}
+
 func (m *Monster) SpawnPosition() {
 	// // wrong
 	// if _map.Number == maps.Atlans && spawn.StartX == 251 && spawn.StartY == 51 ||
@@ -405,6 +415,9 @@ func (m *Monster) searchEnemy() int {
 		}
 		tobj := object.ObjectManager.GetObject(tnum)
 		if tobj == nil {
+			continue
+		}
+		if m.IsSummon() && (tobj.Type != object.ObjectTypeMonster || tobj.IsSummon()) {
 			continue
 		}
 		if (m.Class == 247 || m.Class == 249) && tobj.GetPKLevel() <= 4 {
@@ -629,6 +642,20 @@ func (m *Monster) ProcessAction() {
 	if m.ConnectState < object.ConnectStatePlaying ||
 		!m.Live {
 		return
+	}
+	if m.IsSummon() {
+		owner := object.ObjectManager.GetObject(m.SummonOwner())
+		if owner == nil || !owner.Live || owner.MapNumber != m.MapNumber {
+			object.ObjectManager.DeleteCallMonster(m.Index)
+			return
+		}
+		if m.CalcDistance(owner) > 15 {
+			maps.MapManager.ClearMapAttrStand(m.MapNumber, m.TX, m.TY)
+			m.X, m.Y = owner.X+1, owner.Y
+			m.TX, m.TY = m.X, m.Y
+			m.CreateFrustum()
+			maps.MapManager.SetMapAttrStand(m.MapNumber, m.TX, m.TY)
+		}
 	}
 	now := time.Now()
 	interval := m.nextActionInterval + m.delayActionInterval

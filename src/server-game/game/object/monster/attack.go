@@ -98,6 +98,22 @@ func (*Monster) GetMagicAttackMax() int {
 	return 0
 }
 
+func (*Monster) GetCurseAttackMin() int {
+	return 0
+}
+
+func (*Monster) GetCurseAttackMax() int {
+	return 0
+}
+
+func (*Monster) GetCurse() int {
+	return 0
+}
+
+func (*Monster) GetActivePetCode() int {
+	return -1
+}
+
 func (*Monster) GetStrength() int {
 	return 0
 }

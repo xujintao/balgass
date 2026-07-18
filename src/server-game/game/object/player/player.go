@@ -13,6 +13,7 @@ import (
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/class"
+	"github.com/xujintao/balgass/src/server-game/game/effect"
 	"github.com/xujintao/balgass/src/server-game/game/exp"
 	"github.com/xujintao/balgass/src/server-game/game/formula"
 	"github.com/xujintao/balgass/src/server-game/game/item"
@@ -1290,7 +1291,54 @@ func (p *Player) IsMasterLevel() bool {
 }
 
 func (p *Player) GetSkillMPAG(s *skill.Skill) (int, int) {
-	return s.ManaUsage, s.BPUsage
+	mp := s.ManaUsage
+	if p.HasBuff(effect.BuffInfinityArrow) {
+		switch s.Index {
+		case skill.SkillIndexTripleShot, skill.SkillIndexIceArrow,
+			skill.SkillIndexPenetration, skill.SkillIndexMultiShot:
+			for _, position := range []int{0, 1} {
+				it := p.inventory.Items[position]
+				if it == nil || (it.Code != item.Code(4, 7) && it.Code != item.Code(4, 15)) {
+					continue
+				}
+				level := it.Level
+				if level < 0 {
+					level = 0
+				}
+				if level > 3 {
+					level = 3
+				}
+				mp += skill.Settings.InfinityArrowMPConsumption[level]
+				break
+			}
+		}
+	}
+	return mp, s.BPUsage
+}
+
+func (p *Player) UseSkillAmmo(s *skill.Skill, consume bool) bool {
+	switch s.Index {
+	case skill.SkillIndexTripleShot, skill.SkillIndexStarfall,
+		skill.SkillIndexIceArrow, skill.SkillIndexPenetration, skill.SkillIndexMultiShot:
+	default:
+		return true
+	}
+	if p.HasBuff(effect.BuffInfinityArrow) {
+		return true
+	}
+	for _, position := range []int{0, 1} {
+		it := p.inventory.Items[position]
+		if it == nil || it.Durability <= 0 ||
+			(it.Code != item.Code(4, 7) && it.Code != item.Code(4, 15)) {
+			continue
+		}
+		if consume {
+			it.Durability--
+			p.Push(&model.MsgItemDurabilityReply{Position: position, Durability: it.Durability, Flag: 0})
+		}
+		return true
+	}
+	return false
 }
 
 func (p *Player) addSetEffect(index item.SetEffectType, value int, base bool) {

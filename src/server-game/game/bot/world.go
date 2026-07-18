@@ -82,9 +82,11 @@ func isImplementedDamageSkill(index int) bool {
 		skill.SkillIndexIce,               // 7冰封
 		skill.SkillIndexTwister,           // 8龙卷风
 		skill.SkillIndexEvilSpirit,        // 9黑龙波
+		skill.SkillIndexHellFire,          // 10地狱火
 		skill.SkillIndexPowerWave,         // 11真空波
 		skill.SkillIndexAquaBeam,          // 12极光
 		skill.SkillIndexCometFall,         // 13爆炎
+		skill.SkillIndexInferno,           // 14毁灭烈焰
 		skill.SkillIndexEnergyBall,        // 17能量球(初始)
 		skill.SkillIndexFallingSlash,      // 19地裂斩(武器)
 		skill.SkillIndexLunge,             // 20牙突刺(武器)
@@ -94,10 +96,13 @@ func isImplementedDamageSkill(index int) bool {
 		skill.SkillIndexTripleShot,        // 24多重箭(武器)
 		skill.SkillIndexDecay,             // 38单毒炎
 		skill.SkillIndexIceStorm,          // 39暴风雪
+		skill.SkillIndexNova,              // 40星辰一怒
 		skill.SkillIndexTwistingSlash,     // 41霹雳回旋斩
 		skill.SkillIndexRagefulBlow,       // 42雷霆裂闪
 		skill.SkillIndexDeathStab,         // 43袭风刺
 		skill.SkillIndexCrescentMoonSlash, // 44半月斩(攻城)
+		skill.SkillIndexLance,             // 45回旋刃(攻城)
+		skill.SkillIndexStarfall,          // 46天堂之箭(攻城)
 		skill.SkillIndexImpale,            // 47钻云枪
 		skill.SkillIndexFireBreath,        // 49流星焰(彩云兽)
 		skill.SkillIndexIceArrow,          // 51冰封箭
@@ -107,8 +112,30 @@ func isImplementedDamageSkill(index int) bool {
 		skill.SkillIndexSpiralSlash,       // 57风舞回旋斩(攻城)
 		skill.SkillIndexForce,             // 60冲击(初始)
 		skill.SkillIndexFireBurst,         // 61星云火链
+		skill.SkillIndexEarthshake,        // 62地裂(黑王马)
 		skill.SkillIndexElectricSpike,     // 65圣极光
-		skill.SkillIndexForceWave:         // 66冲击波
+		skill.SkillIndexForceWave,         // 66冲击波
+		skill.SkillIndexPlasmaStorm,       // 76闪电链(炎狼兽)
+		skill.SkillIndexFireScream,        // 78火舞旋风
+		skill.SkillIndexDrainLife,         // 214摄魂咒
+		skill.SkillIndexChainLightning,    // 215链雷咒
+		skill.SkillIndexSummonerExplosion, // 223爆裂
+		skill.SkillIndexRequiem,           // 224刺袭
+		skill.SkillIndexPollution,         // 225污染
+		skill.SkillIndexLightningShock,    // 230烈光闪
+		skill.SkillIndexStrikeDestruction, // 232破坏一击
+		skill.SkillIndexMultiShot,         // 235五重箭
+		skill.SkillIndexFlameStrike,       // 236火剑袭
+		skill.SkillIndexGiganticStorm,     // 237闪电轰顶
+		skill.SkillIndexChaoticDiseier,    // 238黑暗之力
+		skill.SkillIndexKillingBlow,       // 260幽冥青狼拳
+		skill.SkillIndexBeastUppercut,     // 261斗气爆裂拳
+		skill.SkillIndexChainDrive,        // 262回旋踢
+		skill.SkillIndexDarkSide,          // 263幽冥光速拳
+		skill.SkillIndexDragonRoar,        // 264炎龙拳
+		skill.SkillIndexDragonSlasher,     // 265噬血之龙
+		skill.SkillIndexCharge,            // 269冲锋(攻城)
+		skill.SkillIndexPhoenixShot:       // 270神圣气旋
 		return true
 	default:
 		return false

@@ -87,3 +87,30 @@ func TestUseSkillDurationProtocol(t *testing.T) {
 		t.Fatal("truncated multi target packet was accepted")
 	}
 }
+
+func TestTeleportProtocolIncludesSkillDestination(t *testing.T) {
+	var msg MsgTeleport
+	if err := msg.Unmarshal([]byte{0, 0, 0, 123, 45}); err != nil {
+		t.Fatalf("Unmarshal() error = %v", err)
+	}
+	if msg.GateNumber != 0 || msg.X != 123 || msg.Y != 45 {
+		t.Fatalf("teleport = %#v", msg)
+	}
+	if err := msg.Unmarshal([]byte{0, 0, 0, 123}); err == nil {
+		t.Fatal("truncated teleport packet was accepted")
+	}
+}
+
+func TestNovaCountProtocol(t *testing.T) {
+	data, err := (&MsgNovaCountReply{
+		Index: 0x1234,
+		Type:  40,
+		Count: 7,
+	}).Marshal()
+	if err != nil {
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	if want := []byte{0x12, 0x34, 40, 0, 7}; !bytes.Equal(data, want) {
+		t.Fatalf("nova count = %v, want %v", data, want)
+	}
+}
