@@ -448,10 +448,21 @@ func (p *rulePolicy) pathToSpawnArea(snapshot WorldSnapshot) []Position {
 			score:    pathDistance(snapshot.Self.position(), pos)*100 + p.positionJitter(23+uint32(salt), snapshot.Self.MapNumber, area.class, pos),
 		})
 	}
+	var areas []spawnArea
+	var currentAreas []spawnArea
 	for _, area := range p.resources.spawnAreas[snapshot.Self.MapNumber] {
 		if !p.resources.attackable(area.class) {
 			continue
 		}
+		areas = append(areas, area)
+		if area.contains(snapshot.Self.position()) {
+			currentAreas = append(currentAreas, area)
+		}
+	}
+	if len(currentAreas) > 0 {
+		areas = currentAreas
+	}
+	for _, area := range areas {
 		add(area.nearest(snapshot.Self.position()), area, 0)
 		add(area.center(), area, 1)
 		for i := 0; i < 4; i++ {

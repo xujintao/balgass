@@ -327,3 +327,27 @@ func TestRulePolicyStableKeyDispersesSpawnAreaDestination(t *testing.T) {
 		t.Fatalf("endpoints = %#v, want different keys to disperse spawn destinations", endpoints)
 	}
 }
+
+func TestRulePolicyStaysInCurrentSinglePointSpawnArea(t *testing.T) {
+	policy := newRulePolicy(newLineSpawnResources(), "account1:char1")
+	action := decide(policy, WorldSnapshot{
+		Phase: PhasePlaying,
+		Self:  Actor{Index: 10, MapNumber: 0, X: 31, Y: 1, Alive: true},
+	})
+	if action.Kind != ActionNone {
+		t.Fatalf("action = %#v, want none without crossing to another spawn area", action)
+	}
+}
+
+func newLineSpawnResources() *resources {
+	return &resources{
+		terrains: map[int]*terrain{0: newTestTerrain(40, 3)},
+		spawnAreas: map[int][]spawnArea{
+			0: {
+				{class: 1, min: Position{X: 0, Y: 1}, max: Position{X: 0, Y: 1}},
+				{class: 1, min: Position{X: 31, Y: 1}, max: Position{X: 31, Y: 1}},
+			},
+		},
+		attackableClasses: map[int]struct{}{1: {}},
+	}
+}
