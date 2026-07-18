@@ -1,6 +1,6 @@
 ## Object
 
-Object Move/Viewport/Attack/Action/Item/Skill
+Object Move/Viewport/Attack/Action/Item/Skill/Effect
 
 ### 1. Move
 
@@ -491,3 +491,60 @@ Game Server accepts both `0x1D` and `0xDF` for multi target duration skill hits,
 3, Duration skills must start with `UseSkillDuration`. The start packet stores duration skill state and pushes duration reply to the viewport.
 
 4, `UseSkillAttackMultiTarget` is accepted only after matching duration skill state exists. The state expires after 8 seconds and accepts at most 5 packets, with at most 5 targets per packet.
+
+### 7. Effect
+
+#### Effect State Reply
+
+```
+pack(1)
+[C1 07 07 byte [2]byte byte]
+```
+
+| Index | Element  | Description              |
+| ----- | -------- | ------------------------ |
+| 0     | 0xC1     | c1c2 frame flag          |
+| 1     | 0x07     | c1c2 frame size          |
+| 2     | 0x07     | c1c2 frame code          |
+| 3     | byte     | state: 1=add 0=remove    |
+| 4~5   | [2]byte  | object index BE          |
+| 6     | byte     | buff index               |
+
+Game Server pushes this reply to the object viewport when an effect is added or removed.
+
+#### Effect Reply
+
+```
+pack(1)
+[C1 20 2D 00 [2]byte [2]byte byte [3]byte [4]byte byte [12]byte 00 [2]byte]
+```
+
+| Index | Element  | Description                      |
+| ----- | -------- | -------------------------------- |
+| 0     | 0xC1     | c1c2 frame flag                  |
+| 1     | 0x20     | c1c2 frame size                  |
+| 2     | 0x2D     | c1c2 frame code                  |
+| 3     | 0x00     | padding                          |
+| 4~5   | [2]byte  | option type LE                   |
+| 6~7   | [2]byte  | effect type LE                   |
+| 8     | byte     | option: 0=add 1=remove           |
+| 9~11  | [3]byte  | padding                          |
+| 12~15 | [4]byte  | left time seconds LE             |
+| 16    | byte     | buff index                       |
+| 17~28 | [12]byte | padding                          |
+| 29    | 0x00     | padding                          |
+| 30~31 | [2]byte  | effect value LE                  |
+
+Game Server pushes this reply to the object itself with buff detail and remaining time.
+
+#### Effect Handle
+
+1, Object initializes `effect.Effects` when it is initialized.
+
+2, `addEffect` lets `Effects.Add` remove conflicting effects by buff index or category, unapplies removed effects, applies the new effect values, and pushes add replies.
+
+3, `removeEffect` and `removeAllEffects` unapply effect values and push remove replies.
+
+4, `processEffect` runs every 1 second from object manager processing. It applies DoT ticks through the source object and removes expired effects.
+
+5, Viewport create replies include active buff indexes from the target object.

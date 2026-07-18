@@ -17,3 +17,5 @@
 - [Item](item.md)
 
 - [Skill](skill.md)
+
+- [Effect](effect.md)
