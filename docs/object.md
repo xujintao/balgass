@@ -1,6 +1,6 @@
 ## Object
 
-Object Move/Viewport/Attack/Action/Item
+Object Move/Viewport/Attack/Action/Item/Skill
 
 ### 1. Move
 
@@ -341,6 +341,153 @@ pack(1)
 
 #### Move Item
 
+##### Request
+
+```
+pack(1)
+[C1 13 24 byte byte [12]byte byte byte]
+```
+
+| Index | Element  | Description          |
+| ----- | -------- | -------------------- |
+| 0     | 0xC1     | c1c2 frame flag      |
+| 1     | 0x13     | c1c2 frame size      |
+| 2     | 0x24     | c1c2 frame code      |
+| 3     | byte     | source flag          |
+| 4     | byte     | source position      |
+| 5~16  | [12]byte | item frame           |
+| 17    | byte     | destination flag     |
+| 18    | byte     | destination position |
+
+##### Reply
+
+```
+pack(1)
+[C3 11 24 byte byte [12]byte]
+```
+
+| Index | Element  | Description                 |
+| ----- | -------- | --------------------------- |
+| 0     | 0xC1     | c1c2 frame flag             |
+| 1     | 0x11     | c1c2 frame size             |
+| 2     | 0x24     | c1c2 frame code             |
+| 3     | byte     | result: 0=success -1=failed |
+| 4     | byte     | destination position        |
+| 5~16  | [12]byte | item frame                  |
+
 #### Use Item
 
 #### Repair Item
+
+### 6. Skill
+
+#### Use Skill Request
+
+```
+pack(1)
+[C1 07 19 byte byte byte byte]
+```
+
+| Index | Element | Description              |
+| ----- | ------- | ------------------------ |
+| 0     | 0xC1    | c1c2 frame flag          |
+| 1     | 0x07    | c1c2 frame size          |
+| 2     | 0x19    | c1c2 frame code          |
+| 3     | byte    | target object index high |
+| 4     | byte    | skill index high         |
+| 5     | byte    | target object index low  |
+| 6     | byte    | skill index low          |
+
+Target and skill are encoded as BE values with high/low bytes interleaved.
+
+#### Use Skill Reply
+
+```
+pack(1)
+[C3 09 19 [2]byte [2]byte [2]byte]
+```
+
+| Index | Element | Description                           |
+| ----- | ------- | ------------------------------------- |
+| 0     | 0xC3    | c1c2 frame flag                       |
+| 1     | 0x09    | c1c2 frame size                       |
+| 2     | 0x19    | c1c2 frame code                       |
+| 3~4   | [2]byte | caster object index BE                |
+| 5~6   | [2]byte | skill index BE                        |
+| 7~8   | [2]byte | target object index BE; bit15=success |
+
+#### Use Skill Duration Request
+
+```
+pack(1)
+[C1 0D 1E byte byte byte byte byte byte byte byte byte byte]
+```
+
+| Index | Element | Description              |
+| ----- | ------- | ------------------------ |
+| 0     | 0xC1    | c1c2 frame flag          |
+| 1     | 0x0D    | c1c2 frame size          |
+| 2     | 0x1E    | c1c2 frame code          |
+| 3     | byte    | start coordinate x       |
+| 4     | byte    | skill index high         |
+| 5     | byte    | start coordinate y       |
+| 6     | byte    | skill index low          |
+| 7     | byte    | direction                |
+| 8     | byte    | target object index high |
+| 9     | byte    | distance                 |
+| 10    | byte    | target object index low  |
+| 11    | byte    | target position          |
+| 12    | byte    | magic key                |
+
+#### Use Skill Duration Reply
+
+```
+pack(1)
+[C3 0A 1E byte byte byte byte byte byte byte]
+```
+
+| Index | Element | Description              |
+| ----- | ------- | ------------------------ |
+| 0     | 0xC3    | c1c2 frame flag          |
+| 1     | 0x0A    | c1c2 frame size          |
+| 2     | 0x1E    | c1c2 frame code          |
+| 3     | byte    | target coordinate x      |
+| 4     | byte    | target coordinate y      |
+| 5     | byte    | direction                |
+| 6     | byte    | skill index high         |
+| 7     | byte    | caster object index high |
+| 8     | byte    | skill index low          |
+| 9     | byte    | caster object index low  |
+
+#### Use Skill Attack Multi Target Request
+
+```
+pack(1)
+[C1 09+3n 1D byte n byte byte byte byte [3n]byte]
+[C1 09+3n DF byte n byte byte byte byte [3n]byte]
+```
+
+| Index | Element  | Description              |
+| ----- | -------- | ------------------------ |
+| 0     | 0xC1     | c1c2 frame flag          |
+| 1     | 0x09+3n  | c1c2 frame size          |
+| 2     | 0x1D/DF  | c1c2 frame code          |
+| 3     | byte     | skill index high         |
+| 4     | n        | target count             |
+| 5     | byte     | skill index low          |
+| 6     | byte     | start coordinate x       |
+| 7     | byte     | serial                   |
+| 8     | byte     | start coordinate y       |
+| 9~8+3n | [3n]byte | target high, magic key, target low |
+
+Game Server accepts both `0x1D` and `0xDF` for multi target duration skill hits, and processes at most 5 targets.
+
+#### Skill Handle
+
+1, `UseSkill` validates target object, live state, map, learned skill, MP/AG, distance, and skill delay.
+
+2, If the skill succeeds, Game Server subtracts MP/AG, records skill use time, and pushes skill reply to the caster viewport.
+
+3, Duration skills must start with `UseSkillDuration`. The start packet stores duration skill state and pushes duration reply to the viewport.
+
+4, `UseSkillAttackMultiTarget` is accepted only after matching duration skill state exists. The state expires after 8 seconds and accepts at most 5 packets, with at most 5 targets per packet.

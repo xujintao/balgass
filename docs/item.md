@@ -102,39 +102,3 @@ pack(1)
 | 3~4     | 0xF310        | c1c2 frame code: BE               |
 | 5       | n             | inventory item count              |
 | 5~5+13n | [(1+12)n]byte | inventory position and item frame |
-
-### Move inventory item
-
-#### Request
-
-```
-pack(1)
-[C1 13 24 byte byte [12]byte byte byte]
-```
-
-| Index | Element  | Description          |
-| ----- | -------- | -------------------- |
-| 0     | 0xC1     | c1c2 frame flag      |
-| 1     | 0x13     | c1c2 frame size      |
-| 2     | 0x24     | c1c2 frame code      |
-| 3     | byte     | source flag          |
-| 4     | byte     | source position      |
-| 5~16  | [12]byte | item frame           |
-| 17    | byte     | destination flag     |
-| 18    | byte     | destination position |
-
-#### Reply
-
-```
-pack(1)
-[C3 11 24 byte byte [12]byte]
-```
-
-| Index | Element  | Description                 |
-| ----- | -------- | --------------------------- |
-| 0     | 0xC1     | c1c2 frame flag             |
-| 1     | 0x11     | c1c2 frame size             |
-| 2     | 0x24     | c1c2 frame code             |
-| 3     | byte     | result: 0=success -1=failed |
-| 4     | byte     | destination position        |
-| 5~16  | [12]byte | item frame                  |

@@ -15,3 +15,5 @@
 - [Object](object.md)
 
 - [Item](item.md)
+
+- [Skill](skill.md)
