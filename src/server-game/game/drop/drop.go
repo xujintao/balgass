@@ -1,4 +1,4 @@
-package monster
+package drop
 
 import (
 	"encoding/xml"
@@ -6,6 +6,7 @@ import (
 	"math/rand"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 )
 
@@ -41,6 +42,10 @@ type dropManager struct {
 	jewelOfCreation dropItem
 	normalItem      [][]dropItem
 	excellentItem   [][]dropItem
+}
+
+func init() {
+	DropManager.init()
 }
 
 func (m *dropManager) init() {
@@ -80,7 +85,7 @@ func (m *dropManager) init() {
 	m.magicBook = make([][]dropItem, levelCount)
 	m.normalItem = make([][]dropItem, levelCount)
 	m.excellentItem = make([][]dropItem, levelCount)
-	for _, monster := range MonsterTable {
+	for _, monster := range class.MonsterTable {
 		// make magic book
 		m.makeMagicBook(monster.Level)
 		// make item

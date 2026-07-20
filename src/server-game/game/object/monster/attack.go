@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/drop"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/object"
@@ -183,7 +184,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 	case dropExcellentItem || dropPlainItem:
 		switch {
 		case dropExcellentItem:
-			it = DropManager.DropItemExcellent(m.Level - 25)
+			it = drop.DropManager.DropItemExcellent(m.Level - 25)
 			if it == nil {
 				return
 			}
@@ -191,7 +192,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 			excel := item.ExcellentDropManager.DropExcellent(it.KindA, it.KindB)
 			it.DecodeExcellent(excel)
 		case dropPlainItem:
-			it = DropManager.DropItem(m.Level)
+			it = drop.DropManager.DropItem(m.Level)
 			if it == nil {
 				return
 			}

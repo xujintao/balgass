@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36">
   <diagram name="Page-1" id="6jKJ9kW5HnMQktypH7YM">
-    <mxGraphModel dx="1245" dy="796" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="2006" dy="901" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -49,7 +49,7 @@
         <mxCell id="1GFjHBw0EiZksIkDQrPH-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=16;fontStyle=0" value="(*game.game) PlayerConn(...) sync&lt;div&gt;(*game.game) PlayerCloseConn(...) sync&lt;/div&gt;&lt;div&gt;(*game.game) PlayerAction(...) async&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="300" x="140" y="230" as="geometry" />
         </mxCell>
-        <mxCell id="1GFjHBw0EiZksIkDQrPH-17" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1;fontSize=16;" value="game/runtime" vertex="1">
+        <mxCell id="1GFjHBw0EiZksIkDQrPH-17" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1;fontSize=16;" value="game runtime" vertex="1">
           <mxGeometry height="30" width="110" x="120" y="40" as="geometry" />
         </mxCell>
         <mxCell id="1GFjHBw0EiZksIkDQrPH-18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=0" value="commandRequestChan" vertex="1">
@@ -184,17 +184,26 @@
         <mxCell id="pKTyv2kLMenKT-LaSIaI-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=0;fontSize=16;" value="game/fixture" vertex="1">
           <mxGeometry height="40" width="100" x="920" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="8C28lStLXgHkK_Xta4Tk-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;align=left;" value="object move&lt;br&gt;object viewport&lt;br&gt;object attack&lt;br&gt;object action&lt;br&gt;object item&lt;br&gt;object skill" vertex="1">
+        <mxCell id="8C28lStLXgHkK_Xta4Tk-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;align=left;" value="&lt;div&gt;object viewport&lt;/div&gt;object move&lt;br&gt;object attack&lt;br&gt;object item&lt;br&gt;object skill&lt;div&gt;object effect&lt;br&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="160" width="120" x="940" y="200" as="geometry" />
         </mxCell>
-        <mxCell id="8C28lStLXgHkK_Xta4Tk-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;" value="game/maps" vertex="1">
-          <mxGeometry height="40" width="120" x="880" y="440" as="geometry" />
+        <mxCell id="8C28lStLXgHkK_Xta4Tk-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;align=left;" value="game/maps" vertex="1">
+          <mxGeometry height="40" width="120" x="840" y="440" as="geometry" />
         </mxCell>
-        <mxCell id="8C28lStLXgHkK_Xta4Tk-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;" value="game/items" vertex="1">
-          <mxGeometry height="40" width="120" x="880" y="500" as="geometry" />
+        <mxCell id="8C28lStLXgHkK_Xta4Tk-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;align=left;" value="game/item" vertex="1">
+          <mxGeometry height="40" width="80" x="840" y="560" as="geometry" />
         </mxCell>
-        <mxCell id="8C28lStLXgHkK_Xta4Tk-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;" value="game/skills" vertex="1">
-          <mxGeometry height="40" width="120" x="880" y="560" as="geometry" />
+        <mxCell id="8C28lStLXgHkK_Xta4Tk-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;align=left;" value="game/skill" vertex="1">
+          <mxGeometry height="40" width="120" x="840" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="Dqpw6G8BVsw5t2-yAR0P-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;align=left;" value="game/formula" vertex="1">
+          <mxGeometry height="40" width="120" x="840" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="Dqpw6G8BVsw5t2-yAR0P-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;align=left;" value="game/effect" vertex="1">
+          <mxGeometry height="40" width="120" x="840" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="Dqpw6G8BVsw5t2-yAR0P-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;align=left;" value="game/drop" vertex="1">
+          <mxGeometry height="40" width="80" x="940" y="560" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
