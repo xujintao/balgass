@@ -224,6 +224,7 @@ func (b *bot) tick(now time.Time) {
 	worldSnapshot := b.world.Snapshot()
 	executorSnapshot := b.executor.Snapshot()
 	if action, ok := continueAction(now, worldSnapshot, executorSnapshot); ok {
+		traceContinueAction(b.key, worldSnapshot, executorSnapshot, action)
 		b.executor.Execute(action)
 		return
 	}

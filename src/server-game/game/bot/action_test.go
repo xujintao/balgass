@@ -101,6 +101,54 @@ func TestExecutorTranslatesMoveAndAttackActions(t *testing.T) {
 	}
 }
 
+func TestExecutorSendsMoveStopWhenPathCompletes(t *testing.T) {
+	g := newTestGame()
+	b := newUnitBot(g, &stubPolicy{})
+	b.id.Store(7)
+	b.world.setSelfIndex(7)
+	b.world.self.X, b.world.self.Y = 1, 1
+	now := time.Unix(0, 0)
+
+	b.executor.Execute(Action{
+		Kind:         ActionMove,
+		Path:         []Position{{X: 2, Y: 1}},
+		SelfPosition: Position{X: 1, Y: 1},
+		SentAt:       now,
+		NextStepAt:   now.Add(400 * time.Millisecond),
+	})
+	_ = waitAction(t, g)
+
+	version := b.world.positionVersion
+	b.executor.Execute(Action{
+		Kind:         ActionContinueMove,
+		SelfPosition: Position{X: 2, Y: 1},
+		Dir:          3,
+		PathNext:     1,
+	})
+
+	if b.world.self.X != 2 || b.world.self.Y != 1 ||
+		b.world.self.TX != 2 || b.world.self.TY != 1 ||
+		b.world.self.Dir != 3 {
+		t.Fatalf("self position = (%d,%d)/(%d,%d) dir=%d, want (2,1)/(2,1) dir=3",
+			b.world.self.X, b.world.self.Y, b.world.self.TX, b.world.self.TY, b.world.self.Dir)
+	}
+	if b.world.positionVersion != version {
+		t.Fatalf("position version = %d, want %d", b.world.positionVersion, version)
+	}
+
+	stopAction := waitAction(t, g)
+	if stopAction.id != 7 || stopAction.action != "Move" {
+		t.Fatalf("stop action = %#v, want player 7 Move", stopAction)
+	}
+	stop := stopAction.msg.(*model.MsgMove)
+	if stop.X != 2 || stop.Y != 1 || stop.Dir != 3 || len(stop.Path) != 0 || len(stop.Dirs) != 0 {
+		t.Fatalf("stop move msg = %#v, want n=0 at (2,1) dir 3", stop)
+	}
+	if b.executor.current.Kind != ActionNone || len(b.executor.move.path) != 0 {
+		t.Fatalf("executor current=%v move_len=%d, want idle", b.executor.current.Kind, len(b.executor.move.path))
+	}
+}
+
 func TestExecutorLifecyclePendingDoesNotChangeWorldPhase(t *testing.T) {
 	g := newTestGame()
 	b := newUnitBot(g, &stubPolicy{})
@@ -352,6 +400,46 @@ func TestContinueActionUsesUnifiedDueTimeForMoveAndCombat(t *testing.T) {
 
 	if action, ok := continueAction(now, world, ExecutorSnapshot{}); ok || action.Kind != ActionNone {
 		t.Fatalf("no continuation action = %#v ok=%v, want none without continuation", action, ok)
+	}
+}
+
+func TestContinueActionCancelsImmediatelyWhenSelfDies(t *testing.T) {
+	now := time.Unix(1, 0)
+	world := WorldSnapshot{Phase: PhasePlaying, Self: Actor{Alive: false}}
+	tests := []struct {
+		name      string
+		execution ExecutorSnapshot
+	}{
+		{
+			name: "move",
+			execution: ExecutorSnapshot{
+				Move: MoveSnapshot{
+					Active:     true,
+					Path:       []Position{{X: 2, Y: 1}},
+					NextStepAt: now.Add(time.Second),
+				},
+			},
+		},
+		{
+			name: "attack",
+			execution: ExecutorSnapshot{
+				CurrentAction: Action{Kind: ActionAttack, Target: 9},
+				ReadyAt:       now.Add(time.Second),
+			},
+		},
+		{
+			name: "skill",
+			execution: ExecutorSnapshot{
+				CurrentAction: Action{Kind: ActionUseSkill, Target: 9, Skill: skill.SkillIndexFireBall},
+				ReadyAt:       now.Add(time.Second),
+			},
+		},
+	}
+	for _, tt := range tests {
+		action, ok := continueAction(now, world, tt.execution)
+		if !ok || action.Kind != ActionCancel {
+			t.Fatalf("%s action = %#v ok=%v, want immediate cancel", tt.name, action, ok)
+		}
 	}
 }
 

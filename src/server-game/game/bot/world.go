@@ -570,6 +570,14 @@ func (w *world) setSelfPosition(mapNumber, x, y, dir int) {
 	w.positionVersion++
 }
 
+func (w *world) setSelfMovePosition(position Position, dir int) {
+	w.self.X = position.X
+	w.self.Y = position.Y
+	w.self.TX = position.X
+	w.self.TY = position.Y
+	w.self.Dir = dir
+}
+
 func (w *world) clearSight() {
 	clear(w.players)
 	clear(w.objects)

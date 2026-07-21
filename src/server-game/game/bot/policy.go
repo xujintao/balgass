@@ -66,9 +66,8 @@ func newRulePolicy(resources *resources, seed string) Policy {
 }
 
 func (p *rulePolicy) Decide(now time.Time, world WorldSnapshot, execution ExecutorSnapshot) Action {
-	traceWorld := world
 	finish := func(reason string, action Action, extra map[string]interface{}) Action {
-		tracePolicyDecision(p.seed, traceWorld, execution, reason, action, extra)
+		tracePolicyDecision(p.seed, world, execution, reason, action, extra)
 		return action
 	}
 	switch world.Phase {
@@ -131,7 +130,6 @@ func (p *rulePolicy) Decide(now time.Time, world WorldSnapshot, execution Execut
 	snapshot.Self.X = execution.Position.X
 	snapshot.Self.Y = execution.Position.Y
 	snapshot.Self.Dir = execution.Dir
-	traceWorld = snapshot
 	combatSkill, hasSkill := bestCombatSkill(snapshot)
 	targets := p.visibleTargets(snapshot)
 	for _, target := range targets {
@@ -143,14 +141,14 @@ func (p *rulePolicy) Decide(now time.Time, world WorldSnapshot, execution Execut
 			dir := calcDir(snapshot.Self.position(), target.position())
 			if hasSkill {
 				return finish("use_skill", useSkillAction(now, world, combatSkill, target, dir), map[string]interface{}{
-					"target":       traceActor(target),
+					"target":       target,
 					"targets":      len(targets),
 					"attack_range": attackRange,
 					"skill":        combatSkill.Index,
 				})
 			}
 			return finish("attack", attackAction(now, world, target, dir), map[string]interface{}{
-				"target":       traceActor(target),
+				"target":       target,
 				"targets":      len(targets),
 				"attack_range": attackRange,
 			})
@@ -158,7 +156,7 @@ func (p *rulePolicy) Decide(now time.Time, world WorldSnapshot, execution Execut
 		if path := p.pathToActor(snapshot, target, attackRange); len(path) > 0 {
 			limitedPath := limitPath(path)
 			return finish("move_to_target", moveAction(now, execution, world.PositionVersion, limitedPath), map[string]interface{}{
-				"target":       traceActor(target),
+				"target":       target,
 				"targets":      len(targets),
 				"attack_range": attackRange,
 				"path_len":     len(path),
@@ -247,6 +245,9 @@ func continueAction(now time.Time, world WorldSnapshot, execution ExecutorSnapsh
 		}
 	default:
 		return Action{}, false
+	}
+	if world.Phase == PhasePlaying && !world.Self.Alive {
+		return Action{Kind: ActionCancel}, true
 	}
 	if now.Before(cont.dueAt) {
 		return Action{}, true

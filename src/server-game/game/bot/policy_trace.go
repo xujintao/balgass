@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
@@ -17,61 +16,6 @@ const defaultPolicyTraceFile = "/tmp/server-game-bot-policy.jsonl"
 
 func init() {
 	initPolicyTrace()
-}
-
-type policyTraceActor struct {
-	Index     int  `json:"index"`
-	Class     int  `json:"class"`
-	MapNumber int  `json:"map"`
-	X         int  `json:"x"`
-	Y         int  `json:"y"`
-	Dir       int  `json:"dir"`
-	Alive     bool `json:"alive"`
-}
-
-type policyTraceExecution struct {
-	CurrentAction   string              `json:"current_action"`
-	Position        Position            `json:"position"`
-	Dir             int                 `json:"dir"`
-	MoveActive      bool                `json:"move_active"`
-	MoveTarget      Position            `json:"move_target,omitempty"`
-	ReadyAt         string              `json:"ready_at,omitempty"`
-	PositionVersion uint64              `json:"position_version"`
-	Move            policyTraceMoveInfo `json:"move,omitempty"`
-}
-
-type policyTraceMoveInfo struct {
-	PathLen    int    `json:"path_len"`
-	PathNext   int    `json:"path_next"`
-	NextStepAt string `json:"next_step_at,omitempty"`
-}
-
-type policyTraceAction struct {
-	Kind            string   `json:"kind"`
-	Target          int      `json:"target,omitempty"`
-	Skill           int      `json:"skill,omitempty"`
-	Position        int      `json:"position,omitempty"`
-	PathLen         int      `json:"path_len,omitempty"`
-	PathEnd         Position `json:"path_end,omitempty"`
-	Dir             int      `json:"dir,omitempty"`
-	CancelCurrent   bool     `json:"cancel_current,omitempty"`
-	PositionVersion uint64   `json:"position_version,omitempty"`
-	Text            string   `json:"text,omitempty"`
-}
-
-func tracePolicyDecision(bot string, world WorldSnapshot, execution ExecutorSnapshot, reason string, action Action, extra map[string]interface{}) {
-	if policyTraceLogger == nil {
-		return
-	}
-	policyTraceLogger.Debug("bot policy decision",
-		"bot", bot,
-		"phase", phaseName(world.Phase),
-		"reason", reason,
-		"self", traceActor(world.Self),
-		"execution", traceExecution(execution),
-		"action", traceAction(action),
-		"extra", extra,
-	)
 }
 
 func initPolicyTrace() {
@@ -93,58 +37,134 @@ func initPolicyTrace() {
 	}))
 }
 
-func traceActor(actor Actor) policyTraceActor {
-	return policyTraceActor{
-		Index:     actor.Index,
-		Class:     actor.Class,
-		MapNumber: actor.MapNumber,
-		X:         actor.X,
-		Y:         actor.Y,
-		Dir:       actor.Dir,
-		Alive:     actor.Alive,
+func tracePolicyDecision(bot string, world WorldSnapshot, execution ExecutorSnapshot, reason string, action Action, extra map[string]interface{}) {
+	if policyTraceLogger == nil {
+		return
 	}
-}
-
-func traceExecution(execution ExecutorSnapshot) policyTraceExecution {
-	info := policyTraceExecution{
-		CurrentAction:   actionKindName(execution.CurrentAction.Kind),
-		Position:        execution.Position,
-		Dir:             execution.Dir,
-		MoveActive:      execution.Move.Active,
-		MoveTarget:      execution.Move.Target,
-		PositionVersion: execution.PositionVersion,
-	}
-	if !execution.ReadyAt.IsZero() {
-		info.ReadyAt = execution.ReadyAt.Format(time.RFC3339Nano)
-	}
-	if execution.Move.Active {
-		info.Move = policyTraceMoveInfo{
-			PathLen:  len(execution.Move.Path),
-			PathNext: execution.Move.PathNext,
-		}
-		if !execution.Move.NextStepAt.IsZero() {
-			info.Move.NextStepAt = execution.Move.NextStepAt.Format(time.RFC3339Nano)
-		}
-	}
-	return info
-}
-
-func traceAction(action Action) policyTraceAction {
-	info := policyTraceAction{
-		Kind:            actionKindName(action.Kind),
-		Target:          action.Target,
-		Skill:           action.Skill,
-		Position:        action.Position,
-		Dir:             action.Dir,
-		CancelCurrent:   action.CancelCurrent,
-		PositionVersion: action.PositionVersion,
-		Text:            action.Text,
+	args := []any{
+		"bot", bot,
+		"src", "policy",
+		"phase", phaseName(world.Phase),
+		"reason", reason,
+		"map", world.Self.MapNumber,
+		"x", world.Self.X,
+		"y", world.Self.Y,
+		"dir", world.Self.Dir,
+		"alive", world.Self.Alive,
+		"exec_x", execution.Position.X,
+		"exec_y", execution.Position.Y,
+		"exec_dir", execution.Dir,
+		"exec_v", execution.PositionVersion,
+		"exec_action", actionKindName(execution.CurrentAction.Kind),
+		"act", actionKindName(action.Kind),
 	}
 	if len(action.Path) > 0 {
-		info.PathLen = len(action.Path)
-		info.PathEnd = action.Path[len(action.Path)-1]
+		end := action.Path[len(action.Path)-1]
+		args = append(args,
+			"act_len", len(action.Path),
+			"act_end_x", end.X,
+			"act_end_y", end.Y,
+		)
 	}
-	return info
+	if action.Target != 0 {
+		args = append(args, "act_target", action.Target)
+	}
+	if action.Skill != 0 {
+		args = append(args, "act_skill", action.Skill)
+	}
+	if action.Dir != 0 {
+		args = append(args, "act_dir", action.Dir)
+	}
+	if action.PositionVersion != 0 {
+		args = append(args, "act_v", action.PositionVersion)
+	}
+
+	if len(extra) > 0 {
+		if pathLen, ok := extra["path_len"]; ok {
+			args = append(args, "full_len", pathLen)
+		}
+		if pathEnd, ok := extra["path_end"].(Position); ok {
+			args = append(args,
+				"full_end_x", pathEnd.X,
+				"full_end_y", pathEnd.Y,
+			)
+		}
+		if target, ok := extra["target"].(Actor); ok {
+			args = append(args,
+				"target_index", target.Index,
+				"target_class", target.Class,
+				"target_x", target.X,
+				"target_y", target.Y,
+			)
+		}
+		if targets, ok := extra["targets"]; ok {
+			args = append(args, "targets", targets)
+		}
+		if attackRange, ok := extra["attack_range"]; ok {
+			args = append(args, "attack_range", attackRange)
+		}
+		if skill, ok := extra["skill"]; ok {
+			args = append(args, "skill", skill)
+		}
+		if worldPositionVersion, ok := extra["world_position_version"]; ok {
+			args = append(args, "world_v", worldPositionVersion)
+		}
+		if learnSkills, ok := extra["learn_skills"]; ok {
+			args = append(args, "learn_skills", learnSkills)
+		}
+		if position, ok := extra["position"]; ok {
+			args = append(args, "position", position)
+		}
+		if failure, ok := extra["failure"]; ok {
+			args = append(args, "failure", failure)
+		}
+	}
+	policyTraceLogger.Debug("bot trace", args...)
+}
+
+func traceContinueAction(bot string, world WorldSnapshot, execution ExecutorSnapshot, action Action) {
+	if policyTraceLogger == nil || action.Kind == ActionNone {
+		return
+	}
+	reason := actionKindName(action.Kind)
+	if action.Kind == ActionCancel {
+		reason = "continue_cancel"
+	}
+	args := []any{
+		"bot", bot,
+		"src", "continue",
+		"phase", phaseName(world.Phase),
+		"reason", reason,
+		"map", world.Self.MapNumber,
+		"x", world.Self.X,
+		"y", world.Self.Y,
+		"dir", world.Self.Dir,
+		"alive", world.Self.Alive,
+		"exec_x", execution.Position.X,
+		"exec_y", execution.Position.Y,
+		"exec_dir", execution.Dir,
+		"exec_v", execution.PositionVersion,
+		"exec_action", actionKindName(execution.CurrentAction.Kind),
+		"act", actionKindName(action.Kind),
+	}
+	if execution.Move.Active {
+		args = append(args,
+			"move_next", execution.Move.PathNext,
+			"move_len", len(execution.Move.Path),
+			"move_end_x", execution.Move.Target.X,
+			"move_end_y", execution.Move.Target.Y,
+		)
+	}
+	if action.Target != 0 {
+		args = append(args, "act_target", action.Target)
+	}
+	if action.Skill != 0 {
+		args = append(args, "act_skill", action.Skill)
+	}
+	if action.Dir != 0 {
+		args = append(args, "act_dir", action.Dir)
+	}
+	policyTraceLogger.Debug("bot trace", args...)
 }
 
 func actionKindName(kind ActionKind) string {

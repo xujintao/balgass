@@ -185,9 +185,19 @@ func (e *executor) continueMove(action Action) {
 	e.move.pathNext = action.PathNext
 	e.move.nextStepAt = action.NextStepAt
 	if e.move.pathNext >= len(e.move.path) {
+		e.stopMove()
 		e.move = moveExecution{}
 		e.current = Action{}
 	}
+}
+
+func (e *executor) stopMove() {
+	e.bot.world.setSelfMovePosition(e.position, e.dir)
+	e.bot.game.PlayerAction(int(e.bot.id.Load()), "Move", &model.MsgMove{
+		X:   e.position.X,
+		Y:   e.position.Y,
+		Dir: e.dir,
+	})
 }
 
 func (e *executor) syncPosition(action Action) {
