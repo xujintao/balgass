@@ -191,7 +191,10 @@ func (db *db) UpdateCharacterMuBot(id int, bot *MsgDefineMuBot) error {
 
 func (db *db) GetCharacterList(aid int) ([]*Character, error) {
 	var chars []*Character
-	err := db.Order("position ASC").Where("account_id = ?", aid).Find(&chars).Error
+	err := db.Order("position ASC").
+		Where("account_id = ?", aid).
+		Where("position >= ? AND position < ?", 0, 5).
+		Find(&chars).Error
 	return chars, err
 }
 
