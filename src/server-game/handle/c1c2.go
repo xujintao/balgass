@@ -303,6 +303,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x32, "BuyItemReply", (*model.MsgBuyItemReply)(nil)},
 	{0, false, 0xC1, 0x33, "SellItemReply", (*model.MsgSellItemReply)(nil)},
 	{0, false, 0xC1, 0x34, "RepairItemReply", (*model.MsgRepairItemReply)(nil)},
+	{0, false, 0xC1, 0x48, "EffectInfoReply", (*model.MsgEffectInfoReply)(nil)},
 	{0, false, 0xC1, 0x5900, "StatSpecReply", (*model.MsgStatSpecReply)(nil)},
 	{0, false, 0xC1, 0x81, "WarehouseMoneyReply", (*model.MsgWarehouseMoneyReply)(nil)},
 	{0, false, 0xC1, 0x82, "CloseWarehouseWindowReply", (*model.MsgCloseWarehouseWindowReply)(nil)},

@@ -1137,6 +1137,18 @@ type MsgRepairItemReply struct {
 	MsgSellItemReply
 }
 
+type MsgEffectInfoReply struct {
+	Index int
+	Type  int
+}
+
+func (msg *MsgEffectInfoReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	binary.Write(&bw, binary.BigEndian, uint16(msg.Index))
+	bw.WriteByte(byte(msg.Type))
+	return bw.Bytes(), nil
+}
+
 type MsgMuunSystem struct{}
 
 func (msg *MsgMuunSystem) Unmarshal(buf []byte) error {

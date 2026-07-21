@@ -114,3 +114,16 @@ func TestNovaCountProtocol(t *testing.T) {
 		t.Fatalf("nova count = %v, want %v", data, want)
 	}
 }
+
+func TestEffectInfoProtocol(t *testing.T) {
+	data, err := (&MsgEffectInfoReply{
+		Index: 0x1234,
+		Type:  0x10,
+	}).Marshal()
+	if err != nil {
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	if want := []byte{0x12, 0x34, 0x10}; !bytes.Equal(data, want) {
+		t.Fatalf("effect info = %v, want %v", data, want)
+	}
+}

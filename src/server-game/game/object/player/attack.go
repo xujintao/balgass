@@ -206,5 +206,6 @@ func (p *Player) LevelUp(addexp int) bool {
 		}
 		p.Push(&reply)
 	}
+	p.PushViewport(&model.MsgEffectInfoReply{Index: p.Index, Type: 0x10})
 	return true
 }
