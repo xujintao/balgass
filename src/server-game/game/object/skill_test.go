@@ -24,6 +24,7 @@ type skillTestActor struct {
 	leadership     int
 	knightRate     float64
 	impaleRate     float64
+	returnDamage   int
 }
 
 func (*skillTestActor) Addr() string                           { return "test" }
@@ -77,6 +78,7 @@ func (*skillTestActor) GetHelperReduceDamage() int             { return 0 }
 func (*skillTestActor) GetPetIncreaseDamage() int              { return 0 }
 func (*skillTestActor) GetPetReduceDamage() int                { return 0 }
 func (*skillTestActor) GetDoubleDamageRate() int               { return 0 }
+func (a *skillTestActor) GetReturnDamageRate() int             { return a.returnDamage }
 func (*skillTestActor) GetMonsterDieGetMoney() float64         { return 0 }
 func (a *skillTestActor) GetKnightGladiatorCalcSkillBonus() float64 {
 	if a.knightRate != 0 {

@@ -78,6 +78,10 @@ func (p *Player) GetDoubleDamageRate() int {
 	return p.doubleDamageRate
 }
 
+func (p *Player) GetReturnDamageRate() int {
+	return p.returnDamage
+}
+
 func (p *Player) GetMonsterDieGetMoney() float64 {
 	return p.monsterDieGetMoney
 }

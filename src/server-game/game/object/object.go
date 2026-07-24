@@ -613,6 +613,7 @@ type Objecter interface {
 	GetPetIncreaseDamage() int
 	GetPetReduceDamage() int
 	GetDoubleDamageRate() int
+	GetReturnDamageRate() int
 	GetMonsterDieGetMoney() float64
 	GetKnightGladiatorCalcSkillBonus() float64
 	GetImpaleSkillCalc() float64
@@ -1191,6 +1192,15 @@ func (obj *Object) processDelayMsg() {
 			}
 			obj.attack(tobj, attackRequest{
 				mode:   attackModeReflected,
+				damage: msg.subcode,
+			})
+		case 12: // delayed returned damage
+			tobj := ObjectManager.GetObject(msg.sender)
+			if tobj == nil || !tobj.Live || !obj.Live || obj.MapNumber != tobj.MapNumber {
+				break
+			}
+			obj.attack(tobj, attackRequest{
+				mode:   attackModeReturned,
 				damage: msg.subcode,
 			})
 		}

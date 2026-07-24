@@ -288,6 +288,7 @@ const (
 	attackModeCalculated
 	attackModeFixed
 	attackModeReflected
+	attackModeReturned
 	attackModeDOT
 )
 
@@ -300,13 +301,21 @@ type attackRequest struct {
 func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	needCalculate := false
 	allowReflect := false
+	allowReturn := false
 	switch req.mode {
 	case attackModeCalculated:
 		needCalculate = true
 		allowReflect = true
+		allowReturn = true
 	case attackModeFixed:
 		allowReflect = true
-	case attackModeReflected, attackModeDOT:
+		allowReturn = true
+	case attackModeReflected:
+		allowReturn = true
+	case attackModeReturned:
+		allowReflect = true
+		allowReturn = true
+	case attackModeDOT:
 	default:
 		return 0
 	}
@@ -315,6 +324,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	damage := req.damage
 	damageType := 0
 	if needCalculate && !obj.CheckMiss(tobj) {
+		// treat normal attack as skill 0
 		if s == nil {
 			s = skill.Skill0
 		}
@@ -353,27 +363,26 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 		// 7. wing increase/reduce damage
 		damage += damage * obj.GetWingIncreaseDamage() / 100
 		damage -= damage * tobj.GetWingReduceDamage() / 100
-		// 8. helper reduce damage
+		// 8. angel reduce damage
 		damage -= damage * tobj.GetHelperReduceDamage() / 100
-		// 9. pet reduce damage
+		// 9. pet increase/reduce damage
 		damage += damage * obj.GetPetIncreaseDamage() / 100
 		damage -= damage * tobj.GetPetReduceDamage() / 100
+		// 10. effect reduce damage
+		reduction := obj.effects.AttackReduction()
+		damage -= damage * reduction / 100
+		if barrier := tobj.effect(effect.BuffSoulBarrier); barrier != nil && damage > 0 {
+			mana := tobj.MP * barrier.ManaRate / 1000
+			if mana < tobj.MP {
+				tobj.MP -= mana
+				damage -= damage * barrier.DamageReduction / 100
+				tobj.PushMPAG(tobj.MP, tobj.AG)
+			}
+		}
 		if damage <= 0 {
 			damage = 0
 		}
 	}
-	reduction := obj.effects.AttackReduction()
-	damage -= damage * reduction / 100
-	if barrier := tobj.effect(effect.BuffSoulBarrier); barrier != nil && damage > 0 {
-		mana := tobj.MP * barrier.ManaRate / 1000
-		if mana < tobj.MP {
-			tobj.MP -= mana
-			damage -= damage * barrier.DamageReduction / 100
-			tobj.PushMPAG(tobj.MP, tobj.AG)
-		}
-	}
-	// 9. reflect damage
-	// 10. return damage
 	// 11. rand double damage
 	doubleDamageRate := obj.GetDoubleDamageRate()
 	if rand.Intn(10000) < doubleDamageRate*100 {
@@ -406,6 +415,21 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 				reflectedDamage := damage * reflect / 100
 				if reflectedDamage > 0 {
 					tobj.AddDelayMsg(9, reflectedDamage, 10, obj.Index)
+				}
+			}
+		}
+		if allowReturn && tobj.Type == ObjectTypePlayer {
+			returnRate := tobj.GetReturnDamageRate()
+			if returnRate > 0 && rand.Intn(10000) < returnRate*100 {
+				returnedDamage := 0
+				switch obj.Type {
+				case ObjectTypePlayer:
+					returnedDamage = damage
+				case ObjectTypeMonster:
+					returnedDamage = obj.AttackMax
+				}
+				if returnedDamage > 0 {
+					tobj.AddDelayMsg(12, returnedDamage, 10, obj.Index)
 				}
 			}
 		}

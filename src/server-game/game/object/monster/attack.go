@@ -79,6 +79,10 @@ func (*Monster) GetDoubleDamageRate() int {
 	return 0
 }
 
+func (*Monster) GetReturnDamageRate() int {
+	return 0
+}
+
 func (*Monster) GetMonsterDieGetMoney() float64 {
 	return 0.0
 }
