@@ -360,7 +360,10 @@ func TestDamageReflectionIsDelayed(t *testing.T) {
 		t.Fatal("addEffect() = false")
 	}
 
-	attacker.attack(target, nil, 20, true)
+	attacker.attack(target, attackRequest{
+		mode:   attackModeFixed,
+		damage: 20,
+	})
 	if attacker.HP != attacker.MaxHP {
 		t.Fatalf("attacker HP before delay = %d, want %d", attacker.HP, attacker.MaxHP)
 	}

@@ -1141,7 +1141,10 @@ func (obj *Object) processDelayMsg() {
 				obj.MapNumber != tobj.MapNumber || tobj.Type != ObjectTypeMonster {
 				break
 			}
-			damage := obj.attack(tobj, s, 0, true)
+			damage := obj.attack(tobj, attackRequest{
+				mode:  attackModeCalculated,
+				skill: s,
+			})
 			if s.Index == skill.SkillIndexDrainLife && damage > 0 {
 				addHP := 0
 				formula.SummonerDrainLifeMonster(obj.GetEnergy(), tobj.Level, &addHP)
@@ -1175,14 +1178,21 @@ func (obj *Object) processDelayMsg() {
 					damage = 1
 				}
 				count++
-				obj.attack(tobj, s, damage, true)
+				obj.attack(tobj, attackRequest{
+					mode:   attackModeFixed,
+					skill:  s,
+					damage: damage,
+				})
 			})
 		case 9: // delayed reflected damage
 			tobj := ObjectManager.GetObject(msg.sender)
 			if tobj == nil || !tobj.Live || !obj.Live || obj.MapNumber != tobj.MapNumber {
 				break
 			}
-			obj.attack(tobj, nil, msg.subcode, false)
+			obj.attack(tobj, attackRequest{
+				mode:   attackModeReflected,
+				damage: msg.subcode,
+			})
 		}
 		msg.code = -1
 	}

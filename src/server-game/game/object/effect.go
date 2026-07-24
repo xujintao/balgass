@@ -147,7 +147,10 @@ func (obj *Object) processEffect() {
 			eff.NextTick = now.Add(time.Second)
 			source := ObjectManager.GetObject(eff.Source)
 			if source != nil && source.Live && obj.Live {
-				source.attack(obj, nil, eff.Dot, false)
+				source.attack(obj, attackRequest{
+					mode:   attackModeDOT,
+					damage: eff.Dot,
+				})
 			}
 		}
 		if !now.Before(eff.Expire) {

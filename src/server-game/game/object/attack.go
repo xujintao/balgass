@@ -281,10 +281,40 @@ func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 	return damage
 }
 
-func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int, allowReflect bool) int {
+type attackMode uint8
+
+const (
+	attackModeInvalid attackMode = iota
+	attackModeCalculated
+	attackModeFixed
+	attackModeReflected
+	attackModeDOT
+)
+
+type attackRequest struct {
+	mode   attackMode
+	skill  *skill.Skill
+	damage int
+}
+
+func (obj *Object) attack(tobj *Object, req attackRequest) int {
+	needCalculate := false
+	allowReflect := false
+	switch req.mode {
+	case attackModeCalculated:
+		needCalculate = true
+		allowReflect = true
+	case attackModeFixed:
+		allowReflect = true
+	case attackModeReflected, attackModeDOT:
+	default:
+		return 0
+	}
+
+	s := req.skill
+	damage := req.damage
 	damageType := 0
-	calculated := damage == 0
-	if damage == 0 && !obj.CheckMiss(tobj) {
+	if needCalculate && !obj.CheckMiss(tobj) {
 		if s == nil {
 			s = skill.Skill0
 		}
@@ -346,7 +376,7 @@ func (obj *Object) attack(tobj *Object, s *skill.Skill, damage int, allowReflect
 	// 10. return damage
 	// 11. rand double damage
 	doubleDamageRate := obj.GetDoubleDamageRate()
-	if calculated && rand.Intn(10000) < doubleDamageRate*100 {
+	if rand.Intn(10000) < doubleDamageRate*100 {
 		damage *= 2
 	}
 	// 12. target recover all hp/mp/sd
@@ -462,7 +492,7 @@ func (obj *Object) Attack(msg *model.MsgAttack) {
 		Target: tobj.Index,
 	}
 	obj.PushViewport(&reply)
-	obj.attack(tobj, nil, 0, true)
+	obj.attack(tobj, attackRequest{mode: attackModeCalculated})
 }
 
 func (obj *Object) DieGiveExperience(tobj *Object, damage int) {

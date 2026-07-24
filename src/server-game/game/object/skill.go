@@ -429,7 +429,7 @@ func (obj *Object) UseSkillAttackMultiTarget(msg *model.MsgUseSkillAttackMultiTa
 		if !obj.checkDurationTarget(tobj, s, state) {
 			continue
 		}
-		obj.attack(tobj, s, 0, true)
+		obj.attack(tobj, attackRequest{mode: attackModeCalculated, skill: s})
 		if s.Index == skill.SkillIndexFireScream &&
 			rand.Intn(10000) < skill.Settings.FireScreamExplosionRate {
 			obj.AddDelayMsg(8, s.Index, 300, tobj.Index)
@@ -537,7 +537,7 @@ func (obj *Object) useSkillReply(tobj *Object, s *skill.Skill, success bool) {
 
 func (obj *Object) useSkillAttack(tobj *Object, s *skill.Skill) bool {
 	obj.useSkillReply(tobj, s, true)
-	obj.attack(tobj, s, 0, true)
+	obj.attack(tobj, attackRequest{mode: attackModeCalculated, skill: s})
 	switch s.Index {
 	case skill.SkillIndexLightning, // 3掌心雷
 		skill.SkillIndexFallingSlash, // 19地裂斩(武器)
@@ -723,7 +723,7 @@ func (obj *Object) useSkillAttackArea(tobj *Object, s *skill.Skill, distance int
 			vpobj.Type == ObjectTypeMonster &&
 			vpobj.MapNumber == obj.MapNumber &&
 			tobj.CalcDistance(vpobj) <= distance {
-			obj.attack(vpobj, s, 0, true)
+			obj.attack(vpobj, attackRequest{mode: attackModeCalculated, skill: s})
 		}
 	})
 	return true
@@ -737,7 +737,7 @@ func (obj *Object) useSkillAttackAreaSelf(tobj *Object, s *skill.Skill, distance
 			vpobj.Type == ObjectTypeMonster &&
 			vpobj.MapNumber == obj.MapNumber &&
 			obj.CalcDistance(vpobj) <= distance {
-			obj.attack(vpobj, s, 0, true)
+			obj.attack(vpobj, attackRequest{mode: attackModeCalculated, skill: s})
 		}
 	})
 	return true
@@ -755,7 +755,7 @@ func (obj *Object) useSkillAttackFrustum(tobj *Object, s *skill.Skill, tx1, ty1,
 			vpobj.Type == ObjectTypeMonster &&
 			vpobj.MapNumber == obj.MapNumber &&
 			obj.checkSkillFrustum(vpobj) {
-			obj.attack(vpobj, s, 0, true)
+			obj.attack(vpobj, attackRequest{mode: attackModeCalculated, skill: s})
 		}
 	})
 	return true
@@ -773,7 +773,7 @@ func (obj *Object) useSkillAttackHitBox(tobj *Object, s *skill.Skill, hitCheck f
 			vpobj.Type == ObjectTypeMonster &&
 			vpobj.MapNumber == obj.MapNumber &&
 			hitCheck(angle, obj.X, obj.Y, vpobj.X, vpobj.Y) {
-			obj.attack(vpobj, s, 0, true)
+			obj.attack(vpobj, attackRequest{mode: attackModeCalculated, skill: s})
 		}
 	})
 	return true
@@ -834,9 +834,9 @@ func (obj *Object) checkSkillFrustum(tobj *Object) bool {
 
 func (obj *Object) useSkillDeathStab(s *skill.Skill, tobj *Object) bool {
 	obj.useSkillReply(tobj, s, true)
-	obj.attack(tobj, s, 0, true)
+	obj.attack(tobj, attackRequest{mode: attackModeCalculated, skill: s})
 	if rand.Intn(100)%3 == 0 {
-		obj.attack(tobj, s, 0, true)
+		obj.attack(tobj, attackRequest{mode: attackModeCalculated, skill: s})
 	}
 	angle := obj.getAngle(tobj)
 	obj.createSkillFrustum(angle, 1.5, 3.0)
@@ -846,7 +846,7 @@ func (obj *Object) useSkillDeathStab(s *skill.Skill, tobj *Object) bool {
 			vpobj.Type != ObjectTypePlayer &&
 			vpobj.Type != ObjectTypeNPC &&
 			obj.checkSkillFrustum(vpobj) {
-			obj.attack(vpobj, s, 0, true)
+			obj.attack(vpobj, attackRequest{mode: attackModeCalculated, skill: s})
 		}
 	})
 	return true
@@ -1156,7 +1156,7 @@ func (obj *Object) useSkillAttackAreaPoint(tobj *Object, s *skill.Skill, x, y, d
 	if delay > 0 {
 		obj.AddDelayMsg(4, s.Index, delay, tobj.Index)
 	} else {
-		obj.attack(tobj, s, 0, true)
+		obj.attack(tobj, attackRequest{mode: attackModeCalculated, skill: s})
 	}
 	obj.ForEachViewportObject(func(target *Object) {
 		if target == tobj ||
@@ -1168,7 +1168,7 @@ func (obj *Object) useSkillAttackAreaPoint(tobj *Object, s *skill.Skill, x, y, d
 		if delay > 0 {
 			obj.AddDelayMsg(4, s.Index, delay, target.Index)
 		} else {
-			obj.attack(target, s, 0, true)
+			obj.attack(target, attackRequest{mode: attackModeCalculated, skill: s})
 		}
 	})
 	return true
@@ -1299,7 +1299,7 @@ func (obj *Object) useSkillChainLightning(tobj *Object, s *skill.Skill) bool {
 				dy >= -distance && dy <= distance {
 				hit[vpobj.Index] = struct{}{}
 				obj.chainLightningTarget = len(hit)
-				obj.attack(vpobj, s, 0, true)
+				obj.attack(vpobj, attackRequest{mode: attackModeCalculated, skill: s})
 			}
 		})
 	}
@@ -1320,7 +1320,7 @@ func (obj *Object) useSkillDarkSide(tobj *Object, s *skill.Skill) bool {
 			vpobj.MapNumber == obj.MapNumber &&
 			obj.CalcDistance(vpobj) < s.Distance {
 			hitCount++
-			obj.attack(vpobj, s, 0, true)
+			obj.attack(vpobj, attackRequest{mode: attackModeCalculated, skill: s})
 		}
 	})
 	return true
@@ -1330,7 +1330,7 @@ func (obj *Object) useSkillPhoenixShot(tobj *Object, s *skill.Skill) bool {
 	obj.useSkillReply(tobj, s, true)
 	attack := func(target *Object) {
 		for i := 0; i < 4; i++ {
-			obj.attack(target, s, 0, true)
+			obj.attack(target, attackRequest{mode: attackModeCalculated, skill: s})
 			if !target.Live {
 				break
 			}
