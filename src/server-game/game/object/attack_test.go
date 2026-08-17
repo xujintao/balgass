@@ -407,6 +407,121 @@ func TestBasicAttackDelay(t *testing.T) {
 	}
 }
 
+func withShieldSystemTest(t *testing.T, enabled bool, rate int) {
+	t.Helper()
+	info := &conf.CommonServer.GameServerInfo
+	oldEnabled := info.ShieldSystemEnable
+	oldRate := info.DamageDivideSDRate
+	info.ShieldSystemEnable = enabled
+	info.DamageDivideSDRate = rate
+	t.Cleanup(func() {
+		info.ShieldSystemEnable = oldEnabled
+		info.DamageDivideSDRate = oldRate
+	})
+}
+
+func findAttackDamageReply(messages []any) *model.MsgAttackDamageReply {
+	for i := len(messages) - 1; i >= 0; i-- {
+		if reply, ok := messages[i].(*model.MsgAttackDamageReply); ok {
+			return reply
+		}
+	}
+	return nil
+}
+
+func TestSplitDamage(t *testing.T) {
+	for _, tt := range []struct {
+		name         string
+		enabled      bool
+		rate         int
+		attackerType ObjectType
+		targetType   ObjectType
+		targetSD     int
+		wantHP       int
+		wantSD       int
+	}{
+		{name: "shield disabled", rate: 90, attackerType: ObjectTypePlayer, targetType: ObjectTypePlayer, targetSD: 200, wantHP: 100},
+		{name: "non pvp", enabled: true, rate: 90, attackerType: ObjectTypePlayer, targetType: ObjectTypeMonster, targetSD: 200, wantHP: 100},
+		{name: "normal split", enabled: true, rate: 90, attackerType: ObjectTypePlayer, targetType: ObjectTypePlayer, targetSD: 200, wantHP: 10, wantSD: 90},
+		{name: "shield overflow", enabled: true, rate: 90, attackerType: ObjectTypePlayer, targetType: ObjectTypePlayer, targetSD: 50, wantHP: 50, wantSD: 50},
+		{name: "zero shield", enabled: true, rate: 90, attackerType: ObjectTypePlayer, targetType: ObjectTypePlayer, wantHP: 100},
+		{name: "negative rate", enabled: true, rate: -1, attackerType: ObjectTypePlayer, targetType: ObjectTypePlayer, targetSD: 200, wantHP: 100},
+		{name: "rate over one hundred", enabled: true, rate: 101, attackerType: ObjectTypePlayer, targetType: ObjectTypePlayer, targetSD: 200, wantSD: 100},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			withShieldSystemTest(t, tt.enabled, tt.rate)
+			attacker, _ := newSkillTestObject(1, tt.attackerType)
+			target, _ := newSkillTestObject(2, tt.targetType)
+			target.SD = tt.targetSD
+
+			hpDamage, sdDamage := attacker.splitDamage(target, 100)
+
+			if hpDamage != tt.wantHP || sdDamage != tt.wantSD {
+				t.Fatalf("damage split = HP:%d SD:%d, want HP:%d SD:%d", hpDamage, sdDamage, tt.wantHP, tt.wantSD)
+			}
+			if target.SD != tt.targetSD {
+				t.Fatalf("splitDamage changed target SD to %d, want %d", target.SD, tt.targetSD)
+			}
+		})
+	}
+}
+
+func TestAttackAppliesUnifiedShieldDamage(t *testing.T) {
+	withShieldSystemTest(t, true, 90)
+	for _, tt := range []struct {
+		name string
+		mode attackMode
+	}{
+		{name: "fixed", mode: attackModeFixed},
+		{name: "dot", mode: attackModeDOT},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			attacker, attackerActor := newSkillTestObject(1, ObjectTypePlayer)
+			target, _ := newSkillTestObject(2, ObjectTypePlayer)
+			target.SD, target.MaxSD = 100, 100
+			withTestObjectManager(t, attacker, target)
+
+			damage := attacker.attack(target, attackRequest{mode: tt.mode, damage: 20})
+
+			if damage != 20 {
+				t.Fatalf("attack damage = %d, want 20", damage)
+			}
+			if target.HP != 98 || target.SD != 82 {
+				t.Fatalf("target resources = HP:%d SD:%d, want HP:98 SD:82", target.HP, target.SD)
+			}
+			reply := findAttackDamageReply(attackerActor.messages)
+			if reply == nil {
+				t.Fatal("attack damage reply was not sent")
+			}
+			if reply.Damage != 2 || reply.SDDamage != 18 {
+				t.Fatalf("reply damage = HP:%d SD:%d, want HP:2 SD:18", reply.Damage, reply.SDDamage)
+			}
+		})
+	}
+}
+
+func TestAttackReportsAllocatedOverkillDamage(t *testing.T) {
+	withShieldSystemTest(t, true, 0)
+	attacker, attackerActor := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypePlayer)
+	target.HP = 5
+	target.TX, target.TY = target.X, target.Y
+	withTestObjectManager(t, attacker, target)
+
+	attacker.attack(target, attackRequest{mode: attackModeFixed, damage: 20})
+
+	if target.HP != 0 {
+		t.Fatalf("target HP = %d, want 0", target.HP)
+	}
+	reply := findAttackDamageReply(attackerActor.messages)
+	if reply == nil {
+		t.Fatal("attack damage reply was not sent")
+	}
+	if reply.Damage != 20 || reply.SDDamage != 0 {
+		t.Fatalf("reply damage = HP:%d SD:%d, want HP:20 SD:0", reply.Damage, reply.SDDamage)
+	}
+}
+
 func TestDamageReturnUsesExpectedDamage(t *testing.T) {
 	for _, tt := range []struct {
 		name         string

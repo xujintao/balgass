@@ -305,6 +305,30 @@ type attackRequest struct {
 	damage int
 }
 
+func (obj *Object) splitDamage(tobj *Object, damage int) (int, int) {
+	if damage <= 0 ||
+		!conf.CommonServer.GameServerInfo.ShieldSystemEnable ||
+		obj.Type != ObjectTypePlayer ||
+		tobj.Type != ObjectTypePlayer {
+		return damage, 0
+	}
+	rate := conf.CommonServer.GameServerInfo.DamageDivideSDRate
+	if rate < 0 {
+		rate = 0
+	} else if rate > 100 {
+		rate = 100
+	}
+	sdDamage := damage * rate / 100
+	availableSD := tobj.SD
+	if availableSD < 0 {
+		availableSD = 0
+	}
+	if sdDamage > availableSD {
+		sdDamage = availableSD
+	}
+	return damage - sdDamage, sdDamage
+}
+
 func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	needCalculate := false
 	allowReflect := false
@@ -409,9 +433,14 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	// 	attackDamage = attackDamageMin
 	// }
 
-	tobj.HP -= damage
+	hpDamage, sdDamage := obj.splitDamage(tobj, damage)
+	tobj.HP -= hpDamage
+	tobj.SD -= sdDamage
 	if tobj.HP <= 0 {
 		tobj.HP = 0
+	}
+	if tobj.SD < 0 {
+		tobj.SD = 0
 	}
 	if damage > 0 {
 		tobj.removeSleepEffect()
@@ -445,9 +474,9 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	// Push attack damage reply
 	attackDamageReply := model.MsgAttackDamageReply{
 		Target:     tobj.Index,
-		Damage:     damage,
+		Damage:     hpDamage,
 		DamageType: damageType,
-		SDDamage:   0,
+		SDDamage:   sdDamage,
 	}
 	obj.Push(&attackDamageReply)
 	tobj.Push(&attackDamageReply)
@@ -479,7 +508,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 		tobj.removeAllEffects()
 		tobj.durationSkill = durationSkillState{}
 		tobj.novaSkill = novaSkillState{}
-		tobj.Die(obj, damage)
+		tobj.Die(obj, hpDamage)
 		maps.MapManager.ClearMapAttrStand(tobj.MapNumber, tobj.TX, tobj.TY)
 		tobj.dieRegen = true
 
