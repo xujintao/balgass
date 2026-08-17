@@ -612,6 +612,7 @@ type Objecter interface {
 	GetHelperReduceDamage() int
 	GetPetIncreaseDamage() int
 	GetPetReduceDamage() int
+	GetAttackSpeedForDelay() int
 	GetDoubleDamageRate() int
 	GetReturnDamageRate() int
 	GetMonsterDieGetMoney() float64
@@ -721,6 +722,7 @@ type Object struct {
 	Attribute                 int // 怪物行为属性，不能用作对象可见性标记
 	Hidden                    bool
 	dieTime                   time.Time
+	lastBasicAttackTime       time.Time
 	dieRegen                  bool
 	MaxRegenTime              time.Duration // 最大重生时间
 	PentagramMainAttribute    int
@@ -1024,6 +1026,7 @@ func (obj *Object) Reset() {
 	obj.summonIndex = -1
 	obj.summonOwner = -1
 	obj.Live = false
+	obj.lastBasicAttackTime = time.Time{}
 	obj.clearSkill()
 	obj.clearEffect()
 	obj.clearViewport()

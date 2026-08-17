@@ -77,6 +77,7 @@ func (*skillTestActor) GetWingReduceDamage() int               { return 0 }
 func (*skillTestActor) GetHelperReduceDamage() int             { return 0 }
 func (*skillTestActor) GetPetIncreaseDamage() int              { return 0 }
 func (*skillTestActor) GetPetReduceDamage() int                { return 0 }
+func (*skillTestActor) GetAttackSpeedForDelay() int            { return 0 }
 func (*skillTestActor) GetDoubleDamageRate() int               { return 0 }
 func (a *skillTestActor) GetReturnDamageRate() int             { return a.returnDamage }
 func (*skillTestActor) GetMonsterDieGetMoney() float64         { return 0 }

@@ -9,9 +9,16 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/effect"
 	"github.com/xujintao/balgass/src/server-game/game/exp"
 	"github.com/xujintao/balgass/src/server-game/game/formula"
+	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
+)
+
+const (
+	defaultAttackSpeedTimeLimit   = 800
+	defaultDecTimePerAttackSpeed  = 5.33
+	defaultMinimumAttackSpeedTime = 200
 )
 
 func (obj *Object) CheckMiss(tobj *Object) bool {
@@ -499,15 +506,107 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	return damage
 }
 
-func (obj *Object) Attack(msg *model.MsgAttack) {
-	if obj.cannotAct() {
-		return
+func (obj *Object) basicAttackTarget(msg *model.MsgAttack) *Object {
+	if msg == nil ||
+		obj.ConnectState != ConnectStatePlaying ||
+		!obj.Live ||
+		obj.State == 4 ||
+		obj.State == 8 ||
+		obj.cannotAct() ||
+		msg.Target < 0 ||
+		msg.Target >= len(ObjectManager.objects) {
+		return nil
 	}
 	tobj := ObjectManager.objects[msg.Target]
-	if tobj == nil {
-		slog.Error("Attack target is nil", "index", obj.Index, "target", msg.Target)
+	if tobj == nil ||
+		tobj == obj ||
+		!tobj.Live ||
+		tobj.State == 4 ||
+		tobj.State == 8 ||
+		tobj.MapNumber != obj.MapNumber {
+		return nil
+	}
+	for _, vp := range obj.Viewports {
+		if vp.State != 0 && vp.Type == int(tobj.Type) && vp.Number == tobj.Index {
+			return tobj
+		}
+	}
+	return nil
+}
+
+func basicAttackDelay(speed int) time.Duration {
+	timeLimit := conf.CommonServer.GameServerInfo.AttackSpeedTimeLimit
+	if timeLimit <= 0 {
+		timeLimit = defaultAttackSpeedTimeLimit
+	}
+	decrement := conf.CommonServer.GameServerInfo.DecTimePerAttackSpeed
+	if decrement <= 0 {
+		decrement = defaultDecTimePerAttackSpeed
+	}
+	minimum := conf.CommonServer.GameServerInfo.MinimumAttackSpeedTime
+	if minimum <= 0 {
+		minimum = defaultMinimumAttackSpeedTime
+	}
+	if speed < 0 {
+		speed = 0
+	}
+	delay := float64(timeLimit) - float64(speed)*decrement
+	if delay < float64(minimum) {
+		delay = float64(minimum)
+	}
+	return time.Duration(delay * float64(time.Millisecond))
+}
+
+func (obj *Object) basicAttackBlockedInSafeZone(tobj *Object) bool {
+	if !conf.Common.AntiHack.EnableBlockAttackInSafeZone {
+		return false
+	}
+	return maps.MapManager.GetMapAttr(obj.MapNumber, obj.X, obj.Y)&1 != 0 ||
+		maps.MapManager.GetMapAttr(tobj.MapNumber, tobj.X, tobj.Y)&1 != 0
+}
+
+func (obj *Object) consumeBasicAttackAmmo() bool {
+	if obj.Type != ObjectTypePlayer || obj.HasBuff(effect.BuffInfinityArrow) {
+		return true
+	}
+	leftHand := obj.GetInventoryItem(0)
+	rightHand := obj.GetInventoryItem(1)
+	position := -1
+	switch {
+	case rightHand != nil && rightHand.KindB == item.KindBCrossbow:
+		if leftHand == nil || leftHand.Code != item.Code(4, 7) || leftHand.Durability <= 0 {
+			return false
+		}
+		position = 0
+	case leftHand != nil && leftHand.KindB == item.KindBBow:
+		if rightHand == nil || rightHand.Code != item.Code(4, 15) || rightHand.Durability <= 0 {
+			return false
+		}
+		position = 1
+	default:
+		return true
+	}
+	ammo := obj.GetInventoryItem(position)
+	ammo.Durability--
+	obj.Push(&model.MsgItemDurabilityReply{
+		Position:   position,
+		Durability: ammo.Durability,
+		Flag:       0,
+	})
+	return true
+}
+
+func (obj *Object) Attack(msg *model.MsgAttack) {
+	tobj := obj.basicAttackTarget(msg)
+	if tobj == nil || obj.basicAttackBlockedInSafeZone(tobj) {
 		return
 	}
+	now := time.Now()
+	if !obj.lastBasicAttackTime.IsZero() &&
+		now.Before(obj.lastBasicAttackTime.Add(basicAttackDelay(obj.GetAttackSpeedForDelay()))) {
+		return
+	}
+	obj.lastBasicAttackTime = now
 	// Push attack action to viewport
 	reply := model.MsgActionReply{
 		Index:  obj.Index,
@@ -516,6 +615,9 @@ func (obj *Object) Attack(msg *model.MsgAttack) {
 		Target: tobj.Index,
 	}
 	obj.PushViewport(&reply)
+	if !obj.consumeBasicAttackAmmo() {
+		return
+	}
 	obj.attack(tobj, attackRequest{mode: attackModeCalculated})
 }
 

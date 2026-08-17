@@ -74,6 +74,13 @@ func (p *Player) GetPetReduceDamage() int {
 	return p.petReduceDamage
 }
 
+func (p *Player) GetAttackSpeedForDelay() int {
+	if class.Class(p.Class) == class.Wizard {
+		return 2 * p.magicSpeed
+	}
+	return p.AttackSpeed
+}
+
 func (p *Player) GetDoubleDamageRate() int {
 	return p.doubleDamageRate
 }

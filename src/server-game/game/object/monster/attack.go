@@ -75,6 +75,10 @@ func (*Monster) GetPetReduceDamage() int {
 	return 0
 }
 
+func (m *Monster) GetAttackSpeedForDelay() int {
+	return m.AttackSpeed
+}
+
 func (*Monster) GetDoubleDamageRate() int {
 	return 0
 }

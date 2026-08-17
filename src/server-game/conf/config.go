@@ -483,6 +483,9 @@ type configCommonServer struct {
 		SkillDistanceKickEnable        bool    `ini:"SkillDistanceKick"`
 		SKillDistanceKickCount         int     `ini:"SkillDistanceKickCount"`
 		SkillDistanceKickCheckTime     int     `ini:"SkillDistanceKickCheckTime"`
+		AttackSpeedTimeLimit           int     `ini:"AttackSpeedTimeLimit"`
+		DecTimePerAttackSpeed          float64 `ini:"DecTimePerAttackSpeed"`
+		MinimumAttackSpeedTime         int     `ini:"MinimumAttackSpeedTime"`
 		LevelPoint5                    int     `ini:"LevelUpPointNormal"`
 		LevelPoint7                    int     `ini:"LevelUpPointMGDL"`
 		AutoRecuperationEnable         bool    `ini:"UseCharacterAutoRecuperationSystem"`
