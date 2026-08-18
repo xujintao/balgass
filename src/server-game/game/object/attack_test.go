@@ -430,6 +430,156 @@ func findAttackDamageReply(messages []any) *model.MsgAttackDamageReply {
 	return nil
 }
 
+type damageFormulaTestActor struct {
+	*skillTestActor
+	masterLevel       int
+	addDamage         int
+	armorReduceDamage int
+}
+
+func newDamageFormulaTestObject(index int, typ ObjectType) (*Object, *damageFormulaTestActor) {
+	obj, base := newSkillTestObject(index, typ)
+	actor := &damageFormulaTestActor{skillTestActor: base}
+	obj.Objecter = actor
+	return obj, actor
+}
+
+func (a *damageFormulaTestActor) GetMasterLevel() int {
+	return a.masterLevel
+}
+
+func (a *damageFormulaTestActor) GetAddDamage() int {
+	return a.addDamage
+}
+
+func (a *damageFormulaTestActor) GetArmorReduceDamage() int {
+	return a.armorReduceDamage
+}
+
+func withDamageRateTest(t *testing.T, pvpRate, pveRate int) {
+	t.Helper()
+	oldPVP := conf.CalcChar.DamageRate.PVP.DarkWizard.DarkKnight
+	oldPVE := conf.CalcChar.DamageRate.PVE.DarkWizard
+	conf.CalcChar.DamageRate.PVP.DarkWizard.DarkKnight = pvpRate
+	conf.CalcChar.DamageRate.PVE.DarkWizard = pveRate
+	t.Cleanup(func() {
+		conf.CalcChar.DamageRate.PVP.DarkWizard.DarkKnight = oldPVP
+		conf.CalcChar.DamageRate.PVE.DarkWizard = oldPVE
+	})
+}
+
+func TestCalculatedDamageStageOrder(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	withDamageRateTest(t, 100, 100)
+	attacker, attackerActor := newDamageFormulaTestObject(1, ObjectTypePlayer)
+	target, targetActor := newDamageFormulaTestObject(2, ObjectTypePlayer)
+	attacker.Class = 0
+	target.Class = 1
+	attacker.Level = 90
+	attackerActor.masterLevel = 10
+	attacker.AttackMin, attacker.AttackMax = 10, 10
+	target.Level = 0
+	target.Defense = 100
+	targetActor.armorReduceDamage = 50
+	attacker.effects[9001] = &effect.Effect{AttackReduction: 50}
+	withTestObjectManager(t, attacker, target)
+
+	damage := attacker.attack(target, attackRequest{mode: attackModeCalculated})
+
+	if damage != 5 {
+		t.Fatalf("attack damage = %d, want 5", damage)
+	}
+	if target.HP != 95 {
+		t.Fatalf("target HP = %d, want 95", target.HP)
+	}
+}
+
+func TestCalculatedAddDamageAfterSoulBarrier(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	withDamageRateTest(t, 100, 100)
+	attacker, attackerActor := newDamageFormulaTestObject(1, ObjectTypePlayer)
+	target, _ := newDamageFormulaTestObject(2, ObjectTypePlayer)
+	attacker.Class = 0
+	target.Class = 1
+	target.Level = 0
+	attacker.AttackMin, attacker.AttackMax = 20, 20
+	attackerActor.addDamage = 10
+	target.effects[effect.BuffSoulBarrier] = &effect.Effect{
+		DamageReduction: 50,
+		ManaRate:        100,
+	}
+	withTestObjectManager(t, attacker, target)
+
+	damage := attacker.attack(target, attackRequest{mode: attackModeCalculated})
+
+	if damage != 20 {
+		t.Fatalf("attack damage = %d, want 20", damage)
+	}
+	if target.HP != 80 || target.MP != 90 {
+		t.Fatalf("target resources = HP:%d MP:%d, want HP:80 MP:90", target.HP, target.MP)
+	}
+}
+
+func TestDamageRateSelection(t *testing.T) {
+	withDamageRateTest(t, 50, 80)
+	oldZeroRate := conf.CalcChar.DamageRate.PVP.FairyElf.DarkKnight
+	conf.CalcChar.DamageRate.PVP.FairyElf.DarkKnight = 0
+	t.Cleanup(func() {
+		conf.CalcChar.DamageRate.PVP.FairyElf.DarkKnight = oldZeroRate
+	})
+
+	for _, tt := range []struct {
+		name          string
+		attackerType  ObjectType
+		attackerClass int
+		targetType    ObjectType
+		targetClass   int
+		want          int
+	}{
+		{name: "pvp matrix", attackerType: ObjectTypePlayer, attackerClass: 0, targetType: ObjectTypePlayer, targetClass: 1, want: 10},
+		{name: "pve rate", attackerType: ObjectTypePlayer, attackerClass: 0, targetType: ObjectTypeMonster, want: 16},
+		{name: "invalid attacker class", attackerType: ObjectTypePlayer, attackerClass: 99, targetType: ObjectTypePlayer, targetClass: 1, want: 20},
+		{name: "invalid target class", attackerType: ObjectTypePlayer, attackerClass: 0, targetType: ObjectTypePlayer, targetClass: 99, want: 20},
+		{name: "zero rate", attackerType: ObjectTypePlayer, attackerClass: 2, targetType: ObjectTypePlayer, targetClass: 1, want: 0},
+		{name: "monster attacker", attackerType: ObjectTypeMonster, attackerClass: 0, targetType: ObjectTypePlayer, targetClass: 1, want: 20},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			attacker, _ := newSkillTestObject(1, tt.attackerType)
+			target, _ := newSkillTestObject(2, tt.targetType)
+			attacker.Class = tt.attackerClass
+			target.Class = tt.targetClass
+
+			if got := attacker.applyDamageRate(target, 20); got != tt.want {
+				t.Fatalf("damage = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFixedAndDOTIgnoreCalculatedDamageStages(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	withDamageRateTest(t, 0, 100)
+	attacker, _ := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypePlayer)
+	attacker.Class = 0
+	target.Class = 1
+	target.Level = 0
+	withTestObjectManager(t, attacker, target)
+
+	if damage := attacker.attack(target, attackRequest{mode: attackModeCalculated}); damage != 0 {
+		t.Fatalf("calculated damage = %d, want 0", damage)
+	}
+	if damage := attacker.attack(target, attackRequest{mode: attackModeFixed, damage: 2}); damage != 2 {
+		t.Fatalf("fixed damage = %d, want 2", damage)
+	}
+	if damage := attacker.attack(target, attackRequest{mode: attackModeDOT, damage: 2}); damage != 2 {
+		t.Fatalf("DOT damage = %d, want 2", damage)
+	}
+	if target.HP != 96 {
+		t.Fatalf("target HP = %d, want 96", target.HP)
+	}
+}
+
 func TestSplitDamage(t *testing.T) {
 	for _, tt := range []struct {
 		name         string

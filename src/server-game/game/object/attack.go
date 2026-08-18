@@ -329,6 +329,20 @@ func (obj *Object) splitDamage(tobj *Object, damage int) (int, int) {
 	return damage - sdDamage, sdDamage
 }
 
+func (obj *Object) applyDamageRate(tobj *Object, damage int) int {
+	if obj.Type != ObjectTypePlayer {
+		return damage
+	}
+	switch tobj.Type {
+	case ObjectTypePlayer:
+		return damage * conf.CalcChar.GetDamageRate(obj.Class, tobj.Class, true) / 100
+	case ObjectTypeMonster:
+		return damage * conf.CalcChar.GetDamageRate(obj.Class, tobj.Class, false) / 100
+	default:
+		return damage
+	}
+}
+
 func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	if tobj == nil || !tobj.Live || tobj.HP <= 0 {
 		return 0
@@ -386,26 +400,27 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 		damage = obj.getDamage(s, damageType, tobj)
 		// 3. calc attack damage
 		damage = damage - defense
-		if damage < 0 {
-			damage = 0
-		}
-		// 4. add damage
-		damage += obj.GetAddDamage()
-		// 5. premium scroll damage
-
-		// 6. armor reduce damage
-		damage -= damage * tobj.GetArmorReduceDamage() / 100
-		// 7. wing increase/reduce damage
-		damage += damage * obj.GetWingIncreaseDamage() / 100
-		damage -= damage * tobj.GetWingReduceDamage() / 100
-		// 8. angel reduce damage
-		damage -= damage * tobj.GetHelperReduceDamage() / 100
-		// 9. pet increase/reduce damage
-		damage += damage * obj.GetPetIncreaseDamage() / 100
-		damage -= damage * tobj.GetPetReduceDamage() / 100
-		// 10. effect reduce damage
 		reduction := obj.effects.AttackReduction()
 		damage -= damage * reduction / 100
+		minimumDamage := (obj.Level + obj.GetMasterLevel()) / 10
+		if minimumDamage < 1 {
+			minimumDamage = 1
+		}
+		if damage < minimumDamage {
+			damage = minimumDamage
+		}
+
+		// 4. armor reduce damage
+		damage -= damage * tobj.GetArmorReduceDamage() / 100
+		// 5. wing increase/reduce damage
+		damage += damage * obj.GetWingIncreaseDamage() / 100
+		damage -= damage * tobj.GetWingReduceDamage() / 100
+		// 6. angel reduce damage
+		damage -= damage * tobj.GetHelperReduceDamage() / 100
+		// 7. pet increase/reduce damage
+		damage += damage * obj.GetPetIncreaseDamage() / 100
+		damage -= damage * tobj.GetPetReduceDamage() / 100
+		// 8. effect reduce damage
 		if barrier := tobj.effect(effect.BuffSoulBarrier); barrier != nil && damage > 0 {
 			mana := tobj.MP * barrier.ManaRate / 1000
 			if mana < tobj.MP {
@@ -414,7 +429,11 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 				tobj.PushMPAG(tobj.MP, tobj.AG)
 			}
 		}
-		if damage <= 0 {
+		// 9. add damage
+		damage += obj.GetAddDamage()
+		// 10. class damage rate
+		damage = obj.applyDamageRate(tobj, damage)
+		if damage < 0 {
 			damage = 0
 		}
 	}
@@ -427,15 +446,6 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	// 13. mace stun
 	// 14. decrease target hp
 	// 15. check target hp
-
-	// limit attack damage min
-	// attackDamageMin := tobj.Level / 10
-	// if attackDamageMin <= 0 {
-	// 	attackDamageMin = 1
-	// }
-	// if attackDamage < attackDamageMin {
-	// 	attackDamage = attackDamageMin
-	// }
 
 	hpDamage, sdDamage := obj.splitDamage(tobj, damage)
 	tobj.HP -= hpDamage

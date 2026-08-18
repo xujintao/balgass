@@ -732,6 +732,29 @@ type charClass struct {
 	GrowLancer     int `xml:"GrowLancer,attr"`
 }
 
+func (c charClass) get(class int) int {
+	switch class {
+	case 0:
+		return c.DarkWizard
+	case 1:
+		return c.DarkKnight
+	case 2:
+		return c.FairyElf
+	case 3:
+		return c.MagicGladiator
+	case 4:
+		return c.DarkLord
+	case 5:
+		return c.Summoner
+	case 6:
+		return c.Rage
+	case 7:
+		return c.GrowLancer
+	default:
+		return 100
+	}
+}
+
 type configCalcCharacter struct {
 	MaxDamageDecreasePercent    int `xml:"MaxDamageDecreasePercent,attr"`
 	MaxDamageReflectPercent     int `xml:"MaxDamageReflectPercent,attr"`
@@ -769,6 +792,35 @@ type configCalcCharacter struct {
 		} `xml:"PVP"`
 		PVE charClass `xml:"PVE"`
 	} `xml:"ElementalDamageRate"`
+}
+
+func (c configCalcCharacter) GetDamageRate(attackerClass, targetClass int, pvp bool) int {
+	if !pvp {
+		return c.DamageRate.PVE.get(attackerClass)
+	}
+
+	var rates charClass
+	switch attackerClass {
+	case 0:
+		rates = c.DamageRate.PVP.DarkWizard
+	case 1:
+		rates = c.DamageRate.PVP.DarkKnight
+	case 2:
+		rates = c.DamageRate.PVP.FairyElf
+	case 3:
+		rates = c.DamageRate.PVP.MagicGladiator
+	case 4:
+		rates = c.DamageRate.PVP.DarkLord
+	case 5:
+		rates = c.DamageRate.PVP.Summoner
+	case 6:
+		rates = c.DamageRate.PVP.Rage
+	case 7:
+		rates = c.DamageRate.PVP.GrowLancer
+	default:
+		return 100
+	}
+	return rates.get(targetClass)
 }
 
 type PKLevel struct {
