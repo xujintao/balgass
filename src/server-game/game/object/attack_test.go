@@ -9,6 +9,7 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
+	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
 
 type basicAttackTestActor struct {
@@ -519,6 +520,202 @@ func TestAttackReportsAllocatedOverkillDamage(t *testing.T) {
 	}
 	if reply.Damage != 20 || reply.SDDamage != 0 {
 		t.Fatalf("reply damage = HP:%d SD:%d, want HP:20 SD:0", reply.Damage, reply.SDDamage)
+	}
+}
+
+type deathTestActor struct {
+	*skillTestActor
+	dieCalls  int
+	dieDamage int
+}
+
+func newDeathTestObject(index int, typ ObjectType) (*Object, *deathTestActor) {
+	obj, actor := newSkillTestObject(index, typ)
+	deathActor := &deathTestActor{skillTestActor: actor}
+	obj.Objecter = deathActor
+	return obj, deathActor
+}
+
+func (a *deathTestActor) Die(_ *Object, damage int) {
+	a.dieCalls++
+	a.dieDamage = damage
+}
+
+func findAttackDieReply(messages []any) *model.MsgAttackDieReply {
+	for i := len(messages) - 1; i >= 0; i-- {
+		if reply, ok := messages[i].(*model.MsgAttackDieReply); ok {
+			return reply
+		}
+	}
+	return nil
+}
+
+func TestAttackSettlesDeathOnce(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	attacker, attackerActor := newSkillTestObject(1, ObjectTypePlayer)
+	target, targetActor := newDeathTestObject(2, ObjectTypePlayer)
+	target.HP = 5
+	target.TX, target.TY = target.X, target.Y
+	withTestObjectManager(t, attacker, target)
+
+	firstDamage := attacker.attack(target, attackRequest{mode: attackModeFixed, damage: 20})
+	attackerMessages := len(attackerActor.messages)
+	targetMessages := len(targetActor.messages)
+	secondDamage := attacker.attack(target, attackRequest{mode: attackModeFixed, damage: 20})
+
+	if firstDamage != 20 || secondDamage != 0 {
+		t.Fatalf("attack damage = first:%d second:%d, want first:20 second:0", firstDamage, secondDamage)
+	}
+	if target.HP != 0 || target.Live {
+		t.Fatalf("target state = HP:%d Live:%t, want HP:0 Live:false", target.HP, target.Live)
+	}
+	if targetActor.dieCalls != 1 || targetActor.dieDamage != 20 {
+		t.Fatalf("Die calls = %d with damage %d, want 1 with damage 20", targetActor.dieCalls, targetActor.dieDamage)
+	}
+	if len(attackerActor.messages) != attackerMessages || len(targetActor.messages) != targetMessages {
+		t.Fatal("second attack sent messages for an already dead target")
+	}
+	if got := countMessages[model.MsgAttackDieReply](targetActor.messages); got != 1 {
+		t.Fatalf("death replies = %d, want 1", got)
+	}
+}
+
+func TestAttackRejectsDeadTargets(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	for _, tt := range []struct {
+		name  string
+		mode  attackMode
+		setup func(target *Object)
+	}{
+		{
+			name: "fixed with non-live target",
+			mode: attackModeFixed,
+			setup: func(target *Object) {
+				target.Live = false
+			},
+		},
+		{
+			name: "calculated with zero-HP target",
+			mode: attackModeCalculated,
+			setup: func(target *Object) {
+				target.HP = 0
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			attacker, attackerActor := newSkillTestObject(1, ObjectTypePlayer)
+			target, targetActor := newSkillTestObject(2, ObjectTypePlayer)
+			tt.setup(target)
+			withTestObjectManager(t, attacker, target)
+			targetHP, targetSD := target.HP, target.SD
+
+			damage := attacker.attack(target, attackRequest{mode: tt.mode, damage: 20})
+
+			if damage != 0 {
+				t.Fatalf("attack damage = %d, want 0", damage)
+			}
+			if target.HP != targetHP || target.SD != targetSD {
+				t.Fatal("rejected attack changed participant resources")
+			}
+			if len(attackerActor.messages) != 0 || len(targetActor.messages) != 0 {
+				t.Fatal("rejected attack sent messages")
+			}
+		})
+	}
+}
+
+func TestDOTContinuesAfterSourceDeath(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	source, _ := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypePlayer)
+	withTestObjectManager(t, source, target)
+	if !target.addEffect(&effect.Effect{
+		BuffIndex: 9001,
+		Dot:       20,
+		Source:    source.Index,
+		Expire:    time.Now().Add(time.Minute),
+		NextTick:  time.Now().Add(-time.Second),
+	}) {
+		t.Fatal("addEffect() = false")
+	}
+	source.Live = false
+	source.HP = 0
+
+	target.processEffect()
+
+	if target.HP != 80 {
+		t.Fatalf("target HP = %d, want 80", target.HP)
+	}
+}
+
+func TestFireScreamExplosionStopsAfterSourceDeath(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	source, sourceActor := newSkillTestObject(1, ObjectTypePlayer)
+	center, centerActor := newSkillTestObject(2, ObjectTypeMonster)
+	withTestObjectManager(t, source, center)
+	if !source.addViewportObject(center) {
+		t.Fatal("failed to add explosion center to source viewport")
+	}
+	s := learnSkillForTest(t, source, skill.SkillIndexFireScream)
+	source.AddDelayMsg(8, s.Index, 0, center.Index)
+	for _, msg := range source.msgs {
+		if msg.code == 8 {
+			msg.time = time.Now().Add(-time.Second)
+			break
+		}
+	}
+	source.Live = false
+	source.HP = 0
+	sourceMessages := len(sourceActor.messages)
+	centerMessages := len(centerActor.messages)
+
+	source.processDelayMsg()
+
+	if center.HP != center.MaxHP {
+		t.Fatalf("center HP = %d, want %d", center.HP, center.MaxHP)
+	}
+	if len(sourceActor.messages) != sourceMessages || len(centerActor.messages) != centerMessages {
+		t.Fatal("dead source explosion sent attack messages")
+	}
+}
+
+func TestAttackDeathReplySkill(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	for _, tt := range []struct {
+		name      string
+		mode      attackMode
+		withSkill bool
+		wantSkill int
+	}{
+		{name: "calculated skill", mode: attackModeCalculated, withSkill: true, wantSkill: skill.SkillIndexFireBall},
+		{name: "normal attack", mode: attackModeCalculated},
+		{name: "fixed damage", mode: attackModeFixed},
+		{name: "dot damage", mode: attackModeDOT},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			attacker, attackerActor := newSkillTestObject(1, ObjectTypePlayer)
+			target, targetActor := newSkillTestObject(2, ObjectTypePlayer)
+			target.Level = 0
+			target.HP = 1
+			target.TX, target.TY = target.X, target.Y
+			withTestObjectManager(t, attacker, target)
+			req := attackRequest{mode: tt.mode, damage: 20}
+			if tt.withSkill {
+				attackerActor.magicAttackMin = 100
+				attackerActor.magicAttackMax = 100
+				req.skill = learnSkillForTest(t, attacker, skill.SkillIndexFireBall)
+			}
+
+			attacker.attack(target, req)
+
+			reply := findAttackDieReply(targetActor.messages)
+			if reply == nil {
+				t.Fatal("attack death reply was not sent")
+			}
+			if reply.Skill != tt.wantSkill {
+				t.Fatalf("death skill = %d, want %d", reply.Skill, tt.wantSkill)
+			}
+		})
 	}
 }
 

@@ -1167,7 +1167,7 @@ func (obj *Object) processDelayMsg() {
 		case 8: // Fire Scream delayed explosion
 			center := ObjectManager.GetObject(msg.sender)
 			s := obj.Skills[msg.subcode]
-			if center == nil || s == nil || !center.Live || obj.MapNumber != center.MapNumber {
+			if !obj.Live || center == nil || s == nil || !center.Live || obj.MapNumber != center.MapNumber {
 				break
 			}
 			count := 0
@@ -1184,7 +1184,6 @@ func (obj *Object) processDelayMsg() {
 				count++
 				obj.attack(tobj, attackRequest{
 					mode:   attackModeFixed,
-					skill:  s,
 					damage: damage,
 				})
 			})

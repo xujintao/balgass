@@ -330,6 +330,10 @@ func (obj *Object) splitDamage(tobj *Object, damage int) (int, int) {
 }
 
 func (obj *Object) attack(tobj *Object, req attackRequest) int {
+	if tobj == nil || !tobj.Live || tobj.HP <= 0 {
+		return 0
+	}
+
 	needCalculate := false
 	allowReflect := false
 	allowReturn := false
@@ -501,7 +505,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	tobj.PushViewport(&attackHPReply)
 
 	// handle target die
-	if tobj.HP == 0 {
+	if tobj.HP == 0 && tobj.Live {
 		tobj.Live = false
 		tobj.State = 4
 		tobj.dieTime = time.Now()
@@ -513,9 +517,13 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 		tobj.dieRegen = true
 
 		// Push attack die reply
+		deathSkill := 0
+		if req.mode == attackModeCalculated && req.skill != nil {
+			deathSkill = req.skill.Index
+		}
 		attackDieReply := model.MsgAttackDieReply{
 			Target: tobj.Index,
-			Skill:  0,
+			Skill:  deathSkill,
 			Killer: obj.Index,
 		}
 		tobj.PushViewport(&attackDieReply)
