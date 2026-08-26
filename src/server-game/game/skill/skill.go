@@ -166,9 +166,8 @@ func (s Skills) GetMaster(class, index, point int, f func(point, uiIndex, index,
 		}
 		s[index] = ss
 	}
-	// if index >= 300 {
-	// 	damage = s.getMasterSkillDamage(index, level)
-	// }
+	ss.CurValue = SkillManager.GetMasterSkillValue(index, ss.Level)
+	ss.NextValue = SkillManager.GetMasterSkillValue(index, ss.Level+1)
 	f(masterSkillBase.ReqMinPoint, masterSkillBase.Index, int(index), ss.Level, ss.CurValue, ss.NextValue)
 	return true
 }
@@ -228,9 +227,9 @@ func (s Skills) getMasterSkillDamage(index, level int) int {
 		index = brand1
 		level = s[index].Level
 	}
-	stid := SkillManager.skillTable[index].STID
-	if SkillManager.masterSkillValueTable[stid].valueType == valueTypeDamage {
-		damage += int(SkillManager.masterSkillValueTable[stid].values[level])
+	value, typ, ok := SkillManager.masterSkillValue(index, level)
+	if ok && typ == valueTypeDamage {
+		damage += int(value)
 	}
 	if brand2 > 0 {
 		damage += SkillManager.skillTable[brand2].Damage
@@ -255,8 +254,8 @@ func (s Skills) FillSkillData(class int) {
 				continue
 			}
 			ss.UIIndex = masterSkillBase.Index
-			ss.CurValue = 0
-			ss.NextValue = 0
+			ss.CurValue = SkillManager.GetMasterSkillValue(ss.Index, ss.Level)
+			ss.NextValue = SkillManager.GetMasterSkillValue(ss.Index, ss.Level+1)
 		}
 	}
 }

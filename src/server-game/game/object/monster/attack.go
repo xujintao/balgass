@@ -87,6 +87,22 @@ func (*Monster) GetReturnDamageRate() int {
 	return 0
 }
 
+func (*Monster) GetFullHPRecoveryRate() float64 {
+	return 0
+}
+
+func (*Monster) GetFullMPRecoveryRate() float64 {
+	return 0
+}
+
+func (*Monster) GetFullSDRecoveryRate() float64 {
+	return 0
+}
+
+func (*Monster) GetMaceStunRate() float64 {
+	return 0
+}
+
 func (*Monster) GetMonsterDieGetMoney() float64 {
 	return 0.0
 }

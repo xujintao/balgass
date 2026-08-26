@@ -8,6 +8,7 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/exp"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
+	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
 
 func (p *Player) GetAttackRatePVP() int {
@@ -87,6 +88,34 @@ func (p *Player) GetDoubleDamageRate() int {
 
 func (p *Player) GetReturnDamageRate() int {
 	return p.returnDamage
+}
+
+func (p *Player) GetFullHPRecoveryRate() float64 {
+	return float64(p.recoverMaxHP) + p.fullRecoveryMasterSkillRate(skill.SkillIndexRecoverHPFully)
+}
+
+func (p *Player) GetFullMPRecoveryRate() float64 {
+	return float64(p.recoverMaxMP) + p.fullRecoveryMasterSkillRate(skill.SkillIndexRecoverManaFully)
+}
+
+func (p *Player) GetFullSDRecoveryRate() float64 {
+	return p.fullRecoveryMasterSkillRate(skill.SkillIndexRecoverSDFully)
+}
+
+func (p *Player) GetMaceStunRate() float64 {
+	s := p.Skills[skill.SkillIndexMaceMastery]
+	if s == nil {
+		return 0
+	}
+	return float64(skill.SkillManager.GetMasterSkillValue(skill.SkillIndexMaceMastery, s.Level))
+}
+
+func (p *Player) fullRecoveryMasterSkillRate(index int) float64 {
+	s := p.Skills[index]
+	if s == nil {
+		return 0
+	}
+	return float64(skill.SkillManager.GetMasterSkillValue(index, s.Level))
 }
 
 func (p *Player) GetMonsterDieGetMoney() float64 {

@@ -437,6 +437,48 @@ type damageFormulaTestActor struct {
 	armorReduceDamage int
 }
 
+type attackProcTestActor struct {
+	*skillTestActor
+	inventory      item.Inventory
+	fullHPRecovery float64
+	fullMPRecovery float64
+	fullSDRecovery float64
+	maceStun       float64
+}
+
+func newAttackProcTestObject(index int, typ ObjectType) (*Object, *attackProcTestActor) {
+	obj, base := newSkillTestObject(index, typ)
+	actor := &attackProcTestActor{skillTestActor: base}
+	actor.inventory.Items = make([]*item.Item, item.INVENTORY_WEAR_SIZE)
+	actor.inventory.Flags = make([]bool, item.INVENTORY_WEAR_SIZE)
+	obj.Objecter = actor
+	return obj, actor
+}
+
+func (a *attackProcTestActor) GetInventory() *item.Inventory {
+	return &a.inventory
+}
+
+func (a *attackProcTestActor) GetInventoryItem(position int) *item.Item {
+	return a.inventory.Items[position]
+}
+
+func (a *attackProcTestActor) GetFullHPRecoveryRate() float64 {
+	return a.fullHPRecovery
+}
+
+func (a *attackProcTestActor) GetFullMPRecoveryRate() float64 {
+	return a.fullMPRecovery
+}
+
+func (a *attackProcTestActor) GetFullSDRecoveryRate() float64 {
+	return a.fullSDRecovery
+}
+
+func (a *attackProcTestActor) GetMaceStunRate() float64 {
+	return a.maceStun
+}
+
 func newDamageFormulaTestObject(index int, typ ObjectType) (*Object, *damageFormulaTestActor) {
 	obj, base := newSkillTestObject(index, typ)
 	actor := &damageFormulaTestActor{skillTestActor: base}
@@ -580,6 +622,133 @@ func TestFixedAndDOTIgnoreCalculatedDamageStages(t *testing.T) {
 	}
 }
 
+func TestFullRecoveryRequiresPositiveDamage(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	for _, tt := range []struct {
+		name         string
+		damage       int
+		wantRecovery bool
+	}{
+		{name: "positive damage", damage: 10, wantRecovery: true},
+		{name: "zero damage"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			attacker, _ := newAttackProcTestObject(1, ObjectTypePlayer)
+			target, targetActor := newAttackProcTestObject(2, ObjectTypePlayer)
+			attacker.Class = 0
+			target.Class = 1
+			target.Level = 0
+			attacker.SD, attacker.MaxSD = 10, 100
+			target.HP, target.MP = 50, 40
+			target.SD, target.MaxSD = 10, 100
+			targetActor.fullHPRecovery = 100
+			targetActor.fullMPRecovery = 100
+			targetActor.fullSDRecovery = 100
+			withTestObjectManager(t, attacker, target)
+
+			attacker.attack(target, attackRequest{mode: attackModeFixed, damage: tt.damage})
+
+			queued := 0
+			for _, msg := range target.msgs {
+				if msg.code >= 13 && msg.code <= 15 {
+					queued++
+					msg.time = time.Now().Add(-time.Millisecond)
+				}
+			}
+			if tt.wantRecovery {
+				if queued != 3 {
+					t.Fatalf("recovery messages = %d, want 3", queued)
+				}
+				target.processDelayMsg()
+				if target.HP != target.MaxHP || target.MP != target.MaxMP || target.SD != target.MaxSD {
+					t.Fatalf("target resources after delay = HP:%d MP:%d SD:%d", target.HP, target.MP, target.SD)
+				}
+			} else if queued != 0 {
+				t.Fatalf("recovery messages = %d, want 0", queued)
+			}
+			if attacker.SD != 10 {
+				t.Fatalf("attacker SD = %d, want 10", attacker.SD)
+			}
+		})
+	}
+}
+
+func TestMaceStunAppliesToFixedZeroDamage(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	attacker, attackerActor := newAttackProcTestObject(1, ObjectTypePlayer)
+	target, _ := newAttackProcTestObject(2, ObjectTypePlayer)
+	attackerActor.inventory.Items[0] = item.NewItem(2, 0)
+	attackerActor.inventory.Items[0].Durability = 1
+	attackerActor.maceStun = 100
+	target.PathMoving = true
+	withTestObjectManager(t, attacker, target)
+
+	attacker.attack(target, attackRequest{mode: attackModeFixed})
+
+	if !target.HasBuff(effect.BuffStun) || !target.cannotAct() {
+		t.Fatal("mace attack did not stun target")
+	}
+	if target.PathMoving {
+		t.Fatal("stunned target continued moving")
+	}
+	x, y := target.X, target.Y
+	target.Move(&model.MsgMove{X: x + 1, Y: y + 1})
+	if target.X != x || target.Y != y {
+		t.Fatal("stunned target accepted a new movement request")
+	}
+}
+
+func TestReflectedAndReturnedDamageCanPassivelyStun(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	for _, tt := range []struct {
+		name    string
+		msgCode int
+		setup   func(*Object, *attackProcTestActor)
+	}{
+		{
+			name:    "reflected",
+			msgCode: 9,
+			setup: func(defender *Object, _ *attackProcTestActor) {
+				defender.effects[effect.BuffDamageReflection] = &effect.Effect{Reflect: 100}
+			},
+		},
+		{
+			name:    "returned",
+			msgCode: 12,
+			setup: func(_ *Object, defenderActor *attackProcTestActor) {
+				defenderActor.returnDamage = 100
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			attacker, _ := newAttackProcTestObject(1, ObjectTypePlayer)
+			defender, defenderActor := newAttackProcTestObject(2, ObjectTypePlayer)
+			defenderActor.inventory.Items[0] = item.NewItem(2, 0)
+			defenderActor.inventory.Items[0].Durability = 1
+			defenderActor.maceStun = 100
+			tt.setup(defender, defenderActor)
+			withTestObjectManager(t, attacker, defender)
+
+			attacker.attack(defender, attackRequest{mode: attackModeFixed, damage: 20})
+			found := false
+			for _, msg := range defender.msgs {
+				if msg.code == tt.msgCode {
+					found = true
+					msg.time = time.Now().Add(-time.Millisecond)
+				}
+			}
+			if !found {
+				t.Fatalf("delay message %d was not queued", tt.msgCode)
+			}
+			defender.processDelayMsg()
+
+			if !attacker.HasBuff(effect.BuffStun) {
+				t.Fatal("passive damage did not stun original attacker")
+			}
+		})
+	}
+}
+
 func TestSplitDamage(t *testing.T) {
 	for _, tt := range []struct {
 		name         string
@@ -702,8 +871,11 @@ func findAttackDieReply(messages []any) *model.MsgAttackDieReply {
 
 func TestAttackSettlesDeathOnce(t *testing.T) {
 	withShieldSystemTest(t, false, 0)
-	attacker, attackerActor := newSkillTestObject(1, ObjectTypePlayer)
+	attacker, attackerActor := newAttackProcTestObject(1, ObjectTypePlayer)
 	target, targetActor := newDeathTestObject(2, ObjectTypePlayer)
+	attackerActor.inventory.Items[0] = item.NewItem(2, 0)
+	attackerActor.inventory.Items[0].Durability = 1
+	attackerActor.maceStun = 100
 	target.HP = 5
 	target.TX, target.TY = target.X, target.Y
 	withTestObjectManager(t, attacker, target)
@@ -727,6 +899,9 @@ func TestAttackSettlesDeathOnce(t *testing.T) {
 	}
 	if got := countMessages[model.MsgAttackDieReply](targetActor.messages); got != 1 {
 		t.Fatalf("death replies = %d, want 1", got)
+	}
+	if target.HasBuff(effect.BuffStun) {
+		t.Fatal("killed target received mace stun")
 	}
 }
 
@@ -776,8 +951,11 @@ func TestAttackRejectsDeadTargets(t *testing.T) {
 
 func TestDOTContinuesAfterSourceDeath(t *testing.T) {
 	withShieldSystemTest(t, false, 0)
-	source, _ := newSkillTestObject(1, ObjectTypePlayer)
+	source, sourceActor := newAttackProcTestObject(1, ObjectTypePlayer)
 	target, _ := newSkillTestObject(2, ObjectTypePlayer)
+	sourceActor.inventory.Items[0] = item.NewItem(2, 0)
+	sourceActor.inventory.Items[0].Durability = 1
+	sourceActor.maceStun = 100
 	withTestObjectManager(t, source, target)
 	if !target.addEffect(&effect.Effect{
 		BuffIndex: 9001,
@@ -795,6 +973,9 @@ func TestDOTContinuesAfterSourceDeath(t *testing.T) {
 
 	if target.HP != 80 {
 		t.Fatalf("target HP = %d, want 80", target.HP)
+	}
+	if !target.HasBuff(effect.BuffStun) {
+		t.Fatal("dead DOT source did not stun target")
 	}
 }
 

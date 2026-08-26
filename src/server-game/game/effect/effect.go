@@ -20,6 +20,7 @@ const (
 	BuffPoison           = 55
 	BuffIce              = 56
 	BuffIceArrow         = 57
+	BuffStun             = 61
 	BuffDamageReflection = 71
 	BuffSleep            = 72
 	BuffRequiem          = 74
@@ -73,6 +74,7 @@ type Effect struct {
 	Source           int
 	Slow             bool
 	Sleep            bool
+	Stun             bool
 	Expire           time.Time
 	NextTick         time.Time
 }

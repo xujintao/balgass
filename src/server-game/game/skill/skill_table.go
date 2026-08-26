@@ -3,11 +3,13 @@ package skill
 import (
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"path"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/class"
+	"github.com/xujintao/balgass/src/server-game/game/formula"
 )
 
 func init() {
@@ -125,6 +127,10 @@ const (
 	SkillIndexIncreaseBlock      = 268 // 斗神-御
 	SkillIndexCharge             = 269 // 冲锋(攻城)
 	SkillIndexPhoenixShot        = 270 // 神圣气旋
+	SkillIndexMaceMastery        = 354 // 锤类精通
+	SkillIndexRecoverManaFully   = 611 // 完全恢复魔法
+	SkillIndexRecoverHPFully     = 612 // 完全恢复生命
+	SkillIndexRecoverSDFully     = 616 // 完全恢复防护值
 )
 
 var SkillManager skillManager
@@ -188,11 +194,12 @@ const (
 	valueTypeNormal = iota
 	valueTypeDamage
 	valueTypeManaInc
+	maxMasterSkillLevel = 20
 )
 
 type masterSkillValue struct {
 	valueType valueType
-	values    [21]float32
+	values    [maxMasterSkillLevel + 1]float32
 }
 
 type skillHitBox [36][21][21]byte
@@ -200,7 +207,7 @@ type skillHitBox [36][21][21]byte
 type skillManager struct {
 	skillTable            map[int]*SkillBase
 	masterSkillTable      [8][3][9][4]*MasterSkillBase
-	masterSkillValueTable [30]masterSkillValue
+	masterSkillValueTable map[int]masterSkillValue
 	spearHitBox           skillHitBox
 	electricHitBox        skillHitBox
 }
@@ -235,6 +242,7 @@ func (m *skillManager) init() {
 	}
 	m.spearHitBox = m.loadHitBox("Skills/IGC_SkillSpear.hit")
 	m.electricHitBox = m.loadHitBox("Skills/IGC_SkillElect.hit")
+	m.initMasterSkillValues()
 
 	// array -> map
 	type MasterSkillTree struct {
@@ -272,8 +280,14 @@ func (m *skillManager) init() {
 				if skill == nil {
 					m.fatalf("nil master skill entry for class id %d tree type %d", classNode.ID, tree.Type)
 				}
-				if _, ok := m.skillTable[skill.SkillID]; !ok {
+				skillBase, ok := m.skillTable[skill.SkillID]
+				if !ok {
 					m.fatalf("master skill %d references missing skill id %d", skill.Index, skill.SkillID)
+				}
+				if skillBase.STID != 0 {
+					if _, ok := m.masterSkillValueTable[skillBase.STID]; !ok {
+						m.fatalf("master skill %d references missing STID %d", skill.SkillID, skillBase.STID)
+					}
 				}
 				if skill.ReqMinPoint <= 0 {
 					m.fatalf("master skill %d has invalid ReqMinPoint %d", skill.Index, skill.ReqMinPoint)
@@ -324,7 +338,57 @@ func (m *skillManager) init() {
 	// }
 	// fmt.Println(1)
 
-	// fulfill masterSkillVauleTable by lua script
+}
+
+func (m *skillManager) initMasterSkillValues() {
+	formulas, err := formula.MasterSkillPointFormulas()
+	if err != nil {
+		m.fatalf("initialize master skill formulas: %v", err)
+	}
+	m.masterSkillValueTable = make(map[int]masterSkillValue, len(formulas))
+	for _, f := range formulas {
+		if f.STID <= 0 {
+			m.fatalf("invalid master skill STID %d", f.STID)
+		}
+		if f.Method == "" {
+			m.fatalf("master skill STID %d has empty formula", f.STID)
+		}
+		if f.ValueType < int(valueTypeNormal) || f.ValueType > int(valueTypeManaInc) {
+			m.fatalf("master skill STID %d has invalid value type %d", f.STID, f.ValueType)
+		}
+		if _, ok := m.masterSkillValueTable[f.STID]; ok {
+			m.fatalf("duplicate master skill STID %d", f.STID)
+		}
+		value := masterSkillValue{valueType: valueType(f.ValueType)}
+		for level := 1; level <= maxMasterSkillLevel; level++ {
+			v, err := formula.MasterSkillPointValue(f.Method, level)
+			if err != nil {
+				m.fatalf("calculate master skill STID %d level %d: %v", f.STID, level, err)
+			}
+			value.values[level] = float32(math.Round(v*100) / 100)
+		}
+		m.masterSkillValueTable[f.STID] = value
+	}
+}
+
+func (m *skillManager) GetMasterSkillValue(index, level int) float32 {
+	value, _, _ := m.masterSkillValue(index, level)
+	return value
+}
+
+func (m *skillManager) masterSkillValue(index, level int) (float32, valueType, bool) {
+	if level <= 0 || level > maxMasterSkillLevel {
+		return 0, valueTypeNormal, false
+	}
+	skillBase, ok := m.skillTable[index]
+	if !ok || skillBase.STID == 0 {
+		return 0, valueTypeNormal, false
+	}
+	value, ok := m.masterSkillValueTable[skillBase.STID]
+	if !ok {
+		return 0, valueTypeNormal, false
+	}
+	return value.values[level], value.valueType, true
 }
 
 func (m *skillManager) loadHitBox(file string) skillHitBox {

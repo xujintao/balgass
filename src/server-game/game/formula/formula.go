@@ -1,6 +1,7 @@
 package formula
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"path"
@@ -21,6 +22,7 @@ type formula struct {
 	StatSpec         *lua.LState
 	ItemCalc         *lua.LState
 	RegularSkillCacl *lua.LState
+	MasterSkillPoint *lua.LState
 	ExpCalc          *lua.LState
 }
 
@@ -40,9 +42,10 @@ func (f *formula) init() {
 	f.ItemCalc = load("Misc/ItemCalc.lua")
 	f.ExpCalc = load("Misc/ExpCalc.lua")
 	f.RegularSkillCacl = load("Skills/RegularSkillCalc.lua")
+	f.MasterSkillPoint = load("Skills/MasterSkillPoint.lua")
 }
 
-func call(ls *lua.LState, method string, sig string, args ...any) {
+func call(ls *lua.LState, method string, sig string, args ...any) error {
 	sigs := strings.Split(sig, ">")
 	in, out := "", ""
 	in = sigs[0]
@@ -71,7 +74,7 @@ func call(ls *lua.LState, method string, sig string, args ...any) {
 	}, lvArgs...)
 	if err != nil {
 		slog.Error("formula CallByParam", "err", err, "method", method)
-		return
+		return err
 	}
 
 	// returned value
@@ -82,19 +85,22 @@ func call(ls *lua.LState, method string, sig string, args ...any) {
 		case 'i':
 			ln, ok := lv.(lua.LNumber)
 			if !ok {
-				slog.Error("formula CallByParam returned value i", "method", method)
-				return
+				err := fmt.Errorf("formula %s returned %s, want number", method, lv.Type())
+				slog.Error("formula CallByParam returned value i", "err", err)
+				return err
 			}
 			r := args[nIn+i].(*int)
 			*r = int(ln)
 		case 'd':
 			ln, ok := lv.(lua.LNumber)
 			if !ok {
-				slog.Error("formula CallByParam returned value d", "method", method)
-				return
+				err := fmt.Errorf("formula %s returned %s, want number", method, lv.Type())
+				slog.Error("formula CallByParam returned value d", "err", err)
+				return err
 			}
 			r := args[nIn+i].(*float64)
 			*r = float64(ln)
 		}
 	}
+	return nil
 }

@@ -343,6 +343,52 @@ func (obj *Object) applyDamageRate(tobj *Object, damage int) int {
 	}
 }
 
+func rollAttackRate(rate float64) bool {
+	return rate > 0 && float64(rand.Intn(10000)) < rate*100
+}
+
+func (obj *Object) queueFullRecovery(tobj *Object) {
+	if tobj.Type != ObjectTypePlayer {
+		return
+	}
+	if rollAttackRate(tobj.GetFullHPRecoveryRate()) {
+		tobj.AddDelayMsg(13, 0, 100, tobj.Index)
+	}
+	if rollAttackRate(tobj.GetFullMPRecoveryRate()) {
+		tobj.AddDelayMsg(14, 0, 100, tobj.Index)
+	}
+	if rollAttackRate(tobj.GetFullSDRecoveryRate()) {
+		tobj.AddDelayMsg(15, 0, 100, tobj.Index)
+	}
+}
+
+func (obj *Object) hasMace() bool {
+	if obj.Type != ObjectTypePlayer {
+		return false
+	}
+	for _, position := range [...]int{0, 1} {
+		weapon := obj.GetInventoryItem(position)
+		if weapon != nil && weapon.Durability > 0 && weapon.KindB == item.KindBMace {
+			return true
+		}
+	}
+	return false
+}
+
+func (obj *Object) tryMaceStun(tobj *Object) {
+	if !obj.hasMace() || !rollAttackRate(obj.GetMaceStunRate()) {
+		return
+	}
+	if !tobj.addEffect(&effect.Effect{
+		BuffIndex: effect.BuffStun,
+		Stun:      true,
+		Expire:    time.Now().Add(2 * time.Second),
+	}) {
+		return
+	}
+	tobj.SetPosition(&model.MsgSetPosition{X: tobj.X, Y: tobj.Y})
+}
+
 func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	if tobj == nil || !tobj.Live || tobj.HP <= 0 {
 		return 0
@@ -442,10 +488,9 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	if rand.Intn(10000) < doubleDamageRate*100 {
 		damage *= 2
 	}
-	// 12. target recover all hp/mp/sd
-	// 13. mace stun
-	// 14. decrease target hp
-	// 15. check target hp
+	if damage > 0 {
+		obj.queueFullRecovery(tobj)
+	}
 
 	hpDamage, sdDamage := obj.splitDamage(tobj, damage)
 	tobj.HP -= hpDamage
@@ -483,6 +528,9 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 				}
 			}
 		}
+	}
+	if tobj.HP > 0 {
+		obj.tryMaceStun(tobj)
 	}
 
 	// Push attack damage reply

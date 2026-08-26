@@ -615,6 +615,10 @@ type Objecter interface {
 	GetAttackSpeedForDelay() int
 	GetDoubleDamageRate() int
 	GetReturnDamageRate() int
+	GetFullHPRecoveryRate() float64
+	GetFullMPRecoveryRate() float64
+	GetFullSDRecoveryRate() float64
+	GetMaceStunRate() float64
 	GetMonsterDieGetMoney() float64
 	GetKnightGladiatorCalcSkillBonus() float64
 	GetImpaleSkillCalc() float64
@@ -1205,6 +1209,24 @@ func (obj *Object) processDelayMsg() {
 				mode:   attackModeReturned,
 				damage: msg.subcode,
 			})
+		case 13: // delayed full HP recovery
+			if !obj.Live || obj.HP <= 0 {
+				break
+			}
+			obj.HP = obj.MaxHP
+			obj.PushHPSD(obj.HP, obj.SD)
+		case 14: // delayed full MP recovery
+			if !obj.Live || obj.HP <= 0 {
+				break
+			}
+			obj.MP = obj.MaxMP
+			obj.PushMPAG(obj.MP, obj.AG)
+		case 15: // delayed full SD recovery
+			if !obj.Live || obj.HP <= 0 {
+				break
+			}
+			obj.SD = obj.MaxSD
+			obj.PushHPSD(obj.HP, obj.SD)
 		}
 		msg.code = -1
 	}

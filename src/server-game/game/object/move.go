@@ -80,6 +80,9 @@ func (obj *Object) processMove() {
 }
 
 func (obj *Object) Move(msg *model.MsgMove) {
+	if msg == nil || obj.cannotAct() {
+		return
+	}
 	n := len(msg.Path)
 	if n > 15 {
 		slog.Warn("Move object check",

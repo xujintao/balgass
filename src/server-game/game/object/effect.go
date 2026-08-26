@@ -169,7 +169,7 @@ func (obj *Object) effect(index int) *effect.Effect {
 
 func (obj *Object) cannotAct() bool {
 	for _, eff := range obj.effects {
-		if eff.Sleep {
+		if eff.Sleep || eff.Stun {
 			return true
 		}
 	}
