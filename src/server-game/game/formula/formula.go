@@ -21,7 +21,7 @@ type formula struct {
 	CalcCharacter    *lua.LState
 	StatSpec         *lua.LState
 	ItemCalc         *lua.LState
-	RegularSkillCacl *lua.LState
+	RegularSkillCalc *lua.LState
 	MasterSkillPoint *lua.LState
 	ExpCalc          *lua.LState
 }
@@ -40,9 +40,9 @@ func (f *formula) init() {
 	f.CalcCharacter = load("Character/CalcCharacter.lua")
 	f.StatSpec = load("Specialization/StatSpec.lua")
 	f.ItemCalc = load("Misc/ItemCalc.lua")
-	f.ExpCalc = load("Misc/ExpCalc.lua")
-	f.RegularSkillCacl = load("Skills/RegularSkillCalc.lua")
+	f.RegularSkillCalc = load("Skills/RegularSkillCalc.lua")
 	f.MasterSkillPoint = load("Skills/MasterSkillPoint.lua")
+	f.ExpCalc = load("Misc/ExpCalc.lua")
 }
 
 func call(ls *lua.LState, method string, sig string, args ...any) error {
