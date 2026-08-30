@@ -1,6 +1,8 @@
 package item
 
 import (
+	"math/rand"
+
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
 
@@ -59,8 +61,20 @@ type set struct {
 var SetManager setManager
 
 type setManager struct {
-	items []map[int]*setItem
-	sets  []*set
+	items        []map[int]*setItem
+	sets         []*set
+	dropSections []setDropSection
+}
+
+type setDropItem struct {
+	index  int
+	setIDs []int
+}
+
+type setDropSection struct {
+	section int
+	rate    int
+	items   []setDropItem
 }
 
 func (m *setManager) GetSetIndex(section, index, tierIndex int) int {
@@ -109,6 +123,38 @@ func (m *setManager) GetSetFull(setIndex int) []SetEffect {
 	return set.effectsFull[:]
 }
 
+// RandomItem selects a configured ancient item and one of its available set
+// options using the configured section drop rates.
+func (m *setManager) RandomItem() (section, index, setIndex int, ok bool) {
+	totalRate := 0
+	for _, candidate := range m.dropSections {
+		if candidate.rate > 0 && len(candidate.items) > 0 {
+			totalRate += candidate.rate
+		}
+	}
+	if totalRate <= 0 {
+		return 0, 0, 0, false
+	}
+	n := rand.Intn(totalRate)
+	var selected *setDropSection
+	for i := range m.dropSections {
+		candidate := &m.dropSections[i]
+		if candidate.rate <= 0 || len(candidate.items) == 0 {
+			continue
+		}
+		if n < candidate.rate {
+			selected = candidate
+			break
+		}
+		n -= candidate.rate
+	}
+	if selected == nil {
+		return 0, 0, 0, false
+	}
+	selectedItem := selected.items[rand.Intn(len(selected.items))]
+	return selected.section, selectedItem.index, selectedItem.setIDs[rand.Intn(len(selectedItem.setIDs))], true
+}
+
 func (m *setManager) init() {
 	type SetItemXml struct {
 		DropRate struct {
@@ -135,6 +181,10 @@ func (m *setManager) init() {
 	conf.XML(conf.PathCommon, "Items/IGC_ItemSetType.xml", &setItemXml)
 	// convert
 	m.items = make([]map[int]*setItem, len(setItemXml.Sections))
+	dropRates := make(map[int]int, len(setItemXml.DropRate.Sections))
+	for _, section := range setItemXml.DropRate.Sections {
+		dropRates[section.Index] = section.DropRate
+	}
 	for _, section := range setItemXml.Sections {
 		items := make(map[int]*setItem)
 		for _, item := range section.Items {
@@ -164,6 +214,23 @@ func (m *setManager) init() {
 			items[item.Index] = &sItem
 		}
 		m.items[section.Index] = items
+		var candidates []setDropItem
+		for _, configured := range section.Items {
+			var setIDs []int
+			for _, setIndex := range []int{configured.TierI, configured.TierII, configured.TierIII, configured.TierIV} {
+				if setIndex > 0 {
+					setIDs = append(setIDs, setIndex)
+				}
+			}
+			if len(setIDs) > 0 {
+				candidates = append(candidates, setDropItem{index: configured.Index, setIDs: setIDs})
+			}
+		}
+		m.dropSections = append(m.dropSections, setDropSection{
+			section: section.Index,
+			rate:    dropRates[section.Index],
+			items:   candidates,
+		})
 	}
 
 	type SetXml struct {

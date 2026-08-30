@@ -13,6 +13,51 @@ import (
 const MaxMagicBookCount int = 100
 const MaxNormalItemCount int = 1000
 
+// Trigger identifies the game action asking the drop system for rewards.
+// ItemUse is deliberately reserved for ItemBag-backed boxes and other usable
+// items; the first rollout only dispatches monster deaths.
+type Trigger int
+
+const (
+	TriggerMonsterDeath Trigger = iota
+	TriggerItemUse
+)
+
+type PlayerContext struct {
+	Class       int
+	ChangeUp    int
+	Level       int
+	MasterLevel int
+	MapNumber   int
+	ZenBonus    float64
+}
+
+type Request struct {
+	Trigger       Trigger
+	MonsterClass  int
+	MonsterLevel  int
+	ItemDropRate  int
+	MoneyDropRate int
+	Money         int
+	MapNumber     int
+	X             int
+	Y             int
+	Player        PlayerContext
+}
+
+// Reward is either an item or Zen. Nearby tells the caller that each reward
+// should be placed near the source instead of sharing its exact tile.
+type Reward struct {
+	Item   *item.Item
+	Zen    int
+	Nearby bool
+}
+
+type Result struct {
+	Handled bool
+	Rewards []Reward
+}
+
 var DropManager dropManager
 
 type itemDropRate struct {
@@ -42,6 +87,7 @@ type dropManager struct {
 	jewelOfCreation dropItem
 	normalItem      [][]dropItem
 	excellentItem   [][]dropItem
+	itemBags        map[itemBagKey]*itemBag
 }
 
 func init() {
@@ -108,6 +154,7 @@ func (m *dropManager) init() {
 			}
 		}
 	}
+	m.initItemBags()
 }
 
 func (m *dropManager) makeMagicBook(monsterLevel int) {
@@ -264,4 +311,95 @@ func (m *dropManager) DropItemExcellent(monsterLevel int) *item.Item {
 	}
 	it.Level = dit.level
 	return it
+}
+
+func (m *dropManager) dropGeneric(request Request) Result {
+	excellentDropRate := conf.CommonServer.GameServerInfo.ExcelItemDropPercent
+	if rand.Intn(10000) < excellentDropRate {
+		it := m.DropItemExcellent(request.MonsterLevel - 25)
+		if it == nil {
+			return Result{Handled: true}
+		}
+		it.DecodeExcellent(item.ExcellentDropManager.DropExcellent(it.KindA, it.KindB))
+		m.finishGenericItem(it, true)
+		return Result{Handled: true, Rewards: []Reward{{Item: it}}}
+	}
+	itemDropRate := request.ItemDropRate
+	if itemDropRate < 1 {
+		itemDropRate = 1
+	}
+	if rand.Intn(itemDropRate) < conf.CommonServer.GameServerInfo.ItemDropPercent {
+		it := m.DropItem(request.MonsterLevel)
+		if it == nil {
+			return Result{Handled: true}
+		}
+		m.finishGenericItem(it, false)
+		return Result{Handled: true, Rewards: []Reward{{Item: it}}}
+	}
+	moneyDropRate := request.MoneyDropRate
+	if moneyDropRate < 1 {
+		moneyDropRate = 1
+	}
+	if rand.Intn(moneyDropRate) >= 10 || request.Money <= 0 {
+		return Result{Handled: true}
+	}
+	money := int(float64(request.Money) * conf.Common.General.ZenDropMultiplier)
+	money += int(float64(money) * request.Player.ZenBonus)
+	return Result{Handled: true, Rewards: []Reward{{Zen: money}}}
+}
+
+func (m *dropManager) finishGenericItem(it *item.Item, excellent bool) {
+	if it.ItemBase.Durability <= 5 {
+		it.Durability = it.ItemBase.Durability
+	} else {
+		it.Durability = rand.Intn(it.ItemBase.Durability)
+	}
+	skillRate := conf.CommonServer.GameServerInfo.ItemSkillDropPercent
+	luckyRate := conf.CommonServer.GameServerInfo.ItemLuckyDropPercent
+	if excellent {
+		skillRate = conf.CommonServer.GameServerInfo.ExcelItemSkillDropPercent
+		luckyRate = conf.CommonServer.GameServerInfo.ExcelItemLuckyDropPercent
+	}
+	if it.SkillIndex == 0 || it.Type == item.TypeCommon {
+		skillRate = 0
+	}
+	if !(it.KindA == item.KindAWeapon || it.KindA == item.KindAArmor || it.KindA == item.KindAWing) {
+		luckyRate = 0
+	}
+	if rand.Intn(100) < skillRate {
+		it.Skill = true
+	}
+	if rand.Intn(100) < luckyRate {
+		it.Lucky = true
+	}
+	addition := rand.Intn(3)
+	if it.Type == item.TypeCommon {
+		addition = 0
+	}
+	it.Addition = addition * 4
+	if it.KindA == item.KindAWing {
+		it.RandWingAdditionKind()
+	}
+	it.Calc()
+}
+
+// Drop is the sole reward-decision entry point. Callers only turn its result
+// into world objects; all choice between ItemBag and generic monster rules is
+// kept here.
+func (m *dropManager) Drop(request Request) Result {
+	if request.Trigger != TriggerMonsterDeath {
+		return Result{}
+	}
+	if key, ok := monsterEventItemBagKey(request.MonsterClass); ok {
+		if bag, ok := m.itemBags[key]; ok {
+			result, _ := m.dropItemBag(bag, true, request)
+			return result
+		}
+	}
+	if bag, ok := m.itemBags[itemBagKey{kind: itemBagMonster, id: request.MonsterClass}]; ok {
+		if result, used := m.dropItemBag(bag, false, request); used {
+			return result
+		}
+	}
+	return m.dropGeneric(request)
 }
