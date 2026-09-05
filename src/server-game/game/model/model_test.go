@@ -5,7 +5,44 @@ import (
 	"encoding/binary"
 	"math"
 	"testing"
+
+	"github.com/xujintao/balgass/src/server-game/game/item"
 )
+
+func TestViewportItemNewDropProtocol(t *testing.T) {
+	it := item.NewItem(0, 0)
+	itemData, err := it.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name    string
+		newDrop bool
+		high    byte
+	}{
+		{name: "new drop", newDrop: true, high: 0x80},
+		{name: "existing item", newDrop: false, high: 0x00},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			entry := &CreateViewportItem{Index: 5, X: 11, Y: 22, Item: it, NewDrop: tc.newDrop}
+			reply := &MsgCreateViewportItemReply{Items: []*CreateViewportItem{entry}}
+			want := append([]byte{1, tc.high, 5, 11, 22}, itemData...)
+			// Encoding must preserve the entry for every recipient.
+			for i := 0; i < 2; i++ {
+				got, err := reply.Marshal()
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !bytes.Equal(got, want) {
+					t.Fatalf("packet = %x, want %x", got, want)
+				}
+				if entry.Index != 5 || entry.NewDrop != tc.newDrop {
+					t.Fatalf("encoding modified viewport entry: %+v", entry)
+				}
+			}
+		})
+	}
+}
 
 func TestMasterSkillRepliesMarshalFloatBits(t *testing.T) {
 	reply := MsgLearnMasterSkillReply{

@@ -10,6 +10,7 @@ type mapItem struct {
 	*item.Item
 	x           int
 	y           int
+	newDrop     bool
 	expiredTime time.Time
 }
 
@@ -34,7 +35,21 @@ func (m *mapManager) ExpireItem(now time.Time) {
 	}
 }
 
-func (m *mapManager) MapEachItem(number int, f func(item *item.Item, index, x, y int)) {
+// ClearItemNewDrop advances items after all players have received this round's viewport updates.
+func (m *mapManager) ClearItemNewDrop() {
+	for _, v := range m.maps {
+		if v == nil {
+			continue
+		}
+		for _, it := range v.inventory {
+			if it != nil {
+				it.newDrop = false
+			}
+		}
+	}
+}
+
+func (m *mapManager) MapEachItem(number int, f func(item *item.Item, index, x, y int, newDrop bool)) {
 	m.maps[number].eachItem(f)
 }
 
@@ -53,6 +68,7 @@ func (m *_map) addItem(x, y int, item *item.Item) bool {
 				Item:        item,
 				x:           x,
 				y:           y,
+				newDrop:     true,
 				expiredTime: time.Now().Add(time.Minute),
 			}
 			m.inventory[i] = &mapItem
@@ -92,12 +108,12 @@ func (m *_map) expireItem(now time.Time) {
 	}
 }
 
-func (m *_map) eachItem(f func(item *item.Item, index, x, y int)) {
+func (m *_map) eachItem(f func(item *item.Item, index, x, y int, newDrop bool)) {
 	for i, mapItem := range m.inventory {
 		if mapItem == nil {
 			continue
 		}
-		f(mapItem.Item, i, mapItem.x, mapItem.y)
+		f(mapItem.Item, i, mapItem.x, mapItem.y, mapItem.newDrop)
 	}
 }
 

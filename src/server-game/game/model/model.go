@@ -287,10 +287,11 @@ func (msg *MsgDestroyViewportObjectReply) Marshal() ([]byte, error) {
 }
 
 type CreateViewportItem struct {
-	Index int
-	X     int
-	Y     int
-	Item  *item.Item
+	Index   int
+	X       int
+	Y       int
+	Item    *item.Item
+	NewDrop bool
 }
 
 // pack(1)
@@ -302,7 +303,11 @@ func (msg *MsgCreateViewportItemReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 	bw.WriteByte(byte(len(msg.Items)))
 	for _, item := range msg.Items {
-		binary.Write(&bw, binary.BigEndian, uint16(item.Index))
+		index := uint16(item.Index)
+		if item.NewDrop {
+			index |= 0x8000 // Tell the client to play the item drop sound.
+		}
+		binary.Write(&bw, binary.BigEndian, index)
 		bw.WriteByte(byte(item.X))
 		bw.WriteByte(byte(item.Y))
 		data, err := item.Item.Marshal()

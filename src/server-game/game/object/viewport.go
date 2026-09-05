@@ -228,17 +228,18 @@ func (obj *Object) createViewport() {
 	// create viewport item
 	var viewportItemReply model.MsgCreateViewportItemReply
 	if obj.Type == ObjectTypePlayer {
-		maps.MapManager.MapEachItem(obj.MapNumber, func(item *item.Item, index, x, y int) {
+		maps.MapManager.MapEachItem(obj.MapNumber, func(item *item.Item, index, x, y int, newDrop bool) {
 			if !obj.checkViewport(x, y) {
 				return
 			}
 			ok := obj.addViewportItem(index)
 			if ok {
 				i := model.CreateViewportItem{
-					Index: index,
-					X:     x,
-					Y:     y,
-					Item:  item,
+					Index:   index,
+					X:       x,
+					Y:       y,
+					Item:    item,
+					NewDrop: newDrop,
 				}
 				viewportItemReply.Items = append(viewportItemReply.Items, &i)
 			}
