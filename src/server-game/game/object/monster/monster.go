@@ -133,6 +133,55 @@ func SpawnMonster() {
 	})
 }
 
+// EventSpawn uses half-open spawn rectangles, like the original IGC spawner.
+type EventSpawn struct {
+	Class, MapNumber           int
+	StartX, StartY, EndX, EndY int
+	Direction, Distance        int
+}
+
+func (s EventSpawn) Validate() error {
+	if gameclass.MonsterTable[s.Class] == nil || !maps.MapManager.HasMap(s.MapNumber) ||
+		s.StartX < 0 || s.StartY < 0 || s.EndX > 256 || s.EndY > 256 ||
+		s.StartX >= s.EndX || s.StartY >= s.EndY || s.Distance < 0 ||
+		s.Direction < -1 || s.Direction > 7 {
+		return fmt.Errorf("invalid event monster spawn: %+v", s)
+	}
+	return nil
+}
+
+func SpawnEventMonster(s EventSpawn) (*object.Object, error) {
+	if err := s.Validate(); err != nil {
+		return nil, err
+	}
+	// Reservoir sampling uniformly selects a valid tile, with a bounded scan
+	// and no fallback to an unsafe or occupied coordinate.
+	x, y, count := 0, 0, 0
+	for sy := s.StartY; sy < s.EndY; sy++ {
+		for sx := s.StartX; sx < s.EndX; sx++ {
+			if maps.MapManager.GetMapAttr(s.MapNumber, sx, sy)&15 != 0 {
+				continue
+			}
+			count++
+			if rand.Intn(count) == 0 {
+				x, y = sx, sy
+			}
+		}
+	}
+	if count == 0 {
+		return nil, fmt.Errorf("no free tile for event monster: %+v", s)
+	}
+	dir := s.Direction
+	if dir == -1 {
+		dir = rand.Intn(8)
+	}
+	return object.ObjectManager.AddMonster(func() *object.Object {
+		obj := newMonster(s.Class, s.MapNumber, x, y, x, y, dir, s.Distance, 0)
+		obj.NoRegen = true
+		return obj
+	})
+}
+
 func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) *object.Object {
 	mc, ok := gameclass.MonsterTable[class]
 	if !ok {

@@ -162,6 +162,11 @@ func (m *mapManager) GetMapName(number int) string {
 	return m.mapNumberName[number]
 }
 
+// HasMap reports whether terrain is loaded for a map on this server.
+func (m *mapManager) HasMap(number int) bool {
+	return number >= 0 && number < len(m.maps) && m.maps[number] != nil
+}
+
 func (m *mapManager) GetMapPots(number int) []*Pot {
 	return m.maps[number].getPots()
 }

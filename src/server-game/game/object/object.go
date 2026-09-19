@@ -82,7 +82,7 @@ func (m *objectManager) init() {
 }
 
 func (om *objectManager) AddMonster(newMonster func() *Object) (*Object, error) {
-	if om.monsterCount > om.maxMonsterCount {
+	if om.monsterCount >= om.maxMonsterCount {
 		return nil, fmt.Errorf("over max monster count")
 	}
 	index := om.lastMonsterIndex
@@ -98,7 +98,7 @@ func (om *objectManager) AddMonster(newMonster func() *Object) (*Object, error) 
 		cnt--
 	}
 	if cnt == 0 {
-		panic(fmt.Errorf("have no free monster index"))
+		return nil, fmt.Errorf("have no free monster index")
 	}
 	om.lastMonsterIndex = index
 	om.monsterCount++
@@ -106,6 +106,14 @@ func (om *objectManager) AddMonster(newMonster func() *Object) (*Object, error) 
 	m.Index = index
 	om.objects[index] = m
 	return m, nil
+}
+
+func (m *objectManager) BroadcastSystemMsg(message string) {
+	for _, obj := range m.objects {
+		if obj != nil && obj.Type == ObjectTypePlayer && obj.ConnectState == ConnectStatePlaying {
+			obj.PushSystemMsg(message)
+		}
+	}
 }
 
 type NewCallMonster func(class, mapNumber, x, y int) *Object
@@ -178,6 +186,68 @@ func (m *objectManager) DeleteCallMonster(index int) {
 	monster.Reset()
 	m.objects[index] = nil
 	m.callMonsterCount--
+}
+
+// DeleteEventMonster retires an event-owned object on the game loop. False
+// means its death settlement is still pending. Identity checks protect reused
+// slots. Living monsters are removed without executing any death rewards.
+func (m *objectManager) DeleteEventMonster(monster *Object, now time.Time) bool {
+	if monster == nil || monster.Index < m.monsterStartIndex || monster.Index >= m.maxMonsterCount ||
+		m.objects[monster.Index] != monster {
+		return true
+	}
+	if !monster.NoRegen {
+		return false
+	}
+	if !monster.Live {
+		if now.Before(monster.dieTime.Add(5 * time.Second)) {
+			return false
+		}
+		for _, msg := range monster.msgs {
+			if msg.code != -1 {
+				return false
+			}
+		}
+	} else {
+		// Death already releases this tile; clearing it again could release a
+		// tile now occupied by another object.
+		maps.MapManager.ClearMapAttrStand(monster.MapNumber, monster.TX, monster.TY)
+	}
+	for _, obj := range m.objects {
+		if obj == nil || obj == monster {
+			continue
+		}
+		if obj.TargetNumber == monster.Index {
+			obj.TargetNumber = -1
+		}
+		for _, msg := range obj.msgs {
+			if msg.code != -1 && msg.sender == monster.Index {
+				msg.code = -1
+			}
+		}
+		removed := false
+		for _, vp := range obj.Viewports {
+			if vp.State != 0 && vp.Type != 5 && vp.Number == monster.Index {
+				vp.reset()
+				obj.ViewportsNum--
+				removed = true
+			}
+		}
+		for _, vp := range obj.ViewportsPassive {
+			if vp.State != 0 && vp.Number == monster.Index {
+				vp.reset()
+				obj.ViewportsPassiveNum--
+			}
+		}
+		if removed && obj.Type == ObjectTypePlayer {
+			obj.Push(&model.MsgDestroyViewportObjectReply{Objects: []*model.DestroyViewport{{Index: monster.Index}}})
+		}
+	}
+	monster.Reset()
+	monster.initMessage()
+	m.objects[monster.Index] = nil
+	m.monsterCount--
+	return true
 }
 
 type Conn interface {
@@ -729,6 +799,7 @@ type Object struct {
 	lastBasicAttackTime       time.Time
 	dieRegen                  bool
 	MaxRegenTime              time.Duration // 最大重生时间
+	NoRegen                   bool          // Event-owned monsters retire after death.
 	PentagramMainAttribute    int
 	PentagramAttributePattern int
 	PentagramAttackMin        int
@@ -1090,6 +1161,9 @@ func (obj *Object) processRegen() {
 		if obj.State == 4 {
 			obj.State = 8
 		}
+	}
+	if obj.NoRegen {
+		return
 	}
 	if now.Before(obj.dieTime.Add(obj.MaxRegenTime)) {
 		return

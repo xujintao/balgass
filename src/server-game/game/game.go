@@ -12,6 +12,7 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/bot"
 	"github.com/xujintao/balgass/src/server-game/game/cmd"
+	"github.com/xujintao/balgass/src/server-game/game/event"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
@@ -171,6 +172,7 @@ func (g *game) Start() {
 					// start := time.Now()
 					maps.MapManager.ProcessWeather(object.ObjectManager.SendWeather)
 					object.ObjectManager.Process1000ms()
+					event.EventManager.Tick(time.Now())
 					maps.MapManager.ClearItemNewDrop()
 					maps.MapManager.ExpireItem(time.Now())
 					g.serverRegisterChan <- &model.MsgServerRegister{
