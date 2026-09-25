@@ -1,11 +1,13 @@
 package invasion
 
 import (
+	"encoding/xml"
 	"fmt"
 	"log/slog"
 	"math/rand"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 	"github.com/xujintao/balgass/src/server-game/game/object/monster"
@@ -18,6 +20,84 @@ const (
 	dragonDelay    = 3 * time.Second
 	dragonDuration = 5 * time.Minute
 )
+
+type dragonMap struct {
+	number int
+	spawns []monster.EventSpawn
+}
+
+type dragonConfig struct {
+	count int
+	maps  []dragonMap
+}
+
+var dragonSettings dragonConfig
+
+func (c *dragonConfig) init() {
+	if err := c.load(conf.PathCommon); err != nil {
+		panic(fmt.Errorf("dragon: %w", err))
+	}
+}
+
+func (c *dragonConfig) load(basePath string) error {
+	// Pointer attributes distinguish missing required values from valid zeroes.
+	type dragonXML struct {
+		XMLName  xml.Name `xml:"DragonEvent"`
+		Monsters []struct {
+			Index    *int `xml:"Index,attr"`
+			Distance *int `xml:"Distance,attr"`
+			Count    *int `xml:"Count,attr"`
+			Maps     []struct {
+				Number *int `xml:"Number,attr"`
+				Spawns []struct {
+					StartX *int `xml:"StartX,attr"`
+					StartY *int `xml:"StartY,attr"`
+					EndX   *int `xml:"EndX,attr"`
+					EndY   *int `xml:"EndY,attr"`
+				} `xml:"Spawn"`
+			} `xml:"Map"`
+		} `xml:"Monster"`
+	}
+	next := dragonConfig{}
+	var dragons dragonXML
+	conf.XML(basePath, "Events/IGC_DragonEvent.xml", &dragons)
+	if len(dragons.Monsters) != 1 {
+		return fmt.Errorf("DragonEvent requires exactly one Monster definition")
+	}
+	dragon := dragons.Monsters[0]
+	if dragon.Index == nil || *dragon.Index != 44 || dragon.Distance == nil || dragon.Count == nil ||
+		*dragon.Count <= 0 || *dragon.Count > conf.Server.GameServerInfo.MaxMonsterCount || len(dragon.Maps) == 0 {
+		return fmt.Errorf("invalid red dragon class, distance, count or maps")
+	}
+	next.count = *dragon.Count
+	mapIDs := make(map[int]bool)
+	for _, dm := range dragon.Maps {
+		if dm.Number == nil || mapIDs[*dm.Number] || len(dm.Spawns) == 0 {
+			return fmt.Errorf("missing/duplicate dragon map or empty spawn list")
+		}
+		mapIDs[*dm.Number] = true
+		m := dragonMap{number: *dm.Number}
+		areas := make(map[monster.EventSpawn]bool)
+		for _, area := range dm.Spawns {
+			if area.StartX == nil || area.StartY == nil || area.EndX == nil || area.EndY == nil {
+				return fmt.Errorf("dragon map %d: missing spawn coordinates", m.number)
+			}
+			s := monster.EventSpawn{Class: 44, MapNumber: m.number, StartX: *area.StartX, StartY: *area.StartY,
+				EndX: *area.EndX, EndY: *area.EndY, Direction: -1, Distance: *dragon.Distance}
+			if err := s.Validate(); err != nil {
+				return err
+			}
+			if areas[s] {
+				return fmt.Errorf("duplicate dragon spawn: %+v", s)
+			}
+			areas[s] = true
+			m.spawns = append(m.spawns, s)
+		}
+		next.maps = append(next.maps, m)
+	}
+	*c = next
+	return nil
+}
 
 type dragonWorld interface {
 	spawn(monster.EventSpawn) (*object.Object, error)
@@ -46,18 +126,16 @@ type Dragon struct {
 }
 
 func NewDragon() *Dragon {
-	return &Dragon{config: config.dragon, world: liveWorld{}, intn: rand.Intn}
+	return &Dragon{config: dragonSettings, world: liveWorld{}, intn: rand.Intn}
 }
 
 func (d *Dragon) Running() bool { return d.state != dragonIdle }
 
 func (d *Dragon) Start(now time.Time) error {
-	if d.Running() {
-		return fmt.Errorf("red dragon invasion is already running")
-	}
 	if len(d.config.maps) == 0 || d.config.count <= 0 {
 		return fmt.Errorf("red dragon invasion has no spawn configuration")
 	}
+	d.reap(now, true)
 	d.mapIndex = d.intn(len(d.config.maps))
 	d.state = dragonAnnouncing
 	d.deadline = now.Add(dragonDelay)

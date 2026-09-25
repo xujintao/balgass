@@ -2,9 +2,13 @@ package invasion
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 	"github.com/xujintao/balgass/src/server-game/game/object/monster"
 )
@@ -50,9 +54,6 @@ func TestDragonLifecycle(t *testing.T) {
 	now := time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
 	if err := d.Start(now); err != nil {
 		t.Fatal(err)
-	}
-	if err := d.Start(now); err == nil {
-		t.Fatal("allowed overlapping start")
 	}
 	d.Tick(now.Add(2 * time.Second))
 	if len(w.spawned) != 0 {
@@ -118,5 +119,92 @@ func TestDragonRollbackAndNoRespawn(t *testing.T) {
 		if len(w.spawned) != 2 {
 			t.Fatal("respawned after death/failure")
 		}
+	}
+}
+
+func TestDragonConfigLoadsAndValidates(t *testing.T) {
+	const dragon = `<DragonEvent><Monster Index="44" Distance="30" Count="2"><Map Number="0"><Spawn StartX="135" StartY="61" EndX="146" EndY="70"/></Map></Monster></DragonEvent>`
+	for _, tt := range []struct {
+		name, dragon string
+		bad          bool
+	}{
+		{"valid", dragon, false},
+		{"map", strings.Replace(dragon, `Number="0"`, `Number="999"`, 1), true},
+		{"area", strings.Replace(dragon, `EndX="146"`, `EndX="135"`, 1), true},
+		{"class", strings.Replace(dragon, `Index="44"`, `Index="55"`, 1), true},
+		{"count", strings.Replace(dragon, `Count="2"`, `Count="0"`, 1), true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			base := t.TempDir()
+			if err := os.Mkdir(filepath.Join(base, "Events"), 0755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(base, "Events/IGC_DragonEvent.xml"), []byte(tt.dragon), 0600); err != nil {
+				t.Fatal(err)
+			}
+			var c dragonConfig
+			err := c.load(base)
+			if (err != nil) != tt.bad {
+				t.Fatalf("load error=%v", err)
+			}
+			if !tt.bad && c.count != 2 {
+				t.Fatal("wrong configured dragon count")
+			}
+		})
+	}
+}
+
+func TestDragonStartupConfig(t *testing.T) {
+	var c dragonConfig
+	if err := c.load(conf.PathCommon); err != nil {
+		t.Fatal(err)
+	}
+	if len(c.maps) == 0 {
+		t.Fatal("startup config empty")
+	}
+}
+
+func TestDragonRestartPreservesSettlement(t *testing.T) {
+	w := &testWorld{}
+	d := testDragon(w)
+	now := time.Now()
+	if err := d.Start(now); err != nil {
+		t.Fatal(err)
+	}
+	// A restart during the announcement starts a fresh countdown.
+	restart := now.Add(time.Second)
+	if err := d.Start(restart); err != nil {
+		t.Fatal(err)
+	}
+	d.Tick(now.Add(dragonDelay))
+	if len(w.objects) != 0 {
+		t.Fatal("old announcement deadline spawned monsters")
+	}
+	d.Tick(restart.Add(dragonDelay))
+	if len(w.objects) != 2 {
+		t.Fatal("new announcement did not spawn")
+	}
+	corpse, living := w.objects[0], w.objects[1]
+	corpse.Live = false
+	w.pending = corpse
+	restart = restart.Add(dragonDelay + time.Second)
+	if err := d.Start(restart); err != nil {
+		t.Fatal(err)
+	}
+	if !w.removed[living] || w.removed[corpse] || len(d.monsters) != 1 || d.state != dragonAnnouncing {
+		t.Fatal("restart failed to preserve pending settlement or remove living monster")
+	}
+	d.Tick(restart.Add(dragonDelay))
+	if len(w.objects) != 4 || len(d.monsters) != 3 || !d.deadline.Equal(restart.Add(dragonDelay+dragonDuration)) {
+		t.Fatal("replacement wave has incorrect count or duration")
+	}
+	w.pending = nil
+	d.Tick(restart.Add(dragonDelay + time.Second))
+	if !w.removed[corpse] || len(d.monsters) != 2 {
+		t.Fatal("settled corpse not reclaimed")
+	}
+	d.Tick(restart.Add(dragonDelay + dragonDuration))
+	if d.Running() || len(d.monsters) != 0 {
+		t.Fatal("replacement wave did not expire")
 	}
 }

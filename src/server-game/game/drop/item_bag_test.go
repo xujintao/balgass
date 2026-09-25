@@ -127,3 +127,26 @@ func TestMonsterAndEventBagDispatch(t *testing.T) {
 		}
 	}
 }
+
+func TestExplicitMonsterGroupEventBag(t *testing.T) {
+	id := 150
+	m := dropManager{itemBags: map[itemBagKey]*itemBag{
+		{kind: itemBagMonster, id: 44}: testItemBag(0, 0, 44, 1),
+		{kind: itemBagEvent, id: id}:   testItemBag(0, 0, 150, 1),
+	}}
+	req := testRequest(44)
+	req.EventBagID = &id
+	result := m.Drop(req)
+	if !result.Handled || len(result.Rewards) != 1 || result.Rewards[0].Zen != 150 {
+		t.Fatal("explicit bag did not override monster bag", result)
+	}
+	req.EventBagID = nil
+	result = m.Drop(req)
+	if len(result.Rewards) != 1 || result.Rewards[0].Zen != 44 {
+		t.Fatal("normal monster bag changed")
+	}
+	bindings, err := parseItemBagBindings("AddItemBag(BAG_EVENT, 150, 0, 'Event_Monster_(561)_Medusa')", 150)
+	if err != nil || len(bindings) != 1 {
+		t.Fatal("configured event bag not parsed", err)
+	}
+}

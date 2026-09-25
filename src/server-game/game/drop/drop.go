@@ -33,6 +33,7 @@ type PlayerContext struct {
 }
 
 type Request struct {
+	EventBagID    *int // Explicit monster-group reward override; nil uses normal monster rules.
 	Trigger       Trigger
 	MonsterClass  int
 	MonsterLevel  int
@@ -389,6 +390,13 @@ func (m *dropManager) finishGenericItem(it *item.Item, excellent bool) {
 func (m *dropManager) Drop(request Request) Result {
 	if request.Trigger != TriggerMonsterDeath {
 		return Result{}
+	}
+	if request.EventBagID != nil {
+		if bag := m.itemBags[itemBagKey{kind: itemBagEvent, id: *request.EventBagID}]; bag != nil {
+			result, _ := m.dropItemBag(bag, true, request)
+			return result
+		}
+		return Result{Handled: true}
 	}
 	if key, ok := monsterEventItemBagKey(request.MonsterClass); ok {
 		if bag, ok := m.itemBags[key]; ok {

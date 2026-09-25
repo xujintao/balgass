@@ -83,7 +83,7 @@ func (m *dropManager) initItemBags() {
 	}
 }
 
-func parseItemBagBindings(script string) (map[itemBagKey]string, error) {
+func parseItemBagBindings(script string, eventIDs ...int) (map[itemBagKey]string, error) {
 	// The loader intentionally recognizes only static registration calls. It
 	// never evaluates Lua, so script code cannot affect server startup.
 	re := regexp.MustCompile(`(?m)^\s*AddItemBag\(\s*(BAG_COMMON|BAG_MONSTER|BAG_EVENT)\s*,\s*(.+?)\s*,\s*(\d+)\s*,\s*'([^']+)'\s*\)`)
@@ -114,7 +114,11 @@ func parseItemBagBindings(script string) (map[itemBagKey]string, error) {
 				return nil, fmt.Errorf("invalid EventBag key %q, %d", first, second)
 			}
 			eventID, _ := strconv.Atoi(first)
-			if eventID != 26 && eventID != 46 {
+			allowed := eventID == 26 || eventID == 46
+			for _, id := range eventIDs {
+				allowed = allowed || eventID == id
+			}
+			if !allowed {
 				continue
 			}
 			key = itemBagKey{kind: itemBagEvent, id: eventID}
@@ -380,4 +384,29 @@ func (m *dropManager) makeRandomSetItem() *item.Item {
 	it.Calc()
 	it.Durability = it.MaxDurability
 	return it
+}
+
+// LoadEventBag loads a configured monster-group override during startup.
+func (m *dropManager) LoadEventBag(id int) error {
+	key := itemBagKey{kind: itemBagEvent, id: id}
+	if m.itemBags[key] != nil {
+		return nil
+	}
+	script, err := os.ReadFile(filepath.Join(conf.PathCommon, "Scripts/ItemBags/ItemBagScript.lua"))
+	if err != nil {
+		return err
+	}
+	bindings, err := parseItemBagBindings(string(script), id)
+	if err != nil {
+		return err
+	}
+	name, ok := bindings[key]
+	if !ok {
+		return fmt.Errorf("missing event ItemBag %d", id)
+	}
+	if _, err := os.Stat(filepath.Join(conf.PathCommon, "ItemBags", name+".xml")); err != nil {
+		return err
+	}
+	m.itemBags[key] = loadItemBag(name)
+	return nil
 }
