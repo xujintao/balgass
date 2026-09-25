@@ -1,6 +1,6 @@
 ## System
 
-<img src="system.jpg">
+<img src="system.drawio.svg">
 
 ## Specification
 
