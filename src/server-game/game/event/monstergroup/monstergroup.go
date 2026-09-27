@@ -18,6 +18,7 @@ type StartTime struct{ Hour, Minute, AppearanceRate int }
 type member struct {
 	class, count                                                        int
 	override                                                            bool
+	hasEventBag                                                         bool
 	eventID, hp, damageMin, damageMax, defense, attackRate, defenseRate int
 }
 type Group struct {
@@ -155,14 +156,20 @@ func (m *monsterGroupManager) load(basePath string) error {
 				return err
 			}
 			entry := member{class: *r.Index, count: *r.Count, override: *r.Override == 1}
-			if entry.override {
-				if r.EventID == nil || *r.EventID < 0 || r.HP == nil || *r.HP <= 0 || r.Min == nil || *r.Min < 0 || r.Max == nil || *r.Max < *r.Min || r.Defense == nil || *r.Defense < 0 || r.AttackRate == nil || *r.AttackRate < 0 || r.DefenseRate == nil || *r.DefenseRate < 0 {
-					return fmt.Errorf("invalid monster attribute override")
+			if r.EventID != nil {
+				if *r.EventID < 0 {
+					return fmt.Errorf("invalid monster EventID %d", *r.EventID)
 				}
-				entry.eventID, entry.hp, entry.damageMin, entry.damageMax, entry.defense, entry.attackRate, entry.defenseRate = *r.EventID, *r.HP, *r.Min, *r.Max, *r.Defense, *r.AttackRate, *r.DefenseRate
+				entry.eventID, entry.hasEventBag = *r.EventID, true
 				if err := drop.DropManager.LoadEventBag(entry.eventID); err != nil {
 					return err
 				}
+			}
+			if entry.override {
+				if r.HP == nil || *r.HP <= 0 || r.Min == nil || *r.Min < 0 || r.Max == nil || *r.Max < *r.Min || r.Defense == nil || *r.Defense < 0 || r.AttackRate == nil || *r.AttackRate < 0 || r.DefenseRate == nil || *r.DefenseRate < 0 {
+					return fmt.Errorf("invalid monster attribute override")
+				}
+				entry.hp, entry.damageMin, entry.damageMax, entry.defense, entry.attackRate, entry.defenseRate = *r.HP, *r.Min, *r.Max, *r.Defense, *r.AttackRate, *r.DefenseRate
 			}
 			g.members = append(g.members, entry)
 		}
@@ -231,6 +238,8 @@ func (g *Group) Start(now time.Time) error {
 				obj.HP, obj.MaxHP = entry.hp, entry.hp
 				obj.AttackMin, obj.AttackMax = entry.damageMin, entry.damageMax
 				obj.Defense, obj.AttackRate, obj.DefenseRate = entry.defense, entry.attackRate, entry.defenseRate
+			}
+			if entry.hasEventBag {
 				id := entry.eventID
 				obj.EventBagID = &id
 			}

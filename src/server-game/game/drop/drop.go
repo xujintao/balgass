@@ -33,7 +33,7 @@ type PlayerContext struct {
 }
 
 type Request struct {
-	EventBagID    *int // Explicit monster-group reward override; nil uses normal monster rules.
+	EventBagID    *int // Optional EventBag route selected by monster or event configuration.
 	Trigger       Trigger
 	MonsterClass  int
 	MonsterLevel  int
@@ -88,7 +88,7 @@ type dropManager struct {
 	jewelOfCreation dropItem
 	normalItem      [][]dropItem
 	excellentItem   [][]dropItem
-	itemBags        map[itemBagKey]*itemBag
+	itemBags        map[itemBagKey]*itemBagEntry
 }
 
 func init() {
@@ -392,19 +392,13 @@ func (m *dropManager) Drop(request Request) Result {
 		return Result{}
 	}
 	if request.EventBagID != nil {
-		if bag := m.itemBags[itemBagKey{kind: itemBagEvent, id: *request.EventBagID}]; bag != nil {
+		if bag := m.itemBag(itemBagKey{kind: itemBagEvent, id: *request.EventBagID}); bag != nil {
 			result, _ := m.dropItemBag(bag, true, request)
 			return result
 		}
 		return Result{Handled: true}
 	}
-	if key, ok := monsterEventItemBagKey(request.MonsterClass); ok {
-		if bag, ok := m.itemBags[key]; ok {
-			result, _ := m.dropItemBag(bag, true, request)
-			return result
-		}
-	}
-	if bag, ok := m.itemBags[itemBagKey{kind: itemBagMonster, id: request.MonsterClass}]; ok {
+	if bag := m.itemBag(itemBagKey{kind: itemBagMonster, id: request.MonsterClass}); bag != nil {
 		if result, used := m.dropItemBag(bag, false, request); used {
 			return result
 		}

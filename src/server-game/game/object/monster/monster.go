@@ -11,6 +11,7 @@ import (
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	gameclass "github.com/xujintao/balgass/src/server-game/game/class"
+	"github.com/xujintao/balgass/src/server-game/game/drop"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
@@ -18,6 +19,16 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/shop"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
+
+var defaultEventBags = map[int]int{275: 26, 673: 46}
+
+func init() {
+	for _, id := range defaultEventBags {
+		if err := drop.DropManager.LoadEventBag(id); err != nil {
+			panic(fmt.Errorf("monster: load default EventBag %d: %w", id, err))
+		}
+	}
+}
 
 func SpawnMonster() {
 	// MonsterSpawn was generated 2023-07-17 16:05:41 by https://xml-to-go.github.io/ in Ukraine.
@@ -227,6 +238,9 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 		m.Type = object.ObjectTypeMonster
 	}
 	m.Class = class
+	if id, ok := defaultEventBags[class]; ok {
+		m.EventBagID = &id
+	}
 	m.Hidden = isHiddenMonsterClass(class)
 	m.MapNumber = mapNumber
 	m.spawnStartX = startX

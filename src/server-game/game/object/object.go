@@ -799,7 +799,7 @@ type Object struct {
 	lastBasicAttackTime       time.Time
 	dieRegen                  bool
 	MaxRegenTime              time.Duration // 最大重生时间
-	EventBagID                *int          // Optional monster-group ItemBag override.
+	EventBagID                *int          // Optional EventBag route selected by monster or event configuration.
 	NoRegen                   bool          // Event-owned monsters retire after death.
 	PentagramMainAttribute    int
 	PentagramAttributePattern int

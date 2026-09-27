@@ -1,6 +1,7 @@
 package monstergroup
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 )
 
@@ -104,5 +106,34 @@ func TestGroupRefreshOverridesAndRollback(t *testing.T) {
 		if obj := object.ObjectManager.GetObject(i); obj != nil && !before[obj] {
 			t.Fatal("partial group leaked")
 		}
+	}
+}
+func TestGroupEventBagWithoutAttributeOverride(t *testing.T) {
+	for _, eventID := range []string{"150", "151"} {
+		t.Run(eventID, func(t *testing.T) {
+			xml := strings.Replace(groupXML, `OverrideDefaultSettings="0"`, `OverrideDefaultSettings="0" EventID="`+eventID+`"`, 1)
+			m, err := loadGroup(t, xml)
+			if err != nil {
+				t.Fatal(err)
+			}
+			g := m.Groups[0]
+			t.Cleanup(func() {
+				for _, obj := range g.monsters {
+					object.ObjectManager.DeleteEventMonster(obj, time.Now())
+				}
+			})
+			if err := g.Start(time.Now()); err != nil {
+				t.Fatal(err)
+			}
+			baseline := class.MonsterTable[44]
+			for _, obj := range g.monsters {
+				if obj.EventBagID == nil || fmt.Sprint(*obj.EventBagID) != eventID {
+					t.Fatalf("EventBagID = %v, want %s", obj.EventBagID, eventID)
+				}
+				if obj.MaxHP != baseline.HP || obj.AttackMin != baseline.DamageMin || obj.AttackMax != baseline.DamageMax || obj.Defense != baseline.Defense {
+					t.Fatal("EventID unexpectedly overrode monster attributes")
+				}
+			}
+		})
 	}
 }

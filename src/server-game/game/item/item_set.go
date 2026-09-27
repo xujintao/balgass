@@ -77,6 +77,40 @@ type setDropSection struct {
 	items   []setDropItem
 }
 
+// HasSetItem reports whether the configured item has an ancient set variant.
+func (m *setManager) HasSetItem(section, index int) bool {
+	if section < 0 || section >= len(m.items) {
+		return false
+	}
+	candidate := m.items[section][index]
+	if candidate == nil {
+		return false
+	}
+	for tier := 0; tier < 4; tier++ {
+		if candidate.sets[tier] > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// RandomSetIndex selects a set variant without changing the base item.
+func (m *setManager) RandomSetIndex(section, index int) int {
+	if !m.HasSetItem(section, index) {
+		return 0
+	}
+	candidate := m.items[section][index]
+	var options [4]int
+	count := 0
+	for tier := 0; tier < 4; tier++ {
+		if candidate.sets[tier] > 0 {
+			options[count] = candidate.sets[tier]
+			count++
+		}
+	}
+	return options[rand.Intn(count)]
+}
+
 func (m *setManager) GetSetIndex(section, index, tierIndex int) int {
 	if _, ok := m.items[section][index]; !ok {
 		return 0

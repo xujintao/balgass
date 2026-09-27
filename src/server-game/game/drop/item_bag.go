@@ -28,6 +28,11 @@ type itemBagKey struct {
 	level int
 }
 
+type itemBagEntry struct {
+	name string
+	bag  *itemBag
+}
+
 type itemBag struct {
 	name        string
 	itemRate    int
@@ -61,6 +66,7 @@ type itemBagItem struct {
 	luck       int
 	option     int
 	excellent  int
+	setItem    bool
 }
 
 func (m *dropManager) initItemBags() {
@@ -73,21 +79,25 @@ func (m *dropManager) initItemBags() {
 	if err != nil {
 		panic(fmt.Errorf("drop: parse ItemBagScript.lua: %w", err))
 	}
-	m.itemBags = make(map[itemBagKey]*itemBag, len(bindings))
+	m.itemBags = make(map[itemBagKey]*itemBagEntry, len(bindings))
 	for key, name := range bindings {
-		path := filepath.Join(conf.PathCommon, "ItemBags", name+".xml")
-		if _, err := os.Stat(path); err != nil {
-			panic(fmt.Errorf("drop: ItemBag %v/%d/%d file %q: %w", key.kind, key.id, key.level, name, err))
+		m.itemBags[key] = &itemBagEntry{name: name}
+	}
+	for key := range m.itemBags {
+		if key.kind == itemBagMonster {
+			if err := m.loadItemBag(key); err != nil {
+				panic(err)
+			}
 		}
-		m.itemBags[key] = loadItemBag(name)
 	}
 }
 
-func parseItemBagBindings(script string, eventIDs ...int) (map[itemBagKey]string, error) {
+func parseItemBagBindings(script string) (map[itemBagKey]string, error) {
 	// The loader intentionally recognizes only static registration calls. It
 	// never evaluates Lua, so script code cannot affect server startup.
 	re := regexp.MustCompile(`(?m)^\s*AddItemBag\(\s*(BAG_COMMON|BAG_MONSTER|BAG_EVENT)\s*,\s*(.+?)\s*,\s*(\d+)\s*,\s*'([^']+)'\s*\)`)
 	number := regexp.MustCompile(`^\d+$`)
+	makeItemID := regexp.MustCompile(`^MakeItemID\(\s*(\d+)\s*,\s*(\d+)\s*\)$`)
 	matches := re.FindAllStringSubmatch(script, -1)
 	bindings := make(map[itemBagKey]string)
 	for _, match := range matches {
@@ -100,7 +110,19 @@ func parseItemBagBindings(script string, eventIDs ...int) (map[itemBagKey]string
 		var key itemBagKey
 		switch match[1] {
 		case "BAG_COMMON":
-			continue
+			parts := makeItemID.FindStringSubmatch(first)
+			if len(parts) != 3 {
+				return nil, fmt.Errorf("invalid CommonBag item expression %q", first)
+			}
+			section, _ := strconv.Atoi(parts[1])
+			index, _ := strconv.Atoi(parts[2])
+			if second > 15 {
+				return nil, fmt.Errorf("invalid CommonBag level %d", second)
+			}
+			if _, err := item.ItemTable.GetItemBase(section, index); err != nil {
+				return nil, fmt.Errorf("invalid CommonBag item %d/%d: %w", section, index, err)
+			}
+			key = itemBagKey{kind: itemBagCommon, id: item.Code(section, index), level: second}
 		case "BAG_MONSTER":
 			if first != "0" || !number.MatchString(first) || second < 0 {
 				return nil, fmt.Errorf("invalid MonsterBag key %q, %d", first, second)
@@ -114,13 +136,6 @@ func parseItemBagBindings(script string, eventIDs ...int) (map[itemBagKey]string
 				return nil, fmt.Errorf("invalid EventBag key %q, %d", first, second)
 			}
 			eventID, _ := strconv.Atoi(first)
-			allowed := eventID == 26 || eventID == 46
-			for _, id := range eventIDs {
-				allowed = allowed || eventID == id
-			}
-			if !allowed {
-				continue
-			}
 			key = itemBagKey{kind: itemBagEvent, id: eventID}
 		}
 		if _, exists := bindings[key]; exists {
@@ -131,18 +146,30 @@ func parseItemBagBindings(script string, eventIDs ...int) (map[itemBagKey]string
 	return bindings, nil
 }
 
-func monsterEventItemBagKey(monsterClass int) (itemBagKey, bool) {
-	switch monsterClass {
-	case 275:
-		return itemBagKey{kind: itemBagEvent, id: 26}, true
-	case 673:
-		return itemBagKey{kind: itemBagEvent, id: 46}, true
-	default:
-		return itemBagKey{}, false
+func (m *dropManager) itemBag(key itemBagKey) *itemBag {
+	if entry := m.itemBags[key]; entry != nil {
+		return entry.bag
 	}
+	return nil
 }
 
-func loadItemBag(name string) *itemBag {
+func (m *dropManager) loadItemBag(key itemBagKey) error {
+	entry := m.itemBags[key]
+	if entry == nil {
+		return fmt.Errorf("drop: missing ItemBag %v/%d/%d", key.kind, key.id, key.level)
+	}
+	if entry.bag != nil {
+		return nil
+	}
+	path := filepath.Join(conf.PathCommon, "ItemBags", entry.name+".xml")
+	if _, err := os.Stat(path); err != nil {
+		return fmt.Errorf("drop: ItemBag %v/%d/%d file %q: %w", key.kind, key.id, key.level, entry.name, err)
+	}
+	entry.bag = parseItemBag(entry.name)
+	return nil
+}
+
+func parseItemBag(name string) *itemBag {
 	type itemXML struct {
 		Cat                int  `xml:"Cat,attr"`
 		Index              int  `xml:"Index,attr"`
@@ -217,9 +244,12 @@ func loadItemBag(name string) *itemBag {
 			(configured.Skill != -1 && configured.Skill != 0 && configured.Skill != 1) ||
 			(configured.Luck != -1 && configured.Luck != 0 && configured.Luck != 1) ||
 			(configured.Option < -1 || configured.Option > 7) ||
-			(configured.Exc < -1 || configured.Exc > 63) || configured.SetItem != 0 ||
+			(configured.Exc < -1 || configured.Exc > 63) || configured.SetItem < 0 || configured.SetItem > 1 ||
 			configured.SocketCount != 0 || configured.ElementalItem != 0 || configured.MuunEvolutionCat != 0 || configured.MuunEvolutionIndex != 0 || configured.Duration != 0 {
 			panic(fmt.Errorf("drop: unsupported item fields at %d/%d/%d in %s", allowIndex, dropIndex, itemIndex, name))
+		}
+		if configured.SetItem == 1 && !item.SetManager.HasSetItem(configured.Cat, configured.Index) {
+			panic(fmt.Errorf("drop: item %d/%d/%d in %s has no set version for %d/%d", allowIndex, dropIndex, itemIndex, name, configured.Cat, configured.Index))
 		}
 	}
 	for allowIndex, allow := range cfg.Allows {
@@ -250,7 +280,7 @@ func loadItemBag(name string) *itemBag {
 				validateItem(allowIndex, dropIndex, itemIndex, configuredItem)
 				runtimeDrop.items = append(runtimeDrop.items, itemBagItem{
 					section: configuredItem.Cat, index: configuredItem.Index, minLevel: configuredItem.ItemMinLevel, maxLevel: configuredItem.ItemMaxLevel,
-					durability: configuredItem.Durability, skill: configuredItem.Skill, luck: configuredItem.Luck, option: configuredItem.Option, excellent: configuredItem.Exc,
+					durability: configuredItem.Durability, skill: configuredItem.Skill, luck: configuredItem.Luck, option: configuredItem.Option, excellent: configuredItem.Exc, setItem: configuredItem.SetItem == 1,
 				})
 			}
 			totalRate += configuredDrop.Rate
@@ -334,6 +364,9 @@ func selectItemBagDrop(drops []itemBagDrop, number int) *itemBagDrop {
 
 func (m *dropManager) makeBagItem(configured itemBagItem) *item.Item {
 	it := item.NewItem(configured.section, configured.index)
+	if configured.setItem {
+		it.Set = item.SetManager.RandomSetIndex(configured.section, configured.index)
+	}
 	it.Level = configured.minLevel + rand.Intn(configured.maxLevel-configured.minLevel+1)
 	it.Skill = configured.skill == 1 || configured.skill == -1 && rand.Intn(2) == 0
 	it.Lucky = configured.luck == 1 || configured.luck == -1 && rand.Intn(2) == 0
@@ -389,24 +422,5 @@ func (m *dropManager) makeRandomSetItem() *item.Item {
 // LoadEventBag loads a configured monster-group override during startup.
 func (m *dropManager) LoadEventBag(id int) error {
 	key := itemBagKey{kind: itemBagEvent, id: id}
-	if m.itemBags[key] != nil {
-		return nil
-	}
-	script, err := os.ReadFile(filepath.Join(conf.PathCommon, "Scripts/ItemBags/ItemBagScript.lua"))
-	if err != nil {
-		return err
-	}
-	bindings, err := parseItemBagBindings(string(script), id)
-	if err != nil {
-		return err
-	}
-	name, ok := bindings[key]
-	if !ok {
-		return fmt.Errorf("missing event ItemBag %d", id)
-	}
-	if _, err := os.Stat(filepath.Join(conf.PathCommon, "ItemBags", name+".xml")); err != nil {
-		return err
-	}
-	m.itemBags[key] = loadItemBag(name)
-	return nil
+	return m.loadItemBag(key)
 }

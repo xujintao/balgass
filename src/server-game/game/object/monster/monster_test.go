@@ -29,6 +29,17 @@ func TestIsHiddenMonsterClass(t *testing.T) {
 	}
 }
 
+func TestNewMonsterSetsDefaultEventBagID(t *testing.T) {
+	for _, tt := range []struct {
+		class, eventBagID int
+	}{{275, 26}, {673, 46}} {
+		m := newMonster(tt.class, 0, 0, 0, 1, 1, 0, 0, 0)
+		if m.EventBagID == nil || *m.EventBagID != tt.eventBagID {
+			t.Fatalf("monster %d EventBagID = %v, want %d", tt.class, m.EventBagID, tt.eventBagID)
+		}
+	}
+}
+
 func TestEventSpawnAndExistingRedDragonBag(t *testing.T) {
 	s := EventSpawn{Class: 44, MapNumber: 0, StartX: 135, StartY: 61, EndX: 146, EndY: 70, Direction: -1, Distance: 30}
 	dragon, err := SpawnEventMonster(s)
