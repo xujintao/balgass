@@ -33,7 +33,7 @@ type PlayerContext struct {
 }
 
 type Request struct {
-	EventBagID    *int // Optional EventBag route selected by monster or event configuration.
+	EventID       int // Zero means no EventBag; positive IDs are one-based runtime keys.
 	Trigger       Trigger
 	MonsterClass  int
 	MonsterLevel  int
@@ -391,8 +391,8 @@ func (m *dropManager) Drop(request Request) Result {
 	if request.Trigger != TriggerMonsterDeath {
 		return Result{}
 	}
-	if request.EventBagID != nil {
-		if bag := m.itemBag(itemBagKey{kind: itemBagEvent, id: *request.EventBagID}); bag != nil {
+	if request.EventID != 0 {
+		if bag := m.itemBag(itemBagKey{kind: itemBagEvent, id: request.EventID}); bag != nil {
 			result, _ := m.dropItemBag(bag, true, request)
 			return result
 		}

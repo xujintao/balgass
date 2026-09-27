@@ -18,7 +18,6 @@ type StartTime struct{ Hour, Minute, AppearanceRate int }
 type member struct {
 	class, count                                                        int
 	override                                                            bool
-	hasEventBag                                                         bool
 	eventID, hp, damageMin, damageMax, defense, attackRate, defenseRate int
 }
 type Group struct {
@@ -157,10 +156,10 @@ func (m *monsterGroupManager) load(basePath string) error {
 			}
 			entry := member{class: *r.Index, count: *r.Count, override: *r.Override == 1}
 			if r.EventID != nil {
-				if *r.EventID < 0 {
+				if *r.EventID < 0 || *r.EventID == int(^uint(0)>>1) {
 					return fmt.Errorf("invalid monster EventID %d", *r.EventID)
 				}
-				entry.eventID, entry.hasEventBag = *r.EventID, true
+				entry.eventID = *r.EventID + 1
 				if err := drop.DropManager.LoadEventBag(entry.eventID); err != nil {
 					return err
 				}
@@ -227,6 +226,7 @@ func (g *Group) Start(now time.Time) error {
 		for i := 0; i < entry.count; i++ {
 			spawn := area
 			spawn.Class = entry.class
+			spawn.EventID = entry.eventID
 			obj, err := monster.SpawnEventMonster(spawn)
 			if err != nil {
 				for _, previous := range created {
@@ -238,10 +238,6 @@ func (g *Group) Start(now time.Time) error {
 				obj.HP, obj.MaxHP = entry.hp, entry.hp
 				obj.AttackMin, obj.AttackMax = entry.damageMin, entry.damageMax
 				obj.Defense, obj.AttackRate, obj.DefenseRate = entry.defense, entry.attackRate, entry.defenseRate
-			}
-			if entry.hasEventBag {
-				id := entry.eventID
-				obj.EventBagID = &id
 			}
 			created = append(created, obj)
 		}

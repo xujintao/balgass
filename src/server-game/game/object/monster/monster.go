@@ -20,10 +20,10 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
 
-var defaultEventBags = map[int]int{275: 26, 673: 46}
+var defaultEventIDs = map[int]int{275: 26 + 1, 673: 46 + 1}
 
 func init() {
-	for _, id := range defaultEventBags {
+	for _, id := range defaultEventIDs {
 		if err := drop.DropManager.LoadEventBag(id); err != nil {
 			panic(fmt.Errorf("monster: load default EventBag %d: %w", id, err))
 		}
@@ -97,7 +97,7 @@ func SpawnMonster() {
 					spawnElement := spawn.Element
 					// register the new monster to object manager
 					_, err := object.ObjectManager.AddMonster(func() *object.Object {
-						return newMonster(
+						m := newMonster(
 							spawnClass,
 							spawnMapNumber,
 							spawnStartX,
@@ -108,6 +108,7 @@ func SpawnMonster() {
 							spawnDis,
 							spawnElement,
 						)
+						return &m.Object
 					})
 					if err != nil {
 						slog.Error("range monsterSpawn.Map object.ObjectManager.AddMonster", "err", err)
@@ -120,7 +121,7 @@ func SpawnMonster() {
 
 	shop.ShopManager.ForEachShop(func(class, mapNumber, x, y, dir int) {
 		obj, err := object.ObjectManager.AddMonster(func() *object.Object {
-			return newMonster(
+			m := newMonster(
 				class,
 				mapNumber,
 				x,
@@ -131,6 +132,7 @@ func SpawnMonster() {
 				0,
 				0,
 			)
+			return &m.Object
 		})
 		if err != nil {
 			slog.Error("shop.ShopManager.ForEachShop object.ObjectManager.AddMonster", "err", err)
@@ -140,19 +142,21 @@ func SpawnMonster() {
 	})
 
 	object.RegisterNewCallMonster(func(class, mapNumber, x, y int) *object.Object {
-		return newMonster(class, mapNumber, x, y, x, y, 2, 15, 0)
+		m := newMonster(class, mapNumber, x, y, x, y, 2, 15, 0)
+		return &m.Object
 	})
 }
 
 // EventSpawn uses half-open spawn rectangles, like the original IGC spawner.
 type EventSpawn struct {
+	EventID                    int // One-based runtime EventBag ID; zero keeps the monster default.
 	Class, MapNumber           int
 	StartX, StartY, EndX, EndY int
 	Direction, Distance        int
 }
 
 func (s EventSpawn) Validate() error {
-	if gameclass.MonsterTable[s.Class] == nil || !maps.MapManager.HasMap(s.MapNumber) ||
+	if s.EventID < 0 || gameclass.MonsterTable[s.Class] == nil || !maps.MapManager.HasMap(s.MapNumber) ||
 		s.StartX < 0 || s.StartY < 0 || s.EndX > 256 || s.EndY > 256 ||
 		s.StartX >= s.EndX || s.StartY >= s.EndY || s.Distance < 0 ||
 		s.Direction < -1 || s.Direction > 7 {
@@ -187,13 +191,16 @@ func SpawnEventMonster(s EventSpawn) (*object.Object, error) {
 		dir = rand.Intn(8)
 	}
 	return object.ObjectManager.AddMonster(func() *object.Object {
-		obj := newMonster(s.Class, s.MapNumber, x, y, x, y, dir, s.Distance, 0)
-		obj.NoRegen = true
-		return obj
+		m := newMonster(s.Class, s.MapNumber, x, y, x, y, dir, s.Distance, 0)
+		if s.EventID != 0 {
+			m.EventID = s.EventID
+		}
+		m.NoRegen = true
+		return &m.Object
 	})
 }
 
-func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) *object.Object {
+func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element int) *Monster {
 	mc, ok := gameclass.MonsterTable[class]
 	if !ok {
 		panic(fmt.Sprintf("monster invalid [class]%d", class))
@@ -238,8 +245,8 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 		m.Type = object.ObjectTypeMonster
 	}
 	m.Class = class
-	if id, ok := defaultEventBags[class]; ok {
-		m.EventBagID = &id
+	if id, ok := defaultEventIDs[class]; ok {
+		m.EventID = id
 	}
 	m.Hidden = isHiddenMonsterClass(class)
 	m.MapNumber = mapNumber
@@ -314,7 +321,7 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 		// m.LearnSkill(622) // ?
 	}
 	m.Objecter = &m
-	return &m.Object
+	return &m
 }
 
 func isHiddenMonsterClass(class int) bool {
@@ -334,6 +341,7 @@ type actionState struct {
 
 type Monster struct {
 	object.Object
+	EventID             int // One-based runtime EventBag ID; zero means no EventBag.
 	moveRange           int // 移动范围
 	spawnStartX         int
 	spawnStartY         int

@@ -135,8 +135,11 @@ func parseItemBagBindings(script string) (map[itemBagKey]string, error) {
 			if !number.MatchString(first) || second != 0 {
 				return nil, fmt.Errorf("invalid EventBag key %q, %d", first, second)
 			}
-			eventID, _ := strconv.Atoi(first)
-			key = itemBagKey{kind: itemBagEvent, id: eventID}
+			eventID, err := strconv.Atoi(first)
+			if err != nil || eventID == int(^uint(0)>>1) {
+				return nil, fmt.Errorf("invalid EventBag ID %q", first)
+			}
+			key = itemBagKey{kind: itemBagEvent, id: eventID + 1}
 		}
 		if _, exists := bindings[key]; exists {
 			return nil, fmt.Errorf("duplicate ItemBag registration %v/%d/%d", key.kind, key.id, key.level)
@@ -419,7 +422,7 @@ func (m *dropManager) makeRandomSetItem() *item.Item {
 	return it
 }
 
-// LoadEventBag loads a configured monster-group override during startup.
+// LoadEventBag loads a registered one-based runtime EventBag ID once.
 func (m *dropManager) LoadEventBag(id int) error {
 	key := itemBagKey{kind: itemBagEvent, id: id}
 	return m.loadItemBag(key)

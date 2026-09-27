@@ -29,13 +29,13 @@ func TestIsHiddenMonsterClass(t *testing.T) {
 	}
 }
 
-func TestNewMonsterSetsDefaultEventBagID(t *testing.T) {
+func TestNewMonsterSetsDefaultEventID(t *testing.T) {
 	for _, tt := range []struct {
-		class, eventBagID int
-	}{{275, 26}, {673, 46}} {
+		class, eventID int
+	}{{275, 27}, {673, 47}} {
 		m := newMonster(tt.class, 0, 0, 0, 1, 1, 0, 0, 0)
-		if m.EventBagID == nil || *m.EventBagID != tt.eventBagID {
-			t.Fatalf("monster %d EventBagID = %v, want %d", tt.class, m.EventBagID, tt.eventBagID)
+		if m.EventID != tt.eventID {
+			t.Fatalf("monster %d EventID = %d, want %d", tt.class, m.EventID, tt.eventID)
 		}
 	}
 }
@@ -106,6 +106,7 @@ func TestEventSpawnRejectsInvalidOrBlockedArea(t *testing.T) {
 		{Class: 44, MapNumber: 999, EndX: 1, EndY: 1},
 		{Class: 99999, MapNumber: 0, EndX: 1, EndY: 1},
 		{Class: 44, MapNumber: 0, StartX: 5, EndX: 1, EndY: 1},
+		{Class: 44, MapNumber: 0, EndX: 1, EndY: 1, EventID: -1},
 	} {
 		if _, err := SpawnEventMonster(bad); err == nil {
 			t.Fatal("accepted invalid spawn", bad)
@@ -126,5 +127,31 @@ func TestEventSpawnRejectsInvalidOrBlockedArea(t *testing.T) {
 	}
 	if _, err := SpawnEventMonster(s); err == nil {
 		t.Fatal("spawned on blocked terrain")
+	}
+}
+
+func TestEventSpawnEventIDOverride(t *testing.T) {
+	spawn := EventSpawn{Class: 275, MapNumber: 0, StartX: 135, StartY: 61, EndX: 146, EndY: 70, Direction: -1, Distance: 30}
+	for _, tt := range []struct {
+		name          string
+		eventID, want int
+	}{
+		{name: "default", want: 27},
+		{name: "original event zero", eventID: 1, want: 1},
+		{name: "other event", eventID: 151, want: 151},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			s := spawn
+			s.EventID = tt.eventID
+			obj, err := SpawnEventMonster(s)
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { object.ObjectManager.DeleteEventMonster(obj, time.Now()) })
+			m := obj.Objecter.(*Monster)
+			if m.EventID != tt.want || &m.Object != obj {
+				t.Fatalf("EventID = %d, want %d", m.EventID, tt.want)
+			}
+		})
 	}
 }
