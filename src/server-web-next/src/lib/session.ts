@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { ApiError, providerError } from './errors';
 import { config } from './config';
 import { supabase } from './supabase';
+import { ensureProfile } from './profile';
 export const ACCESS_COOKIE = 'balgass_access';
 export const REFRESH_COOKIE = 'balgass_refresh';
 export function bearerToken(headers: Headers): string | undefined {
@@ -96,6 +97,7 @@ export async function sessionResponse(
   if (!session) throw new ApiError(400, 'AUTH_FAILED', '未能建立会话。');
   if (!session.user.email_confirmed_at)
     throw new ApiError(403, 'EMAIL_UNVERIFIED', '请先验证邮箱。');
+  await ensureProfile(session.user);
   if (isApp(request))
     return {
       user: { id: session.user.id, email: session.user.email },

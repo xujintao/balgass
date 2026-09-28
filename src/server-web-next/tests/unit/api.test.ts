@@ -37,6 +37,11 @@ vi.mock('../../src/lib/supabase', () => ({
     },
   }),
 }));
+vi.mock('../../src/lib/profile', () => ({
+  ensureProfile: vi.fn().mockResolvedValue(undefined),
+  me: vi.fn(),
+  changeNickname: vi.fn(),
+}));
 import { handle } from '../../src/lib/api';
 import { context, ACCESS_COOKIE, REFRESH_COOKIE } from '../../src/lib/session';
 const session = {

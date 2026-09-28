@@ -13,6 +13,10 @@ export default defineConfig({
       SUPABASE_URL: process.env.SUPABASE_URL || 'http://127.0.0.1:54321',
       SUPABASE_PUBLISHABLE_KEY:
         process.env.SUPABASE_PUBLISHABLE_KEY || 'test-public-key',
+      SUPABASE_SECRET_KEY:
+        process.env.SUPABASE_SECRET_KEY ||
+        process.env.TEST_SUPABASE_SECRET_KEY ||
+        '',
       AUTH_CAPTCHA_DISABLED: 'true',
     },
   },

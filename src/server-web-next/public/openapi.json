@@ -100,7 +100,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -280,7 +280,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -453,7 +453,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -633,7 +633,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -813,7 +813,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -983,7 +983,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -1166,7 +1166,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -1350,7 +1350,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -1520,7 +1520,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -1705,7 +1705,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -1875,7 +1875,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {
@@ -1961,7 +1961,7 @@
       "patch": {
         "summary": "Change unique nickname",
         "operationId": "patch_me_nickname",
-        "description": "First change is immediately available; subsequent changes require 720 hours. Unchanged nickname is a no-op. Concurrent changes are serialized in PostgreSQL.",
+        "description": "First change is immediately available; subsequent changes require 720 hours. Unchanged nickname is a no-op. Concurrent changes use an atomic conditional update from Next.js.",
         "parameters": [
           {
             "in": "header",
@@ -2045,7 +2045,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt)",
+            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
             "content": {
               "application/json": {
                 "schema": {

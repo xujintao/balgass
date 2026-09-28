@@ -1,46 +1,75 @@
 import { ApiError } from './errors';
-import { context } from './session';
-export async function me(ctx: Awaited<ReturnType<typeof context>>) {
-  const { data, error } = await ctx.client
-    .from('profiles')
-    .select('nickname,created_at,nickname_changed_at')
-    .eq('user_id', ctx.user.id)
-    .single();
-  if (error)
-    throw new ApiError(503, 'PROFILE_UNAVAILABLE', '暂时无法读取用户资料。');
-  return {
-    id: ctx.user.id,
-    email: ctx.user.email,
-    nickname: data.nickname as string,
-    createdAt: data.created_at as string,
-    nicknameChangedAt: data.nickname_changed_at as string | null,
-    nextNicknameChangeAt: data.nickname_changed_at
-      ? new Date(
-          new Date(data.nickname_changed_at).getTime() + 30 * 86400000,
-        ).toISOString()
-      : null,
+import type { context } from './session';
+import { supabaseAdmin } from './supabase-admin';
+import {
+  profileService,
+  type ProfileRepository,
+  type ProfileRow,
+  type ProfileUser,
+} from './profile-service';
+
+function service() {
+  const client = supabaseAdmin();
+  const repository: ProfileRepository = {
+    async find(userId) {
+      const { data, error } = await client
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error)
+        throw new ApiError(
+          503,
+          'PROFILE_UNAVAILABLE',
+          '暂时无法读取用户资料。',
+        );
+      return data as ProfileRow | null;
+    },
+    async insert(userId, nickname, key) {
+      const { data, error } = await client
+        .from('profiles')
+        .insert({ user_id: userId, nickname, nickname_key: key })
+        .select()
+        .single();
+      if (error?.code === '23505') return null;
+      if (error)
+        throw new ApiError(
+          503,
+          'PROFILE_UNAVAILABLE',
+          '暂时无法创建用户资料。',
+        );
+      return data as ProfileRow;
+    },
+    async update(observed, nickname, key, changedAt, cutoff) {
+      let query = client
+        .from('profiles')
+        .update({ nickname, nickname_key: key, nickname_changed_at: changedAt })
+        .eq('user_id', observed.user_id)
+        .eq('nickname', observed.nickname)
+        .or(`nickname_changed_at.is.null,nickname_changed_at.lte.${cutoff}`);
+      query =
+        observed.nickname_changed_at === null
+          ? query.is('nickname_changed_at', null)
+          : query.eq('nickname_changed_at', observed.nickname_changed_at);
+      const { data, error } = await query.select().maybeSingle();
+      if (error?.code === '23505')
+        throw new ApiError(409, 'NICKNAME_TAKEN', '昵称已被使用。');
+      if (error)
+        throw new ApiError(503, 'PROFILE_UNAVAILABLE', '暂时无法修改昵称。');
+      return data as ProfileRow | null;
+    },
   };
+  return profileService(repository);
+}
+export async function ensureProfile(user: ProfileUser) {
+  return service().ensure(user);
+}
+export async function me(ctx: Awaited<ReturnType<typeof context>>) {
+  return service().me(ctx.user);
 }
 export async function changeNickname(
   ctx: Awaited<ReturnType<typeof context>>,
   value: string,
 ) {
-  const { error } = await ctx.client.rpc('change_nickname', {
-    requested_nickname: value,
-  });
-  if (error) {
-    if (error.message === 'NICKNAME_TAKEN')
-      throw new ApiError(409, 'NICKNAME_TAKEN', '昵称已被使用。');
-    if (error.message === 'NICKNAME_COOLDOWN')
-      throw new ApiError(
-        409,
-        'NICKNAME_COOLDOWN',
-        '每 30 天只能修改一次昵称。',
-        { nextNicknameChangeAt: error.details },
-      );
-    if (error.message === 'INVALID_NICKNAME')
-      throw new ApiError(400, 'INVALID_NICKNAME', '昵称格式无效。');
-    throw new ApiError(503, 'PROFILE_UNAVAILABLE', '暂时无法修改昵称。');
-  }
-  return me(ctx);
+  return service().change(ctx.user, value);
 }
