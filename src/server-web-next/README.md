@@ -1,6 +1,6 @@
 # Balgass 账号网站
 
-Next.js App Router + Supabase Auth/PostgreSQL。邮箱为登录标识，默认 Passkey 登录，备用邮件验证码；昵称由数据库随机生成，唯一且每 30 天可修改一次。
+Next.js App Router + Supabase Auth/PostgreSQL。邮箱为登录标识，默认 Passkey 登录，备用邮件验证码；昵称由 Next.js 服务端随机生成，唯一且每 30 天可修改一次。
 
 ## 本地启动
 
@@ -12,15 +12,23 @@ cp .env.example .env.local
 npm run dev
 ```
 
-本地 Next.js 直接连接云端开发 Supabase，不需要 Supabase CLI 或 Docker。通过 Dashboard SQL Editor 执行 `supabase/schema/000_schema.sql`，在 `.env.local` 配置云端 URL、publishable key 和**服务端 secret key**。浏览器仍访问 http://localhost:3000。
+本地 Next.js 直接连接云端开发 Supabase，不需要 Supabase CLI 或 Docker。通过 Dashboard SQL Editor 执行 `supabase/migrations/20260928000100_create_profiles.sql`，在 `.env.local` 配置云端 URL、publishable key 和**服务端 secret key**。浏览器仍访问 http://localhost:3000。
 
 首次邮箱验证成功后，Next.js 创建 `profiles` 并随机生成昵称；以后邮件登录、passkey 登录及读取本人资料时也会补齐缺失记录。已有昵称和修改时间保持不变，不在每次登录时重置。生成规则集中在 `src/lib/profile-service.ts` 的 `randomNickname()`，当前为「玩家_」加 16 位随机十六进制字符。
 
 `.env.example` 中的 CAPTCHA 关闭开关只适用于 localhost/loopback。正式环境需要 Turnstile；客户端只接收公开 site key。没有认证配置时 API 返回 `503 CONFIGURATION_REQUIRED`。
 
+## 数据库迁移
+
+所有建表和后续修改 SQL 统一保存在 `supabase/migrations`，使用 `YYYYMMDDHHMMSS_描述.sql` 命名。在云端 SQL Editor 中按文件名顺序执行，不需要 Supabase CLI。当前只有新项目的初始迁移，不包含旧版数据库升级脚本。
+
+`public.migrations` 保存迁移 ID、文件名和成功执行时间；它与业务表 `public.profiles` 分开，不允许浏览器、App 或服务端认证客户端读写。SQL Editor 的数据库管理员负责执行迁移。每份迁移在事务内检查执行记录、执行变更并记录成功；重复执行跳过，失败全部回滚。一次性 `DO` 块不会创建存储函数或触发器。初始迁移要求数据库尚未创建旧版 profiles 表。
+
+已执行的迁移文件不再修改。后续变更新建时间戳文件，沿用事务、迁移记录检查和写入方式，并在检查当前记录前验证前一份迁移已经成功；不要手动删除迁移记录来强制重跑。这里的 `public.migrations` 是手动执行历史，不是 Supabase CLI 的内部迁移记录表。
+
 ## 生产配置
 
-1. 建立 Supabase 项目，新建项目执行 `supabase/schema/000_schema.sql`。如果已经执行旧版 SQL，改为执行 `supabase/upgrade/001_nextjs_profiles.sql`，保留资料并移除旧函数和触发器。昵称生成、校验和修改规则由 Next.js 服务层统一执行；数据库只保留表、唯一约束、RLS 和权限。认证用户没有 profiles 写权限，只有服务端管理客户端可以写入。不要给客户端 service-role/secret key。
+1. 建立 Supabase 项目，新建项目执行 `supabase/migrations/20260928000100_create_profiles.sql`。昵称生成、校验和修改规则由 Next.js 服务层统一执行；数据库只保留表、唯一约束、RLS 和权限。认证用户没有 profiles 写权限，只有服务端管理客户端可以写入。不要给客户端 service-role/secret key。
 2. 配置 Email Auth：允许注册、要求邮箱确认，OTP 长度 6、有效期 600 秒、发送间隔 60 秒。将 **Confirm signup** 和 **Magic Link** 两个模板设置为 `supabase/templates/code.html` 内容，使用 `.Token`，不发送登录链接。
 3. 配置自己的 SMTP（发件域名、发件人、主机、端口、用户名、密码），确认供应商域名验证及 SPF/DKIM。SMTP 密码只放在 Supabase 配置中。
 4. 启用 Supabase Auth CAPTCHA，选择 Turnstile 并配置其 secret；在 Turnstile 中允许正式域名。Vercel 配置 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`，删除 `AUTH_CAPTCHA_DISABLED`。
@@ -54,7 +62,7 @@ npx playwright install chromium --no-shell
 npm run test:e2e
 ```
 
-`test:db` 默认自动启动独立 PostgreSQL 17，在临时数据库执行实际 schema，并让 Next.js 业务服务通过测试 repository 操作真实数据库，验证唯一性、RLS、昵称初始化、并发修改和冷却时间。还会执行旧版到新版的升级 SQL，确认已有数据不变且旧函数/触发器已移除。它不模拟真实 Supabase Auth 服务。也可设置 `TEST_DATABASE_URL` 连接有 CREATE DATABASE 权限的测试 PostgreSQL；测试创建并删除随机名称的临时数据库，不操作已有业务表。
+`test:db` 默认自动启动独立 PostgreSQL 17，在临时数据库执行实际 schema，并让 Next.js 业务服务通过测试 repository 操作真实数据库，验证唯一性、RLS、昵称初始化、并发修改和冷却时间。同时验证迁移失败整体回滚、重复执行跳过且保留数据，以及迁移记录的访问权限。它不模拟真实 Supabase Auth 服务。也可设置 `TEST_DATABASE_URL` 连接有 CREATE DATABASE 权限的测试 PostgreSQL；测试创建并删除随机名称的临时数据库，不操作已有业务表。
 
 资料写入使用服务端 secret key，会绕过 RLS；因此权限和规则必须由共享服务执行。浏览器和 App 不接收此密钥，不允许直接修改资料表。该设计将业务规则保留在 TypeScript 中，未来更换数据库时可复用服务层，只需更换 repository。
 

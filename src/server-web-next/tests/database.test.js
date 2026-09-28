@@ -11,7 +11,7 @@ import EmbeddedPostgres from 'embedded-postgres';
 import { test } from 'vitest';
 import { profileService, randomNickname } from '../src/lib/profile-service';
 
-test('真实 PostgreSQL schema、Next.js 业务规则及升级', async () => {
+test('真实 PostgreSQL 迁移和 Next.js 业务规则', async () => {
   const socket = createServer();
   await new Promise((resolve) => socket.listen(0, '127.0.0.1', resolve));
   const port = socket.address().port;
@@ -57,12 +57,33 @@ test('真实 PostgreSQL schema、Next.js 业务规则及升级', async () => {
  create schema auth; create table auth.users(id uuid primary key, email_confirmed_at timestamptz);
  create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
  grant usage on schema auth to authenticated, anon; grant execute on function auth.uid() to authenticated, anon;`);
-    await db.query(
-      await readFile(
-        new URL('../supabase/schema/000_schema.sql', import.meta.url),
-        'utf8',
+    const migration = await readFile(
+      new URL(
+        '../supabase/migrations/20260928000100_create_profiles.sql',
+        import.meta.url,
       ),
+      'utf8',
     );
+    await check('迁移失败回滚建表和执行记录，可重新执行', async () => {
+      const failing = migration.replace(
+        'insert into public.migrations (id, filename)',
+        "raise exception 'injected migration failure';\n    insert into public.migrations (id, filename)",
+      );
+      await assert.rejects(db.query(failing), /injected migration failure/);
+      await db.query('rollback');
+      const tables = (
+        await db.query(
+          "select to_regclass('public.profiles') as profiles, to_regclass('public.migrations') as migrations",
+        )
+      ).rows[0];
+      assert.equal(tables.profiles, null);
+      assert.equal(tables.migrations, null);
+      await db.query(migration);
+      const records = (await db.query('select * from public.migrations')).rows;
+      assert.equal(records.length, 1);
+      assert.equal(records[0].id, '20260928000100');
+      assert.equal(records[0].filename, '20260928000100_create_profiles.sql');
+    });
     async function user(verified = true) {
       const uid = id();
       await db.query(
@@ -324,55 +345,41 @@ test('真实 PostgreSQL schema、Next.js 业务规则及升级', async () => {
       );
       assert.equal(attempts, 10);
     });
-    await check('升级旧表保留数据并删除旧函数和触发器', async () => {
-      await db.query('drop table profiles');
-      await db.query(
-        await readFile(
-          new URL('./fixtures/legacy-profiles.sql', import.meta.url),
-          'utf8',
-        ),
+    await check('重复执行跳过，保留所有资料和原执行时间', async () => {
+      const profiles = (
+        await db.query('select * from profiles order by user_id')
+      ).rows;
+      const records = (await db.query('select * from public.migrations')).rows;
+      await db.query(migration);
+      await db.query(migration);
+      assert.deepEqual(
+        (await db.query('select * from profiles order by user_id')).rows,
+        profiles,
       );
-      const uid = await user();
-      await db.query(
-        "update profiles set nickname='旧版昵称',nickname_changed_at=$1 where user_id=$2",
-        [now, uid],
+      assert.deepEqual(
+        (await db.query('select * from public.migrations')).rows,
+        records,
       );
-      await db.query(
-        await readFile(
-          new URL(
-            '../supabase/upgrade/001_nextjs_profiles.sql',
-            import.meta.url,
-          ),
-          'utf8',
-        ),
-      );
-      const saved = await repository.find(uid);
-      assert.equal(saved.nickname, '旧版昵称');
-      assert.equal(saved.nickname_changed_at, now.toISOString());
+    });
+    await check('迁移记录启用 RLS，客户端不能读取或伪造记录', async () => {
       assert.equal(
         (
           await db.query(
-            "select * from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('change_nickname','create_profile','has_verified_email','normalize_nickname','valid_nickname')",
+            "select relrowsecurity from pg_class where oid='public.migrations'::regclass",
           )
-        ).rows.length,
-        0,
+        ).rows[0].relrowsecurity,
+        true,
       );
-      const fresh = { ...a, id: await user() };
-      assert.equal(await repository.find(fresh.id), null);
-      await service.me(fresh);
-      await service.change(fresh, '升级后昵称');
-      const legacy = { ...a, id: uid };
-      await assert.rejects(
-        service.change(legacy, '不应绕过冷却'),
-        (e) => e.code === 'NICKNAME_COOLDOWN',
-      );
-      await db.query(
-        await readFile(
-          new URL('../supabase/schema/000_schema.sql', import.meta.url),
-          'utf8',
-        ),
-      );
-      assert.equal((await repository.find(uid)).nickname, '旧版昵称');
+      const server = await asUser(null, 'service_role');
+      for (const client of [ca, anon, server]) {
+        for (const sql of [
+          'select * from public.migrations',
+          "insert into public.migrations(id,filename) values('fake','fake.sql')",
+          "update public.migrations set filename='fake.sql'",
+          'delete from public.migrations',
+        ])
+          await assert.rejects(client.query(sql), /permission denied/);
+      }
     });
     console.log(
       `${passed} database checks passed (PostgreSQL ${(await db.query('show server_version')).rows[0].server_version}).`,
