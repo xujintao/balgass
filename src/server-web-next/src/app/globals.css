@@ -1,0 +1,252 @@
+:root {
+  color-scheme: light;
+  --ink: #19372e;
+  --muted: #65776e;
+  --accent: #25634d;
+  --line: #dde5dd;
+  --paper: #f5f7f0;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Noto Sans SC', system-ui, sans-serif;
+}
+header {
+  height: 88px;
+  max-width: 1100px;
+  margin: auto;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+a {
+  color: var(--accent);
+  text-underline-offset: 4px;
+}
+.brand {
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 2px;
+}
+.brand span {
+  color: #bc854a;
+}
+nav a {
+  font-size: 14px;
+  text-decoration: none;
+}
+main {
+  max-width: 1100px;
+  margin: auto;
+  padding: 64px 24px;
+  min-height: calc(100vh - 160px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.card {
+  width: 100%;
+  max-width: 460px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 38px;
+  border-radius: 18px;
+  box-shadow: 0 12px 50px #19372e08;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  font-weight: 600;
+}
+h1 {
+  font-size: 30px;
+  line-height: 1.4;
+  margin: 16px 0;
+}
+h2 {
+  font-size: 24px;
+  margin: 16px 0;
+}
+p {
+  font-size: 14px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 22px 0 9px;
+}
+input {
+  width: 100%;
+  padding: 13px 14px;
+  font: inherit;
+  font-size: 15px;
+  border: 1px solid #cbd8cf;
+  border-radius: 8px;
+  background: #fafcf9;
+  color: var(--ink);
+}
+input:focus {
+  outline: 2px solid #548a6a;
+  outline-offset: 2px;
+}
+button,
+.button-link {
+  width: 100%;
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  padding: 13px 16px;
+  background: var(--accent);
+  color: white;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+button:hover,
+.button-link:hover {
+  filter: brightness(0.94);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.secondary {
+  background: white;
+  color: var(--accent);
+  border-color: var(--line);
+  margin-top: 10px;
+}
+.secondary-link {
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+}
+.text-button {
+  display: inline-block;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  padding: 4px;
+  width: auto;
+  font-size: 13px;
+  margin-top: 12px;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.hint {
+  font-size: 12px;
+  margin: 12px 0;
+}
+.footer-note {
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+  margin-top: 28px;
+  text-align: center;
+}
+.error,
+.success {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.error {
+  background: #fff0ed;
+  color: #9a3c29;
+}
+.success {
+  background: #e8f4ec;
+  color: var(--accent);
+}
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 960px;
+  gap: 24px;
+}
+.settings-grid .card {
+  max-width: none;
+}
+.full-width {
+  grid-column: 1/-1;
+}
+.email-value {
+  overflow-wrap: anywhere;
+}
+.passkeys {
+  padding: 0;
+  list-style: none;
+}
+.passkeys li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 14px 0;
+  gap: 10px;
+}
+.passkeys strong {
+  font-size: 14px;
+}
+.passkeys small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.danger {
+  color: #9a3c29;
+}
+.captcha {
+  margin-top: 18px;
+  overflow: hidden;
+}
+.hero {
+  max-width: 520px;
+  padding: 48px;
+}
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 24px;
+  letter-spacing: 1px;
+}
+@media (max-width: 700px) {
+  header {
+    height: 72px;
+    padding: 0 22px;
+  }
+  main {
+    padding: 32px 16px;
+  }
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .card,
+  .hero {
+    padding: 26px;
+  }
+  h1 {
+    font-size: 26px;
+  }
+}
