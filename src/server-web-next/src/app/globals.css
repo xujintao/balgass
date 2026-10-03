@@ -241,19 +241,6 @@ button:disabled {
   background: #e8f4ec;
   color: var(--accent);
 }
-.settings-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: 100%;
-  max-width: 960px;
-  gap: 24px;
-}
-.settings-grid .card {
-  max-width: none;
-}
-.full-width {
-  grid-column: 1/-1;
-}
 .email-value {
   overflow-wrap: anywhere;
 }
@@ -297,9 +284,6 @@ button:disabled {
   main {
     padding: 32px 16px;
     min-height: calc(100vh - 72px);
-  }
-  .settings-grid {
-    grid-template-columns: 1fr;
   }
   .card,
   .hero {

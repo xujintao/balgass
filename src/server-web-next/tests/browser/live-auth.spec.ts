@@ -74,10 +74,25 @@ test.describe('真实 Supabase 认证（需要专用测试项目）', () => {
       await page.getByLabel('邮件验证码').fill(a.code);
       await page.getByRole('button', { name: '验证并继续' }).click();
       await expect(page).toHaveURL('/');
-      await page.goto('/settings');
+      await page.goto('/settings/profile');
       await expect(
-        page.getByRole('heading', { name: '账号设置' }),
+        page.getByRole('heading', { name: '个人资料' }),
       ).toBeVisible();
+      await expect(page.getByText(a.email)).toBeVisible();
+      const nickname = `玩家_${randomUUID().slice(0, 8)}`;
+      await page.getByLabel('昵称').fill(nickname);
+      await page.getByRole('button', { name: '保存昵称' }).click();
+      await expect(page.getByRole('status')).toContainText('昵称已保存');
+      await page.getByRole('button', { name: '账号菜单' }).click();
+      await expect(page.getByText(nickname)).toBeVisible();
+      await expect(
+        page.getByRole('link', { name: '个人资料' }),
+      ).toHaveAttribute('href', '/settings/profile');
+      await page.getByRole('link', { name: '账号与安全' }).click();
+      await expect(page).toHaveURL('/settings/security');
+      await expect(page.getByRole('button', { name: '保存昵称' })).toHaveCount(
+        0,
+      );
       let registration: unknown;
       let crossStatus = 0;
       await page.route(
@@ -111,8 +126,10 @@ test.describe('真实 Supabase 认证（需要专用测试项目）', () => {
       expect(
         (await (await page.request.get('/api/v1/auth/passkeys')).json()).data,
       ).toHaveLength(1);
+      await page.getByRole('button', { name: '账号菜单' }).click();
       await page.getByRole('button', { name: '退出登录' }).click();
-      await expect(page).toHaveURL('/login');
+      await expect(page).toHaveURL('/');
+      await page.goto('/login');
       let assertion: unknown;
       await page.route(
         '**/api/v1/auth/passkeys/login/verify',
@@ -128,7 +145,7 @@ test.describe('真实 Supabase 认证（需要专用测试项目）', () => {
         { headers: { Origin: 'http://localhost:3000' }, data: assertion },
       );
       expect(assertionReplay.status()).toBeGreaterThanOrEqual(400);
-      await page.goto('/settings');
+      await page.goto('/settings/security');
       page.once('dialog', (dialog) => dialog.accept());
       await page.getByRole('button', { name: /删除/ }).click();
       await expect(page.getByRole('status')).toContainText('已删除');

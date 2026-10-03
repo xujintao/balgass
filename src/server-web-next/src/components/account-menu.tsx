@@ -67,8 +67,11 @@ export function AccountMenu({ nickname }: { nickname: string }) {
         {open && (
           <div className="account-popover" id="account-menu">
             <div className="account-nickname">{nickname}</div>
-            <Link href="/settings" onClick={() => setOpen(false)}>
-              账号设置
+            <Link href="/settings/profile" onClick={() => setOpen(false)}>
+              个人资料
+            </Link>
+            <Link href="/settings/security" onClick={() => setOpen(false)}>
+              账号与安全
             </Link>
             <button type="button" onClick={logout} disabled={busy}>
               退出登录

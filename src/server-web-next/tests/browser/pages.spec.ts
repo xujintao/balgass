@@ -94,8 +94,14 @@ test('公开首页、账号导航与页面标题', async ({ page }) => {
     'href',
     '/login',
   );
-  await page.goto('/settings');
-  await expect(page).toHaveTitle('账号设置 · r2f2');
+  await page.goto('/settings/profile');
+  await expect(page).toHaveTitle('个人资料 · r2f2');
+  await expect(page.getByRole('button', { name: '添加 Passkey' })).toHaveCount(
+    0,
+  );
+  await page.goto('/settings/security');
+  await expect(page).toHaveTitle('账号与安全 · r2f2');
+  await expect(page.getByRole('button', { name: '保存昵称' })).toHaveCount(0);
 });
 test('注册页点击发送后才验证并传递 token', async ({ page }) => {
   await mockTurnstile(page);
