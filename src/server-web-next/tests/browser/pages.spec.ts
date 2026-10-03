@@ -75,13 +75,25 @@ test('公开首页、账号导航与页面标题', async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByLabel('邮箱')).not.toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: '返回 Passkey 登录' }),
+  ).toHaveCount(0);
+  await expect(page.locator('.footer-note')).toContainText('还没有账号？ 注册');
   await page.getByRole('button', { name: '使用邮件验证码' }).click();
   await expect(page.getByLabel('邮箱')).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: '返回 Passkey 登录' }),
+  ).toBeVisible();
   await page.getByRole('button', { name: '返回 Passkey 登录' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.goto('/signup');
   await expect(page).toHaveTitle('注册 · r2f2');
+  await expect(page.locator('.footer-note')).toContainText('已有账号？ 登录');
+  await expect(page.getByRole('link', { name: '登录' }).last()).toHaveAttribute(
+    'href',
+    '/login',
+  );
   await page.goto('/settings');
   await expect(page).toHaveTitle('账号设置 · r2f2');
 });

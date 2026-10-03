@@ -229,23 +229,25 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
           {error}
         </p>
       )}
-      <p className="footer-note">
-        {signup ? '已有账号？' : '还没有账号？'}{' '}
-        <Link href={signup ? '/login' : '/signup'}>
-          {signup ? '登录' : '注册'}
-        </Link>
-      </p>
-      {!signup && emailMode && (
-        <button
-          className="text-button"
-          onClick={() => {
-            setEmailMode(false);
-            setError('');
-          }}
-        >
-          返回 Passkey 登录
-        </button>
-      )}
+      <div className="footer-actions">
+        {!signup && emailMode && (
+          <button
+            className="text-button"
+            onClick={() => {
+              setEmailMode(false);
+              setError('');
+            }}
+          >
+            返回 Passkey 登录
+          </button>
+        )}
+        <p className="footer-note">
+          {signup ? '已有账号？' : '还没有账号？'}{' '}
+          <Link href={signup ? '/login' : '/signup'}>
+            {signup ? '登录' : '注册'}
+          </Link>
+        </p>
+      </div>
     </section>
   );
 }

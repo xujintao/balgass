@@ -211,11 +211,21 @@ button:disabled {
   font-size: 12px;
   margin: 12px 0;
 }
-.footer-note {
-  border-top: 1px solid var(--line);
-  padding-top: 22px;
+.footer-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   margin-top: 28px;
-  text-align: center;
+}
+.footer-actions .text-button {
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+}
+.footer-note {
+  margin: 0 0 0 auto;
+  white-space: nowrap;
+  font-size: 13px;
 }
 .error,
 .success {
