@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Balgass Account API",
+    "title": "r2f2 Account API",
     "version": "1.0.0",
     "description": "Browser uses HttpOnly cookies; App uses Supabase Bearer access token. All responses are private/no-store. Email is the login identifier; nicknames are display names only."
   },
@@ -1436,7 +1436,7 @@
       "post": {
         "summary": "Rotate session tokens",
         "operationId": "post_auth_session_refresh",
-        "description": "Browser: refresh token comes only from HttpOnly Cookie; no request body needed. App: requires JSON {refreshToken}, X-Client-Type: app; access token is not required for this operation.",
+        "description": "Browser: refresh token comes only from the r2f2_refresh HttpOnly cookie; no request body needed. App: requires JSON {refreshToken}, X-Client-Type: app; access token is not required for this operation.",
         "parameters": [
           {
             "in": "header",
@@ -2485,7 +2485,7 @@
       "cookieAuth": {
         "type": "apiKey",
         "in": "cookie",
-        "name": "balgass_access"
+        "name": "r2f2_access"
       },
       "bearerAuth": {
         "type": "http",

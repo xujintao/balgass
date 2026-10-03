@@ -1,4 +1,4 @@
-# Balgass 账号网站
+# r2f2 账号网站
 
 Next.js App Router + Supabase Auth/PostgreSQL。邮箱为登录标识，默认 Passkey 登录，备用邮件验证码；昵称由 Next.js 服务端随机生成，唯一且每 30 天可修改一次。
 
@@ -33,7 +33,7 @@ npm run dev
 3. 配置自己的 SMTP（发件域名、发件人、主机、端口、用户名、密码），确认供应商域名验证及 SPF/DKIM。SMTP 密码只放在 Supabase 配置中。
 4. 启用 Supabase Auth CAPTCHA，选择 Turnstile 并配置其 secret；在 Turnstile 中允许正式域名。Vercel 配置 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`，删除 `AUTH_CAPTCHA_DISABLED`。
 5. 配置 Supabase Auth rate limits：邮件 30/小时、登录/注册 30/5 分钟、验证码校验 30/5 分钟、刷新 150/5 分钟作为初始值，再根据实际流量调整。Supabase 对 API 来源地址实施的限流可能聚合 Vercel 出口流量；邮件发送间隔和 CAPTCHA 仍由 Auth 强制执行。
-6. 启用 passkey：RP display name `Balgass`，RP ID 为稳定正式域名（无协议、端口和路径），origins 为确切 HTTPS 网站地址。RP ID 变更会使旧 passkey 失效。开发项目的 RP ID 设为 `localhost`，origin 设为 `http://localhost:3000`，生产项目使用正式域名。开发、预览和生产应使用独立 Supabase 项目；Vercel 临时预览域名使用邮件登录，不加入生产 RP 配置。
+6. 启用 passkey：RP display name 设为 `r2f2`，RP ID 为稳定正式域名（无协议、端口和路径），origins 为确切 HTTPS 网站地址。RP ID 变更会使旧 passkey 失效。开发项目的 RP ID 设为 `localhost`，origin 设为 `http://localhost:3000`；部署在 `next.r2f2.com` 的项目应核对其 RP ID 和 `https://next.r2f2.com` origin，切换到 `r2f2.com` 前也应核对正式站点 origin。品牌改名不要求修改现有 RP ID。开发、预览和生产应使用独立 Supabase 项目；Vercel 临时预览域名使用邮件登录，不加入生产 RP 配置。
 7. Vercel Root Directory 设为 `src/server-web-next`，Node >=22.18，构建 `npm run build`。配置服务端 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`、`SUPABASE_SECRET_KEY`、`APP_ORIGIN`（无尾斜杠）和公开 Turnstile site key。Supabase Site URL 设为正式站点。正式环境 HTTPS 下 Cookie 自动启用 Secure。
 
 Passkey 是 Supabase 的实验接口；`@supabase/supabase-js` 固定为 2.105.0，实验设置显式开启。登录使用 SDK；受认证的注册/管理 REST 请求封装于 `src/lib/passkeys.ts`，直接携带用户 access token，使 App 不需要为这些操作交出 refresh token。升级 SDK 前运行类型检查和真实认证测试。
@@ -42,7 +42,7 @@ Passkey 是 Supabase 的实验接口；`@supabase/supabase-js` 固定为 2.105.0
 
 OpenAPI 文档：[/openapi.json](./public/openapi.json)。所有 JSON API 位于 `/api/v1/`；响应为 `{data: ...}` 或 `{error: {code,message,...}}`。
 
-浏览器会话使用 HttpOnly、SameSite=Lax Cookie。浏览器写请求必须携带与 `APP_ORIGIN` 完全一致的 Origin。浏览器认证响应不返回令牌；私有页面动态渲染，API 禁止缓存。访问令牌失效时页面或 API 客户端通过刷新端点轮换会话。会话 Cookie 保留 30 天；Auth 可以更早撤销或使会话失效。
+浏览器会话使用 `r2f2_access`、`r2f2_refresh` 两个 HttpOnly、SameSite=Lax Cookie。浏览器写请求必须携带与 `APP_ORIGIN` 完全一致的 Origin。浏览器认证响应不返回令牌；私有页面动态渲染，API 禁止缓存。访问令牌失效时页面或 API 客户端通过刷新端点轮换会话。会话 Cookie 保留 30 天；Auth 可以更早撤销或使会话失效。
 
 App 所有请求设置 `X-Client-Type: app`，私有请求另携带 `Authorization: Bearer <accessToken>`。App 请求不使用 Cookie。验证码/passkey 验证成功返回 accessToken、refreshToken、expiresAt；刷新发送 `{refreshToken}`，不要求尚未过期的 access token。原生 WebAuthn 在 App 侧完成，options 中二进制字段使用 base64url，verify 提交 `challengeId` 和序列化 credential。将 refresh token 存储于设备安全存储；未来原生 App 还需要单独配置系统域名关联和允许的原生 origin。
 

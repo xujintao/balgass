@@ -76,7 +76,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
     );
   return (
     <section className="card">
-      <span className="eyebrow">BALGASS ACCOUNT</span>
+      <span className="eyebrow">r2f2 账号</span>
       <h1>{signup ? '创建你的账号' : '欢迎回来'}</h1>
       <p>
         {signup

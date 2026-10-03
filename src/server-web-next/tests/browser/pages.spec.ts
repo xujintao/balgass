@@ -2,6 +2,12 @@ import { test, expect } from '@playwright/test';
 import { randomBytes, randomUUID } from 'node:crypto';
 test('首页与默认登录入口', async ({ page }) => {
   await page.goto('/');
+  await expect(page).toHaveTitle('r2f2 · 账号');
+  await expect(page.getByRole('link', { name: 'r2f2' })).toBeVisible();
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
+    'href',
+    /\/icon\.svg/,
+  );
   await expect(page.getByRole('link', { name: '创建账号' })).toBeVisible();
   await page.goto('/login');
   await expect(
@@ -62,7 +68,7 @@ test('真实浏览器虚拟认证器完成注册与登录 ceremony（API 模拟�
         data: {
           challenge_id: randomUUID(),
           options: {
-            rp: { id: 'localhost', name: 'Balgass' },
+            rp: { id: 'localhost', name: 'r2f2' },
             user: {
               id: randomBytes(16).toString('base64url'),
               name: 'virtual@example.com',

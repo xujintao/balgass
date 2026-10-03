@@ -8,7 +8,7 @@ export default async function Home() {
   if (!(await cookies()).has(ACCESS_COOKIE))
     return (
       <section className="card hero">
-        <span className="eyebrow">欢迎来到 BALGASS</span>
+        <span className="eyebrow">欢迎来到 r2f2</span>
         <h1>从你的账号开始。</h1>
         <p>使用邮箱注册，以 Passkey 登录。无需记住密码。</p>
         <Link href="/signup" className="button-link">

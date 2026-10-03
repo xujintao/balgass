@@ -79,6 +79,13 @@ beforeEach(() => {
   mock.signOut.mockResolvedValue({ error: null });
 });
 describe('认证 API', () => {
+  it('使用 r2f2 会话 Cookie 名且不读取旧名称', async () => {
+    expect(ACCESS_COOKIE).toBe('r2f2_access');
+    expect(REFRESH_COOKIE).toBe('r2f2_refresh');
+    mock.jar.set('balgass_access', 'legacy');
+    await expect(context()).rejects.toMatchObject({ status: 401 });
+    expect(mock.getUser).not.toHaveBeenCalled();
+  });
   it.each(['signup', 'login'])(
     '发送用途 %s 决定是否允许建号',
     async (intent) => {
@@ -239,12 +246,12 @@ describe('认证 API', () => {
     expect(res.headers.get('Retry-After')).toBe('60');
   });
   it('生产无法关闭 CAPTCHA', async () => {
-    process.env.APP_ORIGIN = 'https://balgass.example';
+    process.env.APP_ORIGIN = 'https://r2f2.example';
     const res = await handle(
       request(
         'auth/otp/send',
         { email: 'me@example.com', intent: 'signup' },
-        { Origin: 'https://balgass.example' },
+        { Origin: 'https://r2f2.example' },
       ),
       'auth/otp/send',
     );

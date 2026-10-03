@@ -4,8 +4,8 @@ import { ApiError, providerError } from './errors';
 import { config } from './config';
 import { supabase } from './supabase';
 import { ensureProfile } from './profile';
-export const ACCESS_COOKIE = 'balgass_access';
-export const REFRESH_COOKIE = 'balgass_refresh';
+export const ACCESS_COOKIE = 'r2f2_access';
+export const REFRESH_COOKIE = 'r2f2_refresh';
 export function bearerToken(headers: Headers): string | undefined {
   const value = headers.get('authorization');
   if (value === null) return;
