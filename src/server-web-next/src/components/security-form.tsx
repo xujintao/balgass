@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { api } from './client-api';
 import { performPasskey } from './passkey-browser';
+import { errorMessage, formatDate } from '@/lib/i18n';
+import { useDictionary, useLocale } from './locale-provider';
 
 type Passkey = {
   id: string;
@@ -11,6 +13,8 @@ type Passkey = {
 };
 
 export function SecurityForm() {
+  const t = useDictionary();
+  const locale = useLocale();
   const [passkeys, setPasskeys] = useState<Passkey[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
@@ -28,8 +32,8 @@ export function SecurityForm() {
         setPasskeys(value);
         setLoaded(true);
       })
-      .catch((e) => setError(e.message));
-  }, []);
+      .catch((e) => setError(errorMessage(t, e)));
+  }, [t]);
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -38,7 +42,7 @@ export function SecurityForm() {
     try {
       await action();
     } catch (e) {
-      setError(e instanceof Error ? e.message : '操作失败。');
+      setError(errorMessage(t, e));
     } finally {
       setBusy(false);
     }
@@ -46,11 +50,11 @@ export function SecurityForm() {
 
   return (
     <section className="card">
-      <h1>账号与安全</h1>
-      <h2>你的 Passkey</h2>
-      <p>为常用设备添加 Passkey。也可以随时使用邮件验证码登录。</p>
+      <h1>{t.security}</h1>
+      <h2>{t.yourPasskeys}</h2>
+      <p>{t.passkeyDescription}</p>
       {loaded && passkeys.length === 0 && (
-        <p className="hint">尚未添加 Passkey。</p>
+        <p className="hint">{t.noPasskeys}</p>
       )}
       <ul className="passkeys">
         {passkeys.map((key) => (
@@ -58,25 +62,23 @@ export function SecurityForm() {
             <div>
               <strong>{key.friendly_name || 'Passkey'}</strong>
               <small>
-                添加于 {new Date(key.created_at).toLocaleDateString('zh-CN')}
+                {t.addedOn} {formatDate(locale, key.created_at)}
               </small>
             </div>
             <button
               className="text-button danger"
               disabled={busy}
-              aria-label={`删除 ${key.friendly_name || 'Passkey'}`}
+              aria-label={t.deletePasskey(key.friendly_name || 'Passkey')}
               onClick={() => {
-                if (
-                  window.confirm('删除此 Passkey？你仍可使用邮件验证码登录。')
-                )
+                if (window.confirm(t.confirmDelete))
                   void run(async () => {
                     await api(`auth/passkeys/${key.id}`, 'DELETE');
                     await load();
-                    setNotice('Passkey 已删除。');
+                    setNotice(t.passkeyDeleted);
                   });
               }}
             >
-              删除
+              {t.delete}
             </button>
           </li>
         ))}
@@ -87,11 +89,11 @@ export function SecurityForm() {
           run(async () => {
             await performPasskey('register');
             await load();
-            setNotice('Passkey 已添加。');
+            setNotice(t.passkeyAdded);
           })
         }
       >
-        {busy ? '请稍候…' : '添加 Passkey'}
+        {busy ? t.pleaseWait : t.addPasskey}
       </button>
       {error && (
         <p role="alert" className="error">

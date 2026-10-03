@@ -9,6 +9,9 @@ test.describe('真实 Supabase 认证（需要专用测试项目）', () => {
     context,
     request,
   }) => {
+    await context.addCookies([
+      { name: 'r2f2-locale', value: 'zh-CN', url: 'http://localhost:3000' },
+    ]);
     const url = process.env.SUPABASE_URL!,
       key = process.env.SUPABASE_PUBLISHABLE_KEY!,
       secret = process.env.TEST_SUPABASE_SECRET_KEY!;

@@ -1,14 +1,14 @@
 import { z } from 'zod';
+const nicknameSegments = new Intl.Segmenter('und', { granularity: 'grapheme' });
+const nicknameCharacters = /^(?:\p{L}\p{M}*|[0-9_])+$/u;
 export const nickname = z
   .string()
   .transform((v) => v.trim().normalize('NFC'))
-  .refine(
-    (v) =>
-      [...v].length >= 2 &&
-      [...v].length <= 24 &&
-      /^[\p{Script=Han}A-Za-z0-9_]+$/u.test(v),
-    '昵称需为 2–24 个汉字、英文字母、数字或下划线',
-  );
+  .refine((v) => {
+    if (!nicknameCharacters.test(v)) return false;
+    const length = [...nicknameSegments.segment(v)].length;
+    return length >= 2 && length <= 24;
+  }, '昵称需为 2–24 个可见字符，只能使用各语言字母、数字或下划线');
 export const email = z
   .email()
   .max(254)

@@ -188,7 +188,7 @@ test('真实 PostgreSQL 迁移和 Next.js 业务规则', async () => {
       async () => {
         assert.equal((await db.query('select * from profiles')).rows.length, 0);
         const profile = await service.me(a);
-        assert.match(profile.nickname, /^玩家_[a-f0-9]{16}$/);
+        assert.match(profile.nickname, /^player_[a-f0-9]{16}$/);
         assert.equal(profile.nicknameChangedAt, null);
         assert.equal((await service.me(a)).nickname, profile.nickname);
       },

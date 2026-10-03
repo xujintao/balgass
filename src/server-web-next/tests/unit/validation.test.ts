@@ -8,11 +8,30 @@ import {
 describe('输入规则', () => {
   it('去除空白并保留合法中文与大小写', () =>
     expect(nickname.parse('  玩家_Ab12\u3000')).toBe('玩家_Ab12'));
-  it.each(['a', 'a'.repeat(25), 'hello world', '小猫🐈', 'a-b', 'éé', 'ＡＢ'])(
-    '拒绝非法昵称 %s',
-    (value) => expect(nickname.safeParse(value).success).toBe(false),
+  it.each([
+    'a',
+    'a'.repeat(25),
+    'hello world',
+    '小猫🐈',
+    'a-b',
+    '\u0301a',
+    '1\u0301a',
+    '１２',
+  ])('拒绝非法昵称 %s', (value) =>
+    expect(nickname.safeParse(value).success).toBe(false),
   );
-  it('按 Unicode 字符计数', () => expect(nickname.parse('𠀀𠀀')).toBe('𠀀𠀀'));
+  it.each(['𠀀𠀀', 'niño', 'Álvaro', 'éé', 'Αθήνα', 'अजय', 'مرحبا', 'ＡＢ'])(
+    '接受各种语言的字母 %s',
+    (value) => expect(nickname.parse(value)).toBe(value),
+  );
+  it('先规范化组合字母，再按可见字符计数', () => {
+    expect(nickname.parse('n\u0303a')).toBe('ña');
+    expect(nickname.parse('कि'.repeat(24))).toBe('कि'.repeat(24));
+    expect(nickname.safeParse('कि')).toMatchObject({ success: false });
+    expect(nickname.safeParse('कि'.repeat(25))).toMatchObject({
+      success: false,
+    });
+  });
   it('邮箱大小写归一化，发送必须声明用途', () => {
     expect(
       otpSend.parse({ email: 'Me@Example.com', intent: 'login' }).email,

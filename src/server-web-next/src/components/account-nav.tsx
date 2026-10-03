@@ -4,11 +4,13 @@ import { pageProfile } from '@/lib/page-profile';
 import { ACCESS_COOKIE, REFRESH_COOKIE } from '@/lib/session';
 import { AccountMenu } from './account-menu';
 import { NavRecovery } from './nav-recovery';
+import { siteDictionary } from '@/lib/i18n-server';
 
-export function GuestNav() {
+export async function GuestNav() {
+  const t = await siteDictionary();
   return (
-    <nav className="account-nav" aria-label="账号导航">
-      <Link href="/login">登录</Link>
+    <nav className="account-nav" aria-label={t.accountNavigation}>
+      <Link href="/login">{t.login}</Link>
     </nav>
   );
 }

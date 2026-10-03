@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from './client-api';
+import { useDictionary } from './locale-provider';
 
 export function NavRecovery() {
+  const t = useDictionary();
   const router = useRouter();
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -14,11 +16,15 @@ export function NavRecovery() {
   }, [router]);
   if (!failed)
     return (
-      <nav className="account-nav" aria-label="账号导航" aria-busy="true" />
+      <nav
+        className="account-nav"
+        aria-label={t.accountNavigation}
+        aria-busy="true"
+      />
     );
   return (
-    <nav className="account-nav" aria-label="账号导航">
-      <Link href="/login">登录</Link>
+    <nav className="account-nav" aria-label={t.accountNavigation}>
+      <Link href="/login">{t.login}</Link>
     </nav>
   );
 }

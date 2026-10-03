@@ -2,10 +2,14 @@
 import { useState } from 'react';
 import type { me } from '@/lib/profile';
 import { api, ClientError } from './client-api';
+import { errorMessage, formatDateTime } from '@/lib/i18n';
+import { useDictionary, useLocale } from './locale-provider';
 
 type Profile = Awaited<ReturnType<typeof me>>;
 
 export function ProfileForm({ initial }: { initial: Profile }) {
+  const t = useDictionary();
+  const locale = useLocale();
   const [profile, setProfile] = useState(initial);
   const [nickname, setNickname] = useState(initial.nickname);
   const [error, setError] = useState('');
@@ -22,9 +26,9 @@ export function ProfileForm({ initial }: { initial: Profile }) {
       const updated = await api<Profile>('me/nickname', 'PATCH', { nickname });
       setProfile(updated);
       setNickname(updated.nickname);
-      setNotice('昵称已保存。');
+      setNotice(t.nicknameSaved);
     } catch (e) {
-      setError(e instanceof Error ? e.message : '操作失败。');
+      setError(errorMessage(t, e));
       if (e instanceof ClientError && e.nextNicknameChangeAt)
         setProfile((value) => ({
           ...value,
@@ -37,8 +41,8 @@ export function ProfileForm({ initial }: { initial: Profile }) {
 
   return (
     <section className="card">
-      <h1>个人资料</h1>
-      <label>登录邮箱</label>
+      <h1>{t.profile}</h1>
+      <label>{t.loginEmail}</label>
       <p className="email-value">{profile.email}</p>
       <form
         onSubmit={(event) => {
@@ -46,7 +50,7 @@ export function ProfileForm({ initial }: { initial: Profile }) {
           void saveNickname();
         }}
       >
-        <label htmlFor="nickname">昵称</label>
+        <label htmlFor="nickname">{t.nickname}</label>
         <input
           id="nickname"
           value={nickname}
@@ -54,18 +58,14 @@ export function ProfileForm({ initial }: { initial: Profile }) {
           onChange={(event) => setNickname(event.target.value)}
           disabled={busy || cooling}
         />
-        <p className="hint">
-          2–24 个汉字、英文字母、数字或下划线。昵称唯一，每 30 天可修改一次。
-        </p>
+        <p className="hint">{t.nicknameHint}</p>
         {cooling && (
           <p className="hint">
-            下次可修改时间：
-            <time dateTime={next!}>
-              {new Date(next!).toLocaleString('zh-CN')}
-            </time>
+            {t.nextNicknameChange}{' '}
+            <time dateTime={next!}>{formatDateTime(locale, next!)}</time>
           </p>
         )}
-        <button disabled={busy || cooling}>保存昵称</button>
+        <button disabled={busy || cooling}>{t.saveNickname}</button>
       </form>
       {error && (
         <p role="alert" className="error">

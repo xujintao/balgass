@@ -1,26 +1,38 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AccountNav } from '@/components/account-nav';
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { LocaleProvider } from '@/components/locale-provider';
+import { siteDictionary, siteLocale } from '@/lib/i18n-server';
 import './globals.css';
-export const metadata: Metadata = {
-  title: { default: 'r2f2', template: '%s · r2f2' },
-  description: '邮箱注册，使用 Passkey 安全登录。',
-};
-export default function RootLayout({
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await siteDictionary();
+  return {
+    title: { default: 'r2f2', template: '%s · r2f2' },
+    description: t.description,
+  };
+}
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await siteLocale();
   return (
-    <html lang="zh-CN">
+    <html lang={locale}>
       <body>
-        <header>
-          <Link className="brand" href="/">
-            r2f2
-          </Link>
-          <AccountNav />
-        </header>
-        <main>{children}</main>
+        <LocaleProvider key={locale} locale={locale}>
+          <header>
+            <Link className="brand" href="/">
+              r2f2
+            </Link>
+            <div className="header-actions">
+              <LanguageSwitcher />
+              <AccountNav />
+            </div>
+          </header>
+          <main>{children}</main>
+        </LocaleProvider>
       </body>
     </html>
   );

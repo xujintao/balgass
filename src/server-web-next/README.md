@@ -14,7 +14,7 @@ npm run dev
 
 本地 Next.js 直接连接云端开发 Supabase，不需要 Supabase CLI 或 Docker。通过 Dashboard SQL Editor 执行 `supabase/migrations/20260928000100_create_profiles.sql`，在 `.env.local` 配置云端 URL、publishable key 和**服务端 secret key**。浏览器仍访问 http://localhost:3000。
 
-首次邮箱验证成功后，Next.js 创建 `profiles` 并随机生成昵称；以后邮件登录、passkey 登录及读取本人资料时也会补齐缺失记录。已有昵称和修改时间保持不变，不在每次登录时重置。生成规则集中在 `src/lib/profile-service.ts` 的 `randomNickname()`，当前为「玩家_」加 16 位随机十六进制字符。
+首次邮箱验证成功后，Next.js 创建 `profiles` 并随机生成昵称；以后邮件登录、passkey 登录及读取本人资料时也会补齐缺失记录。已有昵称和修改时间保持不变，不在每次登录时重置。生成规则集中在 `src/lib/profile-service.ts` 的 `randomNickname()`，当前为 `player_` 加 16 位随机十六进制字符。自选昵称允许各种语言的字母及组合标记、数字 0–9 和下划线，长度为 2–24 个可见字符。
 
 本地和 Vercel 共用启用 CAPTCHA 的云端 Supabase 项目，两处都需要 Turnstile。将对应小组件的公开 site key 配置为 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`，并在 Cloudflare 中允许 `localhost` 和部署域名；Supabase Auth 配置同一小组件的 secret。没有 token 时认证请求返回 `400 CAPTCHA_REQUIRED`。没有认证配置时 API 返回 `503 CONFIGURATION_REQUIRED`。
 

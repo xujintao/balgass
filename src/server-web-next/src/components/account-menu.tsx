@@ -2,8 +2,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { api } from './client-api';
+import { useDictionary } from './locale-provider';
 
 export function AccountMenu({ nickname }: { nickname: string }) {
+  const t = useDictionary();
   const root = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -35,18 +37,18 @@ export function AccountMenu({ nickname }: { nickname: string }) {
       await api('auth/logout', 'POST');
       window.location.assign('/');
     } catch {
-      setError('退出失败，请重试。');
+      setError(t.logoutFailed);
       setBusy(false);
     }
   }
 
   return (
-    <nav className="account-nav" aria-label="账号导航">
+    <nav className="account-nav" aria-label={t.accountNavigation}>
       <div className="account-menu-root" ref={root}>
         <button
           type="button"
           className="account-trigger"
-          aria-label="账号菜单"
+          aria-label={t.accountMenu}
           aria-expanded={open}
           aria-controls="account-menu"
           onClick={() => setOpen((value) => !value)}
@@ -68,13 +70,13 @@ export function AccountMenu({ nickname }: { nickname: string }) {
           <div className="account-popover" id="account-menu">
             <div className="account-nickname">{nickname}</div>
             <Link href="/settings/profile" onClick={() => setOpen(false)}>
-              个人资料
+              {t.profile}
             </Link>
             <Link href="/settings/security" onClick={() => setOpen(false)}>
-              账号与安全
+              {t.security}
             </Link>
             <button type="button" onClick={logout} disabled={busy}>
-              退出登录
+              {t.logout}
             </button>
             {error && (
               <p role="alert" className="error">

@@ -32,7 +32,7 @@ export interface ProfileRepository {
   ): Promise<ProfileRow | null>;
 }
 export const nicknameKey = (value: string) => value.toLowerCase();
-export const randomNickname = () => `玩家_${randomBytes(8).toString('hex')}`;
+export const randomNickname = () => `player_${randomBytes(8).toString('hex')}`;
 
 export function profileService(
   repository: ProfileRepository,

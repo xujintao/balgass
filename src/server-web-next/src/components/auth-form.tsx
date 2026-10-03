@@ -6,7 +6,10 @@ import { api } from './client-api';
 import { performPasskey } from './passkey-browser';
 import { Captcha } from './captcha';
 import styles from './auth-form.module.css';
+import { errorMessage } from '@/lib/i18n';
+import { useDictionary } from './locale-provider';
 export function AuthForm({ signup = false }: { signup?: boolean }) {
+  const t = useDictionary();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -36,7 +39,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
     try {
       await action();
     } catch (e) {
-      setError(e instanceof Error ? e.message : '操作失败，请重试。');
+      setError(errorMessage(t, e));
     } finally {
       setBusy(false);
     }
@@ -44,7 +47,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
   function requestCaptcha(action: 'passkey' | 'send') {
     if (busy || captchaAction) return;
     if (!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
-      setError('人机验证未配置，请稍后重试。');
+      setError(t.captchaUnconfigured);
       return;
     }
     setError('');
@@ -59,7 +62,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
     if (!captchaPending.current || !captchaAction) return;
     if (!token) {
       closeCaptcha();
-      setError('人机验证未完成，请重试。');
+      setError(t.captchaIncomplete);
       return;
     }
     captchaPending.current = false;
@@ -84,9 +87,9 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
   if (verified)
     return (
       <section className="card">
-        <span className="eyebrow">邮箱已验证</span>
-        <h1>设置你的 Passkey</h1>
-        <p>下次使用指纹、面容或设备 PIN 即可登录。</p>
+        <span className="eyebrow">{t.emailVerified}</span>
+        <h1>{t.setUpPasskey}</h1>
+        <p>{t.passkeyNextTime}</p>
         <button
           disabled={busy}
           onClick={() =>
@@ -97,10 +100,10 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
             })
           }
         >
-          {busy ? '正在设置…' : '创建 Passkey'}
+          {busy ? t.settingUp : t.createPasskey}
         </button>
         <Link className="secondary-link" href="/">
-          稍后设置
+          {t.later}
         </Link>
         {error && (
           <p role="alert" className="error">
@@ -111,11 +114,11 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
     );
   return (
     <section className="card">
-      <h1>{signup ? '创建你的账号' : '登录'}</h1>
+      <h1>{signup ? t.createAccount : t.login}</h1>
       {!signup && !emailMode && (
         <>
           <button disabled={busy} onClick={() => requestCaptcha('passkey')}>
-            {busy ? '正在登录…' : '使用 Passkey 登录'}
+            {busy ? t.loggingIn : t.passkeyLogin}
           </button>
           <button
             className="secondary"
@@ -125,7 +128,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
               setError('');
             }}
           >
-            使用邮件验证码
+            {t.emailLogin}
           </button>
         </>
       )}
@@ -150,7 +153,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
             });
           }}
         >
-          <label htmlFor="email">邮箱</label>
+          <label htmlFor="email">{t.email}</label>
           <input
             id="email"
             name="email"
@@ -164,7 +167,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
           />
           {sent && (
             <>
-              <label htmlFor="code">邮件验证码</label>
+              <label htmlFor="code">{t.emailCode}</label>
               <input
                 id="code"
                 name="code"
@@ -177,13 +180,11 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
               />
-              <p className="hint">
-                若邮箱可以接收此请求，验证码将发送到 {email}，10 分钟内有效。
-              </p>
+              <p className="hint">{t.codeSent(email)}</p>
             </>
           )}
           <button disabled={busy} type="submit">
-            {busy ? '请稍候…' : sent ? '验证并继续' : '发送验证码'}
+            {busy ? t.pleaseWait : sent ? t.verifyContinue : t.sendCode}
           </button>
           {sent && (
             <div className="row">
@@ -193,7 +194,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
                 disabled={busy || remaining > 0}
                 onClick={() => requestCaptcha('send')}
               >
-                {remaining ? `${remaining} 秒后可重发` : '重新发送'}
+                {remaining ? t.resendIn(remaining) : t.resend}
               </button>
               <button
                 type="button"
@@ -204,7 +205,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
                   setCode('');
                 }}
               >
-                更换邮箱
+                {t.changeEmail}
               </button>
             </div>
           )}
@@ -217,10 +218,10 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
           aria-labelledby="captcha-dialog-title"
           onCancel={closeCaptcha}
         >
-          <h2 id="captcha-dialog-title">请完成人机验证</h2>
+          <h2 id="captcha-dialog-title">{t.captchaTitle}</h2>
           <Captcha onToken={completeCaptcha} />
           <button type="button" className="secondary" onClick={closeCaptcha}>
-            取消
+            {t.cancel}
           </button>
         </dialog>
       )}
@@ -238,13 +239,13 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
               setError('');
             }}
           >
-            返回 Passkey 登录
+            {t.backToPasskey}
           </button>
         )}
         <p className="footer-note">
-          {signup ? '已有账号？' : '还没有账号？'}{' '}
+          {signup ? t.haveAccount : t.needAccount}{' '}
           <Link href={signup ? '/login' : '/signup'}>
-            {signup ? '登录' : '注册'}
+            {signup ? t.login : t.signup}
           </Link>
         </p>
       </div>

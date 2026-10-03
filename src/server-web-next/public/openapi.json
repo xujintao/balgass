@@ -2216,8 +2216,7 @@
           },
           "nickname": {
             "type": "string",
-            "minLength": 2,
-            "maxLength": 24
+            "description": "Display nickname, 2–24 Unicode grapheme clusters (visible characters)."
           },
           "createdAt": {
             "type": "string",
@@ -2344,9 +2343,7 @@
         "properties": {
           "nickname": {
             "type": "string",
-            "minLength": 2,
-            "maxLength": 24,
-            "description": "Trim + NFC; Han, ASCII letters/digits and underscore; case-insensitive uniqueness."
+            "description": "Trim + NFC; 2–24 Unicode grapheme clusters (visible characters); letters from any language with their combining marks, ASCII digits and underscore only; case-insensitive uniqueness."
           }
         }
       },

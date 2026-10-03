@@ -1,5 +1,75 @@
 import { test, expect, type Page } from '@playwright/test';
 import { randomBytes, randomUUID } from 'node:crypto';
+test.beforeEach(async ({ context }) => {
+  await context.addCookies([
+    { name: 'r2f2-locale', value: 'zh-CN', url: 'http://localhost:3000' },
+  ]);
+});
+
+test('语言切换、持久化与默认语言', async ({ page, context }) => {
+  await context.clearCookies();
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(
+    page.getByRole('heading', { name: 'Your r2f2 starts here.' }),
+  ).toBeVisible();
+  await page.getByRole('combobox', { name: 'Language' }).selectOption('es');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+  await expect(
+    page.getByRole('heading', { name: 'Tu r2f2 comienza aquí.' }),
+  ).toBeVisible();
+  await page.goto('/login');
+  await expect(page).toHaveTitle('Iniciar sesión · r2f2');
+  await page.reload();
+  await expect(
+    page.getByRole('button', { name: 'Entrar con llave de acceso' }),
+  ).toBeVisible();
+  await page.goto('/signup');
+  await expect(page).toHaveTitle('Registrarse · r2f2');
+  await page.goto('/settings/profile');
+  await expect(page).toHaveTitle('Perfil · r2f2');
+  await page.goto('/settings/security');
+  await expect(page).toHaveTitle('Seguridad de la cuenta · r2f2');
+  await page.goto('/login');
+  await page.getByRole('combobox', { name: 'Idioma' }).selectOption('zh-CN');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+  await expect(
+    page.getByRole('button', { name: '使用 Passkey 登录' }),
+  ).toBeVisible();
+  await context.addCookies([
+    { name: 'r2f2-locale', value: 'invalid', url: 'http://localhost:3000' },
+  ]);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+});
+
+test('错误代码按当前语言显示且不暴露 API 原文', async ({ page, context }) => {
+  await context.clearCookies();
+  await mockTurnstile(page);
+  await page.route('**/api/v1/auth/otp/send', (route) =>
+    route.fulfill({
+      status: 409,
+      json: {
+        error: {
+          code: 'EMAIL_ALREADY_REGISTERED',
+          message: '该邮箱已注册，请登录。',
+        },
+      },
+    }),
+  );
+  await page.goto('/signup');
+  await page.getByLabel('Email').fill('existing@example.com');
+  await page.getByRole('button', { name: 'Send code' }).click();
+  await expect(page.getByRole('alert')).toHaveText(
+    'This email is already registered. Please log in.',
+  );
+  await page.getByRole('combobox', { name: 'Language' }).selectOption('es');
+  await page.getByLabel('Correo electrónico').fill('existing@example.com');
+  await page.getByRole('button', { name: 'Enviar código' }).click();
+  await expect(page.getByRole('alert')).toHaveText(
+    'Este correo ya está registrado. Inicia sesión.',
+  );
+});
 async function mockTurnstile(page: Page) {
   await page.route('**/turnstile/v0/api.js**', (route) =>
     route.fulfill({

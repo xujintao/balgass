@@ -14,10 +14,7 @@ export async function performPasskey(
   captchaToken?: string,
 ) {
   if (!browserSupportsWebAuthn())
-    throw new ClientError(
-      'PASSKEY_UNSUPPORTED',
-      '此设备不支持 Passkey，请使用邮件验证码。',
-    );
+    throw new ClientError('PASSKEY_UNSUPPORTED', 'PASSKEY_UNSUPPORTED');
   try {
     const result = await api<{
       challenge_id: string;
@@ -44,13 +41,7 @@ export async function performPasskey(
         error.name,
       )
     )
-      throw new ClientError(
-        'PASSKEY_CANCELLED',
-        'Passkey 操作已取消或超时，可以重试或使用邮件验证码。',
-      );
-    throw new ClientError(
-      'PASSKEY_FAILED',
-      '无法使用 Passkey，请重试或使用邮件验证码。',
-    );
+      throw new ClientError('PASSKEY_CANCELLED', 'PASSKEY_CANCELLED');
+    throw new ClientError('PASSKEY_FAILED', 'PASSKEY_FAILED');
   }
 }
