@@ -15,9 +15,5 @@ export function config() {
   return { url, key, origin, secure: parsed.protocol === 'https:' };
 }
 export function requireCaptcha(token?: string) {
-  const disabled = process.env.AUTH_CAPTCHA_DISABLED === 'true';
-  const origin = new URL(config().origin);
-  if (disabled && ['localhost', '127.0.0.1', '[::1]'].includes(origin.hostname))
-    return;
   if (!token) throw new ApiError(400, 'CAPTCHA_REQUIRED', '请完成人机验证。');
 }

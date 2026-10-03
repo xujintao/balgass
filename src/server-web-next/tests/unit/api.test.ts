@@ -71,7 +71,6 @@ beforeEach(() => {
   process.env.SUPABASE_URL = 'http://127.0.0.1:54321';
   process.env.SUPABASE_PUBLISHABLE_KEY = 'public';
   process.env.APP_ORIGIN = 'http://localhost:3000';
-  process.env.AUTH_CAPTCHA_DISABLED = 'true';
   mock.send.mockResolvedValue({ error: null });
   mock.verify.mockResolvedValue({ data: { session }, error: null });
   mock.refresh.mockResolvedValue({ data: { session }, error: null });
@@ -90,12 +89,19 @@ describe('认证 API', () => {
     '发送用途 %s 决定是否允许建号',
     async (intent) => {
       const res = await handle(
-        request('auth/otp/send', { email: 'me@example.com', intent }),
+        request('auth/otp/send', {
+          email: 'me@example.com',
+          intent,
+          captchaToken: 'test-captcha-token',
+        }),
         'auth/otp/send',
       );
       expect(res.status).toBe(200);
       expect(mock.send.mock.calls[0][0].options.shouldCreateUser).toBe(
         intent === 'signup',
+      );
+      expect(mock.send.mock.calls[0][0].options.captchaToken).toBe(
+        'test-captcha-token',
       );
     },
   );
@@ -109,6 +115,7 @@ describe('认证 API', () => {
           request('auth/otp/send', {
             email: 'none@example.com',
             intent: 'login',
+            captchaToken: 'test-captcha-token',
           }),
           'auth/otp/send',
         )
@@ -239,25 +246,50 @@ describe('认证 API', () => {
   it('邮件限流具有稳定错误与重试时间', async () => {
     mock.send.mockResolvedValue({ error: { status: 429 } });
     const res = await handle(
-      request('auth/otp/send', { email: 'me@example.com', intent: 'login' }),
+      request('auth/otp/send', {
+        email: 'me@example.com',
+        intent: 'login',
+        captchaToken: 'test-captcha-token',
+      }),
       'auth/otp/send',
     );
     expect(res.status).toBe(429);
     expect(res.headers.get('Retry-After')).toBe('60');
   });
-  it('生产无法关闭 CAPTCHA', async () => {
-    process.env.APP_ORIGIN = 'https://r2f2.example';
+  it.each([
+    ['http://localhost:3000', 'auth/otp/send'],
+    ['http://localhost:3000', 'auth/passkeys/login/options'],
+    ['https://r2f2.example', 'auth/otp/send'],
+    ['https://r2f2.example', 'auth/passkeys/login/options'],
+  ])('%s 的 %s 缺少 CAPTCHA 时拒绝请求', async (origin, path) => {
+    process.env.APP_ORIGIN = origin;
     const res = await handle(
       request(
-        'auth/otp/send',
-        { email: 'me@example.com', intent: 'signup' },
-        { Origin: 'https://r2f2.example' },
+        path,
+        path === 'auth/otp/send'
+          ? { email: 'me@example.com', intent: 'signup' }
+          : {},
+        { Origin: origin },
       ),
-      'auth/otp/send',
+      path,
     );
     expect(res.status).toBe(400);
     expect((await res.json()).error.code).toBe('CAPTCHA_REQUIRED');
     expect(mock.send).not.toHaveBeenCalled();
+    expect(mock.start).not.toHaveBeenCalled();
+  });
+  it('Passkey 登录向 Supabase 传递 CAPTCHA token', async () => {
+    mock.start.mockResolvedValue({ data: { challenge: 'test' }, error: null });
+    const res = await handle(
+      request('auth/passkeys/login/options', {
+        captchaToken: 'test-captcha-token',
+      }),
+      'auth/passkeys/login/options',
+    );
+    expect(res.status).toBe(200);
+    expect(mock.start).toHaveBeenCalledWith({
+      options: { captchaToken: 'test-captcha-token' },
+    });
   });
   it('不缓存私有响应', async () => {
     const res = await handle(

@@ -17,7 +17,9 @@ export default defineConfig({
         process.env.SUPABASE_SECRET_KEY ||
         process.env.TEST_SUPABASE_SECRET_KEY ||
         '',
-      AUTH_CAPTCHA_DISABLED: 'true',
+      ...(process.env.E2E_LIVE_AUTH === 'true'
+        ? {}
+        : { NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'test-site-key' }),
     },
   },
   projects: [

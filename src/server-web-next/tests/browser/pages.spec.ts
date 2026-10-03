@@ -17,6 +17,34 @@ test('首页与默认登录入口', async ({ page }) => {
   await page.getByRole('button', { name: '使用邮件验证码' }).click();
   await expect(page.getByLabel('邮箱')).toBeVisible();
 });
+test('本地注册页显示 Turnstile 并发送 token', async ({ page }) => {
+  await page.route('**/turnstile/v0/api.js**', (route) =>
+    route.fulfill({
+      contentType: 'application/javascript',
+      body: `window.turnstile = {
+        render(element, options) {
+          element.textContent = 'Turnstile test widget';
+          options.callback('test-captcha-token');
+          return 'test-widget';
+        },
+        remove() {},
+      };`,
+    }),
+  );
+  let sentToken: string | undefined;
+  await page.route('**/api/v1/auth/otp/send', (route) => {
+    sentToken = route.request().postDataJSON().captchaToken;
+    return route.fulfill({
+      json: { data: { sent: true, resendAfterSeconds: 60 } },
+    });
+  });
+  await page.goto('/signup');
+  await expect(page.getByText('Turnstile test widget')).toBeVisible();
+  await page.getByLabel('邮箱').fill('test@example.com');
+  await page.getByRole('button', { name: '发送验证码' }).click();
+  await expect(page.getByLabel('邮件验证码')).toBeVisible();
+  expect(sentToken).toBe('test-captcha-token');
+});
 test('注册验证码后可以跳过 passkey', async ({ page }) => {
   await page.route('**/api/v1/auth/otp/send', (route) =>
     route.fulfill({ json: { data: { sent: true, resendAfterSeconds: 60 } } }),

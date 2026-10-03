@@ -16,7 +16,7 @@ npm run dev
 
 首次邮箱验证成功后，Next.js 创建 `profiles` 并随机生成昵称；以后邮件登录、passkey 登录及读取本人资料时也会补齐缺失记录。已有昵称和修改时间保持不变，不在每次登录时重置。生成规则集中在 `src/lib/profile-service.ts` 的 `randomNickname()`，当前为「玩家_」加 16 位随机十六进制字符。
 
-`.env.example` 中的 CAPTCHA 关闭开关只适用于 localhost/loopback。正式环境需要 Turnstile；客户端只接收公开 site key。没有认证配置时 API 返回 `503 CONFIGURATION_REQUIRED`。
+本地和 Vercel 共用启用 CAPTCHA 的云端 Supabase 项目，两处都需要 Turnstile。将对应小组件的公开 site key 配置为 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`，并在 Cloudflare 中允许 `localhost` 和部署域名；Supabase Auth 配置同一小组件的 secret。没有 token 时认证请求返回 `400 CAPTCHA_REQUIRED`。没有认证配置时 API 返回 `503 CONFIGURATION_REQUIRED`。
 
 ## 数据库迁移
 
@@ -31,7 +31,7 @@ npm run dev
 1. 建立 Supabase 项目，新建项目执行 `supabase/migrations/20260928000100_create_profiles.sql`。昵称生成、校验和修改规则由 Next.js 服务层统一执行；数据库只保留表、唯一约束、RLS 和权限。认证用户没有 profiles 写权限，只有服务端管理客户端可以写入。不要给客户端 service-role/secret key。
 2. 配置 Email Auth：允许注册、要求邮箱确认，OTP 长度 6、有效期 600 秒、发送间隔 60 秒。将 **Confirm signup** 和 **Magic Link** 两个模板设置为 `supabase/templates/code.html` 内容，使用 `.Token`，不发送登录链接。
 3. 配置自己的 SMTP（发件域名、发件人、主机、端口、用户名、密码），确认供应商域名验证及 SPF/DKIM。SMTP 密码只放在 Supabase 配置中。
-4. 启用 Supabase Auth CAPTCHA，选择 Turnstile 并配置其 secret；在 Turnstile 中允许正式域名。Vercel 配置 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`，删除 `AUTH_CAPTCHA_DISABLED`。
+4. 启用 Supabase Auth CAPTCHA，选择 Turnstile 并配置其 secret；在 Turnstile 中允许 `localhost` 和正式域名。本地及 Vercel 均配置对应的 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`。
 5. 配置 Supabase Auth rate limits：邮件 30/小时、登录/注册 30/5 分钟、验证码校验 30/5 分钟、刷新 150/5 分钟作为初始值，再根据实际流量调整。Supabase 对 API 来源地址实施的限流可能聚合 Vercel 出口流量；邮件发送间隔和 CAPTCHA 仍由 Auth 强制执行。
 6. 启用 passkey：RP display name 设为 `r2f2`，RP ID 为稳定正式域名（无协议、端口和路径），origins 为确切 HTTPS 网站地址。RP ID 变更会使旧 passkey 失效。开发项目的 RP ID 设为 `localhost`，origin 设为 `http://localhost:3000`；部署在 `next.r2f2.com` 的项目应核对其 RP ID 和 `https://next.r2f2.com` origin，切换到 `r2f2.com` 前也应核对正式站点 origin。品牌改名不要求修改现有 RP ID。开发、预览和生产应使用独立 Supabase 项目；Vercel 临时预览域名使用邮件登录，不加入生产 RP 配置。
 7. Vercel Root Directory 设为 `src/server-web-next`，Node >=22.18，构建 `npm run build`。配置服务端 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`、`SUPABASE_SECRET_KEY`、`APP_ORIGIN`（无尾斜杠）和公开 Turnstile site key。Supabase Site URL 设为正式站点。正式环境 HTTPS 下 Cookie 自动启用 Secure。
