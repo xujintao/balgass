@@ -7,6 +7,7 @@ const mock = vi.hoisted(() => ({
     email_confirmed_at: '2026-01-01',
   },
   send: vi.fn(),
+  findAuthUser: vi.fn(),
   verify: vi.fn(),
   refresh: vi.fn(),
   getUser: vi.fn(),
@@ -36,6 +37,9 @@ vi.mock('../../src/lib/supabase', () => ({
       },
     },
   }),
+}));
+vi.mock('../../src/lib/auth-user-lookup', () => ({
+  findAuthUserByEmail: mock.findAuthUser,
 }));
 vi.mock('../../src/lib/profile', () => ({
   ensureProfile: vi.fn().mockResolvedValue(undefined),
@@ -72,6 +76,7 @@ beforeEach(() => {
   process.env.SUPABASE_PUBLISHABLE_KEY = 'public';
   process.env.APP_ORIGIN = 'http://localhost:3000';
   mock.send.mockResolvedValue({ error: null });
+  mock.findAuthUser.mockResolvedValue(null);
   mock.verify.mockResolvedValue({ data: { session }, error: null });
   mock.refresh.mockResolvedValue({ data: { session }, error: null });
   mock.getUser.mockResolvedValue({ data: { user: mock.user }, error: null });
@@ -105,6 +110,63 @@ describe('认证 API', () => {
       );
     },
   );
+  it('已验证邮箱在注册页返回 409 且不发送邮件', async () => {
+    mock.findAuthUser.mockResolvedValue({
+      email: 'me@example.com',
+      email_confirmed_at: '2026-01-01T00:00:00Z',
+    });
+    const res = await handle(
+      request('auth/otp/send', {
+        email: 'ME@example.com',
+        intent: 'signup',
+        captchaToken: 'test-captcha-token',
+      }),
+      'auth/otp/send',
+    );
+    expect(res.status).toBe(409);
+    expect((await res.json()).error.code).toBe('EMAIL_ALREADY_REGISTERED');
+    expect(mock.findAuthUser).toHaveBeenCalledWith('me@example.com');
+    expect(mock.send).not.toHaveBeenCalled();
+  });
+  it('未验证邮箱继续注册验证码流程', async () => {
+    mock.findAuthUser.mockResolvedValue({
+      email: 'me@example.com',
+      email_confirmed_at: null,
+    });
+    const res = await handle(
+      request('auth/otp/send', {
+        email: 'me@example.com',
+        intent: 'signup',
+        captchaToken: 'test-captcha-token',
+      }),
+      'auth/otp/send',
+    );
+    expect(res.status).toBe(200);
+    expect(mock.send).toHaveBeenCalledOnce();
+  });
+  it('查重失败时不发送邮件，登录请求不查重', async () => {
+    mock.findAuthUser.mockRejectedValue(new Error('lookup failed'));
+    const signup = await handle(
+      request('auth/otp/send', {
+        email: 'me@example.com',
+        intent: 'signup',
+        captchaToken: 'test-captcha-token',
+      }),
+      'auth/otp/send',
+    );
+    expect(signup.status).toBe(503);
+    expect(mock.send).not.toHaveBeenCalled();
+    const login = await handle(
+      request('auth/otp/send', {
+        email: 'me@example.com',
+        intent: 'login',
+        captchaToken: 'test-captcha-token',
+      }),
+      'auth/otp/send',
+    );
+    expect(login.status).toBe(200);
+    expect(mock.findAuthUser).toHaveBeenCalledOnce();
+  });
   it('不泄露不存在的登录邮箱', async () => {
     mock.send.mockResolvedValue({
       error: { code: 'otp_disabled', status: 400 },

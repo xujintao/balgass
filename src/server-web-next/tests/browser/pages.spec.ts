@@ -68,6 +68,28 @@ test('本地注册页显示 Turnstile 并发送 token', async ({ page }) => {
   await expect(page.getByLabel('邮件验证码')).toBeVisible();
   expect(sentToken).toBe('test-captcha-token');
 });
+test('重复注册显示已有账号提示并保留登录入口', async ({ page }) => {
+  await page.route('**/api/v1/auth/otp/send', (route) =>
+    route.fulfill({
+      status: 409,
+      json: {
+        error: {
+          code: 'EMAIL_ALREADY_REGISTERED',
+          message: '该邮箱已注册，请登录。',
+        },
+      },
+    }),
+  );
+  await page.goto('/signup');
+  await page.getByLabel('邮箱').fill('existing@example.com');
+  await page.getByRole('button', { name: '发送验证码' }).click();
+  await expect(page.getByRole('alert')).toContainText('该邮箱已注册，请登录。');
+  await expect(page.getByLabel('邮件验证码')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: '登录' }).last()).toHaveAttribute(
+    'href',
+    '/login',
+  );
+});
 test('注册验证码后可以跳过 passkey', async ({ page }) => {
   await page.route('**/api/v1/auth/otp/send', (route) =>
     route.fulfill({ json: { data: { sent: true, resendAfterSeconds: 60 } } }),

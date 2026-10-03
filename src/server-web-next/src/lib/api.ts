@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ApiError, providerError } from './errors';
 import { config, requireCaptcha } from './config';
 import { supabase } from './supabase';
+import { findAuthUserByEmail } from './auth-user-lookup';
 import {
   assertOrigin,
   bearerToken,
@@ -103,6 +104,15 @@ export async function dispatch(request: Request, path: string) {
   if (path === 'auth/otp/send' && method === 'POST') {
     const input = otpSend.parse(await body(request));
     requireCaptcha(input.captchaToken);
+    if (input.intent === 'signup') {
+      const existing = await findAuthUserByEmail(input.email);
+      if (existing?.email_confirmed_at)
+        throw new ApiError(
+          409,
+          'EMAIL_ALREADY_REGISTERED',
+          '该邮箱已注册，请登录。',
+        );
+    }
     const { error } = await client.auth.signInWithOtp({
       email: input.email,
       options: {

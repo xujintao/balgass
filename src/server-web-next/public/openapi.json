@@ -15,7 +15,7 @@
       "post": {
         "summary": "Send signup/login email code",
         "operationId": "post_auth_otp_send",
-        "description": "Signup may create a user. Login never creates one. Success deliberately does not disclose whether the address exists. CAPTCHA required outside local development.",
+        "description": "Signup may create a user. A verified existing email returns EMAIL_ALREADY_REGISTERED before sending mail; an unverified email may continue signup. Login never creates a user and does not disclose whether the address exists. Turnstile CAPTCHA is required.",
         "parameters": [
           {
             "in": "header",
@@ -100,7 +100,7 @@
             }
           },
           "409": {
-            "description": "NICKNAME_TAKEN / NICKNAME_COOLDOWN (includes nextNicknameChangeAt) / PROFILE_CHANGED",
+            "description": "EMAIL_ALREADY_REGISTERED (signup only)",
             "content": {
               "application/json": {
                 "schema": {
