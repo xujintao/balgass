@@ -1,0 +1,30 @@
+.dialog {
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 28px;
+  border: 1px solid #d5dfd5;
+  border-radius: 20px;
+  background: #fff;
+  color: #17382e;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 18%);
+}
+
+.dialog::backdrop {
+  background: rgb(19 40 33 / 55%);
+}
+
+.dialog h2 {
+  margin: 0 0 20px;
+  font-size: 1.25rem;
+}
+
+.dialog button {
+  margin-top: 20px;
+  width: 100%;
+}
+
+@media (max-width: 440px) {
+  .dialog {
+    padding: 16px;
+  }
+}

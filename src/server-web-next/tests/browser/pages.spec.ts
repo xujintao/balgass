@@ -1,5 +1,46 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { randomBytes, randomUUID } from 'node:crypto';
+async function mockTurnstile(page: Page) {
+  await page.route('**/turnstile/v0/api.js**', (route) =>
+    route.fulfill({
+      contentType: 'application/javascript',
+      body: `window.turnstile = {
+        render(element, options) {
+          element.textContent = 'Turnstile test widget';
+          options.callback('test-captcha-token');
+          return 'test-widget';
+        },
+        remove() {},
+      };`,
+    }),
+  );
+}
+async function mockManualTurnstile(page: Page) {
+  await page.route('**/turnstile/v0/api.js**', (route) =>
+    route.fulfill({
+      contentType: 'application/javascript',
+      body: `const callbacks = new Map();
+        window.turnstile = {
+          render(element, options) {
+            const id = String(callbacks.size + 1);
+            element.textContent = 'Turnstile test widget';
+            const complete = () => options.callback('test-captcha-token');
+            const fail = () => options['error-callback']();
+            window.addEventListener('test-captcha-complete', complete);
+            window.addEventListener('test-captcha-fail', fail);
+            callbacks.set(id, { complete, fail });
+            return id;
+          },
+          remove(id) {
+            const handlers = callbacks.get(id);
+            window.removeEventListener('test-captcha-complete', handlers.complete);
+            window.removeEventListener('test-captcha-fail', handlers.fail);
+            callbacks.delete(id);
+          },
+        };`,
+    }),
+  );
+}
 test('公开首页、账号导航与页面标题', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle('r2f2');
@@ -33,27 +74,19 @@ test('公开首页、账号导航与页面标题', async ({ page }) => {
     page.getByRole('button', { name: '使用 Passkey 登录' }),
   ).toBeVisible();
   await expect(page.getByLabel('邮箱')).not.toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('button', { name: '使用邮件验证码' }).click();
   await expect(page.getByLabel('邮箱')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByRole('button', { name: '返回 Passkey 登录' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.goto('/signup');
   await expect(page).toHaveTitle('注册 · r2f2');
   await page.goto('/settings');
   await expect(page).toHaveTitle('账号设置 · r2f2');
 });
-test('本地注册页显示 Turnstile 并发送 token', async ({ page }) => {
-  await page.route('**/turnstile/v0/api.js**', (route) =>
-    route.fulfill({
-      contentType: 'application/javascript',
-      body: `window.turnstile = {
-        render(element, options) {
-          element.textContent = 'Turnstile test widget';
-          options.callback('test-captcha-token');
-          return 'test-widget';
-        },
-        remove() {},
-      };`,
-    }),
-  );
+test('注册页点击发送后才验证并传递 token', async ({ page }) => {
+  await mockTurnstile(page);
   let sentToken: string | undefined;
   await page.route('**/api/v1/auth/otp/send', (route) => {
     sentToken = route.request().postDataJSON().captchaToken;
@@ -62,13 +95,112 @@ test('本地注册页显示 Turnstile 并发送 token', async ({ page }) => {
     });
   });
   await page.goto('/signup');
-  await expect(page.getByText('Turnstile test widget')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByLabel('邮箱').fill('test@example.com');
   await page.getByRole('button', { name: '发送验证码' }).click();
   await expect(page.getByLabel('邮件验证码')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(sentToken).toBe('test-captcha-token');
 });
+test('取消验证不发送邮件，再次点击可验证', async ({ page }) => {
+  await mockManualTurnstile(page);
+  let sends = 0;
+  await page.route('**/api/v1/auth/otp/send', (route) => {
+    sends += 1;
+    return route.fulfill({
+      json: { data: { sent: true, resendAfterSeconds: 60 } },
+    });
+  });
+  await page.goto('/signup');
+  await page.getByLabel('邮箱').fill('test@example.com');
+  await page.getByRole('button', { name: '发送验证码' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByText('Turnstile test widget')).toBeVisible();
+  expect(sends).toBe(0);
+  await page.getByRole('dialog').getByRole('button', { name: '取消' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(sends).toBe(0);
+  await page.getByRole('button', { name: '发送验证码' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.evaluate(() =>
+    window.dispatchEvent(new Event('test-captcha-complete')),
+  );
+  await expect(page.getByLabel('邮件验证码')).toBeVisible();
+  expect(sends).toBe(1);
+});
+test('验证失败不发送邮件', async ({ page }) => {
+  await mockManualTurnstile(page);
+  let sends = 0;
+  await page.route('**/api/v1/auth/otp/send', (route) => {
+    sends += 1;
+    return route.fulfill({ json: { data: { sent: true } } });
+  });
+  await page.goto('/signup');
+  await page.getByLabel('邮箱').fill('test@example.com');
+  await page.getByRole('button', { name: '发送验证码' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.evaluate(() =>
+    window.dispatchEvent(new Event('test-captcha-fail')),
+  );
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('alert')).toContainText('人机验证未完成');
+  expect(sends).toBe(0);
+});
+test('邮件登录仅在发送和重发时验证', async ({ page }) => {
+  await mockTurnstile(page);
+  await page.clock.install();
+  const tokens: string[] = [];
+  await page.route('**/api/v1/auth/otp/send', (route) => {
+    tokens.push(route.request().postDataJSON().captchaToken);
+    return route.fulfill({
+      json: { data: { sent: true, resendAfterSeconds: 60 } },
+    });
+  });
+  await page.route('**/api/v1/auth/otp/verify', (route) =>
+    route.fulfill({ json: { data: {} } }),
+  );
+  await page.goto('/login');
+  await page.getByRole('button', { name: '使用邮件验证码' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByLabel('邮箱').fill('test@example.com');
+  await page.getByRole('button', { name: '发送验证码' }).click();
+  await expect(page.getByLabel('邮件验证码')).toBeVisible();
+  expect(tokens).toEqual(['test-captcha-token']);
+  await page.clock.runFor(60_000);
+  await page.getByRole('button', { name: '重新发送' }).click();
+  await expect.poll(() => tokens.length).toBe(2);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByLabel('邮件验证码').fill('123456');
+  await page.getByRole('button', { name: '验证并继续' }).click();
+  await expect(page).toHaveURL('/');
+  expect(tokens).toHaveLength(2);
+});
+test('Passkey 登录在点击并验证后才请求挑战', async ({ page }) => {
+  await mockManualTurnstile(page);
+  let challenges = 0;
+  await page.route('**/api/v1/auth/passkeys/login/options', (route) => {
+    challenges += 1;
+    expect(route.request().postDataJSON().captchaToken).toBe(
+      'test-captcha-token',
+    );
+    return route.fulfill({
+      status: 500,
+      json: { error: { code: 'TEST', message: '测试响应' } },
+    });
+  });
+  await page.goto('/login');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByRole('button', { name: '使用 Passkey 登录' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  expect(challenges).toBe(0);
+  await page.evaluate(() =>
+    window.dispatchEvent(new Event('test-captcha-complete')),
+  );
+  await expect.poll(() => challenges).toBe(1);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
 test('重复注册显示已有账号提示并保留登录入口', async ({ page }) => {
+  await mockTurnstile(page);
   await page.route('**/api/v1/auth/otp/send', (route) =>
     route.fulfill({
       status: 409,
@@ -91,6 +223,7 @@ test('重复注册显示已有账号提示并保留登录入口', async ({ page 
   );
 });
 test('注册验证码后可以跳过 passkey', async ({ page }) => {
+  await mockTurnstile(page);
   await page.route('**/api/v1/auth/otp/send', (route) =>
     route.fulfill({ json: { data: { sent: true, resendAfterSeconds: 60 } } }),
   );
@@ -114,6 +247,7 @@ test('真实浏览器虚拟认证器完成注册与登录 ceremony（API 模拟�
   page,
   context,
 }) => {
+  await mockTurnstile(page);
   const cdp = await context.newCDPSession(page);
   await cdp.send('WebAuthn.enable');
   await cdp.send('WebAuthn.addVirtualAuthenticator', {
@@ -220,6 +354,7 @@ test('真实浏览器虚拟认证器完成注册与登录 ceremony（API 模拟�
   await expect(page).toHaveURL('/');
 });
 test('取消 passkey 操作后邮件入口仍可用', async ({ page }) => {
+  await mockTurnstile(page);
   await page.addInitScript(() => {
     Object.defineProperty(navigator.credentials, 'get', {
       value: () =>
@@ -276,6 +411,15 @@ test('移动端注册表单没有横向溢出', async ({ page }, info) => {
       .getByRole('link', { name: '注册' }),
   ).toHaveCount(0);
   await expect(page.getByLabel('邮箱')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByLabel('邮箱').fill('test@example.com');
+  await mockManualTurnstile(page);
+  await page.getByRole('button', { name: '发送验证码' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  const bounds = await page.getByRole('dialog').boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(375);
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(375);

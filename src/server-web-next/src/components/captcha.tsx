@@ -42,6 +42,7 @@ export function Captcha({ onToken }: { onToken: (token: string) => void }) {
         src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
         strategy="afterInteractive"
         onReady={mount}
+        onError={() => onToken('')}
       />
       <div ref={container} className="captcha" />
     </>

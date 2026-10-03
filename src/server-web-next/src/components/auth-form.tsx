@@ -1,10 +1,11 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from './client-api';
 import { performPasskey } from './passkey-browser';
 import { Captcha } from './captcha';
+import styles from './auth-form.module.css';
 export function AuthForm({ signup = false }: { signup?: boolean }) {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -14,15 +15,22 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
   const [verified, setVerified] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [captchaToken, setCaptchaToken] = useState('');
-  const [captchaKey, setCaptchaKey] = useState(0);
+  const [captchaAction, setCaptchaAction] = useState<'passkey' | 'send' | null>(
+    null,
+  );
+  const captchaPending = useRef(false);
+  const captchaDialog = useRef<HTMLDialogElement>(null);
   const [remaining, setRemaining] = useState(0);
   useEffect(() => {
     if (!remaining) return;
     const timer = setTimeout(() => setRemaining((v) => v - 1), 1000);
     return () => clearTimeout(timer);
   }, [remaining]);
-  async function run(action: () => Promise<void>, consumeCaptcha = false) {
+  useEffect(() => {
+    if (!captchaAction) return;
+    if (!captchaDialog.current?.open) captchaDialog.current?.showModal();
+  }, [captchaAction]);
+  async function run(action: () => Promise<void>) {
     setBusy(true);
     setError('');
     try {
@@ -31,17 +39,44 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
       setError(e instanceof Error ? e.message : '操作失败，请重试。');
     } finally {
       setBusy(false);
-      if (consumeCaptcha) {
-        setCaptchaToken('');
-        setCaptchaKey((v) => v + 1);
-      }
     }
   }
-  async function send() {
+  function requestCaptcha(action: 'passkey' | 'send') {
+    if (busy || captchaAction) return;
+    if (!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
+      setError('人机验证未配置，请稍后重试。');
+      return;
+    }
+    setError('');
+    captchaPending.current = true;
+    setCaptchaAction(action);
+  }
+  function closeCaptcha() {
+    captchaPending.current = false;
+    setCaptchaAction(null);
+  }
+  function completeCaptcha(token: string) {
+    if (!captchaPending.current || !captchaAction) return;
+    if (!token) {
+      closeCaptcha();
+      setError('人机验证未完成，请重试。');
+      return;
+    }
+    captchaPending.current = false;
+    const action = captchaAction;
+    setCaptchaAction(null);
+    void run(async () => {
+      if (action === 'send') return send(token);
+      await performPasskey('login', token);
+      router.replace('/');
+      router.refresh();
+    });
+  }
+  async function send(captchaToken: string) {
     await api('auth/otp/send', 'POST', {
       email: email.trim(),
       intent: signup ? 'signup' : 'login',
-      captchaToken: captchaToken || undefined,
+      captchaToken,
     });
     setSent(true);
     setRemaining(60);
@@ -76,25 +111,10 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
     );
   return (
     <section className="card">
-      <span className="eyebrow">r2f2 账号</span>
-      <h1>{signup ? '创建你的账号' : '欢迎回来'}</h1>
-      <p>
-        {signup
-          ? '使用邮箱注册，无需设置密码。'
-          : '使用 Passkey 安全快捷地登录。'}
-      </p>
+      <h1>{signup ? '创建你的账号' : '登录'}</h1>
       {!signup && !emailMode && (
         <>
-          <button
-            disabled={busy}
-            onClick={() =>
-              run(async () => {
-                await performPasskey('login', captchaToken);
-                router.replace('/');
-                router.refresh();
-              }, true)
-            }
-          >
+          <button disabled={busy} onClick={() => requestCaptcha('passkey')}>
             {busy ? '正在登录…' : '使用 Passkey 登录'}
           </button>
           <button
@@ -113,8 +133,11 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            if (!sent) {
+              requestCaptcha('send');
+              return;
+            }
             void run(async () => {
-              if (!sent) return send();
               await api('auth/otp/verify', 'POST', {
                 email: email.trim(),
                 code,
@@ -124,7 +147,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
                 router.replace('/');
                 router.refresh();
               }
-            }, !sent);
+            });
           }}
         >
           <label htmlFor="email">邮箱</label>
@@ -168,7 +191,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
                 type="button"
                 className="text-button"
                 disabled={busy || remaining > 0}
-                onClick={() => run(send, true)}
+                onClick={() => requestCaptcha('send')}
               >
                 {remaining ? `${remaining} 秒后可重发` : '重新发送'}
               </button>
@@ -187,8 +210,19 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
           )}
         </form>
       )}
-      {(!sent || remaining === 0) && (
-        <Captcha key={captchaKey} onToken={setCaptchaToken} />
+      {captchaAction && (
+        <dialog
+          ref={captchaDialog}
+          className={styles.dialog}
+          aria-labelledby="captcha-dialog-title"
+          onCancel={closeCaptcha}
+        >
+          <h2 id="captcha-dialog-title">请完成人机验证</h2>
+          <Captcha onToken={completeCaptcha} />
+          <button type="button" className="secondary" onClick={closeCaptcha}>
+            取消
+          </button>
+        </dialog>
       )}
       {error && (
         <p role="alert" className="error">
