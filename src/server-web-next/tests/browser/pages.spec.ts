@@ -1,21 +1,44 @@
 import { test, expect } from '@playwright/test';
 import { randomBytes, randomUUID } from 'node:crypto';
-test('首页与默认登录入口', async ({ page }) => {
+test('公开首页、账号导航与页面标题', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveTitle('r2f2 · 账号');
+  await expect(page).toHaveTitle('r2f2');
   await expect(page.getByRole('link', { name: 'r2f2' })).toBeVisible();
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
     'href',
     /\/icon\.svg/,
   );
-  await expect(page.getByRole('link', { name: '创建账号' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: '你的 r2f2，从这里开始。' }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('navigation', { name: '账号导航' })
+      .getByRole('link', { name: '登录' }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('navigation', { name: '账号导航' })
+      .getByRole('link', { name: '注册' }),
+  ).toHaveCount(0);
+  await expect(page.locator('body > footer')).toHaveCount(0);
   await page.goto('/login');
+  await expect(page).toHaveTitle('登录 · r2f2');
+  await expect(page.getByText('还没有账号？')).toBeVisible();
+  await expect(page.getByRole('link', { name: '注册' })).toHaveAttribute(
+    'href',
+    '/signup',
+  );
   await expect(
     page.getByRole('button', { name: '使用 Passkey 登录' }),
   ).toBeVisible();
   await expect(page.getByLabel('邮箱')).not.toBeVisible();
   await page.getByRole('button', { name: '使用邮件验证码' }).click();
   await expect(page.getByLabel('邮箱')).toBeVisible();
+  await page.goto('/signup');
+  await expect(page).toHaveTitle('注册 · r2f2');
+  await page.goto('/settings');
+  await expect(page).toHaveTitle('账号设置 · r2f2');
 });
 test('本地注册页显示 Turnstile 并发送 token', async ({ page }) => {
   await page.route('**/turnstile/v0/api.js**', (route) =>
@@ -220,6 +243,16 @@ test('私有 API 返回 JSON 401，浏览器跨站写操作被拒绝', async ({ 
 test('移动端注册表单没有横向溢出', async ({ page }, info) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto('/signup');
+  await expect(
+    page
+      .getByRole('navigation', { name: '账号导航' })
+      .getByRole('link', { name: '登录' }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('navigation', { name: '账号导航' })
+      .getByRole('link', { name: '注册' }),
+  ).toHaveCount(0);
   await expect(page.getByLabel('邮箱')).toBeVisible();
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),

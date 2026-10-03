@@ -39,11 +39,69 @@ nav a {
   font-size: 14px;
   text-decoration: none;
 }
+.account-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.account-menu-root {
+  position: relative;
+}
+.account-trigger {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+}
+.account-popover {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(240px, calc(100vw - 32px));
+  padding: 8px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px #19372e1a;
+}
+.account-nickname {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.account-popover a,
+.account-popover button {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.account-popover a:hover,
+.account-popover button:hover {
+  background: var(--paper);
+}
+.account-popover .error {
+  margin: 8px 0 0;
+}
 main {
   max-width: 1100px;
   margin: auto;
   padding: 64px 24px;
-  min-height: calc(100vh - 160px);
+  min-height: calc(100vh - 88px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -221,13 +279,6 @@ button:disabled {
   max-width: 520px;
   padding: 48px;
 }
-footer {
-  text-align: center;
-  color: var(--muted);
-  font-size: 11px;
-  padding: 24px;
-  letter-spacing: 1px;
-}
 @media (max-width: 700px) {
   header {
     height: 72px;
@@ -235,6 +286,7 @@ footer {
   }
   main {
     padding: 32px 16px;
+    min-height: calc(100vh - 72px);
   }
   .settings-grid {
     grid-template-columns: 1fr;
