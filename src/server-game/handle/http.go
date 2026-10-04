@@ -1,10 +1,12 @@
 package handle
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"log/slog"
+	"net/http"
 	"reflect"
-	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/gin-gonic/gin"
@@ -38,11 +40,6 @@ func (h *httpHandle) init() {
 		h.commands[cmd.Action] = cmd
 	}
 	h.GET("/", h.handleHome)
-	h.POST("/api/accounts", h.CreateAccount, h.handleErr)
-	h.GET("/api/accounts", h.GetAccountList, h.handleErr)
-	h.DELETE("/api/accounts/:id", h.DeleteAccount, h.handleErr)
-	h.POST("/api/bots", h.AddBot, h.handleErr)
-	h.DELETE("/api/bots", h.DeleteBot, h.handleErr)
 	h.GET("/api/game", h.handleGame)
 	h.POST("/api/command", h.handleCommand, h.handleErr)
 }
@@ -185,102 +182,16 @@ func (h *httpHandle) handleHome(c *gin.Context) {
 	homeTemplate.Execute(c.Writer, "ws://"+c.Request.Host+"/api/game")
 }
 
-func (h *httpHandle) CreateAccount(c *gin.Context) {
-	in := model.Account{}
-
-	// bind
-	if err := c.ShouldBind(&in); err != nil {
-		h.setErr(c, CreateAccountBind, err)
-		return
-	}
-
-	// validate
-	if err := h.validate.Struct(&in); err != nil {
-		h.setErr(c, CreateAccountValidate, err)
-		return
-	}
-
-	// command
-	if _, err := game.Game.Command("CreateAccount", &in); err != nil {
-		h.setErr(c, CreateAccountDB, err)
-		return
-	}
-
-	c.JSON(200, in)
-}
-
-func (h *httpHandle) GetAccountList(c *gin.Context) {
-	// get param
-	email := c.Query("user_email")
-
-	// command
-	accs, err := game.Game.Command("GetAccountList", &model.Account{UserEmail: email})
-	if err != nil {
-		h.setErr(c, GetAccountListDB, err)
-		return
-	}
-
-	c.JSON(200, accs)
-}
-
-func (h *httpHandle) DeleteAccount(c *gin.Context) {
-	// get param
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		h.setErr(c, DeleteAccountMissingParam, err)
-		return
-	}
-
-	// command
-	if _, err := game.Game.Command("DeleteAccount", &model.Account{ID: id}); err != nil {
-		h.setErr(c, DeleteAccountDB, err)
-		return
-	}
-
-	c.JSON(200, gin.H{})
-}
-
-func (h *httpHandle) AddBot(c *gin.Context) {
-	in := model.MsgAddBot{}
-	if err := c.ShouldBind(&in); err != nil {
-		h.setErr(c, AddBotBind, err)
-		return
-	}
-	if err := h.validate.Struct(&in); err != nil {
-		h.setErr(c, AddBotValidate, err)
-		return
-	}
-	out, err := game.Game.Command("AddBot", &in)
-	if err != nil {
-		h.setErr(c, AddBotCommand, err)
-		return
-	}
-	c.JSON(200, out)
-}
-
-func (h *httpHandle) DeleteBot(c *gin.Context) {
-	in := model.MsgDeleteBot{}
-	if err := c.ShouldBind(&in); err != nil {
-		h.setErr(c, DeleteBotBind, err)
-		return
-	}
-	if err := h.validate.Struct(&in); err != nil {
-		h.setErr(c, DeleteBotValidate, err)
-		return
-	}
-	out, err := game.Game.Command("DeleteBot", &in)
-	if err != nil {
-		h.setErr(c, DeleteBotCommand, err)
-		return
-	}
-	c.JSON(200, out)
-}
-
 func (h *httpHandle) handleGame(c *gin.Context) {
 	handleGame(c.Writer, c.Request)
 }
 
 func (h *httpHandle) handleCommand(c *gin.Context) {
+	if !validAPIToken(c.GetHeader("Authorization"), conf.ServerEnv.GameAPIToken) {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+		return
+	}
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 32*1024)
 	type commandRequest struct {
 		Action string          `json:"action" validate:"required"`
 		In     json.RawMessage `json:"in"`
@@ -297,7 +208,7 @@ func (h *httpHandle) handleCommand(c *gin.Context) {
 	var cmd *command
 	var ok bool
 	if cmd, ok = h.commands[req.Action]; !ok {
-		h.setErr(c, CommandActionInvalid, nil)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "unknown command"})
 		return
 	}
 	in := reflect.New(reflect.TypeOf(cmd.In).Elem()).Interface()
@@ -318,6 +229,14 @@ func (h *httpHandle) handleCommand(c *gin.Context) {
 		"action": req.Action,
 		"out":    out,
 	})
+}
+
+func validAPIToken(header, configuredToken string) bool {
+	parts := strings.Fields(header)
+	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+		return false
+	}
+	return len(configuredToken) >= 32 && subtle.ConstantTimeCompare([]byte(parts[1]), []byte(configuredToken)) == 1
 }
 
 type command struct {

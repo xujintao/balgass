@@ -176,6 +176,7 @@ var (
 
 type configServerEnv struct {
 	Debug                bool     `envconfig:"DEBUG" default:"false"`
+	GameAPIToken         string   `envconfig:"GAME_API_TOKEN"`
 	LogLevel             string   `envconfig:"LOG_LEVEL" default:"info"`
 	LogFile              []string `envconfig:"LOG_FILE" default:"-"`
 	PathConfig           string   `envconfig:"PATH_CONFIG" default:"."`
