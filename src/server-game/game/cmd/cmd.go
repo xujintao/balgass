@@ -47,8 +47,13 @@ func (*command) GetOnlineObjectsNumber(msg any) (*model.MsgGetOnlineObjectNumber
 // }
 
 func (*command) CreateAccount(msg *model.Account) (any, error) {
-	err := model.DB.CreateAccount(msg)
-	return nil, err
+	if err := model.DB.CreateAccount(msg); err != nil {
+		return nil, err
+	}
+	return struct {
+		Name      string `json:"name"`
+		UserEmail string `json:"user_email"`
+	}{Name: msg.Name, UserEmail: msg.UserEmail}, nil
 }
 
 func (*command) GetAccountList(msg *model.Account) ([]*model.Account, error) {
