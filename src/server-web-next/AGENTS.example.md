@@ -49,3 +49,9 @@ Next.js 同时支持浏览器页面和供未来 App 使用的 HTTP API。
 使用项目实际配置的包管理器、开发命令和检查命令，不预设尚未确定的工具或命令。
 
 完成修改后，运行与改动相关且项目已有的检查，并说明验证结果。如果检查无法运行，明确说明原因，不声称检查通过。
+
+## 提交规范
+
+提交信息使用 `server-web-next/<type>: <英文小写描述>` 格式。根据改动内容选择类型，沿用仓库已有的 `feat`、`fix`、`refactor`、`docs` 等类型。
+
+例如：`server-web-next/feat: add player game account management`。
