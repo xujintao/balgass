@@ -40,6 +40,10 @@ Passkey 是 Supabase 的实验接口；`@supabase/supabase-js` 固定为 2.105.0
 
 ## API 与会话
 
+游戏账号列表与创建由 Next.js 服务层通过游戏服务的 `/api/command` 执行。开发环境可将 `GAME_API_URL` 指向本机 `http://localhost:8080/api/command`；生产环境须使用 `https://game.r2f2.com/api/command`。两端配置相同、至少 32 字符的随机 `GAME_API_TOKEN`，例如用 `openssl rand -hex 32` 生成。此密钥授权 `/api/command` 的全部命令，包括删除账号及 bot 管理；Next.js 玩家功能目前只调用 `GetAccountList` 和 `CreateAccount`。密钥仅存于服务端环境，不提交到版本库。旧 `/api/accounts` 和 `/api/bots` 接口已移除。
+
+部署时由 `game.r2f2.com` 的 HTTPS 入口代理 `/api/command` 与公开的 `/api/game` WebSocket；现有 VPS 防火墙规则继续阻止公网直连 8080。先部署并配置游戏服务，再配置网站环境变量；旧 Django 账号接口不参与新网站调用。
+
 OpenAPI 文档：[/openapi.json](./public/openapi.json)。所有 JSON API 位于 `/api/v1/`；响应为 `{data: ...}` 或 `{error: {code,message,...}}`。
 
 浏览器会话使用 `r2f2_access`、`r2f2_refresh` 两个 HttpOnly、SameSite=Lax Cookie。浏览器写请求必须携带与 `APP_ORIGIN` 完全一致的 Origin。浏览器认证响应不返回令牌；私有页面动态渲染，API 禁止缓存。访问令牌失效时页面或 API 客户端通过刷新端点轮换会话。会话 Cookie 保留 30 天；Auth 可以更早撤销或使会话失效。
