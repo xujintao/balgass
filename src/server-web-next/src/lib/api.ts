@@ -16,6 +16,7 @@ import {
 } from './session';
 import { me, changeNickname } from './profile';
 import { passkeyRequest } from './passkeys';
+import { createGameAccount, listGameAccounts } from './game-accounts';
 import {
   otpSend,
   otpVerify,
@@ -41,6 +42,7 @@ const routes: Record<string, string[]> = {
   'auth/logout': ['POST'],
   me: ['GET'],
   'me/nickname': ['PATCH'],
+  'game/accounts': ['GET', 'POST'],
 };
 async function body(request: Request) {
   if (
@@ -207,6 +209,9 @@ export async function dispatch(request: Request, path: string) {
     return { signedOut: true };
   }
   const ctx = await context(request);
+  if (path === 'game/accounts' && method === 'GET') return listGameAccounts(ctx);
+  if (path === 'game/accounts' && method === 'POST')
+    return createGameAccount(ctx, await body(request));
   if (path === 'me' && method === 'GET') return me(ctx);
   if (path === 'me/nickname' && method === 'PATCH')
     return changeNickname(

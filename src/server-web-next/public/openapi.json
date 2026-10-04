@@ -11,6 +11,37 @@
     }
   ],
   "paths": {
+    "/game/accounts": {
+      "get": {
+        "summary": "List the authenticated player's game accounts",
+        "operationId": "get_game_accounts",
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Own accounts and character total levels", "content": { "application/json": { "schema": { "type": "object", "required": ["data"], "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/GameAccount" } } } } } } },
+          "401": { "description": "UNAUTHENTICATED" },
+          "403": { "description": "EMAIL_UNVERIFIED" },
+          "502": { "description": "GAME_UNAVAILABLE" },
+          "503": { "description": "GAME_UNAVAILABLE" }
+        }
+      },
+      "post": {
+        "summary": "Create a game account owned by the authenticated player",
+        "operationId": "post_game_accounts",
+        "description": "Browser writes require Origin equal to APP_ORIGIN. App writes require X-Client-Type: app and Bearer authentication. The owner email is derived from the verified session and cannot be supplied by the client.",
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "additionalProperties": false, "required": ["name", "password", "passwordConfirmation"], "properties": { "name": { "type": "string", "minLength": 1, "maxLength": 10, "pattern": "^[!-~]+$" }, "password": { "type": "string", "minLength": 1, "maxLength": 10 }, "passwordConfirmation": { "type": "string" } } } } } },
+        "responses": {
+          "200": { "description": "Account created", "content": { "application/json": { "schema": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" } } } } } } } },
+          "400": { "description": "INVALID_INPUT" },
+          "401": { "description": "UNAUTHENTICATED" },
+          "403": { "description": "INVALID_ORIGIN / EMAIL_UNVERIFIED" },
+          "409": { "description": "GAME_ACCOUNT_EXISTS" },
+          "429": { "description": "RATE_LIMITED" },
+          "502": { "description": "GAME_UNAVAILABLE" },
+          "503": { "description": "GAME_UNAVAILABLE" }
+        }
+      }
+    },
     "/auth/otp/send": {
       "post": {
         "summary": "Send signup/login email code",
@@ -2140,6 +2171,14 @@
   },
   "components": {
     "schemas": {
+      "GameAccount": {
+        "type": "object",
+        "required": ["name", "characters"],
+        "properties": {
+          "name": { "type": "string" },
+          "characters": { "type": "array", "items": { "type": "object", "required": ["name", "level"], "properties": { "name": { "type": "string" }, "level": { "type": "integer" } } } }
+        }
+      },
       "User": {
         "type": "object",
         "required": ["id", "email"],

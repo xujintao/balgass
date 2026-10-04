@@ -75,6 +75,9 @@ export function AccountMenu({ nickname }: { nickname: string }) {
             <Link href="/settings/security" onClick={() => setOpen(false)}>
               {t.security}
             </Link>
+            <Link href="/game/accounts" onClick={() => setOpen(false)}>
+              {t.gameAccounts}
+            </Link>
             <button type="button" onClick={logout} disabled={busy}>
               {t.logout}
             </button>

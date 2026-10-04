@@ -280,7 +280,15 @@ button:disabled {
   max-width: 520px;
   padding: 48px;
 }
+.game-accounts { width: 100%; max-width: 900px; }
+.game-account-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: 32px; align-items: start; }
+.game-account-list { list-style: none; padding: 0; display: grid; gap: 12px; }
+.game-account-list > li, .game-account-form { background: white; border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+.game-account-list ul { padding-left: 20px; margin-top: 12px; }
+.game-account-list li { overflow-wrap: anywhere; }
+.game-account-form h2, .game-account-layout h2 { font-size: 20px; margin-top: 0; }
 @media (max-width: 700px) {
+  .game-account-layout { grid-template-columns: 1fr; }
   header {
     height: 72px;
     padding: 0 22px;

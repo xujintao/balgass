@@ -5,7 +5,7 @@ import {
   formatDate,
   formatDateTime,
   resolveLocale,
-} from '@/lib/i18n';
+} from '../../src/lib/i18n';
 
 describe('site localization', () => {
   it('defaults to English for missing or unsupported cookies', () => {
@@ -39,5 +39,15 @@ describe('site localization', () => {
     expect(formatDateTime('en', instant)).not.toBe(
       formatDateTime('zh-CN', instant),
     );
+  });
+
+  it('localizes game account labels and errors', () => {
+    for (const locale of ['en', 'zh-CN', 'es'] as const) {
+      const dictionary = dictionaries[locale];
+      expect(dictionary.gameAccounts).toBeTruthy();
+      expect(dictionary.createGameAccount).toBeTruthy();
+      expect(dictionary.gameCharacterLevel(10)).toContain('10');
+      expect(errorMessage(dictionary, { code: 'GAME_UNAVAILABLE' })).toBe(dictionary.errors.GAME_UNAVAILABLE);
+    }
   });
 });
