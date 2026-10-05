@@ -1,4 +1,6 @@
 import { defineConfig } from '@playwright/test';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 export default defineConfig({
   testDir: './tests/browser',
   timeout: 30000,
@@ -17,6 +19,8 @@ export default defineConfig({
         process.env.SUPABASE_SECRET_KEY ||
         process.env.TEST_SUPABASE_SECRET_KEY ||
         '',
+      GAME_CONFIG_URL: pathToFileURL(path.join(process.cwd(), 'tests/fixtures') + path.sep).href,
+      GAME_WEBSOCKET_URL: 'ws://localhost:8080/api/game',
       ...(process.env.E2E_LIVE_AUTH === 'true'
         ? {}
         : { NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'test-site-key' }),

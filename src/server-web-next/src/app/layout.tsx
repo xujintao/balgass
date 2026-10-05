@@ -18,14 +18,20 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const locale = await siteLocale();
+  const t = await siteDictionary();
   return (
     <html lang={locale}>
       <body>
         <LocaleProvider key={locale} locale={locale}>
           <header>
-            <Link className="brand" href="/">
-              r2f2
-            </Link>
+            <div className="header-primary">
+              <Link className="brand" href="/">
+                r2f2
+              </Link>
+              <nav className="site-nav" aria-label={t.primaryNavigation}>
+                <Link href="/game">{t.gameMap}</Link>
+              </nav>
+            </div>
             <div className="header-actions">
               <LanguageSwitcher />
               <AccountNav />

@@ -35,6 +35,9 @@ a {
   text-decoration: none;
   letter-spacing: 2px;
 }
+.header-primary { display: flex; align-items: center; gap: 32px; min-width: 0; }
+.site-nav { display: flex; align-items: center; min-width: 0; }
+.site-nav a { white-space: nowrap; }
 .header-actions { display: flex; align-items: center; gap: 20px; }
 .language-switcher { margin: 0; }
 .language-switcher select { width: auto; max-width: 130px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); font: inherit; font-size: 14px; }
@@ -289,6 +292,10 @@ button:disabled {
 .game-account-form h2, .game-account-layout h2 { font-size: 20px; margin-top: 0; }
 @media (max-width: 700px) {
   .game-account-layout { grid-template-columns: 1fr; }
+  .header-primary { gap: 18px; }
+  .header-actions { gap: 10px; }
+  .language-switcher select { max-width: 104px; }
+  .account-nav { gap: 10px; }
   header {
     height: 72px;
     padding: 0 22px;
@@ -304,4 +311,9 @@ button:disabled {
   h1 {
     font-size: 26px;
   }
+}
+@media (max-width: 520px) {
+  header { height: auto; min-height: 72px; flex-wrap: wrap; gap: 10px; padding: 12px 22px; }
+  .header-primary { width: 100%; }
+  .header-actions { width: 100%; justify-content: flex-end; }
 }

@@ -115,6 +115,10 @@ test('公开首页、账号导航与页面标题', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle('r2f2');
   await expect(page.getByRole('link', { name: 'r2f2' })).toBeVisible();
+  await expect(
+    page.getByRole('navigation', { name: '主导航' }).getByRole('link', { name: '实时地图' }),
+  ).toHaveAttribute('href', '/game');
+  await expect(page.locator('.header-actions').getByRole('link', { name: '实时地图' })).toHaveCount(0);
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
     'href',
     /\/icon\.svg/,

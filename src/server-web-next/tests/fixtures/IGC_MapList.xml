@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MapList>
+  <DefaultMaps>
+    <Map Number="0" File="00_Lorencia.att" />
+    <Map Number="1" File="01_Dungeon.att" />
+    <Map Number="2" File="11_BloodCastle.att" />
+    <Map Number="3" File="11_BloodCastle.att" />
+    <Map Number="4" File="Null.att" />
+  </DefaultMaps>
+</MapList>

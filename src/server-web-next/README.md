@@ -44,6 +44,29 @@ Passkey 是 Supabase 的实验接口；`@supabase/supabase-js` 固定为 2.105.0
 
 部署时由 `game.r2f2.com` 的 HTTPS 入口代理 `/api/command` 与公开的 `/api/game` WebSocket；现有 VPS 防火墙规则继续阻止公网直连 8080。先部署并配置游戏服务，再配置网站环境变量；旧 Django 账号接口不参与新网站调用。
 
+公开的 `/game` 页面使用三个独立地址：`GAME_API_URL` 仅供 Next.js 服务端执行命令，`GAME_WEBSOCKET_URL` 传给浏览器连接实时地图，`GAME_CONFIG_URL` 仅供 Next.js 服务端读取配置目录。本地在 `.env.local` 设置 `GAME_CONFIG_URL=file:///home/pi/balgass/config/server-game-common/IGCData/`，直接读取 XML；生产设置 `GAME_CONFIG_URL=https://game.r2f2.com/config/`、`GAME_WEBSOCKET_URL=wss://game.r2f2.com/api/game`。三个变量均需显式配置，目录 URL 必须以 `/` 结尾。地图列表按旧站规则解析 `IGC_MapList.xml`，HTTPS 来源的解析结果缓存 60 秒；本地文件不缓存。
+
+Caddy 容器将 VPS 的 `IGCData` 目录只读挂载到 `/srv/game-config`，例如使用 `-v ~/balgass/config/server-game-common/IGCData:/srv/game-config:ro`。在现有 `game.r2f2.com` 站点中增加以下路由；`/config/` 只放行列出的文件，不要对整个目录启用 `file_server`：
+
+```caddyfile
+handle /config/IGC_MapList.xml {
+    basic_auth {
+        nextjs <caddy hash-password 生成的哈希>
+    }
+    root * /srv/game-config
+    uri strip_prefix /config
+    file_server
+}
+handle /api/game {
+    reverse_proxy server-game:8080
+}
+handle /api/command {
+    reverse_proxy server-game:8080
+}
+```
+
+将示例中的 `server-game:8080` 换为 Caddy 容器实际可访问的游戏服务地址。在 Vercel 设置仅服务端使用的 `GAME_CONFIG_BASIC_AUTH_USER=nextjs` 和 `GAME_CONFIG_BASIC_AUTH_PASSWORD`（哈希前的原密码）。这组只读凭据不要复用有命令权限的 `GAME_API_TOKEN`，也不要加 `NEXT_PUBLIC_`。浏览器不能携带这组凭据，且当前游戏服务的 `/api/game` 是公开实时地图接口，因此它不能套用配置文件的 Basic Auth。以后道具页面可复用同一读取服务，再单独放行旧站使用的四个道具/技能 XML 文件；此时不要提前开放整个目录。
+
 OpenAPI 文档：[/openapi.json](./public/openapi.json)。所有 JSON API 位于 `/api/v1/`；响应为 `{data: ...}` 或 `{error: {code,message,...}}`。
 
 浏览器会话使用 `r2f2_access`、`r2f2_refresh` 两个 HttpOnly、SameSite=Lax Cookie。浏览器写请求必须携带与 `APP_ORIGIN` 完全一致的 Origin。浏览器认证响应不返回令牌；私有页面动态渲染，API 禁止缓存。访问令牌失效时页面或 API 客户端通过刷新端点轮换会话。会话 Cookie 保留 30 天；Auth 可以更早撤销或使会话失效。
