@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { AccountNav } from '@/components/account-nav';
 import { LanguageSwitcher } from '@/components/language-switcher';
@@ -26,7 +27,7 @@ export default async function RootLayout({
           <header>
             <div className="header-primary">
               <Link className="brand" href="/">
-                r2f2
+                <Image src="/icon.svg" alt="r2f2" width={36} height={36} />
               </Link>
               <nav className="site-nav" aria-label={t.primaryNavigation}>
                 <Link href="/game">{t.gameMap}</Link>

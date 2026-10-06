@@ -30,11 +30,12 @@ a {
   text-underline-offset: 4px;
 }
 .brand {
-  font-size: 17px;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  flex: none;
   text-decoration: none;
-  letter-spacing: 2px;
 }
+.brand img { display: block; }
 .header-primary { display: flex; align-items: center; gap: 32px; min-width: 0; }
 .site-nav { display: flex; align-items: center; min-width: 0; }
 .site-nav a { white-space: nowrap; }
