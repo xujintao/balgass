@@ -1,0 +1,17 @@
+[DEFAULT]
+bantime = 10m
+findtime = 10m
+maxretry = 5
+banaction = nftables[type=allports]
+
+[caddy-probes]
+enabled = true
+filter = caddy-probes
+logpath = /var/log/caddy/access.log
+          /var/log/caddy/patch-http.log
+          /var/log/caddy/patch-https.log
+
+[caddy-admin-auth]
+enabled = true
+filter = caddy-admin-auth
+logpath = /var/log/caddy/access.log

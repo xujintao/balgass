@@ -1,0 +1,3 @@
+[DEFAULT]
+loglevel = NOTICE
+logtarget = /var/log/caddy/fail2ban.log

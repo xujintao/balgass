@@ -1,6 +1,6 @@
 ADMIN_USER=admin
 ADMIN_PASSWORD=1234
-ROOT_URL=https://r2f2.com/grafana/
+ROOT_URL=https://game.r2f2.com/grafana/
 SERVE_FROM_SUB_PATH=true
 DOCKER_DIR=~/balgass/docker
 GRAFANA_DIR=$DOCKER_DIR/grafana

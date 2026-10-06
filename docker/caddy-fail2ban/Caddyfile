@@ -1,0 +1,88 @@
+game.r2f2.com {
+	log {
+		output file /var/log/caddy/access.log {
+			mode 0644
+			roll_size 10MiB
+			roll_keep 10
+			roll_keep_for 720h
+		}
+		format json
+	}
+
+	# Add required IGCData files here as features start using them.
+	@gameConfigFiles {
+		path /config/IGC_MapList.xml
+		# path /config/Skills/IGC_SkillList.xml
+		# path /config/Items/IGC_ItemList.xml
+		# path /config/Items/IGC_ItemSetType.xml
+		# path /config/Items/IGC_ItemSetOption.xml
+	}
+	handle @gameConfigFiles {
+		basic_auth {
+			nextjs {$GAME_CONFIG_AUTH_HASH}
+		}
+		root * /srv/game-config
+		uri strip_prefix /config
+		file_server
+	}
+
+	@command {
+		method POST
+		path /api/command
+	}
+	handle @command {
+		reverse_proxy host.docker.internal:8080
+	}
+
+	handle /api/game {
+		reverse_proxy host.docker.internal:8080
+	}
+
+	handle /grafana {
+		redir * /grafana/ 308
+	}
+	handle /grafana/* {
+		reverse_proxy host.docker.internal:3000
+	}
+
+	handle /pgadmin {
+		redir * /pgadmin/ 308
+	}
+	handle_path /pgadmin/* {
+		reverse_proxy host.docker.internal:8084 {
+			header_up X-Script-Name /pgadmin
+			header_up X-Scheme https
+		}
+	}
+
+	handle {
+		respond 404
+	}
+}
+
+(patch_files) {
+	root * /srv/patch
+	header Cache-Control "no-store, no-cache"
+	file_server browse
+}
+
+# The legacy updater uses HTTP; do not redirect it to HTTPS.
+http://patch.game.r2f2.com {
+	log {
+		output file /var/log/caddy/patch-http.log {
+			mode 0644
+		}
+		format json
+	}
+	import patch_files
+}
+
+patch.game.r2f2.com {
+	log {
+		output file /var/log/caddy/patch-https.log {
+			mode 0644
+		}
+		format json
+	}
+	import patch_files
+}
