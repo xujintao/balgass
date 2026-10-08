@@ -1,6 +1,6 @@
 ## Deploy
 
-<img src="deploy.jpg">
+<img src="deploy.drawio.svg">
 
 ## ~~Use UFW~~
 
