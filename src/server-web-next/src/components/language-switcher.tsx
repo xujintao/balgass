@@ -20,8 +20,8 @@ export function LanguageSwitcher() {
         value={locale}
         onChange={(event) => change(event.target.value as Locale)}
       >
-        <option value="en">English</option>
         <option value="zh-CN">简体中文</option>
+        <option value="en">English</option>
         <option value="es">Español</option>
       </select>
     </label>
