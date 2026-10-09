@@ -9,7 +9,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev -- --hostname localhost',
     url: 'http://localhost:3000',
-    reuseExistingServer: false,
+    reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === 'true',
     env: {
       APP_ORIGIN: 'http://localhost:3000',
       SUPABASE_URL: process.env.SUPABASE_URL || 'http://127.0.0.1:54321',

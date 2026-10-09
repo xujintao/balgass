@@ -12,10 +12,10 @@ game.r2f2.com {
 	# Add required IGCData files here as features start using them.
 	@gameConfigFiles {
 		path /config/IGC_MapList.xml
-		# path /config/Skills/IGC_SkillList.xml
-		# path /config/Items/IGC_ItemList.xml
-		# path /config/Items/IGC_ItemSetType.xml
-		# path /config/Items/IGC_ItemSetOption.xml
+		path /config/Skills/IGC_SkillList.xml
+		path /config/Items/IGC_ItemList.xml
+		path /config/Items/IGC_ItemSetType.xml
+		path /config/Items/IGC_ItemSetOption.xml
 	}
 	handle @gameConfigFiles {
 		basic_auth {

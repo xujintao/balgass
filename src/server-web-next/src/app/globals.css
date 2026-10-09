@@ -37,7 +37,7 @@ a {
 }
 .brand img { display: block; }
 .header-primary { display: flex; align-items: center; gap: 32px; min-width: 0; }
-.site-nav { display: flex; align-items: center; min-width: 0; }
+.site-nav { display: flex; align-items: center; gap: 18px; min-width: 0; }
 .site-nav a { white-space: nowrap; }
 .header-actions { display: flex; align-items: center; gap: 20px; }
 .language-switcher { margin: 0; }

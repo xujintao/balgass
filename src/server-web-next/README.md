@@ -1,6 +1,6 @@
-# r2f2 账号网站
+# r2f2 网站
 
-Next.js App Router + Supabase Auth/PostgreSQL。邮箱为登录标识，默认 Passkey 登录，备用邮件验证码；昵称由 Next.js 服务端随机生成，唯一且每 30 天可修改一次。
+Next.js App Router + Supabase Auth/PostgreSQL。网站提供账号管理、游戏实时地图、道具目录和待处理订单。邮箱为登录标识，默认 Passkey 登录，备用邮件验证码；昵称由 Next.js 服务端随机生成，唯一且每 30 天可修改一次。
 
 ## 本地启动
 
@@ -12,7 +12,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-本地 Next.js 直接连接云端开发 Supabase，不需要 Supabase CLI 或 Docker。通过 Dashboard SQL Editor 执行 `supabase/migrations/20260928000100_create_profiles.sql`，在 `.env.local` 配置云端 URL、publishable key 和**服务端 secret key**。浏览器仍访问 http://localhost:3000。
+本地 Next.js 直接连接云端开发 Supabase，不需要 Supabase CLI 或 Docker。通过 Dashboard SQL Editor 按文件名顺序执行 `supabase/migrations/` 中的 SQL，在 `.env.local` 配置云端 URL、publishable key 和**服务端 secret key**。浏览器仍访问 http://localhost:3000。
 
 首次邮箱验证成功后，Next.js 创建 `profiles` 并随机生成昵称；以后邮件登录、passkey 登录及读取本人资料时也会补齐缺失记录。已有昵称和修改时间保持不变，不在每次登录时重置。生成规则集中在 `src/lib/profile-service.ts` 的 `randomNickname()`，当前为 `player_` 加 16 位随机十六进制字符。自选昵称允许各种语言的字母及组合标记、数字 0–9 和下划线，长度为 2–24 个可见字符。
 
@@ -20,7 +20,7 @@ npm run dev
 
 ## 数据库迁移
 
-所有建表和后续修改 SQL 统一保存在 `supabase/migrations`，使用 `YYYYMMDDHHMMSS_描述.sql` 命名。在云端 SQL Editor 中按文件名顺序执行，不需要 Supabase CLI。当前只有新项目的初始迁移，不包含旧版数据库升级脚本。
+所有建表和后续修改 SQL 统一保存在 `supabase/migrations`，使用 `YYYYMMDDHHMMSS_描述.sql` 命名。在云端 SQL Editor 中按文件名顺序执行，不需要 Supabase CLI。这些迁移不包含旧版数据库升级脚本。
 
 `public.migrations` 保存迁移 ID、文件名和成功执行时间；它与业务表 `public.profiles` 分开，不允许浏览器、App 或服务端认证客户端读写。SQL Editor 的数据库管理员负责执行迁移。每份迁移在事务内检查执行记录、执行变更并记录成功；重复执行跳过，失败全部回滚。一次性 `DO` 块不会创建存储函数或触发器。初始迁移要求数据库尚未创建旧版 profiles 表。
 
@@ -28,7 +28,7 @@ npm run dev
 
 ## 生产配置
 
-1. 建立 Supabase 项目，新建项目执行 `supabase/migrations/20260928000100_create_profiles.sql`。昵称生成、校验和修改规则由 Next.js 服务层统一执行；数据库只保留表、唯一约束、RLS 和权限。认证用户没有 profiles 写权限，只有服务端管理客户端可以写入。不要给客户端 service-role/secret key。
+1. 建立 Supabase 项目，按顺序执行 `supabase/migrations/` 中的 SQL。昵称和订单的输入、归属规则由 Next.js 服务层校验；数据库保留约束、RLS 和权限。认证用户只能读取自己的资料与订单；只有服务端管理客户端可以写入。不要给客户端 service-role/secret key。
 2. 配置 Email Auth：允许注册、要求邮箱确认，OTP 长度 6、有效期 600 秒、发送间隔 60 秒。将 **Confirm signup** 和 **Magic Link** 两个模板设置为 `supabase/templates/code.html` 内容，使用 `.Token`，不发送登录链接。
 3. 配置自己的 SMTP（发件域名、发件人、主机、端口、用户名、密码），确认供应商域名验证及 SPF/DKIM。SMTP 密码只放在 Supabase 配置中。
 4. 启用 Supabase Auth CAPTCHA，选择 Turnstile 并配置其 secret；在 Turnstile 中允许 `localhost` 和 `r2f2.com`。本地及 Vercel 均配置对应的 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`。
@@ -44,12 +44,19 @@ Passkey 是 Supabase 的实验接口；`@supabase/supabase-js` 固定为 2.105.0
 
 部署时由 `game.r2f2.com` 的 HTTPS 入口代理 `/api/command` 与公开的 `/api/game` WebSocket；现有 VPS 防火墙规则继续阻止公网直连 8080。先部署并配置游戏服务，再配置网站环境变量；旧 Django 账号接口不参与新网站调用。
 
-公开的 `/game` 页面使用三个独立地址：`GAME_API_URL` 仅供 Next.js 服务端执行命令，`GAME_WEBSOCKET_URL` 传给浏览器连接实时地图，`GAME_CONFIG_URL` 仅供 Next.js 服务端读取配置目录。本地在 `.env.local` 设置 `GAME_CONFIG_URL=file:///home/pi/balgass/config/server-game-common/IGCData/`，直接读取 XML；生产设置 `GAME_CONFIG_URL=https://game.r2f2.com/config/`、`GAME_WEBSOCKET_URL=wss://game.r2f2.com/api/game`。三个变量均需显式配置，目录 URL 必须以 `/` 结尾。地图列表按旧站规则解析 `IGC_MapList.xml`，HTTPS 来源的解析结果缓存 60 秒；本地文件不缓存。
+公开的 `/game` 与 `/items` 页面使用三个独立地址：`GAME_API_URL` 仅供 Next.js 服务端执行命令，`GAME_WEBSOCKET_URL` 传给浏览器连接实时地图，`GAME_CONFIG_URL` 仅供 Next.js 服务端读取配置目录。本地在 `.env.local` 设置 `GAME_CONFIG_URL=file:///home/pi/balgass/config/server-game-common/IGCData/`，直接读取 XML；生产设置 `GAME_CONFIG_URL=https://game.r2f2.com/config/`、`GAME_WEBSOCKET_URL=wss://game.r2f2.com/api/game`。三个变量均需显式配置，目录 URL 必须以 `/` 结尾。地图与道具配置的 HTTPS 解析结果缓存 60 秒；本地文件不缓存。
 
 Caddy 容器将 VPS 的 `IGCData` 目录只读挂载到 `/srv/game-config`，例如使用 `-v ~/balgass/config/server-game-common/IGCData:/srv/game-config:ro`。在现有 `game.r2f2.com` 站点中增加以下路由；`/config/` 只放行列出的文件，不要对整个目录启用 `file_server`：
 
 ```caddyfile
-handle /config/IGC_MapList.xml {
+@gameConfigFiles {
+    path /config/IGC_MapList.xml
+    path /config/Skills/IGC_SkillList.xml
+    path /config/Items/IGC_ItemList.xml
+    path /config/Items/IGC_ItemSetType.xml
+    path /config/Items/IGC_ItemSetOption.xml
+}
+handle @gameConfigFiles {
     basic_auth {
         nextjs <caddy hash-password 生成的哈希>
     }
@@ -65,7 +72,9 @@ handle /api/command {
 }
 ```
 
-将示例中的 `server-game:8080` 换为 Caddy 容器实际可访问的游戏服务地址。在 Vercel 设置仅服务端使用的 `GAME_CONFIG_BASIC_AUTH_USER=nextjs` 和 `GAME_CONFIG_BASIC_AUTH_PASSWORD`（哈希前的原密码）。这组只读凭据不要复用有命令权限的 `GAME_API_TOKEN`，也不要加 `NEXT_PUBLIC_`。浏览器不能携带这组凭据，且当前游戏服务的 `/api/game` 是公开实时地图接口，因此它不能套用配置文件的 Basic Auth。以后道具页面可复用同一读取服务，再单独放行旧站使用的四个道具/技能 XML 文件；此时不要提前开放整个目录。
+将示例中的 `server-game:8080` 换为 Caddy 容器实际可访问的游戏服务地址。现有 `docker/caddy-fail2ban/Caddyfile` 已预留四条注释的道具/技能路径；商城上线前应启用这四条精确路径并重新加载 Caddy，其他 `/config/` 路径仍返回 404。在 Vercel 设置仅服务端使用的 `GAME_CONFIG_BASIC_AUTH_USER=nextjs` 和 `GAME_CONFIG_BASIC_AUTH_PASSWORD`（哈希前的原密码）。这组只读凭据不要复用有命令权限的 `GAME_API_TOKEN`，也不要加 `NEXT_PUBLIC_`。浏览器不能携带这组凭据，且当前游戏服务的 `/api/game` 是公开实时地图接口，因此它不能套用配置文件的 Basic Auth。
+
+`/items` 和 `GET /api/v1/items?kind=sword` 公开展示道具；`/orders`、`GET /api/v1/orders` 与 `POST /api/v1/orders` 使用网站登录身份。所有单件道具可选等级及追加，只有配置允许卓越属性的道具可选卓越属性；套装仅展示。提交只创建待处理订单，不付款也不自动发货。道具、技能、套装与订单名称按语言显示：英文使用 XML 的 `Name`，中文使用 `annotation`（技能为 `anotation`），西班牙语暂用英文。浏览器 API 使用 `r2f2-locale` Cookie，App API 使用 `Accept-Language`，缺省为英文。首次部署订单功能前执行 `20261008000100_create_item_orders.sql`，否则订单 API 返回暂不可用。
 
 OpenAPI 文档：[/openapi.json](./public/openapi.json)。所有 JSON API 位于 `/api/v1/`；响应为 `{data: ...}` 或 `{error: {code,message,...}}`。
 

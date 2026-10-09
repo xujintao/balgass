@@ -1,2 +1,2 @@
 import { defineConfig } from 'vitest/config';
-export default defineConfig({ test: { include: ['tests/database.test.js'] } });
+export default defineConfig({ test: { include: ['tests/database.test.js', 'tests/order-database.test.js'] } });

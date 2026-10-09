@@ -17,6 +17,9 @@ import {
 import { me, changeNickname } from './profile';
 import { passkeyRequest } from './passkeys';
 import { createGameAccount, listGameAccounts } from './game-accounts';
+import { listItems, parseItemKind } from './item-catalog';
+import { createOrder, listOrders } from './item-orders';
+import { itemLocaleFromRequest } from './item-locale';
 import {
   otpSend,
   otpVerify,
@@ -28,7 +31,7 @@ import {
 } from './validation';
 export const responseHeaders = {
   'Cache-Control': 'private, no-store',
-  Vary: 'Cookie, Authorization, X-Client-Type',
+  Vary: 'Cookie, Authorization, X-Client-Type, Accept-Language',
 };
 const routes: Record<string, string[]> = {
   'auth/otp/send': ['POST'],
@@ -43,6 +46,8 @@ const routes: Record<string, string[]> = {
   me: ['GET'],
   'me/nickname': ['PATCH'],
   'game/accounts': ['GET', 'POST'],
+  items: ['GET'],
+  orders: ['GET', 'POST'],
 };
 async function body(request: Request) {
   if (
@@ -208,7 +213,13 @@ export async function dispatch(request: Request, path: string) {
     }
     return { signedOut: true };
   }
+  if (path === 'items' && method === 'GET') {
+    const kind = new URL(request.url).searchParams.get('kind') ?? 'sword';
+    return listItems(parseItemKind(kind), itemLocaleFromRequest(request));
+  }
   const ctx = await context(request);
+  if (path === 'orders' && method === 'GET') return listOrders(ctx, itemLocaleFromRequest(request));
+  if (path === 'orders' && method === 'POST') return createOrder(ctx, await body(request), itemLocaleFromRequest(request));
   if (path === 'game/accounts' && method === 'GET') return listGameAccounts(ctx);
   if (path === 'game/accounts' && method === 'POST')
     return createGameAccount(ctx, await body(request));

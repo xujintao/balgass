@@ -5,6 +5,7 @@ import { AccountNav } from '@/components/account-nav';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { LocaleProvider } from '@/components/locale-provider';
 import { siteDictionary, siteLocale } from '@/lib/i18n-server';
+import { itemDictionaries } from '@/lib/item-i18n';
 import './globals.css';
 export async function generateMetadata(): Promise<Metadata> {
   const t = await siteDictionary();
@@ -31,6 +32,7 @@ export default async function RootLayout({
               </Link>
               <nav className="site-nav" aria-label={t.primaryNavigation}>
                 <Link href="/game">{t.gameMap}</Link>
+                <Link href="/items">{itemDictionaries[locale].items}</Link>
               </nav>
             </div>
             <div className="header-actions">

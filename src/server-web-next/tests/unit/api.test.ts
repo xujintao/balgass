@@ -1,4 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('server-only', () => ({}));
+vi.mock('../../src/lib/item-orders', () => ({
+  createOrder: vi.fn().mockResolvedValue({ id: 'order-1', status: 'PENDING' }),
+  listOrders: vi.fn().mockResolvedValue([]),
+}));
 const mock = vi.hoisted(() => ({
   jar: new Map<string, string>(),
   user: {
@@ -47,6 +52,7 @@ vi.mock('../../src/lib/profile', () => ({
   changeNickname: vi.fn(),
 }));
 import { handle } from '../../src/lib/api';
+import { createOrder, listOrders } from '../../src/lib/item-orders';
 import { context, ACCESS_COOKIE, REFRESH_COOKIE } from '../../src/lib/session';
 const session = {
   access_token: 'access',
@@ -81,6 +87,39 @@ beforeEach(() => {
   mock.refresh.mockResolvedValue({ data: { session }, error: null });
   mock.getUser.mockResolvedValue({ data: { user: mock.user }, error: null });
   mock.signOut.mockResolvedValue({ error: null });
+});
+describe('道具商城 API', () => {
+  it('公开目录无需会话，分类无效返回 400', async () => {
+    process.env.GAME_CONFIG_URL = new URL('../../../../config/server-game-common/IGCData/', import.meta.url).href;
+    const response = await handle(new Request('http://localhost:3000/api/v1/items?kind=sword'), 'items');
+    expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json.data.kind).toBe('sword');
+    expect(json.data.items.length).toBeGreaterThan(0);
+    expect(json.data.items.find((item: { section: number; index: number }) => item.section === 0 && item.index === 1).name).toBe('Short Sword');
+    const zh = await handle(new Request('http://localhost:3000/api/v1/items?kind=sword', { headers: { Cookie: 'r2f2-locale=zh-CN' } }), 'items');
+    expect((await zh.json()).data.items.find((item: { section: number; index: number }) => item.section === 0 && item.index === 1).name).toBe('短剑');
+    const es = await handle(new Request('http://localhost:3000/api/v1/items?kind=sword', { headers: { 'X-Client-Type': 'app', 'Accept-Language': 'es-MX,zh-CN;q=0.5' } }), 'items');
+    expect((await es.json()).data.items.find((item: { section: number; index: number }) => item.section === 0 && item.index === 1).name).toBe('Short Sword');
+    const invalid = await handle(new Request('http://localhost:3000/api/v1/items?kind=unknown'), 'items');
+    expect(invalid.status).toBe(400);
+    delete process.env.GAME_CONFIG_URL;
+  });
+  it('订单列表和创建要求身份，创建使用已验证的用户上下文', async () => {
+    const list = await handle(new Request('http://localhost:3000/api/v1/orders'), 'orders');
+    expect(list.status).toBe(401);
+    expect(vi.mocked(listOrders)).not.toHaveBeenCalled();
+    const input = { section: 0, index: 1, level: 15, excellent: [], additional: 16 };
+    const unauthenticated = await handle(request('orders', input), 'orders');
+    expect(unauthenticated.status).toBe(401);
+    mock.jar.set(ACCESS_COOKIE, 'access');
+    const created = await handle(request('orders', input), 'orders');
+    expect(created.status).toBe(200);
+    expect(vi.mocked(createOrder)).toHaveBeenCalledWith(expect.objectContaining({ user: mock.user }), input, 'en');
+    const own = await handle(new Request('http://localhost:3000/api/v1/orders'), 'orders');
+    expect(own.status).toBe(200);
+    expect(vi.mocked(listOrders)).toHaveBeenCalledWith(expect.anything(), 'en');
+  });
 });
 describe('认证 API', () => {
   it('使用 r2f2 会话 Cookie 名且不读取旧名称', async () => {

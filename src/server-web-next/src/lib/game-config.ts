@@ -6,6 +6,12 @@ import { XMLParser, XMLValidator } from 'fast-xml-parser';
 
 const MAX_CONFIG_BYTES = 2 * 1024 * 1024;
 const mapListFile = 'IGC_MapList.xml';
+export type GameConfigFile =
+  | typeof mapListFile
+  | 'Skills/IGC_SkillList.xml'
+  | 'Items/IGC_ItemList.xml'
+  | 'Items/IGC_ItemSetType.xml'
+  | 'Items/IGC_ItemSetOption.xml';
 
 export function parseGameMapNames(xml: string): string[] {
   if (XMLValidator.validate(xml) !== true || /<!DOCTYPE/i.test(xml)) {
@@ -55,7 +61,7 @@ function configUrl(): URL {
   return url;
 }
 
-async function readGameConfig(base: URL, filename: typeof mapListFile): Promise<string> {
+async function readGameConfig(base: URL, filename: GameConfigFile): Promise<string> {
   const url = new URL(filename, base);
   let xml: string;
   if (base.protocol === 'file:') {
@@ -81,6 +87,10 @@ async function readGameConfig(base: URL, filename: typeof mapListFile): Promise<
     xml = new TextDecoder().decode(contents);
   }
   return xml;
+}
+
+export async function readGameConfigFile(filename: GameConfigFile): Promise<string> {
+  return readGameConfig(configUrl(), filename);
 }
 
 async function loadGameMapNames(baseUrl: string): Promise<string[]> {

@@ -3,9 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { api } from './client-api';
 import { useDictionary } from './locale-provider';
+import { useLocale } from './locale-provider';
+import { itemDictionaries } from '@/lib/item-i18n';
 
 export function AccountMenu({ nickname }: { nickname: string }) {
   const t = useDictionary();
+  const shop = itemDictionaries[useLocale()];
   const root = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -77,6 +80,9 @@ export function AccountMenu({ nickname }: { nickname: string }) {
             </Link>
             <Link href="/game/accounts" onClick={() => setOpen(false)}>
               {t.gameAccounts}
+            </Link>
+            <Link href="/orders" onClick={() => setOpen(false)}>
+              {shop.orders}
             </Link>
             <button type="button" onClick={logout} disabled={busy}>
               {t.logout}

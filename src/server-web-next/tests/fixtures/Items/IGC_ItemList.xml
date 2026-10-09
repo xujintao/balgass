@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ItemList>
+  <Section Index="0"><Item Index="1" Type="0" Name="Test Sword" annotation="测试剑" SkillIndex="1" KindB="1" TwoHand="1" Option="1" DropLevel="10" DamageMin="10" DamageMax="20" AttackSpeed="30" ReqStrength="20" /></Section>
+  <Section Index="13"><Item Index="2" Type="0" Name="Test Ring" annotation="测试戒指" SkillIndex="0" KindB="31" TwoHand="0" Option="0" DropLevel="5" /></Section>
+</ItemList>

@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "r2f2 Account API",
+    "title": "r2f2 Website API",
     "version": "1.0.0",
-    "description": "Browser uses HttpOnly cookies; App uses Supabase Bearer access token. All responses are private/no-store. Email is the login identifier; nicknames are display names only."
+    "description": "Browser uses HttpOnly cookies; App uses Supabase Bearer access token. All responses are private/no-store. Email is the login identifier; nicknames are display names only. Item, skill, set and order names use the browser r2f2-locale cookie or the App Accept-Language header. English and Chinese are sourced from game XML; Spanish falls back to English. The default is English."
   },
   "servers": [
     {
@@ -11,6 +11,51 @@
     }
   ],
   "paths": {
+    "/items": {
+      "get": {
+        "summary": "List public game items or sets in one category",
+        "operationId": "get_items",
+        "description": "The name, skill and set member names are localized to the selected language. The response varies by Cookie or Accept-Language.",
+        "security": [],
+        "parameters": [{ "in": "query", "name": "kind", "description": "Defaults to sword", "schema": { "type": "string", "enum": ["sword", "claw", "axe", "mace", "scepter", "spear", "bow", "crossbow", "staff", "stick", "book", "shield", "helmet", "armor", "pants", "gloves", "boots", "wing", "pendant", "ring", "set"] } }, { "in": "header", "name": "Accept-Language", "description": "App clients: en, zh-CN, or es. Browser clients use r2f2-locale Cookie instead.", "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Catalog category", "content": { "application/json": { "schema": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["kind", "items"], "properties": { "kind": { "type": "string" }, "items": { "type": "array", "items": { "oneOf": [{ "$ref": "#/components/schemas/CatalogItem" }, { "$ref": "#/components/schemas/CatalogSet" }] } } } } } } } } },
+          "400": { "description": "INVALID_INPUT" },
+          "503": { "description": "ITEM_CATALOG_UNAVAILABLE" }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "List the authenticated player's orders, newest first",
+        "operationId": "get_orders",
+        "description": "Item names follow the browser locale cookie or App Accept-Language. Legacy orders fall back to their original name snapshot if the current catalog is unavailable or the item no longer exists.",
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [{ "in": "header", "name": "Accept-Language", "description": "App clients: en, zh-CN, or es. Browser clients use r2f2-locale Cookie instead.", "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Own orders", "content": { "application/json": { "schema": { "type": "object", "required": ["data"], "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/ItemOrder" } } } } } } },
+          "401": { "description": "UNAUTHENTICATED" },
+          "403": { "description": "EMAIL_UNVERIFIED" },
+          "503": { "description": "ORDERS_UNAVAILABLE" }
+        }
+      },
+      "post": {
+        "summary": "Create one pending item order; no payment or delivery is performed",
+        "operationId": "post_orders",
+        "description": "Browser writes require Origin equal to APP_ORIGIN. App writes require X-Client-Type: app and a Bearer token. The response name follows the browser locale cookie or App Accept-Language. English and Chinese name snapshots and the owner are derived on the server. Excellent options are only allowed when the game item permits them.",
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [{ "in": "header", "name": "Accept-Language", "description": "App clients: en, zh-CN, or es. Browser clients use r2f2-locale Cookie instead.", "schema": { "type": "string" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateItemOrder" } } } },
+        "responses": {
+          "200": { "description": "Pending order created", "content": { "application/json": { "schema": { "type": "object", "required": ["data"], "properties": { "data": { "$ref": "#/components/schemas/ItemOrder" } } } } } },
+          "400": { "description": "INVALID_INPUT" },
+          "401": { "description": "UNAUTHENTICATED" },
+          "403": { "description": "INVALID_ORIGIN / EMAIL_UNVERIFIED" },
+          "404": { "description": "ITEM_NOT_FOUND" },
+          "503": { "description": "ITEM_CATALOG_UNAVAILABLE / ORDERS_UNAVAILABLE" }
+        }
+      }
+    },
     "/game/accounts": {
       "get": {
         "summary": "List the authenticated player's game accounts",
@@ -2171,6 +2216,61 @@
   },
   "components": {
     "schemas": {
+      "ItemDetail": {
+        "type": "object",
+        "required": ["level", "damage", "excellentDamage", "magicPower", "excellentMagicPower", "defense", "excellentDefense", "defenseRate", "excellentDefenseRate", "requiredStrength", "requiredDexterity", "excellentRequiredStrength", "excellentRequiredDexterity"],
+        "properties": {
+          "level": { "type": "integer", "minimum": 0, "maximum": 15 },
+          "damage": { "type": "string" }, "excellentDamage": { "type": "string" },
+          "magicPower": { "type": "string" }, "excellentMagicPower": { "type": "string" },
+          "defense": { "type": "integer" }, "excellentDefense": { "type": "integer" },
+          "defenseRate": { "type": "integer" }, "excellentDefenseRate": { "type": "integer" },
+          "requiredStrength": { "oneOf": [{ "type": "integer" }, { "const": "-" }] },
+          "requiredDexterity": { "oneOf": [{ "type": "integer" }, { "const": "-" }] },
+          "excellentRequiredStrength": { "oneOf": [{ "type": "integer" }, { "const": "-" }] },
+          "excellentRequiredDexterity": { "oneOf": [{ "type": "integer" }, { "const": "-" }] }
+        }
+      },
+      "CatalogItem": {
+        "type": "object",
+        "required": ["section", "index", "kind", "name", "skill", "twoHand", "excellent", "dropLevel", "attackSpeed", "moveSpeed", "defense", "defenseRate", "detail"],
+        "properties": {
+          "section": { "type": "integer" }, "index": { "type": "integer" }, "kind": { "type": "string" },
+          "name": { "type": "string" }, "skill": { "type": "string" }, "twoHand": { "type": "boolean" },
+          "excellent": { "type": "boolean" }, "dropLevel": { "type": "integer" },
+          "attackSpeed": { "type": "integer" }, "moveSpeed": { "type": "integer" },
+          "defense": { "type": "integer" }, "defenseRate": { "type": "integer" },
+          "wingKind": { "type": "string" }, "pendantAttack": { "type": "boolean" }, "pendantMagicAttack": { "type": "boolean" },
+          "detail": { "type": "array", "minItems": 16, "maxItems": 16, "items": { "$ref": "#/components/schemas/ItemDetail" } }
+        }
+      },
+      "CatalogSet": {
+        "type": "object", "required": ["index", "name", "items"],
+        "properties": { "index": { "type": "integer" }, "name": { "type": "string" }, "items": { "type": "array", "items": { "type": "string" } } }
+      },
+      "CreateItemOrder": {
+        "type": "object", "additionalProperties": false,
+        "required": ["section", "index", "level", "excellent", "additional"],
+        "properties": {
+          "section": { "type": "integer", "minimum": 0 }, "index": { "type": "integer", "minimum": 0 },
+          "level": { "type": "integer", "minimum": 0, "maximum": 15 },
+          "excellent": { "type": "array", "uniqueItems": true, "maxItems": 6, "items": { "enum": ["excellent_attack_rate", "excellent_attack_level", "excellent_attack_percent", "excellent_attack_speed", "excellent_attack_hp", "excellent_attack_mp"] } },
+          "additional": { "enum": [0, 4, 8, 12, 16] }
+        }
+      },
+      "ItemOrder": {
+        "type": "object", "required": ["id", "status", "createdAt", "updatedAt", "item"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "status": { "enum": ["PENDING", "PAID", "SHIPPING", "SHIPPED", "COMPLETED", "CANCELLED"] },
+          "createdAt": { "type": "string", "format": "date-time" }, "updatedAt": { "type": "string", "format": "date-time" },
+          "item": { "type": "object", "required": ["section", "index", "name", "level", "excellent", "additional", "quantity"], "properties": {
+            "section": { "type": "integer" }, "index": { "type": "integer" }, "name": { "type": "string" },
+            "level": { "type": "integer" }, "excellent": { "type": "array", "items": { "type": "string" } },
+            "additional": { "type": "integer" }, "quantity": { "const": 1 }
+          } }
+        }
+      },
       "GameAccount": {
         "type": "object",
         "required": ["name", "characters"],
