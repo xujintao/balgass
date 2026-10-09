@@ -18,11 +18,3 @@ jobs:
       server_name: "server-game"
       tag: ${{ github.ref_name }}
     secrets: inherit
-
-  build-server-web:
-    needs: build-server-game
-    uses: ./.github/workflows/build-deploy.yml
-    with:
-      server_name: "server-web"
-      tag: ${{ github.ref_name }}
-    secrets: inherit

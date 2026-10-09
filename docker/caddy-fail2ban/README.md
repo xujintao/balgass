@@ -1,6 +1,6 @@
 # Caddy + Fail2ban
 
-This replaces the VPS Nginx entry point. It uses Docker's existing default
+This is the VPS entry point. It uses Docker's existing default
 bridge and the existing published backend ports. It does not change host
 iptables rules or create a Docker network.
 
@@ -31,8 +31,7 @@ iptables rules or create a Docker network.
 ## Build and run
 
 From this directory, run `./start.sh`. It builds the image, validates the
-Caddyfile, and starts the container. Stop the old Nginx container before the
-final start because both bind 80/443. The persistent `data/`, `config/`, and
+Caddyfile, and starts the container. The persistent `data/`, `config/`, and
 `logs/` directories are gitignored. Back up `data/` to preserve Caddy's ACME
 account and certificates.
 
@@ -46,7 +45,7 @@ read-only mount, and `/config` prefix removal; other files still return 404.
 The old items page also used `Skills/IGC_SkillList.xml`,
 `Items/IGC_ItemList.xml`, `Items/IGC_ItemSetType.xml`, and
 `Items/IGC_ItemSetOption.xml`; add them only when the new site needs them.
-The patch files are kept in `patch/`, independent of the old Nginx directory.
+The patch files are kept in `patch/`.
 
 Grafana must be restarted with its updated `ROOT_URL` in `grafana/start.sh`.
 Restart Promtail with its updated bind mount and Loki host-gateway address.

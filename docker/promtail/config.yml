@@ -31,42 +31,13 @@ scrape_configs:
           job: caddy
           log_type: caddy-patch-https
           __path__: /var/log/caddy-fail2ban/patch-https.log
-  - job_name: nginx
-    static_configs:
-      - targets: ["localhost"]
-        labels:
-          job: nginx
-          log_type: nginx-access
-          __path__: /var/log/nginx-fail2ban/access.log*
-      - targets: ["localhost"]
-        labels:
-          job: nginx
-          log_type: nginx-error
-          __path__: /var/log/nginx-fail2ban/error.log*
-      - targets: ["localhost"]
-        labels:
-          job: nginx
-          log_type: nginx-fail2ban
-          __path__: /var/log/nginx-fail2ban/fail2ban.log*
-  - job_name: mail
-    static_configs:
-      - targets: ["localhost"]
-        labels:
-          job: mail
-          log_type: mail-mail
-          __path__: /var/log/mail/mail.log*
-      - targets: ["localhost"]
-        labels:
-          job: mail
-          log_type: mail-fail2ban
-          __path__: /var/log/mail/fail2ban.log*
   - job_name: docker
     docker_sd_configs:
       - host: "unix:///var/run/docker.sock"
         refresh_interval: 5s
     relabel_configs:
       - source_labels: [__meta_docker_container_name]
-        regex: "/(pgsql|server-web|server-game|server-connect)"
+        regex: "/(pgsql|server-game|server-connect)"
         action: keep
       - source_labels: [__meta_docker_container_name]
         regex: "/(.*)"
