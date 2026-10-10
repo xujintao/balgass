@@ -42,7 +42,7 @@ func (m *manager) init() {
 
 ```bash
 set -a
-. "${HOME}/balgass/config/server-game/.env"
+. "${HOME}/balgass/docker/server-game/.env"
 set +a
 ```
 
@@ -50,7 +50,7 @@ set +a
 
 ```bash
 set -a
-. "${HOME}/balgass/config/server-game/.env"
+. "${HOME}/balgass/docker/server-game/.env"
 set +a
 <test command> > /tmp/server-game-test.log 2>&1
 tail -n 120 /tmp/server-game-test.log

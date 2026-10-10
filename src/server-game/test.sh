@@ -1,8 +1,9 @@
 #!/bin/sh
 
 set -e
+REPO_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 set -a
-. "${HOME}/balgass/config/server-game/.env"
+. "$REPO_DIR/docker/server-game/.env"
 set +a
 
 # Add each completed system's stable tests here.

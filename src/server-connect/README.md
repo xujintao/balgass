@@ -18,7 +18,7 @@
             "mode": "auto",
             // "program": "${fileDirname}",
             "program": "${workspaceFolder}",
-            "envFile": "${workspaceFolder}/../../config/server-connect/.env",
+            "envFile": "${workspaceFolder}/../../docker/server-connect/.env",
         }
     ]
 }

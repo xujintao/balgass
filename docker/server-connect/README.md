@@ -14,8 +14,16 @@ docker build \
 .
 ```
 
-2 Run image
+2 Copy the environment example to the config directory:
 
 ```
-./start.sh
+cp docker/server-connect/.env.example docker/server-connect/.env
+```
+
+On the VPS, keep the example's `/etc/server-connect` path in `.env`. For local Go runs, set `PATH_CONFIG` in your local copy of `.env` to the absolute path of `docker/server-connect`. Docker mounts that directory at `/etc/server-connect` and passes the VPS `.env` to the container without overriding its variables.
+
+3 Run image from any directory:
+
+```
+./docker/server-connect/start.sh
 ```

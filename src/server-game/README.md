@@ -22,7 +22,7 @@
             "mode": "auto",
             // "program": "${fileDirname}",
             "program": "${workspaceFolder}",
-            "envFile": "${workspaceFolder}/../../config/server-game/.env",
+            "envFile": "${workspaceFolder}/../../docker/server-game/.env",
         }
     ]
 }
