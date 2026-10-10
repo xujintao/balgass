@@ -49,7 +49,8 @@ The patch files are kept in `patch/`.
 
 Grafana must be restarted with its updated `GF_SERVER_ROOT_URL` in
 `grafana/.env`.
-Restart Promtail with its updated bind mount and Loki host-gateway address.
+Alloy reads Caddy and Fail2ban logs through a read-only mount of `logs/` and
+sends them to Loki through the Docker host gateway.
 No Docker network or host firewall change is needed.
 
 ## Checks on the VPS

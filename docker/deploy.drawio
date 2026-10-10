@@ -67,7 +67,7 @@
         <mxCell id="uoEjIi_UU5YOOnu76TaS-18" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" value="bin" vertex="1">
           <mxGeometry height="30" width="40" x="120" y="240" as="geometry" />
         </mxCell>
-        <mxCell id="S5ZqY4bmx3xec0Xrlnqr-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" value="promtail" vertex="1">
+        <mxCell id="S5ZqY4bmx3xec0Xrlnqr-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" value="alloy" vertex="1">
           <mxGeometry height="40" width="80" x="900" y="400" as="geometry" />
         </mxCell>
         <mxCell id="FI8rm9tqrrIOo9lU3sBf-39" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" value="Supabase" vertex="1">
@@ -100,7 +100,7 @@
         <mxCell id="FI8rm9tqrrIOo9lU3sBf-49" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" value="loki" vertex="1">
           <mxGeometry height="40" width="80" x="900" y="620" as="geometry" />
         </mxCell>
-        <mxCell id="FI8rm9tqrrIOo9lU3sBf-50" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" value="promtail" vertex="1">
+        <mxCell id="FI8rm9tqrrIOo9lU3sBf-50" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=14;" value="alloy" vertex="1">
           <mxGeometry height="40" width="80" x="900" y="660" as="geometry" />
         </mxCell>
         <mxCell id="FI8rm9tqrrIOo9lU3sBf-51" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" value="game" vertex="1">

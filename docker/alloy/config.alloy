@@ -1,0 +1,50 @@
+loki.write "local" {
+  endpoint {
+    url = "http://host.docker.internal:3100/loki/api/v1/push"
+  }
+}
+
+loki.source.file "caddy" {
+  targets = [
+    { __path__ = "/var/log/caddy-fail2ban/access.log", job = "caddy", log_type = "caddy-access" },
+    { __path__ = "/var/log/caddy-fail2ban/fail2ban.log", job = "caddy", log_type = "caddy-fail2ban" },
+    { __path__ = "/var/log/caddy-fail2ban/patch-http.log", job = "caddy", log_type = "caddy-patch-http" },
+    { __path__ = "/var/log/caddy-fail2ban/patch-https.log", job = "caddy", log_type = "caddy-patch-https" },
+  ]
+  tail_from_end = true
+  forward_to    = [loki.write.local.receiver]
+}
+
+discovery.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+}
+
+discovery.relabel "selected_containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(pgsql|server-game|server-connect)"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    replacement   = "$1"
+    target_label  = "container_name"
+  }
+
+  rule {
+    replacement  = "docker"
+    target_label = "job"
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.selected_containers.output
+  labels     = {}
+  forward_to = [loki.write.local.receiver]
+}
