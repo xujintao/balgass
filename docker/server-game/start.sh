@@ -9,6 +9,7 @@ ENV_FILE=~/balgass/config/server-game/.env
 docker run -d \
 --name server-game \
 --restart always \
+--add-host host.docker.internal:host-gateway \
 -v $CONFIG_PATH:/etc/server-game \
 -v $COMMON_PATH:/etc/server-game-common \
 -e TZ=UTC \
