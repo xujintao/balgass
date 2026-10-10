@@ -11,6 +11,8 @@ for key in GF_SECURITY_ADMIN_USER GF_SECURITY_ADMIN_PASSWORD GF_SERVER_ROOT_URL;
     fi
 done
 
+docker volume create grafana_data
+
 docker run \
     --restart always \
     -d \
@@ -18,6 +20,6 @@ docker run \
     --user root \
     -e LANG=C.UTF-8 \
     --env-file "$ENV_FILE" \
-    -v "$GRAFANA_DIR/data:/var/lib/grafana" \
+    -v grafana_data:/var/lib/grafana \
     -p 3000:3000 \
     grafana/grafana:12.0.1
