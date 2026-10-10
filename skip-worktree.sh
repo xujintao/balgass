@@ -12,8 +12,6 @@ files=(
   "config/server-game-common/Data/CommonServer.cfg"
   "config/server-game-common/IGCData/IGC_ExpSystem.xml"
   "config/server-game/.env"
-  "docker/pgadmin/start.sh"
-  "docker/pgsql/start.sh"
   "src/c1c2/tcp.go"
 )
 

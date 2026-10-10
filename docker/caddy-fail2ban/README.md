@@ -47,7 +47,8 @@ The old items page also used `Skills/IGC_SkillList.xml`,
 `Items/IGC_ItemSetOption.xml`; add them only when the new site needs them.
 The patch files are kept in `patch/`.
 
-Grafana must be restarted with its updated `ROOT_URL` in `grafana/start.sh`.
+Grafana must be restarted with its updated `GF_SERVER_ROOT_URL` in
+`grafana/.env`.
 Restart Promtail with its updated bind mount and Loki host-gateway address.
 No Docker network or host firewall change is needed.
 

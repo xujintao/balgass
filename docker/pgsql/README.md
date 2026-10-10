@@ -1,15 +1,10 @@
-## 1, Parameter
+# PostgreSQL
 
-| item       | example                         |
-| :--------- | :------------------------------ |
-| USER       | root                            |
-| PASSWORD   | 1234                            |
-| DEFAULT_DB | django                          |
-| PGSQL_DATA | ~/balgass/docker/pgsql/data     |
-| PGSQL_INIT | ~/balgass/docker/pgsql/initdb.d |
+Copy `.env.example` to `.env`, then set a strong `POSTGRES_PASSWORD`. The
+`.env` file is gitignored. For an existing database volume, keep
+`POSTGRES_USER`, `POSTGRES_DB`, and the password consistent with the database
+already initialized there. Changing these variables does not change existing
+database users or passwords.
 
-## 2, Start
-
-```
-./start.sh
-```
+Run `./start.sh` from this directory. The `pgsql_data` Docker volume holds
+persistent data.

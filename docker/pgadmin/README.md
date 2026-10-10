@@ -1,13 +1,9 @@
-## 1, Parameter
+# pgAdmin
 
-| item         | example                       |
-| :----------- | :---------------------------- |
-| EMAIL        | xujintao@126.com              |
-| PASSWORD     | 1234                          |
-| PGADMIN_DATA | ~/balgass/docker/pgadmin/data |
+Copy `.env.example` to `.env`, then set `PGADMIN_DEFAULT_EMAIL` and a strong
+`PGADMIN_DEFAULT_PASSWORD`. The `.env` file is gitignored. Keep
+`PGADMIN_LISTEN_PORT=8084` because `start.sh` publishes port 8084.
 
-## 2, Start
-
-```
-./start.sh
-```
+Run `./start.sh` from this directory. The `pgadmin_data` Docker volume holds
+persistent data. For an existing volume, changing the default login values in
+`.env` does not reset an already created account.

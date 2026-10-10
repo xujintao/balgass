@@ -1,22 +1,23 @@
-ADMIN_USER=admin
-ADMIN_PASSWORD=1234
-ROOT_URL=https://game.r2f2.com/grafana/
-SERVE_FROM_SUB_PATH=true
-DOCKER_DIR=~/balgass/docker
-GRAFANA_DIR=$DOCKER_DIR/grafana
-GRAFANA_DATA=$GRAFANA_DIR/data
+#!/bin/bash
+set -euo pipefail
+
+GRAFANA_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+ENV_FILE="$GRAFANA_DIR/.env"
+
+for key in GF_SECURITY_ADMIN_USER GF_SECURITY_ADMIN_PASSWORD GF_SERVER_ROOT_URL; do
+    if [[ ! -f "$ENV_FILE" ]] || ! grep -Eq "^${key}=.+$" "$ENV_FILE"; then
+        echo "Set $key in $ENV_FILE before starting Grafana." >&2
+        exit 1
+    fi
+done
 
 docker run \
---restart always \
--d \
---name grafana \
---user root \
--e LANG=C.UTF-8 \
--e TZ=UTC \
--e GF_SECURITY_ADMIN_USER=$ADMIN_USER \
--e GF_SECURITY_ADMIN_PASSWORD=$ADMIN_PASSWORD \
--e GF_SERVER_ROOT_URL=$ROOT_URL \
--e GF_SERVER_SERVE_FROM_SUB_PATH=$SERVE_FROM_SUB_PATH \
--v $GRAFANA_DATA:/var/lib/grafana \
--p 3000:3000 \
-grafana/grafana:12.0.1
+    --restart always \
+    -d \
+    --name grafana \
+    --user root \
+    -e LANG=C.UTF-8 \
+    --env-file "$ENV_FILE" \
+    -v "$GRAFANA_DIR/data:/var/lib/grafana" \
+    -p 3000:3000 \
+    grafana/grafana:12.0.1

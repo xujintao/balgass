@@ -2,6 +2,16 @@
 
 <img src="deploy.drawio.svg">
 
+## Container environment files
+
+Before starting Grafana, Loki, pgAdmin, PostgreSQL, or Promtail, copy its
+`docker/<container>/.env.example` to `.env` in the same directory. Fill the
+blank credentials in the Grafana, pgAdmin, and PostgreSQL files with your
+existing credentials for persistent installations, or new strong credentials
+for new installations. The `.env` files are gitignored and read by each
+container's `start.sh`. Loki and Promtail only need the copied timezone file;
+Promtail's log collection settings remain in `promtail/config.yml`.
+
 ## ~~Use UFW~~
 
 ### 1. iptables
