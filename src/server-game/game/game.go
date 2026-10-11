@@ -69,6 +69,10 @@ func (g *game) Start() {
 			select {
 			case serverRegister := <-g.serverRegisterChan:
 				serverRegister.Code = conf.Server.Code
+				serverRegister.IP = conf.Server.IP
+				serverRegister.Port = conf.Server.Port
+				serverRegister.Visible = conf.Server.Visible
+				serverRegister.Name = conf.Server.Name
 				nonPVP := 0
 				if conf.Server.NonPVP {
 					nonPVP = 1
@@ -79,7 +83,7 @@ func (g *game) Start() {
 					slog.Error("serverRegister.Marshal", "err", err, "serverRegister", serverRegister)
 					break
 				}
-				frame := []byte{0xC1, 0x08, 0x01}
+				frame := []byte{0xC1, byte(len(data) + 3), 0x01}
 				frame = append(frame, data...)
 				if _, err := c.Write(frame); err != nil {
 					slog.Error("c.Write", "err", err)

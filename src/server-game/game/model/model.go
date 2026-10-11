@@ -9,6 +9,9 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
@@ -27,9 +30,19 @@ type MsgServerRegister struct {
 	Code    int
 	Percent int
 	Type_   int
+	IP      string
+	Port    int
+	Visible bool
+	Name    string
 }
 
 func (msg *MsgServerRegister) Marshal() ([]byte, error) {
+	ip := net.ParseIP(msg.IP).To4()
+	if msg.Code < 0 || msg.Code > 65535 || msg.Percent < 0 || msg.Percent > 100 || msg.Type_ < 0 || msg.Type_ > 255 ||
+		ip == nil || ip.String() != msg.IP || msg.Port < 1 || msg.Port > 65535 ||
+		len(msg.Name) == 0 || len(msg.Name) > 64 || strings.TrimSpace(msg.Name) == "" || !utf8.ValidString(msg.Name) {
+		return nil, fmt.Errorf("invalid server registration")
+	}
 	var bw bytes.Buffer
 
 	// code
@@ -50,6 +63,19 @@ func (msg *MsgServerRegister) Marshal() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	var address [16]byte
+	copy(address[:], msg.IP)
+	bw.Write(address[:])
+	if err := binary.Write(&bw, binary.LittleEndian, uint16(msg.Port)); err != nil {
+		return nil, err
+	}
+	if msg.Visible {
+		bw.WriteByte(1)
+	} else {
+		bw.WriteByte(0)
+	}
+	bw.WriteByte(byte(len(msg.Name)))
+	bw.WriteString(msg.Name)
 
 	return bw.Bytes(), nil
 }

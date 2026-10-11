@@ -5,23 +5,12 @@ import (
 	"sort"
 	"time"
 
-	"github.com/xujintao/balgass/src/server-connect/conf"
 	"github.com/xujintao/balgass/src/server-connect/service/model"
 )
 
 func init() {
-	ConfigTable = make(configTable)
-	for _, entry := range conf.ServerList {
-		c := &model.ServerConfig{Code: entry.Code, IP: entry.IP, Port: entry.Port, Visible: entry.Visible, Name: entry.Name}
-		ConfigTable[c.Code] = c
-	}
-
 	ServerManager.init()
 }
-
-var ConfigTable configTable
-
-type configTable map[int]*model.ServerConfig
 
 var ServerManager serverManager
 
@@ -50,11 +39,7 @@ func (m *serverManager) RegisterActioner(actioner actioner) {
 
 func (m *serverManager) Register(msg *model.MsgRegister) {
 	if s, ok := m.servers[msg.Code]; !ok {
-		// register
-		config, ok := ConfigTable[msg.Code]
-		if !ok {
-			return
-		}
+		config := &msg.Config
 		t := time.AfterFunc(5*time.Second, func() {
 			m.actioner.ServerAction("Unregister", &model.MsgUnregister{Code: config.Code})
 		})
@@ -70,7 +55,7 @@ func (m *serverManager) Register(msg *model.MsgRegister) {
 			"port", config.Port,
 			"visible", config.Visible)
 	} else {
-		// refresh
+		s.Config = &msg.Config
 		s.State = msg.ServerState
 		s.t.Reset(5 * time.Second)
 	}
@@ -78,6 +63,7 @@ func (m *serverManager) Register(msg *model.MsgRegister) {
 
 func (m *serverManager) Unregister(msg *model.MsgUnregister) {
 	if s, ok := m.servers[msg.Code]; ok {
+		s.t.Stop()
 		delete(m.servers, msg.Code)
 		config := s.Config
 		slog.Info("server offline",

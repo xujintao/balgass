@@ -10,17 +10,11 @@ import (
 
 	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server-connect/service"
-	"github.com/xujintao/balgass/src/server-connect/service/model"
 	"github.com/xujintao/balgass/src/server-connect/service/object"
 	"github.com/xujintao/balgass/src/server-connect/service/server"
 )
 
 func TestMain(m *testing.M) {
-	for code := range server.ConfigTable {
-		delete(server.ConfigTable, code)
-	}
-	server.ConfigTable[0] = &model.ServerConfig{Code: 0, IP: "127.0.0.1", Port: 56900, Visible: true, Name: "Test 0"}
-	server.ConfigTable[1] = &model.ServerConfig{Code: 1, IP: "127.0.0.1", Port: 56901, Visible: true, Name: "Test 1"}
 	service.Service.Start()
 	defer service.Service.Close()
 	ctx, cancel := context.WithCancel(context.Background())
@@ -29,8 +23,8 @@ func TestMain(m *testing.M) {
 		for {
 			select {
 			case <-t1s.C:
-				in1 := []byte{0x01, 0x00, 0x00, 0x00, 0x30, 0x00}
-				in2 := []byte{0x01, 0x00, 0x01, 0x00, 0x40, 0x01}
+				in1 := registration(0, 0x30, 0, "Test 0", 56900)
+				in2 := registration(1, 0x40, 1, "Test 1", 56901)
 				C1C2Handle.HandleUDP(&c1c2.Request{Body: in1}, nil)
 				C1C2Handle.HandleUDP(&c1c2.Request{Body: in2}, nil)
 			case <-ctx.Done():
@@ -62,6 +56,15 @@ func TestMain(m *testing.M) {
 		}
 	}
 	m.Run()
+}
+
+func registration(code int, percent byte, type_ byte, name string, port int) []byte {
+	buf := []byte{0x01, 0x00, byte(code), byte(code >> 8), percent, type_}
+	var ip [16]byte
+	copy(ip[:], "127.0.0.1")
+	buf = append(buf, ip[:]...)
+	buf = append(buf, byte(port), byte(port>>8), 1, byte(len(name)))
+	return append(buf, name...)
 }
 
 type item struct {

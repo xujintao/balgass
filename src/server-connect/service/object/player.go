@@ -109,6 +109,10 @@ func (p *player) GetServerList(msg *model.MsgGetServerList) {
 
 func (p *player) GetServer(msg *model.MsgGetServer) {
 	server := server.ServerManager.GetServer(msg.Code)
+	if server == nil {
+		slog.Warn("server unavailable", "code", msg.Code)
+		return
+	}
 	resp := model.MsgGetServerReply{
 		Server: *server,
 	}

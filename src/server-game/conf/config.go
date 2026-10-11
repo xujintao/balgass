@@ -6,8 +6,11 @@ import (
 	"io"
 	"log"
 	"log/slog"
+	"net"
 	"os"
 	"path"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/ini.v1"
@@ -110,6 +113,15 @@ func JSON(dir, file string, v interface{}) {
 func init() {
 	// Load config from environment variables
 	ENV(&Server)
+	if Server.Code < 0 || Server.Code > 65535 {
+		log.Fatal("SERVER_CODE: must be between 0 and 65535")
+	}
+	if ip := net.ParseIP(Server.IP).To4(); ip == nil || ip.String() != Server.IP {
+		log.Fatal("GAME_SERVER_IP: must be an IPv4 address")
+	}
+	if len(Server.Name) == 0 || len(Server.Name) > 64 || strings.TrimSpace(Server.Name) == "" || !utf8.ValidString(Server.Name) {
+		log.Fatal("NAME: must contain 1 to 64 bytes")
+	}
 	for name, port := range map[string]int{
 		"GAME_SERVER_PORT":    Server.Port,
 		"CONNECT_SERVER_PORT": Server.ConnectServerPort,
@@ -194,16 +206,19 @@ type configServer struct {
 	TraceBotPolicyEnable  bool     `envconfig:"TRACE_BOT_POLICY_ENABLE" default:"false"`
 	TraceBotPolicyFile    string   `envconfig:"TRACE_BOT_POLICY_FILE" default:"/tmp/server-game-bot-policy.jsonl"`
 	Code                  int      `envconfig:"SERVER_CODE" required:"true"`
+	Name                  string   `envconfig:"NAME" required:"true"`
+	Visible               bool     `envconfig:"VISIBLE" required:"true"`
 	NonPVP                bool     `envconfig:"NON_PVP" required:"true"`
-	Port                  int      `envconfig:"GAME_SERVER_PORT" required:"true"`
-	ConnectServerIP       string   `envconfig:"CONNECT_SERVER_IP" required:"true"`
-	ConnectServerPort     int      `envconfig:"CONNECT_SERVER_PORT" required:"true"`
 	MaxPlayerCount        int      `envconfig:"MAX_PLAYER_COUNT" required:"true"`
 	MaxMonsterCount       int      `envconfig:"MAX_MONSTER_COUNT" required:"true"`
 	MaxSummonMonsterCount int      `envconfig:"MAX_SUMMON_MONSTER_COUNT" required:"true"`
 	MaxObjectItemCount    int      `envconfig:"MAX_OBJECT_ITEM_COUNT" required:"true"`
+	IP                    string   `envconfig:"GAME_SERVER_IP" required:"true"`
+	Port                  int      `envconfig:"GAME_SERVER_PORT" required:"true"`
 	HTTPPort              int      `envconfig:"HTTP_PORT" required:"true"`
 	GameAPIToken          string   `envconfig:"GAME_API_TOKEN"`
+	ConnectServerIP       string   `envconfig:"CONNECT_SERVER_IP" required:"true"`
+	ConnectServerPort     int      `envconfig:"CONNECT_SERVER_PORT" required:"true"`
 	DBName                string   `envconfig:"DB_NAME" required:"true"`
 	DBUser                string   `envconfig:"DB_USER" required:"true"`
 	DBPassword            string   `envconfig:"DB_PASSWORD" required:"true"`

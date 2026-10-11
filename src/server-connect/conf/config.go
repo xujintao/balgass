@@ -1,23 +1,16 @@
 package conf
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"log/slog"
 	"os"
-	"strings"
 
 	"github.com/kelseyhightower/envconfig"
 )
 
-var (
-	// ServerEnv env config for server
-	ServerEnv configServerEnv
-
-	ServerList []ServerEntry
-)
+// ServerEnv env config for server
+var ServerEnv configServerEnv
 
 type configServerEnv struct {
 	Debug             bool     `envconfig:"DEBUG" default:"false"`
@@ -31,15 +24,6 @@ type configServerEnv struct {
 	UpdateFTPLogin    string   `envconfig:"UPDATE_FTP_LOGIN" required:"true"`
 	UpdateFTPPassword string   `envconfig:"UPDATE_FTP_PASSWORD" required:"true"`
 	UpdateVersionFile string   `envconfig:"UPDATE_VERSION_FILE" required:"true"`
-	ServerListJSON    string   `envconfig:"SERVER_LIST_JSON" required:"true"`
-}
-
-type ServerEntry struct {
-	Code    int    `json:"code"`
-	IP      string `json:"ip"`
-	Port    int    `json:"port"`
-	Visible bool   `json:"visible"`
-	Name    string `json:"name"`
 }
 
 func init() {
@@ -53,12 +37,6 @@ func init() {
 	}
 	// Configure logger
 	configureLogger()
-	// Parse server list JSON
-	var err error
-	ServerList, err = parseServerList(ServerEnv.ServerListJSON)
-	if err != nil {
-		log.Fatalf("SERVER_LIST_JSON: %v", err)
-	}
 }
 
 func ENV(v any) {
@@ -104,26 +82,4 @@ func configureLogger() {
 			),
 		),
 	)
-}
-
-func parseServerList(raw string) ([]ServerEntry, error) {
-	raw = strings.TrimSpace(raw)
-	if len(raw) >= 2 && raw[0] == '\'' && raw[len(raw)-1] == '\'' {
-		raw = raw[1 : len(raw)-1]
-	}
-	var entries []ServerEntry
-	if err := json.Unmarshal([]byte(raw), &entries); err != nil {
-		return nil, err
-	}
-	if len(entries) == 0 {
-		return nil, fmt.Errorf("server list is empty")
-	}
-	seen := make(map[int]bool, len(entries))
-	for _, entry := range entries {
-		if entry.Code < 0 || entry.Code > 65535 || entry.IP == "" || entry.Port < 1 || entry.Port > 65535 || entry.Name == "" || seen[entry.Code] {
-			return nil, fmt.Errorf("invalid or duplicate server code %d", entry.Code)
-		}
-		seen[entry.Code] = true
-	}
-	return entries, nil
 }

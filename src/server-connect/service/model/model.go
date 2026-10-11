@@ -3,6 +3,10 @@ package model
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
+	"net"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/xujintao/balgass/src/utils"
 )
@@ -153,31 +157,32 @@ type ServerConfig struct {
 
 type MsgRegister struct {
 	ServerState
+	Config ServerConfig
 }
 
 func (msg *MsgRegister) Unmarshal(buf []byte) error {
-	br := bytes.NewReader(buf)
-
-	// code
-	br.ReadByte() // omit 1 byte to align
-	var code uint16
-	binary.Read(br, binary.LittleEndian, &code)
-	msg.Code = int(code)
-
-	// percent
-	percent, err := br.ReadByte()
-	if err != nil {
-		return err
+	if len(buf) < 25 || buf[0] != 0 {
+		return fmt.Errorf("invalid server registration length or prefix")
 	}
-	msg.Percent = int(percent)
-
-	// type
-	type_, err := br.ReadByte()
-	if err != nil {
-		return err
+	nameLen := int(buf[24])
+	if nameLen == 0 || nameLen > 64 || len(buf) != 25+nameLen {
+		return fmt.Errorf("invalid server name length")
 	}
-	msg.Type_ = int(type_)
-
+	code := int(binary.LittleEndian.Uint16(buf[1:3]))
+	ip := strings.TrimRight(string(buf[5:21]), "\x00")
+	parsedIP := net.ParseIP(ip).To4()
+	if parsedIP == nil || parsedIP.String() != ip || strings.ContainsRune(ip, 0) {
+		return fmt.Errorf("invalid server IP")
+	}
+	port := int(binary.LittleEndian.Uint16(buf[21:23]))
+	if port == 0 || buf[23] > 1 || !utf8.Valid(buf[25:]) || strings.TrimSpace(string(buf[25:])) == "" {
+		return fmt.Errorf("invalid server port, visibility or name")
+	}
+	msg.ServerState = ServerState{Code: code, Percent: int(buf[3]), Type_: int(buf[4])}
+	msg.Config = ServerConfig{Code: code, IP: ip, Port: port, Visible: buf[23] == 1, Name: string(buf[25:])}
+	if msg.Percent > 100 {
+		return fmt.Errorf("invalid server load")
+	}
 	return nil
 }
 

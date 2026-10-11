@@ -168,6 +168,9 @@ func (h *c1c2Handle) OnClose(ctx context.Context) {
 }
 
 func (h *c1c2Handle) HandleUDP(req *c1c2.Request, res *c1c2.Response) bool {
+	if len(req.Body) == 0 {
+		return false
+	}
 	apiIns := map[int]*apiIn{
 		0x01: {0, 0x01, "Register", (*model.MsgRegister)(nil)},
 	}
@@ -175,6 +178,9 @@ func (h *c1c2Handle) HandleUDP(req *c1c2.Request, res *c1c2.Response) bool {
 	var ok bool
 	code := int(req.Body[0])
 	if api, ok = apiIns[code]; !ok {
+		if len(req.Body) < 2 {
+			return false
+		}
 		codes := []byte{req.Body[0], req.Body[1]}
 		code = int(binary.BigEndian.Uint16(codes))
 		if api, ok = h.apiIns[code]; !ok {

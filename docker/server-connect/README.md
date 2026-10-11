@@ -20,7 +20,7 @@ docker build \
 cp docker/server-connect/.env.example docker/server-connect/.env
 ```
 
-All service settings live in `.env`. Set the update host and the server IPs in `SERVER_LIST_JSON` for your deployment. The JSON value is wrapped in single quotes so the same file works when sourced by `test.sh`; the service also accepts the enclosing quotes passed by Docker's `--env-file`. Keep `.env` private and edit `.env.example` when changing shared defaults.
+All service settings live in `.env`. Set the update host for your deployment. Game server addresses and visibility come from each `server-game` registration. Keep `.env` private and edit `.env.example` when changing shared defaults.
 
 For local Go runs, source `.env` before starting the service. The service no longer needs a config directory mount.
 
