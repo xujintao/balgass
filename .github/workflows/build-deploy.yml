@@ -55,9 +55,13 @@ jobs:
               git clone https://github.com/xujintao/balgass.git ~/balgass
             fi
             cd ~/balgass
-            git stash || echo "Nothing to stash"
-            git pull
-            git stash pop || echo "No stash to pop or conflict occurred"
+            stash_before=$(git rev-parse -q --verify refs/stash || true)
+            git stash push
+            stash_after=$(git rev-parse -q --verify refs/stash || true)
+            git pull --ff-only
+            if [ "$stash_after" != "$stash_before" ]; then
+              git stash pop
+            fi
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ inputs.server_name }}:${{ inputs.tag }}
             docker stop ${{ inputs.server_name }} || true
             docker rm ${{ inputs.server_name }} || true
