@@ -1,24 +1,74 @@
 package conf
 
 import (
-	"encoding/xml"
+	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"log/slog"
 	"os"
-	"path"
+	"strings"
 
 	"github.com/kelseyhightower/envconfig"
-	"gopkg.in/ini.v1"
-	"gopkg.in/yaml.v2"
 )
+
+var (
+	// ServerEnv env config for server
+	ServerEnv configServerEnv
+
+	ServerList []ServerEntry
+)
+
+type configServerEnv struct {
+	Debug             bool     `envconfig:"DEBUG" default:"false"`
+	LogLevel          string   `envconfig:"LOG_LEVEL" default:"info"`
+	LogFile           []string `envconfig:"LOG_FILE" default:"-"`
+	TCPPort           int      `envconfig:"TCP_PORT" required:"true"`
+	UDPPort           int      `envconfig:"UDP_PORT" required:"true"`
+	UpdateVersion     string   `envconfig:"UPDATE_VERSION" required:"true"`
+	UpdateHostURL     string   `envconfig:"UPDATE_HOST_URL" required:"true"`
+	UpdateFTPPort     int      `envconfig:"UPDATE_FTP_PORT" required:"true"`
+	UpdateFTPLogin    string   `envconfig:"UPDATE_FTP_LOGIN" required:"true"`
+	UpdateFTPPassword string   `envconfig:"UPDATE_FTP_PASSWORD" required:"true"`
+	UpdateVersionFile string   `envconfig:"UPDATE_VERSION_FILE" required:"true"`
+	ServerListJSON    string   `envconfig:"SERVER_LIST_JSON" required:"true"`
+}
+
+type ServerEntry struct {
+	Code    int    `json:"code"`
+	IP      string `json:"ip"`
+	Port    int    `json:"port"`
+	Visible bool   `json:"visible"`
+	Name    string `json:"name"`
+}
+
+func init() {
+	// Load environment variables
+	ENV(&ServerEnv)
+	// Validate port numbers
+	for name, port := range map[string]int{"TCP_PORT": ServerEnv.TCPPort, "UDP_PORT": ServerEnv.UDPPort, "UPDATE_FTP_PORT": ServerEnv.UpdateFTPPort} {
+		if port < 1 || port > 65535 {
+			log.Fatalf("%s: port must be between 1 and 65535", name)
+		}
+	}
+	// Configure logger
+	configureLogger()
+	// Parse server list JSON
+	var err error
+	ServerList, err = parseServerList(ServerEnv.ServerListJSON)
+	if err != nil {
+		log.Fatalf("SERVER_LIST_JSON: %v", err)
+	}
+}
 
 func ENV(v any) {
 	err := envconfig.Process("", v)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// config log
+}
+
+func configureLogger() {
 	var writes []io.Writer
 	for _, s := range ServerEnv.LogFile {
 		switch s {
@@ -56,108 +106,24 @@ func ENV(v any) {
 	)
 }
 
-func INI(dir, file, section string, v interface{}) {
-	file = path.Join(dir, file)
-	slog.Info("Load INI", "file", file, "section", section)
-	f, err := ini.Load(file)
-	if err != nil {
-		slog.Error("Failed to load INI file",
-			"file", file, "section", section, "error", err)
-		os.Exit(1)
+func parseServerList(raw string) ([]ServerEntry, error) {
+	raw = strings.TrimSpace(raw)
+	if len(raw) >= 2 && raw[0] == '\'' && raw[len(raw)-1] == '\'' {
+		raw = raw[1 : len(raw)-1]
 	}
-	if err := f.Section(section).MapTo(v); err != nil {
-		slog.Error("Failed to map INI section",
-			"file", file, "section", section, "error", err)
-		os.Exit(1)
+	var entries []ServerEntry
+	if err := json.Unmarshal([]byte(raw), &entries); err != nil {
+		return nil, err
 	}
-}
-
-func XML(dir, file string, v interface{}) {
-	file = path.Join(dir, file)
-	slog.Info("Load XML", "file", file)
-	buf, err := os.ReadFile(file)
-	if err != nil {
-		slog.Error("Failed to read XML file",
-			"file", file, "error", err)
-		os.Exit(1)
+	if len(entries) == 0 {
+		return nil, fmt.Errorf("server list is empty")
 	}
-	if err := xml.Unmarshal(buf, v); err != nil {
-		slog.Error("Failed to unmarshal XML file",
-			"file", file, "error", err)
-		os.Exit(1)
+	seen := make(map[int]bool, len(entries))
+	for _, entry := range entries {
+		if entry.Code < 0 || entry.Code > 65535 || entry.IP == "" || entry.Port < 1 || entry.Port > 65535 || entry.Name == "" || seen[entry.Code] {
+			return nil, fmt.Errorf("invalid or duplicate server code %d", entry.Code)
+		}
+		seen[entry.Code] = true
 	}
-}
-
-func YAML(dir, file string, v interface{}) {
-	file = path.Join(dir, file)
-	slog.Info("Load YAML", "file", file)
-	buf, err := os.ReadFile(file)
-	if err != nil {
-		slog.Error("Failed to read YAML file",
-			"file", file, "error", err)
-		os.Exit(1)
-	}
-	if err := yaml.Unmarshal(buf, v); err != nil {
-		slog.Error("Failed to unmarshal YAML file",
-			"file", file, "error", err)
-		os.Exit(1)
-	}
-}
-
-func init() {
-	ENV(&ServerEnv)
-	PathConfig = ServerEnv.PathConfig
-	INI(PathConfig, "IGCCS.ini", "Config", &Net)
-	YAML(PathConfig, "news.yml", &New)
-}
-
-var (
-	PathConfig string
-
-	// ServerEnv env config for server
-	ServerEnv configServerEnv
-
-	// Net net config
-	Net NetConfig
-
-	// New new config
-	New NewConfig
-)
-
-type configServerEnv struct {
-	Debug      bool     `envconfig:"DEBUG" default:"false"`
-	LogLevel   string   `envconfig:"LOG_LEVEL" default:"info"`
-	LogFile    []string `envconfig:"LOG_FILE" default:"-"`
-	PathConfig string   `envconfig:"PATH_CONFIG" default:"."`
-}
-
-// NetConfig info about listen and connect restriction
-type NetConfig struct {
-	TCPPort              int    `ini:"TCP_PORT"`
-	UDPPort              int    `ini:"UDP_PORT"`
-	MaxConnectionsPerIP  int    `ini:"MaxConnectionsPerIP"`
-	MaxPacketsPerSecond  int    `ini:"MaxPacketsPerSecond"`
-	LauncherProxyWhiteIP string `ini:"LauncherProxyWhiteListIP"`
-}
-
-// NewConfig represents some message sent to client
-type NewConfig struct {
-	Title string `yaml:"title"`
-	Infos []struct {
-		Index  int    `yaml:"index"`
-		DateR  int    `yaml:"dateR"`
-		DateG  int    `yaml:"dateG"`
-		DateB  int    `yaml:"dateB"`
-		TitleR int    `yaml:"titleR"`
-		TitleG int    `yaml:"titleG"`
-		TitleB int    `yaml:"titleB"`
-		TextR  int    `yaml:"textR"`
-		TextG  int    `yaml:"textG"`
-		TextB  int    `yaml:"textB"`
-		Day    int    `yaml:"day"`
-		Month  int    `yaml:"month"`
-		Year   int    `yaml:"year"`
-		Title  string `yaml:"title"`
-		Text   string `yaml:"text"`
-	} `yaml:"news"`
+	return entries, nil
 }

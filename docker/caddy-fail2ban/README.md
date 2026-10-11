@@ -22,8 +22,8 @@ iptables rules or create a Docker network.
 3. Run `docker run --rm -it caddy:2-alpine caddy hash-password` and enter the
    **same** map-config password. Copy `.env.example` to `.env` and put the
    resulting hash in `GAME_CONFIG_AUTH_HASH`. The `.env` file is gitignored.
-4. Set `HostURL = patch.game.r2f2.com` in
-   `~/balgass/docker/server-connect/IGCCS.ini` and restart server-connect.
+4. Set `UPDATE_HOST_URL=patch.game.r2f2.com` in
+   `~/balgass/docker/server-connect/.env` and restart server-connect.
    Its updater configuration documents HTTP/FTP support, so this Caddy setup
    serves the patch host over HTTP without redirecting it to HTTPS. HTTPS is
    also available for browser access.

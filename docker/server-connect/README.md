@@ -20,7 +20,9 @@ docker build \
 cp docker/server-connect/.env.example docker/server-connect/.env
 ```
 
-On the VPS, keep the example's `/etc/server-connect` path in `.env`. For local Go runs, set `PATH_CONFIG` in your local copy of `.env` to the absolute path of `docker/server-connect`. Docker mounts that directory at `/etc/server-connect` and passes the VPS `.env` to the container without overriding its variables.
+All service settings live in `.env`. Set the update host and the server IPs in `SERVER_LIST_JSON` for your deployment. The JSON value is wrapped in single quotes so the same file works when sourced by `test.sh`; the service also accepts the enclosing quotes passed by Docker's `--env-file`. Keep `.env` private and edit `.env.example` when changing shared defaults.
+
+For local Go runs, source `.env` before starting the service. The service no longer needs a config directory mount.
 
 3 Run image from any directory:
 

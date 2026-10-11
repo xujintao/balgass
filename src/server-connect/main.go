@@ -27,7 +27,7 @@ func main() {
 	// start tcp server
 	slog.Info("start tcp(c1c2) server")
 	tcpServer := c1c2.Server{
-		Addr:    fmt.Sprintf(":%d", conf.Net.TCPPort),
+		Addr:    fmt.Sprintf(":%d", conf.ServerEnv.TCPPort),
 		Handler: &handle.C1C2Handle,
 		NeedXor: false,
 	}
@@ -38,7 +38,7 @@ func main() {
 	// start udp server
 	slog.Info("start udp(c1c2) server")
 	udpServer := c1c2.ServerUDP{
-		Addr:    fmt.Sprintf(":%d", conf.Net.UDPPort),
+		Addr:    fmt.Sprintf(":%d", conf.ServerEnv.UDPPort),
 		Handler: &handle.C1C2Handle,
 	}
 	go func() {

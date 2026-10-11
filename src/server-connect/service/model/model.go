@@ -22,13 +22,13 @@ type Version struct {
 }
 
 type AutoUpdateConfig struct {
-	Ver         Version `ini:"-"`
-	VerStr      string  `ini:"Version"`
-	HostURL     string  `ini:"HostURL"`
-	FTPPort     int     `ini:"FTPPort"`
-	FTPLogin    string  `ini:"FTPLogin"`
-	FTPPasswd   string  `ini:"FTPPasswd"`
-	VersionFile string  `ini:"VersionFile"`
+	Ver         Version
+	VerStr      string
+	HostURL     string
+	FTPPort     int
+	FTPLogin    string
+	FTPPasswd   string
+	VersionFile string
 }
 
 type MsgCheckVersion struct {
@@ -144,11 +144,11 @@ func (s ServerStateSlice) Swap(i, j int) {
 }
 
 type ServerConfig struct {
-	Code    int    `xml:"Code,attr"`
-	IP      string `xml:"IP,attr"`
-	Port    int    `xml:"Port,attr"`
-	Visible bool   `xml:"Visible,attr"`
-	Name    string `xml:"Name,attr"`
+	Code    int
+	IP      string
+	Port    int
+	Visible bool
+	Name    string
 }
 
 type MsgRegister struct {

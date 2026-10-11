@@ -7,7 +7,6 @@ if [[ ! -d .git || ! -d config || ! -d src || ! -d docker ]]; then
 fi
 
 files=(
-  "docker/server-connect/IGC_ServerList.xml"
   "config/server-game-common/Data/CommonServer.cfg"
   "config/server-game-common/IGCData/IGC_ExpSystem.xml"
   "src/c1c2/tcp.go"

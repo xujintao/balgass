@@ -3,8 +3,8 @@ package object
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
-	"os"
 
 	"github.com/xujintao/balgass/src/server-connect/conf"
 	"github.com/xujintao/balgass/src/server-connect/service/model"
@@ -12,12 +12,21 @@ import (
 )
 
 func init() {
-	conf.INI(conf.PathConfig, "IGCCS.ini", "AutoUpdate", &AutoUpdate)
-	_, err := fmt.Sscanf(AutoUpdate.VerStr, "%d.%d.%d",
+	AutoUpdate = model.AutoUpdateConfig{
+		VerStr:      conf.ServerEnv.UpdateVersion,
+		HostURL:     conf.ServerEnv.UpdateHostURL,
+		FTPPort:     conf.ServerEnv.UpdateFTPPort,
+		FTPLogin:    conf.ServerEnv.UpdateFTPLogin,
+		FTPPasswd:   conf.ServerEnv.UpdateFTPPassword,
+		VersionFile: conf.ServerEnv.UpdateVersionFile,
+	}
+	n, err := fmt.Sscanf(AutoUpdate.VerStr, "%d.%d.%d",
 		&AutoUpdate.Ver.Major, &AutoUpdate.Ver.Minor, &AutoUpdate.Ver.Patch)
-	if err != nil {
-		slog.Error("fmt.Sscanf Failed", "err", err)
-		os.Exit(1)
+	if err != nil || n != 3 || fmt.Sprintf("%d.%d.%d", AutoUpdate.Ver.Major, AutoUpdate.Ver.Minor, AutoUpdate.Ver.Patch) != AutoUpdate.VerStr ||
+		AutoUpdate.Ver.Major < 0 || AutoUpdate.Ver.Major > 255 ||
+		AutoUpdate.Ver.Minor < 0 || AutoUpdate.Ver.Minor > 255 ||
+		AutoUpdate.Ver.Patch < 0 || AutoUpdate.Ver.Patch > 255 {
+		log.Fatalf("UPDATE_VERSION %q: expected three values between 0 and 255", AutoUpdate.VerStr)
 	}
 }
 

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/xml"
 	"log/slog"
 	"sort"
 	"time"
@@ -11,14 +10,9 @@ import (
 )
 
 func init() {
-	type ServerListConfig struct {
-		XMLName xml.Name              `xml:"ServerList"`
-		Servers []*model.ServerConfig `xml:"Server"`
-	}
-	var serverListConfig ServerListConfig
-	conf.XML(conf.PathConfig, "IGC_ServerList.xml", &serverListConfig)
 	ConfigTable = make(configTable)
-	for _, c := range serverListConfig.Servers {
+	for _, entry := range conf.ServerList {
+		c := &model.ServerConfig{Code: entry.Code, IP: entry.IP, Port: entry.Port, Visible: entry.Visible, Name: entry.Name}
 		ConfigTable[c.Code] = c
 	}
 

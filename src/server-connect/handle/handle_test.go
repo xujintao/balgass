@@ -10,11 +10,17 @@ import (
 
 	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server-connect/service"
+	"github.com/xujintao/balgass/src/server-connect/service/model"
 	"github.com/xujintao/balgass/src/server-connect/service/object"
 	"github.com/xujintao/balgass/src/server-connect/service/server"
 )
 
 func TestMain(m *testing.M) {
+	for code := range server.ConfigTable {
+		delete(server.ConfigTable, code)
+	}
+	server.ConfigTable[0] = &model.ServerConfig{Code: 0, IP: "127.0.0.1", Port: 56900, Visible: true, Name: "Test 0"}
+	server.ConfigTable[1] = &model.ServerConfig{Code: 1, IP: "127.0.0.1", Port: 56901, Visible: true, Name: "Test 1"}
 	service.Service.Start()
 	defer service.Service.Close()
 	ctx, cancel := context.WithCancel(context.Background())
