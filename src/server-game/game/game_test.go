@@ -184,11 +184,11 @@ func TestPlayerActionWithoutPolicy(t *testing.T) {
 
 func startGameWithoutFixture(t *testing.T) func() {
 	t.Helper()
-	pathCommon := conf.ServerEnv.PathCommon
-	conf.ServerEnv.PathCommon = t.TempDir()
+	pathCommon := conf.Server.PathCommon
+	conf.Server.PathCommon = t.TempDir()
 	Game.Start()
 	return func() {
 		Game.Close()
-		conf.ServerEnv.PathCommon = pathCommon
+		conf.Server.PathCommon = pathCommon
 	}
 }

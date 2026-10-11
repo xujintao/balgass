@@ -25,13 +25,13 @@ type db struct {
 
 func (db *db) init() {
 	// connect postgress
-	slog.Info("gorm connect postgress", "host", conf.Server.GameServerInfo.DBHost, "name", conf.Server.GameServerInfo.DBName)
+	slog.Info("gorm connect postgress", "host", conf.Server.DBHost, "name", conf.Server.DBName)
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		conf.Server.GameServerInfo.DBUser,
-		conf.Server.GameServerInfo.DBPassword,
-		conf.Server.GameServerInfo.DBHost,
-		conf.Server.GameServerInfo.DBPort,
-		conf.Server.GameServerInfo.DBName,
+		conf.Server.DBUser,
+		conf.Server.DBPassword,
+		conf.Server.DBHost,
+		conf.Server.DBPort,
+		conf.Server.DBName,
 	)
 	gdb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -48,7 +48,7 @@ func (db *db) init() {
 		slog.Error("gdb.AutoMigrate", "err", err)
 		os.Exit(1)
 	}
-	if conf.ServerEnv.Debug {
+	if conf.Server.Debug {
 		db.DB = gdb.Debug()
 	} else {
 		db.DB = gdb

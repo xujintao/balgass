@@ -20,7 +20,7 @@ docker build \
 cp docker/server-game/.env.example docker/server-game/.env
 ```
 
-On the VPS, keep the example's `/etc/server-game` and `/etc/server-game-common` paths in `.env`. For local Go runs, set `PATH_CONFIG` and `PATH_COMMON` in your local copy of `.env` to the absolute paths of `docker/server-game` and `config/server-game-common`. Docker mounts those directories at the `/etc` paths and passes the VPS `.env` to the container without overriding its variables.
+All service specific settings live in `.env`. Set `DB_PASSWORD` and `GAME_API_TOKEN` for your deployment. Keep the example's `/etc/server-game-common` value for `PATH_COMMON` on the VPS; for local Go runs, set it to the absolute path of `config/server-game-common`. Docker mounts only that common directory and passes `.env` to the container.
 
 3 Run image from any directory:
 

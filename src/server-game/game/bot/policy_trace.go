@@ -20,10 +20,10 @@ func init() {
 
 func initPolicyTrace() {
 	policyTraceLogger = nil
-	if !conf.ServerEnv.TraceBotPolicyEnable {
+	if !conf.Server.TraceBotPolicyEnable {
 		return
 	}
-	file := strings.TrimSpace(conf.ServerEnv.TraceBotPolicyFile)
+	file := strings.TrimSpace(conf.Server.TraceBotPolicyFile)
 	if file == "" {
 		file = defaultPolicyTraceFile
 	}

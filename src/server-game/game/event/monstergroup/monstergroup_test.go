@@ -95,7 +95,7 @@ func TestGroupRefreshOverridesAndRollback(t *testing.T) {
 	}
 	g.members = append(g.members, member{class: 99999, count: 1})
 	before := map[*object.Object]bool{}
-	for i := 0; i < conf.Server.GameServerInfo.MaxMonsterCount; i++ {
+	for i := 0; i < conf.Server.MaxMonsterCount; i++ {
 		if obj := object.ObjectManager.GetObject(i); obj != nil {
 			before[obj] = true
 		}
@@ -103,7 +103,7 @@ func TestGroupRefreshOverridesAndRollback(t *testing.T) {
 	if err := g.Start(now.Add(4 * time.Hour)); err == nil {
 		t.Fatal("expected partial failure")
 	}
-	for i := 0; i < conf.Server.GameServerInfo.MaxMonsterCount; i++ {
+	for i := 0; i < conf.Server.MaxMonsterCount; i++ {
 		if obj := object.ObjectManager.GetObject(i); obj != nil && !before[obj] {
 			t.Fatal("partial group leaked")
 		}

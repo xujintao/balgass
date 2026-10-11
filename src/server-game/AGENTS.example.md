@@ -9,7 +9,7 @@
 新增带配置文件的业务时，先判断配置归属：
 
 - IGC 原始静态配置放在 `IGCData` 下，使用 `conf.PathCommon`。
-- 项目自有配置放在 `PATH_COMMON` 下，使用 `conf.ServerEnv.PathCommon`。
+- 项目自有配置放在 `PATH_COMMON` 下，使用 `conf.Server.PathCommon`。
 
 使用包级 `init()` 调用业务管理器的 `init()` 方法，在服务启动时一次性加载配置。在加载方法内部定义贴合 XML 或 INI 文件结构的局部 DTO，通过 `conf.XML` 或 `conf.INI` 读取。DTO 只用于解析配置；业务代码使用转换后的 `map`、`slice`、固定数组或领域模型。
 
@@ -36,7 +36,7 @@ func (m *manager) init() {
 
 # 测试环境变量加载
 
-执行任意测试前必须参考 `test.sh` 加载环境变量文件，否则 `conf` 包初始化会从当前目录查找 `GameServer.ini` 并失败。适用范围包括 `test.sh`、`go test`、`go test -race`、包测试、函数级测试和通配符测试。
+执行任意测试前必须参考 `test.sh` 加载环境变量文件，否则 `conf` 包初始化会因为缺少必要的环境变量而失败。适用范围包括 `test.sh`、`go test`、`go test -race`、包测试、函数级测试和通配符测试。
 
 必须先执行：
 

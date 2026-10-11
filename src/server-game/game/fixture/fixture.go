@@ -75,7 +75,7 @@ func (f *fixture) init() {
 		} `xml:"Bots"`
 	}
 	var fc FixtureConfig
-	conf.XML(conf.ServerEnv.PathCommon, "fixture/fixture.xml", &fc)
+	conf.XML(conf.Server.PathCommon, "fixture/fixture.xml", &fc)
 
 	// Convert FixtureConfig to fixture.
 	// enable

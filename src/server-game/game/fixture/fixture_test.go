@@ -157,7 +157,7 @@ func TestFixtureKeysNormalizeWhitespaceAndCase(t *testing.T) {
 
 func writeFixtureConfig(t *testing.T, content string) func() {
 	t.Helper()
-	pathCommon := conf.ServerEnv.PathCommon
+	pathCommon := conf.Server.PathCommon
 	dir := filepath.Join(t.TempDir(), "fixture")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		t.Fatalf("os.MkdirAll() error = %v", err)
@@ -165,8 +165,8 @@ func writeFixtureConfig(t *testing.T, content string) func() {
 	if err := os.WriteFile(filepath.Join(dir, "fixture.xml"), []byte(content), 0644); err != nil {
 		t.Fatalf("os.WriteFile() error = %v", err)
 	}
-	conf.ServerEnv.PathCommon = filepath.Dir(dir)
+	conf.Server.PathCommon = filepath.Dir(dir)
 	return func() {
-		conf.ServerEnv.PathCommon = pathCommon
+		conf.Server.PathCommon = pathCommon
 	}
 }

@@ -172,7 +172,7 @@ func (m *monsterGroupManager) load(basePath string) error {
 			}
 			g.members = append(g.members, entry)
 		}
-		if !classes[g.boss] || total > 255 || total > conf.Server.GameServerInfo.MaxMonsterCount {
+		if !classes[g.boss] || total > 255 || total > conf.Server.MaxMonsterCount {
 			return fmt.Errorf("missing boss or excessive group size")
 		}
 	}

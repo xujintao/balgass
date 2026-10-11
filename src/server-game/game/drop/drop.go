@@ -142,7 +142,7 @@ func (m *dropManager) init() {
 	m.makeJewel()
 
 	// debug
-	if conf.ServerEnv.Debug {
+	if conf.Server.Debug {
 		for mlevel := range m.itemDropRate {
 			for _, dit := range m.magicBook[mlevel] {
 				slog.Debug("magic book", "monster level", mlevel, "annotation", dit.annotation, "level", dit.level)

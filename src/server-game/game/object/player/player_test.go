@@ -135,7 +135,7 @@ func TestLoadWarehouseMarksWarehouseOpen(t *testing.T) {
 }
 
 func TestCharacterTableInitLoadsXML(t *testing.T) {
-	pathCommon := conf.ServerEnv.PathCommon
+	pathCommon := conf.Server.PathCommon
 	dir := filepath.Join(t.TempDir(), "class")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		t.Fatalf("os.MkdirAll() error = %v", err)
@@ -152,9 +152,9 @@ func TestCharacterTableInitLoadsXML(t *testing.T) {
 	</ClassTable>`), 0644); err != nil {
 		t.Fatalf("os.WriteFile() error = %v", err)
 	}
-	conf.ServerEnv.PathCommon = filepath.Dir(dir)
+	conf.Server.PathCommon = filepath.Dir(dir)
 	defer func() {
-		conf.ServerEnv.PathCommon = pathCommon
+		conf.Server.PathCommon = pathCommon
 	}()
 
 	var table characterTable

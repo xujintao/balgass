@@ -329,7 +329,7 @@ func (obj *Object) createViewport() {
 	}
 
 	// debug create player viewport
-	if conf.ServerEnv.Debug && obj.Type == ObjectTypePlayer {
+	if conf.Server.Debug && obj.Type == ObjectTypePlayer {
 		if len(viewportItemReply.Items) > 0 {
 			var itemLine strings.Builder
 			for _, it := range viewportItemReply.Items {
@@ -439,7 +439,7 @@ func (obj *Object) destroyViewport() {
 	}
 
 	// debug
-	if conf.ServerEnv.Debug && obj.Type == ObjectTypePlayer {
+	if conf.Server.Debug && obj.Type == ObjectTypePlayer {
 		if len(viewportItemReply.Items) > 0 {
 			var itemLine strings.Builder
 			for _, it := range viewportItemReply.Items {

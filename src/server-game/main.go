@@ -28,7 +28,7 @@ func main() {
 	// start tcp server
 	slog.Info("start tcp(c1c2) server")
 	tcpServer := c1c2.Server{
-		Addr:    fmt.Sprintf(":%d", conf.Server.GameServerInfo.Port),
+		Addr:    fmt.Sprintf(":%d", conf.Server.Port),
 		Handler: &handle.C1C2Handle,
 		NeedXor: true,
 	}
@@ -39,7 +39,7 @@ func main() {
 	// start http server
 	slog.Info("start http server")
 	httpServer := http.Server{
-		Addr:    fmt.Sprintf(":%d", conf.Server.GameServerInfo.HTTPPort),
+		Addr:    fmt.Sprintf(":%d", conf.Server.HTTPPort),
 		Handler: &handle.HTTPHandle,
 	}
 	go func() {

@@ -58,8 +58,8 @@ func (g *game) Start() {
 	g.cancel = cancel
 	go func() {
 		addr := fmt.Sprintf("%s:%d",
-			conf.Server.GameServerInfo.ConnectServerIP,
-			conf.Server.GameServerInfo.ConnectServerPort)
+			conf.Server.ConnectServerIP,
+			conf.Server.ConnectServerPort)
 		c, err := net.Dial("udp", addr)
 		if err != nil {
 			slog.Error("net.Dial", "err", err, "addr", addr)
@@ -68,9 +68,9 @@ func (g *game) Start() {
 		for {
 			select {
 			case serverRegister := <-g.serverRegisterChan:
-				serverRegister.Code = conf.Server.GameServerInfo.Code
+				serverRegister.Code = conf.Server.Code
 				nonPVP := 0
-				if conf.Server.GameServerInfo.NonPVP {
+				if conf.Server.NonPVP {
 					nonPVP = 1
 				}
 				serverRegister.Type_ = nonPVP

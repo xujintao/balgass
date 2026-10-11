@@ -75,7 +75,7 @@ func TestSkeletonSpawnRefreshAndRollback(t *testing.T) {
 	// An invalid guard fails after the king was created; that king must roll back.
 	s.config.guard.spawn.Class = 99999
 	before := map[*object.Object]bool{}
-	for i := 0; i < conf.Server.GameServerInfo.MaxMonsterCount; i++ {
+	for i := 0; i < conf.Server.MaxMonsterCount; i++ {
 		if obj := object.ObjectManager.GetObject(i); obj != nil {
 			before[obj] = true
 		}
@@ -83,7 +83,7 @@ func TestSkeletonSpawnRefreshAndRollback(t *testing.T) {
 	if err := s.Start(now.Add(2 * time.Hour)); err == nil {
 		t.Fatal("expected spawn failure")
 	}
-	for i := 0; i < conf.Server.GameServerInfo.MaxMonsterCount; i++ {
+	for i := 0; i < conf.Server.MaxMonsterCount; i++ {
 		if obj := object.ObjectManager.GetObject(i); obj != nil && !before[obj] {
 			t.Fatal("partial spawn leaked")
 		}

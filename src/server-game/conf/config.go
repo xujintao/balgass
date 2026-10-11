@@ -18,9 +18,11 @@ func ENV(v any) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// config log
+}
+
+func configureLogger() {
 	var writes []io.Writer
-	for _, s := range ServerEnv.LogFile {
+	for _, s := range Server.LogFile {
 		switch s {
 		case "-":
 			writes = append(writes, os.Stdout)
@@ -33,7 +35,7 @@ func ENV(v any) {
 		}
 	}
 	var l slog.Level
-	switch ServerEnv.LogLevel {
+	switch Server.LogLevel {
 	case "debug":
 		l = slog.LevelDebug
 	case "info":
@@ -106,12 +108,32 @@ func JSON(dir, file string, v interface{}) {
 }
 
 func init() {
-	ENV(&ServerEnv)
-	PathConfig = ServerEnv.PathConfig
-	PathCommon = ServerEnv.PathCommon
-	INI(PathConfig, "GameServer.ini", &Server)
-	XML(PathConfig, "IGC_ConnectMember.xml", &ConnectMember)
-	XML(PathConfig, "IGC_VipSettings.xml", &VipSystem)
+	// Load config from environment variables
+	ENV(&Server)
+	for name, port := range map[string]int{
+		"GAME_SERVER_PORT":    Server.Port,
+		"CONNECT_SERVER_PORT": Server.ConnectServerPort,
+		"HTTP_PORT":           Server.HTTPPort,
+		"DB_PORT":             Server.DBPort,
+	} {
+		if port < 1 || port > 65535 {
+			log.Fatalf("%s: port must be between 1 and 65535", name)
+		}
+	}
+	for name, count := range map[string]int{
+		"MAX_PLAYER_COUNT":         Server.MaxPlayerCount,
+		"MAX_MONSTER_COUNT":        Server.MaxMonsterCount,
+		"MAX_SUMMON_MONSTER_COUNT": Server.MaxSummonMonsterCount,
+		"MAX_OBJECT_ITEM_COUNT":    Server.MaxObjectItemCount,
+	} {
+		if count <= 0 {
+			log.Fatalf("%s: count must be positive", name)
+		}
+	}
+	// Load config
+	configureLogger()
+	// Load config from INI and XML files
+	PathCommon = Server.PathCommon
 	INI(path.Join(PathCommon, "Data"), "CommonServer.cfg", &CommonServer)
 	PathCommon = path.Join(PathCommon, "IGCData")
 	INI(PathCommon, "IGC_Common.ini", &Common)
@@ -126,23 +148,13 @@ func init() {
 }
 
 var (
-	PathConfig string
 	PathCommon string
 
 	// SeasonX represents protocol compatibility with seasonX
 	SeasonX bool
 
-	// ServerEnv
-	ServerEnv configServerEnv
-
 	// Server server config
 	Server configServer
-
-	// ConnectMember connect memeber config
-	ConnectMember configConnectMember
-
-	// VipSystem vip system config
-	VipSystem configVipSystem
 
 	// Common represents common config
 	Common configCommon
@@ -174,62 +186,29 @@ var (
 	MapServers configMapServer
 )
 
-type configServerEnv struct {
-	Debug                bool     `envconfig:"DEBUG" default:"false"`
-	GameAPIToken         string   `envconfig:"GAME_API_TOKEN"`
-	LogLevel             string   `envconfig:"LOG_LEVEL" default:"info"`
-	LogFile              []string `envconfig:"LOG_FILE" default:"-"`
-	PathConfig           string   `envconfig:"PATH_CONFIG" default:"."`
-	PathCommon           string   `envconfig:"PATH_COMMON" default:"."`
-	TraceBotPolicyEnable bool     `envconfig:"TRACE_BOT_POLICY_ENABLE" default:"false"`
-	TraceBotPolicyFile   string   `envconfig:"TRACE_BOT_POLICY_FILE" default:"/tmp/server-game-bot-policy.jsonl"`
-}
-
 type configServer struct {
-	GameServerInfo struct {
-		Name                string `ini:"ServerName"`
-		Code                int    `ini:"ServerCode"`
-		NonPVP              bool   `ini:"NonPK"`
-		EnableConnectMember bool   `ini:"ConnectMemberLoad"`
-		Type                int    `ini:"ServerType"`
-		Port                int    `ini:"GameServerPort"`
-		ConnectServerIP     string `ini:"ConnectServerIP"`
-		ConnectServerPort   int    `ini:"ConnectServerPort"`
-		JoinServerIP        string `ini:"JoinServerIP"`
-		JoinServerPort      int    `ini:"JoinServerPort"`
-		DataServerIP        string `ini:"DataServerIP"`
-		DataServerPort      int    `ini:"DataServerPort"`
-		ExDBIP              string `ini:"ExDBIP"`
-		ExDBPort            int    `ini:"ExDBPort"`
-		MaxConnectCount     int    `ini:"MachineIDConnectionLimitCount"`
-		// Log
-		MaxPlayerCount        int    `ini:"PlayerCount"`
-		MaxMonsterCount       int    `ini:"MonsterCount"`
-		MaxSummonMonsterCount int    `ini:"SummonMonsterCount"`
-		MaxObjectItemCount    int    `ini:"MapItemCount"`
-		HTTPPort              int    `ini:"HTTPPort"`
-		DBName                string `int:"DBName"`
-		DBUser                string `int:"DBUser"`
-		DBPassword            string `int:"DBPassword"`
-		DBHost                string `int:"DBHost"`
-		DBPort                int    `int:"DBPort"`
-	} `ini:"GameServerInfo"`
-}
-
-type configConnectMember struct {
-	XMLName  xml.Name `xml:"ConnectMember"`
-	Accounts []struct {
-		Name string `xml:"Name,attr"`
-	} `xml:"Account"`
-}
-
-type vipBonus struct {
-	ExpBonus           float32 `xml:"ExpBonus,attr"`
-	DropBonus          int     `xml:"DropBonus,attr"`
-	ExcDropBonus       int     `xml:"ExcDropBonus,attr"`
-	MasterExpBonus     float32 `xml:"MasterExpBonus,attr"`
-	MasterDropBonus    int     `xml:"MasterDropBonus,attr"`
-	MasterExcDropBonus int     `xml:"MasterExcDropBonus,attr"`
+	Debug                 bool     `envconfig:"DEBUG" default:"false"`
+	LogLevel              string   `envconfig:"LOG_LEVEL" default:"info"`
+	LogFile               []string `envconfig:"LOG_FILE" default:"-"`
+	PathCommon            string   `envconfig:"PATH_COMMON" default:"."`
+	TraceBotPolicyEnable  bool     `envconfig:"TRACE_BOT_POLICY_ENABLE" default:"false"`
+	TraceBotPolicyFile    string   `envconfig:"TRACE_BOT_POLICY_FILE" default:"/tmp/server-game-bot-policy.jsonl"`
+	Code                  int      `envconfig:"SERVER_CODE" required:"true"`
+	NonPVP                bool     `envconfig:"NON_PVP" required:"true"`
+	Port                  int      `envconfig:"GAME_SERVER_PORT" required:"true"`
+	ConnectServerIP       string   `envconfig:"CONNECT_SERVER_IP" required:"true"`
+	ConnectServerPort     int      `envconfig:"CONNECT_SERVER_PORT" required:"true"`
+	MaxPlayerCount        int      `envconfig:"MAX_PLAYER_COUNT" required:"true"`
+	MaxMonsterCount       int      `envconfig:"MAX_MONSTER_COUNT" required:"true"`
+	MaxSummonMonsterCount int      `envconfig:"MAX_SUMMON_MONSTER_COUNT" required:"true"`
+	MaxObjectItemCount    int      `envconfig:"MAX_OBJECT_ITEM_COUNT" required:"true"`
+	HTTPPort              int      `envconfig:"HTTP_PORT" required:"true"`
+	GameAPIToken          string   `envconfig:"GAME_API_TOKEN"`
+	DBName                string   `envconfig:"DB_NAME" required:"true"`
+	DBUser                string   `envconfig:"DB_USER" required:"true"`
+	DBPassword            string   `envconfig:"DB_PASSWORD" required:"true"`
+	DBHost                string   `envconfig:"DB_HOST" required:"true"`
+	DBPort                int      `envconfig:"DB_PORT" required:"true"`
 }
 
 type rateChaosBoxMix struct {
@@ -256,31 +235,6 @@ type rateCHaosBoxMixs struct {
 	Socket    rateChaosBoxMix `xml:"Socket"`
 	Pentagram rateChaosBoxMix `xml:"Pentagram"`
 	Wing      rateChaosBoxMix `xml:"Wing"`
-}
-
-type configVipSystem struct {
-	XMLName                xml.Name `xml:"VipSystem"`
-	LevelType              int      `xml:"LevelType,attr"`
-	SendRatesChangeMessage bool     `xml:"SendRatesChangeMessage,attr"`
-	Message                struct {
-		Day   string `xml:"Day,attr"`
-		Night string `xml:"Night,attr"`
-	} `xml:"Message"`
-	VipTypes struct {
-		Vip []struct {
-			Type              int              `xml:"Type,attr"`
-			Name              string           `xml:"Name,attr"`
-			MLMonsterMinLevel int              `xml:"ML_MonsterMinLevel,attr"`
-			PointPerReset     int              `xml:"PointPerReset,attr"`
-			NightStartHour    int              `xml:"NightStartHour,attr"`
-			NightStartMinute  int              `xml:"NightStartMinute,attr"`
-			NightEndHour      int              `xml:"NightEndHour,attr"`
-			NightEndMinute    int              `xml:"NightEndMinute,attr"`
-			Day               vipBonus         `xml:"Day"`
-			Night             vipBonus         `xml:"Night"`
-			RateChaosBoxMixs  rateCHaosBoxMixs `xml:"ChaosBoxMixRates"`
-		} `xml:"Vip"`
-	} `xml:"VipTypes"`
 }
 
 type color []int

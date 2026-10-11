@@ -30,7 +30,7 @@ type httpHandle struct {
 
 func (h *httpHandle) init() {
 	gin.SetMode(gin.ReleaseMode)
-	if conf.ServerEnv.Debug {
+	if conf.Server.Debug {
 		gin.SetMode(gin.DebugMode)
 	}
 	h.Engine = gin.Default()
@@ -187,7 +187,7 @@ func (h *httpHandle) handleGame(c *gin.Context) {
 }
 
 func (h *httpHandle) handleCommand(c *gin.Context) {
-	if !validAPIToken(c.GetHeader("Authorization"), conf.ServerEnv.GameAPIToken) {
+	if !validAPIToken(c.GetHeader("Authorization"), conf.Server.GameAPIToken) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 		return
 	}

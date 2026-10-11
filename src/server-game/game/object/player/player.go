@@ -70,7 +70,7 @@ func (table *characterTable) init() {
 		} `xml:"Class"`
 	}
 	var ct ClassTable
-	conf.XML(conf.ServerEnv.PathCommon, "class/class.xml", &ct)
+	conf.XML(conf.Server.PathCommon, "class/class.xml", &ct)
 	t := make(characterTable)
 	for _, v := range ct.Class {
 		c := model.Character{
@@ -1959,7 +1959,7 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		math.Abs(float64(p.Y-tobj.Y)) > 5 {
 		return
 	}
-	if conf.ServerEnv.Debug {
+	if conf.Server.Debug {
 		slog.Debug("Talk",
 			"object", p.Name, "position", fmt.Sprintf("(%d,%d)", p.X, p.Y),
 			"target", tobj.Name, "position", fmt.Sprintf("(%d,%d)", tobj.X, tobj.Y))

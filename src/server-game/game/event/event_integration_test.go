@@ -63,7 +63,7 @@ func TestScheduledDragonWithWorldObjects(t *testing.T) {
 	}
 	t.Cleanup(func() { object.ObjectManager.DeleteEventMonster(unrelated, base.Add(time.Hour)) })
 	before := make(map[*object.Object]bool)
-	for i := 0; i < conf.Server.GameServerInfo.MaxMonsterCount; i++ {
+	for i := 0; i < conf.Server.MaxMonsterCount; i++ {
 		if obj := object.ObjectManager.GetObject(i); obj != nil {
 			before[obj] = true
 		}
@@ -80,7 +80,7 @@ func TestScheduledDragonWithWorldObjects(t *testing.T) {
 		t.Fatal("scheduled invasion not started")
 	}
 	m.Tick(base.Add(4 * time.Second))
-	for i := 0; i < conf.Server.GameServerInfo.MaxMonsterCount; i++ {
+	for i := 0; i < conf.Server.MaxMonsterCount; i++ {
 		if obj := object.ObjectManager.GetObject(i); obj != nil && !before[obj] {
 			spawned = append(spawned, obj)
 		}
@@ -121,13 +121,13 @@ func TestScheduledMonsterGroupWithWorldObjects(t *testing.T) {
 		t.Fatal(err)
 	}
 	before := map[*object.Object]bool{}
-	for i := 0; i < conf.Server.GameServerInfo.MaxMonsterCount; i++ {
+	for i := 0; i < conf.Server.MaxMonsterCount; i++ {
 		if obj := object.ObjectManager.GetObject(i); obj != nil {
 			before[obj] = true
 		}
 	}
 	t.Cleanup(func() {
-		for i := 0; i < conf.Server.GameServerInfo.MaxMonsterCount; i++ {
+		for i := 0; i < conf.Server.MaxMonsterCount; i++ {
 			if obj := object.ObjectManager.GetObject(i); obj != nil && !before[obj] {
 				object.ObjectManager.DeleteEventMonster(obj, base.Add(time.Hour))
 			}
@@ -139,7 +139,7 @@ func TestScheduledMonsterGroupWithWorldObjects(t *testing.T) {
 		t.Fatal("invasion switch prevented actual group spawn")
 	}
 	first := map[*object.Object]bool{}
-	for i := 0; i < conf.Server.GameServerInfo.MaxMonsterCount; i++ {
+	for i := 0; i < conf.Server.MaxMonsterCount; i++ {
 		if obj := object.ObjectManager.GetObject(i); obj != nil && !before[obj] {
 			first[obj] = true
 		}

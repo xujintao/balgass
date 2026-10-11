@@ -592,7 +592,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 		}
 	}
 	// debug
-	if conf.ServerEnv.Debug {
+	if conf.Server.Debug {
 		slog.Debug("attack",
 			"index", obj.Index, "name", obj.Name,
 			"target", tobj.Index, "name", tobj.Name,

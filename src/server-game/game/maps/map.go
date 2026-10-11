@@ -195,14 +195,14 @@ func (m *mapManager) CheckMapAttrStand(number, x, y int) bool {
 
 func (m *mapManager) SetMapAttrStand(number, x, y int) {
 	m.maps[number].setAttrStand(x, y)
-	if conf.ServerEnv.Debug {
+	if conf.Server.Debug {
 		m.maps[number].stands[Pot{X: x, Y: y}] = struct{}{}
 	}
 }
 
 func (m *mapManager) ClearMapAttrStand(number, x, y int) {
 	m.maps[number].clearAttrStand(x, y)
-	if conf.ServerEnv.Debug {
+	if conf.Server.Debug {
 		delete(m.maps[number].stands, Pot{X: x, Y: y})
 	}
 }
@@ -294,7 +294,7 @@ func (m *_map) init(number int, file string) {
 			m.pots = append(m.pots, &p)
 		}
 	}
-	m.inventory = make([]*mapItem, conf.Server.GameServerInfo.MaxObjectItemCount)
+	m.inventory = make([]*mapItem, conf.Server.MaxObjectItemCount)
 	m.cnt = 1
 	m.stands = make(map[Pot]struct{})
 }

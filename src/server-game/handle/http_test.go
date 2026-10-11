@@ -15,10 +15,10 @@ import (
 
 func TestCommandAuthorization(t *testing.T) {
 	token := strings.Repeat("a", 32)
-	previous := conf.ServerEnv.GameAPIToken
-	conf.ServerEnv.GameAPIToken = token
+	previous := conf.Server.GameAPIToken
+	conf.Server.GameAPIToken = token
 	t.Cleanup(func() {
-		conf.ServerEnv.GameAPIToken = previous
+		conf.Server.GameAPIToken = previous
 	})
 
 	for _, tc := range []struct {
@@ -69,9 +69,9 @@ func TestCommandAuthorization(t *testing.T) {
 
 func TestCreateAccountCommandResponse(t *testing.T) {
 	token := strings.Repeat("a", 32)
-	previous := conf.ServerEnv.GameAPIToken
-	conf.ServerEnv.GameAPIToken = token
-	t.Cleanup(func() { conf.ServerEnv.GameAPIToken = previous })
+	previous := conf.Server.GameAPIToken
+	conf.Server.GameAPIToken = token
+	t.Cleanup(func() { conf.Server.GameAPIToken = previous })
 
 	var suffix [4]byte
 	if _, err := rand.Read(suffix[:]); err != nil {

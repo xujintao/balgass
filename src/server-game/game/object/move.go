@@ -90,7 +90,7 @@ func (obj *Object) Move(msg *model.MsgMove) {
 		return
 	}
 	// debug
-	if conf.ServerEnv.Debug {
+	if conf.Server.Debug {
 		if obj.Type == ObjectTypePlayer {
 			slog.Debug("Move",
 				"index", obj.Index, "object", obj.Name, "map", obj.MapNumber,
@@ -255,7 +255,7 @@ func (obj *Object) MapMove(msg *model.MsgMapMove) {
 
 func (obj *Object) SetPosition(msg *model.MsgSetPosition) {
 	// debug
-	if conf.ServerEnv.Debug {
+	if conf.Server.Debug {
 		slog.Debug("SetPosition",
 			"index", obj.Index, "name", obj.Name, "map", obj.MapNumber,
 			"from", fmt.Sprintf("(%d,%d)", obj.X, obj.Y),

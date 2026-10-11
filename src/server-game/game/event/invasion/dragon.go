@@ -66,7 +66,7 @@ func (c *dragonConfig) load(basePath string) error {
 	}
 	dragon := dragons.Monsters[0]
 	if dragon.Index == nil || *dragon.Index != 44 || dragon.Distance == nil || dragon.Count == nil ||
-		*dragon.Count <= 0 || *dragon.Count > conf.Server.GameServerInfo.MaxMonsterCount || len(dragon.Maps) == 0 {
+		*dragon.Count <= 0 || *dragon.Count > conf.Server.MaxMonsterCount || len(dragon.Maps) == 0 {
 		return fmt.Errorf("invalid red dragon class, distance, count or maps")
 	}
 	next.count = *dragon.Count

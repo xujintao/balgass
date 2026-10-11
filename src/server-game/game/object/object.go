@@ -55,17 +55,17 @@ type objectManager struct {
 
 func (m *objectManager) init() {
 	// monster
-	m.maxMonsterCount = conf.Server.GameServerInfo.MaxMonsterCount
+	m.maxMonsterCount = conf.Server.MaxMonsterCount
 	m.monsterStartIndex = 0
 	m.lastMonsterIndex = m.monsterStartIndex - 1
 
 	// call monster
-	m.maxCallMonsterCount = conf.Server.GameServerInfo.MaxSummonMonsterCount
+	m.maxCallMonsterCount = conf.Server.MaxSummonMonsterCount
 	m.callMonsterStartIndex = m.maxMonsterCount
 	m.lastCallMonsterIndex = m.callMonsterStartIndex - 1
 
 	// player
-	m.maxPlayerCount = conf.Server.GameServerInfo.MaxPlayerCount
+	m.maxPlayerCount = conf.Server.MaxPlayerCount
 	m.playerStartIndex = m.maxMonsterCount + m.maxCallMonsterCount
 	m.lastPlayerIndex = m.playerStartIndex - 1
 

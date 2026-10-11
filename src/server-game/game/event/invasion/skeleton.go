@@ -57,7 +57,7 @@ func (c *skeletonConfig) load(basePath string) error {
 		if *row.Index < 55 {
 			continue
 		}
-		if row.Distance == nil || row.X == nil || row.Y == nil || row.EndX == nil || row.EndY == nil || row.Dir == nil || row.Count == nil || *row.Count <= 0 || *row.Count > conf.Server.GameServerInfo.MaxMonsterCount {
+		if row.Distance == nil || row.X == nil || row.Y == nil || row.EndX == nil || row.EndY == nil || row.Dir == nil || row.Count == nil || *row.Count <= 0 || *row.Count > conf.Server.MaxMonsterCount {
 			return fmt.Errorf("invalid skeleton spawn fields")
 		}
 		spawn := skeletonSpawn{count: *row.Count, spawn: monster.EventSpawn{Class: *row.Index, StartX: *row.X, StartY: *row.Y, EndX: *row.EndX, EndY: *row.EndY, Direction: *row.Dir, Distance: *row.Distance}}
@@ -89,7 +89,7 @@ func (c *skeletonConfig) load(basePath string) error {
 			next.guard = spawn
 		}
 	}
-	if !seen[55] || !seen[56] || total > conf.Server.GameServerInfo.MaxMonsterCount {
+	if !seen[55] || !seen[56] || total > conf.Server.MaxMonsterCount {
 		return fmt.Errorf("skeleton requires boss and guard within monster capacity")
 	}
 	*c = next
