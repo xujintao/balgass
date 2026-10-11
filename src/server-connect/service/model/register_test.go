@@ -5,12 +5,12 @@ import (
 	"testing"
 )
 
-func registration(code uint16, ip, name string, port uint16, visible byte) []byte {
+func registration(code uint16, host, name string, port uint16, visible byte) []byte {
 	buf := []byte{0, 0, 0, 35, 1}
 	binary.LittleEndian.PutUint16(buf[1:3], code)
-	var address [16]byte
-	copy(address[:], ip)
-	buf = append(buf, address[:]...)
+	var paddedHost [16]byte
+	copy(paddedHost[:], host)
+	buf = append(buf, paddedHost[:]...)
 	buf = binary.LittleEndian.AppendUint16(buf, port)
 	buf = append(buf, visible, byte(len(name)))
 	return append(buf, name...)
@@ -21,8 +21,15 @@ func TestRegisterUnmarshal(t *testing.T) {
 	if err := msg.Unmarshal(registration(12, "127.0.0.1", "Market", 56912, 0)); err != nil {
 		t.Fatal(err)
 	}
-	if msg.Code != 12 || msg.Config.Code != 12 || msg.Config.IP != "127.0.0.1" || msg.Config.Port != 56912 || msg.Config.Visible || msg.Config.Name != "Market" || msg.Percent != 35 || msg.Type_ != 1 {
+	if msg.Code != 12 || msg.Config.Code != 12 || msg.Config.Host != "127.0.0.1" || msg.Config.Port != 56912 || msg.Config.Visible || msg.Config.Name != "Market" || msg.Percent != 35 || msg.Type_ != 1 {
 		t.Fatalf("unexpected registration: %+v", msg)
+	}
+	if err := msg.Unmarshal(registration(12, "game.r2f2.com", "Market", 56912, 0)); err != nil || msg.Config.Host != "game.r2f2.com" {
+		t.Fatalf("domain registration = %+v, %v", msg, err)
+	}
+	reply, err := (&MsgGetServerReply{Server: msg.Config}).Marshal()
+	if err != nil || string(reply[:len(msg.Config.Host)]) != msg.Config.Host || reply[len(msg.Config.Host)] != 0 {
+		t.Fatalf("domain reply = %v, %v", reply, err)
 	}
 }
 
@@ -34,6 +41,7 @@ func TestRegisterUnmarshalRejectsInvalid(t *testing.T) {
 		func(b []byte) []byte { b[21], b[22] = 0, 0; return b },
 		func(b []byte) []byte { b[23] = 2; return b },
 		func(b []byte) []byte { b[5] = 0; return b },
+		func(b []byte) []byte { b[5] = ':'; return b },
 	} {
 		buf := append([]byte(nil), valid...)
 		if err := new(MsgRegister).Unmarshal(change(buf)); err == nil {

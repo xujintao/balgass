@@ -48,9 +48,9 @@ func TestMain(m *testing.M) {
 			server := server.ServerManager.GetServer(1)
 			var bw bytes.Buffer
 			bw.Write([]byte{0xF4, 0x03})
-			var ip [16]byte
-			copy(ip[:], server.IP)
-			bw.Write(ip[:])
+			var host [16]byte
+			copy(host[:], server.Host)
+			bw.Write(host[:])
 			binary.Write(&bw, binary.LittleEndian, uint16(server.Port))
 			item.out = bw.Bytes()
 		}

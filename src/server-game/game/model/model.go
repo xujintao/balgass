@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"net"
 	"strings"
 	"unicode/utf8"
 
@@ -30,16 +29,15 @@ type MsgServerRegister struct {
 	Code    int
 	Percent int
 	Type_   int
-	IP      string
+	Host    string
 	Port    int
 	Visible bool
 	Name    string
 }
 
 func (msg *MsgServerRegister) Marshal() ([]byte, error) {
-	ip := net.ParseIP(msg.IP).To4()
 	if msg.Code < 0 || msg.Code > 65535 || msg.Percent < 0 || msg.Percent > 100 || msg.Type_ < 0 || msg.Type_ > 255 ||
-		ip == nil || ip.String() != msg.IP || msg.Port < 1 || msg.Port > 65535 ||
+		!utils.ValidAddress(msg.Host) || msg.Port < 1 || msg.Port > 65535 ||
 		len(msg.Name) == 0 || len(msg.Name) > 64 || strings.TrimSpace(msg.Name) == "" || !utf8.ValidString(msg.Name) {
 		return nil, fmt.Errorf("invalid server registration")
 	}
@@ -63,9 +61,9 @@ func (msg *MsgServerRegister) Marshal() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var address [16]byte
-	copy(address[:], msg.IP)
-	bw.Write(address[:])
+	var host [16]byte
+	copy(host[:], msg.Host)
+	bw.Write(host[:])
 	if err := binary.Write(&bw, binary.LittleEndian, uint16(msg.Port)); err != nil {
 		return nil, err
 	}

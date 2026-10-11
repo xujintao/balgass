@@ -58,7 +58,7 @@ func (g *game) Start() {
 	g.cancel = cancel
 	go func() {
 		addr := fmt.Sprintf("%s:%d",
-			conf.Server.ConnectServerIP,
+			conf.Server.ConnectServerHost,
 			conf.Server.ConnectServerPort)
 		c, err := net.Dial("udp", addr)
 		if err != nil {
@@ -69,7 +69,7 @@ func (g *game) Start() {
 			select {
 			case serverRegister := <-g.serverRegisterChan:
 				serverRegister.Code = conf.Server.Code
-				serverRegister.IP = conf.Server.IP
+				serverRegister.Host = conf.Server.Host
 				serverRegister.Port = conf.Server.Port
 				serverRegister.Visible = conf.Server.Visible
 				serverRegister.Name = conf.Server.Name

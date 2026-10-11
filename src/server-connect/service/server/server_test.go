@@ -16,16 +16,16 @@ func TestRegistrationUpdatesAndUnregisters(t *testing.T) {
 	manager.RegisterActioner(testActioner{})
 	manager.Register(&model.MsgRegister{
 		ServerState: model.ServerState{Code: 1, Percent: 10},
-		Config:      model.ServerConfig{Code: 1, IP: "127.0.0.1", Port: 56900, Visible: false, Name: "Old"},
+		Config:      model.ServerConfig{Code: 1, Host: "127.0.0.1", Port: 56900, Visible: false, Name: "Old"},
 	})
 	if got := manager.GetServerList(); len(got) != 0 {
 		t.Fatalf("hidden server listed: %+v", got)
 	}
 	manager.Register(&model.MsgRegister{
 		ServerState: model.ServerState{Code: 1, Percent: 20},
-		Config:      model.ServerConfig{Code: 1, IP: "127.0.0.2", Port: 56901, Visible: true, Name: "New"},
+		Config:      model.ServerConfig{Code: 1, Host: "127.0.0.2", Port: 56901, Visible: true, Name: "New"},
 	})
-	if got := manager.GetServer(1); got == nil || got.IP != "127.0.0.2" || got.Port != 56901 || got.Name != "New" {
+	if got := manager.GetServer(1); got == nil || got.Host != "127.0.0.2" || got.Port != 56901 || got.Name != "New" {
 		t.Fatalf("registration did not refresh config: %+v", got)
 	}
 	if got := manager.GetServerList(); len(got) != 1 || got[0].Percent != 20 {

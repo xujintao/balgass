@@ -51,7 +51,7 @@ func (m *serverManager) Register(msg *model.MsgRegister) {
 		slog.Info("server online",
 			"code", config.Code,
 			"name", config.Name,
-			"ip", config.IP,
+			"host", config.Host,
 			"port", config.Port,
 			"visible", config.Visible)
 	} else {
@@ -69,7 +69,7 @@ func (m *serverManager) Unregister(msg *model.MsgUnregister) {
 		slog.Info("server offline",
 			"code", config.Code,
 			"name", config.Name,
-			"ip", config.IP,
+			"host", config.Host,
 			"port", config.Port,
 			"visible", config.Visible)
 	}

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"net"
 	"strings"
 	"unicode/utf8"
 
@@ -149,7 +148,7 @@ func (s ServerStateSlice) Swap(i, j int) {
 
 type ServerConfig struct {
 	Code    int
-	IP      string
+	Host    string
 	Port    int
 	Visible bool
 	Name    string
@@ -169,17 +168,16 @@ func (msg *MsgRegister) Unmarshal(buf []byte) error {
 		return fmt.Errorf("invalid server name length")
 	}
 	code := int(binary.LittleEndian.Uint16(buf[1:3]))
-	ip := strings.TrimRight(string(buf[5:21]), "\x00")
-	parsedIP := net.ParseIP(ip).To4()
-	if parsedIP == nil || parsedIP.String() != ip || strings.ContainsRune(ip, 0) {
-		return fmt.Errorf("invalid server IP")
+	host := strings.TrimRight(string(buf[5:21]), "\x00")
+	if !utils.ValidAddress(host) {
+		return fmt.Errorf("invalid server host")
 	}
 	port := int(binary.LittleEndian.Uint16(buf[21:23]))
 	if port == 0 || buf[23] > 1 || !utf8.Valid(buf[25:]) || strings.TrimSpace(string(buf[25:])) == "" {
 		return fmt.Errorf("invalid server port, visibility or name")
 	}
 	msg.ServerState = ServerState{Code: code, Percent: int(buf[3]), Type_: int(buf[4])}
-	msg.Config = ServerConfig{Code: code, IP: ip, Port: port, Visible: buf[23] == 1, Name: string(buf[25:])}
+	msg.Config = ServerConfig{Code: code, Host: host, Port: port, Visible: buf[23] == 1, Name: string(buf[25:])}
 	if msg.Percent > 100 {
 		return fmt.Errorf("invalid server load")
 	}
@@ -245,10 +243,10 @@ type MsgGetServerReply struct {
 func (msg *MsgGetServerReply) Marshal() ([]byte, error) {
 	var bw bytes.Buffer
 
-	//  ip
-	var ip [16]byte
-	copy(ip[:], msg.Server.IP)
-	if _, err := bw.Write(ip[:]); err != nil {
+	// host
+	var host [16]byte
+	copy(host[:], msg.Server.Host)
+	if _, err := bw.Write(host[:]); err != nil {
 		return nil, err
 	}
 
