@@ -69,8 +69,8 @@ async function readGameConfig(base: URL, filename: GameConfigFile): Promise<stri
     if (contents.byteLength > MAX_CONFIG_BYTES) throw new Error('Game config is too large');
     xml = contents.toString('utf8');
   } else {
-    const user = process.env.GAME_CONFIG_BASIC_AUTH_USER;
-    const password = process.env.GAME_CONFIG_BASIC_AUTH_PASSWORD;
+    const user = process.env.GAME_BASIC_AUTH_USER;
+    const password = process.env.GAME_BASIC_AUTH_PASSWORD;
     if (!user || !password) throw new Error('Game config credentials are required');
     const authorization = Buffer.from(`${user}:${password}`).toString('base64');
     const response = await fetch(url, {

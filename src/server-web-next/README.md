@@ -40,9 +40,9 @@ Passkey 是 Supabase 的实验接口；`@supabase/supabase-js` 固定为 2.105.0
 
 ## API 与会话
 
-游戏账号列表与创建由 Next.js 服务层通过游戏服务的 `/api/command` 执行。开发环境可将 `GAME_API_URL` 指向本机 `http://localhost:8080/api/command`；生产环境须使用 `https://game.r2f2.com/api/command`。两端配置相同、至少 32 字符的随机 `GAME_API_TOKEN`，例如用 `openssl rand -hex 32` 生成。此密钥授权 `/api/command` 的全部命令，包括删除账号及 bot 管理；Next.js 玩家功能目前只调用 `GetAccountList` 和 `CreateAccount`。密钥仅存于服务端环境，不提交到版本库。旧 `/api/accounts` 和 `/api/bots` 接口已移除。
+游戏账号列表与创建由 Next.js 服务层通过游戏服务的 `/api/command` 执行。开发环境可将 `GAME_API_URL` 指向本机 `http://localhost:8080/api/command`，并设置示例 Basic Auth 变量；本机游戏服务忽略这组凭据。生产环境须使用 `https://game.r2f2.com/api/command`，由 Caddy 使用 Basic Auth 保护命令接口。Next.js 服务端通过 `GAME_BASIC_AUTH_USER` 和 `GAME_BASIC_AUTH_PASSWORD` 发送凭据。该凭据也可读取游戏配置，并授权 `/api/command` 的全部命令，包括删除账号及 bot 管理；Next.js 玩家功能目前只调用 `GetAccountList` 和 `CreateAccount`。生产凭据仅存于服务端环境，不提交到版本库。旧 `/api/accounts` 和 `/api/bots` 接口已移除。
 
-部署时由 `game.r2f2.com` 的 HTTPS 入口代理 `/api/command` 与公开的 `/api/game` WebSocket；现有 VPS 防火墙规则继续阻止公网直连 8080。先部署并配置游戏服务，再配置网站环境变量；旧 Django 账号接口不参与新网站调用。
+部署时由 `game.r2f2.com` 的 HTTPS 入口代理 `/api/command` 与公开的 `/api/game` WebSocket；现有 VPS 防火墙规则继续阻止公网直连 8080。server-game 不再认证直接访问其命令接口的请求，同一 Docker 网桥中的容器可绕过 Caddy。部署时需协调切换 Caddy、游戏服务和网站；旧 Django 账号接口不参与新网站调用。
 
 公开的 `/game` 与 `/items` 页面使用三个独立地址：`GAME_API_URL` 仅供 Next.js 服务端执行命令，`GAME_WEBSOCKET_URL` 传给浏览器连接实时地图，`GAME_CONFIG_URL` 仅供 Next.js 服务端读取配置目录。本地在 `.env.local` 设置 `GAME_CONFIG_URL=file:///home/pi/balgass/config/server-game-common/IGCData/`，直接读取 XML；生产设置 `GAME_CONFIG_URL=https://game.r2f2.com/config/`、`GAME_WEBSOCKET_URL=wss://game.r2f2.com/api/game`。三个变量均需显式配置，目录 URL 必须以 `/` 结尾。地图与道具配置的 HTTPS 解析结果缓存 60 秒；本地文件不缓存。
 
@@ -68,11 +68,16 @@ handle /api/game {
     reverse_proxy server-game:8080
 }
 handle /api/command {
-    reverse_proxy server-game:8080
+    basic_auth {
+        nextjs <同一密码的哈希>
+    }
+    reverse_proxy server-game:8080 {
+        header_up -Authorization
+    }
 }
 ```
 
-将示例中的 `server-game:8080` 换为 Caddy 容器实际可访问的游戏服务地址。现有 `docker/caddy-fail2ban/Caddyfile` 已预留四条注释的道具/技能路径；商城上线前应启用这四条精确路径并重新加载 Caddy，其他 `/config/` 路径仍返回 404。在 Vercel 设置仅服务端使用的 `GAME_CONFIG_BASIC_AUTH_USER=nextjs` 和 `GAME_CONFIG_BASIC_AUTH_PASSWORD`（哈希前的原密码）。这组只读凭据不要复用有命令权限的 `GAME_API_TOKEN`，也不要加 `NEXT_PUBLIC_`。浏览器不能携带这组凭据，且当前游戏服务的 `/api/game` 是公开实时地图接口，因此它不能套用配置文件的 Basic Auth。
+将示例中的 `server-game:8080` 换为 Caddy 容器实际可访问的游戏服务地址。现有 `docker/caddy-fail2ban/Caddyfile` 已预留四条道具/技能路径；商城上线前按需启用，其他 `/config/` 路径仍返回 404。在 Vercel 设置仅服务端使用的 `GAME_BASIC_AUTH_USER=nextjs` 和 `GAME_BASIC_AUTH_PASSWORD`（哈希前的原密码），不要加 `NEXT_PUBLIC_`。浏览器不能携带这组凭据，且当前游戏服务的 `/api/game` 是公开实时地图接口，因此它不能套用 Basic Auth。
 
 `/items` 和 `GET /api/v1/items?kind=sword` 公开展示道具；`/orders`、`GET /api/v1/orders` 与 `POST /api/v1/orders` 使用网站登录身份。所有单件道具可选等级及追加，只有配置允许卓越属性的道具可选卓越属性；套装仅展示。提交只创建待处理订单，不付款也不自动发货。道具、技能、套装与订单名称按语言显示：英文使用 XML 的 `Name`，中文使用 `annotation`（技能为 `anotation`），西班牙语暂用英文。浏览器 API 使用 `r2f2-locale` Cookie，App API 使用 `Accept-Language`，缺省为英文。首次部署订单功能前执行 `20261008000100_create_item_orders.sql`，否则订单 API 返回暂不可用。
 

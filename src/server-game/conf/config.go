@@ -216,7 +216,6 @@ type configServer struct {
 	Host                  string   `envconfig:"GAME_SERVER_HOST" required:"true"`
 	Port                  int      `envconfig:"GAME_SERVER_PORT" required:"true"`
 	HTTPPort              int      `envconfig:"HTTP_PORT" required:"true"`
-	GameAPIToken          string   `envconfig:"GAME_API_TOKEN"`
 	ConnectServerHost     string   `envconfig:"CONNECT_SERVER_HOST" required:"true"`
 	ConnectServerPort     int      `envconfig:"CONNECT_SERVER_PORT" required:"true"`
 	DBName                string   `envconfig:"DB_NAME" required:"true"`

@@ -56,8 +56,8 @@ describe('game map configuration', () => {
 
   it('reads the exact HTTPS file with separate Basic Auth credentials', async () => {
     vi.stubEnv('GAME_CONFIG_URL', 'https://game.r2f2.com/config/');
-    vi.stubEnv('GAME_CONFIG_BASIC_AUTH_USER', 'nextjs');
-    vi.stubEnv('GAME_CONFIG_BASIC_AUTH_PASSWORD', 'read-only-password');
+    vi.stubEnv('GAME_BASIC_AUTH_USER', 'nextjs');
+    vi.stubEnv('GAME_BASIC_AUTH_PASSWORD', 'read-only-password');
     const xml = await readFile(fileURLToPath(new URL('IGC_MapList.xml', fixtureUrl)), 'utf8');
     const fetcher = vi.fn().mockResolvedValue(new Response(xml));
     vi.stubGlobal('fetch', fetcher);
@@ -74,8 +74,8 @@ describe('game map configuration', () => {
     await expect(getGameMapNames()).rejects.toThrow();
     vi.stubEnv('GAME_CONFIG_URL', 'https://game.r2f2.com/config/');
     await expect(getGameMapNames()).rejects.toThrow('credentials');
-    vi.stubEnv('GAME_CONFIG_BASIC_AUTH_USER', 'nextjs');
-    vi.stubEnv('GAME_CONFIG_BASIC_AUTH_PASSWORD', 'read-only-password');
+    vi.stubEnv('GAME_BASIC_AUTH_USER', 'nextjs');
+    vi.stubEnv('GAME_BASIC_AUTH_PASSWORD', 'read-only-password');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 401 })));
     await expect(getGameMapNames()).rejects.toThrow('401');
   });

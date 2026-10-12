@@ -5,10 +5,12 @@ CADDY_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 IMAGE=xujintao/caddy-fail2ban:latest
 ENV_FILE="$CADDY_DIR/.env"
 
-if [[ ! -f "$ENV_FILE" ]] || ! grep -q '^GAME_CONFIG_AUTH_HASH=.' "$ENV_FILE"; then
-    echo "Create $ENV_FILE with a nonempty GAME_CONFIG_AUTH_HASH before starting Caddy." >&2
-    exit 1
-fi
+for key in GAME_BASIC_AUTH_USER GAME_BASIC_AUTH_PASSWORD_HASH; do
+    if [[ ! -f "$ENV_FILE" ]] || ! grep -Eq "^${key}=.+$" "$ENV_FILE"; then
+        echo "Create $ENV_FILE with a nonempty $key before starting Caddy." >&2
+        exit 1
+    fi
+done
 
 mkdir -p "$CADDY_DIR/data" "$CADDY_DIR/config" "$CADDY_DIR/logs"
 docker build -t "$IMAGE" "$CADDY_DIR"

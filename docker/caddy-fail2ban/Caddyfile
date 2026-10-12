@@ -19,7 +19,7 @@ game.r2f2.com {
 	}
 	handle @gameConfigFiles {
 		basic_auth {
-			nextjs {$GAME_CONFIG_AUTH_HASH}
+			{$GAME_BASIC_AUTH_USER} {$GAME_BASIC_AUTH_PASSWORD_HASH}
 		}
 		root * /srv/game-config
 		uri strip_prefix /config
@@ -31,7 +31,12 @@ game.r2f2.com {
 		path /api/command
 	}
 	handle @command {
-		reverse_proxy host.docker.internal:8080
+		basic_auth {
+			{$GAME_BASIC_AUTH_USER} {$GAME_BASIC_AUTH_PASSWORD_HASH}
+		}
+		reverse_proxy host.docker.internal:8080 {
+			header_up -Authorization
+		}
 	}
 
 	handle /api/game {

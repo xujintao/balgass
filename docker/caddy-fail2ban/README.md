@@ -8,20 +8,21 @@ iptables rules or create a Docker network.
 
 1. Point `game.r2f2.com` and `patch.game.r2f2.com` directly to the VPS. Keep
    ports 80 and 443 available for Caddy's certificate challenges and HTTPS.
-2. Configure the same `GAME_API_TOKEN` (at least 32 random characters) in
-   the game service and Vercel. Configure Vercel with:
+2. Configure Vercel with the credentials used by Caddy for both game config
+   and commands:
 
    ```text
    GAME_API_URL=https://game.r2f2.com/api/command
    GAME_WEBSOCKET_URL=wss://game.r2f2.com/api/game
    GAME_CONFIG_URL=https://game.r2f2.com/config/
-   GAME_CONFIG_BASIC_AUTH_USER=nextjs
-   GAME_CONFIG_BASIC_AUTH_PASSWORD=<separate random password>
+   GAME_BASIC_AUTH_USER=nextjs
+   GAME_BASIC_AUTH_PASSWORD=<random password>
    ```
 
 3. Run `docker run --rm -it caddy:2-alpine caddy hash-password` and enter the
-   **same** map-config password. Copy `.env.example` to `.env` and put the
-   resulting hash in `GAME_CONFIG_AUTH_HASH`. The `.env` file is gitignored.
+   **same** password. Copy `.env.example` to `.env`, set `GAME_BASIC_AUTH_USER`
+   to the same username configured in Vercel, and put the resulting hash in
+   `GAME_BASIC_AUTH_PASSWORD_HASH`. The `.env` file is gitignored.
 4. Set `UPDATE_HOST_URL=patch.game.r2f2.com` in
    `~/balgass/docker/server-connect/.env` and restart server-connect.
    Its updater configuration documents HTTP/FTP support, so this Caddy setup
@@ -58,9 +59,11 @@ No Docker network change is needed.
 2. Check `https://game.r2f2.com/config/IGC_MapList.xml` returns 401 without
    credentials and the XML with the configured Basic Auth credentials. Other
    files under `/config/` must return 404.
-3. Check an authenticated `/api/command` request and a browser WebSocket at
-   `wss://game.r2f2.com/api/game`; the game service must still reject requests
-   without a valid API token.
+3. Check that `/api/command` returns 401 without credentials or with incorrect
+   credentials and succeeds with the configured Basic Auth credentials. Check
+   a browser WebSocket at `wss://game.r2f2.com/api/game`. The game service no
+   longer authenticates direct `/api/command` requests; containers on the same
+   Docker bridge can bypass Caddy and execute commands.
 4. Check `/grafana/` returns 404 and `/pgadmin/` loads its login page.
    Check `http://patch.game.r2f2.com/version.wvd` returns the copied file
    without a redirect.

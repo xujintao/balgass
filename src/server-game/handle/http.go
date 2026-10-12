@@ -1,12 +1,10 @@
 package handle
 
 import (
-	"crypto/subtle"
 	"encoding/json"
 	"log/slog"
 	"net/http"
 	"reflect"
-	"strings"
 	"text/template"
 
 	"github.com/gin-gonic/gin"
@@ -187,10 +185,6 @@ func (h *httpHandle) handleGame(c *gin.Context) {
 }
 
 func (h *httpHandle) handleCommand(c *gin.Context) {
-	if !validAPIToken(c.GetHeader("Authorization"), conf.Server.GameAPIToken) {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
-		return
-	}
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 32*1024)
 	type commandRequest struct {
 		Action string          `json:"action" validate:"required"`
@@ -229,14 +223,6 @@ func (h *httpHandle) handleCommand(c *gin.Context) {
 		"action": req.Action,
 		"out":    out,
 	})
-}
-
-func validAPIToken(header, configuredToken string) bool {
-	parts := strings.Fields(header)
-	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-		return false
-	}
-	return len(configuredToken) >= 32 && subtle.ConstantTimeCompare([]byte(parts[1]), []byte(configuredToken)) == 1
 }
 
 type command struct {

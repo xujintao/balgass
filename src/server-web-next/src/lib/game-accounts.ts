@@ -23,11 +23,12 @@ function endpoint() {
   return url;
 }
 
-function gameAPIToken() {
-  const token = process.env.GAME_API_TOKEN;
-  if (!token || token.length < 32 || /\s/.test(token))
+function gameBasicAuthorization() {
+  const user = process.env.GAME_BASIC_AUTH_USER;
+  const password = process.env.GAME_BASIC_AUTH_PASSWORD;
+  if (!user || !password)
     throw new ApiError(503, 'GAME_UNAVAILABLE', '游戏账号服务未配置。');
-  return token;
+  return `Basic ${Buffer.from(`${user}:${password}`).toString('base64')}`;
 }
 
 function email(ctx: UserContext) {
@@ -38,12 +39,12 @@ function email(ctx: UserContext) {
 
 async function gameRequest(action: 'GetAccountList' | 'CreateAccount', input: Record<string, string>) {
   const url = endpoint();
-  const token = gameAPIToken();
+  const authorization = gameBasicAuthorization();
   let response: Response;
   try {
     response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', Authorization: authorization },
       body: JSON.stringify({ action, in: input }),
       cache: 'no-store',
       signal: AbortSignal.timeout(10000),
