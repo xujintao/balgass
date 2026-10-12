@@ -16,5 +16,4 @@ endpoint configured in `config.alloy`.
    Cloud Explore, choose your stack's Loki data source and query `{job="caddy"}`
    and `{job="docker"}` for recent logs.
 
-The local Loki and Grafana deployment scripts remain available, but this Alloy
-configuration does not send logs to local Loki.
+The logs are stored in Grafana Cloud Loki.

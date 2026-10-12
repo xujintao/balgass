@@ -38,13 +38,6 @@ game.r2f2.com {
 		reverse_proxy host.docker.internal:8080
 	}
 
-	handle /grafana {
-		redir * /grafana/ 308
-	}
-	handle /grafana/* {
-		reverse_proxy host.docker.internal:3000
-	}
-
 	handle /pgadmin {
 		redir * /pgadmin/ 308
 	}

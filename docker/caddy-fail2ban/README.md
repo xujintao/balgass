@@ -36,7 +36,7 @@ Caddyfile, and starts the container. The persistent `data/`, `config/`, and
 account and certificates.
 
 The Caddy container uses `host.docker.internal` mapped to Docker's host
-gateway to reach the existing published ports 8080, 3000, and 8084. These
+gateway to reach the existing published ports 8080 and 8084. These
 ports remain protected by `iptables-docker.sh`. The game config directory is
 mounted read-only; only `IGC_MapList.xml` is currently in the `@gameConfigFiles`
 path allowlist in `Caddyfile`. When a feature needs another IGCData file, add
@@ -47,11 +47,9 @@ The old items page also used `Skills/IGC_SkillList.xml`,
 `Items/IGC_ItemSetOption.xml`; add them only when the new site needs them.
 The patch files are kept in `patch/`.
 
-Grafana must be restarted with its updated `GF_SERVER_ROOT_URL` in
-`grafana/.env`.
 Alloy reads Caddy and Fail2ban logs through a read-only mount of `logs/` and
 sends them to Grafana Cloud Loki (see `../alloy/README.md`).
-No Docker network or host firewall change is needed.
+No Docker network change is needed.
 
 ## Checks on the VPS
 
@@ -63,13 +61,13 @@ No Docker network or host firewall change is needed.
 3. Check an authenticated `/api/command` request and a browser WebSocket at
    `wss://game.r2f2.com/api/game`; the game service must still reject requests
    without a valid API token.
-4. Check `/grafana/` and `/pgadmin/` load their own login pages, including
-   assets and Grafana Live. Check `http://patch.game.r2f2.com/version.wvd`
-   returns the copied file without a redirect.
-5. Check Caddy access logs appear in Loki. From a disposable client IP,
-   trigger five probe requests, confirm `fail2ban-client status caddy-probes`
+4. Check `/grafana/` returns 404 and `/pgadmin/` loads its login page.
+   Check `http://patch.game.r2f2.com/version.wvd` returns the copied file
+   without a redirect.
+5. Check Caddy access logs appear in Grafana Cloud Loki. From a disposable
+   client IP, trigger five probe requests, confirm `fail2ban-client status caddy-probes`
    reports the ban and that Caddy can no longer be reached from that IP. The
-   host's `DOCKER-USER` rules should remain unchanged.
+   host's remaining `DOCKER-USER` rules should remain unchanged.
 
 Fail2ban's nftables action runs in this container's network namespace. It
 protects traffic reaching Caddy, while `iptables-docker.sh` continues to
