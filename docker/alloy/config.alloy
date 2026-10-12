@@ -1,6 +1,11 @@
-loki.write "local" {
+loki.write "cloud" {
   endpoint {
-    url = "http://host.docker.internal:3100/loki/api/v1/push"
+    url = "https://logs-prod-021.grafana.net/loki/api/v1/push"
+
+    basic_auth {
+      username = "1824152"
+      password = sys.env("GCLOUD_LOKI_TOKEN")
+    }
   }
 }
 
@@ -12,7 +17,7 @@ loki.source.file "caddy" {
     { __path__ = "/var/log/caddy-fail2ban/patch-https.log", job = "caddy", log_type = "caddy-patch-https" },
   ]
   tail_from_end = true
-  forward_to    = [loki.write.local.receiver]
+  forward_to = [loki.write.cloud.receiver]
 }
 
 discovery.docker "containers" {
@@ -46,5 +51,5 @@ loki.source.docker "containers" {
   host       = "unix:///var/run/docker.sock"
   targets    = discovery.relabel.selected_containers.output
   labels     = {}
-  forward_to = [loki.write.local.receiver]
+  forward_to = [loki.write.cloud.receiver]
 }

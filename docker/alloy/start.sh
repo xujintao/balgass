@@ -17,7 +17,6 @@ docker run \
     --restart always \
     -d \
     --name alloy \
-    --add-host host.docker.internal:host-gateway \
     -e LANG=C.UTF-8 \
     --env-file "$ENV_FILE" \
     -v "$ALLOY_DIR/config.alloy:/etc/alloy/config.alloy:ro" \
