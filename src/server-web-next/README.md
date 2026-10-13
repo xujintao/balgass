@@ -24,6 +24,8 @@ npm run dev
 
 执行 `20261013000100_add_profile_roles.sql` 后，最早创建资料的已验证用户成为首位管理员；若尚无已验证资料，服务端在新用户建资料时检查管理员是否存在，首个检查到空名单的用户成为管理员。管理员登录后可从顶部导航进入 `/admin/users`，分页查看已验证且有资料的用户，并设置管理员或普通用户角色。撤销管理员前服务端检查是否仍有其他管理员。检查与写入是不同的 Supabase 请求，极端并发下可能产生多位首任管理员，或同时撤权导致没有管理员；后者需在 Supabase SQL Editor 手动恢复。上线前必须先执行该迁移，否则用户管理不可用。
 
+管理员还可从顶部导航进入 `/deploy` 查看部署图。页面使用 `docker/deploy.drawio.svg` 的网站副本 `public/deploy.drawio.svg`；更新原图后应同步复制到网站目录。Vercel、Supabase、Resend、Grafana Cloud 及两个 pgadmin 节点的控制台地址分别由 `DEPLOY_VERCEL_URL`、`DEPLOY_SUPABASE_URL`、`DEPLOY_RESEND_URL`、`DEPLOY_GRAFANA_URL`、`DEPLOY_PGADMIN_GAME_URL`、`DEPLOY_PGADMIN_US_URL` 配置，示例见 `.env.example`。本地在 `.env.local`、生产在 Vercel 设置实际地址；公网地址须使用 HTTPS，本地 `localhost`、`127.0.0.1`、`[::1]` 可以使用 HTTP。未配置或无效的地址不可点击。修改 Vercel 环境变量后需重新部署。
+
 `public.migrations` 保存迁移 ID、文件名和成功执行时间；它与业务表 `public.profiles` 分开，不允许浏览器、App 或服务端认证客户端读写。SQL Editor 的数据库管理员负责执行迁移。每份迁移在事务内检查执行记录、执行变更并记录成功；重复执行跳过，失败全部回滚。一次性 `DO` 块不会创建存储函数或触发器。初始迁移要求数据库尚未创建旧版 profiles 表。
 
 已执行的迁移文件不再修改。后续变更新建时间戳文件，沿用事务、迁移记录检查和写入方式，并在检查当前记录前验证前一份迁移已经成功；不要手动删除迁移记录来强制重跑。这里的 `public.migrations` 是手动执行历史，不是 Supabase CLI 的内部迁移记录表。

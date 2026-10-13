@@ -6,11 +6,14 @@ test.beforeEach(async ({ context }) => {
   ]);
 });
 
-test('访客看不到用户管理入口且不能直达管理员列表', async ({ page }) => {
+test('访客看不到管理员入口且不能直达管理员页面', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('link', { name: '用户管理' })).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('link', { name: '部署图' })).toHaveCount(0);
   const response = await page.goto('/admin/users');
   expect(response?.status()).toBe(404);
+  const deployResponse = await page.goto('/deploy');
+  expect(deployResponse?.status()).toBe(404);
 });
 
 test('语言切换、持久化与默认语言', async ({ page, context }) => {

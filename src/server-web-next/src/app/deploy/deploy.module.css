@@ -1,0 +1,7 @@
+.page { width: 100%; }
+.page h1 { margin-top: 0; }
+.diagram { position: relative; width: 100%; max-width: 962px; margin: 0 auto; }
+.diagram img { display: block; width: 100%; height: auto; }
+.hotspot { position: absolute; display: block; border-radius: 3px; cursor: pointer; }
+.hotspot:hover { outline: 2px solid var(--accent); outline-offset: -2px; }
+.hotspot:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }

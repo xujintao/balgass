@@ -13,5 +13,10 @@ export async function AdminNavLink() {
   } catch {
     // Authentication and profile errors do not expose the admin link.
   }
-  return visible ? <Link href="/admin/users">{(await siteDictionary()).adminUsers}</Link> : null;
+  if (!visible) return null;
+  const t = await siteDictionary();
+  return <>
+    <Link href="/admin/users">{t.adminUsers}</Link>
+    <Link href="/deploy">{t.deploy}</Link>
+  </>;
 }
