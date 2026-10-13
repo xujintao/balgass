@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api, ClientError } from './client-api';
@@ -15,18 +15,28 @@ export function AdminUsers({ initial, selfId }: { initial: List; selfId: string 
   const router = useRouter();
   const [users, setUsers] = useState(initial.users);
   const [busy, setBusy] = useState<string | null>(null);
-  const [message, setMessage] = useState('');
+  const [announcement, setAnnouncement] = useState('');
   const [error, setError] = useState('');
+  const announcementTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (announcementTimer.current) clearTimeout(announcementTimer.current);
+  }, []);
 
   async function setRole(user: AdminUser, role: UserRole) {
     if (role === user.role) return;
     setBusy(user.id);
-    setMessage('');
+    if (announcementTimer.current) clearTimeout(announcementTimer.current);
+    setAnnouncement('');
     setError('');
     try {
       await api(`admin/users/${user.id}/role`, 'PATCH', { role });
       setUsers((current) => current.map((item) => item.id === user.id ? { ...item, role } : item));
-      setMessage(t.saved);
+      setAnnouncement(t.saved);
+      announcementTimer.current = setTimeout(() => {
+        setAnnouncement('');
+        announcementTimer.current = null;
+      }, 3000);
       if (user.id === selfId && role === 'player') {
         router.replace('/');
         router.refresh();
@@ -40,16 +50,19 @@ export function AdminUsers({ initial, selfId }: { initial: List; selfId: string 
 
   return <section className={styles.page}>
     <h1>{t.title}</h1>
+    <div className={styles.toast} data-visible={Boolean(announcement)} role="status">{announcement}</div>
     {error && <p role="alert" className={styles.error}>{error}</p>}
-    {message && <p role="status">{message}</p>}
     <div className={styles.tableWrap}><table>
-      <thead><tr><th>{t.email}</th><th>{t.nickname}</th><th>{t.role}</th></tr></thead>
+      <thead><tr><th>{t.email}</th><th>{t.nickname}</th><th>{t.role}</th><th>{t.action}</th></tr></thead>
       <tbody>{users.map((user) => <tr key={user.id}>
         <td>{user.email}</td><td>{user.nickname}</td>
-        <td><select aria-label={`${t.role}: ${user.email}`} value={user.role}
-          disabled={busy !== null} onChange={(event) => setRole(user, event.target.value as UserRole)}>
-          <option value="player">{t.player}</option><option value="admin">{t.admin}</option>
-        </select></td>
+        <td>{user.role === 'admin' ? t.admin : t.player}</td>
+        <td><div className={styles.actionCell}>
+          <button type="button" disabled={busy !== null}
+            onClick={() => setRole(user, user.role === 'admin' ? 'player' : 'admin')}>
+            {user.role === 'admin' ? t.demote : t.promote}
+          </button>
+        </div></td>
       </tr>)}</tbody>
     </table></div>
     <nav className={styles.pager} aria-label={t.title}>
