@@ -4,7 +4,7 @@ loki.write "cloud" {
 
     basic_auth {
       username = "1824152"
-      password = sys.env("GCLOUD_LOKI_TOKEN")
+      password = sys.env("GCLOUD_TOKEN")
     }
   }
 }
@@ -52,4 +52,52 @@ loki.source.docker "containers" {
   targets    = discovery.relabel.selected_containers.output
   labels     = {}
   forward_to = [loki.write.cloud.receiver]
+}
+
+prometheus.exporter.unix "linux" {
+  procfs_path = "/host/proc"
+  sysfs_path  = "/host/sys"
+  rootfs_path = "/host/root"
+
+  filesystem {
+    fs_types_exclude = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|squashfs|sysfs|tmpfs|tracefs)$"
+    mount_points_exclude = "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+)($|/)"
+    mount_timeout = "5s"
+  }
+
+  netdev {
+    device_exclude = "^(veth.*|cali.*|[a-f0-9]{15})$"
+  }
+}
+
+discovery.relabel "linux" {
+  targets = prometheus.exporter.unix.linux.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/node_exporter"
+  }
+
+  rule {
+    target_label = "instance"
+    replacement  = "racknerd-7525f4"
+  }
+}
+
+prometheus.scrape "linux" {
+  targets    = discovery.relabel.linux.output
+  forward_to = [prometheus.remote_write.cloud.receiver]
+
+  scrape_interval = "60s"
+}
+
+prometheus.remote_write "cloud" {
+  endpoint {
+    url = "https://prometheus-prod-67-prod-us-west-0.grafana.net/api/prom/push"
+
+    basic_auth {
+      username = "3656975"
+      password = sys.env("GCLOUD_TOKEN")
+    }
+  }
 }

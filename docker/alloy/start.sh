@@ -17,11 +17,16 @@ docker run \
     --restart always \
     -d \
     --name alloy \
+    --network host \
     -e LANG=C.UTF-8 \
     --env-file "$ENV_FILE" \
     -v "$ALLOY_DIR/config.alloy:/etc/alloy/config.alloy:ro" \
     -v "$CADDY_FAIL2BAN_LOG_DIR:/var/log/caddy-fail2ban:ro" \
     -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    -v /proc:/host/proc:ro \
+    -v /sys:/host/sys:ro \
+    -v /:/host/root:ro,rslave \
+    -v /etc/machine-id:/etc/machine-id:ro \
     -v alloy_data:/var/lib/alloy/data \
     grafana/alloy:v1.20.1 \
     run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
