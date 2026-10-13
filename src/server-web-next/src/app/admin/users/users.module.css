@@ -1,0 +1,9 @@
+.page { width: 100%; max-width: 980px; }
+.page h1 { margin-top: 0; }
+.tableWrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: white; }
+.tableWrap table { width: 100%; border-collapse: collapse; text-align: left; }
+.tableWrap th, .tableWrap td { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.tableWrap tr:last-child td { border-bottom: 0; }
+.tableWrap select { min-width: 130px; padding: 8px; border: 1px solid var(--line); border-radius: 6px; background: white; font: inherit; }
+.pager { display: flex; justify-content: center; gap: 24px; align-items: center; margin-top: 20px; }
+.error { color: #a32020; }

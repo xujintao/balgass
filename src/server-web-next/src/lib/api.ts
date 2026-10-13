@@ -19,6 +19,7 @@ import { passkeyRequest } from './passkeys';
 import { createGameAccount, listGameAccounts } from './game-accounts';
 import { listItems, parseItemKind } from './item-catalog';
 import { createOrder, listOrders } from './item-orders';
+import { changeUserRole, listAdminUsers } from './admin-users';
 import { itemLocaleFromRequest } from './item-locale';
 import {
   otpSend,
@@ -48,6 +49,7 @@ const routes: Record<string, string[]> = {
   'game/accounts': ['GET', 'POST'],
   items: ['GET'],
   orders: ['GET', 'POST'],
+  'admin/users': ['GET'],
 };
 async function body(request: Request) {
   if (
@@ -87,7 +89,8 @@ export async function dispatch(request: Request, path: string) {
   const method = request.method;
   const allowed =
     routes[path] ??
-    (/^auth\/passkeys\/[0-9a-f-]+$/i.test(path) ? ['DELETE'] : undefined);
+    (/^auth\/passkeys\/[0-9a-f-]+$/i.test(path) ? ['DELETE'] :
+      /^admin\/users\/[0-9a-f-]+\/role$/i.test(path) ? ['PATCH'] : undefined);
   if (!allowed) throw new ApiError(404, 'NOT_FOUND', '接口不存在。');
   if (!allowed.includes(method))
     throw new ApiError(405, 'METHOD_NOT_ALLOWED', '请求方法不支持。', {
@@ -218,6 +221,17 @@ export async function dispatch(request: Request, path: string) {
     return listItems(parseItemKind(kind), itemLocaleFromRequest(request));
   }
   const ctx = await context(request);
+  if (path === 'admin/users' && method === 'GET') {
+    const value = new URL(request.url).searchParams.get('page') ?? '1';
+    if (!/^[1-9][0-9]*$/.test(value))
+      throw new ApiError(400, 'INVALID_INPUT', '页码无效。');
+    return listAdminUsers(ctx, Number(value));
+  }
+  if (/^admin\/users\/[^/]+\/role$/.test(path) && method === 'PATCH') {
+    const id = z.uuid().parse(path.split('/')[2]);
+    const input = z.strictObject({ role: z.enum(['player', 'admin']) }).parse(await body(request));
+    return changeUserRole(ctx, id, input.role);
+  }
   if (path === 'orders' && method === 'GET') return listOrders(ctx, itemLocaleFromRequest(request));
   if (path === 'orders' && method === 'POST') return createOrder(ctx, await body(request), itemLocaleFromRequest(request));
   if (path === 'game/accounts' && method === 'GET') return listGameAccounts(ctx);

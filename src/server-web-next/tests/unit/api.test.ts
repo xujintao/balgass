@@ -4,6 +4,11 @@ vi.mock('../../src/lib/item-orders', () => ({
   createOrder: vi.fn().mockResolvedValue({ id: 'order-1', status: 'PENDING' }),
   listOrders: vi.fn().mockResolvedValue([]),
 }));
+const adminMock = vi.hoisted(() => ({ list: vi.fn(), change: vi.fn() }));
+vi.mock('../../src/lib/admin-users', () => ({
+  listAdminUsers: adminMock.list,
+  changeUserRole: adminMock.change,
+}));
 const mock = vi.hoisted(() => ({
   jar: new Map<string, string>(),
   user: {
@@ -87,6 +92,38 @@ beforeEach(() => {
   mock.refresh.mockResolvedValue({ data: { session }, error: null });
   mock.getUser.mockResolvedValue({ data: { user: mock.user }, error: null });
   mock.signOut.mockResolvedValue({ error: null });
+  adminMock.list.mockResolvedValue({ users: [], page: 1, pageSize: 20, total: 0, totalPages: 0 });
+  adminMock.change.mockResolvedValue({ id: 'd6ea38c0-c66a-49cc-a6dc-184ec0279c68', role: 'admin' });
+});
+describe('管理员用户 API', () => {
+  it('未登录无法获取用户列表或修改角色', async () => {
+    expect((await handle(new Request('http://localhost:3000/api/v1/admin/users'), 'admin/users')).status).toBe(401);
+    const path = 'admin/users/d6ea38c0-c66a-49cc-a6dc-184ec0279c68/role';
+    expect((await handle(new Request(`http://localhost:3000/api/v1/${path}`, {
+      method: 'PATCH', headers: { Origin: 'http://localhost:3000', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'admin' }),
+    }), path)).status).toBe(401);
+  });
+  it('已登录管理员列表分页并限制角色输入', async () => {
+    mock.jar.set(ACCESS_COOKIE, 'access');
+    const response = await handle(new Request('http://localhost:3000/api/v1/admin/users?page=2'), 'admin/users');
+    expect(response.status).toBe(200);
+    expect(adminMock.list).toHaveBeenCalledWith(expect.objectContaining({ user: mock.user }), 2);
+    const invalid = await handle(new Request('http://localhost:3000/api/v1/admin/users?page=0'), 'admin/users');
+    expect(invalid.status).toBe(400);
+    const rolePath = 'admin/users/d6ea38c0-c66a-49cc-a6dc-184ec0279c68/role';
+    const badRole = await handle(new Request(`http://localhost:3000/api/v1/${rolePath}`, {
+      method: 'PATCH', headers: { Origin: 'http://localhost:3000', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'owner' }),
+    }), rolePath);
+    expect(badRole.status).toBe(400);
+    const changed = await handle(new Request(`http://localhost:3000/api/v1/${rolePath}`, {
+      method: 'PATCH', headers: { Origin: 'http://localhost:3000', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'admin' }),
+    }), rolePath);
+    expect(changed.status).toBe(200);
+    expect(adminMock.change).toHaveBeenCalledWith(expect.objectContaining({ user: mock.user }), 'd6ea38c0-c66a-49cc-a6dc-184ec0279c68', 'admin');
+  });
 });
 describe('道具商城 API', () => {
   it('公开目录无需会话，分类无效返回 400', async () => {

@@ -6,6 +6,13 @@ test.beforeEach(async ({ context }) => {
   ]);
 });
 
+test('访客看不到用户管理入口且不能直达管理员列表', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('navigation', { name: '主导航' }).getByRole('link', { name: '用户管理' })).toHaveCount(0);
+  const response = await page.goto('/admin/users');
+  expect(response?.status()).toBe(404);
+});
+
 test('语言切换、持久化与默认语言', async ({ page, context }) => {
   await context.clearCookies();
   await page.goto('/');

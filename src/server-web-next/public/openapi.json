@@ -11,6 +11,41 @@
     }
   ],
   "paths": {
+    "/admin/users": {
+      "get": {
+        "summary": "List verified users with profiles (admin only)",
+        "operationId": "get_admin_users",
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [{ "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1, "maximum": 100000, "default": 1 } }],
+        "responses": {
+          "200": { "description": "Users ordered by profile creation and ID, 20 per page", "content": { "application/json": { "schema": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["users", "page", "pageSize", "total", "totalPages"], "properties": { "users": { "type": "array", "items": { "$ref": "#/components/schemas/AdminUser" } }, "page": { "type": "integer" }, "pageSize": { "type": "integer", "const": 20 }, "total": { "type": "integer" }, "totalPages": { "type": "integer" } } } } } } } },
+          "400": { "description": "INVALID_INPUT" },
+          "401": { "description": "UNAUTHENTICATED" },
+          "403": { "description": "FORBIDDEN / EMAIL_UNVERIFIED" },
+          "502": { "description": "AUTH_UNAVAILABLE" },
+          "503": { "description": "USERS_UNAVAILABLE" }
+        }
+      }
+    },
+    "/admin/users/{id}/role": {
+      "patch": {
+        "summary": "Change a user's role (admin only)",
+        "operationId": "patch_admin_user_role",
+        "description": "Browser writes require Origin equal to APP_ORIGIN. App writes require X-Client-Type: app and a Bearer token. The service checks the administrator count before demotion; concurrent demotions are not serialized.",
+        "security": [{ "cookieAuth": [] }, { "bearerAuth": [] }],
+        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "additionalProperties": false, "required": ["role"], "properties": { "role": { "type": "string", "enum": ["player", "admin"] } } } } } },
+        "responses": {
+          "200": { "description": "Updated role", "content": { "application/json": { "schema": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["id", "role"], "properties": { "id": { "type": "string", "format": "uuid" }, "role": { "type": "string", "enum": ["player", "admin"] } } } } } } } },
+          "400": { "description": "INVALID_INPUT" },
+          "401": { "description": "UNAUTHENTICATED" },
+          "403": { "description": "FORBIDDEN / INVALID_ORIGIN / EMAIL_UNVERIFIED" },
+          "404": { "description": "USER_NOT_FOUND" },
+          "409": { "description": "LAST_ADMIN / ROLE_CONFLICT" },
+          "503": { "description": "USERS_UNAVAILABLE" }
+        }
+      }
+    },
     "/items": {
       "get": {
         "summary": "List public game items or sets in one category",
@@ -2216,6 +2251,17 @@
   },
   "components": {
     "schemas": {
+      "AdminUser": {
+        "type": "object",
+        "required": ["id", "email", "nickname", "role", "createdAt"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "email": { "type": "string", "format": "email" },
+          "nickname": { "type": "string" },
+          "role": { "type": "string", "enum": ["player", "admin"] },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
       "ItemDetail": {
         "type": "object",
         "required": ["level", "damage", "excellentDamage", "magicPower", "excellentMagicPower", "defense", "excellentDefense", "defenseRate", "excellentDefenseRate", "requiredStrength", "requiredDexterity", "excellentRequiredStrength", "excellentRequiredDexterity"],

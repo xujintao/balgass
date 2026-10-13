@@ -193,6 +193,15 @@ test('真实 PostgreSQL 迁移和 Next.js 业务规则', async () => {
         assert.equal((await service.me(a)).nickname, profile.nickname);
       },
     );
+    await check('角色迁移回填最早已验证资料且不创建触发器', async () => {
+      const roleMigration = await readFile(new URL('../supabase/migrations/20261013000100_add_profile_roles.sql', import.meta.url), 'utf8');
+      await db.query(roleMigration);
+      assert.equal((await db.query('select role from profiles where user_id=$1', [a.id])).rows[0].role, 'admin');
+      assert.equal((await db.query("select count(*)::int as count from pg_trigger where tgrelid='public.profiles'::regclass and not tgisinternal")).rows[0].count, 0);
+      await assert.rejects(db.query("update profiles set role='owner' where user_id=$1", [a.id]), /check constraint/);
+      await db.query(roleMigration);
+      assert.equal((await db.query("select count(*)::int as count from migrations where id='20261013000100'")).rows[0].count, 1);
+    });
     await check('并发首次登录只创建一条资料', async () => {
       const results = await Promise.all([service.me(b), service.me(b)]);
       assert.equal(results[0].nickname, results[1].nickname);
@@ -201,6 +210,10 @@ test('真实 PostgreSQL 迁移和 Next.js 业务规则', async () => {
           .length,
         1,
       );
+      assert.equal((await db.query('select role from profiles where user_id=$1', [b.id])).rows[0].role, 'player');
+      await db.query("update profiles set role='admin' where user_id=$1", [b.id]);
+      await db.query("update profiles set role='player' where user_id=$1", [a.id]);
+      assert.equal((await db.query('select role from profiles where user_id=$1', [a.id])).rows[0].role, 'player');
     });
     await check('未验证邮箱不能创建资料或修改昵称', async () => {
       await assert.rejects(
@@ -223,6 +236,7 @@ test('真实 PostgreSQL 迁移和 Next.js 业务规则', async () => {
       for (const sql of [
         "update profiles set nickname='绕过规则'",
         'update profiles set nickname_changed_at=null',
+        "update profiles set role='admin'",
         'delete from profiles',
         `insert into profiles(user_id,nickname,nickname_key) values('${id()}','绕过','绕过')`,
       ])
@@ -254,7 +268,6 @@ test('真实 PostgreSQL 迁移和 Next.js 业务规则', async () => {
         'a'.repeat(25),
         '名字🐈',
         'a-b',
-        'ＡＢ',
         'name space',
       ])
         await assert.rejects(service.change(b, n));

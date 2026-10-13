@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AccountNav } from '@/components/account-nav';
+import { AdminNavLink } from '@/components/admin-nav-link';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { LocaleProvider } from '@/components/locale-provider';
 import { siteDictionary, siteLocale } from '@/lib/i18n-server';
@@ -33,6 +34,7 @@ export default async function RootLayout({
               <nav className="site-nav" aria-label={t.primaryNavigation}>
                 <Link href="/game">{t.gameMap}</Link>
                 <Link href="/items">{itemDictionaries[locale].items}</Link>
+                <AdminNavLink />
               </nav>
             </div>
             <div className="header-actions">

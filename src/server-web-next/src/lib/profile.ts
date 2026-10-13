@@ -26,9 +26,17 @@ function service() {
       return data as ProfileRow | null;
     },
     async insert(userId, nickname, key) {
+      const { data: admins, error: lookupError } = await client
+        .from('profiles')
+        .select('user_id')
+        .eq('role', 'admin')
+        .limit(1);
+      if (lookupError)
+        throw new ApiError(503, 'PROFILE_UNAVAILABLE', '暂时无法创建用户资料。');
       const { data, error } = await client
         .from('profiles')
-        .insert({ user_id: userId, nickname, nickname_key: key })
+        .insert({ user_id: userId, nickname, nickname_key: key,
+          role: admins.length === 0 ? 'admin' : 'player' })
         .select()
         .single();
       if (error?.code === '23505') return null;
