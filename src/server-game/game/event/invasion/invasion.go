@@ -6,7 +6,15 @@ import (
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/event"
+	"github.com/xujintao/balgass/src/server-game/game/event/invasion/dragon"
+	"github.com/xujintao/balgass/src/server-game/game/event/invasion/skeleton"
 )
+
+func init() {
+	InvasionManager.init()
+}
+
+var InvasionManager invasionManager
 
 const (
 	RedDragon    = 0
@@ -14,22 +22,16 @@ const (
 )
 
 type StartTime struct{ DayOfWeek, Hour, Minute int }
+
 type invasionManager struct {
 	Enabled   bool
 	Schedules map[int][]StartTime
 }
 
-var InvasionManager invasionManager
-
-func init() { InvasionManager.init() }
 func (m *invasionManager) init() {
 	if err := m.load(conf.PathCommon); err != nil {
 		panic(fmt.Errorf("invasion: %w", err))
 	}
-	// Load concrete configurations before constructing or registering events.
-	dragonSettings.init()
-	skeletonSettings.init()
-
 	// register invasion events
 	if !m.Enabled {
 		return
@@ -39,8 +41,8 @@ func (m *invasionManager) init() {
 		name     string
 		activity event.Event
 	}{
-		{RedDragon, "invasion/dragon", NewDragon()},
-		{SkeletonKing, "invasion/skeleton", NewSkeleton()},
+		{RedDragon, "invasion/dragon", dragon.New()},
+		{SkeletonKing, "invasion/skeleton", skeleton.New()},
 	} {
 		var schedules []event.Schedule
 		for _, start := range m.Schedules[entry.id] {

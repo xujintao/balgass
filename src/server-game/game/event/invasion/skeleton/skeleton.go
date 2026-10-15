@@ -1,4 +1,4 @@
-package invasion
+package skeleton
 
 import (
 	"encoding/xml"
@@ -11,22 +11,28 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/object/monster"
 )
 
-type skeletonSpawn struct {
+func init() {
+	settings.init()
+}
+
+var settings config
+
+type spawnConfig struct {
 	count int
 	maps  []int
 	spawn monster.EventSpawn
 }
-type skeletonConfig struct{ boss, guard skeletonSpawn }
+type config struct {
+	boss, guard spawnConfig
+}
 
-var skeletonSettings skeletonConfig
-
-func (c *skeletonConfig) init() {
+func (c *config) init() {
 	if err := c.load(conf.PathCommon); err != nil {
 		panic(fmt.Errorf("skeleton: %w", err))
 	}
 }
-func (c *skeletonConfig) load(basePath string) error {
-	type config struct {
+func (c *config) load(basePath string) error {
+	type xmlConfig struct {
 		XMLName xml.Name `xml:"AttackEvent"`
 		Spawns  []struct {
 			Index    *int `xml:"Index,attr"`
@@ -43,9 +49,9 @@ func (c *skeletonConfig) load(basePath string) error {
 			Count    *int `xml:"Count,attr"`
 		} `xml:"Spawn"`
 	}
-	var cfg config
+	var cfg xmlConfig
 	conf.XML(basePath, "Events/IGC_AttackEvent.xml", &cfg)
-	var next skeletonConfig
+	var next config
 	seen := make(map[int]bool)
 	total := 0
 	for _, row := range cfg.Spawns {
@@ -60,7 +66,7 @@ func (c *skeletonConfig) load(basePath string) error {
 		if row.Distance == nil || row.X == nil || row.Y == nil || row.EndX == nil || row.EndY == nil || row.Dir == nil || row.Count == nil || *row.Count <= 0 || *row.Count > conf.Server.MaxMonsterCount {
 			return fmt.Errorf("invalid skeleton spawn fields")
 		}
-		spawn := skeletonSpawn{count: *row.Count, spawn: monster.EventSpawn{Class: *row.Index, StartX: *row.X, StartY: *row.Y, EndX: *row.EndX, EndY: *row.EndY, Direction: *row.Dir, Distance: *row.Distance}}
+		spawn := spawnConfig{count: *row.Count, spawn: monster.EventSpawn{Class: *row.Index, StartX: *row.X, StartY: *row.Y, EndX: *row.EndX, EndY: *row.EndY, Direction: *row.Dir, Distance: *row.Distance}}
 		maps := make(map[int]bool)
 		for _, number := range []*int{row.Map1, row.Map2, row.Map3, row.Map4} {
 			if number == nil {
@@ -97,11 +103,14 @@ func (c *skeletonConfig) load(basePath string) error {
 }
 
 type Skeleton struct {
-	config   skeletonConfig
+	config   config
 	monsters []*object.Object
 }
 
-func NewSkeleton() *Skeleton { return &Skeleton{config: skeletonSettings} }
+func New() *Skeleton {
+	return &Skeleton{config: settings}
+}
+
 func (s *Skeleton) Running() bool {
 	for _, obj := range s.monsters {
 		if object.ObjectManager.GetObject(obj.Index) == obj && obj.Live {
@@ -110,6 +119,7 @@ func (s *Skeleton) Running() bool {
 	}
 	return false
 }
+
 func (s *Skeleton) Start(now time.Time) error {
 	s.reap(now, true)
 	var created []*object.Object
@@ -149,7 +159,11 @@ func (s *Skeleton) Start(now time.Time) error {
 	object.ObjectManager.BroadcastSystemMsg("骷髅王入侵开始！")
 	return nil
 }
-func (s *Skeleton) Tick(now time.Time) { s.reap(now, false) }
+
+func (s *Skeleton) Tick(now time.Time) {
+	s.reap(now, false)
+}
+
 func (s *Skeleton) reap(now time.Time, living bool) {
 	kept := s.monsters[:0]
 	for _, obj := range s.monsters {

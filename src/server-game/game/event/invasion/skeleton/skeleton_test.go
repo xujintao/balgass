@@ -1,4 +1,4 @@
-package invasion
+package skeleton
 
 import (
 	"os"
@@ -32,7 +32,7 @@ func TestSkeletonConfiguration(t *testing.T) {
 			if err := os.WriteFile(filepath.Join(base, "Events/IGC_AttackEvent.xml"), []byte(tt.body), 0600); err != nil {
 				t.Fatal(err)
 			}
-			var c skeletonConfig
+			var c config
 			if err := c.load(base); (err != nil) != tt.bad {
 				t.Fatalf("load: %v", err)
 			}
@@ -41,9 +41,9 @@ func TestSkeletonConfiguration(t *testing.T) {
 }
 func TestSkeletonSpawnRefreshAndRollback(t *testing.T) {
 	now := time.Now()
-	s := NewSkeleton()
-	s.config.boss = skeletonSpawn{count: 1, maps: []int{0}, spawn: monster.EventSpawn{Class: 55, MapNumber: 0, StartX: 135, StartY: 61, EndX: 146, EndY: 70, Direction: -1, Distance: 30}}
-	s.config.guard = skeletonSpawn{count: 2, spawn: monster.EventSpawn{Class: 56, Direction: -1, Distance: 30}}
+	s := New()
+	s.config.boss = spawnConfig{count: 1, maps: []int{0}, spawn: monster.EventSpawn{Class: 55, MapNumber: 0, StartX: 135, StartY: 61, EndX: 146, EndY: 70, Direction: -1, Distance: 30}}
+	s.config.guard = spawnConfig{count: 2, spawn: monster.EventSpawn{Class: 56, Direction: -1, Distance: 30}}
 	t.Cleanup(func() {
 		for _, obj := range s.monsters {
 			obj.Live = true

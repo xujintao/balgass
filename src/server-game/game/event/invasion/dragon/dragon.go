@@ -1,4 +1,4 @@
-package invasion
+package dragon
 
 import (
 	"encoding/xml"
@@ -13,35 +13,31 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/object/monster"
 )
 
-const (
-	dragonIdle = iota
-	dragonAnnouncing
-	dragonActive
-	dragonDelay    = 3 * time.Second
-	dragonDuration = 5 * time.Minute
-)
+func init() {
+	settings.init()
+}
 
-type dragonMap struct {
+var settings config
+
+type spawnMap struct {
 	number int
 	spawns []monster.EventSpawn
 }
 
-type dragonConfig struct {
+type config struct {
 	count int
-	maps  []dragonMap
+	maps  []spawnMap
 }
 
-var dragonSettings dragonConfig
-
-func (c *dragonConfig) init() {
+func (c *config) init() {
 	if err := c.load(conf.PathCommon); err != nil {
 		panic(fmt.Errorf("dragon: %w", err))
 	}
 }
 
-func (c *dragonConfig) load(basePath string) error {
+func (c *config) load(basePath string) error {
 	// Pointer attributes distinguish missing required values from valid zeroes.
-	type dragonXML struct {
+	type xmlConfig struct {
 		XMLName  xml.Name `xml:"DragonEvent"`
 		Monsters []struct {
 			Index    *int `xml:"Index,attr"`
@@ -58,8 +54,8 @@ func (c *dragonConfig) load(basePath string) error {
 			} `xml:"Map"`
 		} `xml:"Monster"`
 	}
-	next := dragonConfig{}
-	var dragons dragonXML
+	next := config{}
+	var dragons xmlConfig
 	conf.XML(basePath, "Events/IGC_DragonEvent.xml", &dragons)
 	if len(dragons.Monsters) != 1 {
 		return fmt.Errorf("DragonEvent requires exactly one Monster definition")
@@ -76,7 +72,7 @@ func (c *dragonConfig) load(basePath string) error {
 			return fmt.Errorf("missing/duplicate dragon map or empty spawn list")
 		}
 		mapIDs[*dm.Number] = true
-		m := dragonMap{number: *dm.Number}
+		m := spawnMap{number: *dm.Number}
 		areas := make(map[monster.EventSpawn]bool)
 		for _, area := range dm.Spawns {
 			if area.StartX == nil || area.StartY == nil || area.EndX == nil || area.EndY == nil {
@@ -99,7 +95,7 @@ func (c *dragonConfig) load(basePath string) error {
 	return nil
 }
 
-type dragonWorld interface {
+type worldAPI interface {
 	spawn(monster.EventSpawn) (*object.Object, error)
 	remove(*object.Object, time.Time) bool
 	announce(string)
@@ -115,9 +111,17 @@ func (liveWorld) remove(obj *object.Object, now time.Time) bool {
 }
 func (liveWorld) announce(msg string) { object.ObjectManager.BroadcastSystemMsg(msg) }
 
+const (
+	idle = iota
+	announcing
+	active
+	delay    = 3 * time.Second
+	duration = 5 * time.Minute
+)
+
 type Dragon struct {
-	config   dragonConfig
-	world    dragonWorld
+	config   config
+	world    worldAPI
 	intn     func(int) int
 	state    int
 	deadline time.Time
@@ -125,11 +129,11 @@ type Dragon struct {
 	monsters []*object.Object
 }
 
-func NewDragon() *Dragon {
-	return &Dragon{config: dragonSettings, world: liveWorld{}, intn: rand.Intn}
+func New() *Dragon {
+	return &Dragon{config: settings, world: liveWorld{}, intn: rand.Intn}
 }
 
-func (d *Dragon) Running() bool { return d.state != dragonIdle }
+func (d *Dragon) Running() bool { return d.state != idle }
 
 func (d *Dragon) Start(now time.Time) error {
 	if len(d.config.maps) == 0 || d.config.count <= 0 {
@@ -137,8 +141,8 @@ func (d *Dragon) Start(now time.Time) error {
 	}
 	d.reap(now, true)
 	d.mapIndex = d.intn(len(d.config.maps))
-	d.state = dragonAnnouncing
-	d.deadline = now.Add(dragonDelay)
+	d.state = announcing
+	d.deadline = now.Add(delay)
 	d.world.announce(fmt.Sprintf("红龙即将入侵%s！", maps.MapManager.GetMapName(d.config.maps[d.mapIndex].number)))
 	slog.Info("red dragon invasion announced", "map", d.config.maps[d.mapIndex].number)
 	return nil
@@ -150,7 +154,7 @@ func (d *Dragon) Tick(now time.Time) {
 	if !d.Running() || now.Before(d.deadline) {
 		return
 	}
-	if d.state == dragonAnnouncing {
+	if d.state == announcing {
 		m := d.config.maps[d.mapIndex]
 		var created []*object.Object
 		for i := 0; i < d.config.count; i++ {
@@ -159,7 +163,7 @@ func (d *Dragon) Tick(now time.Time) {
 				for _, previous := range created {
 					d.world.remove(previous, now)
 				}
-				d.state = dragonIdle
+				d.state = idle
 				d.world.announce("红龙入侵取消。")
 				slog.Error("red dragon invasion spawn failed", "map", m.number, "err", err)
 				return
@@ -167,13 +171,13 @@ func (d *Dragon) Tick(now time.Time) {
 			created = append(created, obj)
 		}
 		d.monsters = append(d.monsters, created...)
-		d.state = dragonActive
-		d.deadline = now.Add(dragonDuration)
+		d.state = active
+		d.deadline = now.Add(duration)
 		slog.Info("red dragon invasion started", "map", m.number, "count", len(created))
 		return
 	}
 	d.reap(now, true)
-	d.state = dragonIdle
+	d.state = idle
 	d.world.announce("红龙入侵结束。")
 	slog.Info("red dragon invasion ended", "map", d.config.maps[d.mapIndex].number)
 }

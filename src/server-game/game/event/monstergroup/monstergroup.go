@@ -14,12 +14,20 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/object/monster"
 )
 
+func init() {
+	MonsterGroupManager.init()
+}
+
+var MonsterGroupManager monsterGroupManager
+
 type StartTime struct{ Hour, Minute, AppearanceRate int }
+
 type member struct {
 	class, count                                                        int
 	override                                                            bool
 	eventID, hp, damageMin, damageMax, defense, attackRate, defenseRate int
 }
+
 type Group struct {
 	Index                     int
 	Starts                    []StartTime
@@ -29,11 +37,11 @@ type Group struct {
 	members                   []member
 	monsters                  []*object.Object
 }
-type monsterGroupManager struct{ Groups []*Group }
 
-var MonsterGroupManager monsterGroupManager
+type monsterGroupManager struct {
+	Groups []*Group
+}
 
-func init() { MonsterGroupManager.init() }
 func (m *monsterGroupManager) init() {
 	if err := m.load(conf.PathCommon); err != nil {
 		panic(fmt.Errorf("monstergroup: %w", err))
@@ -48,6 +56,7 @@ func (m *monsterGroupManager) init() {
 		}
 	}
 }
+
 func (m *monsterGroupManager) load(basePath string) error {
 	type config struct {
 		XMLName xml.Name `xml:"MonsterGroupRegenSystem"`
@@ -207,6 +216,7 @@ func (m *monsterGroupManager) load(basePath string) error {
 	m.Groups = next
 	return nil
 }
+
 func (g *Group) Running() bool {
 	for _, obj := range g.monsters {
 		if object.ObjectManager.GetObject(obj.Index) == obj && obj.Live {
@@ -215,6 +225,7 @@ func (g *Group) Running() bool {
 	}
 	return false
 }
+
 func (g *Group) Start(now time.Time) error {
 	if len(g.areas) == 0 || len(g.members) == 0 {
 		return fmt.Errorf("empty group %d", g.Index)
@@ -248,7 +259,11 @@ func (g *Group) Start(now time.Time) error {
 	}
 	return nil
 }
-func (g *Group) Tick(now time.Time) { g.reap(now, false) }
+
+func (g *Group) Tick(now time.Time) {
+	g.reap(now, false)
+}
+
 func (g *Group) reap(now time.Time, living bool) {
 	kept := g.monsters[:0]
 	for _, obj := range g.monsters {

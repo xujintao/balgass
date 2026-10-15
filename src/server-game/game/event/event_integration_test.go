@@ -5,6 +5,8 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/event"
 	"github.com/xujintao/balgass/src/server-game/game/event/invasion"
+	"github.com/xujintao/balgass/src/server-game/game/event/invasion/dragon"
+	"github.com/xujintao/balgass/src/server-game/game/event/invasion/skeleton"
 	"github.com/xujintao/balgass/src/server-game/game/event/monstergroup"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 	"github.com/xujintao/balgass/src/server-game/game/object/monster"
@@ -27,10 +29,10 @@ func TestEventPackagesRegisterAtStartup(t *testing.T) {
 		}
 	}
 	if invasion.InvasionManager.Enabled {
-		if _, ok := registered["invasion/dragon"].(*invasion.Dragon); !ok {
+		if _, ok := registered["invasion/dragon"].(*dragon.Dragon); !ok {
 			t.Fatal("wrong dragon event")
 		}
-		if _, ok := registered["invasion/skeleton"].(*invasion.Skeleton); !ok {
+		if _, ok := registered["invasion/skeleton"].(*skeleton.Skeleton); !ok {
 			t.Fatal("wrong skeleton event")
 		}
 	}
@@ -49,8 +51,8 @@ func TestEventPackagesRegisterAtStartup(t *testing.T) {
 func TestScheduledDragonWithWorldObjects(t *testing.T) {
 	base := time.Date(2026, 9, 5, 11, 59, 59, 0, time.Local)
 	m := event.NewTestManager()
-	dragon := invasion.NewDragon()
-	if err := m.Register("dragon", dragon, []event.Schedule{{DayOfWeek: -1, Hour: 12, AppearanceRate: 100}}); err != nil {
+	d := dragon.New()
+	if err := m.Register("dragon", d, []event.Schedule{{DayOfWeek: -1, Hour: 12, AppearanceRate: 100}}); err != nil {
 		t.Fatal(err)
 	}
 	// The event package does not spawn the static world at initialization.
@@ -76,7 +78,7 @@ func TestScheduledDragonWithWorldObjects(t *testing.T) {
 	})
 	m.Tick(base)
 	m.Tick(base.Add(time.Second))
-	if !dragon.Running() {
+	if !d.Running() {
 		t.Fatal("scheduled invasion not started")
 	}
 	m.Tick(base.Add(4 * time.Second))
@@ -94,7 +96,7 @@ func TestScheduledDragonWithWorldObjects(t *testing.T) {
 		}
 	}
 	m.Tick(base.Add(4*time.Second + 5*time.Minute))
-	if dragon.Running() {
+	if d.Running() {
 		t.Fatal("invasion did not end")
 	}
 	for _, obj := range spawned {

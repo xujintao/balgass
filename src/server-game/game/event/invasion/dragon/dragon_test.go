@@ -1,4 +1,4 @@
-package invasion
+package dragon
 
 import (
 	"errors"
@@ -42,7 +42,7 @@ func (w *testWorld) announce(s string) { w.notices = append(w.notices, s) }
 
 func testDragon(w *testWorld) *Dragon {
 	w.removed = make(map[*object.Object]bool)
-	return &Dragon{config: dragonConfig{count: 2, maps: []dragonMap{
+	return &Dragon{config: config{count: 2, maps: []spawnMap{
 		{number: 0, spawns: []monster.EventSpawn{{Class: 44, MapNumber: 0}}},
 		{number: 2, spawns: []monster.EventSpawn{{Class: 44, MapNumber: 2, StartX: 10}, {Class: 44, MapNumber: 2, StartX: 20}}},
 	}}, world: w, intn: func(n int) int { return n - 1 }}
@@ -72,16 +72,16 @@ func TestDragonLifecycle(t *testing.T) {
 	// One monster dies just before expiry and still has settlement pending.
 	w.objects[0].Live = false
 	w.pending = w.objects[0]
-	d.Tick(spawnAt.Add(dragonDuration - time.Second))
+	d.Tick(spawnAt.Add(duration - time.Second))
 	if len(w.removed) != 0 {
 		t.Fatal("removed too early")
 	}
-	d.Tick(spawnAt.Add(dragonDuration))
+	d.Tick(spawnAt.Add(duration))
 	if d.Running() || !w.removed[w.objects[1]] || w.removed[w.objects[0]] {
 		t.Fatal("expiry lost pending corpse or living monster")
 	}
 	w.pending = nil
-	d.Tick(spawnAt.Add(dragonDuration + 5*time.Second))
+	d.Tick(spawnAt.Add(duration + 5*time.Second))
 	if len(w.removed) != 2 || len(d.monsters) != 0 {
 		t.Fatal("idle corpse not drained")
 	}
@@ -101,7 +101,7 @@ func TestDragonRollbackAndNoRespawn(t *testing.T) {
 		if err := d.Start(now); err != nil {
 			t.Fatal(err)
 		}
-		d.Tick(now.Add(dragonDelay))
+		d.Tick(now.Add(delay))
 		if fail {
 			if d.Running() || len(w.removed) != 1 || len(d.monsters) != 0 {
 				t.Fatal("partial spawn not rolled back")
@@ -142,7 +142,7 @@ func TestDragonConfigLoadsAndValidates(t *testing.T) {
 			if err := os.WriteFile(filepath.Join(base, "Events/IGC_DragonEvent.xml"), []byte(tt.dragon), 0600); err != nil {
 				t.Fatal(err)
 			}
-			var c dragonConfig
+			var c config
 			err := c.load(base)
 			if (err != nil) != tt.bad {
 				t.Fatalf("load error=%v", err)
@@ -155,7 +155,7 @@ func TestDragonConfigLoadsAndValidates(t *testing.T) {
 }
 
 func TestDragonStartupConfig(t *testing.T) {
-	var c dragonConfig
+	var c config
 	if err := c.load(conf.PathCommon); err != nil {
 		t.Fatal(err)
 	}
@@ -176,34 +176,34 @@ func TestDragonRestartPreservesSettlement(t *testing.T) {
 	if err := d.Start(restart); err != nil {
 		t.Fatal(err)
 	}
-	d.Tick(now.Add(dragonDelay))
+	d.Tick(now.Add(delay))
 	if len(w.objects) != 0 {
 		t.Fatal("old announcement deadline spawned monsters")
 	}
-	d.Tick(restart.Add(dragonDelay))
+	d.Tick(restart.Add(delay))
 	if len(w.objects) != 2 {
 		t.Fatal("new announcement did not spawn")
 	}
 	corpse, living := w.objects[0], w.objects[1]
 	corpse.Live = false
 	w.pending = corpse
-	restart = restart.Add(dragonDelay + time.Second)
+	restart = restart.Add(delay + time.Second)
 	if err := d.Start(restart); err != nil {
 		t.Fatal(err)
 	}
-	if !w.removed[living] || w.removed[corpse] || len(d.monsters) != 1 || d.state != dragonAnnouncing {
+	if !w.removed[living] || w.removed[corpse] || len(d.monsters) != 1 || d.state != announcing {
 		t.Fatal("restart failed to preserve pending settlement or remove living monster")
 	}
-	d.Tick(restart.Add(dragonDelay))
-	if len(w.objects) != 4 || len(d.monsters) != 3 || !d.deadline.Equal(restart.Add(dragonDelay+dragonDuration)) {
+	d.Tick(restart.Add(delay))
+	if len(w.objects) != 4 || len(d.monsters) != 3 || !d.deadline.Equal(restart.Add(delay+duration)) {
 		t.Fatal("replacement wave has incorrect count or duration")
 	}
 	w.pending = nil
-	d.Tick(restart.Add(dragonDelay + time.Second))
+	d.Tick(restart.Add(delay + time.Second))
 	if !w.removed[corpse] || len(d.monsters) != 2 {
 		t.Fatal("settled corpse not reclaimed")
 	}
-	d.Tick(restart.Add(dragonDelay + dragonDuration))
+	d.Tick(restart.Add(delay + duration))
 	if d.Running() || len(d.monsters) != 0 {
 		t.Fatal("replacement wave did not expire")
 	}

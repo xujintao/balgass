@@ -8,6 +8,8 @@ import (
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/event"
+	"github.com/xujintao/balgass/src/server-game/game/event/invasion/dragon"
+	"github.com/xujintao/balgass/src/server-game/game/event/invasion/skeleton"
 )
 
 func TestScheduleConfigLoadsAndValidates(t *testing.T) {
@@ -45,24 +47,13 @@ func TestScheduleConfigLoadsAndValidates(t *testing.T) {
 func TestInvasionRegistrationEnable(t *testing.T) {
 	savedManager := event.EventManager
 	savedPath := conf.PathCommon
-	savedDragon, savedSkeleton := dragonSettings, skeletonSettings
 	t.Cleanup(func() {
 		event.EventManager = savedManager
 		conf.PathCommon = savedPath
-		dragonSettings, skeletonSettings = savedDragon, savedSkeleton
 	})
 	base := t.TempDir()
 	if err := os.Mkdir(filepath.Join(base, "Events"), 0755); err != nil {
 		t.Fatal(err)
-	}
-	for _, name := range []string{"IGC_DragonEvent.xml", "IGC_AttackEvent.xml"} {
-		data, err := os.ReadFile(filepath.Join(savedPath, "Events", name))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(filepath.Join(base, "Events", name), data, 0600); err != nil {
-			t.Fatal(err)
-		}
 	}
 	conf.PathCommon = base
 	writeSchedule := func(enabled string) {
@@ -75,8 +66,8 @@ func TestInvasionRegistrationEnable(t *testing.T) {
 	writeSchedule("0")
 	var m invasionManager
 	m.init()
-	if m.Enabled || len(dragonSettings.maps) == 0 || skeletonSettings.boss.count == 0 {
-		t.Fatal("disabled initialization did not load configurations")
+	if m.Enabled {
+		t.Fatal("disabled initialization enabled invasions")
 	}
 	if !InvasionManager.Enabled {
 		// Successful registration proves the disabled initialization registered nothing.
@@ -86,9 +77,15 @@ func TestInvasionRegistrationEnable(t *testing.T) {
 			t.Fatal("enabled configuration was not loaded")
 		}
 	}
-	for _, name := range []string{"invasion/dragon", "invasion/skeleton"} {
-		if err := event.EventManager.Register(name, NewDragon(), nil); err == nil {
-			t.Fatalf("missing registration: %s", name)
+	for _, entry := range []struct {
+		name     string
+		activity event.Event
+	}{
+		{"invasion/dragon", dragon.New()},
+		{"invasion/skeleton", skeleton.New()},
+	} {
+		if err := event.EventManager.Register(entry.name, entry.activity, nil); err == nil {
+			t.Fatalf("missing registration: %s", entry.name)
 		}
 	}
 	// Disabled initialization must not attempt to register duplicates.
