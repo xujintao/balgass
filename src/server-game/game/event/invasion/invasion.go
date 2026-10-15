@@ -7,6 +7,7 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/event"
 	"github.com/xujintao/balgass/src/server-game/game/event/invasion/dragon"
+	"github.com/xujintao/balgass/src/server-game/game/event/invasion/golden"
 	"github.com/xujintao/balgass/src/server-game/game/event/invasion/skeleton"
 )
 
@@ -19,6 +20,7 @@ var InvasionManager invasionManager
 const (
 	RedDragon    = 0
 	SkeletonKing = 1
+	Golden       = 2
 )
 
 type StartTime struct{ DayOfWeek, Hour, Minute int }
@@ -43,6 +45,7 @@ func (m *invasionManager) init() {
 	}{
 		{RedDragon, "invasion/dragon", dragon.New()},
 		{SkeletonKing, "invasion/skeleton", skeleton.New()},
+		{Golden, "invasion/golden", golden.New()},
 	} {
 		var schedules []event.Schedule
 		for _, start := range m.Schedules[entry.id] {

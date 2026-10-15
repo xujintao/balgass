@@ -6,6 +6,7 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/event"
 	"github.com/xujintao/balgass/src/server-game/game/event/invasion"
 	"github.com/xujintao/balgass/src/server-game/game/event/invasion/dragon"
+	"github.com/xujintao/balgass/src/server-game/game/event/invasion/golden"
 	"github.com/xujintao/balgass/src/server-game/game/event/invasion/skeleton"
 	"github.com/xujintao/balgass/src/server-game/game/event/monstergroup"
 	"github.com/xujintao/balgass/src/server-game/game/object"
@@ -18,12 +19,12 @@ func TestEventPackagesRegisterAtStartup(t *testing.T) {
 	registered := event.RegisteredEventsForTest()
 	want := len(monstergroup.MonsterGroupManager.Groups)
 	if invasion.InvasionManager.Enabled {
-		want += 2
+		want += 3
 	}
 	if len(registered) != want {
 		t.Fatalf("registered %d events, want %d", len(registered), want)
 	}
-	for _, name := range []string{"invasion/dragon", "invasion/skeleton"} {
+	for _, name := range []string{"invasion/dragon", "invasion/skeleton", "invasion/golden"} {
 		if (registered[name] != nil) != invasion.InvasionManager.Enabled {
 			t.Fatalf("incorrect invasion registration: %s", name)
 		}
@@ -34,6 +35,9 @@ func TestEventPackagesRegisterAtStartup(t *testing.T) {
 		}
 		if _, ok := registered["invasion/skeleton"].(*skeleton.Skeleton); !ok {
 			t.Fatal("wrong skeleton event")
+		}
+		if _, ok := registered["invasion/golden"].(*golden.Golden); !ok {
+			t.Fatal("wrong golden event")
 		}
 	}
 	for _, group := range monstergroup.MonsterGroupManager.Groups {

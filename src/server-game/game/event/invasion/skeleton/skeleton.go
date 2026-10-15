@@ -59,7 +59,7 @@ func (c *config) load(basePath string) error {
 			return fmt.Errorf("invalid or duplicate AttackEvent monster")
 		}
 		seen[*row.Index] = true
-		// Golden Titan/Soldier belong to a separate, not yet registered activity.
+		// Golden Titan/Soldier belong to the golden invasion.
 		if *row.Index < 55 {
 			continue
 		}

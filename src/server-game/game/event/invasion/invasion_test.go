@@ -9,6 +9,7 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/event"
 	"github.com/xujintao/balgass/src/server-game/game/event/invasion/dragon"
+	"github.com/xujintao/balgass/src/server-game/game/event/invasion/golden"
 	"github.com/xujintao/balgass/src/server-game/game/event/invasion/skeleton"
 )
 
@@ -58,7 +59,7 @@ func TestInvasionRegistrationEnable(t *testing.T) {
 	conf.PathCommon = base
 	writeSchedule := func(enabled string) {
 		t.Helper()
-		data := `<InvasionManager Enable="` + enabled + `"><Invasion Type="0"><Start DayOfWeek="-1" Hour="12" Minute="0"/></Invasion><Invasion Type="1"><Start DayOfWeek="-1" Hour="13" Minute="0"/></Invasion></InvasionManager>`
+		data := `<InvasionManager Enable="` + enabled + `"><Invasion Type="0"><Start DayOfWeek="-1" Hour="12" Minute="0"/></Invasion><Invasion Type="1"><Start DayOfWeek="-1" Hour="13" Minute="0"/></Invasion><Invasion Type="2"><Start DayOfWeek="-1" Hour="14" Minute="0"/></Invasion></InvasionManager>`
 		if err := os.WriteFile(filepath.Join(base, "Events/IGC_InvasionManager.xml"), []byte(data), 0600); err != nil {
 			t.Fatal(err)
 		}
@@ -83,6 +84,7 @@ func TestInvasionRegistrationEnable(t *testing.T) {
 	}{
 		{"invasion/dragon", dragon.New()},
 		{"invasion/skeleton", skeleton.New()},
+		{"invasion/golden", golden.New()},
 	} {
 		if err := event.EventManager.Register(entry.name, entry.activity, nil); err == nil {
 			t.Fatalf("missing registration: %s", entry.name)
