@@ -502,6 +502,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 		tobj.SD = 0
 	}
 	if damage > 0 {
+		tobj.OnDamageTaken()
 		tobj.removeSleepEffect()
 		obj.applySkillEffect(tobj, s, damage)
 		if allowReflect {

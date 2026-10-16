@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ItemBag>
+  <BagConfig Name="Cursed Santa" ItemRate="10000" SetItemRate="0" MoneyDrop="0" BagUseEffect="-1" BagUseRate="10000" />
+  <DropAllow Wizard="3" Knight="3" FairyElf="3" MagicGladiator="3" DarkLord="3" Summoner="3" RageFighter="3" PlayerMinLevel="0" PlayerMaxLevel="9999" MapNumber="-1">
+    <Drop Rate="10000" Count="1">
+      <Item Cat="13" Index="66" ItemMinLevel="0" ItemMaxLevel="0" Durability="0" Skill="0" Luck="0" Option="0" Exc="0" />
+    </Drop>
+  </DropAllow>
+</ItemBag>

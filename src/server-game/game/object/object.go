@@ -632,66 +632,67 @@ type DelayMsg struct {
 
 type Objecter interface {
 	// object actions implemented by derived object:
-	Addr() string
-	Offline()
-	Push(any)
-	ProcessAction()
-	Process1000ms()
-	SpawnPosition()
-	Die(*Object, int)
-	LevelUp(int) bool
-	DieDropItem(*Object)
-	Regen()
-	EquipmentChanged()
-	GetPKLevel() int
-	GetMasterLevel() int
-	IsMasterLevel() bool
-	GetSkillMPAG(s *skill.Skill) (int, int)
-	GetMagicAttackMin() int
-	GetMagicAttackMax() int
-	GetCurseAttackMin() int
-	GetCurseAttackMax() int
-	GetCurse() int
-	GetActivePetCode() int
-	UseSkillAmmo(*skill.Skill, bool) bool
-	GetStrength() int
-	GetDexterity() int
-	GetEnergy() int
-	GetVitality() int
-	GetLeadership() int
-	GetChangeUp() int
-	CanUseItem(*item.Item) bool
-	GetInventory() *item.Inventory
-	GetInventoryItem(int) *item.Item
-	GetWarehouse() *item.Warehouse
-	SetDelayRecoverHP(int, int)
-	SetDelayRecoverSD(int, int)
-	GetAttackRatePVP() int
-	GetDefenseRatePVP() int
-	GetIgnoreDefenseRate() int
-	GetCriticalAttackRate() int
-	GetCriticalAttackDamage() int
-	GetExcellentAttackRate() int
-	GetExcellentAttackDamage() int
-	GetMonsterDieGetHP() float64
-	GetMonsterDieGetMP() float64
-	GetAddDamage() int
-	GetArmorReduceDamage() int
-	GetWingIncreaseDamage() int
-	GetWingReduceDamage() int
-	GetHelperReduceDamage() int
-	GetPetIncreaseDamage() int
-	GetPetReduceDamage() int
-	GetAttackSpeedForDelay() int
-	GetDoubleDamageRate() int
-	GetReturnDamageRate() int
-	GetFullHPRecoveryRate() float64
-	GetFullMPRecoveryRate() float64
-	GetFullSDRecoveryRate() float64
-	GetMaceStunRate() float64
-	GetMonsterDieGetMoney() float64
-	GetKnightGladiatorCalcSkillBonus() float64
-	GetImpaleSkillCalc() float64
+	Addr() string                              // implemented by Player and Monster
+	Offline()                                  // implemented by Player and Monster
+	Push(any)                                  // implemented by Player and Monster
+	ProcessAction()                            // implemented by Player and Monster
+	Process1000ms()                            // implemented by Player and Monster
+	SpawnPosition()                            // implemented by Player and Monster
+	Die(*Object, int)                          // implemented by Player and Monster
+	LevelUp(int) bool                          // implemented by Player and Monster
+	DieDropItem(*Object)                       // implemented by Player and Monster
+	Regen()                                    // implemented by Player and Monster
+	EquipmentChanged()                         // implemented by Player and Monster
+	GetPKLevel() int                           // implemented by Player and Monster
+	GetMasterLevel() int                       // implemented by Player and Monster
+	IsMasterLevel() bool                       // implemented by Player and Monster
+	GetSkillMPAG(s *skill.Skill) (int, int)    // implemented by Player and Monster
+	GetMagicAttackMin() int                    // implemented by Player and Monster
+	GetMagicAttackMax() int                    // implemented by Player and Monster
+	GetCurseAttackMin() int                    // implemented by Player and Monster
+	GetCurseAttackMax() int                    // implemented by Player and Monster
+	GetCurse() int                             // implemented by Player and Monster
+	GetActivePetCode() int                     // implemented by Player and Monster
+	UseSkillAmmo(*skill.Skill, bool) bool      // implemented by Player and Monster
+	GetStrength() int                          // implemented by Player and Monster
+	GetDexterity() int                         // implemented by Player and Monster
+	GetEnergy() int                            // implemented by Player and Monster
+	GetVitality() int                          // implemented by Player and Monster
+	GetLeadership() int                        // implemented by Player and Monster
+	GetChangeUp() int                          // implemented by Player and Monster
+	CanUseItem(*item.Item) bool                // implemented by Player and Monster
+	GetInventory() *item.Inventory             // implemented by Player and Monster
+	GetInventoryItem(int) *item.Item           // implemented by Player and Monster
+	GetWarehouse() *item.Warehouse             // implemented by Player and Monster
+	SetDelayRecoverHP(int, int)                // implemented by Player and Monster
+	SetDelayRecoverSD(int, int)                // implemented by Player and Monster
+	GetAttackRatePVP() int                     // implemented by Player and Monster
+	GetDefenseRatePVP() int                    // implemented by Player and Monster
+	GetIgnoreDefenseRate() int                 // implemented by Player and Monster
+	GetCriticalAttackRate() int                // implemented by Player and Monster
+	GetCriticalAttackDamage() int              // implemented by Player and Monster
+	GetExcellentAttackRate() int               // implemented by Player and Monster
+	GetExcellentAttackDamage() int             // implemented by Player and Monster
+	GetMonsterDieGetHP() float64               // implemented by Player and Monster
+	GetMonsterDieGetMP() float64               // implemented by Player and Monster
+	GetAddDamage() int                         // implemented by Player and Monster
+	GetArmorReduceDamage() int                 // implemented by Player and Monster
+	GetWingIncreaseDamage() int                // implemented by Player and Monster
+	GetWingReduceDamage() int                  // implemented by Player and Monster
+	GetHelperReduceDamage() int                // implemented by Player and Monster
+	GetPetIncreaseDamage() int                 // implemented by Player and Monster
+	GetPetReduceDamage() int                   // implemented by Player and Monster
+	GetAttackSpeedForDelay() int               // implemented by Player and Monster
+	GetDoubleDamageRate() int                  // implemented by Player and Monster
+	GetReturnDamageRate() int                  // implemented by Player and Monster
+	GetFullHPRecoveryRate() float64            // implemented by Player and Monster
+	GetFullMPRecoveryRate() float64            // implemented by Player and Monster
+	GetFullSDRecoveryRate() float64            // implemented by Player and Monster
+	GetMaceStunRate() float64                  // implemented by Player and Monster
+	GetMonsterDieGetMoney() float64            // implemented by Player and Monster
+	GetKnightGladiatorCalcSkillBonus() float64 // implemented by Player and Monster
+	GetImpaleSkillCalc() float64               // implemented by Player and Monster
+	OnDamageTaken()                            // implemented by Player and Monster
 
 	// object actions:
 	// 1. item management

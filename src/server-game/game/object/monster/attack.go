@@ -111,6 +111,10 @@ func (*Monster) GetImpaleSkillCalc() float64 {
 	return 1.0
 }
 
+func (m *Monster) OnDamageTaken() {
+	m.PassiveUntilHit = false
+}
+
 func (*Monster) GetMagicAttackMin() int {
 	return 0
 }

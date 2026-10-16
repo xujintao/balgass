@@ -15,6 +15,8 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/event"
 	_ "github.com/xujintao/balgass/src/server-game/game/event/invasion"
 	_ "github.com/xujintao/balgass/src/server-game/game/event/monstergroup"
+	_ "github.com/xujintao/balgass/src/server-game/game/event/santa"
+	_ "github.com/xujintao/balgass/src/server-game/game/event/whitewizard"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"

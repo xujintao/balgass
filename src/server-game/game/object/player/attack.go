@@ -130,6 +130,8 @@ func (p *Player) GetImpaleSkillCalc() float64 {
 	return p.impaleSkillCalc
 }
 
+func (p *Player) OnDamageTaken() {}
+
 func (p *Player) GetMagicAttackMin() int {
 	return p.magicAttackMin
 }

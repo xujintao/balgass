@@ -73,8 +73,8 @@ func TestItemBagStartupLoadsOnlyMonsterBags(t *testing.T) {
 		}
 		monsterCount++
 	}
-	if monsterCount != 20 {
-		t.Fatalf("MonsterBag registration count = %d, want 20", monsterCount)
+	if monsterCount != 25 {
+		t.Fatalf("MonsterBag registration count = %d, want 25", monsterCount)
 	}
 	for _, key := range []itemBagKey{{kind: itemBagEvent, id: 1}, {kind: itemBagEvent, id: 27}, {kind: itemBagEvent, id: 47}, {kind: itemBagEvent, id: 151}, {kind: itemBagEvent, id: 152}} {
 		if entry := DropManager.itemBags[key]; entry == nil || entry.bag != nil {
@@ -139,7 +139,6 @@ func TestMonsterAndEventBagDispatch(t *testing.T) {
 			t.Fatalf("EventBag %d was not dispatched: %#v", id, result)
 		}
 	}
-
 	fallback := DropManager
 	fallback.itemBags = map[itemBagKey]*itemBagEntry{{kind: itemBagMonster, id: 295}: testItemBagEntry(&itemBag{bagUseRate: 0})}
 	result := fallback.Drop(testRequest(295))

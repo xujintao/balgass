@@ -134,6 +134,9 @@ function LoadItemBag() -- Bags Load
 -- ====================================================================
 	AddItemBag(BAG_MONSTER, 0, 44, 'Monster_(44)_Dragon_Red') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 55, 'Monster_(55)_Death_King') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 135,'Monster_(135)_White_Wizard') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 136,'Monster_(136)_Destructive_Ogre_Soldier') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 137,'Monster_(137)_Destructive_Ogre_Archer') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 295,'Monster_(295)_Erohim') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 340,'Monster_(340)_Dark_Elf') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 349,'Monster_(349)_Balgass') -- DropFunction /2/
@@ -144,6 +147,8 @@ function LoadItemBag() -- Bags Load
 	AddItemBag(BAG_MONSTER, 0, 413,'Monster_(413)_Lunar_Rabbit') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 414,'Monster_(414)_Helper_Ellen') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 459,'Monster_(459)_Selupan') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 466,'Monster_(466)_Cursed_Goblin') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 476,'Monster_(476)_Cursed_Santa') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 647,'Monster_(647)_Snake_Green') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 648,'Monster_(648)_Snake_Yellow') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 649,'Monster_(649)_Snake_Purple') -- DropFunction /2/

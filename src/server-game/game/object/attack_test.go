@@ -446,6 +446,15 @@ type attackProcTestActor struct {
 	maceStun       float64
 }
 
+type damageTakenTestActor struct {
+	*attackProcTestActor
+	calls int
+}
+
+func (a *damageTakenTestActor) OnDamageTaken() {
+	a.calls++
+}
+
 func newAttackProcTestObject(index int, typ ObjectType) (*Object, *attackProcTestActor) {
 	obj, base := newSkillTestObject(index, typ)
 	actor := &attackProcTestActor{skillTestActor: base}
@@ -783,6 +792,39 @@ func TestSplitDamage(t *testing.T) {
 				t.Fatalf("splitDamage changed target SD to %d, want %d", target.SD, tt.targetSD)
 			}
 		})
+	}
+}
+
+func TestAttackNotifiesMonsterOnDamageTaken(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	attacker, _ := newAttackProcTestObject(1, ObjectTypePlayer)
+	target, base := newAttackProcTestObject(2, ObjectTypeMonster)
+	actor := &damageTakenTestActor{attackProcTestActor: base}
+	target.Objecter = actor
+	withTestObjectManager(t, attacker, target)
+
+	attacker.attack(target, attackRequest{mode: attackModeFixed, damage: 20})
+	if actor.calls != 1 {
+		t.Fatalf("damage callback calls = %d, want 1", actor.calls)
+	}
+}
+
+func TestAttackNotifiesPlayerOnShieldDamageTaken(t *testing.T) {
+	withShieldSystemTest(t, true, 100)
+	attacker, _ := newAttackProcTestObject(1, ObjectTypePlayer)
+	target, base := newAttackProcTestObject(2, ObjectTypePlayer)
+	target.SD, target.MaxSD = 100, 100
+	actor := &damageTakenTestActor{attackProcTestActor: base}
+	target.Objecter = actor
+	withTestObjectManager(t, attacker, target)
+
+	initialHP := target.HP
+	attacker.attack(target, attackRequest{mode: attackModeFixed, damage: 20})
+	if target.HP != initialHP || target.SD != 80 {
+		t.Fatalf("target resources = HP:%d SD:%d, want HP:%d SD:80", target.HP, target.SD, initialHP)
+	}
+	if actor.calls != 1 {
+		t.Fatalf("damage callback calls = %d, want 1", actor.calls)
 	}
 }
 

@@ -150,6 +150,8 @@ func SpawnMonster() {
 // EventSpawn uses half-open spawn rectangles, like the original IGC spawner.
 type EventSpawn struct {
 	EventID                    int // One-based runtime EventBag ID; zero keeps the monster default.
+	EventHerd                  bool
+	PassiveUntilHit            bool
 	Class, MapNumber           int
 	StartX, StartY, EndX, EndY int
 	Direction, Distance        int
@@ -195,6 +197,8 @@ func SpawnEventMonster(s EventSpawn) (*object.Object, error) {
 		if s.EventID != 0 {
 			m.EventID = s.EventID
 		}
+		m.EventHerd = s.EventHerd
+		m.PassiveUntilHit = s.PassiveUntilHit
 		m.NoRegen = true
 		return &m.Object
 	})
@@ -342,6 +346,8 @@ type actionState struct {
 type Monster struct {
 	object.Object
 	EventID             int // One-based runtime EventBag ID; zero means no EventBag.
+	EventHerd           bool
+	PassiveUntilHit     bool
 	moveRange           int // 移动范围
 	spawnStartX         int
 	spawnStartY         int
@@ -410,6 +416,11 @@ func (m *Monster) overDis(tx, ty int) bool {
 	y := ty - m.StartY
 	dis := int(math.Sqrt(float64(x*x + y*y)))
 	return dis > m.spawnDis
+}
+
+// SetEventHerdCenter changes the roaming anchor of an event monster.
+func (m *Monster) SetEventHerdCenter(x, y, radius int) {
+	m.StartX, m.StartY, m.spawnDis = x, y, radius
 }
 
 func (m *Monster) searchEnemy() int {
@@ -496,6 +507,21 @@ func (m *Monster) baseAction() {
 
 	switch m.actionState.emotion {
 	case 0: // 寻找目标
+		if m.EventHerd && m.overDis(m.X, m.Y) {
+			dir := maps.CalcDir(m.X, m.Y, m.StartX, m.StartY)
+			for i := 0; i < len(maps.Dirs); i++ {
+				step := maps.Dirs[(dir+i)%len(maps.Dirs)]
+				x, y := m.X+step.X, m.Y+step.Y
+				if x >= 0 && x < 256 && y >= 0 && y < 256 &&
+					maps.MapManager.GetMapAttr(m.MapNumber, x, y)&15 == 0 &&
+					(x-m.StartX)*(x-m.StartX)+(y-m.StartY)*(y-m.StartY) <
+						(m.X-m.StartX)*(m.X-m.StartX)+(m.Y-m.StartY)*(m.Y-m.StartY) {
+					m.TX, m.TY = x, y
+					m.actionState.move = true
+					return
+				}
+			}
+		}
 		// if m.actionState.attack {
 		// 	m.actionState.attack = false
 		// 	m.TargetNumber = -1
@@ -506,7 +532,9 @@ func (m *Monster) baseAction() {
 		// 	m.actionState.rest = true
 		// 	m.nextActionInterval = 500
 		// }
-		m.TargetNumber = m.searchEnemy()
+		if !m.PassiveUntilHit {
+			m.TargetNumber = m.searchEnemy()
+		}
 		if m.TargetNumber >= 0 {
 			m.actionState.emotion = 1
 		} else if m.moveRange > 0 && !m.PathMoving {
@@ -581,7 +609,7 @@ func (m *Monster) baseAction() {
 		if m.actionState.emotionCount > 0 {
 			m.actionState.emotionCount--
 		} else {
-			if m.overDis(m.X, m.Y) {
+			if !m.EventHerd && m.overDis(m.X, m.Y) {
 				m.StartX = m.X
 				m.StartY = m.Y
 			}

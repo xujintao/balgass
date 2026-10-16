@@ -97,6 +97,7 @@ func (a *skillTestActor) GetImpaleSkillCalc() float64 {
 	}
 	return 1
 }
+func (*skillTestActor) OnDamageTaken()                    {}
 func (*skillTestActor) PickItem(*model.MsgPickItem)       {}
 func (*skillTestActor) DropItem(*model.MsgDropItem)       {}
 func (*skillTestActor) BuyItem(*model.MsgBuyItem)         {}
