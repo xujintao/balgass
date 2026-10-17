@@ -39,7 +39,12 @@ type itemBag struct {
 	setItemRate int
 	moneyDrop   int
 	bagUseRate  int
+	summonBook  *itemBagSummonBook
 	allows      []itemBagAllow
+}
+
+type itemBagSummonBook struct {
+	rate, section, index int
 }
 
 type itemBagAllow struct {
@@ -200,7 +205,10 @@ func parseItemBag(name string) *itemBag {
 			BagUseRate   int    `xml:"BagUseRate,attr"`
 		} `xml:"BagConfig"`
 		SummonBook struct {
-			Enable int `xml:"Enable,attr"`
+			Enable    int `xml:"Enable,attr"`
+			DropRate  int `xml:"DropRate,attr"`
+			ItemCat   int `xml:"ItemCat,attr"`
+			ItemIndex int `xml:"ItemIndex,attr"`
 		} `xml:"SummonBook"`
 		AddCoin struct {
 			Enable int `xml:"Enable,attr"`
@@ -232,10 +240,19 @@ func parseItemBag(name string) *itemBag {
 		(cfg.BagConfig.ItemRate < 10000 && cfg.BagConfig.MoneyDrop == 0) {
 		panic(fmt.Errorf("drop: invalid BagConfig in %s", name))
 	}
-	if cfg.BagConfig.BagUseEffect != -1 || cfg.SummonBook.Enable != 0 || cfg.AddCoin.Enable != 0 {
-		panic(fmt.Errorf("drop: unsupported BagUseEffect/SummonBook/AddCoin enabled in %s", name))
+	if cfg.BagConfig.BagUseEffect != -1 || cfg.AddCoin.Enable != 0 {
+		panic(fmt.Errorf("drop: unsupported BagUseEffect/AddCoin enabled in %s", name))
 	}
 	bag := &itemBag{name: cfg.BagConfig.Name, itemRate: cfg.BagConfig.ItemRate, setItemRate: cfg.BagConfig.SetItemRate, moneyDrop: cfg.BagConfig.MoneyDrop, bagUseRate: cfg.BagConfig.BagUseRate}
+	if cfg.SummonBook.Enable != 0 {
+		if cfg.SummonBook.Enable != 1 || cfg.SummonBook.DropRate < 0 || cfg.SummonBook.DropRate > 1000000 {
+			panic(fmt.Errorf("drop: invalid SummonBook configuration in %s", name))
+		}
+		if _, err := item.ItemTable.GetItemBase(cfg.SummonBook.ItemCat, cfg.SummonBook.ItemIndex); err != nil {
+			panic(fmt.Errorf("drop: invalid SummonBook item in %s: %w", name, err))
+		}
+		bag.summonBook = &itemBagSummonBook{rate: cfg.SummonBook.DropRate, section: cfg.SummonBook.ItemCat, index: cfg.SummonBook.ItemIndex}
+	}
 	validateItem := func(allowIndex, dropIndex, itemIndex int, configured itemXML) {
 		if configured.Cat < 0 || configured.Index < 0 || configured.ItemMinLevel < 0 || configured.ItemMaxLevel < configured.ItemMinLevel || configured.ItemMaxLevel > 15 {
 			panic(fmt.Errorf("drop: invalid item %d/%d/%d in %s", allowIndex, dropIndex, itemIndex, name))
@@ -305,6 +322,10 @@ func (m *dropManager) dropItemBag(bag *itemBag, consume bool, request Request) (
 		return Result{Handled: consume}, consume
 	}
 	result := Result{Handled: true}
+	if bag.summonBook != nil && rand.Intn(1000000) < bag.summonBook.rate {
+		book := m.makeBagItem(itemBagItem{section: bag.summonBook.section, index: bag.summonBook.index})
+		result.Rewards = append(result.Rewards, Reward{Item: book, Placement: PlaceAtPlayer})
+	}
 	if rand.Intn(10000) >= bag.itemRate {
 		if bag.moneyDrop > 0 {
 			result.Rewards = append(result.Rewards, Reward{Zen: bag.moneyDrop, Placement: PlaceAtPlayer})

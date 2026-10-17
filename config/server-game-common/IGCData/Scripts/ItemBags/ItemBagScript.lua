@@ -156,6 +156,12 @@ function LoadItemBag() -- Bags Load
 	AddItemBag(BAG_MONSTER, 0, 648,'Monster_(648)_Snake_Yellow') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 649,'Monster_(649)_Snake_Purple') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 650,'Monster_(650)_Snake_Red') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 652,'Monster_(652)_Golden_Goblin') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 653,'Monster_(653)_Golden_Titan') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 654,'Monster_(654)_Golden_Tantalose') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 655,'Monster_(655)_Golden_Erohim') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 656,'Monster_(656)_Golden_Hell_Maine') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 657,'Monster_(657)_Golden_Kundun') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 673,'Monster_(673)_Lord_Silvester') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 674,'Monster_(674)_Moon_Rabbit') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 675,'Monster_(675)_Pouch_of_Blessing') -- DropFunction /2/
@@ -200,12 +206,6 @@ function LoadItemBag() -- Bags Load
 	AddItemBag(BAG_EVENT, 37,0, 'Event_IllusionTemple_Renewal_4') -- DropFunction /3/
 	AddItemBag(BAG_EVENT, 38,0, 'Event_IllusionTemple_Renewal_5') -- DropFunction /3/
 	AddItemBag(BAG_EVENT, 39,0, 'Event_IllusionTemple_Renewal_6') -- DropFunction /3/
-	AddItemBag(BAG_EVENT, 40,0,	'Monster_(652)_Golden_Goblin') -- DropFunction /3/
-	AddItemBag(BAG_EVENT, 41,0,	'Monster_(653)_Golden_Titan') -- DropFunction /3/
-	AddItemBag(BAG_EVENT, 42,0,	'Monster_(654)_Golden_Tantalose') -- DropFunction /3/
-	AddItemBag(BAG_EVENT, 43,0,	'Monster_(655)_Golden_Erohim') -- DropFunction /3/
-	AddItemBag(BAG_EVENT, 44,0,	'Monster_(656)_Golden_Hell_Maine') -- DropFunction /3/
-	AddItemBag(BAG_EVENT, 45,0,	'Monster_(657)_Golden_Kundun') -- DropFunction /3/
 	AddItemBag(BAG_EVENT, 47,0, 'Mix_Cherry_Blossom_White_Reward') -- DropFunction /4/
 	AddItemBag(BAG_EVENT, 48,0, 'Mix_Cherry_Blossom_Red_Reward') -- DropFunction /4/
 	AddItemBag(BAG_EVENT, 49,0, 'Event_ChaosCastle(2)_Reward') -- DropFunction /3/

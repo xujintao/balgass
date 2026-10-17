@@ -73,10 +73,10 @@ func TestItemBagStartupLoadsOnlyMonsterBags(t *testing.T) {
 		}
 		monsterCount++
 	}
-	if monsterCount != 29 {
-		t.Fatalf("MonsterBag registration count = %d, want 29", monsterCount)
+	if monsterCount != 35 {
+		t.Fatalf("MonsterBag registration count = %d, want 35", monsterCount)
 	}
-	for _, key := range []itemBagKey{{kind: itemBagEvent, id: 1}, {kind: itemBagEvent, id: 41}} {
+	for _, key := range []itemBagKey{{kind: itemBagEvent, id: 1}, {kind: itemBagEvent, id: 28}} {
 		if entry := DropManager.itemBags[key]; entry == nil || entry.bag != nil {
 			t.Fatalf("EventBag %d should be registered but not activated by drop", key.id)
 		}
@@ -136,6 +136,42 @@ func TestItemBagFiltersWeightCountAndRewards(t *testing.T) {
 	setItem := (&dropManager{}).makeRandomSetItem()
 	if setItem == nil || setItem.Set <= 0 || !setItem.Skill || setItem.Durability != setItem.MaxDurability {
 		t.Fatalf("random set item = %#v", setItem)
+	}
+}
+
+func TestItemBagSummonBookDrop(t *testing.T) {
+	bag := testItemBag(0, 0, 100000, 1)
+	bag.summonBook = &itemBagSummonBook{rate: 1000000, section: 14, index: 217}
+	result, used := (&dropManager{}).dropItemBag(bag, false, testRequest(652))
+	if !used || len(result.Rewards) != 2 || result.Rewards[0].Item == nil ||
+		result.Rewards[0].Item.Code != item.Code(14, 217) || result.Rewards[0].Placement != PlaceAtPlayer ||
+		result.Rewards[1].Zen != 100000 {
+		t.Fatalf("Zen and summon book rewards = %#v", result)
+	}
+	bag.itemRate = 10000
+	result, used = (&dropManager{}).dropItemBag(bag, false, testRequest(652))
+	if !used || len(result.Rewards) != 2 || result.Rewards[0].Item == nil ||
+		result.Rewards[0].Item.Code != item.Code(14, 217) || result.Rewards[1].Item == nil ||
+		result.Rewards[1].Item.Code != item.Code(0, 17) {
+		t.Fatalf("item and summon book rewards = %#v", result)
+	}
+	request := testRequest(652)
+	request.Player.Class = int(class.Knight)
+	result, used = (&dropManager{}).dropItemBag(bag, false, request)
+	if !used || len(result.Rewards) != 1 || result.Rewards[0].Item == nil ||
+		result.Rewards[0].Item.Code != item.Code(14, 217) {
+		t.Fatalf("unmatched DropAllow summon book reward = %#v", result)
+	}
+	bag.itemRate = 0
+	bag.summonBook.rate = 0
+	result, used = (&dropManager{}).dropItemBag(bag, false, testRequest(652))
+	if !used || len(result.Rewards) != 1 || result.Rewards[0].Zen != 100000 {
+		t.Fatalf("zero-rate summon book rewards = %#v", result)
+	}
+	bag.bagUseRate = 0
+	result, used = (&dropManager{}).dropItemBag(bag, false, testRequest(652))
+	if used || len(result.Rewards) != 0 {
+		t.Fatalf("unused ItemBag rewards = %#v", result)
 	}
 }
 
