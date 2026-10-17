@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
-	"github.com/xujintao/balgass/src/server-game/game/drop"
 	"github.com/xujintao/balgass/src/server-game/game/event"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 	"github.com/xujintao/balgass/src/server-game/game/object/monster"
@@ -23,9 +22,9 @@ var MonsterGroupManager monsterGroupManager
 type StartTime struct{ Hour, Minute, AppearanceRate int }
 
 type member struct {
-	class, count                                                        int
-	override                                                            bool
-	eventID, hp, damageMin, damageMax, defense, attackRate, defenseRate int
+	class, count                                               int
+	override                                                   bool
+	hp, damageMin, damageMax, defense, attackRate, defenseRate int
 }
 
 type Group struct {
@@ -83,7 +82,6 @@ func (m *monsterGroupManager) load(basePath string) error {
 				Index       *int `xml:"Index,attr"`
 				Count       *int `xml:"Count,attr"`
 				Override    *int `xml:"OverrideDefaultSettings,attr"`
-				EventID     *int `xml:"EventID,attr"`
 				HP          *int `xml:"HP,attr"`
 				Min         *int `xml:"DamageMin,attr"`
 				Max         *int `xml:"DamageMax,attr"`
@@ -164,15 +162,6 @@ func (m *monsterGroupManager) load(basePath string) error {
 				return err
 			}
 			entry := member{class: *r.Index, count: *r.Count, override: *r.Override == 1}
-			if r.EventID != nil {
-				if *r.EventID < 0 || *r.EventID == int(^uint(0)>>1) {
-					return fmt.Errorf("invalid monster EventID %d", *r.EventID)
-				}
-				entry.eventID = *r.EventID + 1
-				if err := drop.DropManager.LoadEventBag(entry.eventID); err != nil {
-					return err
-				}
-			}
 			if entry.override {
 				if r.HP == nil || *r.HP <= 0 || r.Min == nil || *r.Min < 0 || r.Max == nil || *r.Max < *r.Min || r.Defense == nil || *r.Defense < 0 || r.AttackRate == nil || *r.AttackRate < 0 || r.DefenseRate == nil || *r.DefenseRate < 0 {
 					return fmt.Errorf("invalid monster attribute override")
@@ -237,7 +226,6 @@ func (g *Group) Start(now time.Time) error {
 		for i := 0; i < entry.count; i++ {
 			spawn := area
 			spawn.Class = entry.class
-			spawn.EventID = entry.eventID
 			obj, err := monster.SpawnEventMonster(spawn)
 			if err != nil {
 				for _, previous := range created {

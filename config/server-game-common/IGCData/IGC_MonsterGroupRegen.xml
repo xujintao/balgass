@@ -33,7 +33,6 @@
 //	Index: Index of a monster belonging to the group, refer to IGC_MonsterList.xml
 //	Count: Count of monsters of specified type to spawn
 //	OverrideDefaultSettings: Determines whether to use monster attributes from IGC_MonsterList.xml or overrride them with attributes defined from this file, 0/1
-//	EventID: ID of event item bag type defined in ItemBagScript.lua
 //	HP: Value of health to set for specified monster
 //	DamageMin: Value of minimum damage to set for specified monster
 //	DamageMax: Value of maxumum damage to set for specified monster
@@ -71,8 +70,8 @@
  
 	<MonsterSettings>
 		<Group Index="0">
-			<Monster Index="560" Count="7" OverrideDefaultSettings="0" EventID="151" HP="150000" DamageMin="100" DamageMax="150" Defense="150" AttackRate="1000" DefenseRate="1000" />
-			<Monster Index="561" Count="1" OverrideDefaultSettings="0" EventID="150" HP="15000000" DamageMin="1000" DamageMax="1500" Defense="550" AttackRate="2000" DefenseRate="2000" />
+			<Monster Index="560" Count="7" OverrideDefaultSettings="0" HP="150000" DamageMin="100" DamageMax="150" Defense="150" AttackRate="1000" DefenseRate="1000" />
+			<Monster Index="561" Count="1" OverrideDefaultSettings="0" HP="15000000" DamageMin="1000" DamageMax="1500" Defense="550" AttackRate="2000" DefenseRate="2000" />
 		</Group>
 	</MonsterSettings>
  

@@ -90,7 +90,6 @@ func TestLifecycleAndOwnership(t *testing.T) {
 	}
 	for _, entry := range e.monsters {
 		if entry.obj.Objecter == nil || !entry.obj.NoRegen ||
-			entry.obj.Objecter.(*monster.Monster).EventID != 0 ||
 			entry.obj.Objecter.(*monster.Monster).PassiveUntilHit != (entry.member.AttackFirst == 0) {
 			t.Fatal("monster is not owned by White Wizard event")
 		}

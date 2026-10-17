@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
-	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/object"
-	"github.com/xujintao/balgass/src/server-game/game/object/monster"
 )
 
 const groupXML = `<MonsterGroupRegenSystem SpawnNotice="0">
@@ -56,7 +54,7 @@ func TestGroupConfigValidation(t *testing.T) {
 	}
 }
 func TestGroupRefreshOverridesAndRollback(t *testing.T) {
-	body := strings.Replace(groupXML, `OverrideDefaultSettings="0"`, `OverrideDefaultSettings="1" EventID="26" HP="12345" DamageMin="100" DamageMax="200" Defense="50" AttackRate="60" DefenseRate="70"`, 1)
+	body := strings.Replace(groupXML, `OverrideDefaultSettings="0"`, `OverrideDefaultSettings="1" HP="12345" DamageMin="100" DamageMax="200" Defense="50" AttackRate="60" DefenseRate="70"`, 1)
 	m, err := loadGroup(t, body)
 	if err != nil {
 		t.Fatal(err)
@@ -76,8 +74,7 @@ func TestGroupRefreshOverridesAndRollback(t *testing.T) {
 	}
 	old := append([]*object.Object(nil), g.monsters...)
 	for _, obj := range old {
-		eventID := obj.Objecter.(*monster.Monster).EventID
-		if !obj.NoRegen || obj.HP != 12345 || obj.MaxHP != 12345 || obj.AttackMin != 100 || obj.AttackMax != 200 || eventID != 27 {
+		if !obj.NoRegen || obj.HP != 12345 || obj.MaxHP != 12345 || obj.AttackMin != 100 || obj.AttackMax != 200 {
 			t.Fatal("missing override")
 		}
 	}
@@ -109,58 +106,23 @@ func TestGroupRefreshOverridesAndRollback(t *testing.T) {
 		}
 	}
 }
-func TestGroupEventBagWithoutAttributeOverride(t *testing.T) {
-	for _, tt := range []struct {
-		raw     string
-		runtime int
-	}{{"150", 151}, {"151", 152}} {
-		t.Run(tt.raw, func(t *testing.T) {
-			xml := strings.Replace(groupXML, `OverrideDefaultSettings="0"`, `OverrideDefaultSettings="0" EventID="`+tt.raw+`"`, 1)
-			m, err := loadGroup(t, xml)
-			if err != nil {
-				t.Fatal(err)
-			}
-			g := m.Groups[0]
-			t.Cleanup(func() {
-				for _, obj := range g.monsters {
-					object.ObjectManager.DeleteEventMonster(obj, time.Now())
-				}
-			})
-			if err := g.Start(time.Now()); err != nil {
-				t.Fatal(err)
-			}
-			baseline := class.MonsterTable[44]
-			for _, obj := range g.monsters {
-				eventID := obj.Objecter.(*monster.Monster).EventID
-				if eventID != tt.runtime {
-					t.Fatalf("EventID = %d, want %d", eventID, tt.runtime)
-				}
-				if obj.MaxHP != baseline.HP || obj.AttackMin != baseline.DamageMin || obj.AttackMax != baseline.DamageMax || obj.Defense != baseline.Defense {
-					t.Fatal("EventID unexpectedly overrode monster attributes")
-				}
-			}
-		})
-	}
-}
-
-func TestConfiguredMedusaGroupEventBags(t *testing.T) {
+func TestConfiguredMedusaGroupUsesMonsterBags(t *testing.T) {
 	for _, group := range MonsterGroupManager.Groups {
 		if group.boss != 561 {
 			continue
 		}
-		expected := map[int]int{560: 152, 561: 151}
+		expected := map[int]bool{560: true, 561: true}
 		for _, entry := range group.members {
-			id, ok := expected[entry.class]
-			if !ok {
+			if !expected[entry.class] {
 				continue
 			}
-			if entry.override || entry.eventID != id {
-				t.Fatalf("Medusa group member %d EventBag = %d, want %d", entry.class, entry.eventID, id)
+			if entry.override {
+				t.Fatalf("Medusa group member %d unexpectedly overrides attributes", entry.class)
 			}
 			delete(expected, entry.class)
 		}
 		if len(expected) != 0 {
-			t.Fatalf("Medusa group is missing EventBag members: %v", expected)
+			t.Fatalf("Medusa group is missing members: %v", expected)
 		}
 		return
 	}

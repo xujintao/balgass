@@ -11,7 +11,6 @@ import (
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	gameclass "github.com/xujintao/balgass/src/server-game/game/class"
-	"github.com/xujintao/balgass/src/server-game/game/drop"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
@@ -19,16 +18,6 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/shop"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
-
-var defaultEventIDs = map[int]int{275: 26 + 1, 673: 46 + 1}
-
-func init() {
-	for _, id := range defaultEventIDs {
-		if err := drop.DropManager.LoadEventBag(id); err != nil {
-			panic(fmt.Errorf("monster: load default EventBag %d: %w", id, err))
-		}
-	}
-}
 
 func SpawnMonster() {
 	// MonsterSpawn was generated 2023-07-17 16:05:41 by https://xml-to-go.github.io/ in Ukraine.
@@ -149,7 +138,6 @@ func SpawnMonster() {
 
 // EventSpawn uses half-open spawn rectangles, like the original IGC spawner.
 type EventSpawn struct {
-	EventID                    int // One-based runtime EventBag ID; zero keeps the monster default.
 	EventHerd                  bool
 	PassiveUntilHit            bool
 	Class, MapNumber           int
@@ -158,7 +146,7 @@ type EventSpawn struct {
 }
 
 func (s EventSpawn) Validate() error {
-	if s.EventID < 0 || gameclass.MonsterTable[s.Class] == nil || !maps.MapManager.HasMap(s.MapNumber) ||
+	if gameclass.MonsterTable[s.Class] == nil || !maps.MapManager.HasMap(s.MapNumber) ||
 		s.StartX < 0 || s.StartY < 0 || s.EndX > 256 || s.EndY > 256 ||
 		s.StartX >= s.EndX || s.StartY >= s.EndY || s.Distance < 0 ||
 		s.Direction < -1 || s.Direction > 7 {
@@ -194,9 +182,6 @@ func SpawnEventMonster(s EventSpawn) (*object.Object, error) {
 	}
 	return object.ObjectManager.AddMonster(func() *object.Object {
 		m := newMonster(s.Class, s.MapNumber, x, y, x, y, dir, s.Distance, 0)
-		if s.EventID != 0 {
-			m.EventID = s.EventID
-		}
 		m.EventHerd = s.EventHerd
 		m.PassiveUntilHit = s.PassiveUntilHit
 		m.NoRegen = true
@@ -249,9 +234,6 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 		m.Type = object.ObjectTypeMonster
 	}
 	m.Class = class
-	if id, ok := defaultEventIDs[class]; ok {
-		m.EventID = id
-	}
 	m.Hidden = isHiddenMonsterClass(class)
 	m.MapNumber = mapNumber
 	m.spawnStartX = startX
@@ -345,7 +327,6 @@ type actionState struct {
 
 type Monster struct {
 	object.Object
-	EventID             int // One-based runtime EventBag ID; zero means no EventBag.
 	EventHerd           bool
 	PassiveUntilHit     bool
 	moveRange           int // 移动范围

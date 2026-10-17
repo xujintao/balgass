@@ -137,6 +137,7 @@ function LoadItemBag() -- Bags Load
 	AddItemBag(BAG_MONSTER, 0, 135,'Monster_(135)_White_Wizard') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 136,'Monster_(136)_Destructive_Ogre_Soldier') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 137,'Monster_(137)_Destructive_Ogre_Archer') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 275,'Monster_(275)_Kundun') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 295,'Monster_(295)_Erohim') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 340,'Monster_(340)_Dark_Elf') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 349,'Monster_(349)_Balgass') -- DropFunction /2/
@@ -149,10 +150,13 @@ function LoadItemBag() -- Bags Load
 	AddItemBag(BAG_MONSTER, 0, 459,'Monster_(459)_Selupan') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 466,'Monster_(466)_Cursed_Goblin') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 476,'Monster_(476)_Cursed_Santa') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 560,'Monster_(560)_Sapi_Queen') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 561,'Monster_(561)_Medusa') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 647,'Monster_(647)_Snake_Green') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 648,'Monster_(648)_Snake_Yellow') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 649,'Monster_(649)_Snake_Purple') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 650,'Monster_(650)_Snake_Red') -- DropFunction /2/
+	AddItemBag(BAG_MONSTER, 0, 673,'Monster_(673)_Lord_Silvester') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 674,'Monster_(674)_Moon_Rabbit') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 675,'Monster_(675)_Pouch_of_Blessing') -- DropFunction /2/
 	AddItemBag(BAG_MONSTER, 0, 676,'Monster_(676)_Fire_Flame_Ghost') -- DropFunction /2/
@@ -183,7 +187,6 @@ function LoadItemBag() -- Bags Load
 	AddItemBag(BAG_EVENT, 23,0, 'Mix_LuckyCoin(20)_Reward') -- DropFunction /4/
 	AddItemBag(BAG_EVENT, 24,0, 'Mix_LuckyCoin(30)_Reward') -- DropFunction /4/
 	AddItemBag(BAG_EVENT, 25,0, 'Mix_Senior_Reward') -- DropFunction /4/
-	AddItemBag(BAG_EVENT, 26,0, 'Monster_(275)_Kundun') -- DropFunction /3/
 	AddItemBag(BAG_EVENT, 27,0, 'Event_AcheronGuardian_Reward') -- DropFunction /3/
 	AddItemBag(BAG_EVENT, 28,0, 'Event_MuRummy_Reward_1') -- DropFunction /4/
 	AddItemBag(BAG_EVENT, 29,0, 'Event_MuRummy_Reward_2') -- DropFunction /4/
@@ -203,7 +206,6 @@ function LoadItemBag() -- Bags Load
 	AddItemBag(BAG_EVENT, 43,0,	'Monster_(655)_Golden_Erohim') -- DropFunction /3/
 	AddItemBag(BAG_EVENT, 44,0,	'Monster_(656)_Golden_Hell_Maine') -- DropFunction /3/
 	AddItemBag(BAG_EVENT, 45,0,	'Monster_(657)_Golden_Kundun') -- DropFunction /3/
-	AddItemBag(BAG_EVENT, 46,0, 'Monster_(673)_Lord_Silvester') -- DropFunction /3/
 	AddItemBag(BAG_EVENT, 47,0, 'Mix_Cherry_Blossom_White_Reward') -- DropFunction /4/
 	AddItemBag(BAG_EVENT, 48,0, 'Mix_Cherry_Blossom_Red_Reward') -- DropFunction /4/
 	AddItemBag(BAG_EVENT, 49,0, 'Event_ChaosCastle(2)_Reward') -- DropFunction /3/
@@ -213,10 +215,6 @@ function LoadItemBag() -- Bags Load
 	AddItemBag(BAG_EVENT, 53,0, 'Event_ChaosCastle(6)_Reward') -- DropFunction /3/
 	AddItemBag(BAG_EVENT, 54,0, 'Event_ChaosCastle(7)_Reward') -- DropFunction /3/
 	
--- Bags for purpose of Monster Group Regen System
-	AddItemBag(BAG_EVENT, 150,0, 'Event_Monster_(561)_Medusa') -- DropFunction /3/
-	AddItemBag(BAG_EVENT, 151,0, 'Event_Monster_(560)_Sapi_Queen') -- DropFunction /3/
-
 end
 
 function MakeExcOptForLordMix()

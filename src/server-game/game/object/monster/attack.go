@@ -170,7 +170,6 @@ func (m *Monster) Die(tobj *object.Object, damage int) {
 
 func (m *Monster) DieDropItem(tobj *object.Object) {
 	result := drop.DropManager.Drop(drop.Request{
-		EventID:       m.EventID,
 		Trigger:       drop.TriggerMonsterDeath,
 		MonsterClass:  m.Class,
 		MonsterLevel:  m.Level,

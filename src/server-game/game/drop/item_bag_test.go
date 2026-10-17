@@ -25,24 +25,24 @@ func TestParseItemBagBindings(t *testing.T) {
 	script := `
 AddItemBag(BAG_COMMON, MakeItemID(14,11), 8, 'Item_(14,11,8)_Kundun_Box+1')
 AddItemBag(BAG_MONSTER, 0, 44, 'Monster_(44)_Dragon_Red')
+AddItemBag(BAG_MONSTER, 0, 275, 'Monster_(275)_Kundun')
+AddItemBag(BAG_MONSTER, 0, 560, 'Monster_(560)_Sapi_Queen')
+AddItemBag(BAG_MONSTER, 0, 561, 'Monster_(561)_Medusa')
+AddItemBag(BAG_MONSTER, 0, 673, 'Monster_(673)_Lord_Silvester')
 AddItemBag(BAG_EVENT, 0, 0, 'Buff_AkeronTower_Drop')
-AddItemBag(BAG_EVENT, 26, 0, 'Monster_(275)_Kundun')
-AddItemBag(BAG_EVENT, 46, 0, 'Monster_(673)_Lord_Silvester')
-AddItemBag(BAG_EVENT, 150, 0, 'Event_Monster_(561)_Medusa')
-AddItemBag(BAG_EVENT, 151, 0, 'Event_Monster_(560)_Sapi_Queen')
 `
 	bindings, err := parseItemBagBindings(script)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for key, name := range map[itemBagKey]string{
-		{kind: itemBagMonster, id: 44}:                         "Monster_(44)_Dragon_Red",
 		{kind: itemBagCommon, id: item.Code(14, 11), level: 8}: "Item_(14,11,8)_Kundun_Box+1",
+		{kind: itemBagMonster, id: 44}:                         "Monster_(44)_Dragon_Red",
+		{kind: itemBagMonster, id: 275}:                        "Monster_(275)_Kundun",
+		{kind: itemBagMonster, id: 560}:                        "Monster_(560)_Sapi_Queen",
+		{kind: itemBagMonster, id: 561}:                        "Monster_(561)_Medusa",
+		{kind: itemBagMonster, id: 673}:                        "Monster_(673)_Lord_Silvester",
 		{kind: itemBagEvent, id: 1}:                            "Buff_AkeronTower_Drop",
-		{kind: itemBagEvent, id: 27}:                           "Monster_(275)_Kundun",
-		{kind: itemBagEvent, id: 47}:                           "Monster_(673)_Lord_Silvester",
-		{kind: itemBagEvent, id: 151}:                          "Event_Monster_(561)_Medusa",
-		{kind: itemBagEvent, id: 152}:                          "Event_Monster_(560)_Sapi_Queen",
 	} {
 		if got, ok := bindings[key]; !ok || got != name {
 			t.Fatalf("binding %v = %#v, want %q", key, got, name)
@@ -51,14 +51,14 @@ AddItemBag(BAG_EVENT, 151, 0, 'Event_Monster_(560)_Sapi_Queen')
 	if len(bindings) != 7 {
 		t.Fatalf("bindings = %d, want 7", len(bindings))
 	}
+	if _, err := parseItemBagBindings("AddItemBag(BAG_COMMON, ItemCode(14,11), 8, 'x')"); err == nil {
+		t.Fatal("non-static CommonBag expression was accepted")
+	}
 	if _, err := parseItemBagBindings("AddItemBag(BAG_MONSTER, 0, 44, 'a')\nAddItemBag(BAG_MONSTER, 0, 44, 'b')"); err == nil {
 		t.Fatal("duplicate registration was accepted")
 	}
 	if _, err := parseItemBagBindings("AddItemBag(BAG_EVENT, 0, 0, 'a')\nAddItemBag(BAG_EVENT, 0, 0, 'b')"); err == nil {
 		t.Fatal("duplicate EventBag registration was accepted")
-	}
-	if _, err := parseItemBagBindings("AddItemBag(BAG_COMMON, ItemCode(14,11), 8, 'x')"); err == nil {
-		t.Fatal("non-static CommonBag expression was accepted")
 	}
 }
 
@@ -73,10 +73,10 @@ func TestItemBagStartupLoadsOnlyMonsterBags(t *testing.T) {
 		}
 		monsterCount++
 	}
-	if monsterCount != 25 {
-		t.Fatalf("MonsterBag registration count = %d, want 25", monsterCount)
+	if monsterCount != 29 {
+		t.Fatalf("MonsterBag registration count = %d, want 29", monsterCount)
 	}
-	for _, key := range []itemBagKey{{kind: itemBagEvent, id: 1}, {kind: itemBagEvent, id: 27}, {kind: itemBagEvent, id: 47}, {kind: itemBagEvent, id: 151}, {kind: itemBagEvent, id: 152}} {
+	for _, key := range []itemBagKey{{kind: itemBagEvent, id: 1}, {kind: itemBagEvent, id: 41}} {
 		if entry := DropManager.itemBags[key]; entry == nil || entry.bag != nil {
 			t.Fatalf("EventBag %d should be registered but not activated by drop", key.id)
 		}
@@ -125,20 +125,7 @@ func TestItemBagFiltersWeightCountAndRewards(t *testing.T) {
 	}
 }
 
-func TestMonsterAndEventBagDispatch(t *testing.T) {
-	m := dropManager{itemBags: map[itemBagKey]*itemBagEntry{
-		{kind: itemBagEvent, id: 1}:  testItemBagEntry(testItemBag(0, 0, 1, 1)),
-		{kind: itemBagEvent, id: 27}: testItemBagEntry(testItemBag(0, 0, 27, 1)),
-		{kind: itemBagEvent, id: 47}: testItemBagEntry(testItemBag(0, 0, 47, 1)),
-	}}
-	for _, id := range []int{1, 27, 47} {
-		req := testRequest(44)
-		req.EventID = id
-		result := m.Drop(req)
-		if !result.Handled || len(result.Rewards) != 1 || result.Rewards[0].Zen != id {
-			t.Fatalf("EventBag %d was not dispatched: %#v", id, result)
-		}
-	}
+func TestMonsterBagFallsBackToGenericDrop(t *testing.T) {
 	fallback := DropManager
 	fallback.itemBags = map[itemBagKey]*itemBagEntry{{kind: itemBagMonster, id: 295}: testItemBagEntry(&itemBag{bagUseRate: 0})}
 	result := fallback.Drop(testRequest(295))
@@ -152,37 +139,42 @@ func TestMonsterAndEventBagDispatch(t *testing.T) {
 	}
 }
 
-func TestExplicitMonsterGroupEventBag(t *testing.T) {
-	id := 151
+func TestEventBagTakesPriorityOverMonsterBag(t *testing.T) {
 	m := dropManager{itemBags: map[itemBagKey]*itemBagEntry{
+		{kind: itemBagEvent, id: 1}:    testItemBagEntry(testItemBag(0, 0, 1, 1)),
 		{kind: itemBagMonster, id: 44}: testItemBagEntry(testItemBag(0, 0, 44, 1)),
-		{kind: itemBagEvent, id: id}:   testItemBagEntry(testItemBag(0, 0, 151, 1)),
 	}}
 	req := testRequest(44)
-	req.EventID = id
-	result := m.Drop(req)
-	if !result.Handled || len(result.Rewards) != 1 || result.Rewards[0].Zen != 151 {
-		t.Fatal("explicit bag did not override monster bag", result)
+	req.EventID = 1
+	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 1 || result.Rewards[0].Zen != 1 {
+		t.Fatalf("EventBag was not selected: %#v", result)
 	}
 	req.EventID = 0
-	result = m.Drop(req)
-	if len(result.Rewards) != 1 || result.Rewards[0].Zen != 44 {
-		t.Fatal("normal monster bag changed")
+	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 1 || result.Rewards[0].Zen != 44 {
+		t.Fatalf("MonsterBag was not selected: %#v", result)
 	}
-	bindings, err := parseItemBagBindings("AddItemBag(BAG_EVENT, 150, 0, 'Event_Monster_(561)_Medusa')")
-	if err != nil || len(bindings) != 1 {
-		t.Fatal("configured event bag not parsed", err)
+	req.EventID = 2
+	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 0 {
+		t.Fatalf("missing EventBag fell through to MonsterBag: %#v", result)
+	}
+	req.EventID = 1
+	m.itemBags[itemBagKey{kind: itemBagEvent, id: 1}].bag.bagUseRate = 0
+	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 0 {
+		t.Fatalf("skipped EventBag fell through to MonsterBag: %#v", result)
+	}
+	req.Trigger = TriggerItemUse
+	if result := m.Drop(req); result.Handled || len(result.Rewards) != 0 {
+		t.Fatalf("unsupported trigger dispatched EventBag: %#v", result)
 	}
 }
+
 func TestLoadEventBagFromRegisteredBinding(t *testing.T) {
-	key := itemBagKey{kind: itemBagEvent, id: 27}
+	key := itemBagKey{kind: itemBagEvent, id: 28}
 	entry := DropManager.itemBags[key]
 	if entry == nil || entry.name == "" {
 		t.Fatalf("EventBag registration = %#v, want registered entry", entry)
 	}
-	m := dropManager{itemBags: map[itemBagKey]*itemBagEntry{
-		key: {name: entry.name},
-	}}
+	m := dropManager{itemBags: map[itemBagKey]*itemBagEntry{key: {name: entry.name}}}
 	if err := m.LoadEventBag(key.id); err != nil {
 		t.Fatal(err)
 	}
@@ -190,26 +182,20 @@ func TestLoadEventBagFromRegisteredBinding(t *testing.T) {
 		t.Fatal("registered EventBag was not loaded")
 	}
 }
+
 func TestMedusaSetItemKeepsConfiguredBaseItem(t *testing.T) {
-	key := itemBagKey{kind: itemBagEvent, id: 151}
+	key := itemBagKey{kind: itemBagMonster, id: 561}
 	entry := DropManager.itemBags[key]
-	if entry == nil || entry.name == "" {
-		t.Fatal("Medusa EventBag registration missing")
+	if entry == nil || entry.name == "" || entry.bag == nil {
+		t.Fatal("Medusa MonsterBag was not loaded")
 	}
-	m := dropManager{itemBags: map[itemBagKey]*itemBagEntry{key: {name: entry.name}}}
-	if err := m.LoadEventBag(151); err != nil {
-		t.Fatal(err)
-	}
-	if err := m.LoadEventBag(151); err != nil {
-		t.Fatal("cached EventBag reload:", err)
-	}
-	for _, allow := range m.itemBags[key].bag.allows {
+	for _, allow := range entry.bag.allows {
 		for _, group := range allow.drops {
 			for _, configured := range group.items {
 				if !configured.setItem {
 					continue
 				}
-				reward := m.makeBagItem(configured)
+				reward := DropManager.makeBagItem(configured)
 				if reward.Section != configured.section || reward.Index != configured.index || reward.Set <= 0 {
 					t.Fatalf("SetItem=1 changed base item or omitted set: %#v", reward)
 				}
@@ -217,5 +203,5 @@ func TestMedusaSetItemKeepsConfiguredBaseItem(t *testing.T) {
 			}
 		}
 	}
-	t.Fatal("Medusa EventBag has no SetItem=1 reward")
+	t.Fatal("Medusa MonsterBag has no SetItem=1 reward")
 }
