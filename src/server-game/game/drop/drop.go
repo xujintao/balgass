@@ -46,12 +46,21 @@ type Request struct {
 	Player        PlayerContext
 }
 
-// Reward is either an item or Zen. Nearby tells the caller that each reward
-// should be placed near the source instead of sharing its exact tile.
+// Placement identifies where a ground reward is placed relative to the source
+// and the receiving player.
+type Placement int
+
+const (
+	PlaceAtSource Placement = iota
+	PlaceNearSource
+	PlaceAtPlayer
+)
+
+// Reward is either an item or Zen.
 type Reward struct {
-	Item   *item.Item
-	Zen    int
-	Nearby bool
+	Item      *item.Item
+	Zen       int
+	Placement Placement
 }
 
 type Result struct {

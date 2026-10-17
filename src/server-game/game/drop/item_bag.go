@@ -307,7 +307,7 @@ func (m *dropManager) dropItemBag(bag *itemBag, consume bool, request Request) (
 	result := Result{Handled: true}
 	if rand.Intn(10000) >= bag.itemRate {
 		if bag.moneyDrop > 0 {
-			result.Rewards = append(result.Rewards, Reward{Zen: bag.moneyDrop, Nearby: true})
+			result.Rewards = append(result.Rewards, Reward{Zen: bag.moneyDrop, Placement: PlaceAtPlayer})
 		}
 		return result, true
 	}
@@ -335,7 +335,11 @@ func (m *dropManager) dropItemBag(bag *itemBag, consume bool, request Request) (
 			reward = m.makeBagItem(selected.items[rand.Intn(len(selected.items))])
 		}
 		if reward != nil {
-			result.Rewards = append(result.Rewards, Reward{Item: reward, Nearby: true})
+			placement := PlaceAtSource
+			if selected.count > 1 {
+				placement = PlaceNearSource
+			}
+			result.Rewards = append(result.Rewards, Reward{Item: reward, Placement: placement})
 		}
 	}
 	return result, true

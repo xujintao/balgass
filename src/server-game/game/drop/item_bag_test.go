@@ -113,11 +113,25 @@ func TestItemBagFiltersWeightCountAndRewards(t *testing.T) {
 	if got := selectItemBagDrop(drops, 1000); got != &drops[1] {
 		t.Fatalf("weighted Drop = %#v, want second Drop", got)
 	}
-	if result, used := (&dropManager{}).dropItemBag(testItemBag(0, 0, 12345, 1), false, testRequest(44)); !used || len(result.Rewards) != 1 || result.Rewards[0].Zen != 12345 {
+	if result, used := (&dropManager{}).dropItemBag(testItemBag(0, 0, 12345, 1), false, testRequest(44)); !used || len(result.Rewards) != 1 || result.Rewards[0].Zen != 12345 || result.Rewards[0].Placement != PlaceAtPlayer {
 		t.Fatalf("ItemRate Zen result = %#v", result)
 	}
-	if result, used := (&dropManager{}).dropItemBag(testItemBag(10000, 0, 0, 2), false, testRequest(44)); !used || len(result.Rewards) != 2 {
-		t.Fatalf("Count result = %#v", result)
+	for _, tt := range []struct {
+		count     int
+		placement Placement
+	}{
+		{count: 1, placement: PlaceAtSource},
+		{count: 2, placement: PlaceNearSource},
+	} {
+		result, used := (&dropManager{}).dropItemBag(testItemBag(10000, 0, 0, tt.count), false, testRequest(44))
+		if !used || len(result.Rewards) != tt.count {
+			t.Fatalf("Count %d result = %#v", tt.count, result)
+		}
+		for _, reward := range result.Rewards {
+			if reward.Placement != tt.placement {
+				t.Fatalf("Count %d placement = %v, want %v", tt.count, reward.Placement, tt.placement)
+			}
+		}
 	}
 	setItem := (&dropManager{}).makeRandomSetItem()
 	if setItem == nil || setItem.Set <= 0 || !setItem.Skill || setItem.Durability != setItem.MaxDurability {
@@ -133,7 +147,7 @@ func TestMonsterBagFallsBackToGenericDrop(t *testing.T) {
 		t.Fatal("unhandled Erohim MonsterBag did not enter the generic drop path")
 	}
 	for _, reward := range result.Rewards {
-		if reward.Nearby {
+		if reward.Placement != PlaceAtSource {
 			t.Fatal("generic fallback reward was marked as an ItemBag reward")
 		}
 	}

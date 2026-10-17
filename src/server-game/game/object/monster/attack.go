@@ -1,6 +1,8 @@
 package monster
 
 import (
+	"math/rand"
+
 	"github.com/xujintao/balgass/src/server-game/game/drop"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
@@ -197,13 +199,30 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 		if it == nil {
 			continue
 		}
-		x, y := m.X, m.Y
-		if reward.Nearby {
-			x, y = maps.MapManager.GetMapRandomPos(m.MapNumber, m.X-2, m.Y-2, m.X+3, m.Y+3)
-			if maps.MapManager.GetMapAttr(m.MapNumber, x, y)&(2|4|8) != 0 {
-				x, y = m.X, m.Y
-			}
+		mapNumber, x, y := m.MapNumber, m.X, m.Y
+		switch reward.Placement {
+		case drop.PlaceNearSource:
+			x, y = itemBagDropPosition(mapNumber, x, y)
+		case drop.PlaceAtPlayer:
+			mapNumber, x, y = tobj.MapNumber, tobj.X, tobj.Y
 		}
-		maps.MapManager.AddItem(m.MapNumber, x, y, it)
+		maps.MapManager.AddItem(mapNumber, x, y, it)
 	}
+}
+
+func itemBagDropPosition(mapNumber, x, y int) (int, int) {
+	for i := 0; i < 10; i++ {
+		dx, dy := rand.Intn(5), rand.Intn(5)
+		if rand.Intn(2) == 0 {
+			dx = -dx
+		}
+		if rand.Intn(2) == 0 {
+			dy = -dy
+		}
+		dropX, dropY := x+dx, y+dy
+		if maps.MapManager.GetMapAttr(mapNumber, dropX, dropY)&(4|8) == 0 {
+			return dropX, dropY
+		}
+	}
+	return x, y
 }

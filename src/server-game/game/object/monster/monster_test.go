@@ -89,6 +89,18 @@ func TestEventSpawnAndExistingRedDragonBag(t *testing.T) {
 	}
 }
 
+func TestItemBagDropPosition(t *testing.T) {
+	for i := 0; i < 20; i++ {
+		x, y := itemBagDropPosition(0, 140, 65)
+		if x < 136 || x > 144 || y < 61 || y > 69 || (x != 140 || y != 65) && maps.MapManager.GetMapAttr(0, x, y)&(4|8) != 0 {
+			t.Fatalf("drop position (%d, %d) is outside the valid nearby area", x, y)
+		}
+	}
+	if x, y := itemBagDropPosition(0, -10, -10); x != -10 || y != -10 {
+		t.Fatalf("blocked nearby area returned (%d, %d), want source (-10, -10)", x, y)
+	}
+}
+
 func TestEventSpawnRejectsInvalidOrBlockedArea(t *testing.T) {
 	s := EventSpawn{Class: 44, MapNumber: 0, EndX: 1, EndY: 1, Direction: -1}
 	for _, bad := range []EventSpawn{
