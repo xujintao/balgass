@@ -654,7 +654,7 @@ func (p *Player) calc() {
 	p.petReduceDamage = 0
 
 	// wing item contribution
-	if wing != nil && wing.ExcellentWing2Leadership {
+	if wing != nil && wing.Wing2ExcellentLeadership {
 		p.addLeadership += 10 + 5*wing.Level
 	}
 	// set item contribution
@@ -998,32 +998,32 @@ func (p *Player) calc() {
 			if it.ExcellentDefenseMoney {
 				p.monsterDieGetMoney += float64(30) / 100
 			}
-			if it.ExcellentWing2Speed {
+			if it.Wing2ExcellentSpeed {
 				p.AttackSpeed += 5
 				p.magicSpeed += 5
 			}
-			if it.ExcellentWing2AG {
+			if it.Wing2ExcellentAG {
 				p.MaxAG += 50
 			}
-			if it.ExcellentWing2Ignore {
+			if it.Wing2ExcellentIgnore {
 				p.ignoreDefenseRate += 3
 			}
-			if it.ExcellentWing2MP {
+			if it.Wing2ExcellentMP {
 				p.MaxMP += 50 + 5*it.Level
 			}
-			if it.ExcellentWing2HP {
+			if it.Wing2ExcellentHP {
 				p.MaxHP += 50 + 5*it.Level
 			}
-			if it.ExcellentWing3Ignore {
+			if it.Wing3ExcellentIgnore {
 				p.ignoreDefenseRate += 5
 			}
-			if it.ExcellentWing3Return {
+			if it.Wing3ExcellentReturn {
 				p.returnDamage += 5
 			}
-			if it.ExcellentWing3HP {
+			if it.Wing3ExcellentHP {
 				p.recoverMaxHP += 5
 			}
-			if it.ExcellentWing3MP {
+			if it.Wing3ExcellentMP {
 				p.recoverMaxMP += 5
 			}
 		}

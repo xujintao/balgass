@@ -40,18 +40,18 @@ type Item struct {
 	WingAdditionCurseAttack      bool   `json:"wing_addition_curse_attack,omitempty"`
 	WingAdditionDefense          bool   `json:"wing_addition_defense,omitempty"`
 	WingAdditionRecoverHP        bool   `json:"wing_addition_recover_hp,omitempty"`
-	ExcellentWing2Speed          bool   `json:"excellent_wing2_speed,omitempty"`      // 2D:攻击(魔法)速度增加5
-	ExcellentWing2AG             bool   `json:"excellent_wing2_ag,omitempty"`         // 2D:最大AG增加50
-	ExcellentWing2Leadership     bool   `json:"excellent_wing2_leadership,omitempty"` // 2D:声望增加10+5*level
-	ExcellentWing2Ignore         bool   `json:"excellent_wing2_ignore,omitempty"`     // 2D:无视防御伤害几率3%
-	ExcellentWing2MP             bool   `json:"excellent_wing2_mp,omitempty"`         // 2D:魔法值增加50+5*level
-	ExcellentWing2HP             bool   `json:"excellent_wing2_hp,omitempty"`         // 2D:生命值增加50+5*level
-	ExcellentWing3MP             bool   `json:"excellent_wing3_mp,omitempty"`         // 3D:魔法值完全恢复几率5%
-	ExcellentWing3HP             bool   `json:"excellent_wing3_hp,omitempty"`         // 3D:生命值完全恢复几率5%
-	ExcellentWing3Return         bool   `json:"excellent_wing3_return,omitempty"`     // 3D:反弹攻击力几率5%
-	ExcellentWing3Ignore         bool   `json:"excellent_wing3_ignore,omitempty"`     // 3D:无视防御伤害几率5%
-	ExcellentWing25HP            bool   `json:"excellent_wing25_hp,omitempty"`        // 2.5D:生命值增加5%
-	ExcellentWing25Ignore        bool   `json:"excellent_wing25_ignore,omitempty"`    // 2.5D:无视防御伤害几率3%
+	Wing2ExcellentSpeed          bool   `json:"wing2_excellent_speed,omitempty"`      // 2D:攻击(魔法)速度增加5
+	Wing2ExcellentAG             bool   `json:"wing2_excellent_ag,omitempty"`         // 2D:最大AG增加50
+	Wing2ExcellentLeadership     bool   `json:"wing2_excellent_leadership,omitempty"` // 2D:声望增加10+5*level
+	Wing2ExcellentIgnore         bool   `json:"wing2_excellent_ignore,omitempty"`     // 2D:无视防御伤害几率3%
+	Wing2ExcellentMP             bool   `json:"wing2_excellent_mp,omitempty"`         // 2D:魔法值增加50+5*level
+	Wing2ExcellentHP             bool   `json:"wing2_excellent_hp,omitempty"`         // 2D:生命值增加50+5*level
+	Wing3ExcellentMP             bool   `json:"wing3_excellent_mp,omitempty"`         // 3D:魔法值完全恢复几率5%
+	Wing3ExcellentHP             bool   `json:"wing3_excellent_hp,omitempty"`         // 3D:生命值完全恢复几率5%
+	Wing3ExcellentReturn         bool   `json:"wing3_excellent_return,omitempty"`     // 3D:反弹攻击力几率5%
+	Wing3ExcellentIgnore         bool   `json:"wing3_excellent_ignore,omitempty"`     // 3D:无视防御伤害几率5%
+	Wing25ExcellentHP            bool   `json:"wing25_excellent_hp,omitempty"`        // 2.5D:生命值增加5%
+	Wing25ExcellentIgnore        bool   `json:"wing25_excellent_ignore,omitempty"`    // 2.5D:无视防御伤害几率3%
 	Set                          int    `json:"set,omitempty"`
 	Option380                    bool   `json:"option380,omitempty"`
 	Period                       int    `json:"period,omitempty"`
@@ -115,18 +115,18 @@ func (it *Item) IsExcellent() bool {
 		it.ExcellentDefenseReflect ||
 		it.ExcellentDefenseRate ||
 		it.ExcellentDefenseMoney ||
-		it.ExcellentWing2Speed ||
-		it.ExcellentWing2AG ||
-		it.ExcellentWing2Leadership ||
-		it.ExcellentWing2Ignore ||
-		it.ExcellentWing2MP ||
-		it.ExcellentWing2HP ||
-		it.ExcellentWing3MP ||
-		it.ExcellentWing3HP ||
-		it.ExcellentWing3Return ||
-		it.ExcellentWing3Ignore ||
-		it.ExcellentWing25HP ||
-		it.ExcellentWing25Ignore
+		it.Wing2ExcellentSpeed ||
+		it.Wing2ExcellentAG ||
+		it.Wing2ExcellentLeadership ||
+		it.Wing2ExcellentIgnore ||
+		it.Wing2ExcellentMP ||
+		it.Wing2ExcellentHP ||
+		it.Wing3ExcellentMP ||
+		it.Wing3ExcellentHP ||
+		it.Wing3ExcellentReturn ||
+		it.Wing3ExcellentIgnore ||
+		it.Wing25ExcellentHP ||
+		it.Wing25ExcellentIgnore
 }
 
 func (it *Item) ExcellentCount() int {
@@ -143,18 +143,18 @@ func (it *Item) ExcellentCount() int {
 		it.ExcellentDefenseReflect,
 		it.ExcellentDefenseRate,
 		it.ExcellentDefenseMoney,
-		it.ExcellentWing2Speed,
-		it.ExcellentWing2AG,
-		it.ExcellentWing2Leadership,
-		it.ExcellentWing2Ignore,
-		it.ExcellentWing2MP,
-		it.ExcellentWing2HP,
-		it.ExcellentWing3MP,
-		it.ExcellentWing3HP,
-		it.ExcellentWing3Return,
-		it.ExcellentWing3Ignore,
-		it.ExcellentWing25HP,
-		it.ExcellentWing25Ignore,
+		it.Wing2ExcellentSpeed,
+		it.Wing2ExcellentAG,
+		it.Wing2ExcellentLeadership,
+		it.Wing2ExcellentIgnore,
+		it.Wing2ExcellentMP,
+		it.Wing2ExcellentHP,
+		it.Wing3ExcellentMP,
+		it.Wing3ExcellentHP,
+		it.Wing3ExcellentReturn,
+		it.Wing3ExcellentIgnore,
+		it.Wing25ExcellentHP,
+		it.Wing25ExcellentIgnore,
 	}
 	count := 0
 	for _, flag := range flags {
@@ -238,7 +238,7 @@ func (it *Item) DecodeExcellent(code int) {
 				it.KindA == KindARing:
 				it.ExcellentDefenseMP = true
 			case it.KindB == KindBWing2nd:
-				it.ExcellentWing2Speed = true
+				it.Wing2ExcellentSpeed = true
 			}
 		case 8:
 			switch {
@@ -249,11 +249,11 @@ func (it *Item) DecodeExcellent(code int) {
 				it.KindA == KindARing:
 				it.ExcellentDefenseReduce = true
 			case it.KindB == KindBWing2nd:
-				it.ExcellentWing2AG = true
+				it.Wing2ExcellentAG = true
 			case it.KindB == KindBCapeLord:
-				it.ExcellentWing2Leadership = true
+				it.Wing2ExcellentLeadership = true
 			case it.KindB == KindBWing3rd:
-				it.ExcellentWing3MP = true
+				it.Wing3ExcellentMP = true
 			}
 		case 4:
 			switch {
@@ -266,9 +266,9 @@ func (it *Item) DecodeExcellent(code int) {
 			case it.KindB == KindBWing2nd,
 				it.KindB == KindBCapeLord,
 				it.KindB == KindBCapeFighter:
-				it.ExcellentWing2Ignore = true
+				it.Wing2ExcellentIgnore = true
 			case it.KindB == KindBWing3rd:
-				it.ExcellentWing3HP = true
+				it.Wing3ExcellentHP = true
 			}
 		case 2:
 			switch {
@@ -281,11 +281,11 @@ func (it *Item) DecodeExcellent(code int) {
 			case it.KindB == KindBWing2nd,
 				it.KindB == KindBCapeLord,
 				it.KindB == KindBCapeFighter:
-				it.ExcellentWing2MP = true
+				it.Wing2ExcellentMP = true
 			case it.KindB == KindBWingMonster:
-				it.ExcellentWing25HP = true
+				it.Wing25ExcellentHP = true
 			case it.KindB == KindBWing3rd:
-				it.ExcellentWing3Return = true
+				it.Wing3ExcellentReturn = true
 			}
 		case 1:
 			switch {
@@ -298,11 +298,11 @@ func (it *Item) DecodeExcellent(code int) {
 			case it.KindB == KindBWing2nd,
 				it.KindB == KindBCapeLord,
 				it.KindB == KindBCapeFighter:
-				it.ExcellentWing2HP = true
+				it.Wing2ExcellentHP = true
 			case it.KindB == KindBWingMonster:
-				it.ExcellentWing25Ignore = true
+				it.Wing25ExcellentIgnore = true
 			case it.KindB == KindBWing3rd:
-				it.ExcellentWing3Ignore = true
+				it.Wing3ExcellentIgnore = true
 			}
 		}
 	}
@@ -1116,7 +1116,7 @@ func (item *Item) Marshal() ([]byte, error) {
 	if item.ExcellentAttackRate || item.ExcellentDefenseHP {
 		data[3] |= 1 << 5
 	}
-	if item.ExcellentAttackLevel || item.ExcellentDefenseMP || item.ExcellentWing2Speed {
+	if item.ExcellentAttackLevel || item.ExcellentDefenseMP || item.Wing2ExcellentSpeed {
 		data[3] |= 1 << 4
 	}
 	switch {
@@ -1153,19 +1153,19 @@ func (item *Item) Marshal() ([]byte, error) {
 		data[3] |= 1 << 4
 	}
 	if item.ExcellentAttackPercent || item.ExcellentDefenseReduce ||
-		item.ExcellentWing2AG || item.ExcellentWing2Leadership || item.ExcellentWing3MP {
+		item.Wing2ExcellentAG || item.Wing2ExcellentLeadership || item.Wing3ExcellentMP {
 		data[3] |= 1 << 3
 	}
 	if item.ExcellentAttackSpeed || item.ExcellentDefenseReflect ||
-		item.ExcellentWing2Ignore || item.ExcellentWing3HP {
+		item.Wing2ExcellentIgnore || item.Wing3ExcellentHP {
 		data[3] |= 1 << 2
 	}
 	if item.ExcellentAttackHP || item.ExcellentDefenseRate ||
-		item.ExcellentWing2MP || item.ExcellentWing3Return || item.ExcellentWing25HP {
+		item.Wing2ExcellentMP || item.Wing3ExcellentReturn || item.Wing25ExcellentHP {
 		data[3] |= 1 << 1
 	}
 	if item.ExcellentAttackMP || item.ExcellentDefenseMoney ||
-		item.ExcellentWing2HP || item.ExcellentWing3Ignore || item.ExcellentWing25Ignore {
+		item.Wing2ExcellentHP || item.Wing3ExcellentIgnore || item.Wing25ExcellentIgnore {
 		data[3] |= 1 << 0
 	}
 	data[3] |= byte(item.Addition & 0x10 << 2)
