@@ -20,6 +20,9 @@ func (inv *Inventory) Item(position int) *Item {
 }
 
 func (inv *Inventory) CheckFlagsForItem(position int, it *Item) bool {
+	if it == nil || position < 0 || position >= len(inv.Flags) {
+		return false
+	}
 	if position < 12 {
 		return !inv.Flags[position]
 	}
@@ -32,7 +35,8 @@ func (inv *Inventory) CheckFlagsForItem(position int, it *Item) bool {
 	y := position / 8
 	width := it.Width
 	height := it.Height
-	if x+width > 8 ||
+	if width <= 0 || width > 8-x || height <= 0 ||
+		height > (len(flags)-1-(x+width-1))/8-y+1 ||
 		y < maxHeight1 && y+height > maxHeight1 ||
 		y >= maxHeight1 && y < maxHeight2 && y+height > maxHeight2 ||
 		y >= maxHeight2 && y < maxHeight3 && y+height > maxHeight3 {
@@ -108,12 +112,17 @@ func (inv *Inventory) RemoveItem(position int, it *Item) {
 }
 
 func (inv *Inventory) UnmarshalJSON(buf []byte) error {
+	oldSize := inv.Size
 	inv.Size = 237
-	return inv.PositionedItems.UnmarshalJSON(
+	err := inv.PositionedItems.UnmarshalJSON(
 		buf,
 		inv.CheckFlagsForItem,
 		inv.SetFlagsForItem,
 	)
+	if err != nil {
+		inv.Size = oldSize
+	}
+	return err
 }
 
 func (inv *Inventory) Scan(value any) error {

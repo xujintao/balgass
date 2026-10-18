@@ -10,13 +10,17 @@ type Warehouse struct {
 }
 
 func (w *Warehouse) CheckFlagsForItem(position int, it *Item) bool {
+	if it == nil || position < 0 || position >= len(w.Flags) {
+		return false
+	}
 	maxHeight1 := 15
 	maxHeight2 := 30
 	x := position % 8
 	y := position / 8
 	width := it.Width
 	height := it.Height
-	if x+width > 8 ||
+	if width <= 0 || width > 8-x || height <= 0 ||
+		height > (len(w.Flags)-1-(x+width-1))/8-y+1 ||
 		y < maxHeight1 && y+height > maxHeight1 ||
 		y >= maxHeight1 && y < maxHeight2 && y+height > maxHeight2 {
 		return false
@@ -75,12 +79,17 @@ func (w *Warehouse) RemoveItem(position int, it *Item) {
 }
 
 func (w *Warehouse) UnmarshalJSON(buf []byte) error {
+	oldSize := w.Size
 	w.Size = 240
-	return w.PositionedItems.UnmarshalJSON(
+	err := w.PositionedItems.UnmarshalJSON(
 		buf,
 		w.CheckFlagsForItem,
 		w.SetFlagsForItem,
 	)
+	if err != nil {
+		w.Size = oldSize
+	}
+	return err
 }
 
 func (w *Warehouse) Scan(value any) error {

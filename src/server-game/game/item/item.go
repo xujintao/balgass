@@ -3,7 +3,7 @@ package item
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"log/slog"
+	"fmt"
 	"math"
 	"math/rand"
 
@@ -1226,27 +1226,38 @@ func (pi *PositionedItems) UnmarshalJSON(
 	buf []byte,
 	CheckFlagsForItem func(int, *Item) bool,
 	SetFlagsForItem func(int, *Item),
-) error {
+) (err error) {
 	var items []*Item
-	err := json.Unmarshal(buf, &items)
-	if err != nil {
+	if err = json.Unmarshal(buf, &items); err != nil {
 		return err
 	}
+	oldItems, oldFlags := pi.Items, pi.Flags
 	pi.Items = make([]*Item, pi.Size)
 	pi.Flags = make([]bool, pi.Size)
-	for _, it := range items {
+	defer func() {
+		if err != nil {
+			pi.Items, pi.Flags = oldItems, oldFlags
+		}
+	}()
+	for index, it := range items {
+		if it == nil {
+			return fmt.Errorf("item %d is null", index)
+		}
+		if it.Position < 0 || it.Position >= pi.Size {
+			return fmt.Errorf("item %d has invalid position %d", index, it.Position)
+		}
+		if it.Section < 0 || it.Section >= len(ItemTable) || it.Index < 0 || it.Index >= MaxItemIndex {
+			return fmt.Errorf("item at position %d has invalid section/index %d/%d", it.Position, it.Section, it.Index)
+		}
 		it.Code = Code(it.Section, it.Index)
 		itemBase, err := ItemTable.GetItemBase(it.Section, it.Index)
 		if err != nil {
-			return err
+			return fmt.Errorf("item at position %d: %w", it.Position, err)
 		}
 		it.ItemBase = itemBase
 		it.Calc()
-		ok := CheckFlagsForItem(it.Position, it)
-		if !ok {
-			slog.Error("pi.CheckFlagsForItem",
-				"position", it.Position, "name", it.Name)
-			continue
+		if pi.Items[it.Position] != nil || !CheckFlagsForItem(it.Position, it) {
+			return fmt.Errorf("item at position %d overlaps or exceeds container bounds", it.Position)
 		}
 		SetFlagsForItem(it.Position, it)
 		pi.Items[it.Position] = it
