@@ -1,14 +1,13 @@
 package item
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
 
-func init() {
-	SetManager.init()
-}
+var SetManager setManager
 
 type setItem struct {
 	sets     map[int]int
@@ -58,14 +57,6 @@ type set struct {
 	// class       [8]bool
 }
 
-var SetManager setManager
-
-type setManager struct {
-	items        []map[int]*setItem
-	sets         []*set
-	dropSections []setDropSection
-}
-
 type setDropItem struct {
 	index  int
 	setIDs []int
@@ -77,116 +68,10 @@ type setDropSection struct {
 	items   []setDropItem
 }
 
-// HasSetItem reports whether the configured item has an ancient set variant.
-func (m *setManager) HasSetItem(section, index int) bool {
-	if section < 0 || section >= len(m.items) {
-		return false
-	}
-	candidate := m.items[section][index]
-	if candidate == nil {
-		return false
-	}
-	for tier := 0; tier < 4; tier++ {
-		if candidate.sets[tier] > 0 {
-			return true
-		}
-	}
-	return false
-}
-
-// RandomSetIndex selects a set variant without changing the base item.
-func (m *setManager) RandomSetIndex(section, index int) int {
-	if !m.HasSetItem(section, index) {
-		return 0
-	}
-	candidate := m.items[section][index]
-	var options [4]int
-	count := 0
-	for tier := 0; tier < 4; tier++ {
-		if candidate.sets[tier] > 0 {
-			options[count] = candidate.sets[tier]
-			count++
-		}
-	}
-	return options[rand.Intn(count)]
-}
-
-func (m *setManager) GetSetIndex(section, index, tierIndex int) int {
-	if _, ok := m.items[section][index]; !ok {
-		return 0
-	}
-	// 0x01=tier0=TierI
-	// 0x02=tier1=TierII
-	// 0x10=tier2=TierIII
-	// 0x20=tier3=TierIV
-	return m.items[section][index].sets[tierIndex]
-}
-
-func (m *setManager) GetTierIndex(section, index, setIndex int) int {
-	if setIndex <= 0 {
-		return 0
-	}
-	si, ok := m.items[section][index]
-	if !ok {
-		return 0
-	}
-	return si.tiers[setIndex]
-}
-
-func (m *setManager) GetSet(setIndex int, effectIndex int) *SetEffect {
-	set := m.sets[setIndex]
-	if set == nil {
-		return nil
-	}
-	return &set.effects[effectIndex]
-}
-
-func (m *setManager) GetSetEffectCount(setIndex int) int {
-	set := m.sets[setIndex]
-	if set == nil {
-		return 0
-	}
-	return set.count
-}
-
-func (m *setManager) GetSetFull(setIndex int) []SetEffect {
-	set := m.sets[setIndex]
-	if set == nil {
-		return nil
-	}
-	return set.effectsFull[:]
-}
-
-// RandomItem selects a configured ancient item and one of its available set
-// options using the configured section drop rates.
-func (m *setManager) RandomItem() (section, index, setIndex int, ok bool) {
-	totalRate := 0
-	for _, candidate := range m.dropSections {
-		if candidate.rate > 0 && len(candidate.items) > 0 {
-			totalRate += candidate.rate
-		}
-	}
-	if totalRate <= 0 {
-		return 0, 0, 0, false
-	}
-	n := rand.Intn(totalRate)
-	var selected *setDropSection
-	for i := range m.dropSections {
-		candidate := &m.dropSections[i]
-		if candidate.rate <= 0 || len(candidate.items) == 0 {
-			continue
-		}
-		if n < candidate.rate {
-			selected = candidate
-			break
-		}
-		n -= candidate.rate
-	}
-	if selected == nil {
-		return 0, 0, 0, false
-	}
-	selectedItem := selected.items[rand.Intn(len(selected.items))]
-	return selected.section, selectedItem.index, selectedItem.setIDs[rand.Intn(len(selectedItem.setIDs))], true
+type setManager struct {
+	items        []map[int]*setItem
+	sets         []*set
+	dropSections []setDropSection
 }
 
 func (m *setManager) init() {
@@ -222,6 +107,9 @@ func (m *setManager) init() {
 	for _, section := range setItemXml.Sections {
 		items := make(map[int]*setItem)
 		for _, item := range section.Items {
+			if _, err := ItemTable.GetItemBase(section.Index, item.Index); err != nil {
+				panic(fmt.Errorf("Items/IGC_ItemSetType.xml: section %d index %d: %w", section.Index, item.Index, err))
+			}
 			sItem := setItem{
 				sets:  make(map[int]int),
 				tiers: make(map[int]int),
@@ -369,4 +257,116 @@ func (m *setManager) init() {
 
 		m.sets[s.Index] = &set
 	}
+}
+
+// HasSetItem reports whether the configured item has an ancient set variant.
+func (m *setManager) HasSetItem(section, index int) bool {
+	if section < 0 || section >= len(m.items) {
+		return false
+	}
+	candidate := m.items[section][index]
+	if candidate == nil {
+		return false
+	}
+	for tier := 0; tier < 4; tier++ {
+		if candidate.sets[tier] > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// RandomSetIndex selects a set variant without changing the base item.
+func (m *setManager) RandomSetIndex(section, index int) int {
+	if !m.HasSetItem(section, index) {
+		return 0
+	}
+	candidate := m.items[section][index]
+	var options [4]int
+	count := 0
+	for tier := 0; tier < 4; tier++ {
+		if candidate.sets[tier] > 0 {
+			options[count] = candidate.sets[tier]
+			count++
+		}
+	}
+	return options[rand.Intn(count)]
+}
+
+func (m *setManager) GetSetIndex(section, index, tierIndex int) int {
+	if _, ok := m.items[section][index]; !ok {
+		return 0
+	}
+	// 0x01=tier0=TierI
+	// 0x02=tier1=TierII
+	// 0x10=tier2=TierIII
+	// 0x20=tier3=TierIV
+	return m.items[section][index].sets[tierIndex]
+}
+
+func (m *setManager) GetTierIndex(section, index, setIndex int) int {
+	if setIndex <= 0 {
+		return 0
+	}
+	si, ok := m.items[section][index]
+	if !ok {
+		return 0
+	}
+	return si.tiers[setIndex]
+}
+
+func (m *setManager) GetSet(setIndex int, effectIndex int) *SetEffect {
+	set := m.sets[setIndex]
+	if set == nil {
+		return nil
+	}
+	return &set.effects[effectIndex]
+}
+
+func (m *setManager) GetSetEffectCount(setIndex int) int {
+	set := m.sets[setIndex]
+	if set == nil {
+		return 0
+	}
+	return set.count
+}
+
+func (m *setManager) GetSetFull(setIndex int) []SetEffect {
+	set := m.sets[setIndex]
+	if set == nil {
+		return nil
+	}
+	return set.effectsFull[:]
+}
+
+// RandomItem selects a configured ancient item and one of its available set
+// options using the configured section drop rates.
+func (m *setManager) RandomItem() (section, index, setIndex int, ok bool) {
+	totalRate := 0
+	for _, candidate := range m.dropSections {
+		if candidate.rate > 0 && len(candidate.items) > 0 {
+			totalRate += candidate.rate
+		}
+	}
+	if totalRate <= 0 {
+		return 0, 0, 0, false
+	}
+	n := rand.Intn(totalRate)
+	var selected *setDropSection
+	for i := range m.dropSections {
+		candidate := &m.dropSections[i]
+		if candidate.rate <= 0 || len(candidate.items) == 0 {
+			continue
+		}
+		if n < candidate.rate {
+			selected = candidate
+			break
+		}
+		n -= candidate.rate
+	}
+	if selected == nil {
+		return 0, 0, 0, false
+	}
+	selectedItem := selected.items[rand.Intn(len(selected.items))]
+	return selected.section, selectedItem.index, selectedItem.setIDs[rand.Intn(len(selectedItem.setIDs))], true
 }

@@ -3,18 +3,11 @@ package item
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/class"
 )
-
-func init() {
-	ItemTable.init()
-}
-
-func Code(section, index int) int {
-	return section*512 + index
-}
 
 // ItemTable a map table
 var ItemTable itemTable
@@ -23,7 +16,7 @@ type itemTable []map[int]*ItemBase
 
 func (table *itemTable) init() {
 	type itemListConfig struct {
-		Sections []*struct {
+		Sections []struct {
 			Index string      `xml:"Index,attr"`
 			Name  string      `xml:"Name,attr"`
 			Items []*ItemBase `xml:"Item"`
@@ -34,9 +27,28 @@ func (table *itemTable) init() {
 
 	// [][]array -> []map
 	t := make(itemTable, len(itemList.Sections))
-	for i, section := range itemList.Sections {
+	for _, section := range itemList.Sections {
+		i, err := strconv.Atoi(section.Index)
+		if err != nil || i < 0 || i >= len(t) {
+			panic(fmt.Errorf("Items/IGC_ItemList.xml: invalid section %q", section.Index))
+		}
+		if t[i] != nil {
+			panic(fmt.Errorf("Items/IGC_ItemList.xml: duplicate section %d", i))
+		}
 		t[i] = make(map[int]*ItemBase)
 		for _, v := range section.Items {
+			if v == nil {
+				panic(fmt.Errorf("Items/IGC_ItemList.xml: section %d has nil item", i))
+			}
+			if v.Index < 0 || v.Index >= MaxItemIndex {
+				panic(fmt.Errorf("Items/IGC_ItemList.xml: section %d invalid item index %d", i, v.Index))
+			}
+			if t[i][v.Index] != nil {
+				panic(fmt.Errorf("Items/IGC_ItemList.xml: duplicate item section %d index %d", i, v.Index))
+			}
+			if v.Width <= 0 || v.Width > 8 || v.Height <= 0 {
+				panic(fmt.Errorf("Items/IGC_ItemList.xml: item section %d index %d has invalid size %dx%d", i, v.Index, v.Width, v.Height))
+			}
 			v.ReqClass[class.Wizard] = v.DarkWizard
 			v.ReqClass[class.Knight] = v.DarkKnight
 			v.ReqClass[class.Elf] = v.FairyElf
@@ -55,19 +67,18 @@ func (table *itemTable) init() {
 }
 
 func (table itemTable) GetItemBase(i, j int) (*ItemBase, error) {
-	if i >= len(table) {
-		return nil, fmt.Errorf("item section over bound")
+	if i < 0 || i >= len(table) {
+		return nil, fmt.Errorf("invalid item section %d", i)
+	}
+	if j < 0 || j >= MaxItemIndex {
+		return nil, fmt.Errorf("invalid item index %d in section %d", j, i)
 	}
 	items := table[i]
 	item, ok := items[j]
-	if !ok {
-		return nil, fmt.Errorf("item index over bound")
+	if !ok || item == nil {
+		return nil, fmt.Errorf("undefined item section %d index %d", i, j)
 	}
 	return item, nil
-}
-
-func (table itemTable) GetItemBaseMust(i, j int) *ItemBase {
-	return table[i][j]
 }
 
 func (table itemTable) GetItemLevel(i, j, mlevel int) int {

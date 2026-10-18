@@ -10,6 +10,25 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
 
+func Code(section, index int) int {
+	return section*512 + index
+}
+
+// NewItem construct a item with section and index
+func NewItem(section, index int) *Item {
+	itemBase, err := ItemTable.GetItemBase(section, index)
+	if err != nil {
+		panic(fmt.Errorf("NewItem(%d, %d): %w", section, index, err))
+	}
+	return &Item{
+		ID:       0,
+		Section:  section,
+		Index:    index,
+		Code:     Code(section, index),
+		ItemBase: itemBase,
+	}
+}
+
 // Item represents a item
 type Item struct {
 	*ItemBase                    `json:"-"`
@@ -84,17 +103,6 @@ type Item struct {
 	AdditionSpeed5               bool   `json:"-"`
 	BuyMoney                     int    `json:"-"`
 	SellMoney                    int    `json:"-"`
-}
-
-// NewItem construct a item with section and index
-func NewItem(section, index int) *Item {
-	return &Item{
-		ID:       0,
-		Section:  section,
-		Index:    index,
-		Code:     Code(section, index),
-		ItemBase: ItemTable.GetItemBaseMust(section, index),
-	}
 }
 
 func (i *Item) Copy() *Item {

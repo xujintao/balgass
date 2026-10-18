@@ -1,8 +1,12 @@
 package item
 
 import (
+	"fmt"
+
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
+
+var Item380Manager item380Manager
 
 type item380EffectKind int
 
@@ -56,6 +60,44 @@ type item380Manager struct {
 	items map[int]map[int]*item380
 }
 
+func (o *item380Manager) init() {
+	type Item380Xml struct {
+		Mix        item380Mix `xml:"Mix"`
+		ItemOption struct {
+			Items []struct {
+				Cat     int               `xml:"Cat,attr"`
+				Index   int               `xml:"Index,attr"`
+				Option1 item380EffectKind `xml:"Option1,attr"`
+				Value1  int               `xml:"Value1,attr"`
+				Option2 item380EffectKind `xml:"Option2,attr"`
+				Value2  int               `xml:"Value2,attr"`
+				Time    int               `xml:"Time,attr"`
+			} `xml:"Item"`
+		} `xml:"ItemOption"`
+	}
+	var item380Xml Item380Xml
+	conf.XML(conf.PathCommon, "Items/IGC_Item380Option.xml", &item380Xml)
+	// convert
+	o.items = make(map[int]map[int]*item380)
+	for _, item := range item380Xml.ItemOption.Items {
+		if _, err := ItemTable.GetItemBase(item.Cat, item.Index); err != nil {
+			panic(fmt.Errorf("Items/IGC_Item380Option.xml: section %d index %d: %w", item.Cat, item.Index, err))
+		}
+		_, ok := o.items[item.Cat]
+		if !ok {
+			o.items[item.Cat] = make(map[int]*item380)
+		}
+		_, ok = o.items[item.Cat][item.Index]
+		if !ok {
+			i380 := new(item380)
+			i380.effects[0] = item380EffectPair{item.Option1, item.Value1}
+			i380.effects[1] = item380EffectPair{item.Option2, item.Value2}
+			o.items[item.Cat][item.Index] = i380
+		}
+	}
+	o.mix = item380Xml.Mix
+}
+
 func (o *item380Manager) Is380Item(section, index int) bool {
 	_, ok := o.items[section][index]
 	return ok
@@ -85,41 +127,4 @@ func (o *item380Manager) Apply380ItemEffect(section, index int, effect *Item380E
 			effect.Item380EffectIncRecoverySDRate += value
 		}
 	}
-}
-
-var Item380Manager item380Manager
-
-func init() {
-	type Item380Xml struct {
-		Mix        item380Mix `xml:"Mix"`
-		ItemOption struct {
-			Items []struct {
-				Cat     int               `xml:"Cat,attr"`
-				Index   int               `xml:"Index,attr"`
-				Option1 item380EffectKind `xml:"Option1,attr"`
-				Value1  int               `xml:"Value1,attr"`
-				Option2 item380EffectKind `xml:"Option2,attr"`
-				Value2  int               `xml:"Value2,attr"`
-				Time    int               `xml:"Time,attr"`
-			} `xml:"Item"`
-		} `xml:"ItemOption"`
-	}
-	var item380Xml Item380Xml
-	conf.XML(conf.PathCommon, "Items/IGC_Item380Option.xml", &item380Xml)
-	// convert
-	Item380Manager.items = make(map[int]map[int]*item380)
-	for _, item := range item380Xml.ItemOption.Items {
-		_, ok := Item380Manager.items[item.Cat]
-		if !ok {
-			Item380Manager.items[item.Cat] = make(map[int]*item380)
-		}
-		_, ok = Item380Manager.items[item.Cat][item.Index]
-		if !ok {
-			i380 := new(item380)
-			i380.effects[0] = item380EffectPair{item.Option1, item.Value1}
-			i380.effects[1] = item380EffectPair{item.Option2, item.Value2}
-			Item380Manager.items[item.Cat][item.Index] = i380
-		}
-	}
-	Item380Manager.mix = item380Xml.Mix
 }
