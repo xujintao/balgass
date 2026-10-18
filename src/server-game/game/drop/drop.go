@@ -10,6 +10,12 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/item"
 )
 
+func init() {
+	DropManager.init()
+}
+
+var DropManager dropManager
+
 const MaxMagicBookCount int = 100
 const MaxNormalItemCount int = 1000
 
@@ -62,18 +68,10 @@ type Reward struct {
 	Placement Placement
 }
 
-func newZenItem(amount int) *item.Item {
-	it := item.NewItem(14, 15)
-	it.Durability = amount
-	return it
-}
-
 type Result struct {
 	Handled bool
 	Rewards []Reward
 }
-
-var DropManager dropManager
 
 type itemDropRate struct {
 	magicBook       int
@@ -103,10 +101,6 @@ type dropManager struct {
 	normalItem      [][]dropItem
 	excellentItem   [][]dropItem
 	itemBags        map[itemBagKey]*itemBagEntry
-}
-
-func init() {
-	DropManager.init()
 }
 
 func (m *dropManager) init() {
@@ -253,6 +247,12 @@ func (m *dropManager) makeJewel() {
 	m.jewelOfChaos = make(12, 15, "Jewel of Chaos")
 }
 
+func (m *dropManager) dropMoney(amount int) *item.Item {
+	it := item.NewItem(14, 15)
+	it.Durability = amount
+	return it
+}
+
 func (m *dropManager) isValid(monsterLevel int) bool {
 	if monsterLevel < 0 || monsterLevel >= len(m.itemDropRate) {
 		return false
@@ -260,7 +260,7 @@ func (m *dropManager) isValid(monsterLevel int) bool {
 	return true
 }
 
-func (m *dropManager) DropItem(monsterLevel int) *item.Item {
+func (m *dropManager) dropItem(monsterLevel int) *item.Item {
 	if !m.isValid(monsterLevel) {
 		return nil
 	}
@@ -302,14 +302,14 @@ func (m *dropManager) DropItem(monsterLevel int) *item.Item {
 	}
 	it := item.NewItem(dit.section, dit.index)
 	if it == nil {
-		slog.Error("DropItem", "error", "item not found", "section", dit.section, "index", dit.index)
+		slog.Error("dropItem", "error", "item not found", "section", dit.section, "index", dit.index)
 		return nil
 	}
 	it.Level = dit.level
 	return it
 }
 
-func (m *dropManager) DropItemExcellent(monsterLevel int) *item.Item {
+func (m *dropManager) dropItemExcellent(monsterLevel int) *item.Item {
 	if !m.isValid(monsterLevel) {
 		return nil
 	}
@@ -321,7 +321,7 @@ func (m *dropManager) DropItemExcellent(monsterLevel int) *item.Item {
 	dit := its[rand.Intn(n)]
 	it := item.NewItem(dit.section, dit.index)
 	if it == nil {
-		slog.Error("DropItemExcellent", "error", "item not found", "section", dit.section, "index", dit.index)
+		slog.Error("dropItemExcellent", "error", "item not found", "section", dit.section, "index", dit.index)
 		return nil
 	}
 	it.Level = dit.level
@@ -331,7 +331,7 @@ func (m *dropManager) DropItemExcellent(monsterLevel int) *item.Item {
 func (m *dropManager) dropGeneric(request Request) Result {
 	excellentDropRate := conf.CommonServer.GameServerInfo.ExcelItemDropPercent
 	if rand.Intn(10000) < excellentDropRate {
-		it := m.DropItemExcellent(request.MonsterLevel - 25)
+		it := m.dropItemExcellent(request.MonsterLevel - 25)
 		if it == nil {
 			return Result{Handled: true}
 		}
@@ -344,7 +344,7 @@ func (m *dropManager) dropGeneric(request Request) Result {
 		itemDropRate = 1
 	}
 	if rand.Intn(itemDropRate) < conf.CommonServer.GameServerInfo.ItemDropPercent {
-		it := m.DropItem(request.MonsterLevel)
+		it := m.dropItem(request.MonsterLevel)
 		if it == nil {
 			return Result{Handled: true}
 		}
@@ -360,7 +360,7 @@ func (m *dropManager) dropGeneric(request Request) Result {
 	}
 	money := int(float64(request.Money) * conf.Common.General.ZenDropMultiplier)
 	money += int(float64(money) * request.Player.ZenBonus)
-	return Result{Handled: true, Rewards: []Reward{{Item: newZenItem(money)}}}
+	return Result{Handled: true, Rewards: []Reward{{Item: m.dropMoney(money)}}}
 }
 
 func (m *dropManager) finishGenericItem(it *item.Item, excellent bool) {

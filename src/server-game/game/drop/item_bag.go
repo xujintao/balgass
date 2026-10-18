@@ -328,7 +328,7 @@ func (m *dropManager) dropItemBag(bag *itemBag, consume bool, request Request) (
 	}
 	if rand.Intn(10000) >= bag.itemRate {
 		if bag.moneyDrop > 0 {
-			result.Rewards = append(result.Rewards, Reward{Item: newZenItem(bag.moneyDrop), Placement: PlaceAtPlayer})
+			result.Rewards = append(result.Rewards, Reward{Item: m.makeMoneyItem(bag.moneyDrop), Placement: PlaceAtPlayer})
 		}
 		return result, true
 	}
@@ -388,6 +388,12 @@ func selectItemBagDrop(drops []itemBagDrop, number int) *itemBagDrop {
 		number -= drops[i].rate
 	}
 	return nil
+}
+
+func (m *dropManager) makeMoneyItem(amount int) *item.Item {
+	it := item.NewItem(14, 15)
+	it.Durability = amount
+	return it
 }
 
 func (m *dropManager) makeBagItem(configured itemBagItem) *item.Item {
