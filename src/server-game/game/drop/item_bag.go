@@ -328,7 +328,7 @@ func (m *dropManager) dropItemBag(bag *itemBag, consume bool, request Request) (
 	}
 	if rand.Intn(10000) >= bag.itemRate {
 		if bag.moneyDrop > 0 {
-			result.Rewards = append(result.Rewards, Reward{Zen: bag.moneyDrop, Placement: PlaceAtPlayer})
+			result.Rewards = append(result.Rewards, Reward{Item: newZenItem(bag.moneyDrop), Placement: PlaceAtPlayer})
 		}
 		return result, true
 	}

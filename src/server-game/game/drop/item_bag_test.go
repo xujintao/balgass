@@ -21,6 +21,10 @@ func testItemBagEntry(bag *itemBag) *itemBagEntry {
 	return &itemBagEntry{bag: bag}
 }
 
+func isZenReward(reward Reward, amount int) bool {
+	return reward.Item != nil && reward.Item.Code == item.Code(14, 15) && reward.Item.Durability == amount
+}
+
 func TestParseItemBagBindings(t *testing.T) {
 	script := `
 AddItemBag(BAG_COMMON, MakeItemID(14,11), 8, 'Item_(14,11,8)_Kundun_Box+1')
@@ -113,7 +117,7 @@ func TestItemBagFiltersWeightCountAndRewards(t *testing.T) {
 	if got := selectItemBagDrop(drops, 1000); got != &drops[1] {
 		t.Fatalf("weighted Drop = %#v, want second Drop", got)
 	}
-	if result, used := (&dropManager{}).dropItemBag(testItemBag(0, 0, 12345, 1), false, testRequest(44)); !used || len(result.Rewards) != 1 || result.Rewards[0].Zen != 12345 || result.Rewards[0].Placement != PlaceAtPlayer {
+	if result, used := (&dropManager{}).dropItemBag(testItemBag(0, 0, 12345, 1), false, testRequest(44)); !used || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 12345) || result.Rewards[0].Placement != PlaceAtPlayer {
 		t.Fatalf("ItemRate Zen result = %#v", result)
 	}
 	for _, tt := range []struct {
@@ -145,7 +149,7 @@ func TestItemBagSummonBookDrop(t *testing.T) {
 	result, used := (&dropManager{}).dropItemBag(bag, false, testRequest(652))
 	if !used || len(result.Rewards) != 2 || result.Rewards[0].Item == nil ||
 		result.Rewards[0].Item.Code != item.Code(14, 217) || result.Rewards[0].Placement != PlaceAtPlayer ||
-		result.Rewards[1].Zen != 100000 {
+		!isZenReward(result.Rewards[1], 100000) || result.Rewards[1].Placement != PlaceAtPlayer {
 		t.Fatalf("Zen and summon book rewards = %#v", result)
 	}
 	bag.itemRate = 10000
@@ -165,7 +169,7 @@ func TestItemBagSummonBookDrop(t *testing.T) {
 	bag.itemRate = 0
 	bag.summonBook.rate = 0
 	result, used = (&dropManager{}).dropItemBag(bag, false, testRequest(652))
-	if !used || len(result.Rewards) != 1 || result.Rewards[0].Zen != 100000 {
+	if !used || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 100000) || result.Rewards[0].Placement != PlaceAtPlayer {
 		t.Fatalf("zero-rate summon book rewards = %#v", result)
 	}
 	bag.bagUseRate = 0
@@ -196,11 +200,11 @@ func TestEventBagTakesPriorityOverMonsterBag(t *testing.T) {
 	}}
 	req := testRequest(44)
 	req.EventID = 1
-	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 1 || result.Rewards[0].Zen != 1 {
+	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 1) || result.Rewards[0].Placement != PlaceAtPlayer {
 		t.Fatalf("EventBag was not selected: %#v", result)
 	}
 	req.EventID = 0
-	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 1 || result.Rewards[0].Zen != 44 {
+	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 44) || result.Rewards[0].Placement != PlaceAtPlayer {
 		t.Fatalf("MonsterBag was not selected: %#v", result)
 	}
 	req.EventID = 2

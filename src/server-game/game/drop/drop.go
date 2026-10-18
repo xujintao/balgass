@@ -56,11 +56,16 @@ const (
 	PlaceAtPlayer
 )
 
-// Reward is either an item or Zen.
+// Reward is an item placed on the ground.
 type Reward struct {
 	Item      *item.Item
-	Zen       int
 	Placement Placement
+}
+
+func newZenItem(amount int) *item.Item {
+	it := item.NewItem(14, 15)
+	it.Durability = amount
+	return it
 }
 
 type Result struct {
@@ -355,7 +360,7 @@ func (m *dropManager) dropGeneric(request Request) Result {
 	}
 	money := int(float64(request.Money) * conf.Common.General.ZenDropMultiplier)
 	money += int(float64(money) * request.Player.ZenBonus)
-	return Result{Handled: true, Rewards: []Reward{{Zen: money}}}
+	return Result{Handled: true, Rewards: []Reward{{Item: newZenItem(money)}}}
 }
 
 func (m *dropManager) finishGenericItem(it *item.Item, excellent bool) {

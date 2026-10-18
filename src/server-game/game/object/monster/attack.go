@@ -4,7 +4,6 @@ import (
 	"math/rand"
 
 	"github.com/xujintao/balgass/src/server-game/game/drop"
-	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 )
@@ -192,10 +191,6 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 	})
 	for _, reward := range result.Rewards {
 		it := reward.Item
-		if it == nil && reward.Zen > 0 {
-			it = item.NewItem(14, 15)
-			it.Durability = reward.Zen
-		}
 		if it == nil {
 			continue
 		}
