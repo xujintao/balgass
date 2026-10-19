@@ -177,17 +177,7 @@ func (m *Monster) DieDropItem(tobj *object.Object) {
 		ItemDropRate:  m.ItemDropRate,
 		MoneyDropRate: m.MoneyDropRate,
 		Money:         m.MoneyDrop,
-		MapNumber:     m.MapNumber,
-		X:             m.X,
-		Y:             m.Y,
-		Player: drop.PlayerContext{
-			Class:       tobj.Class,
-			ChangeUp:    tobj.GetChangeUp(),
-			Level:       tobj.Level,
-			MasterLevel: tobj.GetMasterLevel(),
-			MapNumber:   tobj.MapNumber,
-			ZenBonus:    tobj.GetMonsterDieGetMoney(),
-		},
+		ZenBonus:      tobj.GetMonsterDieGetMoney(),
 	})
 	for _, reward := range result.Rewards {
 		it := reward.Item

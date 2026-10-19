@@ -49,11 +49,7 @@ type itemBagSummonBook struct {
 }
 
 type itemBagAllow struct {
-	classes   [class.MaxClass]int
-	minLevel  int
-	maxLevel  int
-	mapNumber int
-	drops     []itemBagDrop
+	drops []itemBagDrop
 }
 
 type itemBagDrop struct {
@@ -297,7 +293,7 @@ func parseItemBag(name string) *itemBag {
 				panic(fmt.Errorf("drop: invalid class filter in %s", name))
 			}
 		}
-		runtimeAllow := itemBagAllow{classes: classes, minLevel: allow.PlayerMin, maxLevel: allow.PlayerMax, mapNumber: allow.MapNumber}
+		runtimeAllow := itemBagAllow{}
 		totalRate := 0
 		for dropIndex, configuredDrop := range allow.Drops {
 			if configuredDrop.Rate < 0 || configuredDrop.Rate > 10000 || configuredDrop.Count <= 0 || len(configuredDrop.Items) == 0 {
@@ -325,9 +321,37 @@ func parseItemBag(name string) *itemBag {
 	return bag
 }
 
-func (m *dropManager) dropItemBag(bag *itemBag, consume bool, request Request) (Result, bool) {
+func (m *dropManager) dropItemBag(request Request) Result {
+	switch request.Trigger {
+	case TriggerPlayerDropItem:
+		bag := m.itemBag(itemBagKey{kind: itemBagCommon, id: request.ItemCode, level: request.ItemLevel})
+		if bag == nil {
+			return Result{}
+		}
+		result := m.rollItemBag(bag)
+		if result.Handled {
+			result.Effect = bag.useEffect
+		}
+		return result
+	case TriggerMonsterDeath:
+		bag := m.itemBag(itemBagKey{kind: itemBagMonster, id: request.MonsterClass})
+		if bag == nil {
+			return Result{}
+		}
+		return m.rollItemBag(bag)
+	case TriggerEventFinish:
+		bag := m.itemBag(itemBagKey{kind: itemBagEvent, id: request.EventID})
+		if bag == nil {
+			return Result{}
+		}
+		return m.rollItemBag(bag)
+	}
+	return Result{}
+}
+
+func (m *dropManager) rollItemBag(bag *itemBag) Result {
 	if rand.Intn(10000) >= bag.bagUseRate {
-		return Result{Handled: consume}, consume
+		return Result{}
 	}
 	result := Result{Handled: true}
 	if bag.summonBook != nil && rand.Intn(1000000) < bag.summonBook.rate {
@@ -338,23 +362,19 @@ func (m *dropManager) dropItemBag(bag *itemBag, consume bool, request Request) (
 		if bag.moneyDrop > 0 {
 			result.Rewards = append(result.Rewards, Reward{Item: m.makeMoneyItem(bag.moneyDrop), Placement: PlaceAtPlayer})
 		}
-		return result, true
+		return result
 	}
-	matching := bag.matchingAllows(request)
-	if len(matching) == 0 {
-		return result, true
-	}
-	allow := matching[rand.Intn(len(matching))]
+	allow := &bag.allows[rand.Intn(len(bag.allows))]
 	totalRate := 0
 	for _, configuredDrop := range allow.drops {
 		totalRate += configuredDrop.rate
 	}
 	if totalRate <= 0 {
-		return result, true
+		return result
 	}
 	selected := selectItemBagDrop(allow.drops, rand.Intn(totalRate))
 	if selected == nil {
-		return result, true
+		return result
 	}
 	for i := 0; i < selected.count; i++ {
 		var reward *item.Item
@@ -371,21 +391,7 @@ func (m *dropManager) dropItemBag(bag *itemBag, consume bool, request Request) (
 			result.Rewards = append(result.Rewards, Reward{Item: reward, Placement: placement})
 		}
 	}
-	return result, true
-}
-
-func (bag *itemBag) matchingAllows(request Request) []*itemBagAllow {
-	var matching []*itemBagAllow
-	for i := range bag.allows {
-		allow := &bag.allows[i]
-		if request.Player.Class < 0 || request.Player.Class >= class.MaxClass || allow.classes[request.Player.Class] < request.Player.ChangeUp+1 ||
-			request.Player.Level+request.Player.MasterLevel < allow.minLevel || request.Player.Level+request.Player.MasterLevel > allow.maxLevel ||
-			(allow.mapNumber != -1 && allow.mapNumber != request.MapNumber) {
-			continue
-		}
-		matching = append(matching, allow)
-	}
-	return matching
+	return result
 }
 
 func selectItemBagDrop(drops []itemBagDrop, number int) *itemBagDrop {

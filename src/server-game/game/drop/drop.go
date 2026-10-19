@@ -24,31 +24,20 @@ type Trigger int
 const (
 	TriggerMonsterDeath Trigger = iota
 	TriggerPlayerDropItem
+	TriggerEventFinish
 )
 
-type PlayerContext struct {
-	Class       int
-	ChangeUp    int
-	Level       int
-	MasterLevel int
-	MapNumber   int
-	ZenBonus    float64
-}
-
 type Request struct {
-	EventID       int // Zero means no EventBag; positive IDs are one-based runtime keys.
 	Trigger       Trigger
-	ItemCode      int
-	ItemLevel     int
-	MonsterClass  int
+	ItemCode      int // item_bag_common
+	ItemLevel     int // item_bag_common
+	MonsterClass  int // item_bag_monster
+	EventID       int // item_bag_event
 	MonsterLevel  int
 	ItemDropRate  int
 	MoneyDropRate int
 	Money         int
-	MapNumber     int
-	X             int
-	Y             int
-	Player        PlayerContext
+	ZenBonus      float64
 }
 
 // Placement identifies where a ground reward is placed relative to the source
@@ -359,7 +348,7 @@ func (m *dropManager) dropGeneric(request Request) Result {
 		return Result{Handled: true}
 	}
 	money := int(float64(request.Money) * conf.Common.General.ZenDropMultiplier)
-	money += int(float64(money) * request.Player.ZenBonus)
+	money += int(float64(money) * request.ZenBonus)
 	return Result{Handled: true, Rewards: []Reward{{Item: m.dropMoney(money)}}}
 }
 
@@ -402,34 +391,9 @@ func (m *dropManager) finishGenericItem(it *item.Item, excellent bool) {
 // into world objects; all choice between ItemBag and generic monster rules is
 // kept here.
 func (m *dropManager) Drop(request Request) Result {
-	if request.Trigger == TriggerPlayerDropItem {
-		bag := m.itemBag(itemBagKey{kind: itemBagCommon, id: request.ItemCode, level: request.ItemLevel})
-		if bag == nil {
-			return Result{}
-		}
-		if len(bag.matchingAllows(request)) == 0 {
-			return Result{}
-		}
-		result, _ := m.dropItemBag(bag, false, request)
-		if result.Handled {
-			result.Effect = bag.useEffect
-		}
+	result := m.dropItemBag(request)
+	if result.Handled || request.Trigger != TriggerMonsterDeath {
 		return result
-	}
-	if request.Trigger != TriggerMonsterDeath {
-		return Result{}
-	}
-	if request.EventID != 0 {
-		if bag := m.itemBag(itemBagKey{kind: itemBagEvent, id: request.EventID}); bag != nil {
-			result, _ := m.dropItemBag(bag, true, request)
-			return result
-		}
-		return Result{Handled: true}
-	}
-	if bag := m.itemBag(itemBagKey{kind: itemBagMonster, id: request.MonsterClass}); bag != nil {
-		if result, used := m.dropItemBag(bag, false, request); used {
-			return result
-		}
 	}
 	return m.dropGeneric(request)
 }

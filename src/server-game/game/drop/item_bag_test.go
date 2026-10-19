@@ -3,17 +3,15 @@ package drop
 import (
 	"testing"
 
-	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 )
 
 func testRequest(monsterClass int) Request {
-	return Request{Trigger: TriggerMonsterDeath, MonsterClass: monsterClass, MapNumber: 0, Player: PlayerContext{Class: int(class.Wizard), Level: 100, MapNumber: 0}}
+	return Request{Trigger: TriggerMonsterDeath, MonsterClass: monsterClass}
 }
 
 func testItemBag(itemRate, setItemRate, money, count int) *itemBag {
 	return &itemBag{itemRate: itemRate, setItemRate: setItemRate, moneyDrop: money, bagUseRate: 10000, allows: []itemBagAllow{{
-		classes: [class.MaxClass]int{class.Wizard: 1}, minLevel: 1, maxLevel: 800, mapNumber: -1,
 		drops: []itemBagDrop{{rate: 10000, count: count, items: []itemBagItem{{section: 0, index: 17, minLevel: 0, maxLevel: 0, skill: 1, luck: 1, option: 1}}}},
 	}}}
 }
@@ -100,31 +98,13 @@ func TestItemBagStartupLoadsMonsterAndCommonBags(t *testing.T) {
 	}
 }
 
-func TestItemBagFiltersWeightCountAndRewards(t *testing.T) {
+func TestItemBagWeightCountAndRewards(t *testing.T) {
 	bag := testItemBag(10000, 0, 0, 2)
-	if got := len(bag.matchingAllows(testRequest(44))); got != 1 {
-		t.Fatalf("matching allows = %d, want 1", got)
-	}
-	request := testRequest(44)
-	request.Player.Class = int(class.Knight)
-	if got := len(bag.matchingAllows(request)); got != 0 {
-		t.Fatalf("non-matching class allows = %d, want 0", got)
-	}
-	request = testRequest(44)
-	request.Player.Level = 0
-	if got := len(bag.matchingAllows(request)); got != 0 {
-		t.Fatalf("below-level allows = %d, want 0", got)
-	}
-	bag.allows[0].mapNumber = 1
-	if got := len(bag.matchingAllows(testRequest(44))); got != 0 {
-		t.Fatalf("non-matching map allows = %d, want 0", got)
-	}
-
 	drops := []itemBagDrop{{rate: 1000}, {rate: 9000, count: 2}}
 	if got := selectItemBagDrop(drops, 1000); got != &drops[1] {
 		t.Fatalf("weighted Drop = %#v, want second Drop", got)
 	}
-	if result, used := (&dropManager{}).dropItemBag(testItemBag(0, 0, 12345, 1), false, testRequest(44)); !used || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 12345) || result.Rewards[0].Placement != PlaceAtPlayer {
+	if result := (&dropManager{}).rollItemBag(testItemBag(0, 0, 12345, 1)); !result.Handled || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 12345) || result.Rewards[0].Placement != PlaceAtPlayer {
 		t.Fatalf("ItemRate Zen result = %#v", result)
 	}
 	for _, tt := range []struct {
@@ -134,8 +114,8 @@ func TestItemBagFiltersWeightCountAndRewards(t *testing.T) {
 		{count: 1, placement: PlaceAtSource},
 		{count: 2, placement: PlaceNearSource},
 	} {
-		result, used := (&dropManager{}).dropItemBag(testItemBag(10000, 0, 0, tt.count), false, testRequest(44))
-		if !used || len(result.Rewards) != tt.count {
+		result := (&dropManager{}).rollItemBag(testItemBag(10000, 0, 0, tt.count))
+		if !result.Handled || len(result.Rewards) != tt.count {
 			t.Fatalf("Count %d result = %#v", tt.count, result)
 		}
 		for _, reward := range result.Rewards {
@@ -143,6 +123,19 @@ func TestItemBagFiltersWeightCountAndRewards(t *testing.T) {
 				t.Fatalf("Count %d placement = %v, want %v", tt.count, reward.Placement, tt.placement)
 			}
 		}
+	}
+	bag = testItemBag(10000, 0, 0, 1)
+	bag.allows = append(bag.allows, itemBagAllow{drops: []itemBagDrop{{rate: 10000, count: 2, items: bag.allows[0].drops[0].items}}})
+	seen := [3]bool{}
+	for i := 0; i < 100 && !(seen[1] && seen[2]); i++ {
+		result := (&dropManager{}).rollItemBag(bag)
+		if len(result.Rewards) < 1 || len(result.Rewards) > 2 {
+			t.Fatalf("multiple DropAllow result = %#v", result)
+		}
+		seen[len(result.Rewards)] = true
+	}
+	if !seen[1] || !seen[2] {
+		t.Fatalf("multiple DropAllow sections were not both selected: %v", seen)
 	}
 	setItem := (&dropManager{}).makeRandomSetItem()
 	if setItem == nil || setItem.Set <= 0 || !setItem.Skill || setItem.Durability != setItem.MaxDurability {
@@ -153,35 +146,28 @@ func TestItemBagFiltersWeightCountAndRewards(t *testing.T) {
 func TestItemBagSummonBookDrop(t *testing.T) {
 	bag := testItemBag(0, 0, 100000, 1)
 	bag.summonBook = &itemBagSummonBook{rate: 1000000, section: 14, index: 217}
-	result, used := (&dropManager{}).dropItemBag(bag, false, testRequest(652))
-	if !used || len(result.Rewards) != 2 || result.Rewards[0].Item == nil ||
+	result := (&dropManager{}).rollItemBag(bag)
+	if !result.Handled || len(result.Rewards) != 2 || result.Rewards[0].Item == nil ||
 		result.Rewards[0].Item.Code != item.Code(14, 217) || result.Rewards[0].Placement != PlaceAtPlayer ||
 		!isZenReward(result.Rewards[1], 100000) || result.Rewards[1].Placement != PlaceAtPlayer {
 		t.Fatalf("Zen and summon book rewards = %#v", result)
 	}
 	bag.itemRate = 10000
-	result, used = (&dropManager{}).dropItemBag(bag, false, testRequest(652))
-	if !used || len(result.Rewards) != 2 || result.Rewards[0].Item == nil ||
+	result = (&dropManager{}).rollItemBag(bag)
+	if !result.Handled || len(result.Rewards) != 2 || result.Rewards[0].Item == nil ||
 		result.Rewards[0].Item.Code != item.Code(14, 217) || result.Rewards[1].Item == nil ||
 		result.Rewards[1].Item.Code != item.Code(0, 17) {
 		t.Fatalf("item and summon book rewards = %#v", result)
 	}
-	request := testRequest(652)
-	request.Player.Class = int(class.Knight)
-	result, used = (&dropManager{}).dropItemBag(bag, false, request)
-	if !used || len(result.Rewards) != 1 || result.Rewards[0].Item == nil ||
-		result.Rewards[0].Item.Code != item.Code(14, 217) {
-		t.Fatalf("unmatched DropAllow summon book reward = %#v", result)
-	}
 	bag.itemRate = 0
 	bag.summonBook.rate = 0
-	result, used = (&dropManager{}).dropItemBag(bag, false, testRequest(652))
-	if !used || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 100000) || result.Rewards[0].Placement != PlaceAtPlayer {
+	result = (&dropManager{}).rollItemBag(bag)
+	if !result.Handled || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 100000) || result.Rewards[0].Placement != PlaceAtPlayer {
 		t.Fatalf("zero-rate summon book rewards = %#v", result)
 	}
 	bag.bagUseRate = 0
-	result, used = (&dropManager{}).dropItemBag(bag, false, testRequest(652))
-	if used || len(result.Rewards) != 0 {
+	result = (&dropManager{}).rollItemBag(bag)
+	if result.Handled || len(result.Rewards) != 0 {
 		t.Fatalf("unused ItemBag rewards = %#v", result)
 	}
 }
@@ -200,32 +186,32 @@ func TestMonsterBagFallsBackToGenericDrop(t *testing.T) {
 	}
 }
 
-func TestEventBagTakesPriorityOverMonsterBag(t *testing.T) {
+func TestEventFinishAndMonsterDeathUseSeparateBags(t *testing.T) {
 	m := dropManager{itemBags: map[itemBagKey]*itemBagEntry{
 		{kind: itemBagEvent, id: 1}:    testItemBagEntry(testItemBag(0, 0, 1, 1)),
 		{kind: itemBagMonster, id: 44}: testItemBagEntry(testItemBag(0, 0, 44, 1)),
 	}}
 	req := testRequest(44)
 	req.EventID = 1
-	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 1) || result.Rewards[0].Placement != PlaceAtPlayer {
-		t.Fatalf("EventBag was not selected: %#v", result)
+	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 44) {
+		t.Fatalf("monster death selected EventBag: %#v", result)
 	}
-	req.EventID = 0
-	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 44) || result.Rewards[0].Placement != PlaceAtPlayer {
-		t.Fatalf("MonsterBag was not selected: %#v", result)
+	req.Trigger = TriggerEventFinish
+	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 1) || result.Rewards[0].Placement != PlaceAtPlayer {
+		t.Fatalf("event finish did not select EventBag: %#v", result)
 	}
 	req.EventID = 2
-	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 0 {
-		t.Fatalf("missing EventBag fell through to MonsterBag: %#v", result)
+	if result := m.Drop(req); result.Handled || len(result.Rewards) != 0 {
+		t.Fatalf("missing EventBag fell through to MonsterBag or generic drop: %#v", result)
 	}
 	req.EventID = 1
 	m.itemBags[itemBagKey{kind: itemBagEvent, id: 1}].bag.bagUseRate = 0
-	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 0 {
-		t.Fatalf("skipped EventBag fell through to MonsterBag: %#v", result)
+	if result := m.Drop(req); result.Handled || len(result.Rewards) != 0 {
+		t.Fatalf("skipped EventBag fell through to MonsterBag or generic drop: %#v", result)
 	}
 	req.Trigger = TriggerPlayerDropItem
 	if result := m.Drop(req); result.Handled || len(result.Rewards) != 0 {
-		t.Fatalf("unsupported trigger dispatched EventBag: %#v", result)
+		t.Fatalf("player item drop dispatched EventBag: %#v", result)
 	}
 }
 

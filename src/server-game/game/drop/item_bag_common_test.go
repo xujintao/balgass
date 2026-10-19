@@ -3,13 +3,11 @@ package drop
 import (
 	"testing"
 
-	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 )
 
 func commonBagRequest(code, level int) Request {
-	return Request{Trigger: TriggerPlayerDropItem, ItemCode: code, ItemLevel: level, MapNumber: 0,
-		Player: PlayerContext{Class: int(class.Wizard), Level: 100, MapNumber: 0}}
+	return Request{Trigger: TriggerPlayerDropItem, ItemCode: code, ItemLevel: level}
 }
 
 func TestCommonBagDrop(t *testing.T) {
@@ -36,11 +34,6 @@ func TestCommonBagDrop(t *testing.T) {
 		}
 	}
 
-	bag.allows[0].mapNumber = 1
-	if got := manager.Drop(commonBagRequest(code, 8)); got.Handled {
-		t.Fatalf("unmatched DropAllow handled: %#v", got)
-	}
-	bag.allows[0].mapNumber = -1
 	bag.bagUseRate = 0
 	if got := manager.Drop(commonBagRequest(code, 8)); got.Handled {
 		t.Fatalf("failed BagUseRate handled: %#v", got)

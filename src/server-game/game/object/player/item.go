@@ -89,16 +89,6 @@ func (p *Player) DropItem(msg *model.MsgDropItem) {
 			Trigger:   drop.TriggerPlayerDropItem,
 			ItemCode:  it.Code,
 			ItemLevel: it.Level,
-			MapNumber: p.MapNumber,
-			X:         p.X,
-			Y:         p.Y,
-			Player: drop.PlayerContext{
-				Class:       p.Class,
-				ChangeUp:    p.GetChangeUp(),
-				Level:       p.Level,
-				MasterLevel: p.GetMasterLevel(),
-				MapNumber:   p.MapNumber,
-			},
 		})
 		if result.Handled {
 			placed := 0
