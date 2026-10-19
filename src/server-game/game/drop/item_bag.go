@@ -35,6 +35,7 @@ type itemBagEntry struct {
 
 type itemBag struct {
 	name        string
+	useEffect   *int
 	itemRate    int
 	setItemRate int
 	moneyDrop   int
@@ -89,7 +90,7 @@ func (m *dropManager) initItemBags() {
 		m.itemBags[key] = &itemBagEntry{name: name}
 	}
 	for key := range m.itemBags {
-		if key.kind == itemBagMonster {
+		if key.kind == itemBagCommon || key.kind == itemBagMonster {
 			if err := m.loadItemBag(key); err != nil {
 				panic(err)
 			}
@@ -240,10 +241,17 @@ func parseItemBag(name string) *itemBag {
 		(cfg.BagConfig.ItemRate < 10000 && cfg.BagConfig.MoneyDrop == 0) {
 		panic(fmt.Errorf("drop: invalid BagConfig in %s", name))
 	}
-	if cfg.BagConfig.BagUseEffect != -1 || cfg.AddCoin.Enable != 0 {
-		panic(fmt.Errorf("drop: unsupported BagUseEffect/AddCoin enabled in %s", name))
+	if cfg.BagConfig.BagUseEffect != -1 && cfg.BagConfig.BagUseEffect != 0 && cfg.BagConfig.BagUseEffect != 2 && cfg.BagConfig.BagUseEffect != 58 {
+		panic(fmt.Errorf("drop: unsupported BagUseEffect %d in %s", cfg.BagConfig.BagUseEffect, name))
+	}
+	if cfg.AddCoin.Enable != 0 {
+		panic(fmt.Errorf("drop: unsupported AddCoin enabled in %s", name))
 	}
 	bag := &itemBag{name: cfg.BagConfig.Name, itemRate: cfg.BagConfig.ItemRate, setItemRate: cfg.BagConfig.SetItemRate, moneyDrop: cfg.BagConfig.MoneyDrop, bagUseRate: cfg.BagConfig.BagUseRate}
+	if cfg.BagConfig.BagUseEffect >= 0 {
+		effect := cfg.BagConfig.BagUseEffect
+		bag.useEffect = &effect
+	}
 	if cfg.SummonBook.Enable != 0 {
 		if cfg.SummonBook.Enable != 1 || cfg.SummonBook.DropRate < 0 || cfg.SummonBook.DropRate > 1000000 {
 			panic(fmt.Errorf("drop: invalid SummonBook configuration in %s", name))

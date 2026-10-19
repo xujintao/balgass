@@ -3,7 +3,9 @@ package object
 import (
 	"log/slog"
 	"math"
+	"math/rand"
 
+	"github.com/xujintao/balgass/src/server-game/game/drop"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
@@ -66,7 +68,7 @@ func (obj *Object) DropItem(msg *model.MsgDropItem) {
 	}
 	defer obj.Push(&reply)
 	// validate
-	if msg.Position >= obj.GetInventory().Size {
+	if msg.Position < 0 || msg.Position >= obj.GetInventory().Size {
 		return
 	}
 	it := obj.GetInventory().Items[msg.Position]
@@ -74,7 +76,7 @@ func (obj *Object) DropItem(msg *model.MsgDropItem) {
 		return
 	}
 	switch it.Code {
-	case item.Code(14, 63):
+	case item.Code(14, 63): // Firecracker 爆竹
 		cmdReply := model.MsgServerCMDReply{
 			Type: 0,
 			X:    obj.X,
@@ -82,8 +84,49 @@ func (obj *Object) DropItem(msg *model.MsgDropItem) {
 		}
 		obj.PushViewport(&cmdReply)
 	default:
-		ok := maps.MapManager.AddItem(obj.MapNumber, msg.X, msg.Y, it)
-		if !ok {
+		result := drop.DropManager.Drop(drop.Request{
+			Trigger:   drop.TriggerPlayerDropItem,
+			ItemCode:  it.Code,
+			ItemLevel: it.Level,
+			MapNumber: obj.MapNumber,
+			X:         obj.X,
+			Y:         obj.Y,
+			Player: drop.PlayerContext{
+				Class:       obj.Class,
+				ChangeUp:    obj.GetChangeUp(),
+				Level:       obj.Level,
+				MasterLevel: obj.GetMasterLevel(),
+				MapNumber:   obj.MapNumber,
+			},
+		})
+		if result.Handled {
+			placed := 0
+			for _, reward := range result.Rewards {
+				if reward.Item == nil {
+					continue
+				}
+				x, y := obj.X, obj.Y
+				if reward.Placement == drop.PlaceNearSource {
+					x, y = commonBagDropPosition(obj.MapNumber, x, y)
+				}
+				if maps.MapManager.AddItem(obj.MapNumber, x, y, reward.Item) {
+					placed++
+				}
+			}
+			if len(result.Rewards) > 0 && placed == 0 {
+				return
+			}
+			if placed < len(result.Rewards) {
+				slog.Warn("CommonBag rewards could not all be placed", "item", it.Code, "placed", placed, "rewards", len(result.Rewards))
+			}
+			if result.Effect != nil {
+				x, y := obj.X, obj.Y
+				if *result.Effect == 58 {
+					x, y = obj.Index>>8, obj.Index&0xff
+				}
+				obj.PushViewport(&model.MsgServerCMDReply{Type: *result.Effect, X: x, Y: y})
+			}
+		} else if !maps.MapManager.AddItem(obj.MapNumber, msg.X, msg.Y, it) {
 			return
 		}
 	}
@@ -92,6 +135,22 @@ func (obj *Object) DropItem(msg *model.MsgDropItem) {
 		obj.EquipmentChanged()
 	}
 	reply.Result = 1
+}
+func commonBagDropPosition(mapNumber, x, y int) (int, int) {
+	for i := 0; i < 10; i++ {
+		dx, dy := rand.Intn(5), rand.Intn(5)
+		if rand.Intn(2) == 0 {
+			dx = -dx
+		}
+		if rand.Intn(2) == 0 {
+			dy = -dy
+		}
+		dropX, dropY := x+dx, y+dy
+		if maps.MapManager.GetMapAttr(mapNumber, dropX, dropY)&(4|8) == 0 {
+			return dropX, dropY
+		}
+	}
+	return x, y
 }
 
 func (obj *Object) BuyItem(msg *model.MsgBuyItem) {

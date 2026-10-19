@@ -66,26 +66,33 @@ AddItemBag(BAG_EVENT, 0, 0, 'Buff_AkeronTower_Drop')
 	}
 }
 
-func TestItemBagStartupLoadsOnlyMonsterBags(t *testing.T) {
+func TestItemBagStartupLoadsMonsterAndCommonBags(t *testing.T) {
 	monsterCount := 0
+	commonCount := 0
 	for key, entry := range DropManager.itemBags {
-		if key.kind != itemBagMonster {
-			continue
+		if key.kind == itemBagCommon || key.kind == itemBagMonster {
+			if entry.bag == nil {
+				t.Fatalf("ItemBag %v/%d/%d was not loaded", key.kind, key.id, key.level)
+			}
+			if key.kind == itemBagMonster {
+				monsterCount++
+			} else {
+				commonCount++
+			}
 		}
-		if entry.bag == nil {
-			t.Fatalf("MonsterBag %d was not loaded", key.id)
-		}
-		monsterCount++
 	}
 	if monsterCount != 35 {
 		t.Fatalf("MonsterBag registration count = %d, want 35", monsterCount)
+	}
+	if commonCount != 45 {
+		t.Fatalf("CommonBag registration count = %d, want 45", commonCount)
 	}
 	for _, key := range []itemBagKey{{kind: itemBagEvent, id: 1}, {kind: itemBagEvent, id: 28}} {
 		if entry := DropManager.itemBags[key]; entry == nil || entry.bag != nil {
 			t.Fatalf("EventBag %d should be registered but not activated by drop", key.id)
 		}
 	}
-	for _, key := range []itemBagKey{{kind: itemBagCommon, id: item.Code(14, 11)}, {kind: itemBagEvent, id: 7}} {
+	for _, key := range []itemBagKey{{kind: itemBagEvent, id: 7}} {
 		entry := DropManager.itemBags[key]
 		if entry == nil || entry.bag != nil {
 			t.Fatalf("inactive ItemBag %v/%d/%d was not registered lazily", key.kind, key.id, key.level)
@@ -216,7 +223,7 @@ func TestEventBagTakesPriorityOverMonsterBag(t *testing.T) {
 	if result := m.Drop(req); !result.Handled || len(result.Rewards) != 0 {
 		t.Fatalf("skipped EventBag fell through to MonsterBag: %#v", result)
 	}
-	req.Trigger = TriggerItemUse
+	req.Trigger = TriggerPlayerDropItem
 	if result := m.Drop(req); result.Handled || len(result.Rewards) != 0 {
 		t.Fatalf("unsupported trigger dispatched EventBag: %#v", result)
 	}

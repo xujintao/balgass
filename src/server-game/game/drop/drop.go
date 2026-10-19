@@ -19,14 +19,11 @@ var DropManager dropManager
 const MaxMagicBookCount int = 100
 const MaxNormalItemCount int = 1000
 
-// Trigger identifies the game action asking the drop system for rewards.
-// ItemUse is deliberately reserved for ItemBag-backed boxes and other usable
-// items; the first rollout only dispatches monster deaths.
 type Trigger int
 
 const (
 	TriggerMonsterDeath Trigger = iota
-	TriggerItemUse
+	TriggerPlayerDropItem
 )
 
 type PlayerContext struct {
@@ -41,6 +38,8 @@ type PlayerContext struct {
 type Request struct {
 	EventID       int // Zero means no EventBag; positive IDs are one-based runtime keys.
 	Trigger       Trigger
+	ItemCode      int
+	ItemLevel     int
 	MonsterClass  int
 	MonsterLevel  int
 	ItemDropRate  int
@@ -71,6 +70,7 @@ type Reward struct {
 type Result struct {
 	Handled bool
 	Rewards []Reward
+	Effect  *int // Optional ItemBag use effect.
 }
 
 type itemDropRate struct {
@@ -402,6 +402,20 @@ func (m *dropManager) finishGenericItem(it *item.Item, excellent bool) {
 // into world objects; all choice between ItemBag and generic monster rules is
 // kept here.
 func (m *dropManager) Drop(request Request) Result {
+	if request.Trigger == TriggerPlayerDropItem {
+		bag := m.itemBag(itemBagKey{kind: itemBagCommon, id: request.ItemCode, level: request.ItemLevel})
+		if bag == nil {
+			return Result{}
+		}
+		if len(bag.matchingAllows(request)) == 0 {
+			return Result{}
+		}
+		result, _ := m.dropItemBag(bag, false, request)
+		if result.Handled {
+			result.Effect = bag.useEffect
+		}
+		return result
+	}
 	if request.Trigger != TriggerMonsterDeath {
 		return Result{}
 	}
