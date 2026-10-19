@@ -430,6 +430,7 @@ func (it *Item) CalculateMoney() {
 		// todo
 	case it.Code == Code(0, 41): // Pandora Pick (two-handed) 潘多拉锄头(双手)
 		money = 100000
+	/* case it.KindA == KindAWeapon
 	case it.Code == Code(4, 7): // Bolt 弩箭
 		if it.Durability > 0 {
 			levelVaule := 100
@@ -456,6 +457,7 @@ func (it *Item) CalculateMoney() {
 			}
 			money = levelVaule * it.Durability / it.ItemBase.Durability
 		}
+	*/
 	case it.Code == Code(14, 13): // Jewel of Bless 祝福宝石
 		money = conf.Price.Value.JewelOfBlessPrice
 	case it.Code == Code(12, 30): // Jewel of Bless Bundle 祝福宝石组合
@@ -464,7 +466,7 @@ func (it *Item) CalculateMoney() {
 		money = conf.Price.Value.JewelOfSoulPrice
 	case it.Code == Code(12, 31): // Jewel of Bless Bundle 灵魂宝石组合
 		money = conf.Price.Value.JewelOfSoulPrice * 10 * (it.Level + 1)
-	case it.Code == Code(14, 15): // Jewel of Chaos 玛雅之石
+	case it.Code == Code(12, 15): // Jewel of Chaos 玛雅之石
 		money = conf.Price.Value.JewelOfChaosPrice
 	case it.Code == Code(12, 141): // Jewel of Chaos Bundle 玛雅之石组合
 		money = conf.Price.Value.JewelOfChaosPrice * 10 * (it.Level + 1)
