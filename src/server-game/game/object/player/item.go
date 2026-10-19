@@ -1,4 +1,4 @@
-package object
+package player
 
 import (
 	"log/slog"
@@ -9,10 +9,11 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
+	"github.com/xujintao/balgass/src/server-game/game/object"
 	"github.com/xujintao/balgass/src/server-game/game/shop"
 )
 
-func (obj *Object) PickItem(msg *model.MsgPickItem) {
+func (p *Player) PickItem(msg *model.MsgPickItem) {
 	reply := model.MsgPickItemReply{
 		Result: -1,
 	}
@@ -20,58 +21,58 @@ func (obj *Object) PickItem(msg *model.MsgPickItem) {
 	position := -1
 	var it *item.Item
 	defer func() {
-		obj.Push(&reply)
+		p.Push(&reply)
 		if itemDurChanged {
 			reply := model.MsgItemDurabilityReply{
 				Position:   position,
 				Durability: it.Durability,
 				Flag:       0,
 			}
-			obj.Push(&reply)
+			p.Push(&reply)
 		}
 	}()
-	it2 := maps.MapManager.PeekItem(obj.MapNumber, msg.Index)
+	it2 := maps.MapManager.PeekItem(p.MapNumber, msg.Index)
 	if it2 == nil {
 		return
 	}
 	switch it2.Code {
 	case item.Code(14, 15): // zen
 		money := it2.Durability
-		if obj.Money+money > MaxZen {
+		if p.Money+money > object.MaxZen {
 			return
 		}
-		obj.Money += money
-		reply.Money = obj.Money
+		p.Money += money
+		reply.Money = p.Money
 		position = -2
 	default:
-		position = obj.GetInventory().FindFreePositionForItem(it2)
+		position = p.GetInventory().FindFreePositionForItem(it2)
 		if position == -1 {
 			return
 		}
-		it = obj.GetInventory().Items[position]
+		it = p.GetInventory().Items[position]
 		if it == nil {
-			obj.GetInventory().AddItem(position, it2)
+			p.GetInventory().AddItem(position, it2)
 		} else {
 			it.Durability += it2.Durability
 			itemDurChanged = true
 		}
 	}
-	maps.MapManager.RemoveItem(obj.MapNumber, msg.Index)
+	maps.MapManager.RemoveItem(p.MapNumber, msg.Index)
 	reply.Result = position
 	reply.Item = it2
 }
 
-func (obj *Object) DropItem(msg *model.MsgDropItem) {
+func (p *Player) DropItem(msg *model.MsgDropItem) {
 	reply := model.MsgDropItemReply{
 		Result:   0,
 		Position: msg.Position,
 	}
-	defer obj.Push(&reply)
+	defer p.Push(&reply)
 	// validate
-	if msg.Position < 0 || msg.Position >= obj.GetInventory().Size {
+	if msg.Position < 0 || msg.Position >= p.GetInventory().Size {
 		return
 	}
-	it := obj.GetInventory().Items[msg.Position]
+	it := p.GetInventory().Items[msg.Position]
 	if it == nil {
 		return
 	}
@@ -79,24 +80,24 @@ func (obj *Object) DropItem(msg *model.MsgDropItem) {
 	case item.Code(14, 63): // Firecracker 爆竹
 		cmdReply := model.MsgServerCMDReply{
 			Type: 0,
-			X:    obj.X,
-			Y:    obj.Y,
+			X:    p.X,
+			Y:    p.Y,
 		}
-		obj.PushViewport(&cmdReply)
+		p.PushViewport(&cmdReply)
 	default:
 		result := drop.DropManager.Drop(drop.Request{
 			Trigger:   drop.TriggerPlayerDropItem,
 			ItemCode:  it.Code,
 			ItemLevel: it.Level,
-			MapNumber: obj.MapNumber,
-			X:         obj.X,
-			Y:         obj.Y,
+			MapNumber: p.MapNumber,
+			X:         p.X,
+			Y:         p.Y,
 			Player: drop.PlayerContext{
-				Class:       obj.Class,
-				ChangeUp:    obj.GetChangeUp(),
-				Level:       obj.Level,
-				MasterLevel: obj.GetMasterLevel(),
-				MapNumber:   obj.MapNumber,
+				Class:       p.Class,
+				ChangeUp:    p.GetChangeUp(),
+				Level:       p.Level,
+				MasterLevel: p.GetMasterLevel(),
+				MapNumber:   p.MapNumber,
 			},
 		})
 		if result.Handled {
@@ -105,11 +106,11 @@ func (obj *Object) DropItem(msg *model.MsgDropItem) {
 				if reward.Item == nil {
 					continue
 				}
-				x, y := obj.X, obj.Y
+				x, y := p.X, p.Y
 				if reward.Placement == drop.PlaceNearSource {
-					x, y = commonBagDropPosition(obj.MapNumber, x, y)
+					x, y = commonBagDropPosition(p.MapNumber, x, y)
 				}
-				if maps.MapManager.AddItem(obj.MapNumber, x, y, reward.Item) {
+				if maps.MapManager.AddItem(p.MapNumber, x, y, reward.Item) {
 					placed++
 				}
 			}
@@ -120,19 +121,19 @@ func (obj *Object) DropItem(msg *model.MsgDropItem) {
 				slog.Warn("CommonBag rewards could not all be placed", "item", it.Code, "placed", placed, "rewards", len(result.Rewards))
 			}
 			if result.Effect != nil {
-				x, y := obj.X, obj.Y
+				x, y := p.X, p.Y
 				if *result.Effect == 58 {
-					x, y = obj.Index>>8, obj.Index&0xff
+					x, y = p.Index>>8, p.Index&0xff
 				}
-				obj.PushViewport(&model.MsgServerCMDReply{Type: *result.Effect, X: x, Y: y})
+				p.PushViewport(&model.MsgServerCMDReply{Type: *result.Effect, X: x, Y: y})
 			}
-		} else if !maps.MapManager.AddItem(obj.MapNumber, msg.X, msg.Y, it) {
+		} else if !maps.MapManager.AddItem(p.MapNumber, msg.X, msg.Y, it) {
 			return
 		}
 	}
-	obj.GetInventory().RemoveItem(msg.Position, it)
+	p.GetInventory().RemoveItem(msg.Position, it)
 	if msg.Position < 12 || msg.Position == 126 {
-		obj.EquipmentChanged()
+		p.EquipmentChanged()
 	}
 	reply.Result = 1
 }
@@ -153,7 +154,7 @@ func commonBagDropPosition(mapNumber, x, y int) (int, int) {
 	return x, y
 }
 
-func (obj *Object) BuyItem(msg *model.MsgBuyItem) {
+func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 	reply := model.MsgBuyItemReply{
 		Result: -1,
 	}
@@ -161,49 +162,49 @@ func (obj *Object) BuyItem(msg *model.MsgBuyItem) {
 	position := -1
 	var it *item.Item
 	defer func() {
-		obj.Push(&reply)
+		p.Push(&reply)
 		if itemDurChanged {
 			reply := model.MsgItemDurabilityReply{
 				Position:   position,
 				Durability: it.Durability,
 				Flag:       0,
 			}
-			obj.Push(&reply)
+			p.Push(&reply)
 		}
 	}()
 	// validate
 	if msg.Position < 0 ||
 		msg.Position >= shop.MaxShopItemCount ||
-		obj.TargetNumber < 0 {
+		p.TargetNumber < 0 {
 		return
 	}
-	tobj := ObjectManager.GetObject(obj.TargetNumber)
+	tobj := object.ObjectManager.GetObject(p.TargetNumber)
 	if tobj == nil {
 		return
 	}
-	if math.Abs(float64(obj.X-tobj.X)) > 5 ||
-		math.Abs(float64(obj.Y-tobj.Y)) > 5 {
+	if math.Abs(float64(p.X-tobj.X)) > 5 ||
+		math.Abs(float64(p.Y-tobj.Y)) > 5 {
 		return
 	}
-	if tobj.NpcType != NpcTypeShop {
+	if tobj.NpcType != object.NpcTypeShop {
 		return
 	}
 	sit := shop.ShopManager.GetShopItem(tobj.Class, tobj.MapNumber, msg.Position)
 	if sit == nil {
 		return
 	}
-	position = obj.GetInventory().FindFreePositionForItem(sit)
+	position = p.GetInventory().FindFreePositionForItem(sit)
 	if position == -1 {
 		return
 	}
-	if obj.Money < sit.BuyMoney {
+	if p.Money < sit.BuyMoney {
 		return
 	}
-	obj.Money -= sit.BuyMoney
-	obj.PushMoney()
-	it = obj.GetInventory().Items[position]
+	p.Money -= sit.BuyMoney
+	p.PushMoney()
+	it = p.GetInventory().Items[position]
 	if it == nil {
-		obj.GetInventory().AddItem(position, sit)
+		p.GetInventory().AddItem(position, sit)
 	} else {
 		it.Durability += sit.Durability
 		itemDurChanged = true
@@ -212,42 +213,42 @@ func (obj *Object) BuyItem(msg *model.MsgBuyItem) {
 	reply.Item = sit
 }
 
-func (obj *Object) SellItem(msg *model.MsgSellItem) {
+func (p *Player) SellItem(msg *model.MsgSellItem) {
 	reply := model.MsgSellItemReply{
 		Result: 0,
 	}
-	defer obj.Push(&reply)
+	defer p.Push(&reply)
 	// validate
 	if msg.Position < 0 ||
-		msg.Position >= obj.GetInventory().Size ||
-		obj.TargetNumber < 0 {
+		msg.Position >= p.GetInventory().Size ||
+		p.TargetNumber < 0 {
 		return
 	}
-	tobj := ObjectManager.GetObject(obj.TargetNumber)
+	tobj := object.ObjectManager.GetObject(p.TargetNumber)
 	if tobj == nil {
 		return
 	}
-	if math.Abs(float64(obj.X-tobj.X)) > 5 ||
-		math.Abs(float64(obj.Y-tobj.Y)) > 5 {
+	if math.Abs(float64(p.X-tobj.X)) > 5 ||
+		math.Abs(float64(p.Y-tobj.Y)) > 5 {
 		return
 	}
-	if tobj.NpcType != NpcTypeShop {
+	if tobj.NpcType != object.NpcTypeShop {
 		return
 	}
-	it := obj.GetInventory().Items[msg.Position]
+	it := p.GetInventory().Items[msg.Position]
 	if it == nil {
 		return
 	}
-	if obj.Money+it.SellMoney > MaxZen {
+	if p.Money+it.SellMoney > object.MaxZen {
 		return
 	}
-	obj.Money += it.SellMoney
-	obj.GetInventory().RemoveItem(msg.Position, it)
+	p.Money += it.SellMoney
+	p.GetInventory().RemoveItem(msg.Position, it)
 	reply.Result = 1
-	reply.Money = obj.Money
+	reply.Money = p.Money
 }
 
-func (obj *Object) MoveItem(msg *model.MsgMoveItem) {
+func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	reply := model.MsgMoveItemReply{
 		Result: -1,
 	}
@@ -256,14 +257,14 @@ func (obj *Object) MoveItem(msg *model.MsgMoveItem) {
 	var sitem *item.Item
 	var titem *item.Item
 	defer func() {
-		obj.Push(&reply)
+		p.Push(&reply)
 		if sitemDurChanged {
 			reply := model.MsgItemDurabilityReply{
 				Position:   msg.SrcPosition,
 				Durability: sitem.Durability,
 				Flag:       0,
 			}
-			obj.Push(&reply)
+			p.Push(&reply)
 		}
 		if titemDurChanged {
 			reply := model.MsgItemDurabilityReply{
@@ -271,22 +272,22 @@ func (obj *Object) MoveItem(msg *model.MsgMoveItem) {
 				Durability: titem.Durability,
 				Flag:       0,
 			}
-			obj.Push(&reply)
+			p.Push(&reply)
 		}
 	}()
 
 	// get source item
 	switch msg.SrcFlag {
 	case 0: // inventory
-		if msg.SrcPosition >= obj.GetInventory().Size {
+		if msg.SrcPosition >= p.GetInventory().Size {
 			return
 		}
-		sitem = obj.GetInventory().Items[msg.SrcPosition]
+		sitem = p.GetInventory().Items[msg.SrcPosition]
 	case 2: // warehouse
-		if msg.SrcPosition >= obj.GetWarehouse().Size {
+		if msg.SrcPosition >= p.GetWarehouse().Size {
 			return
 		}
-		sitem = obj.GetWarehouse().Items[msg.SrcPosition]
+		sitem = p.GetWarehouse().Items[msg.SrcPosition]
 
 	}
 	if sitem == nil {
@@ -295,15 +296,15 @@ func (obj *Object) MoveItem(msg *model.MsgMoveItem) {
 	// get destination item
 	switch msg.DstFlag {
 	case 0: // inventory
-		if msg.DstPosition >= obj.GetInventory().Size {
+		if msg.DstPosition >= p.GetInventory().Size {
 			return
 		}
-		titem = obj.GetInventory().Items[msg.DstPosition]
+		titem = p.GetInventory().Items[msg.DstPosition]
 	case 2: // warehouse
-		if msg.DstPosition >= obj.GetWarehouse().Size {
+		if msg.DstPosition >= p.GetWarehouse().Size {
 			return
 		}
-		titem = obj.GetWarehouse().Items[msg.DstPosition]
+		titem = p.GetWarehouse().Items[msg.DstPosition]
 	}
 
 	switch msg.SrcFlag {
@@ -312,15 +313,15 @@ func (obj *Object) MoveItem(msg *model.MsgMoveItem) {
 		case 0:
 			switch {
 			case titem == nil: // move
-				ok := obj.GetInventory().CheckFlagsForItem(msg.DstPosition, sitem)
+				ok := p.GetInventory().CheckFlagsForItem(msg.DstPosition, sitem)
 				if !ok {
 					return
 				}
-				obj.GetInventory().RemoveItem(msg.SrcPosition, sitem)
-				obj.GetInventory().AddItem(msg.DstPosition, sitem)
+				p.GetInventory().RemoveItem(msg.SrcPosition, sitem)
+				p.GetInventory().AddItem(msg.DstPosition, sitem)
 				if msg.SrcPosition < 12 || msg.SrcPosition == 236 ||
 					msg.DstPosition < 12 || msg.DstPosition == 236 {
-					obj.EquipmentChanged()
+					p.EquipmentChanged()
 				}
 				reply.Result = msg.DstFlag
 			case titem.Overlap != 0 && // overlap
@@ -337,12 +338,12 @@ func (obj *Object) MoveItem(msg *model.MsgMoveItem) {
 					reply.Result = msg.DstFlag
 					sitem.Durability = 0
 					sitemDurChanged = false
-					obj.GetInventory().RemoveItem(msg.SrcPosition, sitem)
+					p.GetInventory().RemoveItem(msg.SrcPosition, sitem)
 					reply := model.MsgDeleteInventoryItemReply{
 						Position: msg.SrcPosition,
 						Flag:     1,
 					}
-					obj.Push(&reply)
+					p.Push(&reply)
 				} else {
 					reply.Result = -1
 				}
@@ -353,14 +354,14 @@ func (obj *Object) MoveItem(msg *model.MsgMoveItem) {
 			}
 		case 2:
 			if titem == nil {
-				ok := obj.GetWarehouse().CheckFlagsForItem(msg.DstPosition, sitem)
+				ok := p.GetWarehouse().CheckFlagsForItem(msg.DstPosition, sitem)
 				if !ok {
 					return
 				}
-				obj.GetInventory().RemoveItem(msg.SrcPosition, sitem)
-				obj.GetWarehouse().AddItem(msg.DstPosition, sitem)
+				p.GetInventory().RemoveItem(msg.SrcPosition, sitem)
+				p.GetWarehouse().AddItem(msg.DstPosition, sitem)
 				if msg.SrcPosition < 12 || msg.SrcPosition == 236 {
-					obj.EquipmentChanged()
+					p.EquipmentChanged()
 				}
 				reply.Result = msg.DstFlag
 			}
@@ -371,25 +372,25 @@ func (obj *Object) MoveItem(msg *model.MsgMoveItem) {
 		switch msg.DstFlag {
 		case 0:
 			if titem == nil {
-				ok := obj.GetInventory().CheckFlagsForItem(msg.DstPosition, sitem)
+				ok := p.GetInventory().CheckFlagsForItem(msg.DstPosition, sitem)
 				if !ok {
 					return
 				}
-				obj.GetWarehouse().RemoveItem(msg.SrcPosition, sitem)
-				obj.GetInventory().AddItem(msg.DstPosition, sitem)
+				p.GetWarehouse().RemoveItem(msg.SrcPosition, sitem)
+				p.GetInventory().AddItem(msg.DstPosition, sitem)
 				if msg.DstPosition < 12 || msg.DstPosition == 236 {
-					obj.EquipmentChanged()
+					p.EquipmentChanged()
 				}
 				reply.Result = msg.DstFlag
 			}
 		case 2:
 			if titem == nil {
-				ok := obj.GetWarehouse().CheckFlagsForItem(msg.DstPosition, sitem)
+				ok := p.GetWarehouse().CheckFlagsForItem(msg.DstPosition, sitem)
 				if !ok {
 					return
 				}
-				obj.GetWarehouse().RemoveItem(msg.SrcPosition, sitem)
-				obj.GetWarehouse().AddItem(msg.DstPosition, sitem)
+				p.GetWarehouse().RemoveItem(msg.SrcPosition, sitem)
+				p.GetWarehouse().AddItem(msg.DstPosition, sitem)
 				reply.Result = msg.DstFlag
 			}
 		default:
@@ -402,33 +403,33 @@ func (obj *Object) MoveItem(msg *model.MsgMoveItem) {
 	reply.Item = sitem
 }
 
-func (obj *Object) pushItemDurability(position, dur int) {
-	obj.Push(&model.MsgItemDurabilityReply{Position: position, Durability: dur, Flag: 1})
+func (p *Player) pushItemDurability(position, dur int) {
+	p.Push(&model.MsgItemDurabilityReply{Position: position, Durability: dur, Flag: 1})
 }
 
-func (obj *Object) pushDeleteItem(position int) {
-	obj.Push(&model.MsgDeleteInventoryItemReply{Position: position, Flag: 1})
+func (p *Player) pushDeleteItem(position int) {
+	p.Push(&model.MsgDeleteInventoryItemReply{Position: position, Flag: 1})
 }
 
-func (obj *Object) decreaseItemDurability(position int) {
-	it := obj.GetInventory().Items[position]
+func (p *Player) decreaseItemDurability(position int) {
+	it := p.GetInventory().Items[position]
 	it.Durability--
 	if it.Durability > 0 {
-		obj.pushItemDurability(position, it.Durability)
+		p.pushItemDurability(position, it.Durability)
 	} else {
-		obj.GetInventory().RemoveItem(position, it)
-		obj.pushDeleteItem(position)
+		p.GetInventory().RemoveItem(position, it)
+		p.pushDeleteItem(position)
 	}
 }
 
-func (obj *Object) UseItem(msg *model.MsgUseItem) {
+func (p *Player) UseItem(msg *model.MsgUseItem) {
 	// validate the position
-	if msg.SrcPosition < 0 || msg.SrcPosition >= obj.GetInventory().Size ||
-		msg.DstPosition < 0 || msg.DstPosition >= obj.GetInventory().Size ||
+	if msg.SrcPosition < 0 || msg.SrcPosition >= p.GetInventory().Size ||
+		msg.DstPosition < 0 || msg.DstPosition >= p.GetInventory().Size ||
 		msg.SrcPosition == msg.DstPosition {
 		return
 	}
-	it := obj.GetInventory().Items[msg.SrcPosition]
+	it := p.GetInventory().Items[msg.SrcPosition]
 	if it == nil {
 		return
 	}
@@ -460,11 +461,11 @@ func (obj *Object) UseItem(msg *model.MsgUseItem) {
 			addRate += 5
 		}
 		hp := 0
-		hp += obj.MaxHP * addRate / 100
+		hp += p.MaxHP * addRate / 100
 		// defer recover hp
-		obj.SetDelayRecoverHP(hp, hp)
+		p.SetDelayRecoverHP(hp, hp)
 		// decrease durability
-		obj.decreaseItemDurability(msg.SrcPosition)
+		p.decreaseItemDurability(msg.SrcPosition)
 	case it.Code >= item.Code(14, 4) && it.Code <= item.Code(14, 6): // MP Potion
 		addRate := 0
 		switch it.Code {
@@ -475,17 +476,17 @@ func (obj *Object) UseItem(msg *model.MsgUseItem) {
 		case item.Code(14, 6):
 			addRate = 40
 		}
-		mp := obj.MaxMP * addRate / 100
+		mp := p.MaxMP * addRate / 100
 		// recover mp immediately
-		if obj.MP < obj.MaxMP {
-			obj.MP += mp
-			if obj.MP > obj.MaxMP {
-				obj.MP = obj.MaxMP
+		if p.MP < p.MaxMP {
+			p.MP += mp
+			if p.MP > p.MaxMP {
+				p.MP = p.MaxMP
 			}
-			obj.PushMPAG(obj.MP, obj.AG)
+			p.PushMPAG(p.MP, p.AG)
 		}
 		// decrease durability
-		obj.decreaseItemDurability(msg.SrcPosition)
+		p.decreaseItemDurability(msg.SrcPosition)
 	case it.Code == item.Code(14, 7): // Siege Potion 攻城药水
 	case it.Code == item.Code(14, 8): // Antidote 解毒剂
 	case it.Code == item.Code(14, 9) || it.Code == item.Code(14, 20): // Ale 酒 / Remedy of Love 爱情的魔力
@@ -503,11 +504,11 @@ func (obj *Object) UseItem(msg *model.MsgUseItem) {
 		case item.Code(14, 37):
 			addRate = 45
 		}
-		sd := obj.MaxSD * addRate / 100
+		sd := p.MaxSD * addRate / 100
 		// defer recover sd
-		obj.SetDelayRecoverSD(sd, sd)
+		p.SetDelayRecoverSD(sd, sd)
 		// decrease durability
-		obj.decreaseItemDurability(msg.SrcPosition)
+		p.decreaseItemDurability(msg.SrcPosition)
 	case it.Code >= item.Code(14, 38) && it.Code <= item.Code(14, 40): // comples/compound Potion
 		addHPRate, addSDRate := 0, 0
 		switch it.Code {
@@ -521,13 +522,13 @@ func (obj *Object) UseItem(msg *model.MsgUseItem) {
 			addHPRate = 45
 			addSDRate = 20
 		}
-		hp := obj.MaxHP * addHPRate / 100
-		sd := obj.MaxSD * addSDRate / 100
+		hp := p.MaxHP * addHPRate / 100
+		sd := p.MaxSD * addSDRate / 100
 		// defer recover hp sd
-		obj.SetDelayRecoverHP(hp, hp)
-		obj.SetDelayRecoverSD(sd, sd)
+		p.SetDelayRecoverHP(hp, hp)
+		p.SetDelayRecoverSD(sd, sd)
 		// decrease durability
-		obj.decreaseItemDurability(msg.SrcPosition)
+		p.decreaseItemDurability(msg.SrcPosition)
 	// case it.Code == item.Code(14, 42) && it2.Type != item.TypeSocket: // 再生强化
 	case it.Code >= item.Code(14, 43) && it.Code <= item.Code(14, 44): // 进化道具
 	case it.Code >= item.Code(14, 46) && it.Code <= item.Code(14, 50): // Jack O'Lantern 南瓜灯饮料
@@ -544,7 +545,7 @@ func (obj *Object) UseItem(msg *model.MsgUseItem) {
 	case it.Code == item.Code(14, 224): // Bless of Light (Greater) 光的祝福
 	case it.Code >= item.Code(14, 263) && it.Code <= item.Code(14, 264): // Bless of Light 光之祝福
 	case it.KindA == item.KindASkill:
-		if !obj.CanUseItem(it) {
+		if !p.CanUseItem(it) {
 			return
 		}
 		// (15, 18) // Scroll of Nova 星辰一怒术
@@ -552,13 +553,13 @@ func (obj *Object) UseItem(msg *model.MsgUseItem) {
 		if it.Code == item.Code(12, 11) { // Orb of Summoning 召唤之石
 			skillIndex += it.Level
 		}
-		if s, ok := obj.LearnSkill(skillIndex); ok {
-			obj.Push(&model.MsgSkillOneReply{
+		if s, ok := p.LearnSkill(skillIndex); ok {
+			p.Push(&model.MsgSkillOneReply{
 				Flag:  -2,
 				Skill: s,
 			})
-			obj.GetInventory().RemoveItem(msg.SrcPosition, it)
-			obj.Push(&model.MsgDeleteInventoryItemReply{
+			p.GetInventory().RemoveItem(msg.SrcPosition, it)
+			p.Push(&model.MsgDeleteInventoryItemReply{
 				Position: msg.SrcPosition,
 				Flag:     1,
 			})
@@ -566,25 +567,25 @@ func (obj *Object) UseItem(msg *model.MsgUseItem) {
 	}
 }
 
-func (obj *Object) ValidateItemPosition(position int) bool {
-	ok := position >= 0 && position < obj.GetInventory().Size
+func (p *Player) ValidateItemPosition(position int) bool {
+	ok := position >= 0 && position < p.GetInventory().Size
 	if !ok {
-		slog.Warn("ValidateItemPosition", "position", position, "object", obj.Name)
+		slog.Warn("ValidateItemPosition", "position", position, "object", p.Name)
 	}
 	return ok
 }
 
-func (obj *Object) repairItem(it *item.Item, fast bool) bool {
+func (p *Player) repairItem(it *item.Item, fast bool) bool {
 	reply := model.MsgRepairItemReply{}
-	defer obj.Push(&reply)
+	defer p.Push(&reply)
 	money := it.CalculateRepairMoney(fast)
-	if money > obj.Money {
+	if money > p.Money {
 		return false
 	}
-	obj.Money -= money
-	reply.Money = obj.Money
+	p.Money -= money
+	reply.Money = p.Money
 	it.Durability = it.MaxDurability
-	obj.Push(&model.MsgItemDurabilityReply{
+	p.Push(&model.MsgItemDurabilityReply{
 		Position:   it.Position,
 		Durability: it.Durability,
 		Flag:       0,
@@ -592,28 +593,28 @@ func (obj *Object) repairItem(it *item.Item, fast bool) bool {
 	return true
 }
 
-func (obj *Object) RepairItem(msg *model.MsgRepairItem) {
+func (p *Player) RepairItem(msg *model.MsgRepairItem) {
 	if msg.Position == 0xFF {
-		for _, it := range obj.GetInventory().Items {
+		for _, it := range p.GetInventory().Items {
 			if it == nil {
 				continue
 			}
 			if !it.Repair {
 				continue
 			}
-			if ok := obj.repairItem(it, msg.Fast); !ok {
+			if ok := p.repairItem(it, msg.Fast); !ok {
 				return
 			}
 		}
 		return
 	}
 	// validate
-	if !obj.ValidateItemPosition(msg.Position) {
+	if !p.ValidateItemPosition(msg.Position) {
 		return
 	}
-	it := obj.GetInventoryItem(msg.Position)
+	it := p.GetInventoryItem(msg.Position)
 	if !it.Repair {
 		return
 	}
-	obj.repairItem(it, msg.Fast)
+	p.repairItem(it, msg.Fast)
 }

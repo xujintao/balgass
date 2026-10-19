@@ -695,29 +695,21 @@ type Objecter interface {
 	OnDamageTaken()                            // implemented by Player and Monster
 
 	// object actions:
-	// 1. item management
-	PickItem(*model.MsgPickItem)     // implemented by Object
-	DropItem(*model.MsgDropItem)     // implemented by Object
-	BuyItem(*model.MsgBuyItem)       // implemented by Object
-	SellItem(*model.MsgSellItem)     // implemented by Object
-	MoveItem(*model.MsgMoveItem)     // implemented by Object
-	UseItem(*model.MsgUseItem)       // implemented by Object
-	RepairItem(*model.MsgRepairItem) // implemented by Object
-	// 2. Move
+	// 1. Move
 	Move(*model.MsgMove)               // implemented by Object
 	Teleport(*model.MsgTeleport)       // implemented by Object
 	MapMove(*model.MsgMapMove)         // implemented by Object
 	SetPosition(*model.MsgSetPosition) // implemented by Object
 	Action(*model.MsgAction)           // implemented by Object
-	// 3. Skill and Attack
+	// 2. Skill and Attack
 	UseSkill(*model.MsgUseSkill)                                   // implemented by Object
 	UseSkillDuration(*model.MsgUseSkillDuration)                   // implemented by Object
 	UseSkillAttackMultiTarget(*model.MsgUseSkillAttackMultiTarget) // implemented by Object
 	Attack(*model.MsgAttack)                                       // implemented by Object
-	// 4. chat
+	// 3. chat
 	Chat(*model.MsgChat)       // implemented by Object
 	Whisper(*model.MsgWhisper) // implemented by Object
-	// 5. player related
+	// 4. player related
 	Login(*model.MsgLogin)                       // implemented by Player
 	Logout(*model.MsgLogout)                     // implemented by Player
 	GetCharacterList(*model.MsgEmpty)            // implemented by Player
@@ -741,6 +733,13 @@ type Objecter interface {
 	MuunSystem(*model.MsgMuunSystem)             // implemented by Player
 	StartPartyNumberPosition(*model.MsgEmpty)    // implemented by Player
 	StopPartyNumberPosition(*model.MsgEmpty)     // implemented by Player
+	PickItem(*model.MsgPickItem)                 // implemented by Player
+	DropItem(*model.MsgDropItem)                 // implemented by Player
+	BuyItem(*model.MsgBuyItem)                   // implemented by Player
+	SellItem(*model.MsgSellItem)                 // implemented by Player
+	MoveItem(*model.MsgMoveItem)                 // implemented by Player
+	UseItem(*model.MsgUseItem)                   // implemented by Player
+	RepairItem(*model.MsgRepairItem)             // implemented by Player
 }
 
 type Object struct {
