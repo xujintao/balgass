@@ -663,7 +663,6 @@ type Objecter interface {
 	CanUseItem(*item.Item) bool                // implemented by Player and Monster
 	GetInventory() *item.Inventory             // implemented by Player and Monster
 	GetInventoryItem(int) *item.Item           // implemented by Player and Monster
-	GetWarehouse() *item.Warehouse             // implemented by Player and Monster
 	SetDelayRecoverHP(int, int)                // implemented by Player and Monster
 	SetDelayRecoverSD(int, int)                // implemented by Player and Monster
 	GetAttackRatePVP() int                     // implemented by Player and Monster

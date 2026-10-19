@@ -1582,10 +1582,6 @@ func (p *Player) GetInventoryItem(position int) *item.Item {
 	return p.inventory.Item(position)
 }
 
-func (p *Player) GetWarehouse() *item.Warehouse {
-	return &p.warehouse
-}
-
 func (p *Player) SetDelayRecoverHP(hp, hpMax int) {
 	p.delayRecoverHP = hp
 	p.delayRecoverHPMax = hpMax
@@ -1917,7 +1913,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 				Y:                      p.Y,
 				Class:                  p.Class,
 				ChangeUp:               p.changeUp,
-				Inventory:              [9]*item.Item(p.GetInventory().Items[:9]),
+				Inventory:              [9]*item.Item(p.inventory.Items[:9]),
 				Name:                   p.Name,
 				TX:                     p.TX,
 				TY:                     p.TY,

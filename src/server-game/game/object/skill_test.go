@@ -58,7 +58,6 @@ func (*skillTestActor) GetChangeUp() int                       { return 0 }
 func (*skillTestActor) CanUseItem(*item.Item) bool             { return true }
 func (*skillTestActor) GetInventory() *item.Inventory          { return nil }
 func (*skillTestActor) GetInventoryItem(int) *item.Item        { return nil }
-func (*skillTestActor) GetWarehouse() *item.Warehouse          { return nil }
 func (*skillTestActor) SetDelayRecoverHP(int, int)             {}
 func (*skillTestActor) SetDelayRecoverSD(int, int)             {}
 func (*skillTestActor) GetAttackRatePVP() int                  { return 1000 }
