@@ -99,6 +99,7 @@ type worldAPI interface {
 	spawn(monster.EventSpawn) (*object.Object, error)
 	remove(*object.Object, time.Time) bool
 	announce(string)
+	eventState(int, int)
 }
 
 type liveWorld struct{}
@@ -109,7 +110,13 @@ func (liveWorld) spawn(s monster.EventSpawn) (*object.Object, error) {
 func (liveWorld) remove(obj *object.Object, now time.Time) bool {
 	return object.ObjectManager.DeleteEventMonster(obj, now)
 }
-func (liveWorld) announce(msg string) { object.ObjectManager.BroadcastSystemMsg(msg) }
+func (liveWorld) announce(msg string) {
+	object.ObjectManager.BroadcastSystemMsg(msg)
+}
+
+func (liveWorld) eventState(mapNumber, state int) {
+	object.ObjectManager.BroadcastMapEventState(mapNumber, state, 1)
+}
 
 const (
 	idle = iota
@@ -133,11 +140,16 @@ func New() *Dragon {
 	return &Dragon{config: settings, world: liveWorld{}, intn: rand.Intn}
 }
 
-func (d *Dragon) Running() bool { return d.state != idle }
+func (d *Dragon) Running() bool {
+	return d.state != idle
+}
 
 func (d *Dragon) Start(now time.Time) error {
 	if len(d.config.maps) == 0 || d.config.count <= 0 {
 		return fmt.Errorf("red dragon invasion has no spawn configuration")
+	}
+	if d.state == active {
+		d.world.eventState(d.config.maps[d.mapIndex].number, 0)
 	}
 	d.reap(now, true)
 	d.mapIndex = d.intn(len(d.config.maps))
@@ -173,9 +185,11 @@ func (d *Dragon) Tick(now time.Time) {
 		d.monsters = append(d.monsters, created...)
 		d.state = active
 		d.deadline = now.Add(duration)
+		d.world.eventState(m.number, 1)
 		slog.Info("red dragon invasion started", "map", m.number, "count", len(created))
 		return
 	}
+	d.world.eventState(d.config.maps[d.mapIndex].number, 0)
 	d.reap(now, true)
 	d.state = idle
 	d.world.announce("红龙入侵结束。")

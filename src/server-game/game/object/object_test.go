@@ -16,6 +16,28 @@ type eventDeathActor struct {
 func (a *eventDeathActor) DieDropItem(*Object) { a.drops++ }
 func (a *eventDeathActor) Regen()              { a.regenerated++ }
 
+func TestBroadcastMapEventState(t *testing.T) {
+	inside, insideActor := newSkillTestObject(32, ObjectTypePlayer)
+	outside, outsideActor := newSkillTestObject(33, ObjectTypePlayer)
+	outside.MapNumber = 2
+	loading, loadingActor := newSkillTestObject(34, ObjectTypePlayer)
+	loading.ConnectState = ConnectStateConnected
+	monster, monsterActor := newSkillTestObject(1, ObjectTypeMonster)
+	withTestObjectManager(t, inside, outside, loading, monster)
+
+	ObjectManager.BroadcastMapEventState(0, 1, 1)
+	if len(insideActor.messages) != 1 {
+		t.Fatalf("same-map player received %d event states", len(insideActor.messages))
+	}
+	msg, ok := insideActor.messages[0].(*model.MsgEventStateReply)
+	if !ok || msg.State != 1 || msg.Event != 1 {
+		t.Fatalf("same-map event state = %#v", insideActor.messages[0])
+	}
+	if len(outsideActor.messages) != 0 || len(loadingActor.messages) != 0 || len(monsterActor.messages) != 0 {
+		t.Fatal("event state sent outside the playing players on the map")
+	}
+}
+
 func TestEventMonsterDeathSettlementAndRegen(t *testing.T) {
 	dead, base := newSkillTestObject(1, ObjectTypeMonster)
 	killer, _ := newSkillTestObject(32, ObjectTypePlayer)

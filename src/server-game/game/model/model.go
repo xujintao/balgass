@@ -164,6 +164,15 @@ func (msg *MsgWeatherReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgEventStateReply struct {
+	State int
+	Event int
+}
+
+func (msg *MsgEventStateReply) Marshal() ([]byte, error) {
+	return []byte{byte(msg.State), byte(msg.Event)}, nil
+}
+
 type CreateViewportPlayer struct {
 	Index                  int
 	X                      int

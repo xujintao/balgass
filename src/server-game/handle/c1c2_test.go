@@ -5,11 +5,33 @@ import (
 	"context"
 	"encoding/hex"
 	"log/slog"
+	"reflect"
 	"testing"
 
 	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server-game/game"
+	"github.com/xujintao/balgass/src/server-game/game/model"
 )
+
+func TestEventStateReplyProtocol(t *testing.T) {
+	for _, state := range []byte{1, 0} {
+		msg := &model.MsgEventStateReply{State: int(state), Event: 1}
+		resp, err := C1C2Handle.marshal(0, msg)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := []byte{0x0B, state, 1}; !bytes.Equal(resp.Body(), want) {
+			t.Fatalf("event state body = %x, want %x", resp.Body(), want)
+		}
+		api := C1C2Handle.apiOuts[reflect.TypeOf(msg)]
+		if api == nil || api.flag != 0xC1 || api.code != 0x0B {
+			t.Fatalf("event state protocol = %#v", api)
+		}
+		if len(resp.Body())+2 != 5 {
+			t.Fatalf("C1 event state frame length = %d, want 5", len(resp.Body())+2)
+		}
+	}
+}
 
 func TestMain(m *testing.M) {
 	game.Game.Start()

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -20,7 +21,10 @@ type testWorld struct {
 	notices []string
 	failAt  int
 	pending *object.Object
+	effects []eventStateCall
 }
+
+type eventStateCall struct{ mapNumber, state int }
 
 func (w *testWorld) spawn(s monster.EventSpawn) (*object.Object, error) {
 	w.spawned = append(w.spawned, s)
@@ -39,6 +43,9 @@ func (w *testWorld) remove(o *object.Object, _ time.Time) bool {
 	return true
 }
 func (w *testWorld) announce(s string) { w.notices = append(w.notices, s) }
+func (w *testWorld) eventState(mapNumber, state int) {
+	w.effects = append(w.effects, eventStateCall{mapNumber, state})
+}
 
 func testDragon(w *testWorld) *Dragon {
 	w.removed = make(map[*object.Object]bool)
@@ -56,7 +63,7 @@ func TestDragonLifecycle(t *testing.T) {
 		t.Fatal(err)
 	}
 	d.Tick(now.Add(2 * time.Second))
-	if len(w.spawned) != 0 {
+	if len(w.spawned) != 0 || len(w.effects) != 0 {
 		t.Fatal("spawned during announcement")
 	}
 	spawnAt := now.Add(4 * time.Second)
@@ -69,6 +76,9 @@ func TestDragonLifecycle(t *testing.T) {
 			t.Fatal("wrong map/area", s)
 		}
 	}
+	if !slices.Equal(w.effects, []eventStateCall{{2, 1}}) {
+		t.Fatalf("appearance effects = %v", w.effects)
+	}
 	// One monster dies just before expiry and still has settlement pending.
 	w.objects[0].Live = false
 	w.pending = w.objects[0]
@@ -79,6 +89,9 @@ func TestDragonLifecycle(t *testing.T) {
 	d.Tick(spawnAt.Add(duration))
 	if d.Running() || !w.removed[w.objects[1]] || w.removed[w.objects[0]] {
 		t.Fatal("expiry lost pending corpse or living monster")
+	}
+	if !slices.Equal(w.effects, []eventStateCall{{2, 1}, {2, 0}}) {
+		t.Fatalf("expiry effects = %v", w.effects)
 	}
 	w.pending = nil
 	d.Tick(spawnAt.Add(duration + 5*time.Second))
@@ -106,6 +119,9 @@ func TestDragonRollbackAndNoRespawn(t *testing.T) {
 			if d.Running() || len(w.removed) != 1 || len(d.monsters) != 0 {
 				t.Fatal("partial spawn not rolled back")
 			}
+			if len(w.effects) != 0 {
+				t.Fatalf("failed spawn emitted an effect: %v", w.effects)
+			}
 		} else {
 			for _, o := range w.objects {
 				o.Live = false
@@ -113,6 +129,9 @@ func TestDragonRollbackAndNoRespawn(t *testing.T) {
 			d.Tick(now.Add(10 * time.Second))
 			if !d.Running() || len(w.removed) != 2 {
 				t.Fatal("all-killed event ended early")
+			}
+			if !slices.Equal(w.effects, []eventStateCall{{2, 1}}) {
+				t.Fatalf("all-killed event ended the effect early: %v", w.effects)
 			}
 		}
 		d.Tick(now.Add(100 * time.Second))
@@ -177,26 +196,33 @@ func TestDragonRestartPreservesSettlement(t *testing.T) {
 		t.Fatal(err)
 	}
 	d.Tick(now.Add(delay))
-	if len(w.objects) != 0 {
+	if len(w.objects) != 0 || len(w.effects) != 0 {
 		t.Fatal("old announcement deadline spawned monsters")
 	}
 	d.Tick(restart.Add(delay))
-	if len(w.objects) != 2 {
+	if len(w.objects) != 2 || !slices.Equal(w.effects, []eventStateCall{{2, 1}}) {
 		t.Fatal("new announcement did not spawn")
 	}
 	corpse, living := w.objects[0], w.objects[1]
 	corpse.Live = false
 	w.pending = corpse
 	restart = restart.Add(delay + time.Second)
+	d.intn = func(int) int { return 0 }
 	if err := d.Start(restart); err != nil {
 		t.Fatal(err)
 	}
 	if !w.removed[living] || w.removed[corpse] || len(d.monsters) != 1 || d.state != announcing {
 		t.Fatal("restart failed to preserve pending settlement or remove living monster")
 	}
+	if !slices.Equal(w.effects, []eventStateCall{{2, 1}, {2, 0}}) {
+		t.Fatalf("restart did not clear old map effect: %v", w.effects)
+	}
 	d.Tick(restart.Add(delay))
 	if len(w.objects) != 4 || len(d.monsters) != 3 || !d.deadline.Equal(restart.Add(delay+duration)) {
 		t.Fatal("replacement wave has incorrect count or duration")
+	}
+	if !slices.Equal(w.effects, []eventStateCall{{2, 1}, {2, 0}, {0, 1}}) {
+		t.Fatalf("replacement map effect = %v", w.effects)
 	}
 	w.pending = nil
 	d.Tick(restart.Add(delay + time.Second))
@@ -206,5 +232,8 @@ func TestDragonRestartPreservesSettlement(t *testing.T) {
 	d.Tick(restart.Add(delay + duration))
 	if d.Running() || len(d.monsters) != 0 {
 		t.Fatal("replacement wave did not expire")
+	}
+	if !slices.Equal(w.effects, []eventStateCall{{2, 1}, {2, 0}, {0, 1}, {0, 0}}) {
+		t.Fatalf("replacement expiry effect = %v", w.effects)
 	}
 }

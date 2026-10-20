@@ -274,6 +274,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0x00, "ChatReply", (*model.MsgChatReply)(nil)},
 	{0, false, 0xC1, 0x02, "WhisperReply", (*model.MsgWhisperReply)(nil)},
 	{0, false, 0xC1, 0x07, "EffectStateReply", (*model.MsgEffectStateReply)(nil)},
+	{0, false, 0xC1, 0x0B, "EventStateReply", (*model.MsgEventStateReply)(nil)},
 	{0, false, 0xC1, 0x0C, "WhisperReplyFailed", (*model.MsgWhisperReplyFailed)(nil)},
 	{0, false, 0xC1, 0x0F, "WeatherReply", (*model.MsgWeatherReply)(nil)},
 	{0, false, 0xC1, 0x11, "AttackDamageReply", (*model.MsgAttackDamageReply)(nil)},

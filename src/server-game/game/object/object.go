@@ -116,6 +116,14 @@ func (m *objectManager) BroadcastSystemMsg(message string) {
 	}
 }
 
+func (m *objectManager) BroadcastMapEventState(mapNumber, state, event int) {
+	for _, obj := range m.objects[m.playerStartIndex:] {
+		if obj != nil && obj.Type == ObjectTypePlayer && obj.ConnectState == ConnectStatePlaying && obj.MapNumber == mapNumber {
+			obj.Push(&model.MsgEventStateReply{State: state, Event: event})
+		}
+	}
+}
+
 type NewCallMonster func(class, mapNumber, x, y int) *Object
 
 var newCallMonster NewCallMonster
