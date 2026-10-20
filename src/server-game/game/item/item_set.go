@@ -57,21 +57,10 @@ type set struct {
 	// class       [8]bool
 }
 
-type setDropItem struct {
-	index  int
-	setIDs []int
-}
-
-type setDropSection struct {
-	section int
-	rate    int
-	items   []setDropItem
-}
-
 type setManager struct {
-	items        []map[int]*setItem
-	sets         []*set
-	dropSections []setDropSection
+	items     []map[int]*setItem
+	dropRates []int
+	sets      []*set
 }
 
 func (m *setManager) init() {
@@ -100,9 +89,12 @@ func (m *setManager) init() {
 	conf.XML(conf.PathCommon, "Items/IGC_ItemSetType.xml", &setItemXml)
 	// convert
 	m.items = make([]map[int]*setItem, len(setItemXml.Sections))
-	dropRates := make(map[int]int, len(setItemXml.DropRate.Sections))
+	m.dropRates = make([]int, len(m.items))
 	for _, section := range setItemXml.DropRate.Sections {
-		dropRates[section.Index] = section.DropRate
+		if section.Index < 0 || section.Index >= len(m.dropRates) {
+			panic(fmt.Errorf("Items/IGC_ItemSetType.xml: invalid drop rate section %d", section.Index))
+		}
+		m.dropRates[section.Index] = section.DropRate
 	}
 	for _, section := range setItemXml.Sections {
 		items := make(map[int]*setItem)
@@ -136,23 +128,6 @@ func (m *setManager) init() {
 			items[item.Index] = &sItem
 		}
 		m.items[section.Index] = items
-		var candidates []setDropItem
-		for _, configured := range section.Items {
-			var setIDs []int
-			for _, setIndex := range []int{configured.TierI, configured.TierII, configured.TierIII, configured.TierIV} {
-				if setIndex > 0 {
-					setIDs = append(setIDs, setIndex)
-				}
-			}
-			if len(setIDs) > 0 {
-				candidates = append(candidates, setDropItem{index: configured.Index, setIDs: setIDs})
-			}
-		}
-		m.dropSections = append(m.dropSections, setDropSection{
-			section: section.Index,
-			rate:    dropRates[section.Index],
-			items:   candidates,
-		})
 	}
 
 	type SetXml struct {
@@ -264,12 +239,12 @@ func (m *setManager) HasSetItem(section, index int) bool {
 	if section < 0 || section >= len(m.items) {
 		return false
 	}
-	candidate := m.items[section][index]
-	if candidate == nil {
+	si := m.items[section][index]
+	if si == nil {
 		return false
 	}
-	for tier := 0; tier < 4; tier++ {
-		if candidate.sets[tier] > 0 {
+	for _, tier := range []int{0x01, 0x02, 0x10, 0x20} {
+		if si.sets[tier] > 0 {
 			return true
 		}
 	}
@@ -281,12 +256,12 @@ func (m *setManager) RandomSetIndex(section, index int) int {
 	if !m.HasSetItem(section, index) {
 		return 0
 	}
-	candidate := m.items[section][index]
+	si := m.items[section][index]
 	var options [4]int
 	count := 0
-	for tier := 0; tier < 4; tier++ {
-		if candidate.sets[tier] > 0 {
-			options[count] = candidate.sets[tier]
+	for _, tier := range []int{0x01, 0x02, 0x10, 0x20} {
+		if si.sets[tier] > 0 {
+			options[count] = si.sets[tier]
 			count++
 		}
 	}
@@ -342,31 +317,34 @@ func (m *setManager) GetSetFull(setIndex int) []SetEffect {
 // RandomItem selects a configured ancient item and one of its available set
 // options using the configured section drop rates.
 func (m *setManager) RandomItem() (section, index, setIndex int, ok bool) {
+	candidates := make([][]int, len(m.items))
 	totalRate := 0
-	for _, candidate := range m.dropSections {
-		if candidate.rate > 0 && len(candidate.items) > 0 {
-			totalRate += candidate.rate
+	for section, items := range m.items {
+		if section >= len(m.dropRates) || m.dropRates[section] <= 0 {
+			continue
+		}
+		for index := range items {
+			if m.HasSetItem(section, index) {
+				candidates[section] = append(candidates[section], index)
+			}
+		}
+		if len(candidates[section]) > 0 {
+			totalRate += m.dropRates[section]
 		}
 	}
 	if totalRate <= 0 {
 		return 0, 0, 0, false
 	}
 	n := rand.Intn(totalRate)
-	var selected *setDropSection
-	for i := range m.dropSections {
-		candidate := &m.dropSections[i]
-		if candidate.rate <= 0 || len(candidate.items) == 0 {
+	for section, indexes := range candidates {
+		if len(indexes) == 0 {
 			continue
 		}
-		if n < candidate.rate {
-			selected = candidate
-			break
+		if n < m.dropRates[section] {
+			index := indexes[rand.Intn(len(indexes))]
+			return section, index, m.RandomSetIndex(section, index), true
 		}
-		n -= candidate.rate
+		n -= m.dropRates[section]
 	}
-	if selected == nil {
-		return 0, 0, 0, false
-	}
-	selectedItem := selected.items[rand.Intn(len(selected.items))]
-	return selected.section, selectedItem.index, selectedItem.setIDs[rand.Intn(len(selectedItem.setIDs))], true
+	return 0, 0, 0, false
 }
