@@ -384,6 +384,9 @@ func (m *dropManager) finishGenericItem(it *item.Item, excellent bool) {
 	if it.KindA == item.KindAWing {
 		it.RandWingAdditionKind()
 	}
+	if it.Type == item.TypeSocket {
+		it.MakeSocketSlots(item.SocketManager.RandomSlotCount(it))
+	}
 	it.Calc()
 }
 

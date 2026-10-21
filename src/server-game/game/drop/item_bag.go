@@ -59,16 +59,17 @@ type itemBagDrop struct {
 }
 
 type itemBagItem struct {
-	section    int
-	index      int
-	minLevel   int
-	maxLevel   int
-	durability *int
-	skill      int
-	luck       int
-	option     int
-	excellent  int
-	setItem    bool
+	section     int
+	index       int
+	minLevel    int
+	maxLevel    int
+	durability  *int
+	skill       int
+	luck        int
+	option      int
+	excellent   int
+	setItem     bool
+	socketCount int
 }
 
 func (m *dropManager) initItemBags() {
@@ -261,7 +262,8 @@ func parseItemBag(name string) *itemBag {
 		if configured.Cat < 0 || configured.Index < 0 || configured.ItemMinLevel < 0 || configured.ItemMaxLevel < configured.ItemMinLevel || configured.ItemMaxLevel > 15 {
 			panic(fmt.Errorf("drop: invalid item %d/%d/%d in %s", allowIndex, dropIndex, itemIndex, name))
 		}
-		if _, err := item.ItemTable.GetItemBase(configured.Cat, configured.Index); err != nil {
+		base, err := item.ItemTable.GetItemBase(configured.Cat, configured.Index)
+		if err != nil {
 			panic(fmt.Errorf("drop: invalid item %d/%d/%d in %s: %w", allowIndex, dropIndex, itemIndex, name, err))
 		}
 		if configured.Durability != nil && (*configured.Durability < 0 || *configured.Durability > 255) ||
@@ -269,8 +271,12 @@ func parseItemBag(name string) *itemBag {
 			(configured.Luck != -1 && configured.Luck != 0 && configured.Luck != 1) ||
 			(configured.Option < -1 || configured.Option > 7) ||
 			(configured.Exc < -1 || configured.Exc > 63) || configured.SetItem < 0 || configured.SetItem > 1 ||
-			configured.SocketCount != 0 || configured.ElementalItem != 0 || configured.MuunEvolutionCat != 0 || configured.MuunEvolutionIndex != 0 || configured.Duration != 0 {
+			configured.SocketCount < 0 || configured.SocketCount > 5 ||
+			configured.ElementalItem != 0 || configured.MuunEvolutionCat != 0 || configured.MuunEvolutionIndex != 0 || configured.Duration != 0 {
 			panic(fmt.Errorf("drop: unsupported item fields at %d/%d/%d in %s", allowIndex, dropIndex, itemIndex, name))
+		}
+		if configured.SocketCount > 0 && base.Type != item.TypeSocket {
+			panic(fmt.Errorf("drop: item %d/%d/%d in %s has socket slots but is not a Socket item", allowIndex, dropIndex, itemIndex, name))
 		}
 		if configured.SetItem == 1 && !item.SetManager.HasSetItem(configured.Cat, configured.Index) {
 			panic(fmt.Errorf("drop: item %d/%d/%d in %s has no set version for %d/%d", allowIndex, dropIndex, itemIndex, name, configured.Cat, configured.Index))
@@ -304,7 +310,7 @@ func parseItemBag(name string) *itemBag {
 				validateItem(allowIndex, dropIndex, itemIndex, configuredItem)
 				runtimeDrop.items = append(runtimeDrop.items, itemBagItem{
 					section: configuredItem.Cat, index: configuredItem.Index, minLevel: configuredItem.ItemMinLevel, maxLevel: configuredItem.ItemMaxLevel,
-					durability: configuredItem.Durability, skill: configuredItem.Skill, luck: configuredItem.Luck, option: configuredItem.Option, excellent: configuredItem.Exc, setItem: configuredItem.SetItem == 1,
+					durability: configuredItem.Durability, skill: configuredItem.Skill, luck: configuredItem.Luck, option: configuredItem.Option, excellent: configuredItem.Exc, setItem: configuredItem.SetItem == 1, socketCount: configuredItem.SocketCount,
 				})
 			}
 			totalRate += configuredDrop.Rate
@@ -427,6 +433,9 @@ func (m *dropManager) makeBagItem(configured itemBagItem) *item.Item {
 		it.DecodeExcellent(item.ExcellentDropManager.DropExcellent(it.KindA, it.KindB))
 	} else if configured.excellent > 0 {
 		it.DecodeExcellent(configured.excellent)
+	}
+	if it.Type == item.TypeSocket {
+		it.MakeSocketSlots(configured.socketCount)
 	}
 	it.Calc()
 	if configured.durability != nil {

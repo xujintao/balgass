@@ -23,6 +23,29 @@ func isZenReward(reward Reward, amount int) bool {
 	return reward.Item != nil && reward.Item.Code == item.Code(14, 15) && reward.Item.Durability == amount
 }
 
+func TestSocketItemGeneration(t *testing.T) {
+	manager := &dropManager{}
+	monsterItem := item.NewItem(0, 26)
+	manager.finishGenericItem(monsterItem, false)
+	slots := []int{monsterItem.SocketSlot1, monsterItem.SocketSlot2, monsterItem.SocketSlot3, monsterItem.SocketSlot4, monsterItem.SocketSlot5}
+	open := 0
+	for _, slot := range slots {
+		if slot == 1 {
+			open++
+		} else if slot != 0 {
+			t.Fatalf("invalid monster Socket slot %d", slot)
+		}
+	}
+	if open < 1 || open > 5 {
+		t.Fatalf("monster Socket slot count = %d", open)
+	}
+
+	bagItem := manager.makeBagItem(itemBagItem{section: 0, index: 26, socketCount: 3})
+	if bagItem.SocketBonus != 0 || bagItem.SocketSlot1 != 1 || bagItem.SocketSlot2 != 1 || bagItem.SocketSlot3 != 1 || bagItem.SocketSlot4 != 0 || bagItem.SocketSlot5 != 0 {
+		t.Fatalf("ItemBag Socket slots = %#v", bagItem)
+	}
+}
+
 func TestParseItemBagBindings(t *testing.T) {
 	script := `
 AddItemBag(BAG_COMMON, MakeItemID(14,11), 8, 'Item_(14,11,8)_Kundun_Box+1')

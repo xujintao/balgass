@@ -32,77 +32,76 @@ func NewItem(section, index int) *Item {
 // Item represents a item
 type Item struct {
 	*ItemBase                    `json:"-"`
-	Position                     int    `json:"position"`
-	ID                           int    `json:"id"`      // serial
-	Section                      int    `json:"section"` // 0 ~ 15
-	Index                        int    `json:"index"`   // 0 ~ 511
-	Code                         int    `json:"-"`       // section*512 + index
-	Level                        int    `json:"level"`
-	Durability                   int    `json:"durability"`
-	Lucky                        bool   `json:"lucky,omitempty"`
-	Skill                        bool   `json:"skill,omitempty"`
-	Addition                     int    `json:"addition,omitempty"`                  // 0/4/8/12/16
-	ExcellentAttackRate          bool   `json:"excellent_attack_rate,omitempty"`     // bit5:卓越攻击几率10%
-	ExcellentAttackLevel         bool   `json:"excellent_attack_level,omitempty"`    // bit4:攻击力增加等级/20
-	ExcellentAttackPercent       bool   `json:"excellent_attack_percent,omitempty"`  // bit3:攻击力增加2%
-	ExcellentAttackSpeed         bool   `json:"excellent_attack_speed,omitempty"`    // bit2:攻击(魔法)速度增加7
-	ExcellentAttackHP            bool   `json:"excellent_attack_hp,omitempty"`       // bit1:杀死怪物时所获生命值增加生命值/8
-	ExcellentAttackMP            bool   `json:"excellent_attack_mp,omitempty"`       // bit0:杀死怪物时所获魔法值增加魔法值/8
-	ExcellentDefenseHP           bool   `json:"excellent_defense_hp,omitempty"`      // bit5:最大生命值增加4%
-	ExcellentDefenseMP           bool   `json:"excellent_defense_mp,omitempty"`      // bit4:最大魔法值增加4%
-	ExcellentDefenseReduce       bool   `json:"excellent_defense_reduce,omitempty"`  // bit3:伤害减少4%
-	ExcellentDefenseReflect      bool   `json:"excellent_defense_reflect,omitempty"` // bit2:伤害反射5%
-	ExcellentDefenseRate         bool   `json:"excellent_defense_rate,omitempty"`    // bit1:防御成功率10%
-	ExcellentDefenseMoney        bool   `json:"excellent_defense_money,omitempty"`   // bit0:杀死怪物时所获金币增加30%
-	WingAdditionAttack           bool   `json:"wing_addition_attack,omitempty"`
-	WingAdditionMagicAttack      bool   `json:"wing_addition_magic_attack,omitempty"`
-	WingAdditionCurseAttack      bool   `json:"wing_addition_curse_attack,omitempty"`
-	WingAdditionDefense          bool   `json:"wing_addition_defense,omitempty"`
-	WingAdditionRecoverHP        bool   `json:"wing_addition_recover_hp,omitempty"`
-	Wing2ExcellentSpeed          bool   `json:"wing2_excellent_speed,omitempty"`      // 2D:攻击(魔法)速度增加5
-	Wing2ExcellentAG             bool   `json:"wing2_excellent_ag,omitempty"`         // 2D:最大AG增加50
-	Wing2ExcellentLeadership     bool   `json:"wing2_excellent_leadership,omitempty"` // 2D:声望增加10+5*level
-	Wing2ExcellentIgnore         bool   `json:"wing2_excellent_ignore,omitempty"`     // 2D:无视防御伤害几率3%
-	Wing2ExcellentMP             bool   `json:"wing2_excellent_mp,omitempty"`         // 2D:魔法值增加50+5*level
-	Wing2ExcellentHP             bool   `json:"wing2_excellent_hp,omitempty"`         // 2D:生命值增加50+5*level
-	Wing3ExcellentMP             bool   `json:"wing3_excellent_mp,omitempty"`         // 3D:魔法值完全恢复几率5%
-	Wing3ExcellentHP             bool   `json:"wing3_excellent_hp,omitempty"`         // 3D:生命值完全恢复几率5%
-	Wing3ExcellentReturn         bool   `json:"wing3_excellent_return,omitempty"`     // 3D:反弹攻击力几率5%
-	Wing3ExcellentIgnore         bool   `json:"wing3_excellent_ignore,omitempty"`     // 3D:无视防御伤害几率5%
-	Wing25ExcellentHP            bool   `json:"wing25_excellent_hp,omitempty"`        // 2.5D:生命值增加5%
-	Wing25ExcellentIgnore        bool   `json:"wing25_excellent_ignore,omitempty"`    // 2.5D:无视防御伤害几率3%
-	Set                          int    `json:"set,omitempty"`
-	Option380                    bool   `json:"option380,omitempty"`
-	Period                       int    `json:"period,omitempty"`
-	HarmonyEffect                int    `json:"harmony_effect,omitempty"`
-	HarmonyLevel                 int    `json:"harmony_level,omitempty"`
-	HarmonyOption                int    `json:"harmony_option,omitempty"`
-	PentagramBonus               int    `json:"pentagram_bonus,omitempty"`
-	MuunRank                     int    `json:"muun_rank,omitempty"`
-	SocketBonus                  int    `json:"socket_bonus,omitempty"`
-	SocketSlots                  [5]int `json:"-"` // slot array
-	SocketSlot1                  int    `json:"socket_slot1,omitempty"`
-	SocketSlot2                  int    `json:"socket_slot2,omitempty"`
-	SocketSlot3                  int    `json:"socket_slot3,omitempty"`
-	SocketSlot4                  int    `json:"socket_slot4,omitempty"`
-	SocketSlot5                  int    `json:"socket_slot5,omitempty"`
-	MaxDurability                int    `json:"-"`
-	AttackMin                    int    `json:"-"`
-	AttackMax                    int    `json:"-"`
-	Magic                        int    `json:"-"`
-	Defense                      int    `json:"-"`
-	DefenseRate                  int    `json:"-"`
-	AdditionAttack               int    `json:"-"`
-	AdditionMagicAttack          int    `json:"-"`
-	AdditionCurseAttack          int    `json:"-"`
-	AdditionDefense              int    `json:"-"`
-	AdditionDefenseRate          int    `json:"-"`
-	AdditionRecoverHP            int    `json:"-"`
-	AdditionAbsorbDamagePercent5 bool   `json:"-"`
-	AdditionAG50                 bool   `json:"-"`
-	AdditionSpeed5               bool   `json:"-"`
-	BuyMoney                     int    `json:"-"`
-	SellMoney                    int    `json:"-"`
+	Position                     int  `json:"position"`
+	ID                           int  `json:"id"`      // serial
+	Section                      int  `json:"section"` // 0 ~ 15
+	Index                        int  `json:"index"`   // 0 ~ 511
+	Code                         int  `json:"-"`       // section*512 + index
+	Level                        int  `json:"level"`
+	Durability                   int  `json:"durability"`
+	Lucky                        bool `json:"lucky,omitempty"`
+	Skill                        bool `json:"skill,omitempty"`
+	Addition                     int  `json:"addition,omitempty"`                  // 0/4/8/12/16
+	ExcellentAttackRate          bool `json:"excellent_attack_rate,omitempty"`     // bit5:卓越攻击几率10%
+	ExcellentAttackLevel         bool `json:"excellent_attack_level,omitempty"`    // bit4:攻击力增加等级/20
+	ExcellentAttackPercent       bool `json:"excellent_attack_percent,omitempty"`  // bit3:攻击力增加2%
+	ExcellentAttackSpeed         bool `json:"excellent_attack_speed,omitempty"`    // bit2:攻击(魔法)速度增加7
+	ExcellentAttackHP            bool `json:"excellent_attack_hp,omitempty"`       // bit1:杀死怪物时所获生命值增加生命值/8
+	ExcellentAttackMP            bool `json:"excellent_attack_mp,omitempty"`       // bit0:杀死怪物时所获魔法值增加魔法值/8
+	ExcellentDefenseHP           bool `json:"excellent_defense_hp,omitempty"`      // bit5:最大生命值增加4%
+	ExcellentDefenseMP           bool `json:"excellent_defense_mp,omitempty"`      // bit4:最大魔法值增加4%
+	ExcellentDefenseReduce       bool `json:"excellent_defense_reduce,omitempty"`  // bit3:伤害减少4%
+	ExcellentDefenseReflect      bool `json:"excellent_defense_reflect,omitempty"` // bit2:伤害反射5%
+	ExcellentDefenseRate         bool `json:"excellent_defense_rate,omitempty"`    // bit1:防御成功率10%
+	ExcellentDefenseMoney        bool `json:"excellent_defense_money,omitempty"`   // bit0:杀死怪物时所获金币增加30%
+	WingAdditionAttack           bool `json:"wing_addition_attack,omitempty"`
+	WingAdditionMagicAttack      bool `json:"wing_addition_magic_attack,omitempty"`
+	WingAdditionCurseAttack      bool `json:"wing_addition_curse_attack,omitempty"`
+	WingAdditionDefense          bool `json:"wing_addition_defense,omitempty"`
+	WingAdditionRecoverHP        bool `json:"wing_addition_recover_hp,omitempty"`
+	Wing2ExcellentSpeed          bool `json:"wing2_excellent_speed,omitempty"`      // 2D:攻击(魔法)速度增加5
+	Wing2ExcellentAG             bool `json:"wing2_excellent_ag,omitempty"`         // 2D:最大AG增加50
+	Wing2ExcellentLeadership     bool `json:"wing2_excellent_leadership,omitempty"` // 2D:声望增加10+5*level
+	Wing2ExcellentIgnore         bool `json:"wing2_excellent_ignore,omitempty"`     // 2D:无视防御伤害几率3%
+	Wing2ExcellentMP             bool `json:"wing2_excellent_mp,omitempty"`         // 2D:魔法值增加50+5*level
+	Wing2ExcellentHP             bool `json:"wing2_excellent_hp,omitempty"`         // 2D:生命值增加50+5*level
+	Wing3ExcellentMP             bool `json:"wing3_excellent_mp,omitempty"`         // 3D:魔法值完全恢复几率5%
+	Wing3ExcellentHP             bool `json:"wing3_excellent_hp,omitempty"`         // 3D:生命值完全恢复几率5%
+	Wing3ExcellentReturn         bool `json:"wing3_excellent_return,omitempty"`     // 3D:反弹攻击力几率5%
+	Wing3ExcellentIgnore         bool `json:"wing3_excellent_ignore,omitempty"`     // 3D:无视防御伤害几率5%
+	Wing25ExcellentHP            bool `json:"wing25_excellent_hp,omitempty"`        // 2.5D:生命值增加5%
+	Wing25ExcellentIgnore        bool `json:"wing25_excellent_ignore,omitempty"`    // 2.5D:无视防御伤害几率3%
+	Set                          int  `json:"set,omitempty"`
+	Option380                    bool `json:"option380,omitempty"`
+	Period                       int  `json:"period,omitempty"`
+	HarmonyEffect                int  `json:"harmony_effect,omitempty"`
+	HarmonyLevel                 int  `json:"harmony_level,omitempty"`
+	HarmonyOption                int  `json:"harmony_option,omitempty"`
+	PentagramBonus               int  `json:"pentagram_bonus,omitempty"`
+	MuunRank                     int  `json:"muun_rank,omitempty"`
+	SocketBonus                  int  `json:"socket_bonus,omitempty"`
+	SocketSlot1                  int  `json:"socket_slot1,omitempty"`
+	SocketSlot2                  int  `json:"socket_slot2,omitempty"`
+	SocketSlot3                  int  `json:"socket_slot3,omitempty"`
+	SocketSlot4                  int  `json:"socket_slot4,omitempty"`
+	SocketSlot5                  int  `json:"socket_slot5,omitempty"`
+	MaxDurability                int  `json:"-"`
+	AttackMin                    int  `json:"-"`
+	AttackMax                    int  `json:"-"`
+	Magic                        int  `json:"-"`
+	Defense                      int  `json:"-"`
+	DefenseRate                  int  `json:"-"`
+	AdditionAttack               int  `json:"-"`
+	AdditionMagicAttack          int  `json:"-"`
+	AdditionCurseAttack          int  `json:"-"`
+	AdditionDefense              int  `json:"-"`
+	AdditionDefenseRate          int  `json:"-"`
+	AdditionRecoverHP            int  `json:"-"`
+	AdditionAbsorbDamagePercent5 bool `json:"-"`
+	AdditionAG50                 bool `json:"-"`
+	AdditionSpeed5               bool `json:"-"`
+	BuyMoney                     int  `json:"-"`
+	SellMoney                    int  `json:"-"`
 }
 
 func (i *Item) Copy() *Item {
@@ -1189,12 +1188,29 @@ func (item *Item) Marshal() ([]byte, error) {
 	// harmony/socket/pentagram/muun system
 	if item.Type == TypeSocket ||
 		item.KindA == KindAPentagram {
-		data[6] = byte(item.SocketBonus)
-		data[7] = byte(item.SocketSlot1)
-		data[8] = byte(item.SocketSlot2)
-		data[9] = byte(item.SocketSlot3)
-		data[10] = byte(item.SocketSlot4)
-		data[11] = byte(item.SocketSlot5)
+		data[6] = 0xFF
+		if item.SocketBonus > 0 {
+			data[6] = byte(item.SocketBonus - 1)
+		}
+		for i, slot := range [5]int{
+			item.SocketSlot1,
+			item.SocketSlot2,
+			item.SocketSlot3,
+			item.SocketSlot4,
+			item.SocketSlot5} {
+			switch slot {
+			case 0:
+				data[7+i] = 0xFF
+			case 1:
+				data[7+i] = 0xFE
+			default:
+				level, option := slot/100, slot%100
+				if level < 1 || level > 5 || option < 0 || option >= 50 {
+					return nil, fmt.Errorf("item %d/%d has invalid socket slot %d value %d", item.Section, item.Index, i+1, slot)
+				}
+				data[7+i] = byte((level-1)*50 + option)
+			}
+		}
 	} else {
 		data[6] = byte(item.HarmonyOption)
 		data[7] = 0xFF
