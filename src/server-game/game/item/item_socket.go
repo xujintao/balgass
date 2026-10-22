@@ -9,9 +9,41 @@ import (
 
 var SocketManager socketManager
 
+type socketSeedOption struct {
+	name         string
+	element      int
+	itemLevel    int
+	valueType    int
+	values       [5]int
+	poolValue    int
+	seedItemCode int
+}
+
+type socketBonusOption struct {
+	name       string
+	minSection int
+	maxSection int
+	valueType  int
+	value      int
+	rate       int
+	elements   [5]int
+}
+
+type socketSpecialOption struct {
+	name       string
+	kind       int
+	valueType  int
+	value      int
+	rate       int
+	seedCounts [6]int
+}
+
 type socketManager struct {
-	rates   [12][5]int
-	twoHand [5]int
+	rates          [12][5]int
+	twoHand        [5]int
+	seedOptions    map[int]socketSeedOption
+	bonusOptions   map[int]socketBonusOption
+	specialOptions map[int]socketSpecialOption
 }
 
 func (m *socketManager) init() {
@@ -23,15 +55,14 @@ func (m *socketManager) init() {
 		Count4 int `xml:"Count4,attr"`
 		Count5 int `xml:"Count5,attr"`
 	}
-	type config struct {
+	type rateSettingsConfig struct {
 		SocketRateSettings struct {
 			Sockets []rateConfig `xml:"Socket"`
 			TwoHand *rateConfig  `xml:"TwoHandWeapons"`
 		} `xml:"SocketRateSettings"`
 	}
-	var cfg config
-	conf.XML(conf.PathCommon, "SocketSystem/IGC_SocketSystem.xml", &cfg)
-
+	var rateCfg rateSettingsConfig
+	conf.XML(conf.PathCommon, "SocketSystem/IGC_SocketSystem.xml", &rateCfg)
 	weights := func(label string, rate rateConfig) [5]int {
 		values := [5]int{rate.Count1, rate.Count2, rate.Count3, rate.Count4, rate.Count5}
 		total := 0
@@ -46,9 +77,8 @@ func (m *socketManager) init() {
 		}
 		return values
 	}
-
 	var seen [12]bool
-	for _, rate := range cfg.SocketRateSettings.Sockets {
+	for _, rate := range rateCfg.SocketRateSettings.Sockets {
 		if rate.CatID < 0 || rate.CatID >= len(m.rates) {
 			panic(fmt.Errorf("SocketSystem/IGC_SocketSystem.xml: invalid section %d", rate.CatID))
 		}
@@ -63,10 +93,178 @@ func (m *socketManager) init() {
 			panic(fmt.Errorf("SocketSystem/IGC_SocketSystem.xml: missing section %d", section))
 		}
 	}
-	if cfg.SocketRateSettings.TwoHand == nil {
+	if rateCfg.SocketRateSettings.TwoHand == nil {
 		panic(fmt.Errorf("SocketSystem/IGC_SocketSystem.xml: missing TwoHandWeapons"))
 	}
-	m.twoHand = weights("TwoHandWeapons", *cfg.SocketRateSettings.TwoHand)
+	m.twoHand = weights("TwoHandWeapons", *rateCfg.SocketRateSettings.TwoHand)
+
+	type seedConfig struct {
+		Index       *int   `xml:"Index,attr"`
+		ElementType *int   `xml:"ElementType,attr"`
+		Level       *int   `xml:"Level,attr"`
+		BonusType   *int   `xml:"BonusType,attr"`
+		Value1      *int   `xml:"BonusValue1,attr"`
+		Value2      *int   `xml:"BonusValue2,attr"`
+		Value3      *int   `xml:"BonusValue3,attr"`
+		Value4      *int   `xml:"BonusValue4,attr"`
+		Value5      *int   `xml:"BonusValue5,attr"`
+		PoolValue   *int   `xml:"PoolValue,attr"`
+		Name        string `xml:"Name,attr"`
+	}
+	type bonusConfig struct {
+		Index        *int   `xml:"Index,attr"`
+		MinItemType  *int   `xml:"MinItemType,attr"`
+		MaxItemType  *int   `xml:"MaxItemType,attr"`
+		BonusType    *int   `xml:"BonusType,attr"`
+		BonusValue   *int   `xml:"BonusValue,attr"`
+		BonusRate    *int   `xml:"BonusRate,attr"`
+		ElementType1 *int   `xml:"ElementType1,attr"`
+		ElementType2 *int   `xml:"ElementType2,attr"`
+		ElementType3 *int   `xml:"ElementType3,attr"`
+		ElementType4 *int   `xml:"ElementType4,attr"`
+		ElementType5 *int   `xml:"ElementType5,attr"`
+		Name         string `xml:"Name,attr"`
+	}
+	type specialConfig struct {
+		Index          *int   `xml:"Index,attr"`
+		Type           *int   `xml:"Type,attr"`
+		BonusType      *int   `xml:"BonusType,attr"`
+		BonusValue     *int   `xml:"BonusValue,attr"`
+		BonusRate      *int   `xml:"BonusRate,attr"`
+		SeedCountFire  *int   `xml:"SeedCountFire,attr"`
+		SeedCountWater *int   `xml:"SeedCountWater,attr"`
+		SeedCountIce   *int   `xml:"SeedCountIce,attr"`
+		SeedCountWind  *int   `xml:"SeedCountWind,attr"`
+		SeedCountLight *int   `xml:"SeedCountLight,attr"`
+		SeedCountEarth *int   `xml:"SeedCountEarth,attr"`
+		Name           string `xml:"Name,attr"`
+	}
+	type optionSettingsConfig struct {
+		Seeds    []seedConfig    `xml:"SocketItemOptionSettings>Option"`
+		Bonuses  []bonusConfig   `xml:"SocketBonusSettings>Option"`
+		Specials []specialConfig `xml:"SpecialOptionSettings>Option"`
+	}
+	var optionCfg optionSettingsConfig
+	const file = "SocketSystem/IGC_SocketOption.xml"
+	conf.XML(conf.PathCommon, file, &optionCfg)
+	required := func(group string, index int, name string, value *int) int {
+		if value == nil {
+			panic(fmt.Errorf("%s: %s option %d missing %s", file, group, index, name))
+		}
+		return *value
+	}
+	optionIndex := func(group string, value *int, max int) int {
+		index := required(group, -1, "Index", value)
+		if index < 0 || index >= max {
+			panic(fmt.Errorf("%s: %s option invalid index %d", file, group, index))
+		}
+		return index
+	}
+
+	if len(optionCfg.Seeds) == 0 || len(optionCfg.Bonuses) == 0 || len(optionCfg.Specials) == 0 {
+		panic(fmt.Errorf("%s: missing Socket option settings", file))
+	}
+	m.seedOptions = make(map[int]socketSeedOption, len(optionCfg.Seeds))
+	totalSeedWeight := 0
+	for _, option := range optionCfg.Seeds {
+		index := optionIndex("seed", option.Index, 50)
+		if _, exists := m.seedOptions[index]; exists {
+			panic(fmt.Errorf("%s: duplicate seed option %d", file, index))
+		}
+		element := required("seed", index, "ElementType", option.ElementType)
+		itemLevel := required("seed", index, "Level", option.Level)
+		valueType := required("seed", index, "BonusType", option.BonusType)
+		values := [5]int{
+			required("seed", index, "BonusValue1", option.Value1),
+			required("seed", index, "BonusValue2", option.Value2),
+			required("seed", index, "BonusValue3", option.Value3),
+			required("seed", index, "BonusValue4", option.Value4),
+			required("seed", index, "BonusValue5", option.Value5),
+		}
+		weight := required("seed", index, "PoolValue", option.PoolValue)
+		if element < 1 || element > 6 || itemLevel < 0 || itemLevel > 5 || valueType < 0 || valueType > 5 || weight < 0 || option.Name == "" {
+			panic(fmt.Errorf("%s: invalid seed option %d", file, index))
+		}
+		for _, value := range values {
+			if value < 0 || value > 65535 || valueType != 0 && value == 0 {
+				panic(fmt.Errorf("%s: invalid seed option %d value %d", file, index, value))
+			}
+		}
+		seedItemCode := Code(12, 59+element)
+		if _, err := ItemTable.GetItemBase(12, 59+element); err != nil {
+			panic(fmt.Errorf("%s: seed option %d: %w", file, index, err))
+		}
+		m.seedOptions[index] = socketSeedOption{
+			name: option.Name, element: element, itemLevel: itemLevel, valueType: valueType,
+			values: values, poolValue: weight, seedItemCode: seedItemCode,
+		}
+		totalSeedWeight += weight
+	}
+	if totalSeedWeight == 0 {
+		panic(fmt.Errorf("%s: seed options have no positive PoolValue", file))
+	}
+	m.bonusOptions = make(map[int]socketBonusOption, len(optionCfg.Bonuses))
+	for _, option := range optionCfg.Bonuses {
+		index := optionIndex("bonus", option.Index, 12)
+		if _, exists := m.bonusOptions[index]; exists {
+			panic(fmt.Errorf("%s: duplicate bonus option %d", file, index))
+		}
+		minSection := required("bonus", index, "MinItemType", option.MinItemType)
+		maxSection := required("bonus", index, "MaxItemType", option.MaxItemType)
+		valueType := required("bonus", index, "BonusType", option.BonusType)
+		value := required("bonus", index, "BonusValue", option.BonusValue)
+		rate := required("bonus", index, "BonusRate", option.BonusRate)
+		elements := [5]int{
+			required("bonus", index, "ElementType1", option.ElementType1),
+			required("bonus", index, "ElementType2", option.ElementType2),
+			required("bonus", index, "ElementType3", option.ElementType3),
+			required("bonus", index, "ElementType4", option.ElementType4),
+			required("bonus", index, "ElementType5", option.ElementType5),
+		}
+		if minSection < 0 || maxSection < minSection || maxSection > 12 || valueType < 0 || valueType > 5 || value < 0 || value > 65535 || rate < 0 || rate > 100 || option.Name == "" {
+			panic(fmt.Errorf("%s: invalid bonus option %d", file, index))
+		}
+		for _, element := range elements {
+			if element < 0 || element > 6 {
+				panic(fmt.Errorf("%s: bonus option %d has invalid element %d", file, index, element))
+			}
+		}
+		m.bonusOptions[index] = socketBonusOption{
+			name: option.Name, minSection: minSection, maxSection: maxSection,
+			valueType: valueType, value: value, rate: rate, elements: elements,
+		}
+	}
+
+	m.specialOptions = make(map[int]socketSpecialOption, len(optionCfg.Specials))
+	for _, option := range optionCfg.Specials {
+		index := optionIndex("special", option.Index, 2)
+		if _, exists := m.specialOptions[index]; exists {
+			panic(fmt.Errorf("%s: duplicate special option %d", file, index))
+		}
+		kind := required("special", index, "Type", option.Type)
+		valueType := required("special", index, "BonusType", option.BonusType)
+		value := required("special", index, "BonusValue", option.BonusValue)
+		rate := required("special", index, "BonusRate", option.BonusRate)
+		counts := [6]int{
+			required("special", index, "SeedCountFire", option.SeedCountFire),
+			required("special", index, "SeedCountWater", option.SeedCountWater),
+			required("special", index, "SeedCountIce", option.SeedCountIce),
+			required("special", index, "SeedCountWind", option.SeedCountWind),
+			required("special", index, "SeedCountLight", option.SeedCountLight),
+			required("special", index, "SeedCountEarth", option.SeedCountEarth),
+		}
+		if kind < 0 || kind > 255 || valueType < 0 || valueType > 5 || value < 0 || value > 65535 || rate < 0 || rate > 100 || option.Name == "" {
+			panic(fmt.Errorf("%s: invalid special option %d", file, index))
+		}
+		for _, count := range counts {
+			if count < 0 || count > 255 {
+				panic(fmt.Errorf("%s: special option %d has invalid seed count %d", file, index, count))
+			}
+		}
+		m.specialOptions[index] = socketSpecialOption{
+			name: option.Name, kind: kind, valueType: valueType, value: value, rate: rate, seedCounts: counts,
+		}
+	}
 }
 
 func (m *socketManager) RandomSlotCount(it *Item) int {

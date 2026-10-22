@@ -175,3 +175,67 @@ func TestSocketSlotsJSONAndProtocol(t *testing.T) {
 		})
 	}
 }
+
+func TestSocketOptionsLoaded(t *testing.T) {
+	if len(SocketManager.seedOptions) != 27 || len(SocketManager.bonusOptions) != 12 || len(SocketManager.specialOptions) != 2 {
+		t.Fatalf("Socket option counts = %d/%d/%d", len(SocketManager.seedOptions), len(SocketManager.bonusOptions), len(SocketManager.specialOptions))
+	}
+	seed := SocketManager.seedOptions[36]
+	if seed.element != 6 || seed.values[0] != 30 || seed.values[4] != 38 || seed.seedItemCode != Code(12, 65) {
+		t.Fatalf("seed option 36 = %#v", seed)
+	}
+	bonus := SocketManager.bonusOptions[0]
+	if bonus.minSection != 0 || bonus.maxSection != 4 || bonus.elements != [5]int{1, 5, 3, 0, 0} {
+		t.Fatalf("bonus option 0 = %#v", bonus)
+	}
+	special := SocketManager.specialOptions[1]
+	if special.rate != 100 || special.seedCounts != [6]int{1, 3, 1, 3, 1, 2} {
+		t.Fatalf("special option 1 = %#v", special)
+	}
+}
+
+func TestSocketOptionConfigValidation(t *testing.T) {
+	const seed = `<Option Index="0" ElementType="1" Level="0" BonusType="1" BonusValue1="1" BonusValue2="2" BonusValue3="3" BonusValue4="4" BonusValue5="5" PoolValue="10" Name="seed"/>`
+	const bonus = `<Option Index="0" MinItemType="0" MaxItemType="4" BonusType="1" BonusValue="1" BonusRate="30" ElementType1="1" ElementType2="0" ElementType3="0" ElementType4="0" ElementType5="0" Name="bonus"/>`
+	const special = `<Option Index="0" Type="0" BonusType="1" BonusValue="1" BonusRate="100" SeedCountFire="1" SeedCountWater="0" SeedCountIce="0" SeedCountWind="0" SeedCountLight="0" SeedCountEarth="0" Name="special"/>`
+	const xml = `<SocketSystem><SocketItemOptionSettings>` + seed + `</SocketItemOptionSettings><SocketBonusSettings>` + bonus + `</SocketBonusSettings><SpecialOptionSettings>` + special + `</SpecialOptionSettings></SocketSystem>`
+	for _, tc := range []struct {
+		name, old, replacement, errorText string
+	}{
+		{"duplicate seed", `</SocketItemOptionSettings>`, seed + `</SocketItemOptionSettings>`, "duplicate seed option 0"},
+		{"missing value", ` BonusValue5="5"`, ``, "missing BonusValue5"},
+		{"invalid bonus element", `ElementType1="1"`, `ElementType1="7"`, "invalid element 7"},
+		{"invalid special type", ` Type="0"`, ` Type="256"`, "invalid special option 0"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			data := strings.Replace(xml, tc.old, tc.replacement, 1)
+			if data == xml {
+				t.Fatal("test XML replacement failed")
+			}
+			dir := t.TempDir()
+			if err := os.MkdirAll(filepath.Join(dir, "SocketSystem"), 0755); err != nil {
+				t.Fatal(err)
+			}
+			rateData, err := os.ReadFile(filepath.Join(conf.PathCommon, "SocketSystem", "IGC_SocketSystem.xml"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(dir, "SocketSystem", "IGC_SocketSystem.xml"), rateData, 0644); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(dir, "SocketSystem", "IGC_SocketOption.xml"), []byte(data), 0644); err != nil {
+				t.Fatal(err)
+			}
+			oldPath := conf.PathCommon
+			conf.PathCommon = dir
+			defer func() { conf.PathCommon = oldPath }()
+			defer func() {
+				if got := recover(); got == nil || !strings.Contains(fmt.Sprint(got), tc.errorText) {
+					t.Fatalf("panic = %v, want %q", got, tc.errorText)
+				}
+			}()
+			var manager socketManager
+			manager.init()
+		})
+	}
+}
