@@ -314,3 +314,127 @@ func (it *Item) MakeSocketSlots(count int) {
 		}
 	}
 }
+
+type SocketEffectType int
+
+const (
+	SocketEffectLevelAttack     SocketEffectType = 0
+	SocketEffectAttackSpeed     SocketEffectType = 1
+	SocketEffectAttackMax       SocketEffectType = 2
+	SocketEffectAttackMin       SocketEffectType = 3
+	SocketEffectAttack          SocketEffectType = 4
+	SocketEffectReduceAGCost    SocketEffectType = 5
+	SocketEffectDefenseRate     SocketEffectType = 10
+	SocketEffectDefense         SocketEffectType = 11
+	SocketEffectShieldDefense   SocketEffectType = 12
+	SocketEffectReduceDamage    SocketEffectType = 13
+	SocketEffectReflectDamage   SocketEffectType = 14
+	SocketEffectKillHP          SocketEffectType = 16
+	SocketEffectKillMP          SocketEffectType = 17
+	SocketEffectSkillAttack     SocketEffectType = 18
+	SocketEffectAttackRate      SocketEffectType = 19
+	SocketEffectRecoverHP       SocketEffectType = 21
+	SocketEffectMaxHP           SocketEffectType = 22
+	SocketEffectMaxMP           SocketEffectType = 23
+	SocketEffectRecoverMP       SocketEffectType = 24
+	SocketEffectMaxAG           SocketEffectType = 25
+	SocketEffectRecoverAG       SocketEffectType = 26
+	SocketEffectKillMoney       SocketEffectType = 27
+	SocketEffectExcellentDamage SocketEffectType = 29
+	SocketEffectExcellentRate   SocketEffectType = 30
+	SocketEffectCriticalDamage  SocketEffectType = 31
+	SocketEffectCriticalRate    SocketEffectType = 32
+	SocketEffectVitality        SocketEffectType = 36
+	SocketEffectDoubleDamage    SocketEffectType = 44
+	SocketEffectIgnoreDefense   SocketEffectType = 45
+)
+
+type SocketBonusEffectType int
+
+const (
+	SocketBonusWeaponAttack       SocketBonusEffectType = 0
+	SocketBonusWeaponSkillAttack  SocketBonusEffectType = 1
+	SocketBonusStaffAttack        SocketBonusEffectType = 2
+	SocketBonusStaffSkillAttack   SocketBonusEffectType = 3
+	SocketBonusArmorDefense       SocketBonusEffectType = 4
+	SocketBonusArmorMaxHP         SocketBonusEffectType = 5
+	SocketBonusWeaponAttack2      SocketBonusEffectType = 6
+	SocketBonusWeaponSkillAttack2 SocketBonusEffectType = 7
+	SocketBonusStaffAttack2       SocketBonusEffectType = 8
+	SocketBonusStaffSkillAttack2  SocketBonusEffectType = 9
+	SocketBonusArmorDefense2      SocketBonusEffectType = 10
+	SocketBonusArmorMaxHP2        SocketBonusEffectType = 11
+)
+
+// SocketEffect is a configured effect resolved to one value.
+type SocketEffect struct {
+	Index     SocketEffectType
+	Element   int
+	ValueType int
+	Value     int
+}
+
+func (m *socketManager) SeedEffect(slot int) (SocketEffect, bool) {
+	if slot < 100 {
+		return SocketEffect{}, false
+	}
+	level, index := slot/100, slot%100
+	if level < 1 || level > 5 || index >= 50 {
+		return SocketEffect{}, false
+	}
+	option, ok := m.seedOptions[index]
+	if !ok {
+		return SocketEffect{}, false
+	}
+	return SocketEffect{
+		Index:     SocketEffectType(index),
+		Element:   option.element,
+		ValueType: option.valueType,
+		Value:     option.values[level-1]}, true
+}
+
+type SocketBonusEffect struct {
+	Index      SocketBonusEffectType
+	MinSection int
+	MaxSection int
+	ValueType  int
+	Value      int
+}
+
+func (m *socketManager) BonusEffect(bonus int) (SocketBonusEffect, bool) {
+	if bonus <= 0 {
+		return SocketBonusEffect{}, false
+	}
+	index := bonus - 1
+	option, ok := m.bonusOptions[index]
+	if !ok {
+		return SocketBonusEffect{}, false
+	}
+	return SocketBonusEffect{
+		Index:      SocketBonusEffectType(index),
+		MinSection: option.minSection,
+		MaxSection: option.maxSection,
+		ValueType:  option.valueType,
+		Value:      option.value}, true
+}
+
+func (m *socketManager) SpecialEffects(counts [6]int) []SocketEffect {
+	var effects []SocketEffect
+	for index, effectType := range []SocketEffectType{SocketEffectDoubleDamage, SocketEffectIgnoreDefense} {
+		option, ok := m.specialOptions[index]
+		if !ok {
+			continue
+		}
+		matched := true
+		for element, required := range option.seedCounts {
+			if counts[element] < required {
+				matched = false
+				break
+			}
+		}
+		if matched {
+			effects = append(effects, SocketEffect{Index: effectType, ValueType: option.valueType, Value: option.value})
+		}
+	}
+	return effects
+}

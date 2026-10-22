@@ -655,6 +655,7 @@ type Objecter interface {
 	GetMasterLevel() int                       // implemented by Player and Monster
 	IsMasterLevel() bool                       // implemented by Player and Monster
 	GetSkillMPAG(s *skill.Skill) (int, int)    // implemented by Player and Monster
+	GetSkillAttackBonus() int                  // implemented by Player and Monster
 	GetMagicAttackMin() int                    // implemented by Player and Monster
 	GetMagicAttackMax() int                    // implemented by Player and Monster
 	GetCurseAttackMin() int                    // implemented by Player and Monster

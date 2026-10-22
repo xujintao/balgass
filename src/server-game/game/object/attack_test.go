@@ -34,6 +34,18 @@ func newBasicAttackTestObject(index int, typ ObjectType) (*Object, *basicAttackT
 	return obj, actor
 }
 
+func TestSkillAttackBonusOnlyAppliesToSkills(t *testing.T) {
+	obj, actor := newSkillTestObject(1, ObjectTypePlayer)
+	actor.skillAttackBonus = 7
+	obj.AttackMin, obj.AttackMax = 10, 10
+	if got := obj.getDamage(&skill.Skill{Index: 0}, 0, nil); got != 10 {
+		t.Fatalf("normal attack damage = %d, want 10", got)
+	}
+	if got := obj.getDamage(&skill.Skill{Index: 9999}, 0, nil); got != 17 {
+		t.Fatalf("skill damage = %d, want 17", got)
+	}
+}
+
 func (a *basicAttackTestActor) GetInventory() *item.Inventory {
 	return &a.inventory
 }

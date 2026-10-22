@@ -195,7 +195,6 @@ type Player struct {
 	delayRecoverHPMax int
 	delayRecoverSD    int
 	delayRecoverSDMax int
-	recoverHP         int // 恢复生命(翅膀+项链+大师技能)
 	magic             int
 	magicAttackMin    int // 魔攻min
 	magicAttackMax    int // 魔攻max
@@ -266,18 +265,27 @@ type Player struct {
 	// skillStrengthenHellFire2Count int
 	// skillStrengthenHellFire2Time  time.Time
 	// reqWarehouseOpen              int
+	leftAttackMin                 int
+	leftAttackMax                 int
+	rightAttackMin                int
+	rightAttackMax                int
 	increaseAttackMin             int     // 增加最小攻击(套装+洞装+大师技能)
 	increaseAttackMax             int     // 增加最大攻击(套装+洞装+大师技能)
 	increaseMagicAttack           int     // 增加魔攻(套装+洞装+大师技能)
-	increaseSkillAttack           int     // 增加技能攻击(套装+卓越+大师技能)
+	increaseSkillAttack           int     // 增加技能攻击(套装+洞装+大师技能)
 	setAddDamage                  int     // 增加伤害
-	criticalAttackRate            int     // 幸运一击概率
-	criticalAttackDamage          int     // 幸运一击伤害
-	excellentAttackRate           int     // 卓越一击概率
-	excellentAttackDamage         int     // 卓越一击伤害
-	monsterDieGetHP               float64 // 杀怪回生(套装+卓越+大师技能)
-	monsterDieGetMP               float64 // 杀怪回蓝(套装+卓越+大师技能)
-	monsterDieGetMoney            float64 // 杀怪加钱(卓越)
+	criticalAttackRate            int     // 幸运一击概率(卓越+套装+洞装+大师技能)
+	criticalAttackDamage          int     // 幸运一击伤害(套装+洞装)
+	excellentAttackRate           int     // 卓越一击概率(卓越+套装+洞装+大师技能)
+	excellentAttackDamage         int     // 卓越一击伤害(套装+洞装)
+	monsterDieGetHP               float64 // 杀怪回生(卓越+套装+洞装+大师技能)
+	monsterDieGetMP               float64 // 杀怪回蓝(卓越+套装+洞装+大师技能)
+	monsterDieGetMoney            float64 // 杀怪加钱(卓越 +套装+洞装+大师技能)
+	recoverHP                     int     // 恢复HP(翅膀+项链+洞装+大师技能)
+	recoverMP                     int     // 恢复MP(翅膀+项链+洞装+大师技能)
+	recoverAG                     int     // 恢复AG(翅膀+项链+洞装+大师技能)
+	agReduce                      int     // 减少AG消耗(翅膀+项链+洞装+大师技能)
+	shieldDefense                 int     // 盾防御(卓越+洞装)
 	armorReduceDamage             int     // 防具减少伤害(卓越+洞装)
 	wingIncreaseDamage            int     // 翅膀增加伤害
 	wingReduceDamage              int     // 翅膀减少伤害
@@ -352,9 +360,9 @@ func (p *Player) recoverHPSD() {
 			}
 			// master skill recover HP
 			percent += 0.0
-			if percent != 0.0 {
+			if percent != 0.0 || p.recoverHP != 0 {
 				hp := p.HP
-				hp += int(float64(p.MaxHP) * percent / 100)
+				hp += int(float64(p.MaxHP)*percent/100) + p.recoverHP
 				switch {
 				case hp < 1:
 					hp = 1
@@ -394,7 +402,7 @@ func (p *Player) recoverHPSD() {
 		}
 	}
 
-	// posion delay recover hp
+	// posion delay recover HP
 	if p.delayRecoverHP > 0 {
 		hp := p.delayRecoverHPMax / 2
 		if p.delayRecoverHP > hp {
@@ -453,7 +461,7 @@ func (p *Player) recoverMPAG() {
 		// master skill recover MP
 		percent += 0
 		mp := p.MP
-		mp += int(float64(p.MaxMP) * percent / 100)
+		mp += int(float64(p.MaxMP)*percent/100) + p.recoverMP
 		switch {
 		case mp < 1:
 			mp = 1
@@ -472,7 +480,7 @@ func (p *Player) recoverMPAG() {
 			percent = 5
 		}
 		ag := p.AG
-		ag += 5 + int(float64(p.MaxAG)*percent/100)
+		ag += 5 + int(float64(p.MaxAG)*percent/100) + p.recoverAG
 		switch {
 		case ag < 1:
 			ag = 1
@@ -629,6 +637,10 @@ func (p *Player) calc() {
 	p.addVitality = 0
 	p.addEnergy = 0
 	p.addLeadership = 0
+	p.leftAttackMin = 0
+	p.leftAttackMax = 0
+	p.rightAttackMin = 0
+	p.rightAttackMax = 0
 	p.increaseAttackMin = 0
 	p.increaseAttackMax = 0
 	p.increaseMagicAttack = 0
@@ -641,8 +653,15 @@ func (p *Player) calc() {
 	p.monsterDieGetHP = 0
 	p.monsterDieGetMP = 0
 	p.monsterDieGetMoney = 0
+	p.recoverHP = 0
+	p.recoverMP = 0
+	p.recoverAG = 0
+	p.agReduce = 0
+	p.shieldDefense = 0
 	p.armorReduceDamage = 0
 	p.armorReflectDamage = 0
+	p.MagicDefense = 0
+	p.doubleDamageRate = 0
 	p.ignoreDefenseRate = 0
 	p.returnDamage = 0
 	p.recoverMaxHP = 0
@@ -652,6 +671,24 @@ func (p *Player) calc() {
 	p.helperReduceDamage = 0
 	p.petIncreaseDamage = 0
 	p.petReduceDamage = 0
+
+	// Earth seeds modify attributes used by the base character formulas.
+	for i := 0; i < 12; i++ {
+		it := p.inventory.Items[i]
+		if it == nil || it.ItemBase == nil || it.Type != item.TypeSocket || it.Durability <= 0 {
+			continue
+		}
+		for _, slot := range []int{it.SocketSlot1, it.SocketSlot2, it.SocketSlot3, it.SocketSlot4, it.SocketSlot5} {
+			effect, ok := item.SocketManager.SeedEffect(slot)
+			if !ok {
+				continue
+			}
+			switch effect.Index {
+			case item.SocketEffectVitality:
+				p.addVitality += socketEffectValue(p.vitality+p.addVitality, effect.ValueType, effect.Value)
+			}
+		}
+	}
 
 	// wing item contribution
 	if wing != nil && wing.Wing2ExcellentLeadership {
@@ -669,34 +706,32 @@ func (p *Player) calc() {
 	level := p.Level + p.masterLevel
 
 	// base attack
-	leftAttackMin, leftAttackMax := 0, 0
-	rightAttackMin, rightAttackMax := 0, 0
 	switch class.Class(p.Class) {
 	case class.Wizard:
-		formula.WizardDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+		formula.WizardDamageCalc(strength, dexterity, vitality, energy, &p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 		formula.WizardMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	case class.Knight:
-		formula.KnightDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+		formula.KnightDamageCalc(strength, dexterity, vitality, energy, &p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 		formula.KnightMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	case class.Elf:
 		if leftHand != nil && leftHand.KindB == item.KindBCrossbow ||
 			rightHand != nil && rightHand.KindB == item.KindBBow {
-			formula.ElfWithBowDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+			formula.ElfWithBowDamageCalc(strength, dexterity, vitality, energy, &p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 		} else {
-			formula.ElfWithoutBowDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+			formula.ElfWithoutBowDamageCalc(strength, dexterity, vitality, energy, &p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 		}
 		formula.ElfMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	case class.Magumsa:
-		formula.GladiatorDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+		formula.GladiatorDamageCalc(strength, dexterity, vitality, energy, &p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 		formula.GladiatorMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	case class.DarkLord:
-		formula.LordDamageCalc(strength, dexterity, vitality, energy, leadership, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+		formula.LordDamageCalc(strength, dexterity, vitality, energy, leadership, &p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 		formula.LordMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	case class.Summoner:
-		formula.SummonerDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+		formula.SummonerDamageCalc(strength, dexterity, vitality, energy, &p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 		formula.SummonerMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax, &p.curseAttackMin, &p.curseAttackMax)
 	case class.RageFighter:
-		formula.RageFighterDamageCalc(strength, dexterity, vitality, energy, &leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+		formula.RageFighterDamageCalc(strength, dexterity, vitality, energy, &p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 		formula.RageFighterMagicDamageCalc(energy, &p.magicAttackMin, &p.magicAttackMax)
 	}
 
@@ -722,12 +757,12 @@ func (p *Player) calc() {
 
 	// STAT_OPTION_INC_ATTACK_POWER
 	formula.StatSpec_GetPercent(p.Class, 1, strength, dexterity, vitality, energy, leadership, &percent)
-	min := leftAttackMin * int(percent) / 100
-	max := leftAttackMax * int(percent) / 100
-	leftAttackMin += min
-	leftAttackMax += max
-	rightAttackMin += min
-	rightAttackMax += max
+	min := p.leftAttackMin * int(percent) / 100
+	max := p.leftAttackMax * int(percent) / 100
+	p.leftAttackMin += min
+	p.leftAttackMax += max
+	p.rightAttackMin += min
+	p.rightAttackMax += max
 	options = append(options, &model.MsgStatSpec{ID: 1, Min: min, Max: max})
 
 	// STAT_OPTION_INC_MAGIC_DAMAGE
@@ -778,8 +813,8 @@ func (p *Player) calc() {
 
 	// weapon and weapon addition attack
 	if leftHand != nil {
-		leftAttackMin += leftHand.AttackMin + leftHand.AdditionAttack
-		leftAttackMax += leftHand.AttackMax + leftHand.AdditionAttack
+		p.leftAttackMin += leftHand.AttackMin + leftHand.AdditionAttack
+		p.leftAttackMax += leftHand.AttackMax + leftHand.AdditionAttack
 		p.magicAttackMin += leftHand.AdditionMagicAttack
 		p.magicAttackMax += leftHand.AdditionMagicAttack
 		p.curseAttackMin += leftHand.AdditionCurseAttack
@@ -787,8 +822,8 @@ func (p *Player) calc() {
 		p.curse = leftHand.Magic
 	}
 	if rightHand != nil {
-		rightAttackMin += rightHand.AttackMin + rightHand.AdditionAttack
-		rightAttackMax += rightHand.AttackMax + rightHand.AdditionAttack
+		p.rightAttackMin += rightHand.AttackMin + rightHand.AdditionAttack
+		p.rightAttackMax += rightHand.AttackMax + rightHand.AdditionAttack
 		p.magicAttackMin += rightHand.AdditionMagicAttack
 		p.magicAttackMax += rightHand.AdditionMagicAttack
 		p.curseAttackMin += rightHand.AdditionCurseAttack
@@ -798,10 +833,10 @@ func (p *Player) calc() {
 
 	// wing addition attack
 	if wing != nil {
-		leftAttackMin += wing.AdditionAttack
-		leftAttackMax += wing.AdditionAttack
-		rightAttackMin += wing.AdditionAttack
-		rightAttackMax += wing.AdditionAttack
+		p.leftAttackMin += wing.AdditionAttack
+		p.leftAttackMax += wing.AdditionAttack
+		p.rightAttackMin += wing.AdditionAttack
+		p.rightAttackMax += wing.AdditionAttack
 		p.magicAttackMin += wing.AdditionMagicAttack
 		p.magicAttackMax += wing.AdditionMagicAttack
 		p.curseAttackMin += wing.AdditionCurseAttack
@@ -822,7 +857,6 @@ func (p *Player) calc() {
 			p.Defense += it.AdditionDefense
 			p.DefenseRate += it.SuccessfulBlocking
 			p.DefenseRate += it.AdditionDefenseRate
-			p.recoverHP = it.AdditionRecoverHP
 		}
 	}
 
@@ -929,11 +963,12 @@ func (p *Player) calc() {
 	}
 
 	p.calcSetItem(false)
+	p.calcSocketItem()
 	// set item contribution
-	leftAttackMin += p.increaseAttackMin
-	leftAttackMax += p.increaseAttackMax
-	rightAttackMin += p.increaseAttackMin
-	rightAttackMax += p.increaseAttackMax
+	p.leftAttackMin += p.increaseAttackMin
+	p.leftAttackMax += p.increaseAttackMax
+	p.rightAttackMin += p.increaseAttackMin
+	p.rightAttackMax += p.increaseAttackMax
 
 	// excellent item contribution
 	for i := 0; i < 12; i++ {
@@ -949,11 +984,11 @@ func (p *Player) calc() {
 				value := level / 20
 				switch i {
 				case 0:
-					leftAttackMin += value
-					leftAttackMax += value
+					p.leftAttackMin += value
+					p.leftAttackMax += value
 				case 1:
-					rightAttackMin += value
-					rightAttackMax += value
+					p.rightAttackMin += value
+					p.rightAttackMax += value
 				}
 				p.magicAttackMin += value
 				p.magicAttackMax += value
@@ -961,11 +996,11 @@ func (p *Player) calc() {
 			if it.ExcellentAttackPercent {
 				switch i {
 				case 0:
-					leftAttackMin += leftAttackMin * 2 / 100
-					leftAttackMax += leftAttackMax * 2 / 100
+					p.leftAttackMin += p.leftAttackMin * 2 / 100
+					p.leftAttackMax += p.leftAttackMax * 2 / 100
 				case 1:
-					rightAttackMin += rightAttackMin * 2 / 100
-					rightAttackMax += rightAttackMax * 2 / 100
+					p.rightAttackMin += p.rightAttackMin * 2 / 100
+					p.rightAttackMax += p.rightAttackMax * 2 / 100
 				}
 				p.magicAttackMin += p.magicAttackMin * 2 / 100
 				p.magicAttackMax += p.magicAttackMax * 2 / 100
@@ -1049,35 +1084,35 @@ func (p *Player) calc() {
 		case class.Knight, class.Magumsa:
 			if leftHand.Code == rightHand.Code {
 				formula.CalcTwoSameWeaponBonus(
-					leftAttackMin, leftAttackMax, rightAttackMin, rightAttackMax,
-					&leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+					p.leftAttackMin, p.leftAttackMax, p.rightAttackMin, p.rightAttackMax,
+					&p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 			} else {
 				formula.CalcTwoDifferentWeaponBonus(
-					leftAttackMin, leftAttackMax, rightAttackMin, rightAttackMax,
-					&leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+					p.leftAttackMin, p.leftAttackMax, p.rightAttackMin, p.rightAttackMax,
+					&p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 			}
 		case class.RageFighter:
 			formula.CalcRageFighterTwoWeaponBonus(
-				leftAttackMin, leftAttackMax, rightAttackMin, rightAttackMax,
-				&leftAttackMin, &rightAttackMin, &leftAttackMax, &rightAttackMax)
+				p.leftAttackMin, p.leftAttackMax, p.rightAttackMin, p.rightAttackMax,
+				&p.leftAttackMin, &p.rightAttackMin, &p.leftAttackMax, &p.rightAttackMax)
 		}
-		p.AttackMin = leftAttackMin + rightAttackMin
-		p.AttackMax = leftAttackMax + rightAttackMax
+		p.AttackMin = p.leftAttackMin + p.rightAttackMin
+		p.AttackMax = p.leftAttackMax + p.rightAttackMax
 		p.AttackSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
 		p.magicSpeed += (leftHand.AttackSpeed + rightHand.AttackSpeed) / 2
 	case left:
-		p.AttackMin = leftAttackMin
-		p.AttackMax = leftAttackMax
+		p.AttackMin = p.leftAttackMin
+		p.AttackMax = p.leftAttackMax
 		p.AttackSpeed += leftHand.AttackSpeed
 		p.magicSpeed += leftHand.AttackSpeed
 	case right:
-		p.AttackMin = rightAttackMin
-		p.AttackMax = rightAttackMax
+		p.AttackMin = p.rightAttackMin
+		p.AttackMax = p.rightAttackMax
 		p.AttackSpeed += rightHand.AttackSpeed
 		p.magicSpeed += rightHand.AttackSpeed
 	default:
-		p.AttackMin = (leftAttackMin + rightAttackMin) / 2
-		p.AttackMax = (leftAttackMax + rightAttackMax) / 2
+		p.AttackMin = (p.leftAttackMin + p.rightAttackMin) / 2
+		p.AttackMax = (p.leftAttackMax + p.rightAttackMax) / 2
 	}
 
 	// convert magic/curse to magic/curse attack
@@ -1354,7 +1389,8 @@ func (p *Player) GetSkillMPAG(s *skill.Skill) (int, int) {
 			}
 		}
 	}
-	return mp, s.BPUsage
+	ag := s.BPUsage * (100 - p.agReduce) / 100
+	return mp, ag
 }
 
 func (p *Player) UseSkillAmmo(s *skill.Skill, consume bool) bool {
@@ -1382,7 +1418,7 @@ func (p *Player) UseSkillAmmo(s *skill.Skill, consume bool) bool {
 	return false
 }
 
-func (p *Player) addSetEffect(index item.SetEffectType, value int, base bool) {
+func (p *Player) applySetEffect(index item.SetEffectType, value int, base bool) {
 	if base {
 		switch index {
 		case item.SetEffectIncStrength:
@@ -1492,17 +1528,181 @@ func (p *Player) calcSetItem(base bool) {
 		if count >= 2 {
 			for i := 0; i < count-1; i++ {
 				setEffect := item.SetManager.GetSet(index, i)
-				p.addSetEffect(setEffect.Index, setEffect.Value, base)
+				p.applySetEffect(setEffect.Index, setEffect.Value, base)
 			}
 
 			if count > item.SetManager.GetSetEffectCount(index) {
 				p.setFull = true
 				setEffects := item.SetManager.GetSetFull(index)
 				for _, setEffect := range setEffects {
-					p.addSetEffect(setEffect.Index, setEffect.Value, base)
+					p.applySetEffect(setEffect.Index, setEffect.Value, base)
 				}
 			}
 		}
+	}
+}
+
+func socketEffectValue(base, valueType, effectValue int) int {
+	if effectValue <= 0 {
+		return 0
+	}
+	switch valueType {
+	case 1:
+		return effectValue
+	case 2:
+		return base * effectValue / 100
+	case 3, 4, 5:
+		return base / effectValue
+	}
+	return 0
+}
+
+func (p *Player) calcSocketItem() {
+	var counts [6]int
+	var bonuses []item.SocketBonusEffect
+	baseHP, baseMP, baseAG := p.MaxHP, p.MaxMP, p.MaxAG
+	for position := 0; position < 12; position++ {
+		it := p.inventory.Items[position]
+		if it == nil || it.ItemBase == nil || it.Type != item.TypeSocket || it.Durability <= 0 {
+			continue
+		}
+		installed := false
+		for _, slot := range []int{it.SocketSlot1, it.SocketSlot2, it.SocketSlot3, it.SocketSlot4, it.SocketSlot5} {
+			effect, ok := item.SocketManager.SeedEffect(slot)
+			if !ok {
+				continue
+			}
+			installed = true
+			counts[effect.Element-1]++
+			p.applySocketEffect(effect, baseHP, baseMP, baseAG)
+		}
+		if installed {
+			if effect, ok := item.SocketManager.BonusEffect(it.SocketBonus); ok &&
+				it.Section >= effect.MinSection && it.Section <= effect.MaxSection {
+				bonuses = append(bonuses, effect)
+			}
+		}
+	}
+	for _, effect := range bonuses {
+		p.applySocketBonusEffect(effect, baseHP)
+	}
+	for _, effect := range item.SocketManager.SpecialEffects(counts) {
+		p.applySocketEffect(effect, baseHP, baseMP, baseAG)
+	}
+	shield := p.inventory.Items[1]
+	if p.shieldDefense != 0 && shield != nil && shield.KindB == item.KindBShield && shield.Durability > 0 {
+		p.Defense += p.Defense * p.shieldDefense / 100
+	}
+}
+
+func (p *Player) applySocketEffect(effect item.SocketEffect, baseHP, baseMP, baseAG int) {
+	value := func(base int) int {
+		return socketEffectValue(base, effect.ValueType, effect.Value)
+	}
+	switch effect.Index {
+	case item.SocketEffectLevelAttack:
+		v := value(p.Level + p.masterLevel)
+		p.leftAttackMin += v
+		p.leftAttackMax += v
+		p.rightAttackMin += v
+		p.rightAttackMax += v
+		p.magicAttackMin += v
+		p.magicAttackMax += v
+	case item.SocketEffectAttackSpeed:
+		p.AttackSpeed += value(p.AttackSpeed)
+		p.magicSpeed += value(p.magicSpeed)
+	case item.SocketEffectAttackMax:
+		p.leftAttackMax += value(p.leftAttackMax)
+		p.rightAttackMax += value(p.rightAttackMax)
+		p.magicAttackMax += value(p.magicAttackMax)
+	case item.SocketEffectAttackMin:
+		p.leftAttackMin += value(p.leftAttackMin)
+		p.rightAttackMin += value(p.rightAttackMin)
+		p.magicAttackMin += value(p.magicAttackMin)
+	case item.SocketEffectAttack:
+		p.leftAttackMin += value(p.leftAttackMin)
+		p.leftAttackMax += value(p.leftAttackMax)
+		p.rightAttackMin += value(p.rightAttackMin)
+		p.rightAttackMax += value(p.rightAttackMax)
+		p.magicAttackMin += value(p.magicAttackMin)
+		p.magicAttackMax += value(p.magicAttackMax)
+	case item.SocketEffectReduceAGCost:
+		p.agReduce += effect.Value
+		if p.agReduce > 100 {
+			p.agReduce = 100
+		}
+	case item.SocketEffectDefenseRate:
+		p.DefenseRate += value(p.DefenseRate)
+	case item.SocketEffectDefense:
+		p.Defense += value(p.Defense)
+		p.MagicDefense += value(p.MagicDefense)
+	case item.SocketEffectShieldDefense:
+		p.shieldDefense += effect.Value
+	case item.SocketEffectReduceDamage:
+		p.armorReduceDamage += effect.Value
+	case item.SocketEffectReflectDamage:
+		p.armorReflectDamage += effect.Value
+	case item.SocketEffectKillHP:
+		if effect.Value > 0 {
+			p.monsterDieGetHP += 1 / float64(effect.Value)
+		}
+	case item.SocketEffectKillMP:
+		if effect.Value > 0 {
+			p.monsterDieGetMP += 1 / float64(effect.Value)
+		}
+	case item.SocketEffectSkillAttack:
+		p.increaseSkillAttack += value(p.increaseSkillAttack)
+	case item.SocketEffectAttackRate:
+		p.AttackRate += effect.Value
+	case item.SocketEffectRecoverHP:
+		p.recoverHP += value(baseHP)
+	case item.SocketEffectMaxHP:
+		p.MaxHP += value(baseHP)
+	case item.SocketEffectMaxMP:
+		p.MaxMP += value(baseMP)
+	case item.SocketEffectRecoverMP:
+		p.recoverMP += value(baseMP)
+	case item.SocketEffectMaxAG:
+		p.MaxAG += value(baseAG)
+	case item.SocketEffectRecoverAG:
+		p.recoverAG += value(p.recoverAG)
+	case item.SocketEffectKillMoney:
+		p.monsterDieGetMoney += float64(effect.Value) / 100
+	case item.SocketEffectExcellentDamage:
+		p.excellentAttackDamage += value(p.excellentAttackDamage)
+	case item.SocketEffectExcellentRate:
+		p.excellentAttackRate += effect.Value
+	case item.SocketEffectCriticalDamage:
+		p.criticalAttackDamage += value(p.criticalAttackDamage)
+	case item.SocketEffectCriticalRate:
+		p.criticalAttackRate += effect.Value
+	case item.SocketEffectDoubleDamage:
+		p.doubleDamageRate += effect.Value
+	case item.SocketEffectIgnoreDefense:
+		p.ignoreDefenseRate += effect.Value
+	}
+}
+
+func (p *Player) applySocketBonusEffect(bonus item.SocketBonusEffect, baseHP int) {
+	value := func(base int) int { return socketEffectValue(base, bonus.ValueType, bonus.Value) }
+	switch bonus.Index {
+	case item.SocketBonusWeaponAttack, item.SocketBonusStaffAttack,
+		item.SocketBonusWeaponAttack2, item.SocketBonusStaffAttack2:
+		v := value(p.Level + p.masterLevel)
+		p.leftAttackMin += v
+		p.leftAttackMax += v
+		p.rightAttackMin += v
+		p.rightAttackMax += v
+		p.magicAttackMin += v
+		p.magicAttackMax += v
+	case item.SocketBonusWeaponSkillAttack, item.SocketBonusStaffSkillAttack,
+		item.SocketBonusWeaponSkillAttack2, item.SocketBonusStaffSkillAttack2:
+		p.increaseSkillAttack += value(p.increaseSkillAttack)
+	case item.SocketBonusArmorDefense, item.SocketBonusArmorDefense2:
+		p.Defense += value(p.Defense)
+		p.MagicDefense += value(p.MagicDefense)
+	case item.SocketBonusArmorMaxHP, item.SocketBonusArmorMaxHP2:
+		p.MaxHP += value(baseHP)
 	}
 }
 

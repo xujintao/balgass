@@ -194,6 +194,33 @@ func TestSocketOptionsLoaded(t *testing.T) {
 	}
 }
 
+func TestSocketEffectLookup(t *testing.T) {
+	for _, slot := range []int{0, 1, 2, 199, 600, 650} {
+		if _, ok := SocketManager.SeedEffect(slot); ok {
+			t.Fatalf("invalid slot %d has a Seed effect", slot)
+		}
+	}
+	effect, ok := SocketManager.SeedEffect(201)
+	if !ok || effect.Index != SocketEffectAttackSpeed || effect.Element != 1 || effect.Value != 8 {
+		t.Fatalf("slot 201 effect = %+v, %t", effect, ok)
+	}
+	it := NewItem(0, 26)
+	it.SocketBonus = 7
+	bonus, ok := SocketManager.BonusEffect(it.SocketBonus)
+	if !ok || bonus.Index != SocketBonusWeaponAttack2 || bonus.Value != 22 {
+		t.Fatalf("Socket bonus 6 = %+v, %t", bonus, ok)
+	}
+	specials := SocketManager.SpecialEffects([6]int{1, 3, 1, 3, 1, 2})
+	if len(specials) != 2 || specials[0].Index != SocketEffectDoubleDamage || specials[1].Index != SocketEffectIgnoreDefense {
+		t.Fatalf("Socket special effects = %+v", specials)
+	}
+	for _, invalid := range []int{0, 13} {
+		if _, ok := SocketManager.BonusEffect(invalid); ok {
+			t.Fatalf("invalid Socket bonus %d was accepted", invalid)
+		}
+	}
+}
+
 func TestSocketOptionConfigValidation(t *testing.T) {
 	const seed = `<Option Index="0" ElementType="1" Level="0" BonusType="1" BonusValue1="1" BonusValue2="2" BonusValue3="3" BonusValue4="4" BonusValue5="5" PoolValue="10" Name="seed"/>`
 	const bonus = `<Option Index="0" MinItemType="0" MaxItemType="4" BonusType="1" BonusValue="1" BonusRate="30" ElementType1="1" ElementType2="0" ElementType3="0" ElementType4="0" ElementType5="0" Name="bonus"/>`

@@ -14,17 +14,18 @@ import (
 )
 
 type skillTestActor struct {
-	messages       []any
-	magicAttackMin int
-	magicAttackMax int
-	strength       int
-	dexterity      int
-	energy         int
-	vitality       int
-	leadership     int
-	knightRate     float64
-	impaleRate     float64
-	returnDamage   int
+	messages         []any
+	magicAttackMin   int
+	magicAttackMax   int
+	strength         int
+	dexterity        int
+	energy           int
+	vitality         int
+	leadership       int
+	knightRate       float64
+	impaleRate       float64
+	returnDamage     int
+	skillAttackBonus int
 }
 
 func (*skillTestActor) Addr() string                           { return "test" }
@@ -42,6 +43,7 @@ func (*skillTestActor) GetPKLevel() int                        { return 0 }
 func (*skillTestActor) GetMasterLevel() int                    { return 0 }
 func (*skillTestActor) IsMasterLevel() bool                    { return false }
 func (*skillTestActor) GetSkillMPAG(s *skill.Skill) (int, int) { return s.ManaUsage, s.BPUsage }
+func (a *skillTestActor) GetSkillAttackBonus() int             { return a.skillAttackBonus }
 func (a *skillTestActor) GetMagicAttackMin() int               { return a.magicAttackMin }
 func (a *skillTestActor) GetMagicAttackMax() int               { return a.magicAttackMax }
 func (*skillTestActor) GetCurseAttackMin() int                 { return 0 }

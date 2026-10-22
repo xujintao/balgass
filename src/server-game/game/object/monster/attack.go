@@ -104,6 +104,10 @@ func (*Monster) GetMonsterDieGetMoney() float64 {
 	return 0.0
 }
 
+func (*Monster) GetSkillAttackBonus() int {
+	return 0
+}
+
 func (*Monster) GetKnightGladiatorCalcSkillBonus() float64 {
 	return 1.0
 }

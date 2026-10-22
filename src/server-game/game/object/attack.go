@@ -266,6 +266,10 @@ func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 		damageMin = obj.AttackMin
 		damageMax = obj.AttackMax
 	}
+	if s.Index != 0 {
+		damageMin += obj.GetSkillAttackBonus()
+		damageMax += obj.GetSkillAttackBonus()
+	}
 
 	// get damage from damage type(normal/critical/excellent)
 	damage := 0
