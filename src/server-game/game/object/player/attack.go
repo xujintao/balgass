@@ -40,7 +40,7 @@ func (p *Player) GetExcellentAttackDamage() int {
 }
 
 func (p *Player) GetSkillAttackBonus() int {
-	return p.increaseSkillAttack
+	return p.addSkillAttack
 }
 
 func (p *Player) GetMonsterDieGetHP() float64 {

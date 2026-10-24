@@ -18,28 +18,28 @@ type setItem struct {
 type SetEffectType int
 
 const (
-	SetEffectIncStrength SetEffectType = iota
-	SetEffectIncAgility
-	SetEffectIncEnergy
-	SetEffectIncVitality
-	SetEffectIncLeadership
-	SetEffectIncAttackMin // 最小攻击力增加
-	SetEffectIncAttackMax // 最大攻击力增加
-	SetEffectIncMagicAttack
-	SetEffectIncDamage // 伤害增加
-	SetEffectIncAttackRate
-	SetEffectIncDefense // 防御力增加
-	SetEffectIncMaxHP
-	SetEffectIncMaxMP
-	SetEffectIncMaxAG
-	SetEffectIncAG
-	SetEffectIncCritiDamageRate // 幸运一击伤害几率增加
-	SetEffectIncCritiDamage     // 幸运一击伤害增加
-	SetEffectIncExcelDamageRate // 卓越一击伤害几率增加
-	SetEffectIncExcelDamage     // 卓越一击伤害增加
-	SetEffectIncSkillAttack     // 技能攻击力增加
-	SetEffectDoubleDamage       // 双倍伤害几率
-	SetEffectIgnoreDefense      // 无视目标防御
+	SetEffectIncStrength        SetEffectType = iota // 力量增加
+	SetEffectIncAgility                              // 敏捷增加
+	SetEffectIncEnergy                               // 智力增加
+	SetEffectIncVitality                             // 体力增加
+	SetEffectIncLeadership                           // 统力增加
+	SetEffectIncAttackMin                            // 最小攻击力增加
+	SetEffectIncAttackMax                            // 最大攻击力增加
+	SetEffectIncMagicAttack                          // 魔法攻击力增加
+	SetEffectIncDamage                               // 伤害增加
+	SetEffectIncAttackRate                           // 攻击率增加
+	SetEffectIncDefense                              // 防御力增加
+	SetEffectIncMaxHP                                // 最大生命值增加
+	SetEffectIncMaxMP                                // 最大魔法值增加
+	SetEffectIncMaxAG                                // 最大AG增加
+	SetEffectIncAG                                   // AG增加
+	SetEffectIncCritiDamageRate                      // 幸运一击伤害几率增加
+	SetEffectIncCritiDamage                          // 幸运一击伤害增加
+	SetEffectIncExcelDamageRate                      // 卓越一击伤害几率增加
+	SetEffectIncExcelDamage                          // 卓越一击伤害增加
+	SetEffectIncSkillAttack                          // 技能攻击力增加
+	SetEffectDoubleDamage                            // 双倍伤害几率
+	SetEffectIgnoreDefense                           // 无视目标防御
 	SetEffectIncShieldDefense
 	SetEffectIncTwoHandSwordDamage
 )
@@ -290,7 +290,7 @@ func (m *setManager) GetTierIndex(section, index, setIndex int) int {
 	return si.tiers[setIndex]
 }
 
-func (m *setManager) GetSet(setIndex int, effectIndex int) *SetEffect {
+func (m *setManager) GetSetEffect(setIndex int, effectIndex int) *SetEffect {
 	set := m.sets[setIndex]
 	if set == nil {
 		return nil

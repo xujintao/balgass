@@ -318,35 +318,35 @@ func (it *Item) MakeSocketSlots(count int) {
 type SocketEffectType int
 
 const (
-	SocketEffectLevelAttack     SocketEffectType = 0
-	SocketEffectAttackSpeed     SocketEffectType = 1
-	SocketEffectAttackMax       SocketEffectType = 2
-	SocketEffectAttackMin       SocketEffectType = 3
-	SocketEffectAttack          SocketEffectType = 4
-	SocketEffectReduceAGCost    SocketEffectType = 5
-	SocketEffectDefenseRate     SocketEffectType = 10
-	SocketEffectDefense         SocketEffectType = 11
-	SocketEffectShieldDefense   SocketEffectType = 12
-	SocketEffectReduceDamage    SocketEffectType = 13
-	SocketEffectReflectDamage   SocketEffectType = 14
-	SocketEffectKillHP          SocketEffectType = 16
-	SocketEffectKillMP          SocketEffectType = 17
-	SocketEffectSkillAttack     SocketEffectType = 18
-	SocketEffectAttackRate      SocketEffectType = 19
-	SocketEffectRecoverHP       SocketEffectType = 21
-	SocketEffectMaxHP           SocketEffectType = 22
-	SocketEffectMaxMP           SocketEffectType = 23
-	SocketEffectRecoverMP       SocketEffectType = 24
-	SocketEffectMaxAG           SocketEffectType = 25
-	SocketEffectRecoverAG       SocketEffectType = 26
-	SocketEffectKillMoney       SocketEffectType = 27
-	SocketEffectExcellentDamage SocketEffectType = 29
-	SocketEffectExcellentRate   SocketEffectType = 30
-	SocketEffectCriticalDamage  SocketEffectType = 31
-	SocketEffectCriticalRate    SocketEffectType = 32
-	SocketEffectVitality        SocketEffectType = 36
-	SocketEffectDoubleDamage    SocketEffectType = 44
-	SocketEffectIgnoreDefense   SocketEffectType = 45
+	SocketEffectLevelAttack     SocketEffectType = 0  // 等级火
+	SocketEffectAttackSpeed     SocketEffectType = 1  // 速度火
+	SocketEffectAttackMax       SocketEffectType = 2  // 最大火
+	SocketEffectAttackMin       SocketEffectType = 3  // 最小火
+	SocketEffectAttack          SocketEffectType = 4  // 攻击火
+	SocketEffectReduceAGCost    SocketEffectType = 5  // 减少AG火
+	SocketEffectDefenseRate     SocketEffectType = 10 // 防御率水
+	SocketEffectDefense         SocketEffectType = 11 // 防御力水
+	SocketEffectShieldDefense   SocketEffectType = 12 // 盾防水
+	SocketEffectReduceDamage    SocketEffectType = 13 // 减伤水
+	SocketEffectReflectDamage   SocketEffectType = 14 // 反伤水
+	SocketEffectKillHP          SocketEffectType = 16 // 杀怪回HP冰
+	SocketEffectKillMP          SocketEffectType = 17 // 杀怪回MP冰
+	SocketEffectSkillAttack     SocketEffectType = 18 // 技能攻击冰
+	SocketEffectAttackRate      SocketEffectType = 19 // 攻击率冰
+	SocketEffectItemDurability  SocketEffectType = 20 // 道具耐久冰
+	SocketEffectRecoverHP       SocketEffectType = 21 // HP恢复风
+	SocketEffectMaxHP           SocketEffectType = 22 // 最大HP风
+	SocketEffectMaxMP           SocketEffectType = 23 // 最大MP风
+	SocketEffectRecoverMP       SocketEffectType = 24 // MP恢复风
+	SocketEffectMaxAG           SocketEffectType = 25 // 最大AG风
+	SocketEffectRecoverAG       SocketEffectType = 26 // AG恢复风
+	SocketEffectExcellentDamage SocketEffectType = 29 // 卓越一击伤害雷
+	SocketEffectExcellentRate   SocketEffectType = 30 // 卓越一击率雷
+	SocketEffectCriticalDamage  SocketEffectType = 31 // 致命一击伤害雷
+	SocketEffectCriticalRate    SocketEffectType = 32 // 致命一击率雷
+	SocketEffectVitality        SocketEffectType = 36 // 体力土
+	SocketEffectDoubleDamage    SocketEffectType = 44 // 双倍伤害
+	SocketEffectIgnoreDefense   SocketEffectType = 45 // 忽视防御
 )
 
 type SocketBonusEffectType int

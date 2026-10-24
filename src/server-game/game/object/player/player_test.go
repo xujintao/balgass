@@ -379,6 +379,18 @@ func TestSocketAttackUsesEachHand(t *testing.T) {
 	}
 }
 
+func TestSetAttackBonusPrecedesSocketPercent(t *testing.T) {
+	p := Player{}
+	p.leftAttackMin, p.leftAttackMax = 100, 200
+	p.rightAttackMin, p.rightAttackMax = 40, 80
+	p.applySetEffect(item.SetEffectIncAttackMin, 20, false)
+	p.applySetEffect(item.SetEffectIncAttackMax, 30, false)
+	p.applySocketEffect(item.SocketEffect{Index: item.SocketEffectAttack, ValueType: 2, Value: 10}, 0, 0, 0)
+	if p.leftAttackMin != 132 || p.leftAttackMax != 253 || p.rightAttackMin != 66 || p.rightAttackMax != 121 {
+		t.Fatalf("set and socket attack = %d/%d, %d/%d", p.leftAttackMin, p.leftAttackMax, p.rightAttackMin, p.rightAttackMax)
+	}
+}
+
 func TestSocketDefenseAndResources(t *testing.T) {
 	p := Player{}
 	p.inventory.Items = make([]*item.Item, 237)

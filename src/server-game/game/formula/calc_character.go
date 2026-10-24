@@ -6,7 +6,7 @@ func WizardDamageCalc(strengh, dexterity, vitality, energy int, leftAttackMin, r
 }
 
 func WizardMagicDamageCalc(energy int, magicAttackMin, magicAttackMax *int) {
-	call(f.CalcCharacter, "WizardDamageCalc", "i>ii", energy, magicAttackMin, magicAttackMax)
+	call(f.CalcCharacter, "WizardMagicDamageCalc", "i>ii", energy, magicAttackMin, magicAttackMax)
 }
 
 // knight
@@ -95,14 +95,14 @@ func CalcAttackSpeed(class, dexterity int, attackSpeed, magicSpeed *int) {
 	call(f.CalcCharacter, "CalcAttackSpeed", "ii>ii", class, dexterity, attackSpeed, magicSpeed)
 }
 
-func CalcTwoSameWeaponBonus(inLeftMin, inLeftMax, inRightMin, inRightMax int, outLeftMin, outLeftMax, outRightMin, outRightMax *int) {
-	call(f.CalcCharacter, "CalcTwoSameWeaponBonus", "iiii>iiii", inLeftMin, inLeftMax, inRightMin, inRightMax, outLeftMin, outLeftMax, outRightMin, outRightMax)
+func CalcTwoSameWeaponBonus(inLeftMin, inLeftMax, inRightMin, inRightMax int, outLeftMin, outRightMin, outLeftMax, outRightMax *int) {
+	call(f.CalcCharacter, "CalcTwoSameWeaponBonus", "iiii>iiii", inLeftMin, inLeftMax, inRightMin, inRightMax, outLeftMin, outRightMin, outLeftMax, outRightMax)
 }
 
-func CalcTwoDifferentWeaponBonus(inLeftMin, inLeftMax, inRightMin, inRightMax int, outLeftMin, outLeftMax, outRightMin, outRightMax *int) {
-	call(f.CalcCharacter, "CalcTwoDifferentWeaponBonus", "iiii>iiii", inLeftMin, inLeftMax, inRightMin, inRightMax, outLeftMin, outLeftMax, outRightMin, outRightMax)
+func CalcTwoDifferentWeaponBonus(inLeftMin, inLeftMax, inRightMin, inRightMax int, outLeftMin, outRightMin, outLeftMax, outRightMax *int) {
+	call(f.CalcCharacter, "CalcTwoDifferentWeaponBonus", "iiii>iiii", inLeftMin, inLeftMax, inRightMin, inRightMax, outLeftMin, outRightMin, outLeftMax, outRightMax)
 }
 
-func CalcRageFighterTwoWeaponBonus(inLeftMin, inLeftMax, inRightMin, inRightMax int, outLeftMin, outLeftMax, outRightMin, outRightMax *int) {
-	call(f.CalcCharacter, "CalcRageFighterTwoWeaponBonus", "iiii>iiii", inLeftMin, inLeftMax, inRightMin, inRightMax, outLeftMin, outLeftMax, outRightMin, outRightMax)
+func CalcRageFighterTwoWeaponBonus(inLeftMin, inLeftMax, inRightMin, inRightMax int, outLeftMin, outRightMin, outLeftMax, outRightMax *int) {
+	call(f.CalcCharacter, "CalcRageFighterTwoWeaponBonus", "iiii>iiii", inLeftMin, inLeftMax, inRightMin, inRightMax, outLeftMin, outRightMin, outLeftMax, outRightMax)
 }
