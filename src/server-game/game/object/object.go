@@ -650,7 +650,6 @@ type Objecter interface {
 	LevelUp(int) bool                          // implemented by Player and Monster
 	DieDropItem(*Object)                       // implemented by Player and Monster
 	Regen()                                    // implemented by Player and Monster
-	EquipmentChanged()                         // implemented by Player and Monster
 	GetPKLevel() int                           // implemented by Player and Monster
 	GetMasterLevel() int                       // implemented by Player and Monster
 	IsMasterLevel() bool                       // implemented by Player and Monster
@@ -669,7 +668,6 @@ type Objecter interface {
 	GetVitality() int                          // implemented by Player and Monster
 	GetLeadership() int                        // implemented by Player and Monster
 	GetChangeUp() int                          // implemented by Player and Monster
-	CanUseItem(*item.Item) bool                // implemented by Player and Monster
 	GetInventory() *item.Inventory             // implemented by Player and Monster
 	GetInventoryItem(int) *item.Item           // implemented by Player and Monster
 	SetDelayRecoverHP(int, int)                // implemented by Player and Monster

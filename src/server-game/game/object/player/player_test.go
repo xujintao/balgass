@@ -48,17 +48,17 @@ func TestCanUseItemChecksRequirements(t *testing.T) {
 		ReqEnergy: 30,
 		ReqClass:  [8]int{class.Wizard: 1},
 	}}
-	if !p.CanUseItem(it) {
-		t.Fatal("CanUseItem() = false, want true")
+	if !p.canUseItem(it) {
+		t.Fatal("canUseItem() = false, want true")
 	}
 	it.ReqEnergy = 31
-	if p.CanUseItem(it) {
-		t.Fatal("CanUseItem() = true with insufficient energy")
+	if p.canUseItem(it) {
+		t.Fatal("canUseItem() = true with insufficient energy")
 	}
 	it.ReqEnergy = 30
 	it.ReqClass[class.Wizard] = 2
-	if p.CanUseItem(it) {
-		t.Fatal("CanUseItem() = true without required change-up")
+	if p.canUseItem(it) {
+		t.Fatal("canUseItem() = true without required change-up")
 	}
 }
 

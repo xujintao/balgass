@@ -490,6 +490,73 @@ func (p *Player) recoverMPAG() {
 	}
 }
 
+func (p *Player) autoSave(now time.Time) {
+	if p.ConnectState != object.ConnectStatePlaying || p.Name == "" {
+		return
+	}
+	if p.autoSaveTime.IsZero() {
+		p.autoSaveTime = now
+		return
+	}
+	if now.Sub(p.autoSaveTime) < autoSaveInterval {
+		return
+	}
+	p.autoSaveTime = now
+	if p.warehouseOpen {
+		p.saveWarehouse()
+	}
+	p.saveCharacter()
+}
+
+func (p *Player) saveWarehouse() {
+	account := model.Account{
+		ID:             p.accountID,
+		Warehouse:      p.warehouse,
+		WarehouseMoney: p.warehouseMoney,
+	}
+	err := model.DB.UpdateAccountWarehouse(&account)
+	if err != nil {
+		slog.Error("saveWarehouse model.DB.UpdateAccountWarehouse",
+			"err", err, "player", p.Name)
+	}
+}
+
+func (p *Player) saveCharacter() {
+	if p.Name == "" {
+		return
+	}
+	c := model.Character{
+		ID:                 p.characterID,
+		ChangeUp:           p.changeUp,
+		MapNumber:          p.MapNumber,
+		X:                  p.X,
+		Y:                  p.Y,
+		Dir:                p.Dir,
+		Money:              p.Money,
+		Strength:           p.strength,
+		Dexterity:          p.dexterity,
+		Vitality:           p.vitality,
+		Energy:             p.energy,
+		Leadership:         p.leadership,
+		Level:              p.Level,
+		LevelPoint:         p.levelPoint,
+		Experience:         p.experience,
+		MasterLevel:        p.masterLevel,
+		MasterPoint:        p.masterPoint,
+		MasterExperience:   p.masterExperience,
+		HP:                 p.HP,
+		MP:                 p.MP,
+		InventoryExpansion: p.inventoryExpansion,
+		Inventory:          p.inventory,
+		Skills:             p.Skills,
+	}
+	err := model.DB.UpdateCharacter(&c)
+	if err != nil {
+		slog.Error("saveCharacter model.DB.UpdateCharacter",
+			"err", err, "player", p.Name)
+	}
+}
+
 func (p *Player) SpawnPosition() {
 	gate := 0
 	switch p.MapNumber {
@@ -619,145 +686,6 @@ func (p *Player) Regen() {
 	p.Push(&reply)
 }
 
-func (p *Player) EquipmentChanged() {
-	// 1, change skill
-	newItemSkills := make(map[int]struct{})
-	primaryHandWeapon := p.inventory.Items[0]
-	if primaryHandWeapon != nil && primaryHandWeapon.SkillIndex != 0 {
-		newItemSkills[primaryHandWeapon.SkillIndex] = struct{}{}
-	}
-	secondaryHandWeapon := p.inventory.Items[1]
-	if secondaryHandWeapon != nil && secondaryHandWeapon.SkillIndex != 0 {
-		newItemSkills[secondaryHandWeapon.SkillIndex] = struct{}{}
-	}
-	oldItemSkills := make(map[int]struct{})
-	for _, s := range p.Skills {
-		if s.Index < 300 && s.SkillBase.ItemSkill {
-			oldItemSkills[s.Index] = struct{}{}
-		}
-	}
-	var needLearnSkills []int
-	for newSkill := range newItemSkills {
-		if _, ok := oldItemSkills[newSkill]; !ok {
-			needLearnSkills = append(needLearnSkills, newSkill)
-		}
-	}
-	var needForgetSkills []int
-	for oldSkill := range oldItemSkills {
-		if _, ok := newItemSkills[oldSkill]; !ok {
-			needForgetSkills = append(needForgetSkills, oldSkill)
-		}
-	}
-	for _, index := range needLearnSkills {
-		if s, ok := p.LearnSkill(index); ok {
-			p.Push(&model.MsgSkillOneReply{
-				Flag:  -2,
-				Skill: s,
-			})
-		}
-	}
-	for _, index := range needForgetSkills {
-		if s, ok := p.ForgetSkill(index); ok {
-			p.Push(&model.MsgSkillOneReply{
-				Flag:  -1,
-				Skill: s,
-			})
-		}
-	}
-	// 2, calculate player
-	p.calc()
-}
-
-func (p *Player) findAndUsePet() {
-	for _, it := range p.inventory.Items[12:204] {
-		if it == nil {
-			continue
-		}
-		switch it.Code {
-		case item.Code(13, 2), // Horn of Uniria 兽角
-			item.Code(13, 3),  // Horn of Dinorant 彩云兽
-			item.Code(13, 4),  // Dark Horse 黑王马之角
-			item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
-			if it.HarmonyOption == 1 {
-				p.pet = it
-			}
-		}
-	}
-}
-
-func (p *Player) saveCharacter() {
-	if p.Name == "" {
-		return
-	}
-	c := model.Character{
-		ID:                 p.characterID,
-		ChangeUp:           p.changeUp,
-		MapNumber:          p.MapNumber,
-		X:                  p.X,
-		Y:                  p.Y,
-		Dir:                p.Dir,
-		Money:              p.Money,
-		Strength:           p.strength,
-		Dexterity:          p.dexterity,
-		Vitality:           p.vitality,
-		Energy:             p.energy,
-		Leadership:         p.leadership,
-		Level:              p.Level,
-		LevelPoint:         p.levelPoint,
-		Experience:         p.experience,
-		MasterLevel:        p.masterLevel,
-		MasterPoint:        p.masterPoint,
-		MasterExperience:   p.masterExperience,
-		HP:                 p.HP,
-		MP:                 p.MP,
-		InventoryExpansion: p.inventoryExpansion,
-		Inventory:          p.inventory,
-		Skills:             p.Skills,
-	}
-	err := model.DB.UpdateCharacter(&c)
-	if err != nil {
-		slog.Error("saveCharacter model.DB.UpdateCharacter",
-			"err", err, "player", p.Name)
-	}
-}
-
-func (p *Player) saveWarehouse() {
-	account := model.Account{
-		ID:             p.accountID,
-		Warehouse:      p.warehouse,
-		WarehouseMoney: p.warehouseMoney,
-	}
-	err := model.DB.UpdateAccountWarehouse(&account)
-	if err != nil {
-		slog.Error("saveWarehouse model.DB.UpdateAccountWarehouse",
-			"err", err, "player", p.Name)
-	}
-}
-
-func (p *Player) loadWarehouse(account *model.Account) {
-	p.warehouse = account.Warehouse
-	p.warehouseMoney = account.WarehouseMoney
-	p.warehouseOpen = true
-}
-
-func (p *Player) autoSave(now time.Time) {
-	if p.ConnectState != object.ConnectStatePlaying || p.Name == "" {
-		return
-	}
-	if p.autoSaveTime.IsZero() {
-		p.autoSaveTime = now
-		return
-	}
-	if now.Sub(p.autoSaveTime) < autoSaveInterval {
-		return
-	}
-	p.autoSaveTime = now
-	if p.warehouseOpen {
-		p.saveWarehouse()
-	}
-	p.saveCharacter()
-}
-
 func (p *Player) GetPKLevel() int {
 	return p.pkLevel
 }
@@ -822,58 +750,8 @@ func (p *Player) UseSkillAmmo(s *skill.Skill, consume bool) bool {
 	return false
 }
 
-func (p *Player) pushSkillList() {
-	var skills []*skill.Skill
-	p.Skills.ForEachActiveSkill(func(s *skill.Skill) {
-		skills = append(skills, s)
-	})
-	sort.Sort(skill.SortedSkillSlice(skills))
-	p.Push(&model.MsgSkillListReply{Skills: skills})
-}
-
-func (p *Player) pushMasterSkillList() {
-	var skills []*model.MsgMasterSkill
-	p.Skills.ForEachMasterSkill(func(index int, level int, curValue float32, nextValue float32) {
-		skills = append(skills, &model.MsgMasterSkill{
-			MasterSkillUIIndex:   index,
-			MasterSkillLevel:     level,
-			MasterSkillCurValue:  curValue,
-			MasterSkillNextValue: nextValue,
-		})
-	})
-	p.Push(&model.MsgMasterSkillListReply{Skills: skills})
-}
-
 func (p *Player) GetChangeUp() int {
 	return p.changeUp
-}
-
-func (p *Player) pushChangedEquipment(it *item.Item) {
-	reply := model.MsgChangeEquipmentReply{
-		Number: p.Index,
-		Item:   it,
-	}
-	p.PushViewport(&reply)
-}
-
-func (p *Player) limitUseItem(it *item.Item) bool {
-	if p.Level < it.ReqLevel ||
-		p.strength+p.addStrength < it.ReqStrength ||
-		p.dexterity+p.addDexterity < it.ReqDexterity ||
-		p.vitality+p.addVitality < it.ReqVitality ||
-		p.energy+p.addEnergy < it.ReqEnergy ||
-		p.leadership+p.addLeadership < it.ReqCommand {
-		return true
-	}
-	reqClass := it.ReqClass[p.Class]
-	if reqClass == 0 || (reqClass > p.changeUp+1) {
-		return true
-	}
-	return false
-}
-
-func (p *Player) CanUseItem(it *item.Item) bool {
-	return !p.limitUseItem(it)
 }
 
 func (p *Player) GetInventory() *item.Inventory {
@@ -1245,6 +1123,45 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	// }()
 }
 
+func (p *Player) findAndUsePet() {
+	for _, it := range p.inventory.Items[12:204] {
+		if it == nil {
+			continue
+		}
+		switch it.Code {
+		case item.Code(13, 2), // Horn of Uniria 兽角
+			item.Code(13, 3),  // Horn of Dinorant 彩云兽
+			item.Code(13, 4),  // Dark Horse 黑王马之角
+			item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
+			if it.HarmonyOption == 1 {
+				p.pet = it
+			}
+		}
+	}
+}
+
+func (p *Player) pushSkillList() {
+	var skills []*skill.Skill
+	p.Skills.ForEachActiveSkill(func(s *skill.Skill) {
+		skills = append(skills, s)
+	})
+	sort.Sort(skill.SortedSkillSlice(skills))
+	p.Push(&model.MsgSkillListReply{Skills: skills})
+}
+
+func (p *Player) pushMasterSkillList() {
+	var skills []*model.MsgMasterSkill
+	p.Skills.ForEachMasterSkill(func(index int, level int, curValue float32, nextValue float32) {
+		skills = append(skills, &model.MsgMasterSkill{
+			MasterSkillUIIndex:   index,
+			MasterSkillLevel:     level,
+			MasterSkillCurValue:  curValue,
+			MasterSkillNextValue: nextValue,
+		})
+	})
+	p.Push(&model.MsgMasterSkillListReply{Skills: skills})
+}
+
 func (p *Player) Talk(msg *model.MsgTalk) {
 	reply := model.MsgTalkReply{
 		Result: 0,
@@ -1309,6 +1226,12 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 	case object.NpcTypeGoldarcher:
 	case object.NpcTypePentagramMix:
 	}
+}
+
+func (p *Player) loadWarehouse(account *model.Account) {
+	p.warehouse = account.Warehouse
+	p.warehouseMoney = account.WarehouseMoney
+	p.warehouseOpen = true
 }
 
 func (p *Player) CloseTalkWindow(msg *model.MsgEmpty) {
@@ -1413,39 +1336,6 @@ func (p *Player) EnableMuBot(msg *model.MsgEnableMuBot) {
 	switch msg.Flag {
 	case 0:
 	case 1:
-	}
-}
-
-func (p *Player) UsePet(msg *model.MsgUsePet) {
-	reply := model.MsgUsePetReply{
-		Position: msg.Position,
-		Result:   0,
-	}
-	defer p.Push(&reply)
-
-	if msg.Position < 12 || msg.Position > 204 {
-		return
-	}
-	it := p.inventory.Items[msg.Position]
-	if it == nil || it.Durability <= 0 {
-		return
-	}
-	switch it.Code {
-	case item.Code(13, 2), // Horn of Uniria 兽角
-		item.Code(13, 3),  // Horn of Dinorant 彩云兽
-		item.Code(13, 4),  // Dark Horse 黑王马之角
-		item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
-		if p.pet != nil {
-			it.HarmonyOption = 0
-			p.pet = nil
-			reply.Result = -1
-		} else {
-			it.HarmonyOption = 1
-			p.pet = it
-			reply.Result = -2
-		}
-		p.EquipmentChanged()
-		p.pushChangedEquipment(it)
 	}
 }
 

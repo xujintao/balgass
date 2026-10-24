@@ -38,7 +38,6 @@ func (*skillTestActor) Die(*Object, int)                       {}
 func (*skillTestActor) LevelUp(int) bool                       { return false }
 func (*skillTestActor) DieDropItem(*Object)                    {}
 func (*skillTestActor) Regen()                                 {}
-func (*skillTestActor) EquipmentChanged()                      {}
 func (*skillTestActor) GetPKLevel() int                        { return 0 }
 func (*skillTestActor) GetMasterLevel() int                    { return 0 }
 func (*skillTestActor) IsMasterLevel() bool                    { return false }
@@ -57,7 +56,6 @@ func (a *skillTestActor) GetEnergy() int                       { return a.energy
 func (a *skillTestActor) GetVitality() int                     { return a.vitality }
 func (a *skillTestActor) GetLeadership() int                   { return a.leadership }
 func (*skillTestActor) GetChangeUp() int                       { return 0 }
-func (*skillTestActor) CanUseItem(*item.Item) bool             { return true }
 func (*skillTestActor) GetInventory() *item.Inventory          { return nil }
 func (*skillTestActor) GetInventoryItem(int) *item.Item        { return nil }
 func (*skillTestActor) SetDelayRecoverHP(int, int)             {}

@@ -11,7 +11,6 @@ import (
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	gameclass "github.com/xujintao/balgass/src/server-game/game/class"
-	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
@@ -389,95 +388,48 @@ func (m *Monster) SpawnPosition() {
 	}
 }
 
-func (m *Monster) overDis(tx, ty int) bool {
-	if m.spawnDis < 1 {
-		return false
-	}
-	x := tx - m.StartX
-	y := ty - m.StartY
-	dis := int(math.Sqrt(float64(x*x + y*y)))
-	return dis > m.spawnDis
-}
-
 // SetEventHerdCenter changes the roaming anchor of an event monster.
 func (m *Monster) SetEventHerdCenter(x, y, radius int) {
 	m.StartX, m.StartY, m.spawnDis = x, y, radius
 }
 
-func (m *Monster) searchEnemy() int {
-	mindis := m.ViewRange
-	target := -1
-	for _, vp := range m.Viewports {
-		tnum := vp.Number
-		if tnum < 0 {
-			continue
+// 模拟怪物基本行为
+func (m *Monster) ProcessAction() {
+	if m.ConnectState < object.ConnectStatePlaying ||
+		!m.Live {
+		return
+	}
+	if m.IsSummon() {
+		owner := object.ObjectManager.GetObject(m.SummonOwner())
+		if owner == nil || !owner.Live || owner.MapNumber != m.MapNumber {
+			object.ObjectManager.DeleteCallMonster(m.Index)
+			return
 		}
-		tobj := object.ObjectManager.GetObject(tnum)
-		if tobj == nil {
-			continue
-		}
-		if m.IsSummon() && (tobj.Type != object.ObjectTypeMonster || tobj.IsSummon()) {
-			continue
-		}
-		if (m.Class == 247 || m.Class == 249) && tobj.GetPKLevel() <= 4 {
-			continue
-		}
-		attr := maps.MapManager.GetMapAttr(tobj.MapNumber, tobj.X, tobj.Y)
-		if attr&1 == 0 {
-			x := m.X - tobj.X
-			y := m.Y - tobj.Y
-			dis := int(math.Sqrt(float64(x*x + y*y)))
-			vp.Dis = dis
-			if dis < mindis {
-				mindis = dis
-				target = tnum
-			}
+		if m.CalcDistance(owner) > 15 {
+			maps.MapManager.ClearMapAttrStand(m.MapNumber, m.TX, m.TY)
+			m.X, m.Y = owner.X+1, owner.Y
+			m.TX, m.TY = m.X, m.Y
+			m.CreateFrustum()
+			maps.MapManager.SetMapAttrStand(m.MapNumber, m.TX, m.TY)
 		}
 	}
-	return target
-}
-
-func (m *Monster) roamMove() bool {
-	maxMoveRange := m.moveRange << 1
-	cnt := 10
-	for cnt > 0 {
-		cnt--
-		x := m.X + rand.Intn(maxMoveRange+1) - m.moveRange
-		y := m.Y + rand.Intn(maxMoveRange+1) - m.moveRange
-		if m.overDis(x, y) {
-			continue
-		}
-		attr := maps.MapManager.GetMapAttr(m.MapNumber, x, y)
-		if ((m.Class == 249 || m.Class == 247) && attr&2 == 0) || // Guard
-			attr&15 == 0 {
-			m.TX = x
-			m.TY = y
-			return true
-		}
+	now := time.Now()
+	interval := m.nextActionInterval + m.delayActionInterval
+	if now.Before(m.lastActionTime.Add(time.Duration(interval) * time.Millisecond)) {
+		return
 	}
-	return false
-}
-
-func (m *Monster) chaseMove(tobj *object.Object) bool {
-	dir := maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
-	cnt := len(maps.Dirs)
-	for cnt > 0 {
-		tx := m.X + maps.Dirs[dir].X
-		ty := m.Y + maps.Dirs[dir].Y
-		attr := maps.MapManager.GetMapAttr(m.MapNumber, tx, ty)
-		if ((m.Class == 247 || m.Class == 249) && attr&2 == 0) ||
-			attr&15 == 0 {
-			m.TX = tx
-			m.TY = ty
-			return true
-		}
-		cnt--
-		dir++
-		if dir == len(maps.Dirs) {
-			dir = 0
-		}
+	m.lastActionTime = now
+	m.baseAction()
+	if m.actionState.move {
+		m.actionState.move = false
+		m.move()
+		return
 	}
-	return false
+	if m.actionState.attack {
+		m.actionState.attack = false
+		m.attack()
+		return
+	}
 }
 
 func (m *Monster) baseAction() {
@@ -602,6 +554,92 @@ func (m *Monster) baseAction() {
 	}
 }
 
+func (m *Monster) searchEnemy() int {
+	mindis := m.ViewRange
+	target := -1
+	for _, vp := range m.Viewports {
+		tnum := vp.Number
+		if tnum < 0 {
+			continue
+		}
+		tobj := object.ObjectManager.GetObject(tnum)
+		if tobj == nil {
+			continue
+		}
+		if m.IsSummon() && (tobj.Type != object.ObjectTypeMonster || tobj.IsSummon()) {
+			continue
+		}
+		if (m.Class == 247 || m.Class == 249) && tobj.GetPKLevel() <= 4 {
+			continue
+		}
+		attr := maps.MapManager.GetMapAttr(tobj.MapNumber, tobj.X, tobj.Y)
+		if attr&1 == 0 {
+			x := m.X - tobj.X
+			y := m.Y - tobj.Y
+			dis := int(math.Sqrt(float64(x*x + y*y)))
+			vp.Dis = dis
+			if dis < mindis {
+				mindis = dis
+				target = tnum
+			}
+		}
+	}
+	return target
+}
+
+func (m *Monster) roamMove() bool {
+	maxMoveRange := m.moveRange << 1
+	cnt := 10
+	for cnt > 0 {
+		cnt--
+		x := m.X + rand.Intn(maxMoveRange+1) - m.moveRange
+		y := m.Y + rand.Intn(maxMoveRange+1) - m.moveRange
+		if m.overDis(x, y) {
+			continue
+		}
+		attr := maps.MapManager.GetMapAttr(m.MapNumber, x, y)
+		if ((m.Class == 249 || m.Class == 247) && attr&2 == 0) || // Guard
+			attr&15 == 0 {
+			m.TX = x
+			m.TY = y
+			return true
+		}
+	}
+	return false
+}
+
+func (m *Monster) chaseMove(tobj *object.Object) bool {
+	dir := maps.CalcDir(m.X, m.Y, tobj.X, tobj.Y)
+	cnt := len(maps.Dirs)
+	for cnt > 0 {
+		tx := m.X + maps.Dirs[dir].X
+		ty := m.Y + maps.Dirs[dir].Y
+		attr := maps.MapManager.GetMapAttr(m.MapNumber, tx, ty)
+		if ((m.Class == 247 || m.Class == 249) && attr&2 == 0) ||
+			attr&15 == 0 {
+			m.TX = tx
+			m.TY = ty
+			return true
+		}
+		cnt--
+		dir++
+		if dir == len(maps.Dirs) {
+			dir = 0
+		}
+	}
+	return false
+}
+
+func (m *Monster) overDis(tx, ty int) bool {
+	if m.spawnDis < 1 {
+		return false
+	}
+	x := tx - m.StartX
+	y := ty - m.StartY
+	dis := int(math.Sqrt(float64(x*x + y*y)))
+	return dis > m.spawnDis
+}
+
 func (m *Monster) move() {
 	// start := time.Now()
 	path, ok := maps.MapManager.FindMapPath(m.MapNumber, m.X, m.Y, m.TX, m.TY)
@@ -653,45 +691,6 @@ func (m *Monster) attack() {
 	}
 }
 
-// 模拟怪物基本行为
-func (m *Monster) ProcessAction() {
-	if m.ConnectState < object.ConnectStatePlaying ||
-		!m.Live {
-		return
-	}
-	if m.IsSummon() {
-		owner := object.ObjectManager.GetObject(m.SummonOwner())
-		if owner == nil || !owner.Live || owner.MapNumber != m.MapNumber {
-			object.ObjectManager.DeleteCallMonster(m.Index)
-			return
-		}
-		if m.CalcDistance(owner) > 15 {
-			maps.MapManager.ClearMapAttrStand(m.MapNumber, m.TX, m.TY)
-			m.X, m.Y = owner.X+1, owner.Y
-			m.TX, m.TY = m.X, m.Y
-			m.CreateFrustum()
-			maps.MapManager.SetMapAttrStand(m.MapNumber, m.TX, m.TY)
-		}
-	}
-	now := time.Now()
-	interval := m.nextActionInterval + m.delayActionInterval
-	if now.Before(m.lastActionTime.Add(time.Duration(interval) * time.Millisecond)) {
-		return
-	}
-	m.lastActionTime = now
-	m.baseAction()
-	if m.actionState.move {
-		m.actionState.move = false
-		m.move()
-		return
-	}
-	if m.actionState.attack {
-		m.actionState.attack = false
-		m.attack()
-		return
-	}
-}
-
 func (m *Monster) Process1000ms() {
 
 }
@@ -703,8 +702,4 @@ func (m *Monster) Regen() {
 
 func (m *Monster) GetChangeUp() int {
 	return 0
-}
-
-func (m *Monster) CanUseItem(*item.Item) bool {
-	return false
 }

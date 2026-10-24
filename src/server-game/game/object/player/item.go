@@ -123,7 +123,7 @@ func (p *Player) DropItem(msg *model.MsgDropItem) {
 	}
 	p.inventory.RemoveItem(msg.Position, it)
 	if msg.Position < 12 || msg.Position == 126 {
-		p.EquipmentChanged()
+		p.equipmentChanged()
 	}
 	reply.Result = 1
 }
@@ -311,7 +311,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				p.inventory.AddItem(msg.DstPosition, sitem)
 				if msg.SrcPosition < 12 || msg.SrcPosition == 236 ||
 					msg.DstPosition < 12 || msg.DstPosition == 236 {
-					p.EquipmentChanged()
+					p.equipmentChanged()
 				}
 				reply.Result = msg.DstFlag
 			case titem.Overlap != 0 && // overlap
@@ -351,7 +351,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				p.inventory.RemoveItem(msg.SrcPosition, sitem)
 				p.warehouse.AddItem(msg.DstPosition, sitem)
 				if msg.SrcPosition < 12 || msg.SrcPosition == 236 {
-					p.EquipmentChanged()
+					p.equipmentChanged()
 				}
 				reply.Result = msg.DstFlag
 			}
@@ -369,7 +369,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				p.warehouse.RemoveItem(msg.SrcPosition, sitem)
 				p.inventory.AddItem(msg.DstPosition, sitem)
 				if msg.DstPosition < 12 || msg.DstPosition == 236 {
-					p.EquipmentChanged()
+					p.equipmentChanged()
 				}
 				reply.Result = msg.DstFlag
 			}
@@ -391,6 +391,55 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	}
 	reply.Position = msg.DstPosition
 	reply.Item = sitem
+}
+
+func (p *Player) equipmentChanged() {
+	// 1, change skill
+	newItemSkills := make(map[int]struct{})
+	primaryHandWeapon := p.inventory.Items[0]
+	if primaryHandWeapon != nil && primaryHandWeapon.SkillIndex != 0 {
+		newItemSkills[primaryHandWeapon.SkillIndex] = struct{}{}
+	}
+	secondaryHandWeapon := p.inventory.Items[1]
+	if secondaryHandWeapon != nil && secondaryHandWeapon.SkillIndex != 0 {
+		newItemSkills[secondaryHandWeapon.SkillIndex] = struct{}{}
+	}
+	oldItemSkills := make(map[int]struct{})
+	for _, s := range p.Skills {
+		if s.Index < 300 && s.SkillBase.ItemSkill {
+			oldItemSkills[s.Index] = struct{}{}
+		}
+	}
+	var needLearnSkills []int
+	for newSkill := range newItemSkills {
+		if _, ok := oldItemSkills[newSkill]; !ok {
+			needLearnSkills = append(needLearnSkills, newSkill)
+		}
+	}
+	var needForgetSkills []int
+	for oldSkill := range oldItemSkills {
+		if _, ok := newItemSkills[oldSkill]; !ok {
+			needForgetSkills = append(needForgetSkills, oldSkill)
+		}
+	}
+	for _, index := range needLearnSkills {
+		if s, ok := p.LearnSkill(index); ok {
+			p.Push(&model.MsgSkillOneReply{
+				Flag:  -2,
+				Skill: s,
+			})
+		}
+	}
+	for _, index := range needForgetSkills {
+		if s, ok := p.ForgetSkill(index); ok {
+			p.Push(&model.MsgSkillOneReply{
+				Flag:  -1,
+				Skill: s,
+			})
+		}
+	}
+	// 2, calculate player
+	p.calc()
 }
 
 func (p *Player) pushItemDurability(position, dur int) {
@@ -535,7 +584,7 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 	case it.Code == item.Code(14, 224): // Bless of Light (Greater) 光的祝福
 	case it.Code >= item.Code(14, 263) && it.Code <= item.Code(14, 264): // Bless of Light 光之祝福
 	case it.KindA == item.KindASkill:
-		if !p.CanUseItem(it) {
+		if !p.canUseItem(it) {
 			return
 		}
 		// (15, 18) // Scroll of Nova 星辰一怒术
@@ -555,6 +604,22 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 			})
 		}
 	}
+}
+
+func (p *Player) canUseItem(it *item.Item) bool {
+	if p.Level < it.ReqLevel ||
+		p.strength+p.addStrength < it.ReqStrength ||
+		p.dexterity+p.addDexterity < it.ReqDexterity ||
+		p.vitality+p.addVitality < it.ReqVitality ||
+		p.energy+p.addEnergy < it.ReqEnergy ||
+		p.leadership+p.addLeadership < it.ReqCommand {
+		return false
+	}
+	reqClass := it.ReqClass[p.Class]
+	if reqClass == 0 || (reqClass > p.changeUp+1) {
+		return false
+	}
+	return true
 }
 
 func (p *Player) ValidateItemPosition(position int) bool {
@@ -607,4 +672,45 @@ func (p *Player) RepairItem(msg *model.MsgRepairItem) {
 		return
 	}
 	p.repairItem(it, msg.Fast)
+}
+
+func (p *Player) UsePet(msg *model.MsgUsePet) {
+	reply := model.MsgUsePetReply{
+		Position: msg.Position,
+		Result:   0,
+	}
+	defer p.Push(&reply)
+
+	if msg.Position < 12 || msg.Position > 204 {
+		return
+	}
+	it := p.inventory.Items[msg.Position]
+	if it == nil || it.Durability <= 0 {
+		return
+	}
+	switch it.Code {
+	case item.Code(13, 2), // Horn of Uniria 兽角
+		item.Code(13, 3),  // Horn of Dinorant 彩云兽
+		item.Code(13, 4),  // Dark Horse 黑王马之角
+		item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
+		if p.pet != nil {
+			it.HarmonyOption = 0
+			p.pet = nil
+			reply.Result = -1
+		} else {
+			it.HarmonyOption = 1
+			p.pet = it
+			reply.Result = -2
+		}
+		p.equipmentChanged()
+		p.pushChangedEquipment(it)
+	}
+}
+
+func (p *Player) pushChangedEquipment(it *item.Item) {
+	reply := model.MsgChangeEquipmentReply{
+		Number: p.Index,
+		Item:   it,
+	}
+	p.PushViewport(&reply)
 }
