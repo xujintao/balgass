@@ -127,6 +127,7 @@ func (p *Player) DropItem(msg *model.MsgDropItem) {
 	}
 	reply.Result = 1
 }
+
 func commonBagDropPosition(mapNumber, x, y int) (int, int) {
 	for i := 0; i < 10; i++ {
 		dx, dy := rand.Intn(5), rand.Intn(5)
@@ -265,20 +266,17 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 			p.Push(&reply)
 		}
 	}()
-
 	// get source item
 	switch msg.SrcFlag {
 	case 0: // inventory
-		if msg.SrcPosition >= p.inventory.Size {
+		sitem = p.inventory.Item(msg.SrcPosition)
+	case 1: // Chaos Box
+		if !p.chaosBoxOpen {
 			return
 		}
-		sitem = p.inventory.Items[msg.SrcPosition]
+		sitem = p.chaosBox.Item(msg.SrcPosition)
 	case 2: // warehouse
-		if msg.SrcPosition >= p.warehouse.Size {
-			return
-		}
-		sitem = p.warehouse.Items[msg.SrcPosition]
-
+		sitem = p.warehouse.Item(msg.SrcPosition)
 	}
 	if sitem == nil {
 		return
@@ -286,24 +284,23 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	// get destination item
 	switch msg.DstFlag {
 	case 0: // inventory
-		if msg.DstPosition >= p.inventory.Size {
+		titem = p.inventory.Item(msg.DstPosition)
+	case 1: // Chaos Box
+		if !p.chaosBoxOpen {
 			return
 		}
-		titem = p.inventory.Items[msg.DstPosition]
+		titem = p.chaosBox.Item(msg.DstPosition)
 	case 2: // warehouse
-		if msg.DstPosition >= p.warehouse.Size {
-			return
-		}
-		titem = p.warehouse.Items[msg.DstPosition]
+		titem = p.warehouse.Item(msg.DstPosition)
 	}
-
+	// move item
 	switch msg.SrcFlag {
-	case 0:
+	case 0: // inventory
 		switch msg.DstFlag {
-		case 0:
+		case 0: // inventory to inventory
 			switch {
 			case titem == nil: // move
-				ok := p.inventory.CheckFlagsForItem(msg.DstPosition, sitem)
+				ok := p.inventory.CanPlace(msg.DstPosition, sitem)
 				if !ok {
 					return
 				}
@@ -342,9 +339,15 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 			default:
 				return
 			}
-		case 2:
+		case 1: // inventory to Chaos Box
+			if msg.SrcPosition < 12 || !p.chaosBox.AddItem(msg.DstPosition, sitem) {
+				return
+			}
+			p.inventory.RemoveItem(msg.SrcPosition, sitem)
+			reply.Result = msg.DstFlag
+		case 2: // inventory to warehouse
 			if titem == nil {
-				ok := p.warehouse.CheckFlagsForItem(msg.DstPosition, sitem)
+				ok := p.warehouse.CanPlace(msg.DstPosition, sitem)
 				if !ok {
 					return
 				}
@@ -358,11 +361,31 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 		default:
 			return
 		}
-	case 2:
+	case 1: // Chaos Box
 		switch msg.DstFlag {
-		case 0:
+		case 0: // Chaos Box to inventory
+			if msg.DstPosition < 12 {
+				return
+			}
+			if !p.inventory.CanPlace(msg.DstPosition, sitem) {
+				return
+			}
+			p.inventory.AddItem(msg.DstPosition, sitem)
+			p.chaosBox.RemoveItem(msg.SrcPosition)
+			reply.Result = msg.DstFlag
+		case 1: // Chaos Box to Chaos Box
+			if !p.chaosBox.MoveItem(msg.SrcPosition, msg.DstPosition) {
+				return
+			}
+			reply.Result = msg.DstFlag
+		default:
+			return
+		}
+	case 2: // warehouse
+		switch msg.DstFlag {
+		case 0: // warehouse to inventory
 			if titem == nil {
-				ok := p.inventory.CheckFlagsForItem(msg.DstPosition, sitem)
+				ok := p.inventory.CanPlace(msg.DstPosition, sitem)
 				if !ok {
 					return
 				}
@@ -373,9 +396,9 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				}
 				reply.Result = msg.DstFlag
 			}
-		case 2:
+		case 2: // warehouse to warehouse
 			if titem == nil {
-				ok := p.warehouse.CheckFlagsForItem(msg.DstPosition, sitem)
+				ok := p.warehouse.CanPlace(msg.DstPosition, sitem)
 				if !ok {
 					return
 				}
@@ -391,6 +414,340 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	}
 	reply.Position = msg.DstPosition
 	reply.Item = sitem
+}
+
+func (p *Player) MixItems(msg *model.MsgMixItems) {
+	reply := &model.MsgMixItemsReply{Result: 7}
+	defer p.Push(reply)
+	if !p.chaosBoxOpen {
+		return
+	}
+	fee, ok := item.SocketManager.SeedFee(msg.Type)
+	if !ok {
+		return
+	}
+	var output *item.Item
+	var targetPosition = -1
+	var rate = 100
+	var remove = false
+	items := make([]int, 0, 12)
+	for position, it := range p.chaosBox.Items() {
+		if it != nil {
+			items = append(items, position)
+		}
+	}
+	switch msg.Type {
+	case item.SocketMixSeedExtract: // Extract a Seed from one excellent and one set item.
+		if len(items) != 5 {
+			return
+		}
+		excellent, setItem, harmony, chaos, creation := -1, -1, -1, -1, -1
+		for _, position := range items {
+			it := p.chaosBox.Item(position)
+			switch {
+			case it.IsExcellent() && it.Level >= 4 && excellent < 0:
+				excellent = position
+			case it.Set != 0 && it.Level >= 4 && setItem < 0:
+				setItem = position
+			case it.Code == item.Code(14, 42) && harmony < 0:
+				harmony = position
+			case it.Code == item.Code(12, 15) && chaos < 0:
+				chaos = position
+			case it.Code == item.Code(14, 22) && creation < 0:
+				creation = position
+			default:
+				return
+			}
+		}
+		if excellent < 0 || setItem < 0 || harmony < 0 || chaos < 0 || creation < 0 {
+			return
+		}
+		code, level, found := item.SocketManager.RandomSeed()
+		if !found {
+			return
+		}
+		output = item.NewItem(code/512, code%512)
+		output.Level, output.Durability = level, 1
+		output.Calc()
+		rate = 80 + (p.chaosBox.Item(excellent).BuyMoney+p.chaosBox.Item(setItem).BuyMoney)/2000000
+		if rate > 90 {
+			rate = 90
+		}
+	case item.SocketMixSeedSphereComposite: // Seed + Sphere, or third-rank Seed Sphere + Sphere.
+		seed, sphere, chaos, creation, chaosBundle, creationBundle := -1, -1, -1, -1, -1, -1
+		tetra := -1
+		for _, position := range items {
+			it := p.chaosBox.Item(position)
+			switch {
+			case it.KindB == item.KindBSocketSeed && seed < 0:
+				seed = position
+			case it.KindB == item.KindBSocketSphere && sphere < 0:
+				sphere = position
+			case it.Section == 12 && it.Index >= 112 && it.Index <= 117 && seed < 0:
+				seed = position
+			case it.Code == item.Code(12, 15) && chaos < 0:
+				chaos = position
+			case it.Code == item.Code(14, 22) && creation < 0:
+				creation = position
+			case it.Code == item.Code(12, 141) && it.Level == 0 && chaosBundle < 0:
+				chaosBundle = position
+			case it.Code == item.Code(12, 137) && it.Level == 0 && creationBundle < 0:
+				creationBundle = position
+			case it.Section == 14 && it.Index >= 245 && it.Index <= 247 && tetra < 0:
+				tetra = position
+			default:
+				return
+			}
+		}
+		if seed < 0 || sphere < 0 {
+			return
+		}
+		high := p.chaosBox.Item(seed).KindB == item.KindBSocketSeedSphere
+		if high {
+			if chaosBundle < 0 || creationBundle < 0 || chaos >= 0 || creation >= 0 {
+				return
+			}
+		} else if chaos < 0 || creation < 0 || chaosBundle >= 0 || creationBundle >= 0 {
+			return
+		}
+		if len(items) != 4 && len(items) != 5 {
+			return
+		}
+		if len(items) == 5 && tetra < 0 {
+			return
+		}
+		seedItem := p.chaosBox.Item(seed)
+		var index int
+		var found bool
+		if high {
+			index, _, found = item.SocketManager.SeedSphereIndex(seedItem.Code, seedItem.Level)
+		} else {
+			index, found = item.SocketManager.SeedIndex(seedItem.Code, seedItem.Level)
+		}
+		if !found {
+			return
+		}
+		output, found = item.SocketManager.SeedSphereItem(index, p.chaosBox.Item(sphere).Index-69)
+		if !found {
+			return
+		}
+		money := p.chaosBox.Item(sphere).BuyMoney
+		if high {
+			rate = 20 + money/200000
+			if tetra >= 0 {
+				rate = map[int]int{247: 50, 246: 65, 245: 80}[p.chaosBox.Item(tetra).Index] + money/200000
+			}
+		} else {
+			money += seedItem.BuyMoney
+			rate = 80 + money/200000
+		}
+	case item.SocketMixInsert: // Insert a Seed Sphere into an empty socket.
+		if len(items) != 4 {
+			return
+		}
+		seedSphere, chaos, creation := -1, -1, -1
+		for _, position := range items {
+			it := p.chaosBox.Item(position)
+			switch {
+			case it.Type == item.TypeSocket && targetPosition < 0:
+				targetPosition = position
+			case it.KindB == item.KindBSocketSeedSphere && seedSphere < 0:
+				seedSphere = position
+			case it.Code == item.Code(12, 15) && chaos < 0:
+				chaos = position
+			case it.Code == item.Code(14, 22) && creation < 0:
+				creation = position
+			default:
+				return
+			}
+		}
+		if targetPosition < 0 || seedSphere < 0 || chaos < 0 || creation < 0 {
+			return
+		}
+		target := p.chaosBox.Item(targetPosition)
+		slot, valid := target.SocketSlotAt(msg.Position)
+		if !valid || slot != 1 {
+			return
+		}
+		seedItem := p.chaosBox.Item(seedSphere)
+		index, sphereLevel, found := item.SocketManager.SeedSphereIndex(seedItem.Code, seedItem.Level)
+		if !found {
+			return
+		}
+		element, _ := item.SocketManager.SeedElement(index)
+		if target.Section <= 5 {
+			if element != 1 && element != 3 && element != 5 {
+				return
+			}
+		} else if target.Section <= 11 {
+			if element != 2 && element != 4 && element != 6 {
+				return
+			}
+		} else {
+			return
+		}
+		for i := 0; i < 5; i++ {
+			existing, _ := target.SocketSlotAt(i)
+			if existing >= 100 && existing%100 == index {
+				return
+			}
+		}
+		output = target.Copy()
+		output.SetSocketSlotAt(msg.Position, sphereLevel*100+index)
+		item.SocketManager.RollBonus(output)
+		output.Calc()
+		if target.MaxDurability > 0 {
+			output.Durability = output.MaxDurability * target.Durability / target.MaxDurability
+		}
+	case item.SocketMixRemove: // Remove one fitted Seed Sphere.
+		if len(items) != 12 {
+			return
+		}
+		chaos, harmony, guardian := 0, 0, 0
+		for _, position := range items {
+			it := p.chaosBox.Item(position)
+			switch {
+			case it.Type == item.TypeSocket && targetPosition < 0:
+				targetPosition = position
+			case it.Code == item.Code(12, 15):
+				chaos++
+			case it.Code == item.Code(14, 42):
+				harmony++
+			case it.Code == item.Code(14, 31):
+				guardian++
+			default:
+				return
+			}
+		}
+		if targetPosition < 0 || chaos != 5 || harmony != 5 || guardian != 1 {
+			return
+		}
+		target := p.chaosBox.Item(targetPosition)
+		slot, valid := target.SocketSlotAt(msg.Position)
+		if !valid || slot < 100 {
+			return
+		}
+		index := slot % 100
+		if code, level, found := item.SocketManager.SeedItem(index); found {
+			output = item.NewItem(code/512, code%512)
+			output.Level, output.Durability = level, 1
+			output.Calc()
+		} else {
+			return
+		}
+		rate, remove = 80, true
+	}
+	if p.Money < fee {
+		reply.Result = 2
+		return
+	}
+	if (msg.Type == item.SocketMixSeedExtract || msg.Type == item.SocketMixSeedSphereComposite || remove) && !p.chaosBox.OutputFits(output, targetPosition) {
+		reply.Result = 6
+		return
+	}
+	p.Money -= fee
+	p.PushMoney()
+	roll := rand.Intn(100)
+	failed := roll > rate
+	if remove {
+		failed = roll >= rate
+	}
+	if failed {
+		if msg.Type == item.SocketMixSeedExtract {
+			for _, position := range items {
+				it := p.chaosBox.Item(position)
+				if it.IsExcellent() || it.Set != 0 {
+					it.Level -= rand.Intn(3)
+					if it.Level < 0 {
+						it.Level = 0
+					}
+					it.Calc()
+				} else {
+					p.consumeChaosBoxItem(position)
+				}
+			}
+		} else {
+			for _, position := range items {
+				if position != targetPosition {
+					p.consumeChaosBoxItem(position)
+				}
+			}
+		}
+		p.pushChaosBoxItems()
+		reply.Result = 0
+		return
+	}
+	if msg.Type == item.SocketMixInsert || remove {
+		for _, position := range items {
+			if position != targetPosition {
+				p.consumeChaosBoxItem(position)
+			}
+		}
+		if remove {
+			target := p.chaosBox.Item(targetPosition)
+			oldMax, durability := target.MaxDurability, target.Durability
+			target.SetSocketSlotAt(msg.Position, 1)
+			item.SocketManager.RollBonus(target)
+			target.Calc()
+			if oldMax > 0 {
+				target.Durability = target.MaxDurability * durability / oldMax
+			}
+			if !p.createMixInventoryItem(output) {
+				return
+			}
+		} else {
+			p.chaosBox.ReplaceItem(targetPosition, output)
+		}
+		if targetPosition != 0 {
+			p.chaosBox.MoveItem(targetPosition, 0)
+			targetPosition = 0
+		}
+		reply.Item = p.chaosBox.Item(targetPosition)
+	} else {
+		for _, position := range items {
+			p.consumeChaosBoxItem(position)
+		}
+		if !p.createMixInventoryItem(output) {
+			return
+		}
+		reply.Item = output
+	}
+	p.pushChaosBoxItems()
+	reply.Result = 1
+}
+
+func (p *Player) consumeChaosBoxItem(position int) {
+	p.chaosBox.RemoveItem(position)
+}
+
+func (p *Player) pushChaosBoxItems() {
+	p.Push(&model.MsgTypeItemListReply{Type: 3, MsgItemListReply: model.MsgItemListReply{Items: p.chaosBox.Items()}})
+}
+
+func (p *Player) createMixInventoryItem(it *item.Item) bool {
+	for position := 12; position < p.inventory.Size; position++ {
+		if !p.inventory.CanPlace(position, it) {
+			continue
+		}
+		p.inventory.AddItem(position, it)
+		p.Push(&model.MsgPickItemReply{Result: position, Item: it})
+		return true
+	}
+	return false
+}
+
+func (p *Player) CloseChaosBox(*model.MsgEmpty) {
+	p.closeChaosBox()
+	p.TargetNumber = -1
+	p.Push(&model.MsgCloseChaosBoxReply{})
+}
+
+func (p *Player) closeChaosBox() {
+	if !p.chaosBoxOpen {
+		return
+	}
+	p.chaosBox.Clear()
+	p.chaosBoxOpen = false
 }
 
 func (p *Player) equipmentChanged() {

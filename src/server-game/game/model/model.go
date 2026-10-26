@@ -927,6 +927,10 @@ func (msg *MsgMoveItemReply) Marshal() ([]byte, error) {
 	bw.WriteByte(byte(msg.Result))
 	bw.WriteByte(byte(msg.Position))
 	// bw.Write(msg.ItemFrame[:])
+	if msg.Item == nil {
+		bw.Write(make([]byte, 12))
+		return bw.Bytes(), nil
+	}
 	itemFrame, err := msg.Item.Marshal()
 	if err != nil {
 		return nil, err
@@ -934,6 +938,43 @@ func (msg *MsgMoveItemReply) Marshal() ([]byte, error) {
 	bw.Write(itemFrame)
 	return bw.Bytes(), nil
 }
+
+type MsgMixItems struct {
+	Type     int
+	Position int
+	MixCount int
+}
+
+func (msg *MsgMixItems) Unmarshal(buf []byte) error {
+	if len(buf) < 3 {
+		return fmt.Errorf("chaos mix request too short: %d", len(buf))
+	}
+	msg.Type, msg.Position, msg.MixCount = int(buf[0]), int(buf[1]), int(buf[2])
+	return nil
+}
+
+type MsgMixItemsReply struct {
+	Result   int
+	Item     *item.Item
+	Position int
+}
+
+func (msg *MsgMixItemsReply) Marshal() ([]byte, error) {
+	data := make([]byte, 14)
+	data[0], data[13] = byte(msg.Result), byte(msg.Position)
+	if msg.Item != nil {
+		frame, err := msg.Item.Marshal()
+		if err != nil {
+			return nil, err
+		}
+		copy(data[1:13], frame)
+	}
+	return data, nil
+}
+
+type MsgCloseChaosBoxReply struct{}
+
+func (*MsgCloseChaosBoxReply) Marshal() ([]byte, error) { return nil, nil }
 
 type MsgChangeEquipmentReply struct {
 	Number  int

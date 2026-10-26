@@ -16,10 +16,13 @@ func (inv *Inventory) WearingItems() []*Item {
 }
 
 func (inv *Inventory) Item(position int) *Item {
+	if position < 0 || position >= inv.Size || position >= len(inv.Items) {
+		return nil
+	}
 	return inv.Items[position]
 }
 
-func (inv *Inventory) CheckFlagsForItem(position int, it *Item) bool {
+func (inv *Inventory) CanPlace(position int, it *Item) bool {
 	if it == nil || position < 0 || position >= len(inv.Flags) {
 		return false
 	}
@@ -57,7 +60,7 @@ func (inv *Inventory) FindFreePositionForItem(it *Item) int {
 		if i < 12 {
 			continue
 		}
-		ok := inv.CheckFlagsForItem(i, it)
+		ok := inv.CanPlace(i, it)
 		if ok {
 			return i
 		}
@@ -116,7 +119,7 @@ func (inv *Inventory) UnmarshalJSON(buf []byte) error {
 	inv.Size = 237
 	err := inv.PositionedItems.UnmarshalJSON(
 		buf,
-		inv.CheckFlagsForItem,
+		inv.CanPlace,
 		inv.SetFlagsForItem,
 	)
 	if err != nil {

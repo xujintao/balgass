@@ -240,6 +240,8 @@ type Player struct {
 	// curseSpell           int
 	autoSaveTime       time.Time
 	inventory          item.Inventory
+	chaosBoxOpen       bool
+	chaosBox           item.ChaosBox
 	inventoryExpansion int
 	warehouse          item.Warehouse
 	warehouseOpen      bool
@@ -309,6 +311,7 @@ func (p *Player) Offline() {
 		return
 	}
 	p.offline = true
+	p.closeChaosBox()
 	// todo
 	p.saveCharacter()
 	p.cancel()
@@ -831,6 +834,7 @@ func (p *Player) Login(msg *model.MsgLogin) {
 // }
 
 func (p *Player) Logout(msg *model.MsgLogout) {
+	p.closeChaosBox()
 	maps.MapManager.ClearMapAttrStand(p.MapNumber, p.TX, p.TY)
 	defer p.Push(&model.MsgLogoutReply{Flag: msg.Flag})
 	switch msg.Flag {
@@ -1193,6 +1197,9 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		})
 	}
 	p.TargetNumber = tobj.Index
+	if tobj.NpcType != object.NpcTypeChaosMix {
+		p.closeChaosBox()
+	}
 	switch tobj.NpcType {
 	case object.NpcTypeShop:
 		inventory := shop.ShopManager.GetShopInventory(tobj.Class, tobj.MapNumber)
@@ -1223,6 +1230,17 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		}
 		p.Push(&warehouseMoneyReply)
 	case object.NpcTypeChaosMix:
+		switch tobj.Class {
+		case 452:
+			reply.Result = 0x17 // Seed Master
+		case 453:
+			reply.Result = 0x18 // Seed Researcher
+		default:
+			return
+		}
+		p.chaosBoxOpen = true
+		p.Push(&reply)
+		p.Push(&model.MsgTypeItemListReply{Type: 3, MsgItemListReply: model.MsgItemListReply{Items: p.chaosBox.Items()}})
 	case object.NpcTypeGoldarcher:
 	case object.NpcTypePentagramMix:
 	}
@@ -1235,6 +1253,7 @@ func (p *Player) loadWarehouse(account *model.Account) {
 }
 
 func (p *Player) CloseTalkWindow(msg *model.MsgEmpty) {
+	p.closeChaosBox()
 	p.TargetNumber = -1
 }
 

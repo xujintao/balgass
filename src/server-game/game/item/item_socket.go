@@ -9,6 +9,13 @@ import (
 
 var SocketManager socketManager
 
+const (
+	SocketMixSeedExtract         = 0x2a
+	SocketMixSeedSphereComposite = 0x2b
+	SocketMixInsert              = 0x2c
+	SocketMixRemove              = 0x2d
+)
+
 type socketSeedOption struct {
 	name         string
 	element      int
@@ -46,6 +53,7 @@ type socketManager struct {
 	tetraRates     [3]int
 	tetraMinLevels [3]int
 	tetraMaxLevels [3]int
+	seedMoney      [4]int
 	rates          [12][5]int
 	twoHand        [5]int
 	seedOptions    map[int]socketSeedOption
@@ -86,6 +94,14 @@ func (m *socketManager) init() {
 			Silver *tetraConfig `xml:"Silver"`
 			Gold   *tetraConfig `xml:"Gold"`
 		} `xml:"TetraDrop"`
+		Seed *struct {
+			ExtractMoney *int `xml:"ExtractMoney,attr"`
+			Sphere       *struct {
+				CompositeMoney *int `xml:"CompositeMoney,attr"`
+				SetMoney       *int `xml:"SetMoney,attr"`
+				RemoveMoney    *int `xml:"RemoveMoney,attr"`
+			} `xml:"Sphere"`
+		} `xml:"Seed"`
 		SocketRateSettings struct {
 			Sockets []rateConfig `xml:"Socket"`
 			TwoHand *rateConfig  `xml:"TwoHandWeapons"`
@@ -130,6 +146,19 @@ func (m *socketManager) init() {
 			panic(fmt.Errorf("%s: Tetra tier %d: %w", socketFile, i+1, err))
 		}
 		m.tetraRates[i], m.tetraMinLevels[i], m.tetraMaxLevels[i] = *entry.Rate, *entry.Min, *entry.Max
+	}
+	if socketCfg.Seed == nil || socketCfg.Seed.Sphere == nil ||
+		socketCfg.Seed.ExtractMoney == nil || socketCfg.Seed.Sphere.CompositeMoney == nil ||
+		socketCfg.Seed.Sphere.SetMoney == nil || socketCfg.Seed.Sphere.RemoveMoney == nil {
+		panic(fmt.Errorf("%s: missing Seed fees", socketFile))
+	}
+	fees := [4]*int{socketCfg.Seed.ExtractMoney, socketCfg.Seed.Sphere.CompositeMoney,
+		socketCfg.Seed.Sphere.SetMoney, socketCfg.Seed.Sphere.RemoveMoney}
+	for i, fee := range fees {
+		if *fee < 0 {
+			panic(fmt.Errorf("%s: invalid Seed fee %d", socketFile, i))
+		}
+		m.seedMoney[i] = *fee
 	}
 	weights := func(label string, rate rateConfig) [5]int {
 		values := [5]int{rate.Count1, rate.Count2, rate.Count3, rate.Count4, rate.Count5}
@@ -373,6 +402,159 @@ func (m *socketManager) RandomTetraIndex(monsterLevel int) (int, bool) {
 		}
 	}
 	return index, index >= 0
+}
+
+// SeedFee returns the configured Zen cost for mix types 0x2a through 0x2d.
+func (m *socketManager) SeedFee(mixType int) (int, bool) {
+	index := mixType - SocketMixSeedExtract
+	if index < 0 || index >= len(m.seedMoney) {
+		return 0, false
+	}
+	return m.seedMoney[index], true
+}
+
+func (m *socketManager) RandomSeed() (int, int, bool) {
+	total := 0
+	for _, seed := range m.seedOptions {
+		total += seed.poolValue
+	}
+	if total <= 0 {
+		return 0, 0, false
+	}
+	roll := rand.Intn(total)
+	for index := 0; index < 50; index++ {
+		seed, ok := m.seedOptions[index]
+		if !ok {
+			continue
+		}
+		roll -= seed.poolValue
+		if roll < 0 {
+			return seed.seedItemCode, seed.itemLevel, true
+		}
+	}
+	return 0, 0, false
+}
+
+func (m *socketManager) SeedIndex(code, level int) (int, bool) {
+	for index, seed := range m.seedOptions {
+		if seed.seedItemCode == code && seed.itemLevel == level {
+			return index, true
+		}
+	}
+	return 0, false
+}
+
+func (m *socketManager) SeedSphereIndex(code, level int) (int, int, bool) {
+	section, number := code/512, code%512
+	if section != 12 || number < 100 || number > 129 {
+		return 0, 0, false
+	}
+	sphereLevel := (number-100)/6 + 1
+	seedCode := Code(12, 60+(number-100)%6)
+	index, ok := m.SeedIndex(seedCode, level)
+	return index, sphereLevel, ok
+}
+
+func (m *socketManager) SeedSphereItem(index, sphereLevel int) (*Item, bool) {
+	seed, ok := m.seedOptions[index]
+	if !ok || sphereLevel < 1 || sphereLevel > 5 {
+		return nil, false
+	}
+	it := NewItem(12, 100+(sphereLevel-1)*6+seed.element-1)
+	it.Level = seed.itemLevel
+	it.Durability = 1
+	it.Calc()
+	return it, true
+}
+
+func (m *socketManager) SeedElement(index int) (int, bool) {
+	seed, ok := m.seedOptions[index]
+	return seed.element, ok
+}
+
+func (m *socketManager) SeedItem(index int) (int, int, bool) {
+	seed, ok := m.seedOptions[index]
+	return seed.seedItemCode, seed.itemLevel, ok
+}
+
+func (it *Item) SocketSlotAt(position int) (int, bool) {
+	switch position {
+	case 0:
+		return it.SocketSlot1, true
+	case 1:
+		return it.SocketSlot2, true
+	case 2:
+		return it.SocketSlot3, true
+	case 3:
+		return it.SocketSlot4, true
+	case 4:
+		return it.SocketSlot5, true
+	default:
+		return 0, false
+	}
+}
+
+func (it *Item) SetSocketSlotAt(position, value int) bool {
+	switch position {
+	case 0:
+		it.SocketSlot1 = value
+	case 1:
+		it.SocketSlot2 = value
+	case 2:
+		it.SocketSlot3 = value
+	case 3:
+		it.SocketSlot4 = value
+	case 4:
+		it.SocketSlot5 = value
+	default:
+		return false
+	}
+	return true
+}
+
+func (m *socketManager) RollBonus(it *Item) {
+	it.SocketBonus = 0
+	var elements [5]int
+	highLevelFirstThree := 0
+	for i, slot := range [5]int{it.SocketSlot1, it.SocketSlot2, it.SocketSlot3, it.SocketSlot4, it.SocketSlot5} {
+		if slot < 100 {
+			continue
+		}
+		if i < 3 && slot/100 == 3 {
+			highLevelFirstThree++
+		}
+		if seed, ok := m.seedOptions[slot%100]; ok {
+			elements[i] = seed.element
+		}
+	}
+	for index := 0; index < 12; index++ {
+		bonus, ok := m.bonusOptions[index]
+		if !ok || it.Section < bonus.minSection || it.Section > bonus.maxSection {
+			continue
+		}
+		if index >= 6 && highLevelFirstThree != 3 {
+			continue
+		}
+		matches := 0
+		required := 0
+		for i, element := range elements {
+			if bonus.elements[i] != 0 {
+				required++
+			}
+			if element != 0 && element == bonus.elements[i] {
+				matches++
+			}
+		}
+		if required > 0 && matches >= required {
+			if rand.Intn(100) < bonus.rate {
+				it.SocketBonus = index + 1
+				return
+			}
+			if index >= 6 || highLevelFirstThree != 3 {
+				return
+			}
+		}
+	}
 }
 
 func (m *socketManager) RandomSlotCount(it *Item) int {

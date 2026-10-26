@@ -96,51 +96,50 @@ func (a *skillTestActor) GetImpaleSkillCalc() float64 {
 	}
 	return 1
 }
-func (*skillTestActor) OnDamageTaken()                    {}
-func (*skillTestActor) PickItem(*model.MsgPickItem)       {}
-func (*skillTestActor) DropItem(*model.MsgDropItem)       {}
-func (*skillTestActor) BuyItem(*model.MsgBuyItem)         {}
-func (*skillTestActor) SellItem(*model.MsgSellItem)       {}
-func (*skillTestActor) MoveItem(*model.MsgMoveItem)       {}
-func (*skillTestActor) UseItem(*model.MsgUseItem)         {}
-func (*skillTestActor) RepairItem(*model.MsgRepairItem)   {}
-func (*skillTestActor) Move(*model.MsgMove)               {}
-func (*skillTestActor) Teleport(*model.MsgTeleport)       {}
-func (*skillTestActor) MapMove(*model.MsgMapMove)         {}
-func (*skillTestActor) SetPosition(*model.MsgSetPosition) {}
-func (*skillTestActor) Action(*model.MsgAction)           {}
-func (*skillTestActor) UseSkill(*model.MsgUseSkill)       {}
-func (*skillTestActor) UseSkillDuration(*model.MsgUseSkillDuration) {
-}
-func (*skillTestActor) UseSkillAttackMultiTarget(*model.MsgUseSkillAttackMultiTarget) {
-}
-func (*skillTestActor) Attack(*model.MsgAttack)                   {}
-func (*skillTestActor) Chat(*model.MsgChat)                       {}
-func (*skillTestActor) Whisper(*model.MsgWhisper)                 {}
-func (*skillTestActor) Login(*model.MsgLogin)                     {}
-func (*skillTestActor) Logout(*model.MsgLogout)                   {}
-func (*skillTestActor) GetCharacterList(*model.MsgEmpty)          {}
-func (*skillTestActor) CreateCharacter(*model.MsgCreateCharacter) {}
-func (*skillTestActor) DeleteCharacter(*model.MsgDeleteCharacter) {}
-func (*skillTestActor) CheckCharacter(*model.MsgCheckCharacter)   {}
-func (*skillTestActor) LoadCharacter(*model.MsgLoadCharacter)     {}
-func (*skillTestActor) Talk(*model.MsgTalk)                       {}
-func (*skillTestActor) CloseTalkWindow(*model.MsgEmpty)           {}
-func (*skillTestActor) CloseWarehouseWindow(*model.MsgEmpty)      {}
-func (*skillTestActor) KeepLive(*model.MsgKeepLive)               {}
-func (*skillTestActor) Hack(*model.MsgHack)                       {}
-func (*skillTestActor) BattleCoreNotice(*model.MsgEmpty)          {}
-func (*skillTestActor) MapDataLoadingOK(*model.MsgEmpty)          {}
-func (*skillTestActor) AddLevelPoint(*model.MsgAddLevelPoint)     {}
-func (*skillTestActor) LearnMasterSkill(*model.MsgLearnMasterSkill) {
-}
-func (*skillTestActor) DefineMuKey(*model.MsgDefineMuKey)        {}
-func (*skillTestActor) DefineMuBot(*model.MsgDefineMuBot)        {}
-func (*skillTestActor) EnableMuBot(*model.MsgEnableMuBot)        {}
-func (*skillTestActor) UsePet(*model.MsgUsePet)                  {}
-func (*skillTestActor) MuunSystem(*model.MsgMuunSystem)          {}
-func (*skillTestActor) StartPartyNumberPosition(*model.MsgEmpty) {}
-func (*skillTestActor) StopPartyNumberPosition(*model.MsgEmpty)  {}
+func (*skillTestActor) OnDamageTaken()                                                {}
+func (*skillTestActor) PickItem(*model.MsgPickItem)                                   {}
+func (*skillTestActor) DropItem(*model.MsgDropItem)                                   {}
+func (*skillTestActor) BuyItem(*model.MsgBuyItem)                                     {}
+func (*skillTestActor) SellItem(*model.MsgSellItem)                                   {}
+func (*skillTestActor) MoveItem(*model.MsgMoveItem)                                   {}
+func (*skillTestActor) MixItems(*model.MsgMixItems)                                   {}
+func (*skillTestActor) CloseChaosBox(*model.MsgEmpty)                                 {}
+func (*skillTestActor) UseItem(*model.MsgUseItem)                                     {}
+func (*skillTestActor) RepairItem(*model.MsgRepairItem)                               {}
+func (*skillTestActor) Move(*model.MsgMove)                                           {}
+func (*skillTestActor) Teleport(*model.MsgTeleport)                                   {}
+func (*skillTestActor) MapMove(*model.MsgMapMove)                                     {}
+func (*skillTestActor) SetPosition(*model.MsgSetPosition)                             {}
+func (*skillTestActor) Action(*model.MsgAction)                                       {}
+func (*skillTestActor) UseSkill(*model.MsgUseSkill)                                   {}
+func (*skillTestActor) UseSkillDuration(*model.MsgUseSkillDuration)                   {}
+func (*skillTestActor) UseSkillAttackMultiTarget(*model.MsgUseSkillAttackMultiTarget) {}
+func (*skillTestActor) Attack(*model.MsgAttack)                                       {}
+func (*skillTestActor) Chat(*model.MsgChat)                                           {}
+func (*skillTestActor) Whisper(*model.MsgWhisper)                                     {}
+func (*skillTestActor) Login(*model.MsgLogin)                                         {}
+func (*skillTestActor) Logout(*model.MsgLogout)                                       {}
+func (*skillTestActor) GetCharacterList(*model.MsgEmpty)                              {}
+func (*skillTestActor) CreateCharacter(*model.MsgCreateCharacter)                     {}
+func (*skillTestActor) DeleteCharacter(*model.MsgDeleteCharacter)                     {}
+func (*skillTestActor) CheckCharacter(*model.MsgCheckCharacter)                       {}
+func (*skillTestActor) LoadCharacter(*model.MsgLoadCharacter)                         {}
+func (*skillTestActor) Talk(*model.MsgTalk)                                           {}
+func (*skillTestActor) CloseTalkWindow(*model.MsgEmpty)                               {}
+func (*skillTestActor) CloseWarehouseWindow(*model.MsgEmpty)                          {}
+func (*skillTestActor) KeepLive(*model.MsgKeepLive)                                   {}
+func (*skillTestActor) Hack(*model.MsgHack)                                           {}
+func (*skillTestActor) BattleCoreNotice(*model.MsgEmpty)                              {}
+func (*skillTestActor) MapDataLoadingOK(*model.MsgEmpty)                              {}
+func (*skillTestActor) AddLevelPoint(*model.MsgAddLevelPoint)                         {}
+func (*skillTestActor) LearnMasterSkill(*model.MsgLearnMasterSkill)                   {}
+func (*skillTestActor) DefineMuKey(*model.MsgDefineMuKey)                             {}
+func (*skillTestActor) DefineMuBot(*model.MsgDefineMuBot)                             {}
+func (*skillTestActor) EnableMuBot(*model.MsgEnableMuBot)                             {}
+func (*skillTestActor) UsePet(*model.MsgUsePet)                                       {}
+func (*skillTestActor) MuunSystem(*model.MsgMuunSystem)                               {}
+func (*skillTestActor) StartPartyNumberPosition(*model.MsgEmpty)                      {}
+func (*skillTestActor) StopPartyNumberPosition(*model.MsgEmpty)                       {}
 
 func newSkillTestObject(index int, typ ObjectType) (*Object, *skillTestActor) {
 	actor := &skillTestActor{}

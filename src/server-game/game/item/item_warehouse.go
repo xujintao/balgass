@@ -9,7 +9,14 @@ type Warehouse struct {
 	PositionedItems
 }
 
-func (w *Warehouse) CheckFlagsForItem(position int, it *Item) bool {
+func (w *Warehouse) Item(position int) *Item {
+	if position < 0 || position >= w.Size || position >= len(w.Items) {
+		return nil
+	}
+	return w.Items[position]
+}
+
+func (w *Warehouse) CanPlace(position int, it *Item) bool {
 	if it == nil || position < 0 || position >= len(w.Flags) {
 		return false
 	}
@@ -40,7 +47,7 @@ func (w *Warehouse) FindFreePositionForItem(it *Item) int {
 		if v {
 			continue
 		}
-		ok := w.CheckFlagsForItem(i, it)
+		ok := w.CanPlace(i, it)
 		if ok {
 			return i
 		}
@@ -83,7 +90,7 @@ func (w *Warehouse) UnmarshalJSON(buf []byte) error {
 	w.Size = 240
 	err := w.PositionedItems.UnmarshalJSON(
 		buf,
-		w.CheckFlagsForItem,
+		w.CanPlace,
 		w.SetFlagsForItem,
 	)
 	if err != nil {

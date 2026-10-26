@@ -744,6 +744,8 @@ type Objecter interface {
 	BuyItem(*model.MsgBuyItem)                   // implemented by Player
 	SellItem(*model.MsgSellItem)                 // implemented by Player
 	MoveItem(*model.MsgMoveItem)                 // implemented by Player
+	MixItems(*model.MsgMixItems)                 // implemented by Player
+	CloseChaosBox(*model.MsgEmpty)               // implemented by Player
 	UseItem(*model.MsgUseItem)                   // implemented by Player
 	RepairItem(*model.MsgRepairItem)             // implemented by Player
 }

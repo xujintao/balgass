@@ -1250,7 +1250,7 @@ func (pi PositionedItems) MarshalJSON() ([]byte, error) {
 
 func (pi *PositionedItems) UnmarshalJSON(
 	buf []byte,
-	CheckFlagsForItem func(int, *Item) bool,
+	canPlace func(int, *Item) bool,
 	SetFlagsForItem func(int, *Item),
 ) (err error) {
 	var items []*Item
@@ -1282,7 +1282,7 @@ func (pi *PositionedItems) UnmarshalJSON(
 		}
 		it.ItemBase = itemBase
 		it.Calc()
-		if pi.Items[it.Position] != nil || !CheckFlagsForItem(it.Position, it) {
+		if pi.Items[it.Position] != nil || !canPlace(it.Position, it) {
 			return fmt.Errorf("item at position %d overlaps or exceeds container bounds", it.Position)
 		}
 		SetFlagsForItem(it.Position, it)
