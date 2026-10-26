@@ -9,21 +9,15 @@ import (
 
 var SocketManager socketManager
 
-const (
-	SocketMixSeedExtract         = 0x2a
-	SocketMixSeedSphereComposite = 0x2b
-	SocketMixInsert              = 0x2c
-	SocketMixRemove              = 0x2d
-)
-
 type socketSeedOption struct {
-	name         string
-	element      int
-	itemLevel    int
-	valueType    int
-	values       [5]int
-	poolValue    int
-	seedItemCode int
+	name        string
+	element     int
+	itemLevel   int
+	valueType   int
+	values      [5]int
+	poolValue   int
+	itemSection int
+	itemIndex   int
 }
 
 type socketBonusOption struct {
@@ -287,13 +281,13 @@ func (m *socketManager) init() {
 				panic(fmt.Errorf("%s: invalid seed option %d value %d", file, index, value))
 			}
 		}
-		seedItemCode := Code(12, 59+element)
-		if _, err := ItemTable.GetItemBase(12, 59+element); err != nil {
+		itemSection, itemIndex := 12, 59+element
+		if _, err := ItemTable.GetItemBase(itemSection, itemIndex); err != nil {
 			panic(fmt.Errorf("%s: seed option %d: %w", file, index, err))
 		}
 		m.seedOptions[index] = socketSeedOption{
 			name: option.Name, element: element, itemLevel: itemLevel, valueType: valueType,
-			values: values, poolValue: weight, seedItemCode: seedItemCode,
+			values: values, poolValue: weight, itemSection: itemSection, itemIndex: itemIndex,
 		}
 		totalSeedWeight += weight
 	}
@@ -404,22 +398,15 @@ func (m *socketManager) RandomTetraIndex(monsterLevel int) (int, bool) {
 	return index, index >= 0
 }
 
-// SeedFee returns the configured Zen cost for mix types 0x2a through 0x2d.
-func (m *socketManager) SeedFee(mixType int) (int, bool) {
-	index := mixType - SocketMixSeedExtract
-	if index < 0 || index >= len(m.seedMoney) {
-		return 0, false
-	}
-	return m.seedMoney[index], true
+// SeedFee returns the configured Zen cost for a Seed mix fee index (0 through 3).
+func (m *socketManager) SeedFee(index int) int {
+	return m.seedMoney[index]
 }
 
-func (m *socketManager) RandomSeed() (int, int, bool) {
+func (m *socketManager) RandomSeed() (int, int, int) {
 	total := 0
 	for _, seed := range m.seedOptions {
 		total += seed.poolValue
-	}
-	if total <= 0 {
-		return 0, 0, false
 	}
 	roll := rand.Intn(total)
 	for index := 0; index < 50; index++ {
@@ -429,42 +416,40 @@ func (m *socketManager) RandomSeed() (int, int, bool) {
 		}
 		roll -= seed.poolValue
 		if roll < 0 {
-			return seed.seedItemCode, seed.itemLevel, true
+			return seed.itemSection, seed.itemIndex, seed.itemLevel
 		}
 	}
-	return 0, 0, false
+	panic("RandomSeed: positive seed weight was not selected")
 }
 
-func (m *socketManager) SeedIndex(code, level int) (int, bool) {
+func (m *socketManager) SeedIndex(itemSection, itemIndex, level int) (int, bool) {
 	for index, seed := range m.seedOptions {
-		if seed.seedItemCode == code && seed.itemLevel == level {
+		if seed.itemSection == itemSection && seed.itemIndex == itemIndex && seed.itemLevel == level {
 			return index, true
 		}
 	}
 	return 0, false
 }
 
-func (m *socketManager) SeedSphereIndex(code, level int) (int, int, bool) {
-	section, number := code/512, code%512
-	if section != 12 || number < 100 || number > 129 {
+func (m *socketManager) SeedSphereIndex(itemSection, itemIndex, level int) (int, int, bool) {
+	if itemSection != 12 || itemIndex < 100 || itemIndex > 129 {
 		return 0, 0, false
 	}
-	sphereLevel := (number-100)/6 + 1
-	seedCode := Code(12, 60+(number-100)%6)
-	index, ok := m.SeedIndex(seedCode, level)
+	sphereLevel := (itemIndex-100)/6 + 1
+	index, ok := m.SeedIndex(12, 60+(itemIndex-100)%6, level)
 	return index, sphereLevel, ok
 }
 
-func (m *socketManager) SeedSphereItem(index, sphereLevel int) (*Item, bool) {
+func (m *socketManager) SeedSphereItem(index, sphereLevel int) *Item {
 	seed, ok := m.seedOptions[index]
 	if !ok || sphereLevel < 1 || sphereLevel > 5 {
-		return nil, false
+		panic(fmt.Errorf("SeedSphereItem: invalid option %d or sphere level %d", index, sphereLevel))
 	}
 	it := NewItem(12, 100+(sphereLevel-1)*6+seed.element-1)
 	it.Level = seed.itemLevel
 	it.Durability = 1
 	it.Calc()
-	return it, true
+	return it
 }
 
 func (m *socketManager) SeedElement(index int) (int, bool) {
@@ -472,9 +457,9 @@ func (m *socketManager) SeedElement(index int) (int, bool) {
 	return seed.element, ok
 }
 
-func (m *socketManager) SeedItem(index int) (int, int, bool) {
+func (m *socketManager) SeedItem(index int) (int, int, int, bool) {
 	seed, ok := m.seedOptions[index]
-	return seed.seedItemCode, seed.itemLevel, ok
+	return seed.itemSection, seed.itemIndex, seed.itemLevel, ok
 }
 
 func (it *Item) SocketSlotAt(position int) (int, bool) {

@@ -51,7 +51,9 @@ func (p *Player) PickItem(msg *model.MsgPickItem) {
 		}
 		it = p.inventory.Items[position]
 		if it == nil {
-			p.inventory.AddItem(position, it2)
+			if !p.inventory.AddItem(position, it2) {
+				return
+			}
 		} else {
 			it.Durability += it2.Durability
 			itemDurChanged = true
@@ -191,15 +193,17 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 	if p.Money < sit.BuyMoney {
 		return
 	}
-	p.Money -= sit.BuyMoney
-	p.PushMoney()
 	it = p.inventory.Items[position]
 	if it == nil {
-		p.inventory.AddItem(position, sit)
+		if !p.inventory.AddItem(position, sit) {
+			return
+		}
 	} else {
 		it.Durability += sit.Durability
 		itemDurChanged = true
 	}
+	p.Money -= sit.BuyMoney
+	p.PushMoney()
 	reply.Result = position
 	reply.Item = sit
 }
@@ -281,40 +285,25 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	if sitem == nil {
 		return
 	}
-	// get destination item
-	switch msg.DstFlag {
-	case 0: // inventory
-		titem = p.inventory.Item(msg.DstPosition)
-	case 1: // Chaos Box
-		if !p.chaosBoxOpen {
-			return
-		}
-		titem = p.chaosBox.Item(msg.DstPosition)
-	case 2: // warehouse
-		titem = p.warehouse.Item(msg.DstPosition)
-	}
 	// move item
 	switch msg.SrcFlag {
 	case 0: // inventory
 		switch msg.DstFlag {
 		case 0: // inventory to inventory
-			switch {
-			case titem == nil: // move
-				ok := p.inventory.CanPlace(msg.DstPosition, sitem)
-				if !ok {
+			titem = p.inventory.Item(msg.DstPosition)
+			if titem == nil { // move
+				if !p.inventory.MoveItem(msg.SrcPosition, msg.DstPosition) {
 					return
 				}
-				p.inventory.RemoveItem(msg.SrcPosition, sitem)
-				p.inventory.AddItem(msg.DstPosition, sitem)
 				if msg.SrcPosition < 12 || msg.SrcPosition == 236 ||
 					msg.DstPosition < 12 || msg.DstPosition == 236 {
 					p.equipmentChanged()
 				}
 				reply.Result = msg.DstFlag
-			case titem.Overlap != 0 && // overlap
+			} else if titem.Overlap != 0 && // overlap
 				titem.Code == sitem.Code &&
 				titem.Level == sitem.Level &&
-				titem.Durability < titem.Overlap:
+				titem.Durability < titem.Overlap {
 				delta := titem.Overlap - titem.Durability
 				if delta > sitem.Durability {
 					delta = sitem.Durability
@@ -336,29 +325,26 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				}
 				titem.Durability += delta
 				titemDurChanged = true
-			default:
+			} else {
+				// ++
 				return
 			}
 		case 1: // inventory to Chaos Box
-			if msg.SrcPosition < 12 || !p.chaosBox.AddItem(msg.DstPosition, sitem) {
+			if !p.chaosBoxOpen || msg.SrcPosition < 12 || !p.chaosBox.AddItem(msg.DstPosition, sitem) {
 				return
 			}
 			p.inventory.RemoveItem(msg.SrcPosition, sitem)
 			reply.Result = msg.DstFlag
 		case 2: // inventory to warehouse
-			if titem == nil {
-				ok := p.warehouse.CanPlace(msg.DstPosition, sitem)
-				if !ok {
-					return
-				}
-				p.inventory.RemoveItem(msg.SrcPosition, sitem)
-				p.warehouse.AddItem(msg.DstPosition, sitem)
-				if msg.SrcPosition < 12 || msg.SrcPosition == 236 {
-					p.equipmentChanged()
-				}
-				reply.Result = msg.DstFlag
+			if !p.warehouse.AddItem(msg.DstPosition, sitem) {
+				return
 			}
-		default:
+			p.inventory.RemoveItem(msg.SrcPosition, sitem)
+			if msg.SrcPosition < 12 || msg.SrcPosition == 236 {
+				p.equipmentChanged()
+			}
+			reply.Result = msg.DstFlag
+		default: // inventory to unknown
 			return
 		}
 	case 1: // Chaos Box
@@ -367,10 +353,9 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 			if msg.DstPosition < 12 {
 				return
 			}
-			if !p.inventory.CanPlace(msg.DstPosition, sitem) {
+			if !p.inventory.AddItem(msg.DstPosition, sitem) {
 				return
 			}
-			p.inventory.AddItem(msg.DstPosition, sitem)
 			p.chaosBox.RemoveItem(msg.SrcPosition)
 			reply.Result = msg.DstFlag
 		case 1: // Chaos Box to Chaos Box
@@ -378,43 +363,41 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 				return
 			}
 			reply.Result = msg.DstFlag
-		default:
+		default: // Chaos Box to unknown
 			return
 		}
 	case 2: // warehouse
 		switch msg.DstFlag {
 		case 0: // warehouse to inventory
-			if titem == nil {
-				ok := p.inventory.CanPlace(msg.DstPosition, sitem)
-				if !ok {
-					return
-				}
-				p.warehouse.RemoveItem(msg.SrcPosition, sitem)
-				p.inventory.AddItem(msg.DstPosition, sitem)
-				if msg.DstPosition < 12 || msg.DstPosition == 236 {
-					p.equipmentChanged()
-				}
-				reply.Result = msg.DstFlag
+			if !p.inventory.AddItem(msg.DstPosition, sitem) {
+				return
 			}
+			p.warehouse.RemoveItem(msg.SrcPosition, sitem)
+			if msg.DstPosition < 12 || msg.DstPosition == 236 {
+				p.equipmentChanged()
+			}
+			reply.Result = msg.DstFlag
 		case 2: // warehouse to warehouse
-			if titem == nil {
-				ok := p.warehouse.CanPlace(msg.DstPosition, sitem)
-				if !ok {
-					return
-				}
-				p.warehouse.RemoveItem(msg.SrcPosition, sitem)
-				p.warehouse.AddItem(msg.DstPosition, sitem)
-				reply.Result = msg.DstFlag
+			if !p.warehouse.MoveItem(msg.SrcPosition, msg.DstPosition) {
+				return
 			}
-		default:
+			reply.Result = msg.DstFlag
+		default: // warehouse to unknown
 			return
 		}
-	default:
+	default: // unknown
 		return
 	}
 	reply.Position = msg.DstPosition
 	reply.Item = sitem
 }
+
+const (
+	mixSocketSeedExtract         = 0x2a
+	mixSocketSeedSphereComposite = 0x2b
+	mixSocketInsert              = 0x2c
+	mixSocketRemove              = 0x2d
+)
 
 func (p *Player) MixItems(msg *model.MsgMixItems) {
 	reply := &model.MsgMixItemsReply{Result: 7}
@@ -422,14 +405,6 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 	if !p.chaosBoxOpen {
 		return
 	}
-	fee, ok := item.SocketManager.SeedFee(msg.Type)
-	if !ok {
-		return
-	}
-	var output *item.Item
-	var targetPosition = -1
-	var rate = 100
-	var remove = false
 	items := make([]int, 0, 12)
 	for position, it := range p.chaosBox.Items() {
 		if it != nil {
@@ -437,7 +412,7 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 		}
 	}
 	switch msg.Type {
-	case item.SocketMixSeedExtract: // Extract a Seed from one excellent and one set item.
+	case mixSocketSeedExtract: // Extract a Seed from one excellent and one set item.
 		if len(items) != 5 {
 			return
 		}
@@ -462,18 +437,47 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 		if excellent < 0 || setItem < 0 || harmony < 0 || chaos < 0 || creation < 0 {
 			return
 		}
-		code, level, found := item.SocketManager.RandomSeed()
-		if !found {
+		// calculate the fee
+		fee := item.SocketManager.SeedFee(0)
+		if p.Money < fee {
+			reply.Result = 2
 			return
 		}
-		output = item.NewItem(code/512, code%512)
-		output.Level, output.Durability = level, 1
-		output.Calc()
-		rate = 80 + (p.chaosBox.Item(excellent).BuyMoney+p.chaosBox.Item(setItem).BuyMoney)/2000000
+		p.Money -= fee
+		p.PushMoney()
+		// calculate the success rate
+		rate := 80 + (p.chaosBox.Item(excellent).BuyMoney+p.chaosBox.Item(setItem).BuyMoney)/2000000
 		if rate > 90 {
 			rate = 90
 		}
-	case item.SocketMixSeedSphereComposite: // Seed + Sphere, or third-rank Seed Sphere + Sphere.
+		if rand.Intn(100) > rate {
+			// fail, decrease level of excellent and set item
+			for _, position := range items {
+				it := p.chaosBox.Item(position)
+				if it.IsExcellent() || it.Set != 0 {
+					it.Level -= rand.Intn(3)
+					if it.Level < 0 {
+						it.Level = 0
+					}
+					it.Calc()
+				} else {
+					p.consumeChaosBoxItem(position)
+				}
+			}
+			reply.Result = 0
+		} else {
+			// success, consume all items and add the output seed
+			section, index, level := item.SocketManager.RandomSeed()
+			output := item.NewItem(section, index)
+			output.Level, output.Durability = level, 1
+			output.Calc()
+			p.chaosBox.Clear()
+			p.chaosBox.AddItem(0, output)
+			reply.Item = output
+			reply.Result = 1
+		}
+		p.pushChaosBoxItems()
+	case mixSocketSeedSphereComposite: // Seed + Sphere, or third-rank Seed Sphere + Sphere.
 		seed, sphere, chaos, creation, chaosBundle, creationBundle := -1, -1, -1, -1, -1, -1
 		tetra := -1
 		for _, position := range items {
@@ -520,18 +524,28 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 		var index int
 		var found bool
 		if high {
-			index, _, found = item.SocketManager.SeedSphereIndex(seedItem.Code, seedItem.Level)
+			index, _, found = item.SocketManager.SeedSphereIndex(seedItem.Section, seedItem.Index, seedItem.Level)
 		} else {
-			index, found = item.SocketManager.SeedIndex(seedItem.Code, seedItem.Level)
+			index, found = item.SocketManager.SeedIndex(seedItem.Section, seedItem.Index, seedItem.Level)
 		}
 		if !found {
 			return
 		}
-		output, found = item.SocketManager.SeedSphereItem(index, p.chaosBox.Item(sphere).Index-69)
-		if !found {
+		sphereItem := p.chaosBox.Item(sphere)
+		if sphereItem.Section != 12 || sphereItem.Index < 70 || sphereItem.Index > 74 {
 			return
 		}
-		money := p.chaosBox.Item(sphere).BuyMoney
+		// calculate the fee
+		fee := item.SocketManager.SeedFee(1)
+		if p.Money < fee {
+			reply.Result = 2
+			return
+		}
+		p.Money -= fee
+		p.PushMoney()
+		// calculate the success rate
+		money := sphereItem.BuyMoney
+		rate := 100
 		if high {
 			rate = 20 + money/200000
 			if tetra >= 0 {
@@ -541,11 +555,24 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 			money += seedItem.BuyMoney
 			rate = 80 + money/200000
 		}
-	case item.SocketMixInsert: // Insert a Seed Sphere into an empty socket.
+		if rand.Intn(100) > rate {
+			// fail, consume all items
+			p.chaosBox.Clear()
+			reply.Result = 0
+		} else {
+			// success, consume all items and add the output seed sphere
+			output := item.SocketManager.SeedSphereItem(index, sphereItem.Index-69)
+			p.chaosBox.Clear()
+			p.chaosBox.AddItem(0, output)
+			reply.Item = output
+			reply.Result = 1
+		}
+		p.pushChaosBoxItems()
+	case mixSocketInsert: // Insert a Seed Sphere into an empty socket.
 		if len(items) != 4 {
 			return
 		}
-		seedSphere, chaos, creation := -1, -1, -1
+		seedSphere, chaos, creation, targetPosition := -1, -1, -1, -1
 		for _, position := range items {
 			it := p.chaosBox.Item(position)
 			switch {
@@ -570,7 +597,7 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 			return
 		}
 		seedItem := p.chaosBox.Item(seedSphere)
-		index, sphereLevel, found := item.SocketManager.SeedSphereIndex(seedItem.Code, seedItem.Level)
+		index, sphereLevel, found := item.SocketManager.SeedSphereIndex(seedItem.Section, seedItem.Index, seedItem.Level)
 		if !found {
 			return
 		}
@@ -592,18 +619,38 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 				return
 			}
 		}
-		output = target.Copy()
-		output.SetSocketSlotAt(msg.Position, sphereLevel*100+index)
-		item.SocketManager.RollBonus(output)
-		output.Calc()
-		if target.MaxDurability > 0 {
-			output.Durability = output.MaxDurability * target.Durability / target.MaxDurability
+		// calculate the fee
+		fee := item.SocketManager.SeedFee(2)
+		if p.Money < fee {
+			reply.Result = 2
+			return
 		}
-	case item.SocketMixRemove: // Remove one fitted Seed Sphere.
+		p.Money -= fee
+		p.PushMoney()
+		// success, insert the Seed Sphere and consume the materials
+		oldMax, durability := target.MaxDurability, target.Durability
+		target.SetSocketSlotAt(msg.Position, sphereLevel*100+index)
+		item.SocketManager.RollBonus(target)
+		target.Calc()
+		if oldMax > 0 {
+			target.Durability = target.MaxDurability * durability / oldMax
+		}
+		for _, position := range items {
+			if position != targetPosition {
+				p.consumeChaosBoxItem(position)
+			}
+		}
+		if targetPosition != 0 {
+			p.chaosBox.MoveItem(targetPosition, 0)
+		}
+		p.pushChaosBoxItems()
+		reply.Item = target
+		reply.Result = 1
+	case mixSocketRemove: // Remove one fitted Seed Sphere.
 		if len(items) != 12 {
 			return
 		}
-		chaos, harmony, guardian := 0, 0, 0
+		chaos, harmony, guardian, targetPosition := 0, 0, 0, -1
 		for _, position := range items {
 			it := p.chaosBox.Item(position)
 			switch {
@@ -628,63 +675,41 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 			return
 		}
 		index := slot % 100
-		if code, level, found := item.SocketManager.SeedItem(index); found {
-			output = item.NewItem(code/512, code%512)
-			output.Level, output.Durability = level, 1
-			output.Calc()
-		} else {
+		itemSection, itemIndex, level, found := item.SocketManager.SeedItem(index)
+		if !found {
 			return
 		}
-		rate, remove = 80, true
-	}
-	if p.Money < fee {
-		reply.Result = 2
-		return
-	}
-	if (msg.Type == item.SocketMixSeedExtract || msg.Type == item.SocketMixSeedSphereComposite || remove) && !p.chaosBox.OutputFits(output, targetPosition) {
-		reply.Result = 6
-		return
-	}
-	p.Money -= fee
-	p.PushMoney()
-	roll := rand.Intn(100)
-	failed := roll > rate
-	if remove {
-		failed = roll >= rate
-	}
-	if failed {
-		if msg.Type == item.SocketMixSeedExtract {
-			for _, position := range items {
-				it := p.chaosBox.Item(position)
-				if it.IsExcellent() || it.Set != 0 {
-					it.Level -= rand.Intn(3)
-					if it.Level < 0 {
-						it.Level = 0
-					}
-					it.Calc()
-				} else {
-					p.consumeChaosBoxItem(position)
-				}
-			}
-		} else {
-			for _, position := range items {
-				if position != targetPosition {
-					p.consumeChaosBoxItem(position)
-				}
+		output := item.NewItem(itemSection, itemIndex)
+		output.Level, output.Durability = level, 1
+		output.Calc()
+		// check inventory space before the Seed is returned to the Chaos Box
+		fits := false
+		for position := 12; position < p.inventory.Size; position++ {
+			if p.inventory.CanPlace(position, output) {
+				fits = true
+				break
 			}
 		}
-		p.pushChaosBoxItems()
-		reply.Result = 0
-		return
-	}
-	if msg.Type == item.SocketMixInsert || remove {
+		if !fits {
+			reply.Result = 6
+			return
+		}
+		// calculate the fee
+		fee := item.SocketManager.SeedFee(3)
+		if p.Money < fee {
+			reply.Result = 2
+			return
+		}
+		p.Money -= fee
+		p.PushMoney()
+		// consume the materials on either result
 		for _, position := range items {
 			if position != targetPosition {
 				p.consumeChaosBoxItem(position)
 			}
 		}
-		if remove {
-			target := p.chaosBox.Item(targetPosition)
+		if rand.Intn(100) < 80 {
+			// success, remove the Seed Sphere and return its Seed
 			oldMax, durability := target.MaxDurability, target.Durability
 			target.SetSocketSlotAt(msg.Position, 1)
 			item.SocketManager.RollBonus(target)
@@ -692,28 +717,24 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 			if oldMax > 0 {
 				target.Durability = target.MaxDurability * durability / oldMax
 			}
-			if !p.createMixInventoryItem(output) {
-				return
+			if targetPosition != 0 {
+				p.chaosBox.MoveItem(targetPosition, 0)
 			}
+			for position := range p.chaosBox.Items() {
+				if p.chaosBox.AddItem(position, output) {
+					break
+				}
+			}
+			reply.Item = target
+			reply.Result = 1
 		} else {
-			p.chaosBox.ReplaceItem(targetPosition, output)
+			// fail, remove the Seed Sphere and consume it
+			reply.Result = 0
 		}
-		if targetPosition != 0 {
-			p.chaosBox.MoveItem(targetPosition, 0)
-			targetPosition = 0
-		}
-		reply.Item = p.chaosBox.Item(targetPosition)
-	} else {
-		for _, position := range items {
-			p.consumeChaosBoxItem(position)
-		}
-		if !p.createMixInventoryItem(output) {
-			return
-		}
-		reply.Item = output
+		p.pushChaosBoxItems()
+	default:
+		return
 	}
-	p.pushChaosBoxItems()
-	reply.Result = 1
 }
 
 func (p *Player) consumeChaosBoxItem(position int) {
@@ -722,18 +743,6 @@ func (p *Player) consumeChaosBoxItem(position int) {
 
 func (p *Player) pushChaosBoxItems() {
 	p.Push(&model.MsgTypeItemListReply{Type: 3, MsgItemListReply: model.MsgItemListReply{Items: p.chaosBox.Items()}})
-}
-
-func (p *Player) createMixInventoryItem(it *item.Item) bool {
-	for position := 12; position < p.inventory.Size; position++ {
-		if !p.inventory.CanPlace(position, it) {
-			continue
-		}
-		p.inventory.AddItem(position, it)
-		p.Push(&model.MsgPickItemReply{Result: position, Item: it})
-		return true
-	}
-	return false
 }
 
 func (p *Player) CloseChaosBox(*model.MsgEmpty) {

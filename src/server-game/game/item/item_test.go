@@ -114,3 +114,43 @@ func TestContainerRestoreRejectsInvalidItemsWithoutChangingState(t *testing.T) {
 		})
 	}
 }
+
+func TestInventoryAddAndMove(t *testing.T) {
+	inv := Inventory{PositionedItems: PositionedItems{Size: 237, Items: make([]*Item, 237), Flags: make([]bool, 237)}}
+	large := &Item{ItemBase: &ItemBase{Width: 2, Height: 2}}
+	blocker := &Item{ItemBase: &ItemBase{Width: 1, Height: 1}}
+	if inv.AddItem(-1, large) || inv.AddItem(19, large) || inv.AddItem(237, large) {
+		t.Fatal("invalid inventory position was accepted")
+	}
+	if !inv.AddItem(12, large) || inv.AddItem(13, blocker) || !inv.AddItem(14, blocker) {
+		t.Fatal("inventory placement did not respect occupied cells")
+	}
+	if inv.MoveItem(12, 13) || inv.Item(12) != large || inv.Item(14) != blocker || !inv.Flags[12] || !inv.Flags[20] {
+		t.Fatal("blocked inventory move did not restore the source")
+	}
+	inv.RemoveItem(14, blocker)
+	if !inv.MoveItem(12, 13) || inv.Item(12) != nil || inv.Item(13) != large ||
+		inv.Flags[12] || inv.Flags[20] || !inv.Flags[13] || !inv.Flags[14] || !inv.Flags[21] || !inv.Flags[22] {
+		t.Fatal("overlapping inventory move left incorrect items or flags")
+	}
+}
+
+func TestWarehouseAddAndMove(t *testing.T) {
+	w := Warehouse{PositionedItems: PositionedItems{Size: 240, Items: make([]*Item, 240), Flags: make([]bool, 240)}}
+	large := &Item{ItemBase: &ItemBase{Width: 2, Height: 2}}
+	blocker := &Item{ItemBase: &ItemBase{Width: 1, Height: 1}}
+	if w.AddItem(-1, large) || w.AddItem(7, large) || w.AddItem(240, large) {
+		t.Fatal("invalid warehouse position was accepted")
+	}
+	if !w.AddItem(0, large) || w.AddItem(1, blocker) || !w.AddItem(2, blocker) {
+		t.Fatal("warehouse placement did not respect occupied cells")
+	}
+	if w.MoveItem(0, 1) || w.Item(0) != large || w.Item(2) != blocker || !w.Flags[0] || !w.Flags[8] {
+		t.Fatal("blocked warehouse move did not restore the source")
+	}
+	w.RemoveItem(2, blocker)
+	if !w.MoveItem(0, 1) || w.Item(0) != nil || w.Item(1) != large ||
+		w.Flags[0] || w.Flags[8] || !w.Flags[1] || !w.Flags[2] || !w.Flags[9] || !w.Flags[10] {
+		t.Fatal("overlapping warehouse move left incorrect items or flags")
+	}
+}

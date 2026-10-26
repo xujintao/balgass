@@ -77,18 +77,3 @@ func (box *ChaosBox) ReplaceItem(position int, it *Item) bool {
 	box.items[position] = it
 	return true
 }
-
-func (box *ChaosBox) OutputFits(output *Item, except int) bool {
-	if output == nil {
-		return false
-	}
-	for position, it := range box.items {
-		if it == nil || position == except {
-			continue
-		}
-		if output.Width <= it.Width && output.Height <= it.Height {
-			return true
-		}
-	}
-	return false
-}

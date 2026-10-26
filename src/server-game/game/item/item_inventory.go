@@ -23,7 +23,7 @@ func (inv *Inventory) Item(position int) *Item {
 }
 
 func (inv *Inventory) CanPlace(position int, it *Item) bool {
-	if it == nil || position < 0 || position >= len(inv.Flags) {
+	if it == nil || position < 0 || position >= inv.Size {
 		return false
 	}
 	if position < 12 {
@@ -104,14 +104,31 @@ func (inv *Inventory) ClearFlagsForItem(position int, it *Item) {
 	inv.setFlagsForItem(position, it, false)
 }
 
-func (inv *Inventory) AddItem(position int, it *Item) {
+func (inv *Inventory) AddItem(position int, it *Item) bool {
+	if !inv.CanPlace(position, it) {
+		return false
+	}
 	inv.Items[position] = it
 	inv.SetFlagsForItem(position, it)
+	return true
 }
 
 func (inv *Inventory) RemoveItem(position int, it *Item) {
 	inv.Items[position] = nil
 	inv.ClearFlagsForItem(position, it)
+}
+
+func (inv *Inventory) MoveItem(src, dst int) bool {
+	it := inv.Item(src)
+	if it == nil || src == dst {
+		return false
+	}
+	inv.RemoveItem(src, it)
+	if !inv.AddItem(dst, it) {
+		inv.AddItem(src, it)
+		return false
+	}
+	return true
 }
 
 func (inv *Inventory) UnmarshalJSON(buf []byte) error {

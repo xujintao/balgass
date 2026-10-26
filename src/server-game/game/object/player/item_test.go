@@ -189,6 +189,45 @@ func TestMoveItemRejectsInvalidPositions(t *testing.T) {
 	}
 }
 
+func TestMoveItemBetweenInventoryAndWarehouse(t *testing.T) {
+	p := newItemTestPlayer()
+	p.warehouse.Size = 240
+	p.warehouse.Items = make([]*item.Item, 240)
+	p.warehouse.Flags = make([]bool, 240)
+	inventoryItem := item.NewItem(12, 15)
+	warehouseItem := item.NewItem(12, 15)
+	p.inventory.AddItem(12, inventoryItem)
+	p.warehouse.AddItem(0, warehouseItem)
+
+	for _, msg := range []model.MsgMoveItem{
+		{SrcFlag: 0, SrcPosition: 12, DstFlag: 2, DstPosition: 0},
+		{SrcFlag: 2, SrcPosition: 0, DstFlag: 0, DstPosition: 12},
+	} {
+		p.MoveItem(&msg)
+		messages := itemTestMessages(p)
+		if len(messages) != 1 {
+			t.Fatalf("blocked move replies = %d, want 1", len(messages))
+		}
+		if reply, ok := messages[0].(*model.MsgMoveItemReply); !ok || reply.Result != -1 {
+			t.Fatalf("blocked move reply = %#v", messages[0])
+		}
+		if p.inventory.Item(12) != inventoryItem || p.warehouse.Item(0) != warehouseItem {
+			t.Fatal("blocked move changed the source or destination")
+		}
+	}
+
+	p.MoveItem(&model.MsgMoveItem{SrcFlag: 0, SrcPosition: 12, DstFlag: 2, DstPosition: 1})
+	itemTestMessages(p)
+	if p.inventory.Item(12) != nil || p.warehouse.Item(1) != inventoryItem {
+		t.Fatal("inventory item was not moved to the warehouse")
+	}
+	p.MoveItem(&model.MsgMoveItem{SrcFlag: 2, SrcPosition: 0, DstFlag: 0, DstPosition: 12})
+	itemTestMessages(p)
+	if p.warehouse.Item(0) != nil || p.inventory.Item(12) != warehouseItem {
+		t.Fatal("warehouse item was not moved to the inventory")
+	}
+}
+
 func TestChaosBoxReleasesInventoryPosition(t *testing.T) {
 	p := newItemTestPlayer()
 	p.chaosBoxOpen = true
@@ -308,10 +347,7 @@ func TestChaosBoxInsertsSeedSphere(t *testing.T) {
 	p.chaosBoxOpen = true
 	weapon := item.NewItem(0, 26)
 	weapon.MakeSocketSlots(1)
-	seedSphere, ok := item.SocketManager.SeedSphereItem(0, 1)
-	if !ok {
-		t.Fatal("missing Seed Sphere")
-	}
+	seedSphere := item.SocketManager.SeedSphereItem(0, 1)
 	materials := []*item.Item{weapon, seedSphere, item.NewItem(12, 15), item.NewItem(14, 22)}
 	origins := []int{12, 20, 21, 22}
 	for i, it := range materials {
@@ -348,24 +384,71 @@ func TestChaosBoxComposesSeedSphere(t *testing.T) {
 		p.MoveItem(&model.MsgMoveItem{SrcFlag: 0, SrcPosition: 12 + i, DstFlag: 1, DstPosition: i})
 	}
 	p.MixItems(&model.MsgMixItems{Type: 0x2b, MixCount: 1})
-	found := false
-	for _, it := range p.inventory.Items {
-		if it != nil && it.Code == item.Code(12, 100) && it.Level == 0 {
-			found = true
+	if result := p.chaosBox.Item(0); result == nil || result.Code != item.Code(12, 100) || result.Level != 0 || p.Money != 0 {
+		t.Fatalf("Seed Sphere not created in Chaos Box: item=%#v money=%d", result, p.Money)
+	}
+}
+
+func TestMixItemsRejectsUnknownType(t *testing.T) {
+	p := newItemTestPlayer()
+	p.chaosBoxOpen, p.Money = true, 1_000_000
+	material := item.NewItem(12, 15)
+	if !p.chaosBox.AddItem(0, material) {
+		t.Fatal("could not place material")
+	}
+	p.MixItems(&model.MsgMixItems{Type: 0x2e})
+	if p.Money != 1_000_000 || p.chaosBox.Item(0) != material {
+		t.Fatal("unknown mix changed money or materials")
+	}
+	messages := itemTestMessages(p)
+	if len(messages) != 1 {
+		t.Fatalf("unknown mix replies = %d, want 1", len(messages))
+	}
+	if reply, ok := messages[0].(*model.MsgMixItemsReply); !ok || reply.Result != 7 {
+		t.Fatalf("unknown mix reply = %#v", messages[0])
+	}
+}
+
+func TestChaosBoxCompositeSucceedsWhenInventoryIsFull(t *testing.T) {
+	p := newItemTestPlayer()
+	p.chaosBoxOpen, p.Money = true, 1_000_000
+	seed := item.NewItem(12, 60)
+	seed.Calc()
+	seed.BuyMoney = 4_000_000
+	materials := []*item.Item{seed, item.NewItem(12, 70), item.NewItem(12, 15), item.NewItem(14, 22)}
+	for position, it := range materials {
+		if !p.chaosBox.AddItem(position, it) {
+			t.Fatalf("could not place material at %d", position)
 		}
 	}
-	if !found || p.Money != 0 {
-		t.Fatalf("Seed Sphere not created: found=%t money=%d", found, p.Money)
+	for position := 12; position < p.inventory.Size; position++ {
+		p.inventory.Flags[position] = true
+	}
+	p.MixItems(&model.MsgMixItems{Type: mixSocketSeedSphereComposite, MixCount: 1})
+	messages := itemTestMessages(p)
+	if len(messages) < 2 {
+		t.Fatalf("full inventory mix messages = %d", len(messages))
+	}
+	if update, ok := messages[len(messages)-2].(*model.MsgTypeItemListReply); !ok || update.Items[0] != p.chaosBox.Item(0) {
+		t.Fatalf("full inventory box update = %#v", messages[len(messages)-2])
+	}
+	if reply, ok := messages[len(messages)-1].(*model.MsgMixItemsReply); !ok || reply.Result != 1 || reply.Item != p.chaosBox.Item(0) {
+		t.Fatalf("full inventory mix reply = %#v", messages[len(messages)-1])
+	}
+	if result := p.chaosBox.Item(0); result == nil || result.Code != item.Code(12, 100) || p.Money != 0 {
+		t.Fatalf("full inventory mix result: item=%#v money=%d", result, p.Money)
+	}
+	for position := 1; position < len(materials); position++ {
+		if p.chaosBox.Item(position) != nil {
+			t.Fatalf("material at %d survived", position)
+		}
 	}
 }
 
 func TestChaosBoxComposesHigherSeedSphere(t *testing.T) {
 	p := newItemTestPlayer()
 	p.chaosBoxOpen, p.Money = true, 1_000_000
-	third, ok := item.SocketManager.SeedSphereItem(0, 3)
-	if !ok {
-		t.Fatal("missing third-rank Seed Sphere")
-	}
+	third := item.SocketManager.SeedSphereItem(0, 3)
 	sphere := item.NewItem(12, 73)
 	sphere.Calc()
 	sphere.BuyMoney = 4_000_000
@@ -375,12 +458,10 @@ func TestChaosBoxComposesHigherSeedSphere(t *testing.T) {
 		p.MoveItem(&model.MsgMoveItem{SrcFlag: 0, SrcPosition: 12 + i, DstFlag: 1, DstPosition: i})
 	}
 	p.MixItems(&model.MsgMixItems{Type: 0x2b, MixCount: 1})
-	for _, it := range p.inventory.Items {
-		if it != nil && it.Code == item.Code(12, 118) && it.Level == 0 {
-			return
-		}
+	if result := p.chaosBox.Item(0); result != nil && result.Code == item.Code(12, 118) && result.Level == 0 {
+		return
 	}
-	t.Fatal("higher-rank Seed Sphere was not created")
+	t.Fatal("higher-rank Seed Sphere was not created in Chaos Box")
 }
 
 func TestChaosBoxRemovesSeedSphere(t *testing.T) {
@@ -404,27 +485,52 @@ func TestChaosBoxRemovesSeedSphere(t *testing.T) {
 		p.inventory.AddItem(origins[i], it)
 		p.MoveItem(&model.MsgMoveItem{SrcFlag: 0, SrcPosition: origins[i], DstFlag: 1, DstPosition: positions[i]})
 	}
+	for position := 12; position < p.inventory.Size; position++ {
+		if !p.inventory.AddItem(position, item.NewItem(12, 15)) {
+			t.Fatalf("could not fill inventory position %d", position)
+		}
+	}
+	itemTestMessages(p)
 	p.MixItems(&model.MsgMixItems{Type: 0x2d, Position: 0, MixCount: 1})
+	messages := itemTestMessages(p)
+	if reply, ok := messages[len(messages)-1].(*model.MsgMixItemsReply); !ok || reply.Result != 6 {
+		t.Fatalf("full inventory removal reply = %#v", messages[len(messages)-1])
+	}
+	if p.Money != 1_000_000 || p.chaosBox.Item(0) != weapon || weapon.SocketSlot1 != 100 {
+		t.Fatal("full inventory changed the money or equipment")
+	}
+	for i, position := range positions[1:] {
+		if p.chaosBox.Item(position) != materials[i+1] {
+			t.Fatalf("full inventory consumed material at %d", position)
+		}
+	}
+	p.inventory.RemoveItem(12, p.inventory.Item(12))
+	p.MixItems(&model.MsgMixItems{Type: 0x2d, Position: 0, MixCount: 1})
+	messages = itemTestMessages(p)
 	if p.Money != 0 || p.chaosBox.Item(0) == nil {
 		t.Fatalf("remove mix did not finish: money=%d item=%#v", p.Money, p.chaosBox.Item(0))
 	}
-	for _, position := range positions[1:] {
-		if p.chaosBox.Item(position) != nil {
-			t.Fatalf("material at %d survived", position)
+	for _, msg := range messages {
+		if _, ok := msg.(*model.MsgPickItemReply); ok {
+			t.Fatal("removal sent an inventory item reply")
 		}
 	}
+	seedCount := 0
+	for position, it := range p.chaosBox.Items() {
+		if position == 0 || it == nil {
+			continue
+		}
+		if it.Code != item.Code(12, 60) || it.Level != 0 {
+			t.Fatalf("unexpected Chaos Box item at %d: %#v", position, it)
+		}
+		seedCount++
+	}
 	if p.chaosBox.Item(0).SocketSlot1 == 1 {
-		found := false
-		for _, it := range p.inventory.Items {
-			if it != nil && it.Code == item.Code(12, 60) && it.Level == 0 {
-				found = true
-			}
+		if seedCount != 1 {
+			t.Fatalf("successful removal returned %d Seeds to Chaos Box", seedCount)
 		}
-		if !found {
-			t.Fatal("successful removal did not return Seed")
-		}
-	} else if p.chaosBox.Item(0).SocketSlot1 != 100 {
-		t.Fatalf("unexpected socket value %d", p.chaosBox.Item(0).SocketSlot1)
+	} else if p.chaosBox.Item(0).SocketSlot1 != 100 || seedCount != 0 {
+		t.Fatalf("failed removal: socket=%d Seeds=%d", p.chaosBox.Item(0).SocketSlot1, seedCount)
 	}
 }
 
@@ -454,14 +560,10 @@ func TestChaosBoxExtractsSeed(t *testing.T) {
 		}
 	}
 	if p.chaosBox.Item(0) == nil && p.chaosBox.Item(4) == nil {
-		found := false
-		for _, it := range p.inventory.Items {
-			if it != nil && it.KindB == item.KindBSocketSeed {
-				found = true
-			}
-		}
-		if !found {
-			t.Fatal("successful extraction did not create a Seed")
+		t.Fatal("successful extraction did not create a Seed in Chaos Box")
+	} else if seed := p.chaosBox.Item(0); seed != nil && seed.KindB == item.KindBSocketSeed {
+		if p.chaosBox.Item(4) != nil {
+			t.Fatal("successful extraction retained materials")
 		}
 	} else if p.chaosBox.Item(0) == nil || p.chaosBox.Item(4) == nil || excellent.Level > 4 || setItem.Level > 4 {
 		t.Fatal("failed extraction increased equipment level")

@@ -11,6 +11,41 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
 
+func TestSocketSeedFee(t *testing.T) {
+	m := socketManager{seedMoney: [4]int{11, 22, 33, 44}}
+	for index, want := range m.seedMoney {
+		if got := m.SeedFee(index); got != want {
+			t.Fatalf("Seed fee %d = %d, want %d", index, got, want)
+		}
+	}
+}
+
+func TestSocketSeedItemLookup(t *testing.T) {
+	m := socketManager{seedOptions: map[int]socketSeedOption{
+		7: {itemSection: 12, itemIndex: 60, itemLevel: 2, poolValue: 1},
+	}}
+	section, index, level := m.RandomSeed()
+	if section != 12 || index != 60 || level != 2 {
+		t.Fatalf("random Seed = %d/%d level %d", section, index, level)
+	}
+	if got, ok := m.SeedIndex(12, 60, 2); !ok || got != 7 {
+		t.Fatalf("Seed index = %d, %t", got, ok)
+	}
+	if _, ok := m.SeedIndex(11, 60, 2); ok {
+		t.Fatal("wrong Seed section matched")
+	}
+	if got, sphereLevel, ok := m.SeedSphereIndex(12, 100, 2); !ok || got != 7 || sphereLevel != 1 {
+		t.Fatalf("Seed Sphere index = %d, level = %d, %t", got, sphereLevel, ok)
+	}
+	if _, _, ok := m.SeedSphereIndex(11, 100, 2); ok {
+		t.Fatal("wrong Seed Sphere section matched")
+	}
+	section, index, level, ok := m.SeedItem(7)
+	if !ok || section != 12 || index != 60 || level != 2 {
+		t.Fatalf("Seed item = %d/%d level %d, %t", section, index, level, ok)
+	}
+}
+
 func TestSocketSlotRates(t *testing.T) {
 	if SocketManager.rates[0][0] != 6000 || SocketManager.twoHand[0] != 6000 {
 		t.Fatal("socket slot rates were not loaded")
@@ -309,7 +344,7 @@ func TestSocketOptionsLoaded(t *testing.T) {
 		t.Fatalf("Socket option counts = %d/%d/%d", len(SocketManager.seedOptions), len(SocketManager.bonusOptions), len(SocketManager.specialOptions))
 	}
 	seed := SocketManager.seedOptions[36]
-	if seed.element != 6 || seed.values[0] != 30 || seed.values[4] != 38 || seed.seedItemCode != Code(12, 65) {
+	if seed.element != 6 || seed.values[0] != 30 || seed.values[4] != 38 || seed.itemSection != 12 || seed.itemIndex != 65 {
 		t.Fatalf("seed option 36 = %#v", seed)
 	}
 	bonus := SocketManager.bonusOptions[0]

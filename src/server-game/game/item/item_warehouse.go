@@ -17,7 +17,7 @@ func (w *Warehouse) Item(position int) *Item {
 }
 
 func (w *Warehouse) CanPlace(position int, it *Item) bool {
-	if it == nil || position < 0 || position >= len(w.Flags) {
+	if it == nil || position < 0 || position >= w.Size {
 		return false
 	}
 	maxHeight1 := 15
@@ -75,14 +75,31 @@ func (w *Warehouse) ClearFlagsForItem(position int, it *Item) {
 	w.setFlagsForItem(position, it, false)
 }
 
-func (w *Warehouse) AddItem(position int, it *Item) {
+func (w *Warehouse) AddItem(position int, it *Item) bool {
+	if !w.CanPlace(position, it) {
+		return false
+	}
 	w.Items[position] = it
 	w.SetFlagsForItem(position, it)
+	return true
 }
 
 func (w *Warehouse) RemoveItem(position int, it *Item) {
 	w.Items[position] = nil
 	w.ClearFlagsForItem(position, it)
+}
+
+func (w *Warehouse) MoveItem(src, dst int) bool {
+	it := w.Item(src)
+	if it == nil || src == dst {
+		return false
+	}
+	w.RemoveItem(src, it)
+	if !w.AddItem(dst, it) {
+		w.AddItem(src, it)
+		return false
+	}
+	return true
 }
 
 func (w *Warehouse) UnmarshalJSON(buf []byte) error {
