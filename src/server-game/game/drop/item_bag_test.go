@@ -209,6 +209,35 @@ func TestMonsterBagFallsBackToGenericDrop(t *testing.T) {
 	}
 }
 
+func TestSphereDropAfterMonsterBag(t *testing.T) {
+	m := dropManager{itemBags: map[itemBagKey]*itemBagEntry{
+		{kind: itemBagMonster, id: 44}: testItemBagEntry(testItemBag(0, 0, 44, 1)),
+	}}
+	request := Request{Trigger: TriggerMonsterDeath, MonsterClass: 44, MonsterLevel: 102}
+	result := m.Drop(request)
+	if !result.Handled || len(result.Rewards) != 1 || !isZenReward(result.Rewards[0], 44) {
+		t.Fatalf("Sphere drop replaced MonsterBag reward: %#v", result)
+	}
+	request.MonsterClass = 0
+	request.MonsterLevel = 101
+	if result := m.Drop(request); !result.Handled {
+		t.Fatal("Sphere miss did not continue to generic drop")
+	}
+	request.MonsterLevel = 102
+	for i := 0; i < 5000; i++ {
+		result = m.Drop(request)
+		if len(result.Rewards) == 0 || result.Rewards[0].Item.Code != item.Code(12, 70) {
+			continue
+		}
+		reward := result.Rewards[0]
+		if !result.Handled || len(result.Rewards) != 1 || reward.Placement != PlaceAtSource || reward.Item.Level != 0 || reward.Item.Durability != 1 {
+			t.Fatalf("Sphere reward = %#v", result)
+		}
+		return
+	}
+	t.Fatal("Sphere never dropped from an eligible monster")
+}
+
 func TestEventFinishAndMonsterDeathUseSeparateBags(t *testing.T) {
 	m := dropManager{itemBags: map[itemBagKey]*itemBagEntry{
 		{kind: itemBagEvent, id: 1}:    testItemBagEntry(testItemBag(0, 0, 1, 1)),

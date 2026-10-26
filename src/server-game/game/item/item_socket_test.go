@@ -26,19 +26,147 @@ func TestSocketSlotRates(t *testing.T) {
 	}
 }
 
+func TestSphereDropSelection(t *testing.T) {
+	if !SocketManager.sphereEnabled || SocketManager.sphereRates[0] != 50 || SocketManager.sphereLevels[0] != 102 {
+		t.Fatal("Sphere drop settings were not loaded")
+	}
+	m := socketManager{sphereEnabled: true, sphereRates: [5]int{10000, 0, 10000}, sphereLevels: [5]int{100, 0, 150}}
+	if _, ok := m.RandomSphereIndex(99); ok {
+		t.Fatal("Sphere dropped below the minimum monster level")
+	}
+	if index, ok := m.RandomSphereIndex(100); !ok || index != 70 {
+		t.Fatalf("level 100 Sphere = %d, %t", index, ok)
+	}
+	if index, ok := m.RandomSphereIndex(150); !ok || index != 72 {
+		t.Fatalf("higher-tier Sphere = %d, %t", index, ok)
+	}
+	m.sphereEnabled = false
+	if _, ok := m.RandomSphereIndex(150); ok {
+		t.Fatal("Sphere dropped while disabled")
+	}
+	m.sphereEnabled = true
+	m.sphereRates = [5]int{}
+	if _, ok := m.RandomSphereIndex(150); ok {
+		t.Fatal("Sphere dropped at zero rate")
+	}
+}
+
+func TestTetraDropSelection(t *testing.T) {
+	if !SocketManager.tetraEnabled || SocketManager.tetraRates != [3]int{} {
+		t.Fatal("Tetra settings were not loaded")
+	}
+	m := socketManager{
+		tetraEnabled:   true,
+		tetraRates:     [3]int{10000, 0, 10000},
+		tetraMinLevels: [3]int{50, 100, 150},
+		tetraMaxLevels: [3]int{300, 300, 300},
+	}
+	if _, ok := m.RandomTetraIndex(49); ok {
+		t.Fatal("Tetra dropped below level range")
+	}
+	if index, ok := m.RandomTetraIndex(50); !ok || index != 247 {
+		t.Fatalf("Bronze = %d, %t", index, ok)
+	}
+	if index, ok := m.RandomTetraIndex(150); !ok || index != 245 {
+		t.Fatalf("Gold = %d, %t", index, ok)
+	}
+	m.tetraEnabled = false
+	if _, ok := m.RandomTetraIndex(150); ok {
+		t.Fatal("Tetra dropped when disabled")
+	}
+	m.tetraEnabled, m.tetraRates = true, [3]int{}
+	if _, ok := m.RandomTetraIndex(150); ok {
+		t.Fatal("Tetra dropped at zero rate")
+	}
+}
+
+func TestTetraConfigValidation(t *testing.T) {
+	file := filepath.Join(conf.PathCommon, "SocketSystem", "IGC_SocketSystem.xml")
+	valid, err := os.ReadFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct{ name, old, replacement string }{
+		{"switch", `TetraDrop="1"`, `TetraDrop="2"`},
+		{"rate", `Bronze Rate="0"`, `Bronze Rate="10001"`},
+		{"range", `Bronze Rate="0" LevelMin="50" LevelMax="300"`, `Bronze Rate="0" LevelMin="301" LevelMax="300"`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			if err := os.MkdirAll(filepath.Join(dir, "SocketSystem"), 0755); err != nil {
+				t.Fatal(err)
+			}
+			changed := strings.Replace(string(valid), tc.old, tc.replacement, 1)
+			if changed == string(valid) {
+				t.Fatal("replacement did not change XML")
+			}
+			if err := os.WriteFile(filepath.Join(dir, "SocketSystem", "IGC_SocketSystem.xml"), []byte(changed), 0644); err != nil {
+				t.Fatal(err)
+			}
+			oldPath := conf.PathCommon
+			conf.PathCommon = dir
+			defer func() { conf.PathCommon = oldPath }()
+			defer func() {
+				if got := recover(); got == nil || !strings.Contains(fmt.Sprint(got), "TetraDrop") {
+					t.Fatalf("panic = %v", got)
+				}
+			}()
+			var manager socketManager
+			manager.init()
+		})
+	}
+}
+
+func TestSphereDropConfigValidation(t *testing.T) {
+	file := filepath.Join(conf.PathCommon, "SocketSystem", "IGC_SocketSystem.xml")
+	valid, err := os.ReadFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct{ name, old, replacement string }{
+		{"invalid switch", `SphereDrop="1"`, `SphereDrop="2"`},
+		{"invalid rate", `Level1="50"`, `Level1="10001"`},
+		{"invalid level", `Level1="102"`, `Level1="-1"`},
+		{"missing rate", `Level1="50"`, ``},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			changed := strings.Replace(string(valid), tc.old, tc.replacement, 1)
+			if changed == string(valid) {
+				t.Fatal("test XML replacement failed")
+			}
+			dir := t.TempDir()
+			if err := os.MkdirAll(filepath.Join(dir, "SocketSystem"), 0755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(dir, "SocketSystem", "IGC_SocketSystem.xml"), []byte(changed), 0644); err != nil {
+				t.Fatal(err)
+			}
+			oldPath := conf.PathCommon
+			conf.PathCommon = dir
+			defer func() { conf.PathCommon = oldPath }()
+			defer func() {
+				if got := recover(); got == nil || !strings.Contains(fmt.Sprint(got), "SphereDrop") {
+					t.Fatalf("panic = %v, want SphereDrop config error", got)
+				}
+			}()
+			var manager socketManager
+			manager.init()
+		})
+	}
+}
+
 func TestSocketConfigRejectsInvalidRates(t *testing.T) {
 	for _, tc := range []struct {
-		name  string
-		rate  string
-		count int
+		name, rate, errorText string
+		count                 int
 	}{
-		{"duplicate section", `CatID="0" Count1="10000"`, 13},
-		{"missing section", `CatID="0" Count1="10000"`, 11},
-		{"invalid weight", `CatID="0" Count1="-1"`, 12},
+		{"duplicate section", `CatID="0" Count1="10000"`, "duplicate section 0", 13},
+		{"missing section", `CatID="0" Count1="10000"`, "missing section 11", 11},
+		{"invalid weight", `CatID="0" Count1="-1"`, "invalid section 0 slot weight", 12},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var xml strings.Builder
-			xml.WriteString(`<SocketSystem><SocketRateSettings>`)
+			xml.WriteString(`<SocketSystem SphereDrop="0" TetraDrop="0"><SphereDrop><Rate Level1="0" Level2="0" Level3="0" Level4="0" Level5="0"/><Level Level1="0" Level2="0" Level3="0" Level4="0" Level5="0"/></SphereDrop><TetraDrop><Bronze Rate="0" LevelMin="0" LevelMax="0"/><Silver Rate="0" LevelMin="0" LevelMax="0"/><Gold Rate="0" LevelMin="0" LevelMax="0"/></TetraDrop><Seed ExtractMoney="0"><Sphere CompositeMoney="0" SetMoney="0" RemoveMoney="0"/></Seed><SocketRateSettings>`)
 			for i := 0; i < tc.count; i++ {
 				if i == 0 || i == 12 {
 					fmt.Fprintf(&xml, "<Socket %s/>", tc.rate)
@@ -58,8 +186,8 @@ func TestSocketConfigRejectsInvalidRates(t *testing.T) {
 			conf.PathCommon = dir
 			defer func() { conf.PathCommon = oldPath }()
 			defer func() {
-				if recover() == nil {
-					t.Fatal("invalid socket rates were accepted")
+				if got := recover(); got == nil || !strings.Contains(fmt.Sprint(got), tc.errorText) {
+					t.Fatalf("panic = %v, want %q", got, tc.errorText)
 				}
 			}()
 			var manager socketManager

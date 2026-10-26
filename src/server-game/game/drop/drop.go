@@ -398,5 +398,17 @@ func (m *dropManager) Drop(request Request) Result {
 	if result.Handled || request.Trigger != TriggerMonsterDeath {
 		return result
 	}
+	if index, ok := item.SocketManager.RandomSphereIndex(request.MonsterLevel); ok {
+		it := item.NewItem(12, index)
+		it.Calc()
+		it.Durability = 1
+		return Result{Handled: true, Rewards: []Reward{{Item: it, Placement: PlaceAtSource}}}
+	}
+	if index, ok := item.SocketManager.RandomTetraIndex(request.MonsterLevel); ok {
+		it := item.NewItem(14, index)
+		it.Calc()
+		it.Durability = 1
+		return Result{Handled: true, Rewards: []Reward{{Item: it, Placement: PlaceAtSource}}}
+	}
 	return m.dropGeneric(request)
 }

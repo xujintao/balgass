@@ -39,6 +39,13 @@ type socketSpecialOption struct {
 }
 
 type socketManager struct {
+	sphereEnabled  bool
+	sphereRates    [5]int
+	sphereLevels   [5]int
+	tetraEnabled   bool
+	tetraRates     [3]int
+	tetraMinLevels [3]int
+	tetraMaxLevels [3]int
 	rates          [12][5]int
 	twoHand        [5]int
 	seedOptions    map[int]socketSeedOption
@@ -47,6 +54,13 @@ type socketManager struct {
 }
 
 func (m *socketManager) init() {
+	type sphereValues struct {
+		Level1 *int `xml:"Level1,attr"`
+		Level2 *int `xml:"Level2,attr"`
+		Level3 *int `xml:"Level3,attr"`
+		Level4 *int `xml:"Level4,attr"`
+		Level5 *int `xml:"Level5,attr"`
+	}
 	type rateConfig struct {
 		CatID  int `xml:"CatID,attr"`
 		Count1 int `xml:"Count1,attr"`
@@ -55,48 +69,102 @@ func (m *socketManager) init() {
 		Count4 int `xml:"Count4,attr"`
 		Count5 int `xml:"Count5,attr"`
 	}
-	type rateSettingsConfig struct {
+	type tetraConfig struct {
+		Rate *int `xml:"Rate,attr"`
+		Min  *int `xml:"LevelMin,attr"`
+		Max  *int `xml:"LevelMax,attr"`
+	}
+	type socketSystemConfig struct {
+		SphereDrop *int `xml:"SphereDrop,attr"`
+		TetraDrop  *int `xml:"TetraDrop,attr"`
+		Sphere     struct {
+			Rate  *sphereValues `xml:"Rate"`
+			Level *sphereValues `xml:"Level"`
+		} `xml:"SphereDrop"`
+		Tetra struct {
+			Bronze *tetraConfig `xml:"Bronze"`
+			Silver *tetraConfig `xml:"Silver"`
+			Gold   *tetraConfig `xml:"Gold"`
+		} `xml:"TetraDrop"`
 		SocketRateSettings struct {
 			Sockets []rateConfig `xml:"Socket"`
 			TwoHand *rateConfig  `xml:"TwoHandWeapons"`
 		} `xml:"SocketRateSettings"`
 	}
-	var rateCfg rateSettingsConfig
-	conf.XML(conf.PathCommon, "SocketSystem/IGC_SocketSystem.xml", &rateCfg)
+	var socketCfg socketSystemConfig
+	const socketFile = "SocketSystem/IGC_SocketSystem.xml"
+	conf.XML(conf.PathCommon, socketFile, &socketCfg)
+	if socketCfg.SphereDrop == nil || (*socketCfg.SphereDrop != 0 && *socketCfg.SphereDrop != 1) {
+		panic(fmt.Errorf("%s: invalid SphereDrop switch", socketFile))
+	}
+	if socketCfg.Sphere.Rate == nil || socketCfg.Sphere.Level == nil {
+		panic(fmt.Errorf("%s: missing SphereDrop Rate or Level", socketFile))
+	}
+	m.sphereEnabled = *socketCfg.SphereDrop == 1
+	rates := socketCfg.Sphere.Rate
+	levels := socketCfg.Sphere.Level
+	rateValues := [5]*int{rates.Level1, rates.Level2, rates.Level3, rates.Level4, rates.Level5}
+	levelValues := [5]*int{levels.Level1, levels.Level2, levels.Level3, levels.Level4, levels.Level5}
+	for i := range m.sphereRates {
+		if rateValues[i] == nil || *rateValues[i] < 0 || *rateValues[i] > 10000 || levelValues[i] == nil || *levelValues[i] < 0 {
+			panic(fmt.Errorf("%s: invalid SphereDrop level %d", socketFile, i+1))
+		}
+		base, err := ItemTable.GetItemBase(12, 70+i)
+		if err != nil || base.KindB != KindBSocketSphere {
+			panic(fmt.Errorf("%s: missing Sphere item 12/%d: %v", socketFile, 70+i, err))
+		}
+		m.sphereRates[i] = *rateValues[i]
+		m.sphereLevels[i] = *levelValues[i]
+	}
+	if socketCfg.TetraDrop == nil || (*socketCfg.TetraDrop != 0 && *socketCfg.TetraDrop != 1) {
+		panic(fmt.Errorf("%s: invalid TetraDrop switch", socketFile))
+	}
+	m.tetraEnabled = *socketCfg.TetraDrop == 1
+	entries := [3]*tetraConfig{socketCfg.Tetra.Bronze, socketCfg.Tetra.Silver, socketCfg.Tetra.Gold}
+	for i, entry := range entries {
+		if entry == nil || entry.Rate == nil || entry.Min == nil || entry.Max == nil ||
+			*entry.Rate < 0 || *entry.Rate > 10000 || *entry.Min < 0 || *entry.Max < *entry.Min {
+			panic(fmt.Errorf("%s: invalid TetraDrop tier %d", socketFile, i+1))
+		}
+		if _, err := ItemTable.GetItemBase(14, 247-i); err != nil {
+			panic(fmt.Errorf("%s: Tetra tier %d: %w", socketFile, i+1, err))
+		}
+		m.tetraRates[i], m.tetraMinLevels[i], m.tetraMaxLevels[i] = *entry.Rate, *entry.Min, *entry.Max
+	}
 	weights := func(label string, rate rateConfig) [5]int {
 		values := [5]int{rate.Count1, rate.Count2, rate.Count3, rate.Count4, rate.Count5}
 		total := 0
 		for _, value := range values {
 			if value < 0 || value > 10000 {
-				panic(fmt.Errorf("SocketSystem/IGC_SocketSystem.xml: invalid %s slot weight %d", label, value))
+				panic(fmt.Errorf("%s: invalid %s slot weight %d", socketFile, label, value))
 			}
 			total += value
 		}
 		if total == 0 {
-			panic(fmt.Errorf("SocketSystem/IGC_SocketSystem.xml: %s has no positive slot weights", label))
+			panic(fmt.Errorf("%s: %s has no positive slot weights", socketFile, label))
 		}
 		return values
 	}
 	var seen [12]bool
-	for _, rate := range rateCfg.SocketRateSettings.Sockets {
+	for _, rate := range socketCfg.SocketRateSettings.Sockets {
 		if rate.CatID < 0 || rate.CatID >= len(m.rates) {
-			panic(fmt.Errorf("SocketSystem/IGC_SocketSystem.xml: invalid section %d", rate.CatID))
+			panic(fmt.Errorf("%s: invalid section %d", socketFile, rate.CatID))
 		}
 		if seen[rate.CatID] {
-			panic(fmt.Errorf("SocketSystem/IGC_SocketSystem.xml: duplicate section %d", rate.CatID))
+			panic(fmt.Errorf("%s: duplicate section %d", socketFile, rate.CatID))
 		}
 		m.rates[rate.CatID] = weights(fmt.Sprintf("section %d", rate.CatID), rate)
 		seen[rate.CatID] = true
 	}
 	for section, present := range seen {
 		if !present {
-			panic(fmt.Errorf("SocketSystem/IGC_SocketSystem.xml: missing section %d", section))
+			panic(fmt.Errorf("%s: missing section %d", socketFile, section))
 		}
 	}
-	if rateCfg.SocketRateSettings.TwoHand == nil {
-		panic(fmt.Errorf("SocketSystem/IGC_SocketSystem.xml: missing TwoHandWeapons"))
+	if socketCfg.SocketRateSettings.TwoHand == nil {
+		panic(fmt.Errorf("%s: missing TwoHandWeapons", socketFile))
 	}
-	m.twoHand = weights("TwoHandWeapons", *rateCfg.SocketRateSettings.TwoHand)
+	m.twoHand = weights("TwoHandWeapons", *socketCfg.SocketRateSettings.TwoHand)
 
 	type seedConfig struct {
 		Index       *int   `xml:"Index,attr"`
@@ -265,6 +333,46 @@ func (m *socketManager) init() {
 			name: option.Name, kind: kind, valueType: valueType, value: value, rate: rate, seedCounts: counts,
 		}
 	}
+}
+
+func (m *socketManager) RandomSphereIndex(monsterLevel int) (int, bool) {
+	if !m.sphereEnabled {
+		return 0, false
+	}
+	highest := 0
+	for i := len(m.sphereLevels) - 1; i >= 0; i-- {
+		if m.sphereLevels[i] > 0 && monsterLevel >= m.sphereLevels[i] {
+			highest = i + 1
+			break
+		}
+	}
+	index := -1
+	for i := 0; i < highest; i++ {
+		if rand.Intn(10000) < m.sphereRates[i] {
+			index = 70 + i
+		}
+	}
+	return index, index >= 0
+}
+
+func (m *socketManager) RandomTetraIndex(monsterLevel int) (int, bool) {
+	if !m.tetraEnabled {
+		return 0, false
+	}
+	highest := 0
+	for i := len(m.tetraRates) - 1; i >= 0; i-- {
+		if monsterLevel >= m.tetraMinLevels[i] && monsterLevel <= m.tetraMaxLevels[i] {
+			highest = i + 1
+			break
+		}
+	}
+	index := -1
+	for i := 0; i < highest; i++ {
+		if rand.Intn(10000) < m.tetraRates[i] {
+			index = 247 - i
+		}
+	}
+	return index, index >= 0
 }
 
 func (m *socketManager) RandomSlotCount(it *Item) int {
