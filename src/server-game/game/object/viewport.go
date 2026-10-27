@@ -295,7 +295,7 @@ func (obj *Object) createViewport() {
 						PKLevel:                tobj.GetPKLevel(),
 						PentagramMainAttribute: tobj.PentagramAttributePattern,
 						Level:                  tobj.Level,
-						MaxHP:                  tobj.MaxHP,
+						MaxHP:                  tobj.MaxHP + tobj.AddHP,
 						HP:                     tobj.HP,
 						ServerCode:             0,
 						BuffEffects:            tobj.activeBuffIndexes(),
@@ -312,7 +312,7 @@ func (obj *Object) createViewport() {
 						Dir:                    tobj.Dir,
 						PentagramMainAttribute: tobj.PentagramMainAttribute,
 						Level:                  tobj.Level,
-						MaxHP:                  tobj.MaxHP,
+						MaxHP:                  tobj.MaxHP + tobj.AddHP,
 						HP:                     tobj.HP,
 						BuffEffects:            tobj.activeBuffIndexes(),
 					}

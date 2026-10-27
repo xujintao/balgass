@@ -641,8 +641,8 @@ func (obj *Object) useSkillHeal(tobj *Object, s *skill.Skill) bool {
 		return false
 	}
 	tobj.HP += addLife
-	if tobj.HP > tobj.MaxHP {
-		tobj.HP = tobj.MaxHP
+	if tobj.HP > tobj.MaxHP+tobj.AddHP {
+		tobj.HP = tobj.MaxHP + tobj.AddHP
 	}
 	obj.useSkillReply(tobj, s, true)
 	tobj.PushHPSD(tobj.HP, tobj.SD)
@@ -853,7 +853,7 @@ func (obj *Object) useSkillDeathStab(s *skill.Skill, tobj *Object) bool {
 }
 
 func (obj *Object) useSkillSwellHP(tobj *Object, s *skill.Skill) bool {
-	if (obj.Class != int(class.Knight) && obj.Class != int(class.Magumsa)) || !tobj.canReceiveSupportSkill() {
+	if obj.Class != int(class.Knight) || !tobj.canReceiveSupportSkill() {
 		return false
 	}
 	addLifeRate := 0.0
@@ -863,13 +863,15 @@ func (obj *Object) useSkillSwellHP(tobj *Object, s *skill.Skill) bool {
 	if addHP <= 0 || duration <= 0 {
 		return false
 	}
+	hp := tobj.HP
 	tobj.addEffect(&effect.Effect{
 		BuffIndex: effect.BuffSwellHP,
-		MaxHP:     addHP,
+		AddHP:     addHP,
 		Expire:    time.Now().Add(time.Duration(duration) * time.Second),
 	})
+	tobj.HP = min(hp, tobj.MaxHP+tobj.AddHP)
 	obj.useSkillReply(tobj, s, true)
-	tobj.PushMaxHPSD(tobj.MaxHP, tobj.MaxSD)
+	tobj.PushMaxHPSD(tobj.MaxHP+tobj.AddHP, tobj.MaxSD)
 	tobj.PushHPSD(tobj.HP, tobj.SD)
 	return true
 }
@@ -945,15 +947,13 @@ func (obj *Object) useSkillBerserker(s *skill.Skill) bool {
 	if !obj.addEffect(&effect.Effect{
 		BuffIndex: effect.BuffBerserker, AttackMin: attackMin, AttackMax: attackMax,
 		MagicMin: int(magicMin), MagicMax: int(magicMax), CurseMin: int(curseMin), CurseMax: int(curseMax),
-		MaxMP: obj.MaxMP * up / 100, MaxHP: -obj.MaxHP * hpRate / 100,
+		AddMP: obj.MaxMP * up / 100, AddHP: -obj.MaxHP * hpRate / 100,
 		Defense: -obj.Defense * hpRate / 100,
 		Expire:  time.Now().Add(time.Duration(duration) * time.Second),
 	}) {
 		return false
 	}
 	obj.useSkillReply(obj, s, true)
-	obj.PushMaxHPSD(obj.MaxHP, obj.MaxSD)
-	obj.PushMaxMPAG(obj.MaxMP, obj.MaxAG)
 	return true
 }
 
@@ -1042,13 +1042,12 @@ func (obj *Object) useSkillIncreaseHealth(s *skill.Skill) bool {
 		return false
 	}
 	if !obj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffIncreaseHealth, MaxHP: value,
+		BuffIndex: effect.BuffIncreaseHealth, AddHP: value,
 		Expire: time.Now().Add(time.Duration(obj.GetEnergy()/5+60) * time.Second),
 	}) {
 		return false
 	}
 	obj.useSkillReply(obj, s, true)
-	obj.PushMaxHPSD(obj.MaxHP, obj.MaxSD)
 	return true
 }
 

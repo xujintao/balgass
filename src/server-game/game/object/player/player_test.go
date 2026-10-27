@@ -278,6 +278,32 @@ func TestSocketEquipmentRecalculation(t *testing.T) {
 	}
 }
 
+func TestRecalculationPreservesTemporaryResources(t *testing.T) {
+	p := Player{msgChan: make(chan any, 30)}
+	p.Object.Objecter = &p
+	p.Class = int(class.Wizard)
+	p.Level = 100
+	p.strength, p.dexterity, p.vitality, p.energy = 20, 20, 20, 100
+	p.inventory.Items = make([]*item.Item, 237)
+	p.calc()
+	baseHP, baseMP := p.MaxHP, p.MaxMP
+	p.AddHP = 100
+	p.HP = baseHP + 100
+	p.AddMP = 50
+	p.MP = baseMP + 50
+	p.calc()
+	if p.MaxHP != baseHP || p.AddHP != 100 || p.HP != baseHP+100 ||
+		p.MaxMP != baseMP || p.AddMP != 50 || p.MP != baseMP+50 {
+		t.Fatalf("recalculated HP/base/add and MP/base/add = %d/%d/%d and %d/%d/%d", p.HP, p.MaxHP, p.AddHP, p.MP, p.MaxMP, p.AddMP)
+	}
+	p.AddHP = -20
+	p.AddMP = -20
+	p.calc()
+	if p.HP != p.MaxHP+p.AddHP || p.MP != p.MaxMP+p.AddMP {
+		t.Fatalf("resources after reduced caps = HP %d/%d, MP %d/%d", p.HP, p.MaxHP+p.AddHP, p.MP, p.MaxMP+p.AddMP)
+	}
+}
+
 func TestSocketAttackRecalculation(t *testing.T) {
 	p := Player{msgChan: make(chan any, 30)}
 	p.Object.Objecter = &p

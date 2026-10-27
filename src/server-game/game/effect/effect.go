@@ -61,8 +61,8 @@ type Effect struct {
 	CurseMax         int
 	Defense          int
 	DefenseRate      int
-	MaxHP            int
-	MaxMP            int
+	AddHP            int
+	AddMP            int
 	CriticalDamage   int
 	IgnoreDefense    int
 	Reflect          int

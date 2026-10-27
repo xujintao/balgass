@@ -503,17 +503,91 @@ func TestUseSkillSwellHPExpiresAndClampsHP(t *testing.T) {
 
 	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: skill.SkillIndexSwellHP})
 
-	if target.MaxHP <= 100 {
-		t.Fatalf("target MaxHP = %d, want above 100", target.MaxHP)
+	if target.MaxHP != 100 || target.AddHP <= 0 {
+		t.Fatalf("target MaxHP/AddHP = %d/%d, want base 100 and positive addition", target.MaxHP, target.AddHP)
 	}
-	target.HP = target.MaxHP
+	foundMaxHP := false
+	for _, message := range targetActor.messages {
+		if reply, ok := message.(*model.MsgHPReply); ok && reply.Position == -2 && reply.HP == target.MaxHP+target.AddHP {
+			foundMaxHP = true
+		}
+	}
+	if !foundMaxHP {
+		t.Fatal("effective maximum HP was not sent to target")
+	}
+	target.HP = target.MaxHP + target.AddHP
 	target.effects[effect.BuffSwellHP].Expire = time.Now().Add(-time.Second)
 	target.processEffect()
-	if target.MaxHP != 100 || target.HP != 100 {
-		t.Fatalf("expired HP/MaxHP = %d/%d, want 100/100", target.HP, target.MaxHP)
+	if target.MaxHP != 100 || target.AddHP != 0 || target.HP != 100 {
+		t.Fatalf("expired HP/MaxHP/AddHP = %d/%d/%d, want 100/100/0", target.HP, target.MaxHP, target.AddHP)
 	}
 	if !hasMessage[model.MsgHPReply](targetActor.messages) {
 		t.Fatal("target HP reply was not sent")
+	}
+}
+
+func TestUseSkillSwellHPRefreshPreservesMaxAndCurrentHP(t *testing.T) {
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	withTestObjectManager(t, caster)
+	caster.Class = int(class.Knight)
+	actor.energy = 100
+	actor.vitality = 200
+	s := learnSkillForTest(t, caster, skill.SkillIndexSwellHP)
+	if !caster.useSkillSwellHP(caster, s) {
+		t.Fatal("initial cast failed")
+	}
+	maxHP := caster.MaxHP + caster.AddHP
+	if maxHP <= 100 {
+		t.Fatalf("MaxHP = %d, want above 100", maxHP)
+	}
+	if caster.MaxHP != 100 || caster.AddHP != maxHP-100 {
+		t.Fatalf("base/add HP = %d/%d, want 100/%d", caster.MaxHP, caster.AddHP, maxHP-100)
+	}
+	caster.HP = maxHP
+	for i := 0; i < 3; i++ {
+		if !caster.useSkillSwellHP(caster, s) {
+			t.Fatal("refresh failed")
+		}
+		if caster.MaxHP != 100 || caster.AddHP != maxHP-100 || caster.HP != maxHP {
+			t.Fatalf("refresh HP/MaxHP/AddHP = %d/%d/%d, want %d/100/%d", caster.HP, caster.MaxHP, caster.AddHP, maxHP, maxHP-100)
+		}
+	}
+	actor.energy = 0
+	actor.vitality = 0
+	if !caster.useSkillSwellHP(caster, s) {
+		t.Fatal("weaker refresh failed")
+	}
+	if caster.MaxHP != 100 || caster.MaxHP+caster.AddHP >= maxHP || caster.HP != caster.MaxHP+caster.AddHP {
+		t.Fatalf("weaker refresh HP/base/add = %d/%d/%d, want clamped below %d", caster.HP, caster.MaxHP, caster.AddHP, maxHP)
+	}
+	lastHP := -1
+	for _, message := range actor.messages {
+		if reply, ok := message.(*model.MsgHPReply); ok && reply.Position == -1 {
+			lastHP = reply.HP
+		}
+	}
+	if lastHP != caster.HP {
+		t.Fatalf("last HP reply = %d, want %d", lastHP, caster.HP)
+	}
+}
+
+func TestTemporaryResourceEffectPreservesBaseMax(t *testing.T) {
+	obj, _ := newSkillTestObject(1, ObjectTypePlayer)
+	if !obj.addEffect(&effect.Effect{
+		BuffIndex: effect.BuffBerserker,
+		AddHP:     -40,
+		AddMP:     40,
+		Expire:    time.Now().Add(time.Minute),
+	}) {
+		t.Fatal("adding negative HP effect failed")
+	}
+	if obj.MaxHP != 100 || obj.AddHP != -40 || obj.HP != 60 || obj.MaxMP != 100 || obj.AddMP != 40 {
+		t.Fatalf("buff resources = HP %d/%d/%d, MP %d/%d", obj.HP, obj.MaxHP, obj.AddHP, obj.MP, obj.MaxMP+obj.AddMP)
+	}
+	obj.MP = obj.MaxMP + obj.AddMP
+	obj.removeEffect(effect.BuffBerserker)
+	if obj.MaxHP != 100 || obj.AddHP != 0 || obj.HP != 60 || obj.MaxMP != 100 || obj.AddMP != 0 || obj.MP != 100 {
+		t.Fatalf("removed resources = HP %d/%d/%d, MP %d/%d/%d", obj.HP, obj.MaxHP, obj.AddHP, obj.MP, obj.MaxMP, obj.AddMP)
 	}
 }
 

@@ -696,8 +696,8 @@ func (m *Monster) Process1000ms() {
 }
 
 func (m *Monster) Regen() {
-	m.HP = m.MaxHP
-	m.MP = m.MaxMP
+	m.HP = m.MaxHP + m.AddHP
+	m.MP = m.MaxMP + m.AddMP
 }
 
 func (m *Monster) GetChangeUp() int {

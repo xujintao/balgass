@@ -42,14 +42,6 @@ func (obj *Object) applyEffect(eff *effect.Effect) {
 func (obj *Object) unapplyEffect(eff *effect.Effect) {
 	obj.applyEffectValue(eff, -1)
 	obj.pushEffect(eff, false)
-	if eff.MaxHP != 0 {
-		obj.PushMaxHPSD(obj.MaxHP, obj.MaxSD)
-		obj.PushHPSD(obj.HP, obj.SD)
-	}
-	if eff.MaxMP != 0 {
-		obj.PushMaxMPAG(obj.MaxMP, obj.MaxAG)
-		obj.PushMPAG(obj.MP, obj.AG)
-	}
 }
 
 func (obj *Object) applyEffectValue(eff *effect.Effect, sign int) {
@@ -59,27 +51,27 @@ func (obj *Object) applyEffectValue(eff *effect.Effect, sign int) {
 	obj.AttackMax += sign * eff.AttackMax
 	obj.Defense += sign * eff.Defense
 	obj.DefenseRate += sign * eff.DefenseRate
-	obj.MaxHP += sign * eff.MaxHP
-	obj.MaxMP += sign * eff.MaxMP
+	obj.AddHP += sign * eff.AddHP
+	obj.AddMP += sign * eff.AddMP
 	if eff.Slow {
 		obj.delayLevel += sign
 		if obj.delayLevel < 0 {
 			obj.delayLevel = 0
 		}
 	}
-	if obj.MaxHP < 1 {
-		obj.MaxHP = 1
-	}
-	if obj.MaxMP < 0 {
-		obj.MaxMP = 0
-	}
-	if sign < 0 {
-		if obj.HP > obj.MaxHP {
-			obj.HP = obj.MaxHP
+	if eff.AddHP != 0 {
+		if obj.HP > obj.MaxHP+obj.AddHP {
+			obj.HP = obj.MaxHP + obj.AddHP
 		}
-		if obj.MP > obj.MaxMP {
-			obj.MP = obj.MaxMP
+		obj.PushMaxHPSD(obj.MaxHP+obj.AddHP, obj.MaxSD)
+		obj.PushHPSD(obj.HP, obj.SD)
+	}
+	if eff.AddMP != 0 {
+		if obj.MP > obj.MaxMP+obj.AddMP {
+			obj.MP = obj.MaxMP + obj.AddMP
 		}
+		obj.PushMaxMPAG(obj.MaxMP+obj.AddMP, obj.MaxAG)
+		obj.PushMPAG(obj.MP, obj.AG)
 	}
 }
 
@@ -124,10 +116,10 @@ func effectValue(eff *effect.Effect) int {
 		return eff.Attack
 	case eff.Defense != 0:
 		return eff.Defense
-	case eff.MaxHP != 0:
-		return eff.MaxHP
-	case eff.MaxMP != 0:
-		return eff.MaxMP
+	case eff.AddHP != 0:
+		return eff.AddHP
+	case eff.AddMP != 0:
+		return eff.AddMP
 	case eff.CriticalDamage != 0:
 		return eff.CriticalDamage
 	case eff.Reflect != 0:

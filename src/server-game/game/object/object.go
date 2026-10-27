@@ -780,8 +780,10 @@ type Object struct {
 	delayLevel                int
 	HP                        int // HP
 	MaxHP                     int // MaxHP
+	AddHP                     int // 临时生命上限加成
 	MP                        int // MP
 	MaxMP                     int // MaxMP
+	AddMP                     int // 临时魔法上限加成
 	SD                        int // SD
 	MaxSD                     int
 	AG                        int // AG
@@ -1239,8 +1241,8 @@ func (obj *Object) processDelayMsg() {
 				addHP := 0
 				formula.SummonerDrainLifeMonster(obj.GetEnergy(), tobj.Level, &addHP)
 				obj.HP += addHP
-				if obj.HP > obj.MaxHP {
-					obj.HP = obj.MaxHP
+				if obj.HP > obj.MaxHP+obj.AddHP {
+					obj.HP = obj.MaxHP + obj.AddHP
 				}
 				obj.PushHPSD(obj.HP, obj.SD)
 			}
@@ -1295,13 +1297,13 @@ func (obj *Object) processDelayMsg() {
 			if !obj.Live || obj.HP <= 0 {
 				break
 			}
-			obj.HP = obj.MaxHP
+			obj.HP = obj.MaxHP + obj.AddHP
 			obj.PushHPSD(obj.HP, obj.SD)
 		case 14: // delayed full MP recovery
 			if !obj.Live || obj.HP <= 0 {
 				break
 			}
-			obj.MP = obj.MaxMP
+			obj.MP = obj.MaxMP + obj.AddMP
 			obj.PushMPAG(obj.MP, obj.AG)
 		case 15: // delayed full SD recovery
 			if !obj.Live || obj.HP <= 0 {

@@ -552,7 +552,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	attackEffectReply := model.MsgAttackEffectReply{
 		Target:       tobj.Index,
 		HP:           tobj.HP,
-		MaxHP:        tobj.MaxHP,
+		MaxHP:        tobj.MaxHP + tobj.AddHP,
 		Level:        tobj.Level,
 		IceEffect:    0,
 		PoisonEffect: 0,
@@ -562,7 +562,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	// Push attack hp reply
 	attackHPReply := model.MsgAttackHPReply{
 		Target: tobj.Index,
-		MaxHP:  tobj.MaxHP,
+		MaxHP:  tobj.MaxHP + tobj.AddHP,
 		HP:     tobj.HP,
 	}
 	tobj.PushViewport(&attackHPReply)
@@ -772,16 +772,16 @@ func (obj *Object) DieDropExperience() {
 
 func (obj *Object) DieRecoverHPMP(tobj *Object) {
 	if tobj.GetMonsterDieGetHP() != 0 {
-		tobj.HP += int(float64(tobj.MaxHP) * tobj.GetMonsterDieGetHP())
-		if tobj.HP >= tobj.MaxHP {
-			tobj.HP = tobj.MaxHP
+		tobj.HP += int(float64(tobj.MaxHP+tobj.AddHP) * tobj.GetMonsterDieGetHP())
+		if tobj.HP >= tobj.MaxHP+tobj.AddHP {
+			tobj.HP = tobj.MaxHP + tobj.AddHP
 		}
 		tobj.PushHPSD(tobj.HP, tobj.SD)
 	}
 	if tobj.GetMonsterDieGetMP() != 0 {
-		tobj.MP += int(float64(tobj.MaxMP) * tobj.GetMonsterDieGetMP())
-		if tobj.MP >= tobj.MaxMP {
-			tobj.MP = tobj.MaxMP
+		tobj.MP += int(float64(tobj.MaxMP+tobj.AddMP) * tobj.GetMonsterDieGetMP())
+		if tobj.MP >= tobj.MaxMP+tobj.AddMP {
+			tobj.MP = tobj.MaxMP + tobj.AddMP
 		}
 		tobj.PushMPAG(tobj.MP, tobj.AG)
 	}

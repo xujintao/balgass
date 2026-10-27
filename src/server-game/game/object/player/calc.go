@@ -84,8 +84,8 @@ func (p *Player) calc() {
 		AttackSpeed: p.AttackSpeed,
 		MagicSpeed:  p.magicSpeed,
 	})
-	p.PushMaxHPSD(p.MaxHP, p.MaxSD)
-	p.PushMaxMPAG(p.MaxMP, p.MaxAG)
+	p.PushMaxHPSD(p.MaxHP+p.AddHP, p.MaxSD)
+	p.PushMaxMPAG(p.MaxMP+p.AddMP, p.MaxAG)
 	p.PushHPSD(p.HP, p.SD)
 	p.PushMPAG(p.MP, p.AG)
 }
@@ -896,11 +896,11 @@ func (p *Player) calcHelperItem() {
 
 	// ...
 
-	if p.HP > p.MaxHP {
-		p.HP = p.MaxHP
+	if p.HP > p.MaxHP+p.AddHP {
+		p.HP = p.MaxHP + p.AddHP
 	}
-	if p.MP > p.MaxMP {
-		p.MP = p.MaxMP
+	if p.MP > p.MaxMP+p.AddMP {
+		p.MP = p.MaxMP + p.AddMP
 	}
 	if p.SD > p.MaxSD {
 		p.SD = p.MaxSD

@@ -223,9 +223,9 @@ func (p *Player) LevelUp(addexp int) bool {
 		p.masterPoint += conf.Common.General.MasterPointPerLevel
 	}
 	p.calc()
-	p.HP = p.MaxHP
+	p.HP = p.MaxHP + p.AddHP
 	p.SD = p.MaxSD
-	p.MP = p.MaxMP
+	p.MP = p.MaxMP + p.AddMP
 	p.AG = p.MaxAG
 	p.PushHPSD(p.HP, p.SD)
 	p.PushMPAG(p.MP, p.AG)
@@ -233,8 +233,8 @@ func (p *Player) LevelUp(addexp int) bool {
 		reply := model.MsgLevelUpReply{
 			Level:      p.Level,
 			LevelPoint: p.levelPoint,
-			MaxHP:      p.MaxHP,
-			MaxMP:      p.MaxMP,
+			MaxHP:      p.MaxHP + p.AddHP,
+			MaxMP:      p.MaxMP + p.AddMP,
 			MaxSD:      p.MaxSD,
 			MaxAG:      p.MaxAG,
 		}
@@ -245,8 +245,8 @@ func (p *Player) LevelUp(addexp int) bool {
 			MasterPointPerLevel: conf.Common.General.MasterPointPerLevel,
 			MasterPoint:         p.masterPoint,
 			MaxMasterLevel:      conf.Common.General.MaxLevelMaster,
-			MaxHP:               p.MaxHP,
-			MaxMP:               p.MaxMP,
+			MaxHP:               p.MaxHP + p.AddHP,
+			MaxMP:               p.MaxMP + p.AddMP,
 			MaxSD:               p.MaxSD,
 			MaxAG:               p.MaxAG,
 		}
