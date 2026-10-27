@@ -881,7 +881,7 @@ func (p *Player) calcHelperItem() {
 	}
 
 	// pet item contribution
-	if p.pet != nil {
+	if p.pet != nil && p.pet.Durability > 0 {
 		switch p.pet.Code {
 		case item.Code(13, 3): // Horn of Dinorant 彩云兽
 			p.petIncreaseDamage = 15

@@ -840,10 +840,11 @@ func (p *Player) Logout(msg *model.MsgLogout) {
 	switch msg.Flag {
 	case 0: // close game
 	case 1: // back to pick character
-		// offline to login state.\
+		// offline to login state
 		p.ConnectState = object.ConnectStateLogged
 		p.saveCharacter()
 		p.Reset()
+		p.pet = nil
 	case 2: // back to pick server
 		// offline to init state.
 		// Do not close connection
@@ -1138,7 +1139,11 @@ func (p *Player) findAndUsePet() {
 			item.Code(13, 4),  // Dark Horse 黑王马之角
 			item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
 			if it.HarmonyOption == 1 {
-				p.pet = it
+				if p.pet == nil && it.Durability > 0 {
+					p.pet = it
+				} else {
+					it.HarmonyOption = 0
+				}
 			}
 		}
 	}

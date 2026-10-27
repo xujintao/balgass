@@ -1,13 +1,153 @@
 package player
 
 import (
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 )
+
+func TestUsePetFollowsRequestedAction(t *testing.T) {
+	p := newItemTestPlayer()
+	pet := item.NewItem(13, 3)
+	pet.Durability = 100
+	other := item.NewItem(13, 2)
+	other.Durability = 100
+	late := item.NewItem(13, 2)
+	late.Durability = 100
+	p.inventory.AddItem(12, pet)
+	p.inventory.AddItem(13, other)
+	if !p.inventory.AddItem(204, late) {
+		t.Fatal("could not place pet outside the main inventory")
+	}
+
+	use := func(position, value, wantResult int) {
+		t.Helper()
+		p.UsePet(&model.MsgUsePet{Position: position, Value: value})
+		messages := itemTestMessages(p)
+		reply, ok := messages[len(messages)-1].(*model.MsgUsePetReply)
+		if !ok || reply.Result != wantResult {
+			t.Fatalf("UsePet(%d, %d) reply = %#v, want %d", position, value, messages[len(messages)-1], wantResult)
+		}
+	}
+
+	use(12, 0, 0)
+	use(204, 254, 0)
+	use(12, 254, -2)
+	if p.pet != pet || pet.HarmonyOption != 1 || p.petIncreaseDamage != 15 {
+		t.Fatal("pet was not activated")
+	}
+	use(13, 254, 0)
+	use(13, 255, 0)
+	if p.pet != pet || pet.HarmonyOption != 1 || other.HarmonyOption != 0 {
+		t.Fatal("request for another pet changed the active pet")
+	}
+	pet.Durability = 0
+	p.calc()
+	itemTestMessages(p)
+	if p.petIncreaseDamage != 0 || p.GetActivePetCode() != -1 {
+		t.Fatal("broken pet still gives an effect")
+	}
+	use(12, 255, -1)
+	if p.pet != nil || pet.HarmonyOption != 0 {
+		t.Fatal("broken pet could not be deactivated")
+	}
+}
+
+func TestFindAndUsePetKeepsOneValidMount(t *testing.T) {
+	p := newItemTestPlayer()
+	broken := item.NewItem(13, 2)
+	broken.HarmonyOption = 1
+	first := item.NewItem(13, 3)
+	first.Durability, first.HarmonyOption = 100, 1
+	second := item.NewItem(13, 2)
+	second.Durability, second.HarmonyOption = 100, 1
+	p.inventory.AddItem(12, broken)
+	p.inventory.AddItem(13, first)
+	p.inventory.AddItem(14, second)
+
+	p.findAndUsePet()
+	if p.pet != first || broken.HarmonyOption != 0 || first.HarmonyOption != 1 || second.HarmonyOption != 0 {
+		t.Fatal("login did not keep exactly one valid mount")
+	}
+}
+
+func TestLogoutRestoresPetOnNextCharacterLoad(t *testing.T) {
+	p := newItemTestPlayer()
+	pet := item.NewItem(13, 3)
+	pet.Durability, pet.HarmonyOption = 100, 1
+	p.inventory.AddItem(12, pet)
+	p.pet = pet
+
+	saved, err := json.Marshal(p.inventory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p.Logout(&model.MsgLogout{Flag: 1})
+	if p.pet != nil || pet.HarmonyOption != 1 {
+		t.Fatal("logout did not clear the active pet pointer while preserving its saved state")
+	}
+	if err := p.inventory.UnmarshalJSON(saved); err != nil {
+		t.Fatal(err)
+	}
+	p.findAndUsePet()
+	if p.pet != p.inventory.Item(12) || p.pet.HarmonyOption != 1 {
+		t.Fatal("saved pet was not restored after logout")
+	}
+}
+
+func TestActivePetCannotLeaveInventory(t *testing.T) {
+	p := newItemTestPlayer()
+	pet := item.NewItem(13, 3)
+	pet.Durability, pet.HarmonyOption = 100, 1
+	p.inventory.AddItem(12, pet)
+	p.pet = pet
+	p.chaosBoxOpen = true
+	p.warehouse.Size = 240
+	p.warehouse.Items = make([]*item.Item, 240)
+	p.warehouse.Flags = make([]bool, 240)
+	for _, msg := range []model.MsgMoveItem{
+		{SrcFlag: 0, SrcPosition: 12, DstFlag: 0, DstPosition: 13},
+		{SrcFlag: 0, SrcPosition: 12, DstFlag: 1, DstPosition: 0},
+		{SrcFlag: 0, SrcPosition: 12, DstFlag: 2, DstPosition: 0},
+	} {
+		p.MoveItem(&msg)
+		messages := itemTestMessages(p)
+		if reply, ok := messages[len(messages)-1].(*model.MsgMoveItemReply); !ok || reply.Result != -1 {
+			t.Fatalf("active pet move reply = %#v", messages[len(messages)-1])
+		}
+		if p.inventory.Item(12) != pet || p.chaosBox.Item(0) != nil || p.warehouse.Item(0) != nil {
+			t.Fatal("active pet was moved")
+		}
+	}
+
+	p.DropItem(&model.MsgDropItem{Position: 12})
+	messages := itemTestMessages(p)
+	if reply, ok := messages[len(messages)-1].(*model.MsgDropItemReply); !ok || reply.Result != 0 || p.inventory.Item(12) != pet {
+		t.Fatal("active pet was dropped")
+	}
+
+	shop, err := object.ObjectManager.AddMonster(func() *object.Object {
+		shop := &object.Object{NpcType: object.NpcTypeShop, NoRegen: true}
+		shop.Init()
+		return shop
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { object.ObjectManager.DeleteEventMonster(shop, time.Now()) })
+	p.TargetNumber = shop.Index
+	p.Money = 100
+	p.SellItem(&model.MsgSellItem{Position: 12})
+	messages = itemTestMessages(p)
+	if reply, ok := messages[len(messages)-1].(*model.MsgSellItemReply); !ok || reply.Result != 0 || p.inventory.Item(12) != pet || p.Money != 100 {
+		t.Fatal("active pet was sold")
+	}
+}
 
 func TestDropCommonBagConsumesItemAndPlaysEffect(t *testing.T) {
 	p := newItemTestPlayer()

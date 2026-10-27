@@ -75,7 +75,7 @@ func (p *Player) DropItem(msg *model.MsgDropItem) {
 		return
 	}
 	it := p.inventory.Items[msg.Position]
-	if it == nil {
+	if it == nil || it == p.pet {
 		return
 	}
 	switch it.Code {
@@ -219,6 +219,10 @@ func (p *Player) SellItem(msg *model.MsgSellItem) {
 		p.TargetNumber < 0 {
 		return
 	}
+	it := p.inventory.Items[msg.Position]
+	if it == nil || it == p.pet {
+		return
+	}
 	tobj := object.ObjectManager.GetObject(p.TargetNumber)
 	if tobj == nil {
 		return
@@ -228,10 +232,6 @@ func (p *Player) SellItem(msg *model.MsgSellItem) {
 		return
 	}
 	if tobj.NpcType != object.NpcTypeShop {
-		return
-	}
-	it := p.inventory.Items[msg.Position]
-	if it == nil {
 		return
 	}
 	if p.Money+it.SellMoney > object.MaxZen {
@@ -282,7 +282,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 	case 2: // warehouse
 		sitem = p.warehouse.Item(msg.SrcPosition)
 	}
-	if sitem == nil {
+	if sitem == nil || sitem == p.pet {
 		return
 	}
 	// move item
@@ -422,7 +422,7 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 			switch {
 			case it.IsExcellent() && it.Level >= 4 && excellent < 0:
 				excellent = position
-			case it.Set != 0 && it.Level >= 4 && setItem < 0:
+			case it.IsSet() && it.Level >= 4 && setItem < 0:
 				setItem = position
 			case it.Code == item.Code(14, 42) && harmony < 0:
 				harmony = position
@@ -454,7 +454,7 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 			// fail, decrease level of excellent and set item
 			for _, position := range items {
 				it := p.chaosBox.Item(position)
-				if it.IsExcellent() || it.Set != 0 {
+				if it.IsExcellent() || it.IsSet() {
 					it.Level -= rand.Intn(3)
 					if it.Level < 0 {
 						it.Level = 0
@@ -1047,11 +1047,11 @@ func (p *Player) UsePet(msg *model.MsgUsePet) {
 	}
 	defer p.Push(&reply)
 
-	if msg.Position < 12 || msg.Position > 204 {
+	if msg.Position < 12 || msg.Position >= 204 {
 		return
 	}
-	it := p.inventory.Items[msg.Position]
-	if it == nil || it.Durability <= 0 {
+	it := p.inventory.Item(msg.Position)
+	if it == nil {
 		return
 	}
 	switch it.Code {
@@ -1059,14 +1059,23 @@ func (p *Player) UsePet(msg *model.MsgUsePet) {
 		item.Code(13, 3),  // Horn of Dinorant 彩云兽
 		item.Code(13, 4),  // Dark Horse 黑王马之角
 		item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
-		if p.pet != nil {
+		switch msg.Value {
+		case 255: // stop riding
+			if p.pet != it || it.HarmonyOption != 1 {
+				return
+			}
 			it.HarmonyOption = 0
 			p.pet = nil
 			reply.Result = -1
-		} else {
+		case 254: // start riding
+			if p.pet != nil || it.HarmonyOption != 0 || it.Durability <= 0 {
+				return
+			}
 			it.HarmonyOption = 1
 			p.pet = it
 			reply.Result = -2
+		default:
+			return
 		}
 		p.equipmentChanged()
 		p.pushChangedEquipment(it)
