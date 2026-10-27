@@ -645,7 +645,6 @@ type Objecter interface {
 	Push(any)                                  // implemented by Player and Monster
 	ProcessAction()                            // implemented by Player and Monster
 	Process1000ms()                            // implemented by Player and Monster
-	SpawnPosition()                            // implemented by Player and Monster
 	Die(*Object, int)                          // implemented by Player and Monster
 	LevelUp(int) bool                          // implemented by Player and Monster
 	DieDropItem(*Object)                       // implemented by Player and Monster
@@ -1178,7 +1177,6 @@ func (obj *Object) processRegen() {
 	if now.Before(obj.dieTime.Add(obj.MaxRegenTime)) {
 		return
 	}
-	obj.SpawnPosition()
 	obj.Regen()
 	obj.dieRegen = false
 	obj.State = 1

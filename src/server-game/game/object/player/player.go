@@ -560,7 +560,7 @@ func (p *Player) saveCharacter() {
 	}
 }
 
-func (p *Player) SpawnPosition() {
+func (p *Player) spawnPosition() {
 	gate := 0
 	switch p.MapNumber {
 	case maps.Arena, // 古战场
@@ -670,6 +670,7 @@ func (p *Player) SpawnPosition() {
 }
 
 func (p *Player) Regen() {
+	p.spawnPosition()
 	p.HP = p.MaxHP + p.AddHP
 	p.SD = p.MaxSD
 	p.MP = p.MaxMP + p.AddMP
@@ -687,6 +688,7 @@ func (p *Player) Regen() {
 		Money:      p.Money,
 	}
 	p.Push(&reply)
+	p.PushSelfViewport()
 }
 
 func (p *Player) GetPKLevel() int {
@@ -1022,7 +1024,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Y, p.TY = c.Y, c.Y
 	p.Dir = c.Dir
 	if p.Level <= 10 {
-		p.SpawnPosition()
+		p.spawnPosition()
 	}
 	maps.MapManager.SetMapAttrStand(p.MapNumber, p.TX, p.TY)
 	p.CreateFrustum()
@@ -1090,31 +1092,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 	p.Push(&model.MsgMuBotReply{
 		MsgMuBot: c.MuBot,
 	})
-	p.Push(&model.MsgCreateViewportPlayerReply{
-		Players: []*model.CreateViewportPlayer{
-			{
-				Index:                  p.Index,
-				X:                      p.X,
-				Y:                      p.Y,
-				Class:                  p.Class,
-				ChangeUp:               p.changeUp,
-				Inventory:              [9]*item.Item(p.inventory.Items[:9]),
-				Name:                   p.Name,
-				TX:                     p.TX,
-				TY:                     p.TY,
-				Dir:                    p.Dir,
-				PKLevel:                p.pkLevel,
-				PentagramMainAttribute: p.PentagramAttributePattern,
-				MuunItem:               -1,
-				MuunSubItem:            -1,
-				MuunRideItem:           -1,
-				Level:                  p.Level,
-				MaxHP:                  p.MaxHP + p.AddHP,
-				HP:                     p.HP,
-				ServerCode:             0,
-			},
-		},
-	})
+	p.PushSelfViewport()
 	// reply weather
 	p.PushWeather(maps.MapManager.GetMapWeather(p.MapNumber))
 

@@ -240,7 +240,7 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 	m.spawnEndX = endX
 	m.spawnEndY = endY
 	m.spawnDir = dir
-	m.SpawnPosition()
+	m.spawnPosition()
 	maps.MapManager.SetMapAttrStand(m.MapNumber, m.TX, m.TY)
 	m.CreateFrustum()
 	m.spawnDis = dis
@@ -371,7 +371,7 @@ func (*Monster) UseSkillAmmo(*skill.Skill, bool) bool {
 	return true
 }
 
-func (m *Monster) SpawnPosition() {
+func (m *Monster) spawnPosition() {
 	// // wrong
 	// if _map.Number == maps.Atlans && spawn.StartX == 251 && spawn.StartY == 51 ||
 	// 	_map.Number == maps.Atlans && spawn.StartX == 7 && spawn.StartY == 52 ||
@@ -696,6 +696,7 @@ func (m *Monster) Process1000ms() {
 }
 
 func (m *Monster) Regen() {
+	m.spawnPosition()
 	m.HP = m.MaxHP + m.AddHP
 	m.MP = m.MaxMP + m.AddMP
 }

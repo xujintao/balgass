@@ -44,6 +44,21 @@ func TestViewportItemNewDropProtocol(t *testing.T) {
 	}
 }
 
+func TestViewportPlayerRideItemProtocol(t *testing.T) {
+	for _, rideItem := range []int{item.Code(13, 3), -1} {
+		reply := MsgCreateViewportPlayerReply{
+			Players: []*CreateViewportPlayer{{MuunRideItem: rideItem}},
+		}
+		data, err := reply.Marshal()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := int(binary.BigEndian.Uint16(data[41:43])); got != rideItem&0xFFFF {
+			t.Fatalf("ride item = %d, want %d", got, rideItem&0xFFFF)
+		}
+	}
+}
+
 func TestMasterSkillRepliesMarshalFloatBits(t *testing.T) {
 	reply := MsgLearnMasterSkillReply{
 		MsgMasterSkill: MsgMasterSkill{

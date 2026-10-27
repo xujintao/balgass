@@ -100,6 +100,70 @@ func TestLogoutRestoresPetOnNextCharacterLoad(t *testing.T) {
 	}
 }
 
+func TestGateMoveRestoresPetAppearance(t *testing.T) {
+	for _, durability := range []int{100, 0, -1} {
+		p := newItemTestPlayer()
+		if durability >= 0 {
+			pet := item.NewItem(13, 3)
+			pet.Durability, pet.HarmonyOption = durability, 1
+			p.inventory.AddItem(12, pet)
+			p.pet = pet
+		}
+		p.Teleport(&model.MsgTeleport{GateNumber: 22})
+		want := -1
+		if durability > 0 {
+			want = item.Code(13, 3)
+		}
+		teleported := false
+		found := false
+		for _, msg := range itemTestMessages(p) {
+			switch reply := msg.(type) {
+			case *model.MsgTeleportReply:
+				teleported = true
+			case *model.MsgCreateViewportPlayerReply:
+				if !teleported || len(reply.Players) != 1 || reply.Players[0].MuunRideItem != want {
+					t.Fatalf("durability %d: self viewport after teleport = %+v", durability, reply)
+				}
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("durability %d: no self viewport after gate move", durability)
+		}
+	}
+}
+
+func TestRegenRestoresPetAppearance(t *testing.T) {
+	for _, ride := range []bool{true, false} {
+		p := newItemTestPlayer()
+		want := -1
+		if ride {
+			pet := item.NewItem(13, 3)
+			pet.Durability, pet.HarmonyOption = 100, 1
+			p.inventory.AddItem(12, pet)
+			p.pet = pet
+			want = pet.Code
+		}
+		p.Regen()
+		messages := itemTestMessages(p)
+		if len(messages) != 2 {
+			t.Fatalf("ride %t: regen sent %d messages, want 2", ride, len(messages))
+		}
+		reload, ok := messages[0].(*model.MsgReloadCharacterReply)
+		if !ok {
+			t.Fatalf("ride %t: first message = %T", ride, messages[0])
+		}
+		viewport, ok := messages[1].(*model.MsgCreateViewportPlayerReply)
+		if !ok || len(viewport.Players) != 1 {
+			t.Fatalf("ride %t: second message = %#v", ride, messages[1])
+		}
+		self := viewport.Players[0]
+		if self.X != reload.X || self.Y != reload.Y || self.MuunRideItem != want {
+			t.Fatalf("ride %t: self viewport = %+v, reload = %+v", ride, self, reload)
+		}
+	}
+}
+
 func TestActivePetCannotLeaveInventory(t *testing.T) {
 	p := newItemTestPlayer()
 	pet := item.NewItem(13, 3)

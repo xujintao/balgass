@@ -294,6 +294,7 @@ func (obj *Object) createViewport() {
 						Dir:                    tobj.Dir,
 						PKLevel:                tobj.GetPKLevel(),
 						PentagramMainAttribute: tobj.PentagramAttributePattern,
+						MuunRideItem:           tobj.GetActivePetCode(),
 						Level:                  tobj.Level,
 						MaxHP:                  tobj.MaxHP + tobj.AddHP,
 						HP:                     tobj.HP,
@@ -519,4 +520,30 @@ func (obj *Object) PushViewport(msg any) {
 		}
 		tobj.Push(msg)
 	}
+}
+
+func (obj *Object) PushSelfViewport() {
+	obj.Push(&model.MsgCreateViewportPlayerReply{
+		Players: []*model.CreateViewportPlayer{{
+			Index:                  obj.Index,
+			X:                      obj.X,
+			Y:                      obj.Y,
+			Class:                  obj.Class,
+			ChangeUp:               obj.GetChangeUp(),
+			Inventory:              [9]*item.Item(obj.GetInventory().Items[:9]),
+			Name:                   obj.Name,
+			TX:                     obj.TX,
+			TY:                     obj.TY,
+			Dir:                    obj.Dir,
+			PKLevel:                obj.GetPKLevel(),
+			PentagramMainAttribute: obj.PentagramAttributePattern,
+			MuunItem:               -1,
+			MuunSubItem:            -1,
+			MuunRideItem:           obj.GetActivePetCode(),
+			Level:                  obj.Level,
+			MaxHP:                  obj.MaxHP + obj.AddHP,
+			HP:                     obj.HP,
+			ServerCode:             0,
+		}},
+	})
 }

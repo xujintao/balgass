@@ -33,7 +33,6 @@ func (*skillTestActor) Offline()                               {}
 func (a *skillTestActor) Push(msg any)                         { a.messages = append(a.messages, msg) }
 func (*skillTestActor) ProcessAction()                         {}
 func (*skillTestActor) Process1000ms()                         {}
-func (*skillTestActor) SpawnPosition()                         {}
 func (*skillTestActor) Die(*Object, int)                       {}
 func (*skillTestActor) LevelUp(int) bool                       { return false }
 func (*skillTestActor) DieDropItem(*Object)                    {}

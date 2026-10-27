@@ -187,6 +187,9 @@ func (obj *Object) gateMove(gateNumber int) bool {
 		obj.Dir = dir
 		maps.MapManager.SetMapAttrStand(obj.MapNumber, obj.TX, obj.TY)
 		obj.CreateFrustum()
+		if obj.Type == ObjectTypePlayer {
+			obj.PushSelfViewport()
+		}
 		success = true
 
 	})
