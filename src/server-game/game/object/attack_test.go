@@ -1,6 +1,7 @@
 package object
 
 import (
+	"math/rand"
 	"testing"
 	"time"
 
@@ -43,6 +44,41 @@ func TestSkillAttackBonusOnlyAppliesToSkills(t *testing.T) {
 	}
 	if got := obj.getDamage(&skill.Skill{Index: 9999}, 0, nil); got != 17 {
 		t.Fatalf("skill damage = %d, want 17", got)
+	}
+}
+
+func Test380PVPBonusesApplyOnlyToPlayerCombat(t *testing.T) {
+	withShieldSystemTest(t, false, 0)
+	withDamageRateTest(t, 100, 100)
+	attacker, attackerActor := newDamageFormulaTestObject(1, ObjectTypePlayer)
+	target, targetActor := newDamageFormulaTestObject(2, ObjectTypePlayer)
+	attacker.AttackMin, attacker.AttackMax = 10, 10
+	attacker.AttackRate = 1
+	attackerActor.addDamage = 10
+	attackerActor.pvpAttackBonus = 200
+	target.Defense = 100
+	targetActor.pvpDefenseBonus = 30
+	targetActor.armorReduceDamage = 50
+	if got := attacker.getDamage(&skill.Skill{Index: 0}, 0, target); got != 10 {
+		t.Fatalf("base damage = %d, want 10", got)
+	}
+	if got := target.getDefense(attacker, 0); got != 130 {
+		t.Fatalf("PVP defense = %d, want 130", got)
+	}
+	monster, _ := newDamageFormulaTestObject(3, ObjectTypeMonster)
+	monster.DefenseRate = 1
+	withTestObjectManager(t, attacker, target, monster)
+	rand.Seed(42)
+	if got := attacker.attack(target, attackRequest{mode: attackModeCalculated}); got != 215 {
+		t.Fatalf("PVP damage after mitigation = %d, want 215", got)
+	}
+	if got := target.getDefense(monster, 0); got != 50 {
+		t.Fatalf("PVE defense = %d, want 50", got)
+	}
+	attacker.AttackRate = 1000
+	rand.Seed(42)
+	if got := attacker.attack(monster, attackRequest{mode: attackModeCalculated}); got != 20 {
+		t.Fatalf("PVE damage included 380 PvP bonus: %d, want 20", got)
 	}
 }
 

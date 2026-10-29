@@ -278,6 +278,83 @@ func TestSocketEquipmentRecalculation(t *testing.T) {
 	}
 }
 
+func Test380EffectsRequireEnabledDurableWornItems(t *testing.T) {
+	p := newItemTestPlayer()
+	it := item.NewItem(0, 22)
+	it.Durability = 1
+	p.inventory.Items[0] = it
+	p.attackRatePVP, p.defenseRatePVP = 100, 200
+	p.MaxHP, p.MaxSD = 1000, 500
+	p.calc380Item()
+	if p.GetAttackBonusPVP() != 0 || p.attackRatePVP != 100 {
+		t.Fatal("disabled 380 option affected player stats")
+	}
+
+	it.Option380 = true
+	p.attackRatePVP, p.defenseRatePVP = 100, 200
+	p.calc380Item()
+	if p.GetAttackBonusPVP() != 200 || p.attackRatePVP != 110 || p.GetDefenseBonusPVP() != 0 {
+		t.Fatalf("enabled 380 weapon effects: attack=%d rate=%d defense=%d", p.GetAttackBonusPVP(), p.attackRatePVP, p.GetDefenseBonusPVP())
+	}
+	if p.MaxHP != 1000 || p.MaxSD != 500 {
+		t.Fatalf("380 weapon changed resources: HP=%d SD=%d", p.MaxHP, p.MaxSD)
+	}
+
+	it.Durability = 0
+	p.attackRatePVP = 100
+	p.calc380Item()
+	if p.GetAttackBonusPVP() != 0 || p.attackRatePVP != 100 {
+		t.Fatal("broken 380 equipment still affected stats")
+	}
+	p.inventory.Items[0] = nil
+	p.inventory.Items[12] = it
+	p.attackRatePVP = 100
+	p.calc380Item()
+	if p.GetAttackBonusPVP() != 0 || p.attackRatePVP != 100 {
+		t.Fatal("380 item in the backpack affected stats")
+	}
+}
+
+func Test380SDRecoveryHonorsServerAndItemOptions(t *testing.T) {
+	info := &conf.CommonServer.GameServerInfo
+	oldShieldSystem, oldEnable, oldSafeZone := info.ShieldSystemEnable, info.SDAutoRefillEnable, info.SDAutoRefillSafeZoneEnable
+	info.ShieldSystemEnable, info.SDAutoRefillEnable, info.SDAutoRefillSafeZoneEnable = true, true, true
+	t.Cleanup(func() {
+		info.ShieldSystemEnable, info.SDAutoRefillEnable, info.SDAutoRefillSafeZoneEnable = oldShieldSystem, oldEnable, oldSafeZone
+	})
+	p := newItemTestPlayer()
+	p.MapNumber = 0
+	p.X, p.Y = findItemTestMapPosition(t)
+	p.MaxSD, p.SD = 300, 100
+	p.autoRecoverSDTime = time.Now().Add(-2 * time.Second)
+	p.recoverHPSD()
+	if p.SD != 100 {
+		t.Fatalf("SD recovered outside safe zone without 380 option: %d", p.SD)
+	}
+	info.ShieldSystemEnable = false
+	p.autoRecoverSDTime = time.Now().Add(-2 * time.Second)
+	previousTimer := p.autoRecoverSDTime
+	p.recoverHPSD()
+	if p.SD != 100 || p.autoRecoverSDTime != previousTimer {
+		t.Fatal("disabled shield system changed SD or its recovery timer")
+	}
+	info.ShieldSystemEnable = true
+	p.autoRecoverSD = true
+	p.autoRecoverSDRate = 20
+	p.autoRecoverSDTime = time.Now().Add(-2 * time.Second)
+	p.recoverHPSD()
+	if p.SD != 112 {
+		t.Fatalf("380 SD recovery = %d, want 112", p.SD)
+	}
+	info.SDAutoRefillEnable = false
+	p.SD = 100
+	p.autoRecoverSDTime = time.Now().Add(-2 * time.Second)
+	p.recoverHPSD()
+	if p.SD != 100 {
+		t.Fatalf("380 option bypassed server SD recovery switch: %d", p.SD)
+	}
+}
+
 func TestRecalculationPreservesTemporaryResources(t *testing.T) {
 	p := Player{msgChan: make(chan any, 30)}
 	p.Object.Objecter = &p

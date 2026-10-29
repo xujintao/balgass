@@ -26,6 +26,8 @@ type skillTestActor struct {
 	impaleRate       float64
 	returnDamage     int
 	skillAttackBonus int
+	pvpAttackBonus   int
+	pvpDefenseBonus  int
 }
 
 func (*skillTestActor) Addr() string                           { return "test" }
@@ -61,6 +63,8 @@ func (*skillTestActor) SetDelayRecoverHP(int, int)             {}
 func (*skillTestActor) SetDelayRecoverSD(int, int)             {}
 func (*skillTestActor) GetAttackRatePVP() int                  { return 1000 }
 func (*skillTestActor) GetDefenseRatePVP() int                 { return 1 }
+func (a *skillTestActor) GetAttackBonusPVP() int               { return a.pvpAttackBonus }
+func (a *skillTestActor) GetDefenseBonusPVP() int              { return a.pvpDefenseBonus }
 func (*skillTestActor) GetIgnoreDefenseRate() int              { return 0 }
 func (*skillTestActor) GetCriticalAttackRate() int             { return 0 }
 func (*skillTestActor) GetCriticalAttackDamage() int           { return 0 }

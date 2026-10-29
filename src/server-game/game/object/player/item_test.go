@@ -2,6 +2,7 @@ package player
 
 import (
 	"encoding/json"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -401,6 +402,80 @@ func TestMoveItemRejectsInvalidPositions(t *testing.T) {
 		if p.inventory.Item(12) != it {
 			t.Fatal("invalid move changed the item")
 		}
+	}
+}
+
+func TestMix380OptionEnablesConfiguredItemAndConsumesMaterials(t *testing.T) {
+	for _, tc := range []struct {
+		seed       int64
+		wantResult int
+		wantOption bool
+	}{{seed: 3, wantResult: 1, wantOption: true}, {seed: 1, wantResult: 0}} {
+		rand.Seed(tc.seed)
+		p := newItemTestPlayer()
+		p.chaosBoxOpen = true
+		p.Money = 20_000_000
+		target := item.NewItem(0, 22)
+		target.Level, target.Addition, target.Durability = 4, 4, 100
+		if !p.chaosBox.AddItem(0, target) ||
+			!p.chaosBox.AddItem(2, item.NewItem(14, 42)) ||
+			!p.chaosBox.AddItem(3, item.NewItem(14, 31)) {
+			t.Fatal("could not place 380 mix materials")
+		}
+
+		p.MixItems(&model.MsgMixItems{Type: mix380Option})
+		messages := itemTestMessages(p)
+		reply, ok := messages[len(messages)-1].(*model.MsgMixItemsReply)
+		if !ok || reply.Result != tc.wantResult {
+			t.Fatalf("380 mix reply = %#v, want result %d", messages[len(messages)-1], tc.wantResult)
+		}
+		if target.Option380 != tc.wantOption || p.chaosBox.Item(0) != target || p.chaosBox.Item(2) != nil || p.chaosBox.Item(3) != nil {
+			t.Fatalf("380 mix result: option=%t target=%p harmony=%p guardian=%p", target.Option380, p.chaosBox.Item(0), p.chaosBox.Item(2), p.chaosBox.Item(3))
+		}
+		if p.Money != 10_000_000 {
+			t.Fatalf("money after 380 mix = %d, want 10000000", p.Money)
+		}
+	}
+}
+
+func TestMix380OptionRejectsOverLimitCharmAndInsufficientMoney(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		money     int
+		charm     int
+		wantReply int
+	}{
+		{name: "charm limit", money: 20_000_000, charm: 11, wantReply: 7},
+		{name: "insufficient money", money: 9_999_999, wantReply: 2},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := newItemTestPlayer()
+			p.chaosBoxOpen = true
+			p.Money = tc.money
+			target := item.NewItem(0, 22)
+			target.Level, target.Addition, target.Durability = 4, 4, 100
+			if !p.chaosBox.AddItem(0, target) ||
+				!p.chaosBox.AddItem(2, item.NewItem(14, 42)) ||
+				!p.chaosBox.AddItem(3, item.NewItem(14, 31)) {
+				t.Fatal("could not place 380 mix materials")
+			}
+			if tc.charm > 0 {
+				charm := item.NewItem(14, 53)
+				charm.Durability = tc.charm
+				if !p.chaosBox.AddItem(4, charm) {
+					t.Fatal("could not place Charm of Luck")
+				}
+			}
+			p.MixItems(&model.MsgMixItems{Type: mix380Option})
+			messages := itemTestMessages(p)
+			reply := messages[len(messages)-1].(*model.MsgMixItemsReply)
+			if reply.Result != tc.wantReply {
+				t.Fatalf("380 mix result = %d, want %d", reply.Result, tc.wantReply)
+			}
+			if target.Option380 || p.chaosBox.Item(2) == nil || p.chaosBox.Item(3) == nil || p.Money != tc.money {
+				t.Fatal("rejected 380 mix changed equipment, materials, or money")
+			}
+		})
 	}
 }
 

@@ -176,17 +176,17 @@ type Player struct {
 	masterPoint                    int
 	masterPointUsed                int
 	fruitPoint                     int
-	changeUp                       int // 1=1转 2=2转 3=3转
-	strength                       int
-	dexterity                      int
-	vitality                       int
-	energy                         int
-	leadership                     int
-	addStrength                    int
-	addDexterity                   int
-	addVitality                    int
-	addEnergy                      int
-	addLeadership                  int
+	changeUp                       int     // 1=1转 2=2转 3=3转
+	strength                       int     // 力量
+	dexterity                      int     // 敏捷
+	vitality                       int     // 体力
+	energy                         int     // 智力
+	leadership                     int     // 统力
+	addStrength                    int     // 增加力量(套装+大师技能)
+	addDexterity                   int     // 增加敏捷(套装+大师技能)
+	addVitality                    int     // 增加体力(套装+大师技能)
+	addEnergy                      int     // 增加智力(套装+洞装+大师技能)
+	addLeadership                  int     // 增加统力(卓越翅膀+套装+大师技能)
 	leftAttackMin                  int     // 左物攻min
 	leftAttackMax                  int     // 左物攻max
 	rightAttackMin                 int     // 右物攻min
@@ -197,8 +197,12 @@ type Player struct {
 	curse                          int     // 诅咒力提升
 	curseAttackMin                 int     // 诅咒攻击min
 	curseAttackMax                 int     // 诅咒攻击max
-	attackRatePVP                  int     // PVP攻击率
-	defenseRatePVP                 int     // PVP防御率
+	attackRatePVP                  int     // PVP攻击率(4维+380+大师技能)
+	attackBonusPVP                 int     // PVP攻击加成(380)
+	defenseRatePVP                 int     // PVP防御率(4维+380+大师技能)
+	defenseBonusPVP                int     // PVP防御加成(380)
+	knightGladiatorCalcSkillBonus  float64 // 战士/魔剑技能伤害加成(4维)
+	impaleSkillCalc                float64 // 钻云枪技能伤害加成(4维)
 	magicSpeed                     int     // 魔攻速度
 	addSkillAttack                 int     // 增加技能攻击(套装+洞装+大师技能)
 	setAddDamage                   int     // 套装增加伤害(套装)
@@ -227,11 +231,10 @@ type Player struct {
 	helperReduceDamage             int     // 天使减少伤害
 	petIncreaseDamage              int     // pet增加伤害
 	petReduceDamage                int     // pet减少伤害
-	item380Effect                  item.Item380Effect
-	knightGladiatorCalcSkillBonus  float64
-	impaleSkillCalc                float64
 	autoRecoverHPTick              int
 	autoRecoverMPTick              int
+	autoRecoverSD                  bool // 自动恢复SD(380)
+	autoRecoverSDRate              int  // 自动恢复SD率(380)
 	autoRecoverSDTime              time.Time
 	delayRecoverHP                 int
 	delayRecoverHPMax              int
@@ -376,30 +379,30 @@ func (p *Player) recoverHPSD() {
 	}
 
 	// auto recover SD
-	if p.SD < p.MaxSD {
+	if conf.CommonServer.GameServerInfo.ShieldSystemEnable && conf.CommonServer.GameServerInfo.SDAutoRefillEnable && p.SD < p.MaxSD {
+		canRecover := !conf.CommonServer.GameServerInfo.SDAutoRefillSafeZoneEnable
 		if conf.CommonServer.GameServerInfo.SDAutoRefillSafeZoneEnable {
 			attr := maps.MapManager.GetMapAttr(p.MapNumber, p.X, p.Y)
-			if attr&1 == 1 {
-				now := time.Now()
-				if now.After(p.autoRecoverSDTime.Add(time.Second * 1)) {
-					p.autoRecoverSDTime = now
-					expressionA := float64(p.MaxSD) / 30
-					expressionB := 100.0 // 380 option
-					sd := p.SD
-					sd += int(expressionA * expressionB / 100)
-					switch {
-					case sd < 1:
-						sd = 1
-					case sd > p.MaxSD:
-						sd = p.MaxSD
-					}
-					p.SD = sd
-					change = true
+			canRecover = attr&1 == 1 || p.autoRecoverSD
+		}
+		if canRecover {
+			now := time.Now()
+			if now.After(p.autoRecoverSDTime.Add(time.Second)) {
+				p.autoRecoverSDTime = now
+				expressionA := float64(p.MaxSD) / 30
+				expressionB := 100.0 + float64(p.autoRecoverSDRate)
+				sd := int(expressionA * expressionB / 100)
+				p.SD += sd
+				if p.SD < 1 {
+					p.SD = 1
 				}
+				if p.SD > p.MaxSD {
+					p.SD = p.MaxSD
+				}
+				change = true
 			}
 		}
 	}
-
 	// posion delay recover HP
 	if p.delayRecoverHP > 0 {
 		hp := p.delayRecoverHPMax / 2

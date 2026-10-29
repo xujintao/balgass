@@ -19,6 +19,14 @@ func (p *Player) GetDefenseRatePVP() int {
 	return p.defenseRatePVP
 }
 
+func (p *Player) GetAttackBonusPVP() int {
+	return p.attackBonusPVP
+}
+
+func (p *Player) GetDefenseBonusPVP() int {
+	return p.defenseBonusPVP
+}
+
 func (p *Player) GetIgnoreDefenseRate() int {
 	return p.ignoreDefenseRate
 }

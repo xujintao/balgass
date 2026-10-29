@@ -75,7 +75,7 @@ func (obj *Object) getDefense(attacker *Object, t int) int {
 		defense = obj.Defense
 		if obj.Type == ObjectTypePlayer {
 			if attacker.Type == ObjectTypePlayer {
-				// pvp
+				defense += obj.GetDefenseBonusPVP() // pvp
 			} else {
 				defense /= 2 // pve
 			}
@@ -459,7 +459,6 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 		if damage < minimumDamage {
 			damage = minimumDamage
 		}
-
 		// 4. armor reduce damage
 		damage -= damage * tobj.GetArmorReduceDamage() / 100
 		// 5. wing increase/reduce damage
@@ -479,8 +478,11 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 				tobj.PushMPAG(tobj.MP, tobj.AG)
 			}
 		}
-		// 9. add damage
+		// 9. add flat damage bonuses
 		damage += obj.GetAddDamage()
+		if obj.Type == ObjectTypePlayer && tobj.Type == ObjectTypePlayer {
+			damage += obj.GetAttackBonusPVP()
+		}
 		// 10. class damage rate
 		damage = obj.applyDamageRate(tobj, damage)
 		if damage < 0 {

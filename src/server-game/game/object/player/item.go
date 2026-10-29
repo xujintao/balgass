@@ -393,6 +393,7 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 }
 
 const (
+	mix380Option                 = 0x24
 	mixSocketSeedExtract         = 0x2a
 	mixSocketSeedSphereComposite = 0x2b
 	mixSocketInsert              = 0x2c
@@ -412,6 +413,67 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 		}
 	}
 	switch msg.Type {
+	case mix380Option: // Enable a 380 option on an eligible equipped item.
+		mixConfig := item.Item380Manager.MixConfig()
+		if !mixConfig.Enable {
+			return
+		}
+		var target *item.Item
+		harmonyCount, guardianCount, charmRate := 0, 0, 0
+		valid := true
+		for _, position := range items {
+			it := p.chaosBox.Item(position)
+			switch {
+			case item.Item380Manager.Is380Item(it.Section, it.Index) && !it.Option380 && it.Level > 3 && it.Addition > 0:
+				if target != nil {
+					valid = false
+					break
+				}
+				target = it
+			case it.Code == item.Code(14, 42): // Jewel of Harmony Purity
+				harmonyCount++
+			case it.Code == item.Code(14, 31): // Jewel of Guardian
+				guardianCount++
+			case it.Code == item.Code(14, 53): // Charm of Luck
+				if it.Durability < 0 {
+					valid = false
+					break
+				}
+				charmRate += it.Durability
+			default:
+				valid = false
+			}
+			if !valid {
+				break
+			}
+		}
+		// fee
+		if !valid || target == nil || harmonyCount != mixConfig.JewelOfHarmonyCount || guardianCount != mixConfig.JewelOfGuardianCount || charmRate > 10 {
+			return
+		}
+		if p.Money < mixConfig.ReqMoney {
+			reply.Result = 2
+			return
+		}
+		p.Money -= mixConfig.ReqMoney
+		p.PushMoney()
+		// calculate the success rate
+		rate := mixConfig.SuccessRate(target.Level, charmRate)
+		for _, position := range items {
+			if p.chaosBox.Item(position) != target {
+				p.consumeChaosBoxItem(position)
+			}
+		}
+		if rand.Intn(100) < rate {
+			// success, enable the 380 option
+			target.Option380 = true
+			reply.Item = target
+			reply.Result = 1
+		} else {
+			// fail, disable the 380 option and decrease the level of the target item
+			reply.Result = 0
+		}
+		p.pushChaosBoxItems()
 	case mixSocketSeedExtract: // Extract a Seed from one excellent and one set item.
 		if len(items) != 5 {
 			return

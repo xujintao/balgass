@@ -38,31 +38,53 @@ type Item380Effect struct {
 	Item380EffectIncRecoverySDRate int
 }
 
-type item380 struct {
-	effects [2]item380EffectPair
-}
-
-type item380Mix struct {
+type Item380Mix struct {
 	Enable               bool `xml:"Enable,attr"`
 	JewelOfHarmonyCount  int  `xml:"JewelOfHarmonyCount,attr"`
 	JewelOfGuardianCount int  `xml:"JewelOfGuardianCount,attr"`
 	ReqMoney             int  `xml:"ReqMoney,attr"`
-	SuccessRate          struct {
-		Grade1 int `xml:"Grade1,attr"`
-		Grade2 int `xml:"Grade2,attr"`
-		Grade3 int `xml:"Grade3,attr"`
-		Grade4 int `xml:"Grade4,attr"`
-	} `xml:"SuccessRate"`
+	SuccessRates         [4]int
+}
+
+func (mix Item380Mix) SuccessRate(level, charm int) int {
+	grade := 0
+	switch {
+	case level < 7:
+		grade = 0
+	case level < 10:
+		grade = 1
+	case level <= 13:
+		grade = 2
+	default:
+		grade = 3
+	}
+	return mix.SuccessRates[grade] + charm
+}
+
+type item380 struct {
+	effects [2]item380EffectPair
 }
 
 type item380Manager struct {
-	mix   item380Mix
+	mix   Item380Mix
 	items map[int]map[int]*item380
 }
 
 func (o *item380Manager) init() {
-	type Item380Xml struct {
-		Mix        item380Mix `xml:"Mix"`
+	const file = "Items/IGC_Item380Option.xml"
+	type config struct {
+		Mix struct {
+			Enable               bool `xml:"Enable,attr"`
+			JewelOfHarmonyCount  int  `xml:"JewelOfHarmonyCount,attr"`
+			JewelOfGuardianCount int  `xml:"JewelOfGuardianCount,attr"`
+			ReqMoney             int  `xml:"ReqMoney,attr"`
+			SuccessRate          struct {
+				Grade1 int `xml:"Grade1,attr"`
+				Grade2 int `xml:"Grade2,attr"`
+				Grade3 int `xml:"Grade3,attr"`
+				Grade4 int `xml:"Grade4,attr"`
+			} `xml:"SuccessRate"`
+		} `xml:"Mix"`
 		ItemOption struct {
 			Items []struct {
 				Cat     int               `xml:"Cat,attr"`
@@ -75,27 +97,55 @@ func (o *item380Manager) init() {
 			} `xml:"Item"`
 		} `xml:"ItemOption"`
 	}
-	var item380Xml Item380Xml
-	conf.XML(conf.PathCommon, "Items/IGC_Item380Option.xml", &item380Xml)
-	// convert
-	o.items = make(map[int]map[int]*item380)
-	for _, item := range item380Xml.ItemOption.Items {
-		if _, err := ItemTable.GetItemBase(item.Cat, item.Index); err != nil {
-			panic(fmt.Errorf("Items/IGC_Item380Option.xml: section %d index %d: %w", item.Cat, item.Index, err))
-		}
-		_, ok := o.items[item.Cat]
-		if !ok {
-			o.items[item.Cat] = make(map[int]*item380)
-		}
-		_, ok = o.items[item.Cat][item.Index]
-		if !ok {
-			i380 := new(item380)
-			i380.effects[0] = item380EffectPair{item.Option1, item.Value1}
-			i380.effects[1] = item380EffectPair{item.Option2, item.Value2}
-			o.items[item.Cat][item.Index] = i380
+	var cfg config
+	conf.XML(conf.PathCommon, file, &cfg)
+	mix := Item380Mix{
+		Enable:               cfg.Mix.Enable,
+		JewelOfHarmonyCount:  cfg.Mix.JewelOfHarmonyCount,
+		JewelOfGuardianCount: cfg.Mix.JewelOfGuardianCount,
+		ReqMoney:             cfg.Mix.ReqMoney,
+	}
+	mix.SuccessRates = [4]int{
+		cfg.Mix.SuccessRate.Grade1,
+		cfg.Mix.SuccessRate.Grade2,
+		cfg.Mix.SuccessRate.Grade3,
+		cfg.Mix.SuccessRate.Grade4,
+	}
+	if mix.JewelOfHarmonyCount < 0 || mix.JewelOfGuardianCount < 0 || mix.ReqMoney < 0 {
+		panic(fmt.Errorf("%s: negative mix requirement", file))
+	}
+	for _, rate := range mix.SuccessRates {
+		if rate < 0 || rate > 100 {
+			panic(fmt.Errorf("%s: invalid mix success rate %d", file, rate))
 		}
 	}
-	o.mix = item380Xml.Mix
+	// convert
+	o.items = make(map[int]map[int]*item380)
+	for _, item := range cfg.ItemOption.Items {
+		if _, err := ItemTable.GetItemBase(item.Cat, item.Index); err != nil {
+			panic(fmt.Errorf("%s: section %d index %d: %w", file, item.Cat, item.Index, err))
+		}
+		if item.Option1 < item380EffectNone || item.Option1 > item380EffectIncRecoverySDRate ||
+			item.Option2 < item380EffectNone || item.Option2 > item380EffectIncRecoverySDRate ||
+			item.Value1 < 0 || item.Value2 < 0 {
+			panic(fmt.Errorf("%s: invalid options for section %d index %d", file, item.Cat, item.Index))
+		}
+		if o.items[item.Cat] == nil {
+			o.items[item.Cat] = make(map[int]*item380)
+		}
+		if o.items[item.Cat][item.Index] != nil {
+			panic(fmt.Errorf("%s: duplicate item section %d index %d", file, item.Cat, item.Index))
+		}
+		i380 := new(item380)
+		i380.effects[0] = item380EffectPair{item.Option1, item.Value1}
+		i380.effects[1] = item380EffectPair{item.Option2, item.Value2}
+		o.items[item.Cat][item.Index] = i380
+	}
+	o.mix = mix
+}
+
+func (o *item380Manager) MixConfig() Item380Mix {
+	return o.mix
 }
 
 func (o *item380Manager) Is380Item(section, index int) bool {
@@ -104,7 +154,11 @@ func (o *item380Manager) Is380Item(section, index int) bool {
 }
 
 func (o *item380Manager) Apply380ItemEffect(section, index int, effect *Item380Effect) {
-	pairs := o.items[section][index].effects[:]
+	entry := o.items[section][index]
+	if entry == nil || effect == nil {
+		return
+	}
+	pairs := entry.effects[:]
 	for _, pair := range pairs {
 		key := pair.Key
 		value := pair.Value

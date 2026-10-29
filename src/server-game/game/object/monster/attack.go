@@ -16,6 +16,14 @@ func (*Monster) GetDefenseRatePVP() int {
 	return 0
 }
 
+func (*Monster) GetAttackBonusPVP() int {
+	return 0
+}
+
+func (*Monster) GetDefenseBonusPVP() int {
+	return 0
+}
+
 func (*Monster) GetIgnoreDefenseRate() int {
 	return 0
 }

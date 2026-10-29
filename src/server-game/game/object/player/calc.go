@@ -30,8 +30,10 @@ func (p *Player) calc() {
 	p.MagicDefense = 0
 	p.AttackRate = 0
 	p.attackRatePVP = 0
+	p.attackBonusPVP = 0
 	p.DefenseRate = 0
 	p.defenseRatePVP = 0
+	p.defenseBonusPVP = 0
 	p.AttackSpeed = 0
 	p.magicSpeed = 0
 	p.MaxHP = 0
@@ -63,6 +65,8 @@ func (p *Player) calc() {
 	p.returnDamage = 0
 	p.recoverMaxHP = 0
 	p.recoverMaxMP = 0
+	p.autoRecoverSD = false
+	p.autoRecoverSDRate = 0
 
 	p.wingIncreaseDamage = 0
 	p.wingReduceDamage = 0
@@ -75,6 +79,7 @@ func (p *Player) calc() {
 	p.calcNormalItem()
 	p.calcSetItem(false)
 	p.calcSocketItem()
+	p.calc380Item()
 	p.calcExcellentItem()
 	p.convertAttack()
 	p.calcHelperItem()
@@ -917,16 +922,23 @@ func (p *Player) equippedItem(it *item.Item, code int) bool {
 	return it.Code == code
 }
 
-func (player *Player) calc380Item() {
-	for _, wItem := range player.inventory.WearingItems() {
-		if wItem.Durability == 0 {
+func (p *Player) calc380Item() {
+	item380Effect := item.Item380Effect{}
+	for _, wit := range p.inventory.WearingItems() {
+		if wit == nil || wit.Durability <= 0 || !wit.Option380 {
 			continue
 		}
-		if !wItem.Option380 || !item.Item380Manager.Is380Item(wItem.Section, wItem.Index) {
+		if !item.Item380Manager.Is380Item(wit.Section, wit.Index) {
 			continue
 		}
-		item.Item380Manager.Apply380ItemEffect(wItem.Section, wItem.Index, &player.item380Effect)
+		item.Item380Manager.Apply380ItemEffect(wit.Section, wit.Index, &item380Effect)
 	}
-	player.MaxHP += player.item380Effect.Item380EffectIncMaxHP
-	player.MaxSD += player.item380Effect.Item380EffectIncMaxSD
+	p.attackRatePVP += item380Effect.Item380EffectIncPVPAttackRate
+	p.attackBonusPVP += item380Effect.Item380EffectIncPVPAttack
+	p.defenseRatePVP += item380Effect.Item380EffectIncPVPDefenseRate
+	p.defenseBonusPVP += item380Effect.Item380EffectIncPVPDefense
+	p.MaxHP += item380Effect.Item380EffectIncMaxHP
+	p.MaxSD += item380Effect.Item380EffectIncMaxSD
+	p.autoRecoverSD = item380Effect.Item380EffectAutoRecoverySD
+	p.autoRecoverSDRate += item380Effect.Item380EffectIncRecoverySDRate
 }

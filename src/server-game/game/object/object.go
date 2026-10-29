@@ -673,6 +673,8 @@ type Objecter interface {
 	SetDelayRecoverSD(int, int)                // implemented by Player and Monster
 	GetAttackRatePVP() int                     // implemented by Player and Monster
 	GetDefenseRatePVP() int                    // implemented by Player and Monster
+	GetAttackBonusPVP() int                    // implemented by Player and Monster
+	GetDefenseBonusPVP() int                   // implemented by Player and Monster
 	GetIgnoreDefenseRate() int                 // implemented by Player and Monster
 	GetCriticalAttackRate() int                // implemented by Player and Monster
 	GetCriticalAttackDamage() int              // implemented by Player and Monster
