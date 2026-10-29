@@ -325,14 +325,17 @@ func Test380SDRecoveryHonorsServerAndItemOptions(t *testing.T) {
 	p := newItemTestPlayer()
 	p.MapNumber = 0
 	p.X, p.Y = findItemTestMapPosition(t)
-	p.MaxSD, p.SD = 300, 100
-	p.autoRecoverSDTime = time.Now().Add(-2 * time.Second)
+	p.MaxSD, p.SD = 30000, 100
+	p.autoRecoverSDTime = time.Now().Add(-20 * time.Second)
 	p.recoverHPSD()
 	if p.SD != 100 {
 		t.Fatalf("SD recovered outside safe zone without 380 option: %d", p.SD)
 	}
+	if time.Since(p.autoRecoverSDTime) > time.Second {
+		t.Fatal("SD recovery timer was not reset outside the safe zone")
+	}
 	info.ShieldSystemEnable = false
-	p.autoRecoverSDTime = time.Now().Add(-2 * time.Second)
+	p.autoRecoverSDTime = time.Now().Add(-20 * time.Second)
 	previousTimer := p.autoRecoverSDTime
 	p.recoverHPSD()
 	if p.SD != 100 || p.autoRecoverSDTime != previousTimer {
@@ -341,17 +344,70 @@ func Test380SDRecoveryHonorsServerAndItemOptions(t *testing.T) {
 	info.ShieldSystemEnable = true
 	p.autoRecoverSD = true
 	p.autoRecoverSDRate = 20
-	p.autoRecoverSDTime = time.Now().Add(-2 * time.Second)
+	p.autoRecoverSDTime = time.Now().Add(-10 * time.Second)
 	p.recoverHPSD()
-	if p.SD != 112 {
-		t.Fatalf("380 SD recovery = %d, want 112", p.SD)
+	if p.SD != 196 {
+		t.Fatalf("380 SD recovery = %d, want 196", p.SD)
 	}
 	info.SDAutoRefillEnable = false
 	p.SD = 100
-	p.autoRecoverSDTime = time.Now().Add(-2 * time.Second)
+	p.autoRecoverSDTime = time.Now().Add(-10 * time.Second)
 	p.recoverHPSD()
 	if p.SD != 100 {
 		t.Fatalf("380 option bypassed server SD recovery switch: %d", p.SD)
+	}
+	info.SDAutoRefillEnable = true
+	p.SD = p.MaxSD
+	p.autoRecoverSDTime = time.Now().Add(-20 * time.Second)
+	p.recoverHPSD()
+	if time.Since(p.autoRecoverSDTime) > time.Second {
+		t.Fatal("SD recovery timer was not reset at full SD")
+	}
+}
+
+func TestSDAutoRecoveryUsesElapsedTimeTiers(t *testing.T) {
+	info := &conf.CommonServer.GameServerInfo
+	oldShieldSystem, oldEnable, oldSafeZone := info.ShieldSystemEnable, info.SDAutoRefillEnable, info.SDAutoRefillSafeZoneEnable
+	info.ShieldSystemEnable, info.SDAutoRefillEnable, info.SDAutoRefillSafeZoneEnable = true, true, false
+	t.Cleanup(func() {
+		info.ShieldSystemEnable, info.SDAutoRefillEnable, info.SDAutoRefillSafeZoneEnable = oldShieldSystem, oldEnable, oldSafeZone
+	})
+
+	for _, tt := range []struct {
+		elapsed time.Duration
+		wantSD  int
+	}{
+		{elapsed: 9 * time.Second, wantSD: 100},
+		{elapsed: 10 * time.Second, wantSD: 180},
+		{elapsed: 15 * time.Second, wantSD: 200},
+		{elapsed: 25 * time.Second, wantSD: 220},
+	} {
+		p := newItemTestPlayer()
+		p.MaxSD, p.SD = 30000, 100
+		p.autoRecoverSDTime = time.Now().Add(-tt.elapsed)
+		p.recoverHPSD()
+		if p.SD != tt.wantSD {
+			t.Errorf("SD after %s = %d, want %d", tt.elapsed, p.SD, tt.wantSD)
+		}
+	}
+}
+
+func TestSDAutoRecoveryInitializesZeroTimer(t *testing.T) {
+	info := &conf.CommonServer.GameServerInfo
+	oldShieldSystem, oldEnable, oldSafeZone := info.ShieldSystemEnable, info.SDAutoRefillEnable, info.SDAutoRefillSafeZoneEnable
+	info.ShieldSystemEnable, info.SDAutoRefillEnable, info.SDAutoRefillSafeZoneEnable = true, true, false
+	t.Cleanup(func() {
+		info.ShieldSystemEnable, info.SDAutoRefillEnable, info.SDAutoRefillSafeZoneEnable = oldShieldSystem, oldEnable, oldSafeZone
+	})
+
+	p := newItemTestPlayer()
+	p.MaxSD, p.SD = 30000, 100
+	p.recoverHPSD()
+	if p.SD != 100 {
+		t.Fatalf("first SD recovery call changed SD to %d", p.SD)
+	}
+	if p.autoRecoverSDTime.IsZero() || time.Since(p.autoRecoverSDTime) > time.Second {
+		t.Fatal("first SD recovery call did not initialize its timer")
 	}
 }
 

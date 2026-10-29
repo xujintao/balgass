@@ -379,23 +379,31 @@ func (p *Player) recoverHPSD() {
 	}
 
 	// auto recover SD
-	if conf.CommonServer.GameServerInfo.ShieldSystemEnable && conf.CommonServer.GameServerInfo.SDAutoRefillEnable && p.SD < p.MaxSD {
-		canRecover := !conf.CommonServer.GameServerInfo.SDAutoRefillSafeZoneEnable
+	if conf.CommonServer.GameServerInfo.ShieldSystemEnable && conf.CommonServer.GameServerInfo.SDAutoRefillEnable {
+		now := time.Now()
+		canRecover := true
 		if conf.CommonServer.GameServerInfo.SDAutoRefillSafeZoneEnable {
 			attr := maps.MapManager.GetMapAttr(p.MapNumber, p.X, p.Y)
 			canRecover = attr&1 == 1 || p.autoRecoverSD
 		}
-		if canRecover {
-			now := time.Now()
-			if now.After(p.autoRecoverSDTime.Add(time.Second)) {
-				p.autoRecoverSDTime = now
-				expressionA := float64(p.MaxSD) / 30
+		if p.autoRecoverSDTime.IsZero() || !canRecover || p.SD >= p.MaxSD {
+			p.autoRecoverSDTime = now
+		} else {
+			elapsed := now.Sub(p.autoRecoverSDTime)
+			if elapsed >= 10*time.Second {
+				expressionA := p.MaxSD / 30
 				expressionB := 100.0 + float64(p.autoRecoverSDRate)
-				sd := int(expressionA * expressionB / 100)
-				p.SD += sd
-				if p.SD < 1 {
-					p.SD = 1
+				expression := int(float64(expressionA) * expressionB / 100 / 25)
+				var sd int
+				switch {
+				case elapsed >= 25*time.Second:
+					sd = expression * 3
+				case elapsed >= 15*time.Second:
+					sd = expression * 25 / 10
+				default:
+					sd = expression * 2
 				}
+				p.SD += sd
 				if p.SD > p.MaxSD {
 					p.SD = p.MaxSD
 				}
@@ -403,6 +411,7 @@ func (p *Player) recoverHPSD() {
 			}
 		}
 	}
+
 	// posion delay recover HP
 	if p.delayRecoverHP > 0 {
 		hp := p.delayRecoverHPMax / 2
