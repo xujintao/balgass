@@ -326,7 +326,7 @@ test('重复注册显示已有账号提示并保留登录入口', async ({ page 
     '/login',
   );
 });
-test('注册验证码后可以跳过 passkey', async ({ page }) => {
+test('注册验证码后刷新导航并保留 passkey 引导', async ({ page }) => {
   await mockTurnstile(page);
   await page.route('**/api/v1/auth/otp/send', (route) =>
     route.fulfill({ json: { data: { sent: true, resendAfterSeconds: 60 } } }),
@@ -340,7 +340,13 @@ test('注册验证码后可以跳过 passkey', async ({ page }) => {
   await page.getByLabel('邮箱').fill('test@example.com');
   await page.getByRole('button', { name: '发送验证码' }).click();
   await page.getByLabel('邮件验证码').fill('123456');
+  const refreshed = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === '/signup' &&
+      response.request().headers()['rsc'] === '1',
+  );
   await page.getByRole('button', { name: '验证并继续' }).click();
+  await refreshed;
   await expect(
     page.getByRole('heading', { name: '设置你的 Passkey' }),
   ).toBeVisible();

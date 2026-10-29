@@ -146,10 +146,8 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
                 code,
               });
               if (signup) setVerified(true);
-              else {
-                router.replace('/');
-                router.refresh();
-              }
+              else router.replace('/');
+              router.refresh();
             });
           }}
         >
