@@ -91,6 +91,13 @@ rg -n "FAIL|panic|error|Error|fatal|Fatal|DATA RACE" /tmp/server-game-test.log
 
 不要自动暂存改动；仅在用户明确要求暂存或提交时运行 `git add`。
 
+# Git 提交信息
+
+- 拟定提交信息前，必须查看近期提交记录（例如 `git log -10 --oneline`），遵循已有的前缀、语言及描述风格。
+- 本项目使用 `server-game/<type>: <英文简短描述>`，例如 `server-game/fix: restore map occupancy on respawn`。
+- 根据实际改动选择 `fix`、`feat`、`refactor`、`docs` 等类型；描述应准确概括本次提交内容。
+- 用户指出提交格式有问题时，先核对历史惯例，不擅自删除或更换前缀。
+
 # 测试设计规范
 
 测试数量应与行为风险匹配，优先覆盖行为边界和回归风险，避免堆积低收益的重复测试。

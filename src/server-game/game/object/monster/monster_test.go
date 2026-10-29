@@ -129,3 +129,32 @@ func TestEventSpawnRejectsInvalidOrBlockedArea(t *testing.T) {
 		t.Fatal("spawned on blocked terrain")
 	}
 }
+
+func TestRegenUpdatesStandAndFrustum(t *testing.T) {
+	m := &Monster{
+		Object:      object.Object{MapNumber: maps.Lorencia, X: 1, Y: 1},
+		spawnStartX: 140, spawnStartY: 65, spawnEndX: 141, spawnEndY: 66,
+	}
+	wasOccupied := maps.MapManager.GetMapAttr(m.MapNumber, 140, 65)&2 != 0
+	maps.MapManager.ClearMapAttrStand(m.MapNumber, 140, 65)
+	t.Cleanup(func() {
+		if wasOccupied {
+			maps.MapManager.SetMapAttrStand(m.MapNumber, 140, 65)
+		} else {
+			maps.MapManager.ClearMapAttrStand(m.MapNumber, 140, 65)
+		}
+	})
+	m.CreateFrustum()
+	m.Regen()
+	if m.X != 140 || m.Y != 65 || m.TX != m.X || m.TY != m.Y {
+		t.Fatalf("unexpected regen position: (%d,%d), target (%d,%d)", m.X, m.Y, m.TX, m.TY)
+	}
+	if maps.MapManager.GetMapAttr(m.MapNumber, m.TX, m.TY)&2 == 0 {
+		t.Fatal("regen position is not occupied")
+	}
+	for i := range m.FrustumX {
+		if m.FrustumX[i] != object.FrustumX[i]+m.X || m.FrustumY[i] != object.FrustumY[i]+m.Y {
+			t.Fatalf("regen frustum vertex %d does not match new position", i)
+		}
+	}
+}

@@ -8,11 +8,11 @@ import (
 
 func init() {
 	MapMoveManager.init()
-	GateMoveManager.init()
+	GateManager.init()
 }
 
 var MapMoveManager mapMoveManager
-var GateMoveManager gateMoveManager
+var GateManager gateManager
 
 type mapMove struct {
 	Index      int    `xml:"Index,attr"`
@@ -51,7 +51,7 @@ func (m *mapMoveManager) Move(index int, f func(int, int, int)) {
 	f(move.GateNumber, move.MinLevel, move.ReqMoney)
 }
 
-type gateMove struct {
+type gate struct {
 	Index     int    `xml:"Index,attr"`
 	Flag      int    `xml:"Flag,attr"`
 	MapNumber int    `xml:"MapNumber,attr"`
@@ -65,32 +65,32 @@ type gateMove struct {
 	Name      string `xml:"Name,attr"`
 }
 
-type gateMoveManager struct {
-	gateMoveTable map[int]*gateMove
+type gateManager struct {
+	gateTable map[int]*gate
 }
 
-func (m *gateMoveManager) init() {
+func (m *gateManager) init() {
 	// GateSettings was generated 2023-11-22 19:07:36 by https://xml-to-go.github.io/ in Ukraine.
 	type GateSettings struct {
-		XMLName xml.Name    `xml:"GateSettings"`
-		Text    string      `xml:",chardata"`
-		Gate    []*gateMove `xml:"Gate"`
+		XMLName xml.Name `xml:"GateSettings"`
+		Text    string   `xml:",chardata"`
+		Gate    []*gate  `xml:"Gate"`
 	}
 	var gateSettings GateSettings
 	conf.XML(conf.PathCommon, "Warps/IGC_GateSettings.xml", &gateSettings)
-	m.gateMoveTable = make(map[int]*gateMove)
+	m.gateTable = make(map[int]*gate)
 	for _, gate := range gateSettings.Gate {
-		m.gateMoveTable[gate.Index] = gate
+		m.gateTable[gate.Index] = gate
 	}
 }
 
-func (m *gateMoveManager) Move(index int, f func(int, int, int, int)) {
-	move, ok := m.gateMoveTable[index]
+func (m *gateManager) Handle(index int, f func(int, int, int, int)) {
+	move, ok := m.gateTable[index]
 	if !ok {
 		return
 	}
 	if move.Target != 0 {
-		move, ok = m.gateMoveTable[move.Target]
+		move, ok = m.gateTable[move.Target]
 		if !ok {
 			return
 		}

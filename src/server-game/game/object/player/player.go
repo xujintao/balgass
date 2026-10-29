@@ -658,7 +658,7 @@ func (p *Player) spawnPosition() {
 		maps.BalgassRefuge: // 巴卡斯休息室
 		gate = 256
 	}
-	maps.GateMoveManager.Move(gate, func(mapNumber, x, y, dir int) {
+	maps.GateManager.Handle(gate, func(mapNumber, x, y, dir int) {
 		if p.MapNumber != mapNumber {
 			p.MapNumber = mapNumber
 			p.LoadMiniMap()
@@ -671,6 +671,8 @@ func (p *Player) spawnPosition() {
 
 func (p *Player) Regen() {
 	p.spawnPosition()
+	maps.MapManager.SetMapAttrStand(p.MapNumber, p.TX, p.TY)
+	p.CreateFrustum()
 	p.HP = p.MaxHP + p.AddHP
 	p.SD = p.MaxSD
 	p.MP = p.MaxMP + p.AddMP

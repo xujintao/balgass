@@ -697,6 +697,8 @@ func (m *Monster) Process1000ms() {
 
 func (m *Monster) Regen() {
 	m.spawnPosition()
+	maps.MapManager.SetMapAttrStand(m.MapNumber, m.TX, m.TY)
+	m.CreateFrustum()
 	m.HP = m.MaxHP + m.AddHP
 	m.MP = m.MaxMP + m.AddMP
 }

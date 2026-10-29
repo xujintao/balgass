@@ -161,7 +161,7 @@ func (obj *Object) LoadMiniMap() {
 
 func (obj *Object) gateMove(gateNumber int) bool {
 	success := false
-	maps.GateMoveManager.Move(gateNumber, func(mapNumber, x, y, dir int) {
+	maps.GateManager.Handle(gateNumber, func(mapNumber, x, y, dir int) {
 		slog.Debug("teleport",
 			"object", obj.Name,
 			"from", fmt.Sprintf("[%d](%d,%d)", obj.MapNumber, obj.X, obj.Y),

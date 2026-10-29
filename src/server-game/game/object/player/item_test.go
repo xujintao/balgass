@@ -144,7 +144,18 @@ func TestRegenRestoresPetAppearance(t *testing.T) {
 			p.pet = pet
 			want = pet.Code
 		}
+		p.X, p.Y = 1, 1
+		p.CreateFrustum()
 		p.Regen()
+		if maps.MapManager.GetMapAttr(p.MapNumber, p.TX, p.TY)&2 == 0 {
+			t.Fatal("regen position is not occupied")
+		}
+		maps.MapManager.ClearMapAttrStand(p.MapNumber, p.TX, p.TY)
+		for i := range p.FrustumX {
+			if p.FrustumX[i] != object.FrustumX[i]+p.X || p.FrustumY[i] != object.FrustumY[i]+p.Y {
+				t.Fatalf("regen frustum vertex %d does not match new position", i)
+			}
+		}
 		messages := itemTestMessages(p)
 		if len(messages) != 2 {
 			t.Fatalf("ride %t: regen sent %d messages, want 2", ride, len(messages))
