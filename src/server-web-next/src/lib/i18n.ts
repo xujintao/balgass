@@ -75,6 +75,8 @@ const en = {
   pleaseWait: 'Please wait…',
   verifyContinue: 'Verify and continue',
   sendCode: 'Send code',
+  codeSendRequested:
+    'Your code request has been submitted. Please check your inbox and spam folder.',
   resendIn: (seconds: number) => `Resend in ${seconds} seconds`,
   resend: 'Resend',
   changeEmail: 'Change email',
@@ -215,6 +217,7 @@ const zh: Dictionary = {
   pleaseWait: '请稍候…',
   verifyContinue: '验证并继续',
   sendCode: '发送验证码',
+  codeSendRequested: '验证码发送请求已提交，请检查邮箱及垃圾邮件文件夹。',
   resendIn: (seconds) => `${seconds} 秒后可重发`,
   resend: '重新发送',
   changeEmail: '更换邮箱',
@@ -346,6 +349,8 @@ const es: Dictionary = {
   pleaseWait: 'Espera…',
   verifyContinue: 'Verificar y continuar',
   sendCode: 'Enviar código',
+  codeSendRequested:
+    'Se ha enviado la solicitud del código. Revisa tu bandeja de entrada y la carpeta de correo no deseado.',
   resendIn: (seconds) => `Reenviar en ${seconds} segundos`,
   resend: 'Reenviar',
   changeEmail: 'Cambiar correo',

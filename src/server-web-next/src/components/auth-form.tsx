@@ -18,6 +18,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
   const [verified, setVerified] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [sendNotice, setSendNotice] = useState(false);
   const [captchaAction, setCaptchaAction] = useState<'passkey' | 'send' | null>(
     null,
   );
@@ -36,6 +37,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
   async function run(action: () => Promise<void>) {
     setBusy(true);
     setError('');
+    setSendNotice(false);
     try {
       await action();
     } catch (e) {
@@ -46,6 +48,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
   }
   function requestCaptcha(action: 'passkey' | 'send') {
     if (busy || captchaAction) return;
+    setSendNotice(false);
     if (!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
       setError(t.captchaUnconfigured);
       return;
@@ -83,6 +86,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
     });
     setSent(true);
     setRemaining(60);
+    setSendNotice(true);
   }
   if (verified)
     return (
@@ -126,6 +130,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
             onClick={() => {
               setEmailMode(true);
               setError('');
+              setSendNotice(false);
             }}
           >
             {t.emailLogin}
@@ -201,11 +206,17 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
                 onClick={() => {
                   setSent(false);
                   setCode('');
+                  setSendNotice(false);
                 }}
               >
                 {t.changeEmail}
               </button>
             </div>
+          )}
+          {sendNotice && (
+            <p role="status" className="success">
+              {t.codeSendRequested}
+            </p>
           )}
         </form>
       )}
@@ -235,6 +246,7 @@ export function AuthForm({ signup = false }: { signup?: boolean }) {
             onClick={() => {
               setEmailMode(false);
               setError('');
+              setSendNotice(false);
             }}
           >
             {t.backToPasskey}

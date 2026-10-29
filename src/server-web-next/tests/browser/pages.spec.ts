@@ -205,6 +205,11 @@ test('注册页点击发送后才验证并传递 token', async ({ page }) => {
   await expect(page.getByLabel('邮件验证码')).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(sentToken).toBe('test-captcha-token');
+  await expect(page.getByRole('status')).toContainText(
+    '验证码发送请求已提交，请检查邮箱及垃圾邮件文件夹。',
+  );
+  await page.getByRole('button', { name: '更换邮箱' }).click();
+  await expect(page.getByRole('status')).toHaveCount(0);
 });
 test('取消验证不发送邮件，再次点击可验证', async ({ page }) => {
   await mockManualTurnstile(page);
@@ -256,6 +261,11 @@ test('邮件登录仅在发送和重发时验证', async ({ page }) => {
   const tokens: string[] = [];
   await page.route('**/api/v1/auth/otp/send', (route) => {
     tokens.push(route.request().postDataJSON().captchaToken);
+    if (tokens.length === 3)
+      return route.fulfill({
+        status: 429,
+        json: { error: { code: 'RATE_LIMITED' } },
+      });
     return route.fulfill({
       json: { data: { sent: true, resendAfterSeconds: 60 } },
     });
@@ -270,14 +280,20 @@ test('邮件登录仅在发送和重发时验证', async ({ page }) => {
   await page.getByRole('button', { name: '发送验证码' }).click();
   await expect(page.getByLabel('邮件验证码')).toBeVisible();
   expect(tokens).toEqual(['test-captcha-token']);
+  await expect(page.getByRole('status')).toContainText('验证码发送请求已提交');
   await page.clock.runFor(60_000);
   await page.getByRole('button', { name: '重新发送' }).click();
   await expect.poll(() => tokens.length).toBe(2);
   await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('status')).toContainText('验证码发送请求已提交');
+  await page.clock.runFor(60_000);
+  await page.getByRole('button', { name: '重新发送' }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByRole('status')).toHaveCount(0);
   await page.getByLabel('邮件验证码').fill('123456');
   await page.getByRole('button', { name: '验证并继续' }).click();
   await expect(page).toHaveURL('/');
-  expect(tokens).toHaveLength(2);
+  expect(tokens).toHaveLength(3);
 });
 test('Passkey 登录在点击并验证后才请求挑战', async ({ page }) => {
   await mockManualTurnstile(page);
@@ -320,6 +336,7 @@ test('重复注册显示已有账号提示并保留登录入口', async ({ page 
   await page.getByLabel('邮箱').fill('existing@example.com');
   await page.getByRole('button', { name: '发送验证码' }).click();
   await expect(page.getByRole('alert')).toContainText('该邮箱已注册，请登录。');
+  await expect(page.getByRole('status')).toHaveCount(0);
   await expect(page.getByLabel('邮件验证码')).toHaveCount(0);
   await expect(page.getByRole('link', { name: '登录' }).last()).toHaveAttribute(
     'href',
