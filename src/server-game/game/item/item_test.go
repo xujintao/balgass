@@ -154,3 +154,55 @@ func TestWarehouseAddAndMove(t *testing.T) {
 		t.Fatal("overlapping warehouse move left incorrect items or flags")
 	}
 }
+
+func TestExcellentContributionsDescribeBonusesAndDivisors(t *testing.T) {
+	var plain Item
+	var empty ItemExcellentEffect
+	ExcellentManager.applyExcellentEffect(&plain, &empty)
+	if empty != (ItemExcellentEffect{}) {
+		t.Fatalf("plain item contributed an effect: %+v", empty)
+	}
+	weapon := Item{
+		ItemBase: &ItemBase{KindA: KindAWeapon},
+		ExcellentAttackRate: true,
+		ExcellentAttackLevel: true, ExcellentAttackPercent: true,
+		ExcellentAttackSpeed: true, ExcellentAttackHP: true,
+		ExcellentDefenseHP: true, ExcellentDefenseMP: true, ExcellentDefenseRate: true,
+	}
+	var got ItemExcellentEffect
+	ExcellentManager.applyExcellentEffect(&weapon, &got)
+	want := ItemExcellentEffect{
+		ExcellentAttackRate: 10,
+		AttackLevel:   20,
+		AttackPercent: 2,
+		AttackSpeed:   7, MagicSpeed: 7, MonsterDieGetHP: 0.125,
+		MaxHPPercent: 4, MaxMPPercent: 4, DefenseRatePercent: 10,
+	}
+	if got != want {
+		t.Fatalf("excellent contributions = %+v, want %+v", got, want)
+	}
+	wing := Item{Level: 9, Wing2ExcellentHP: true, Wing2ExcellentMP: true, Wing2ExcellentAG: true, Wing2ExcellentSpeed: true, Wing3ExcellentIgnore: true}
+	var wingEffect ItemExcellentEffect
+	ExcellentManager.applyExcellentEffect(&wing, &wingEffect)
+	if wingEffect.MaxHP != 95 || wingEffect.MaxMP != 95 || wingEffect.MaxAG != 50 || wingEffect.AttackSpeed != 5 || wingEffect.MagicSpeed != 5 || wingEffect.IgnoreDefenseRate != 5 {
+		t.Fatalf("wing excellent contributions = %+v", wingEffect)
+	}
+}
+
+func TestExcellentManagerCallbackIncludesWearingPosition(t *testing.T) {
+	inventory := &Inventory{PositionedItems: PositionedItems{Items: make([]*Item, INVENTORY_WEAR_SIZE)}}
+	inventory.Items[0] = &Item{ItemBase: &ItemBase{KindA: KindAWeapon}, ExcellentAttackLevel: true}
+	inventory.Items[1] = &Item{ItemBase: &ItemBase{KindA: KindAWeapon}, ExcellentAttackLevel: true}
+
+	var positions []int
+	ExcellentManager.ApplyExcellentItemEffect(inventory, func(effect ItemExcellentEffect, position int) {
+		positions = append(positions, position)
+		if effect.AttackLevel != 20 {
+			t.Errorf("position %d effect = %+v", position, effect)
+		}
+	})
+
+	if len(positions) != 2 || positions[0] != 0 || positions[1] != 1 {
+		t.Fatalf("callback positions = %v, want [0 1]", positions)
+	}
+}

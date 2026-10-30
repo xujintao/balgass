@@ -28,14 +28,14 @@ type item380EffectPair struct {
 }
 
 type Item380Effect struct {
-	Item380EffectIncPVPAttackRate  int
-	Item380EffectIncPVPAttack      int
-	Item380EffectIncPVPDefenseRate int
-	Item380EffectIncPVPDefense     int
-	Item380EffectIncMaxHP          int
-	Item380EffectIncMaxSD          int
-	Item380EffectAutoRecoverySD    bool
-	Item380EffectIncRecoverySDRate int
+	IncPVPAttackRate  int
+	IncPVPAttack      int
+	IncPVPDefenseRate int
+	IncPVPDefense     int
+	IncMaxHP          int
+	IncMaxSD          int
+	AutoRecoverySD    bool
+	IncRecoverySDRate int
 }
 
 type Item380Mix struct {
@@ -153,9 +153,23 @@ func (o *item380Manager) Is380Item(section, index int) bool {
 	return ok
 }
 
-func (o *item380Manager) Apply380ItemEffect(section, index int, effect *Item380Effect) {
-	entry := o.items[section][index]
-	if entry == nil || effect == nil {
+func (o *item380Manager) Apply380ItemEffect(inventory *Inventory, apply func(Item380Effect)) {
+	if inventory == nil || apply == nil {
+		return
+	}
+	var effect Item380Effect
+	for _, it := range inventory.WearingItems() {
+		o.apply380ItemEffect(it, &effect)
+	}
+	apply(effect)
+}
+
+func (o *item380Manager) apply380ItemEffect(it *Item, effect *Item380Effect) {
+	if it == nil || it.Durability <= 0 || !it.Option380 || effect == nil {
+		return
+	}
+	entry := o.items[it.Section][it.Index]
+	if entry == nil {
 		return
 	}
 	pairs := entry.effects[:]
@@ -164,21 +178,21 @@ func (o *item380Manager) Apply380ItemEffect(section, index int, effect *Item380E
 		value := pair.Value
 		switch key {
 		case item380EffectIncPVPAttackRate:
-			effect.Item380EffectIncPVPAttackRate += value
+			effect.IncPVPAttackRate += value
 		case item380EffectIncPVPAttack:
-			effect.Item380EffectIncPVPAttack += value
+			effect.IncPVPAttack += value
 		case item380EffectIncPVPDefenseRate:
-			effect.Item380EffectIncPVPDefenseRate += value
+			effect.IncPVPDefenseRate += value
 		case item380EffectIncPVPDefense:
-			effect.Item380EffectIncPVPDefense += value
+			effect.IncPVPDefense += value
 		case item380EffectIncMaxHP:
-			effect.Item380EffectIncMaxHP += value
+			effect.IncMaxHP += value
 		case item380EffectIncMaxSD:
-			effect.Item380EffectIncMaxSD += value
+			effect.IncMaxSD += value
 		case item380EffectAutoRecoverySD:
-			effect.Item380EffectAutoRecoverySD = true
+			effect.AutoRecoverySD = true
 		case item380EffectIncRecoverySDRate:
-			effect.Item380EffectIncRecoverySDRate += value
+			effect.IncRecoverySDRate += value
 		}
 	}
 }

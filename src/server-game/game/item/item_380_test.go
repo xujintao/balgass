@@ -3,26 +3,59 @@ package item
 import "testing"
 
 func TestConfigured380Effects(t *testing.T) {
-	var got Item380Effect
-	for _, code := range [][2]int{{0, 22}, {7, 29}, {8, 29}, {9, 29}, {10, 29}, {11, 29}} {
+	inventory := Inventory{}
+	inventory.Items = make([]*Item, INVENTORY_WEAR_SIZE)
+	for position, code := range [][2]int{{0, 22}, {7, 29}, {8, 29}, {9, 29}, {10, 29}, {11, 29}} {
 		section, index := code[0], code[1]
 		if !Item380Manager.Is380Item(section, index) {
 			t.Fatalf("configured 380 item %d/%d was not loaded", section, index)
 		}
-		Item380Manager.Apply380ItemEffect(section, index, &got)
+		inventory.Items[position] = &Item{
+			Section: section, Index: index, Durability: 1, Option380: true,
+		}
+	}
+	var got Item380Effect
+	calls := 0
+	Item380Manager.Apply380ItemEffect(&inventory, func(effect Item380Effect) {
+		calls++
+		got = effect
+	})
+	if calls != 1 {
+		t.Fatalf("effect callback called %d times, want once", calls)
 	}
 	want := Item380Effect{
-		Item380EffectIncPVPAttackRate:  10,
-		Item380EffectIncPVPAttack:      200,
-		Item380EffectIncPVPDefenseRate: 50,
-		Item380EffectIncPVPDefense:     200,
-		Item380EffectIncMaxHP:          200,
-		Item380EffectIncMaxSD:          700,
-		Item380EffectAutoRecoverySD:    true,
-		Item380EffectIncRecoverySDRate: 20,
+		IncPVPAttackRate:  10,
+		IncPVPAttack:      200,
+		IncPVPDefenseRate: 50,
+		IncPVPDefense:     200,
+		IncMaxHP:          200,
+		IncMaxSD:          700,
+		AutoRecoverySD:    true,
+		IncRecoverySDRate: 20,
 	}
 	if got != want {
 		t.Fatalf("configured 380 effects = %+v, want %+v", got, want)
+	}
+}
+
+func TestApply380ItemEffectIgnoresIneligibleItems(t *testing.T) {
+	inventory := Inventory{}
+	inventory.Items = make([]*Item, INVENTORY_WEAR_SIZE)
+	inventory.Items[1] = &Item{Section: 0, Index: 22, Durability: 1}
+	inventory.Items[2] = &Item{Section: 0, Index: 22, Option380: true}
+	inventory.Items[3] = &Item{Section: -1, Index: -1, Durability: 1, Option380: true}
+
+	var got Item380Effect
+	calls := 0
+	Item380Manager.Apply380ItemEffect(&inventory, func(effect Item380Effect) {
+		calls++
+		got = effect
+	})
+	if calls != 1 {
+		t.Fatalf("effect callback called %d times, want once", calls)
+	}
+	if got != (Item380Effect{}) {
+		t.Fatalf("ineligible item effects = %+v, want zero value", got)
 	}
 }
 

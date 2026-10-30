@@ -49,3 +49,50 @@ func TestRandomItemUsesConfiguredItems(t *testing.T) {
 		}
 	}
 }
+
+func TestSetManagerCountsWornItemsAndAppliesEffects(t *testing.T) {
+	manager := setManager{sets: make([]*set, 4)}
+	manager.sets[1] = &set{
+		count: 2,
+		effects: [6]SetEffect{
+			{Index: SetEffectIncStrength, Value: 40},
+			{Index: SetEffectIncVitality, Value: 20},
+		},
+		effectsFull: [5]SetEffect{
+			{Index: SetEffectIncAttackMin, Value: 20},
+			{Index: SetEffectIncAttackMax, Value: 30},
+			{Index: SetEffectIncMaxAG, Value: 10},
+			{Index: SetEffectIncAG, Value: 5},
+			{Index: SetEffectDoubleDamage, Value: 10},
+		},
+	}
+	manager.sets[2] = &set{count: 1, effects: [6]SetEffect{{Index: SetEffectIncStrength, Value: 100}}}
+	manager.sets[3] = &set{count: 1, effects: [6]SetEffect{{Index: SetEffectIncAgility, Value: 100}}}
+
+	items := [12]*Item{
+		0:  {Set: 1, Durability: 1},
+		1:  {Set: 2, Durability: 1}, // ignored because slot 0 has a set
+		2:  {Set: 1, Durability: 1},
+		3:  {Set: 1, Durability: 1},
+		4:  {Set: 1, Durability: 0}, // broken items do not count
+		8:  {Set: 3, Durability: 1},
+		10: {Set: 2, Durability: 1},
+		11: {Set: 3, Durability: 1}, // ignored because slot 10 has a set
+	}
+	var inventory Inventory
+	inventory.Items = items[:]
+	var effect ItemSetEffect
+	calls := 0
+	manager.ApplySetItemEffect(&inventory, func(got ItemSetEffect) {
+		calls++
+		effect = got
+	})
+	if calls != 1 {
+		t.Fatalf("effect callback called %d times, want once", calls)
+	}
+
+	want := ItemSetEffect{Strength: 40, Vitality: 20, AttackMin: 20, AttackMax: 30, MaxAG: 15, DoubleDamageRate: 10}
+	if effect != want {
+		t.Fatalf("set effects = %+v, want %+v", effect, want)
+	}
+}

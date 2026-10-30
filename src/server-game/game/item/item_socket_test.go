@@ -384,6 +384,159 @@ func TestSocketEffectLookup(t *testing.T) {
 	}
 }
 
+func TestApplySocketItemEffect(t *testing.T) {
+	m := socketManager{
+		seedOptions: map[int]socketSeedOption{
+			18: {element: 1, valueType: 1, values: [5]int{37, 40}},
+		},
+		bonusOptions: map[int]socketBonusOption{
+			1: {minSection: 0, maxSection: 0, valueType: 1, value: 11},
+		},
+		specialOptions: map[int]socketSpecialOption{
+			0: {valueType: 1, value: 11, seedCounts: [6]int{2}},
+		},
+	}
+	inv := Inventory{PositionedItems: PositionedItems{Items: make([]*Item, INVENTORY_WEAR_SIZE)}}
+	inv.Items[0] = &Item{ItemBase: &ItemBase{Type: TypeSocket}, Section: 0, Durability: 1, SocketSlot1: 118, SocketBonus: 2}
+	inv.Items[1] = &Item{ItemBase: &ItemBase{Type: TypeSocket}, Section: 0, Durability: 1, SocketBonus: 2}
+	inv.Items[2] = &Item{ItemBase: &ItemBase{Type: TypeRegular}, Section: 0, Durability: 1, SocketSlot1: 118, SocketBonus: 2}
+	inv.Items[3] = &Item{ItemBase: &ItemBase{Type: TypeSocket}, Section: 0, Durability: 0, SocketSlot1: 118, SocketBonus: 2}
+	inv.Items[4] = &Item{Section: 0, Durability: 1, SocketSlot1: 118, SocketBonus: 2}
+	inv.Items[5] = &Item{ItemBase: &ItemBase{Type: TypeSocket}, Section: 1, Durability: 1, SocketSlot1: 218, SocketBonus: 2}
+
+	var calls int
+	var skillAttack []int
+	var doubleDamage bool
+	var positions []int
+	m.ApplySocketItemEffect(&inv, func(effect ItemSocketEffect, position int) {
+		calls++
+		if effect.SkillAttack > 0 {
+			skillAttack = append(skillAttack, effect.SkillAttack)
+			positions = append(positions, position)
+		}
+		if effect.BonusSkillAttack > 0 {
+			skillAttack = append(skillAttack, effect.BonusSkillAttack)
+			positions = append(positions, position)
+		}
+		if effect.DoubleDamage != 0 {
+			if len(skillAttack) != 4 {
+				t.Fatalf("Special callback arrived after %d Seed/Bonus callbacks, want 4", len(skillAttack))
+			}
+			if position != -1 {
+				t.Fatalf("Special callback position = %d, want -1", position)
+			}
+			doubleDamage = true
+		}
+	})
+	if calls != 5 {
+		t.Fatalf("effect callback called %d times, want 2 Seed, 2 Bonus, and 1 Special callback", calls)
+	}
+	if len(skillAttack) != 4 || skillAttack[0] != 37 || skillAttack[1] != 11 ||
+		skillAttack[2] != 11 || skillAttack[3] != 40 {
+		t.Fatalf("Seed/Bonus skill contributions = %v, want [37 11 11 40]", skillAttack)
+	}
+	if len(positions) != 4 || positions[0] != 0 || positions[1] != 0 || positions[2] != 1 || positions[3] != 5 {
+		t.Fatalf("Seed/Bonus positions = %v, want [0 0 1 5]", positions)
+	}
+	if !doubleDamage {
+		t.Fatal("Special effect was not applied after two Fire Seeds")
+	}
+
+	inv.Items[1] = nil
+	inv.Items[5] = nil
+	calls = 0
+	m.ApplySocketItemEffect(&inv, func(effect ItemSocketEffect, _ int) {
+		calls++
+		if effect.DoubleDamage != 0 {
+			t.Fatalf("special effect applied without enough Seeds: %d", effect.DoubleDamage)
+		}
+	})
+	if calls != 2 {
+		t.Fatalf("callback called %d times with one eligible item and no Special, want 1 Seed and 1 Bonus callback", calls)
+	}
+}
+
+func TestSocketAttackEffectsRetainEquipmentPosition(t *testing.T) {
+	m := socketManager{
+		seedOptions: map[int]socketSeedOption{
+			0: {element: 1, valueType: 1, values: [5]int{5}},
+			2: {element: 1, valueType: 1, values: [5]int{7}},
+			3: {element: 1, valueType: 1, values: [5]int{11}},
+			4: {element: 1, valueType: 1, values: [5]int{13}},
+		},
+		bonusOptions: map[int]socketBonusOption{
+			0: {minSection: 0, maxSection: 0, valueType: 1, value: 17},
+		},
+	}
+	inv := Inventory{PositionedItems: PositionedItems{Items: make([]*Item, INVENTORY_WEAR_SIZE)}}
+	for position := 0; position < 3; position++ {
+		inv.Items[position] = &Item{
+			ItemBase:    &ItemBase{Type: TypeSocket},
+			Section:     0,
+			Durability:  1,
+			SocketSlot1: 100,
+			SocketSlot2: 102,
+			SocketSlot3: 103,
+			SocketSlot4: 104,
+			SocketBonus: 1,
+		}
+	}
+
+	type attackEffect struct {
+		position int
+		effect   ItemSocketEffect
+	}
+	var got []attackEffect
+	m.ApplySocketItemEffect(&inv, func(effect ItemSocketEffect, position int) {
+		if effect.LevelAttack != 0 || effect.AttackMax != 0 || effect.AttackMin != 0 || effect.Attack != 0 || effect.BonusAttack != 0 {
+			got = append(got, attackEffect{position: position, effect: effect})
+		}
+	})
+	if len(got) != 15 {
+		t.Fatalf("attack effect callbacks = %d, want 15", len(got))
+	}
+	for position := 0; position < 3; position++ {
+		start := position * 5
+		if got[start].position != position || got[start].effect.LevelAttack != 5 ||
+			got[start+1].effect.AttackMax != 7 || got[start+2].effect.AttackMin != 11 ||
+			got[start+3].effect.Attack != 13 || got[start+4].effect.BonusAttack != 17 {
+			t.Fatalf("attack effects at equipment position %d = %+v", position, got[start:start+5])
+		}
+	}
+}
+
+func TestApplySocketItemEffectShieldDefense(t *testing.T) {
+	m := socketManager{seedOptions: map[int]socketSeedOption{
+		12: {element: 1, valueType: 2, values: [5]int{7, 10}},
+	}}
+	inv := Inventory{PositionedItems: PositionedItems{Items: make([]*Item, INVENTORY_WEAR_SIZE)}}
+	inv.Items[0] = &Item{
+		ItemBase:    &ItemBase{Type: TypeSocket},
+		Durability:  1,
+		SocketSlot1: 112,
+	}
+	inv.Items[3] = &Item{
+		ItemBase:    &ItemBase{Type: TypeSocket},
+		Durability:  1,
+		SocketSlot1: 212,
+	}
+
+	type callback struct {
+		position int
+		value    int
+	}
+	var got []callback
+	m.ApplySocketItemEffect(&inv, func(effect ItemSocketEffect, position int) {
+		if effect.ShieldDefense != 0 {
+			got = append(got, callback{position: position, value: effect.ShieldDefense})
+		}
+	})
+	if len(got) != 2 || got[0] != (callback{position: 0, value: 7}) ||
+		got[1] != (callback{position: 3, value: 10}) {
+		t.Fatalf("shield defense callbacks = %+v, want raw 7 at position 0 and 10 at position 3", got)
+	}
+}
+
 func TestSocketOptionConfigValidation(t *testing.T) {
 	const seed = `<Option Index="0" ElementType="1" Level="0" BonusType="1" BonusValue1="1" BonusValue2="2" BonusValue3="3" BonusValue4="4" BonusValue5="5" PoolValue="10" Name="seed"/>`
 	const bonus = `<Option Index="0" MinItemType="0" MaxItemType="4" BonusType="1" BonusValue="1" BonusRate="30" ElementType1="1" ElementType2="0" ElementType3="0" ElementType4="0" ElementType5="0" Name="bonus"/>`
@@ -427,5 +580,73 @@ func TestSocketOptionConfigValidation(t *testing.T) {
 			var manager socketManager
 			manager.init()
 		})
+	}
+}
+
+func TestSocketBonusEffectsUseDistinctFields(t *testing.T) {
+	var effect ItemSocketEffect
+	SocketManager.applySocketEffect(SocketEffect{Index: SocketEffectAttack, ValueType: 1, Value: 10}, &effect)
+	if effect.Attack != 10 {
+		t.Fatalf("attack effect = %+v, want fixed attack 10", effect)
+	}
+	effect = ItemSocketEffect{}
+	SocketManager.applySocketEffect(SocketEffect{Index: SocketEffectLevelAttack, ValueType: 3, Value: 18}, &effect)
+	if effect.LevelAttack != 18 {
+		t.Fatalf("level attack effect = %+v, want raw divisor 18", effect)
+	}
+	effect = ItemSocketEffect{}
+	SocketManager.applySocketBonusEffect(SocketBonusEffect{Index: SocketBonusWeaponAttack, ValueType: 1, Value: 11}, &effect)
+	if effect.BonusAttack != 11 || effect.LevelAttack != 0 {
+		t.Fatalf("weapon bonus = %+v, want distinct fixed bonus attack 11", effect)
+	}
+	for _, tc := range []struct {
+		index SocketBonusEffectType
+		want  ItemSocketEffect
+	}{
+		{SocketBonusWeaponAttack2, ItemSocketEffect{BonusAttack: 22}},
+		{SocketBonusStaffAttack, ItemSocketEffect{BonusMagicAttack: 5}},
+		{SocketBonusStaffAttack2, ItemSocketEffect{BonusMagicAttack: 10}},
+		{SocketBonusWeaponSkillAttack, ItemSocketEffect{BonusSkillAttack: 11}},
+		{SocketBonusArmorDefense, ItemSocketEffect{BonusDefense: 24}},
+		{SocketBonusArmorMaxHP, ItemSocketEffect{BonusMaxHP: 29}},
+	} {
+		var got ItemSocketEffect
+		SocketManager.applySocketBonusEffect(SocketBonusEffect{Index: tc.index, Value: tc.want.BonusAttack + tc.want.BonusMagicAttack + tc.want.BonusSkillAttack + tc.want.BonusDefense + tc.want.BonusMaxHP}, &got)
+		if got != tc.want {
+			t.Fatalf("bonus effect %d = %+v, want %+v", tc.index, got, tc.want)
+		}
+	}
+}
+
+func TestSocketContributionsKeepResourceBasesAndFixedBonuses(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		effect SocketEffect
+		want   ItemSocketEffect
+	}{
+		{"vitality", SocketEffect{Index: SocketEffectVitality, ValueType: 1, Value: 34}, ItemSocketEffect{Vitality: 34}},
+		{"max HP", SocketEffect{Index: SocketEffectMaxHP, ValueType: 2, Value: 4}, ItemSocketEffect{MaxHP: 4}},
+		{"max MP", SocketEffect{Index: SocketEffectMaxMP, ValueType: 2, Value: 4}, ItemSocketEffect{MaxMP: 4}},
+		{"max AG", SocketEffect{Index: SocketEffectMaxAG, ValueType: 1, Value: 50}, ItemSocketEffect{MaxAG: 50}},
+		{"kill HP", SocketEffect{Index: SocketEffectKillHP, ValueType: 4, Value: 8}, ItemSocketEffect{KillHP: 8}},
+		{"AG cost", SocketEffect{Index: SocketEffectReduceAGCost, ValueType: 2, Value: 40}, ItemSocketEffect{ReduceAGCost: 40}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var got ItemSocketEffect
+			SocketManager.applySocketEffect(tc.effect, &got)
+			if got != tc.want {
+				t.Fatalf("effect = %+v, want %+v", got, tc.want)
+			}
+		})
+	}
+	var bonus ItemSocketEffect
+	SocketManager.applySocketBonusEffect(SocketBonusEffect{Index: SocketBonusArmorMaxHP, ValueType: 1, Value: 10}, &bonus)
+	if bonus.BonusMaxHP != 10 {
+		t.Fatalf("max HP bonus = %+v, want fixed 10", bonus)
+	}
+	var special ItemSocketEffect
+	SocketManager.applySocketEffect(SocketEffect{Index: SocketEffectDoubleDamage, ValueType: 1, Value: 3}, &special)
+	if special.DoubleDamage != 3 {
+		t.Fatalf("special effect = %+v, want double damage 3", special)
 	}
 }

@@ -324,7 +324,7 @@ func (m *dropManager) dropGeneric(request Request) Result {
 		if it == nil {
 			return Result{Handled: true}
 		}
-		it.DecodeExcellent(item.ExcellentDropManager.DropExcellent(it.KindA, it.KindB))
+		it.DecodeExcellent(item.ExcellentManager.DropExcellent(it.KindA, it.KindB))
 		m.finishGenericItem(it, true)
 		return Result{Handled: true, Rewards: []Reward{{Item: it}}}
 	}

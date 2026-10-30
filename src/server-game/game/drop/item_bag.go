@@ -430,7 +430,7 @@ func (m *dropManager) makeBagItem(configured itemBagItem) *item.Item {
 	}
 	it.Addition = option * 4
 	if configured.excellent == -1 {
-		it.DecodeExcellent(item.ExcellentDropManager.DropExcellent(it.KindA, it.KindB))
+		it.DecodeExcellent(item.ExcellentManager.DropExcellent(it.KindA, it.KindB))
 	} else if configured.excellent > 0 {
 		it.DecodeExcellent(configured.excellent)
 	}

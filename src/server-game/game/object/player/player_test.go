@@ -466,6 +466,41 @@ func TestSocketAttackRecalculation(t *testing.T) {
 	}
 }
 
+func TestSocketWeaponAndStaffAttackBonuses(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		section      int
+		bonus        int
+		wantPhysical int
+		wantMagic    int
+	}{
+		{name: "weapon", section: 0, bonus: 1, wantPhysical: 11},
+		{name: "fourth-tier weapon", section: 0, bonus: 7, wantPhysical: 22},
+		{name: "staff", section: 5, bonus: 3, wantMagic: 5},
+		{name: "fourth-tier staff", section: 5, bonus: 9, wantMagic: 10},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Player{}
+			p.inventory.Items = make([]*item.Item, 237)
+			p.leftAttackMin, p.leftAttackMax = 100, 200
+			p.magicAttackMin, p.magicAttackMax = 10, 20
+			p.inventory.Items[0] = &item.Item{
+				ItemBase:    &item.ItemBase{Type: item.TypeSocket},
+				Section:     tc.section,
+				Durability:  1,
+				SocketBonus: tc.bonus,
+			}
+			p.calcSocketItem()
+			if p.leftAttackMin != 100+tc.wantPhysical || p.leftAttackMax != 200+tc.wantPhysical ||
+				p.magicAttackMin != 10+tc.wantMagic || p.magicAttackMax != 20+tc.wantMagic {
+				t.Fatalf("weapon/staff bonus attacks = physical %d/%d, magic %d/%d; want physical %d/%d and magic %d/%d",
+					p.leftAttackMin, p.leftAttackMax, p.magicAttackMin, p.magicAttackMax,
+					100+tc.wantPhysical, 200+tc.wantPhysical, 10+tc.wantMagic, 20+tc.wantMagic)
+			}
+		})
+	}
+}
+
 func TestSocketManaAndAGRecovery(t *testing.T) {
 	p := Player{msgChan: make(chan any, 10)}
 	p.Object.Objecter = &p
@@ -526,27 +561,26 @@ func TestSocketAttackUsesEachHand(t *testing.T) {
 	weapon.SocketBonus = 1
 	p.inventory.Items[0] = weapon
 	p.calcSocketItem()
-	if p.leftAttackMin != 136 || p.leftAttackMax != 246 || p.rightAttackMin != 76 || p.rightAttackMax != 126 {
+	if p.leftAttackMin != 136 || p.leftAttackMax != 246 || p.rightAttackMin != 40 || p.rightAttackMax != 80 {
 		t.Fatalf("Socket hand attacks = %d/%d, %d/%d", p.leftAttackMin, p.leftAttackMax, p.rightAttackMin, p.rightAttackMax)
 	}
 	if p.magicAttackMin != 46 || p.magicAttackMax != 66 || p.curseAttackMin != 7 || p.curseAttackMax != 9 {
 		t.Fatalf("Socket magic/curse attacks = %d/%d, %d/%d", p.magicAttackMin, p.magicAttackMax, p.curseAttackMin, p.curseAttackMax)
 	}
-	p.applySocketEffect(item.SocketEffect{Index: item.SocketEffectAttack, ValueType: 2, Value: 10}, 0, 0, 0)
-	if p.leftAttackMin != 149 || p.leftAttackMax != 270 || p.rightAttackMin != 83 || p.rightAttackMax != 138 {
-		t.Fatalf("Socket percent attacks = %d/%d, %d/%d", p.leftAttackMin, p.leftAttackMax, p.rightAttackMin, p.rightAttackMax)
-	}
-}
 
-func TestSetAttackBonusPrecedesSocketPercent(t *testing.T) {
-	p := Player{}
-	p.leftAttackMin, p.leftAttackMax = 100, 200
-	p.rightAttackMin, p.rightAttackMax = 40, 80
-	p.applySetEffect(item.SetEffectIncAttackMin, 20, false)
-	p.applySetEffect(item.SetEffectIncAttackMax, 30, false)
-	p.applySocketEffect(item.SocketEffect{Index: item.SocketEffectAttack, ValueType: 2, Value: 10}, 0, 0, 0)
-	if p.leftAttackMin != 132 || p.leftAttackMax != 253 || p.rightAttackMin != 66 || p.rightAttackMax != 121 {
-		t.Fatalf("set and socket attack = %d/%d, %d/%d", p.leftAttackMin, p.leftAttackMax, p.rightAttackMin, p.rightAttackMax)
+	rightHandPlayer := Player{}
+	rightHandPlayer.inventory.Items = make([]*item.Item, 237)
+	rightHandPlayer.Level = 100
+	rightHandPlayer.leftAttackMin, rightHandPlayer.leftAttackMax = 100, 200
+	rightHandPlayer.rightAttackMin, rightHandPlayer.rightAttackMax = 40, 80
+	rightHandPlayer.magicAttackMin, rightHandPlayer.magicAttackMax = 10, 20
+	rightHandPlayer.inventory.Items[1] = weapon.Copy()
+	rightHandPlayer.calcSocketItem()
+	if rightHandPlayer.leftAttackMin != 100 || rightHandPlayer.leftAttackMax != 200 ||
+		rightHandPlayer.rightAttackMin != 76 || rightHandPlayer.rightAttackMax != 126 {
+		t.Fatalf("right-hand Socket attacks = left %d/%d, right %d/%d",
+			rightHandPlayer.leftAttackMin, rightHandPlayer.leftAttackMax,
+			rightHandPlayer.rightAttackMin, rightHandPlayer.rightAttackMax)
 	}
 }
 
@@ -566,7 +600,7 @@ func TestSocketDefenseAndResources(t *testing.T) {
 	weapon.SocketSlot4 = 125
 	p.inventory.Items[0] = weapon
 	p.calcSocketItem()
-	if p.Defense != 164 || p.MagicDefense != 94 || p.MaxSD != 200 {
+	if p.Defense != 163 || p.MagicDefense != 94 || p.MaxSD != 200 {
 		t.Fatalf("Socket defenses = %d/%d, SD %d", p.Defense, p.MagicDefense, p.MaxSD)
 	}
 	if p.MaxHP != 1080 || p.MaxMP != 520 || p.MaxAG != 150 {
@@ -575,9 +609,123 @@ func TestSocketDefenseAndResources(t *testing.T) {
 	p.inventory.Items[1] = nil
 	p.inventory.Items[2] = shield
 	p.Defense, p.MagicDefense = 100, 40
-	p.shieldDefense = 0
 	p.calcSocketItem()
 	if p.Defense != 154 || p.MagicDefense != 94 {
 		t.Fatalf("Socket defenses without shield = %d/%d", p.Defense, p.MagicDefense)
+	}
+}
+
+func TestSocketShieldDefenseIsAppliedByPlayer(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		shield *item.Item
+		want   int
+	}{
+		{name: "valid shield", shield: func() *item.Item {
+			it := item.NewItem(6, 17)
+			it.Durability = 1
+			return it
+		}(), want: 125},
+		{name: "no shield", want: 100},
+		{name: "broken shield", shield: item.NewItem(6, 17), want: 100},
+		{name: "other equipment", shield: item.NewItem(0, 26), want: 100},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Player{}
+			p.inventory.Items = make([]*item.Item, 237)
+			p.Defense = 100
+			socketItem := item.NewItem(0, 26)
+			socketItem.Durability = 1
+			socketItem.SocketSlot1, socketItem.SocketSlot2, socketItem.SocketSlot3 = 112, 212, 112
+			p.inventory.Items[0] = socketItem
+			p.inventory.Items[1] = tc.shield
+			p.calcSocketItem()
+			if p.Defense != tc.want {
+				t.Fatalf("Defense after Socket shield effects = %d, want %d", p.Defense, tc.want)
+			}
+		})
+	}
+}
+
+func TestSetAndExcellentEquipmentRecalculation(t *testing.T) {
+	p := newItemTestPlayer()
+	p.Class = int(class.Knight)
+	p.strength, p.dexterity, p.vitality, p.energy = 1110, 500, 25, 303
+	p.calc()
+	baseMin, baseMax, baseHP := p.AttackMin, p.AttackMax, p.MaxHP
+	for position := 2; position <= 6; position++ {
+		it := item.NewItem(position+5, 6)
+		it.Set = 6
+		it.Calc()
+		it.Durability = it.MaxDurability
+		p.inventory.Items[position] = it
+	}
+	weapon := item.NewItem(0, 19)
+	weapon.Lucky, weapon.ExcellentAttackRate = true, true
+	weapon.ExcellentAttackLevel, weapon.ExcellentAttackPercent = true, true
+	weapon.Calc()
+	weapon.Durability = weapon.MaxDurability
+	p.inventory.Items[0] = weapon
+	p.calc()
+	if p.addStrength != 40 || p.addSkillAttack != 40 || p.criticalAttackRate != 5 || p.excellentAttackRate != 10 {
+		t.Fatalf("set and excellent effects = strength %d, skill attack %d, critical %d, excellent %d", p.addStrength, p.addSkillAttack, p.criticalAttackRate, p.excellentAttackRate)
+	}
+	attackMin, attackMax, maxHP := p.AttackMin, p.AttackMax, p.MaxHP
+	p.calc()
+	if p.AttackMin != attackMin || p.AttackMax != attackMax || p.MaxHP != maxHP || p.addStrength != 40 || p.addSkillAttack != 40 {
+		t.Fatal("set or excellent effects accumulated across recalculations")
+	}
+	for position := range p.inventory.WearingItems() {
+		p.inventory.Items[position] = nil
+	}
+	p.calc()
+	if p.AttackMin != baseMin || p.AttackMax != baseMax || p.MaxHP != baseHP || p.addStrength != 0 || p.addSkillAttack != 0 || p.criticalAttackRate != 0 || p.excellentAttackRate != 0 {
+		t.Fatal("set or excellent effects remained after unequipping")
+	}
+}
+
+func TestSocketContributionsUseCurrentAttributes(t *testing.T) {
+	p := newItemTestPlayer()
+	p.MaxHP, p.MaxMP, p.MaxAG = 1001, 501, 100
+	p.DefenseRate, p.agReduce = 99, 80
+	weapon := item.NewItem(0, 26)
+	weapon.Durability = 100
+	weapon.SocketSlot1, weapon.SocketSlot2 = 110, 110
+	weapon.SocketSlot3 = 105
+	weapon.SocketSlot4, weapon.SocketSlot5 = 122, 122
+	p.inventory.Items[0] = weapon
+	p.calcSocketItem()
+	if p.DefenseRate != 118 || p.agReduce != 100 {
+		t.Fatalf("Socket percent defense and AG reduction = %d/%d, want 118/100", p.DefenseRate, p.agReduce)
+	}
+	if p.MaxHP != 1081 || p.MaxMP != 501 || p.MaxAG != 100 {
+		t.Fatalf("Socket resources = %d/%d/%d, want 1081/501/100", p.MaxHP, p.MaxMP, p.MaxAG)
+	}
+}
+
+func TestExcellentContributionsUseCurrentAttributes(t *testing.T) {
+	p := newItemTestPlayer()
+	p.Level = 388
+	p.leftAttackMin, p.leftAttackMax = 100, 200
+	p.rightAttackMin, p.rightAttackMax = 40, 80
+	p.magicAttackMin, p.magicAttackMax = 10, 20
+	p.MaxHP, p.MaxMP, p.DefenseRate = 1001, 501, 99
+	p.monsterDieGetHP = 0.125
+	weapon := item.NewItem(0, 19)
+	weapon.ExcellentAttackRate = true
+	weapon.ExcellentAttackLevel, weapon.ExcellentAttackPercent = true, true
+	weapon.ExcellentAttackSpeed, weapon.ExcellentAttackHP = true, true
+	weapon.ExcellentDefenseHP, weapon.ExcellentDefenseMP, weapon.ExcellentDefenseRate = true, true, true
+	p.inventory.Items[0], p.inventory.Items[1] = weapon, weapon
+	p.inventory.Items[7] = &item.Item{Level: 9, Wing2ExcellentHP: true, Wing2ExcellentMP: true, Wing2ExcellentAG: true, Wing2ExcellentSpeed: true, Wing3ExcellentIgnore: true}
+	p.calcExcellentItem()
+	if p.leftAttackMin != 121 || p.leftAttackMax != 223 || p.rightAttackMin != 60 || p.rightAttackMax != 100 || p.magicAttackMin != 48 || p.magicAttackMax != 59 {
+		t.Fatalf("excellent hand attacks = %d/%d, %d/%d, magic %d/%d", p.leftAttackMin, p.leftAttackMax, p.rightAttackMin, p.rightAttackMax, p.magicAttackMin, p.magicAttackMax)
+	}
+	if p.MaxHP != 1177 || p.MaxMP != 636 || p.MaxAG != 50 || p.DefenseRate != 118 {
+		t.Fatalf("excellent resources and defense = %d/%d/%d, %d", p.MaxHP, p.MaxMP, p.MaxAG, p.DefenseRate)
+	}
+	if p.criticalAttackRate != 0 || p.excellentAttackRate != 20 || p.AttackSpeed != 19 || p.magicSpeed != 19 || p.ignoreDefenseRate != 5 || p.monsterDieGetHP != 0.375 {
+		t.Fatalf("excellent rates, speeds and recovery = %d/%d, %d/%d, %d, %g", p.criticalAttackRate, p.excellentAttackRate, p.AttackSpeed, p.magicSpeed, p.ignoreDefenseRate, p.monsterDieGetHP)
 	}
 }

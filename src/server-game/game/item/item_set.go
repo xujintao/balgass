@@ -49,6 +49,43 @@ type SetEffect struct {
 	Value int
 }
 
+type ItemSetEffect struct {
+	Strength              int
+	Dexterity             int
+	Energy                int
+	Vitality              int
+	Leadership            int
+	AttackMin             int
+	AttackMax             int
+	MagicAttack           int
+	Damage                int
+	AttackRate            int
+	Defense               int
+	MaxHP                 int
+	MaxMP                 int
+	MaxAG                 int
+	CriticalAttackRate    int
+	CriticalAttackDamage  int
+	ExcellentAttackRate   int
+	ExcellentAttackDamage int
+	SkillAttack           int
+	DoubleDamageRate      int
+	IgnoreDefenseRate     int
+	MaxSD                 int
+	TwoHandWeaponDamage   int
+}
+
+type setItemCounts struct {
+	sets       []setItemCount
+	sameWeapon int
+	sameRing   int
+}
+
+type setItemCount struct {
+	index int
+	count int
+}
+
 type set struct {
 	name        string
 	count       int
@@ -290,7 +327,7 @@ func (m *setManager) GetTierIndex(section, index, setIndex int) int {
 	return si.tiers[setIndex]
 }
 
-func (m *setManager) GetSetEffect(setIndex int, effectIndex int) *SetEffect {
+func (m *setManager) getSetEffect(setIndex, effectIndex int) *SetEffect {
 	set := m.sets[setIndex]
 	if set == nil {
 		return nil
@@ -298,7 +335,7 @@ func (m *setManager) GetSetEffect(setIndex int, effectIndex int) *SetEffect {
 	return &set.effects[effectIndex]
 }
 
-func (m *setManager) GetSetEffectCount(setIndex int) int {
+func (m *setManager) getSetEffectCount(setIndex int) int {
 	set := m.sets[setIndex]
 	if set == nil {
 		return 0
@@ -306,12 +343,126 @@ func (m *setManager) GetSetEffectCount(setIndex int) int {
 	return set.count
 }
 
-func (m *setManager) GetSetFull(setIndex int) []SetEffect {
-	set := m.sets[setIndex]
-	if set == nil {
-		return nil
+func (m *setManager) ApplySetItemEffect(inventory *Inventory, apply func(ItemSetEffect)) {
+	if inventory == nil || apply == nil {
+		return
 	}
-	return set.effectsFull[:]
+
+	var counts setItemCounts
+	for position, it := range inventory.WearingItems() {
+		m.countSetItem(&counts, position, it)
+	}
+
+	var effect ItemSetEffect
+	for _, setItem := range counts.sets {
+		if setItem.count < 2 {
+			continue
+		}
+
+		for i := 0; i < setItem.count-1; i++ {
+			m.applySetEffect(setItem.index, i, &effect)
+		}
+
+		if setItem.count > m.getSetEffectCount(setItem.index) {
+			set := m.sets[setItem.index]
+			if set == nil {
+				continue
+			}
+			for _, setEffect := range set.effectsFull {
+				m.applySetItemEffect(setEffect, &effect)
+			}
+		}
+	}
+	apply(effect)
+}
+
+func (m *setManager) countSetItem(counts *setItemCounts, position int, it *Item) {
+	if it == nil || it.Durability == 0 || it.Set <= 0 {
+		return
+	}
+
+	index := it.Set
+	if position == 0 {
+		counts.sameWeapon = index
+	}
+	if position == 1 && counts.sameWeapon > 0 {
+		return
+	}
+	if position == 10 {
+		counts.sameRing = index
+	}
+	if position == 11 && counts.sameRing > 0 {
+		return
+	}
+
+	for i := range counts.sets {
+		if counts.sets[i].index == index {
+			counts.sets[i].count++
+			return
+		}
+	}
+	counts.sets = append(counts.sets, setItemCount{index, 1})
+}
+
+func (m *setManager) applySetEffect(setIndex, effectIndex int, effect *ItemSetEffect) {
+	setEffect := m.getSetEffect(setIndex, effectIndex)
+	if setEffect != nil {
+		m.applySetItemEffect(*setEffect, effect)
+	}
+}
+
+func (m *setManager) applySetItemEffect(setEffect SetEffect, effect *ItemSetEffect) {
+	value := setEffect.Value
+	switch setEffect.Index {
+	case SetEffectIncStrength:
+		effect.Strength += value
+	case SetEffectIncAgility:
+		effect.Dexterity += value
+	case SetEffectIncEnergy:
+		effect.Energy += value
+	case SetEffectIncVitality:
+		effect.Vitality += value
+	case SetEffectIncLeadership:
+		effect.Leadership += value
+	case SetEffectIncAttackMin:
+		effect.AttackMin += value
+	case SetEffectIncAttackMax:
+		effect.AttackMax += value
+	case SetEffectIncMagicAttack:
+		effect.MagicAttack += value
+	case SetEffectIncDamage:
+		effect.Damage += value
+	case SetEffectIncAttackRate:
+		effect.AttackRate += value
+	case SetEffectIncDefense:
+		effect.Defense += value
+	case SetEffectIncMaxHP:
+		effect.MaxHP += value
+	case SetEffectIncMaxMP:
+		effect.MaxMP += value
+	case SetEffectIncMaxAG:
+		effect.MaxAG += value
+	case SetEffectIncAG:
+		effect.MaxAG += value
+	case SetEffectIncCritiDamageRate:
+		effect.CriticalAttackRate += value
+	case SetEffectIncCritiDamage:
+		effect.CriticalAttackDamage += value
+	case SetEffectIncExcelDamageRate:
+		effect.ExcellentAttackRate += value
+	case SetEffectIncExcelDamage:
+		effect.ExcellentAttackDamage += value
+	case SetEffectIncSkillAttack:
+		effect.SkillAttack += value
+	case SetEffectDoubleDamage:
+		effect.DoubleDamageRate += value
+	case SetEffectIgnoreDefense:
+		effect.IgnoreDefenseRate += value
+	case SetEffectIncShieldDefense:
+		effect.MaxSD += value
+	case SetEffectIncTwoHandSwordDamage:
+		effect.TwoHandWeaponDamage += value
+	}
 }
 
 // RandomItem selects a configured ancient item and one of its available set

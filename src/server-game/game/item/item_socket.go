@@ -7,6 +7,11 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
 
+const (
+	leftHandPosition  = 0
+	rightHandPosition = 1
+)
+
 var SocketManager socketManager
 
 type socketSeedOption struct {
@@ -464,9 +469,9 @@ func (m *socketManager) SeedItem(index int) (int, int, int, bool) {
 
 func (it *Item) SocketSlotAt(position int) (int, bool) {
 	switch position {
-	case 0:
+	case leftHandPosition:
 		return it.SocketSlot1, true
-	case 1:
+	case rightHandPosition:
 		return it.SocketSlot2, true
 	case 2:
 		return it.SocketSlot3, true
@@ -641,12 +646,84 @@ const (
 	SocketBonusArmorMaxHP2        SocketBonusEffectType = 11
 )
 
+// ItemSocketEffect contains the configured value of one Socket effect.
+type ItemSocketEffect struct {
+	LevelAttack      int
+	AttackSpeed      int
+	AttackMax        int
+	AttackMin        int
+	Attack           int
+	ReduceAGCost     int
+	DefenseRate      int
+	Defense          int
+	ShieldDefense    int
+	ReduceDamage     int
+	ReflectDamage    int
+	KillHP           int
+	KillMP           int
+	SkillAttack      int
+	AttackRate       int
+	ItemDurability   int
+	RecoverHP        int
+	MaxHP            int
+	MaxMP            int
+	RecoverMP        int
+	MaxAG            int
+	RecoverAG        int
+	ExcellentDamage  int
+	ExcellentRate    int
+	CriticalDamage   int
+	CriticalRate     int
+	Vitality         int
+	DoubleDamage     int
+	IgnoreDefense    int
+	BonusAttack      int
+	BonusMagicAttack int
+	BonusSkillAttack int
+	BonusDefense     int
+	BonusMaxHP       int
+}
+
 // SocketEffect is a configured effect resolved to one value.
 type SocketEffect struct {
 	Index     SocketEffectType
 	Element   int
 	ValueType int
 	Value     int
+}
+
+func (m *socketManager) ApplySocketItemEffect(inventory *Inventory, apply func(ItemSocketEffect, int)) {
+	if inventory == nil || apply == nil {
+		return
+	}
+	var counts [6]int
+	for position, it := range inventory.WearingItems() {
+		if it == nil || it.ItemBase == nil || it.Type != TypeSocket || it.Durability <= 0 {
+			continue
+		}
+		for _, slot := range []int{it.SocketSlot1, it.SocketSlot2, it.SocketSlot3, it.SocketSlot4, it.SocketSlot5} {
+			seedEffect, ok := m.SeedEffect(slot)
+			if !ok {
+				continue
+			}
+			counts[seedEffect.Element-1]++
+			var effect ItemSocketEffect
+			m.applySocketEffect(seedEffect, &effect)
+			apply(effect, position)
+		}
+		if bonusEffect, ok := m.BonusEffect(it.SocketBonus); ok &&
+			it.Section >= bonusEffect.MinSection && it.Section <= bonusEffect.MaxSection {
+			var effect ItemSocketEffect
+			m.applySocketBonusEffect(bonusEffect, &effect)
+			apply(effect, position)
+		}
+	}
+
+	for _, special := range m.SpecialEffects(counts) {
+		var effect ItemSocketEffect
+		m.applySocketEffect(special, &effect)
+		apply(effect, -1)
+	}
 }
 
 func (m *socketManager) SeedEffect(slot int) (SocketEffect, bool) {
@@ -712,4 +789,83 @@ func (m *socketManager) SpecialEffects(counts [6]int) []SocketEffect {
 		}
 	}
 	return effects
+}
+
+func (m *socketManager) applySocketEffect(effect SocketEffect, result *ItemSocketEffect) {
+	switch effect.Index {
+	case SocketEffectLevelAttack:
+		result.LevelAttack = effect.Value
+	case SocketEffectAttackSpeed:
+		result.AttackSpeed = effect.Value
+	case SocketEffectAttackMax:
+		result.AttackMax = effect.Value
+	case SocketEffectAttackMin:
+		result.AttackMin = effect.Value
+	case SocketEffectAttack:
+		result.Attack = effect.Value
+	case SocketEffectReduceAGCost:
+		result.ReduceAGCost = effect.Value
+	case SocketEffectDefenseRate:
+		result.DefenseRate = effect.Value
+	case SocketEffectDefense:
+		result.Defense = effect.Value
+	case SocketEffectShieldDefense:
+		result.ShieldDefense = effect.Value
+	case SocketEffectReduceDamage:
+		result.ReduceDamage = effect.Value
+	case SocketEffectReflectDamage:
+		result.ReflectDamage = effect.Value
+	case SocketEffectKillHP:
+		result.KillHP = effect.Value
+	case SocketEffectKillMP:
+		result.KillMP = effect.Value
+	case SocketEffectSkillAttack:
+		result.SkillAttack = effect.Value
+	case SocketEffectAttackRate:
+		result.AttackRate = effect.Value
+	case SocketEffectItemDurability:
+		result.ItemDurability = effect.Value
+	case SocketEffectRecoverHP:
+		result.RecoverHP = effect.Value
+	case SocketEffectMaxHP:
+		result.MaxHP = effect.Value
+	case SocketEffectMaxMP:
+		result.MaxMP = effect.Value
+	case SocketEffectRecoverMP:
+		result.RecoverMP = effect.Value
+	case SocketEffectMaxAG:
+		result.MaxAG = effect.Value
+	case SocketEffectRecoverAG:
+		result.RecoverAG = effect.Value
+	case SocketEffectExcellentDamage:
+		result.ExcellentDamage = effect.Value
+	case SocketEffectExcellentRate:
+		result.ExcellentRate = effect.Value
+	case SocketEffectCriticalDamage:
+		result.CriticalDamage = effect.Value
+	case SocketEffectCriticalRate:
+		result.CriticalRate = effect.Value
+	case SocketEffectVitality:
+		result.Vitality = effect.Value
+	case SocketEffectDoubleDamage:
+		result.DoubleDamage = effect.Value
+	case SocketEffectIgnoreDefense:
+		result.IgnoreDefense = effect.Value
+	}
+}
+
+func (m *socketManager) applySocketBonusEffect(bonus SocketBonusEffect, result *ItemSocketEffect) {
+	switch bonus.Index {
+	case SocketBonusWeaponAttack, SocketBonusWeaponAttack2:
+		result.BonusAttack = bonus.Value
+	case SocketBonusStaffAttack, SocketBonusStaffAttack2:
+		result.BonusMagicAttack = bonus.Value
+	case SocketBonusWeaponSkillAttack, SocketBonusStaffSkillAttack,
+		SocketBonusWeaponSkillAttack2, SocketBonusStaffSkillAttack2:
+		result.BonusSkillAttack = bonus.Value
+	case SocketBonusArmorDefense, SocketBonusArmorDefense2:
+		result.BonusDefense = bonus.Value
+	case SocketBonusArmorMaxHP, SocketBonusArmorMaxHP2:
+		result.BonusMaxHP = bonus.Value
+	}
 }

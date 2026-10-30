@@ -220,7 +220,6 @@ type Player struct {
 	recoverMP                      int     // 恢复MP(翅膀+项链+洞装+大师技能)
 	recoverAG                      int     // 恢复AG(翅膀+项链+洞装+大师技能)
 	agReduce                       int     // 减少AG消耗(翅膀+项链+洞装+大师技能)
-	shieldDefense                  int     // 盾防(卓越+洞装)
 	armorReduceDamage              int     // 防具减少伤害(卓越+洞装)
 	armorReflectDamage             int     // 防具反射伤害(卓越+洞装)
 	returnDamage                   int     // 反弹伤害(卓越翅膀+大师技能)
