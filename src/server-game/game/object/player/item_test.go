@@ -39,12 +39,12 @@ func TestUsePetFollowsRequestedAction(t *testing.T) {
 	use(12, 0, 0)
 	use(204, 254, 0)
 	use(12, 254, -2)
-	if p.pet != pet || pet.HarmonyOption != 1 || p.petIncreaseDamage != 15 {
+	if p.pet != pet || pet.PetActive != 1 || p.petIncreaseDamage != 15 {
 		t.Fatal("pet was not activated")
 	}
 	use(13, 254, 0)
 	use(13, 255, 0)
-	if p.pet != pet || pet.HarmonyOption != 1 || other.HarmonyOption != 0 {
+	if p.pet != pet || pet.PetActive != 1 || other.PetActive != 0 {
 		t.Fatal("request for another pet changed the active pet")
 	}
 	pet.Durability = 0
@@ -54,7 +54,7 @@ func TestUsePetFollowsRequestedAction(t *testing.T) {
 		t.Fatal("broken pet still gives an effect")
 	}
 	use(12, 255, -1)
-	if p.pet != nil || pet.HarmonyOption != 0 {
+	if p.pet != nil || pet.PetActive != 0 {
 		t.Fatal("broken pet could not be deactivated")
 	}
 }
@@ -62,17 +62,17 @@ func TestUsePetFollowsRequestedAction(t *testing.T) {
 func TestFindAndUsePetKeepsOneValidMount(t *testing.T) {
 	p := newItemTestPlayer()
 	broken := item.NewItem(13, 2)
-	broken.HarmonyOption = 1
+	broken.PetActive = 1
 	first := item.NewItem(13, 3)
-	first.Durability, first.HarmonyOption = 100, 1
+	first.Durability, first.PetActive = 100, 1
 	second := item.NewItem(13, 2)
-	second.Durability, second.HarmonyOption = 100, 1
+	second.Durability, second.PetActive = 100, 1
 	p.inventory.AddItem(12, broken)
 	p.inventory.AddItem(13, first)
 	p.inventory.AddItem(14, second)
 
 	p.findAndUsePet()
-	if p.pet != first || broken.HarmonyOption != 0 || first.HarmonyOption != 1 || second.HarmonyOption != 0 {
+	if p.pet != first || broken.PetActive != 0 || first.PetActive != 1 || second.PetActive != 0 {
 		t.Fatal("login did not keep exactly one valid mount")
 	}
 }
@@ -80,7 +80,7 @@ func TestFindAndUsePetKeepsOneValidMount(t *testing.T) {
 func TestLogoutRestoresPetOnNextCharacterLoad(t *testing.T) {
 	p := newItemTestPlayer()
 	pet := item.NewItem(13, 3)
-	pet.Durability, pet.HarmonyOption = 100, 1
+	pet.Durability, pet.PetActive = 100, 1
 	p.inventory.AddItem(12, pet)
 	p.pet = pet
 
@@ -89,14 +89,14 @@ func TestLogoutRestoresPetOnNextCharacterLoad(t *testing.T) {
 		t.Fatal(err)
 	}
 	p.Logout(&model.MsgLogout{Flag: 1})
-	if p.pet != nil || pet.HarmonyOption != 1 {
+	if p.pet != nil || pet.PetActive != 1 {
 		t.Fatal("logout did not clear the active pet pointer while preserving its saved state")
 	}
 	if err := p.inventory.UnmarshalJSON(saved); err != nil {
 		t.Fatal(err)
 	}
 	p.findAndUsePet()
-	if p.pet != p.inventory.Item(12) || p.pet.HarmonyOption != 1 {
+	if p.pet != p.inventory.Item(12) || p.pet.PetActive != 1 {
 		t.Fatal("saved pet was not restored after logout")
 	}
 }
@@ -106,7 +106,7 @@ func TestGateMoveRestoresPetAppearance(t *testing.T) {
 		p := newItemTestPlayer()
 		if durability >= 0 {
 			pet := item.NewItem(13, 3)
-			pet.Durability, pet.HarmonyOption = durability, 1
+			pet.Durability, pet.PetActive = durability, 1
 			p.inventory.AddItem(12, pet)
 			p.pet = pet
 		}
@@ -140,7 +140,7 @@ func TestRegenRestoresPetAppearance(t *testing.T) {
 		want := -1
 		if ride {
 			pet := item.NewItem(13, 3)
-			pet.Durability, pet.HarmonyOption = 100, 1
+			pet.Durability, pet.PetActive = 100, 1
 			p.inventory.AddItem(12, pet)
 			p.pet = pet
 			want = pet.Code
@@ -179,7 +179,7 @@ func TestRegenRestoresPetAppearance(t *testing.T) {
 func TestActivePetCannotLeaveInventory(t *testing.T) {
 	p := newItemTestPlayer()
 	pet := item.NewItem(13, 3)
-	pet.Durability, pet.HarmonyOption = 100, 1
+	pet.Durability, pet.PetActive = 100, 1
 	p.inventory.AddItem(12, pet)
 	p.pet = pet
 	p.chaosBoxOpen = true

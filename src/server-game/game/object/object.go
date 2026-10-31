@@ -675,6 +675,9 @@ type Objecter interface {
 	GetDefenseRatePVP() int                    // implemented by Player and Monster
 	GetAttackBonusPVP() int                    // implemented by Player and Monster
 	GetDefenseBonusPVP() int                   // implemented by Player and Monster
+	GetHarmonyIncSDRate() int                  // implemented by Player and Monster
+	GetHarmonyDecSDRate() int                  // implemented by Player and Monster
+	GetHarmonyIgnoreSDRate() int               // implemented by Player and Monster
 	GetIgnoreDefenseRate() int                 // implemented by Player and Monster
 	GetCriticalAttackRate() int                // implemented by Player and Monster
 	GetCriticalAttackDamage() int              // implemented by Player and Monster

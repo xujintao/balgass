@@ -14,20 +14,23 @@ import (
 )
 
 type skillTestActor struct {
-	messages         []any
-	magicAttackMin   int
-	magicAttackMax   int
-	strength         int
-	dexterity        int
-	energy           int
-	vitality         int
-	leadership       int
-	knightRate       float64
-	impaleRate       float64
-	returnDamage     int
-	skillAttackBonus int
-	pvpAttackBonus   int
-	pvpDefenseBonus  int
+	messages          []any
+	magicAttackMin    int
+	magicAttackMax    int
+	strength          int
+	dexterity         int
+	energy            int
+	vitality          int
+	leadership        int
+	knightRate        float64
+	impaleRate        float64
+	returnDamage      int
+	skillAttackBonus  int
+	pvpAttackBonus    int
+	pvpDefenseBonus   int
+	harmonyDecreaseSD int
+	harmonyIgnoreSD   int
+	harmonyAddSD      int
 }
 
 func (*skillTestActor) Addr() string                           { return "test" }
@@ -65,6 +68,9 @@ func (*skillTestActor) GetAttackRatePVP() int                  { return 1000 }
 func (*skillTestActor) GetDefenseRatePVP() int                 { return 1 }
 func (a *skillTestActor) GetAttackBonusPVP() int               { return a.pvpAttackBonus }
 func (a *skillTestActor) GetDefenseBonusPVP() int              { return a.pvpDefenseBonus }
+func (a *skillTestActor) GetHarmonyIncSDRate() int             { return a.harmonyAddSD }
+func (a *skillTestActor) GetHarmonyDecSDRate() int             { return a.harmonyDecreaseSD }
+func (a *skillTestActor) GetHarmonyIgnoreSDRate() int          { return a.harmonyIgnoreSD }
 func (*skillTestActor) GetIgnoreDefenseRate() int              { return 0 }
 func (*skillTestActor) GetCriticalAttackRate() int             { return 0 }
 func (*skillTestActor) GetCriticalAttackDamage() int           { return 0 }

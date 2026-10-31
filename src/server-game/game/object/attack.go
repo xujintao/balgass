@@ -317,10 +317,15 @@ func (obj *Object) splitDamage(tobj *Object, damage int) (int, int) {
 		return damage, 0
 	}
 	rate := conf.CommonServer.GameServerInfo.DamageDivideSDRate
+	rate -= obj.GetHarmonyDecSDRate()
+	rate += tobj.GetHarmonyIncSDRate()
 	if rate < 0 {
 		rate = 0
 	} else if rate > 100 {
 		rate = 100
+	}
+	if ignoreRate := obj.GetHarmonyIgnoreSDRate(); ignoreRate > 0 && rand.Intn(100) < ignoreRate {
+		rate = 0
 	}
 	sdDamage := damage * rate / 100
 	availableSD := tobj.SD

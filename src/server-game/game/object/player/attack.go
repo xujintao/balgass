@@ -27,6 +27,18 @@ func (p *Player) GetDefenseBonusPVP() int {
 	return p.defenseBonusPVP
 }
 
+func (p *Player) GetHarmonyIncSDRate() int {
+	return p.harmonyIncSDRate
+}
+
+func (p *Player) GetHarmonyDecSDRate() int {
+	return p.harmonyDecSDRate
+}
+
+func (p *Player) GetHarmonyIgnoreSDRate() int {
+	return p.harmonyIgnoreSDRate
+}
+
 func (p *Player) GetIgnoreDefenseRate() int {
 	return p.ignoreDefenseRate
 }

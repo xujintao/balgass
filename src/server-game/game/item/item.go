@@ -74,9 +74,8 @@ type Item struct {
 	Set                          int  `json:"set,omitempty"`
 	Option380                    bool `json:"option380,omitempty"`
 	Period                       int  `json:"period,omitempty"`
-	HarmonyEffect                int  `json:"harmony_effect,omitempty"`
-	HarmonyLevel                 int  `json:"harmony_level,omitempty"`
-	HarmonyOption                int  `json:"harmony_option,omitempty"`
+	Harmony                      int  `json:"harmony,omitempty"`
+	PetActive                    int  `json:"pet_active,omitempty"`
 	PentagramBonus               int  `json:"pentagram_bonus,omitempty"`
 	MuunRank                     int  `json:"muun_rank,omitempty"`
 	SocketBonus                  int  `json:"socket_bonus,omitempty"`
@@ -819,6 +818,14 @@ func (it *Item) CalculateRepairMoney(fast bool) int {
 	return money
 }
 
+func (it *Item) RequiredStrength() int {
+	return max(0, it.ReqStrength-HarmonyManager.itemHarmoneyEffectDecReqStrength(it))
+}
+
+func (it *Item) RequiredDexterity() int {
+	return max(0, it.ReqDexterity-HarmonyManager.itemHarmoneyEffectDecReqDexterity(it))
+}
+
 func (it *Item) Calc() {
 	// calc dur
 	dur := it.ItemBase.Durability
@@ -1185,10 +1192,15 @@ func (item *Item) Marshal() ([]byte, error) {
 		data[5] |= byte(1 << 3)
 	}
 	data[5] |= byte(item.Section << 4)
-	// harmony/socket/pentagram/muun system
-	if item.Type == TypeSocket ||
-		item.KindA == KindAPentagram {
-		data[6] = 0xFF
+	// socket/pentagram/muun/harmony system
+	data[6] = 0xFF
+	data[7] = 0xFF
+	data[8] = 0xFF
+	data[9] = 0xFF
+	data[10] = 0xFF
+	data[11] = 0xFF
+	switch {
+	case item.Type == TypeSocket: // socket
 		if item.SocketBonus > 0 {
 			data[6] = byte(item.SocketBonus - 1)
 		}
@@ -1211,13 +1223,16 @@ func (item *Item) Marshal() ([]byte, error) {
 				data[7+i] = byte((level-1)*50 + option)
 			}
 		}
-	} else {
-		data[6] = byte(item.HarmonyOption)
-		data[7] = 0xFF
-		data[8] = 0xFF
-		data[9] = 0xFF
-		data[10] = 0xFF
-		data[11] = 0xFF
+	case item.KindA == KindAPentagram: // pentagram
+		// todo
+	case item.KindB == KindBMuun: // muun
+		// todo
+	case item.KindA == KindAHelper && item.KindB == KindBEquipment: // helper equipment
+		data[6] = byte(item.PetActive)
+	default: // harmony
+		if item.Harmony != 0 {
+			data[6] = byte(item.Harmony<<4 | item.Level)
+		}
 	}
 	return data[:], nil
 }

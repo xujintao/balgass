@@ -24,6 +24,18 @@ func (*Monster) GetDefenseBonusPVP() int {
 	return 0
 }
 
+func (*Monster) GetHarmonyIncSDRate() int {
+	return 0
+}
+
+func (*Monster) GetHarmonyDecSDRate() int {
+	return 0
+}
+
+func (*Monster) GetHarmonyIgnoreSDRate() int {
+	return 0
+}
+
 func (*Monster) GetIgnoreDefenseRate() int {
 	return 0
 }

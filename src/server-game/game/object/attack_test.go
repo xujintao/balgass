@@ -843,6 +843,26 @@ func TestSplitDamage(t *testing.T) {
 	}
 }
 
+func TestHarmonyEffectsAdjustPvPSDDistribution(t *testing.T) {
+	withShieldSystemTest(t, true, 50)
+	attacker, attackerActor := newSkillTestObject(1, ObjectTypePlayer)
+	target, targetActor := newSkillTestObject(2, ObjectTypePlayer)
+	target.SD = 200
+	attackerActor.harmonyDecreaseSD = 10
+	targetActor.harmonyAddSD = 20
+
+	hpDamage, sdDamage := attacker.splitDamage(target, 100)
+	if hpDamage != 40 || sdDamage != 60 {
+		t.Fatalf("Harmony SD rate damage = HP:%d SD:%d, want HP:40 SD:60", hpDamage, sdDamage)
+	}
+
+	attackerActor.harmonyIgnoreSD = 100
+	hpDamage, sdDamage = attacker.splitDamage(target, 100)
+	if hpDamage != 100 || sdDamage != 0 {
+		t.Fatalf("Harmony SD ignore damage = HP:%d SD:%d, want HP:100 SD:0", hpDamage, sdDamage)
+	}
+}
+
 func TestAttackNotifiesMonsterOnDamageTaken(t *testing.T) {
 	withShieldSystemTest(t, false, 0)
 	attacker, _ := newAttackProcTestObject(1, ObjectTypePlayer)

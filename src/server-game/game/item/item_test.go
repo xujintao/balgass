@@ -54,6 +54,127 @@ func TestWingExcellentInventoryJSON(t *testing.T) {
 	}
 }
 
+func TestHarmonyItemJSONAndProtocolEncoding(t *testing.T) {
+	it := NewItem(0, 0)
+	it.Harmony = 3
+	it.Level = 6
+	data, err := json.Marshal(it)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var restored Item
+	if err := json.Unmarshal(data, &restored); err != nil {
+		t.Fatal(err)
+	}
+	if restored.Harmony != 3 || restored.Level != 6 {
+		t.Fatalf("restored Harmony option = %d at item level %d, want 3 at level 6", restored.Harmony, restored.Level)
+	}
+	frame, err := it.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if frame[6] != 0x36 {
+		t.Fatalf("Harmony protocol byte = %#02x, want 0x36", frame[6])
+	}
+
+	pet := NewItem(13, 2)
+	pet.PetActive = 1
+	petJSON, err := json.Marshal(pet)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(petJSON), `"pet_active":1`) {
+		t.Fatalf("pet JSON does not contain pet_active: %s", petJSON)
+	}
+	var restoredPet Item
+	if err := json.Unmarshal(petJSON, &restoredPet); err != nil {
+		t.Fatal(err)
+	}
+	if restoredPet.PetActive != 1 {
+		t.Fatalf("restored pet active state = %d, want 1", restoredPet.PetActive)
+	}
+	frame, err = pet.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if frame[6] != 1 {
+		t.Fatalf("active pet protocol byte = %#02x, want 0x01", frame[6])
+	}
+	pet.Level = 6
+	frame, err = pet.Marshal()
+	if err != nil {
+		t.Fatalf("Marshal active pet with a nonzero item level: %v", err)
+	}
+	if frame[6] != 1 {
+		t.Fatalf("pet protocol byte with item level = %#02x, want 0x01", frame[6])
+	}
+
+	for _, outOfRange := range []Item{
+		{ItemBase: it.ItemBase, Section: 0, Index: 0, Harmony: 16, Level: 0},
+		{ItemBase: it.ItemBase, Section: 0, Index: 0, Harmony: 1, Level: 16},
+	} {
+		if _, err := outOfRange.Marshal(); err != nil {
+			t.Fatalf("out-of-range Harmony value was rejected: %v", err)
+		}
+	}
+}
+
+func TestHarmonyItemEffectsUseConfiguredOptionAndLevel(t *testing.T) {
+	weapon := NewItem(0, 0)
+	weapon.Harmony = int(HarmonyEffectWeaponIncDamageMin)
+	var effect ItemHarmonyEffect
+	HarmonyManager.applyItemHarmonyEffect(weapon, &effect)
+	if effect.IncDamageMin != 2 {
+		t.Fatalf("minimum damage contribution = %d, want 2", effect.IncDamageMin)
+	}
+
+	weapon.Harmony = int(HarmonyEffectWeaponIncCriticalDamage)
+	weapon.Level = 5
+	effect = ItemHarmonyEffect{}
+	HarmonyManager.applyItemHarmonyEffect(weapon, &effect)
+	if effect != (ItemHarmonyEffect{}) {
+		t.Fatalf("inactive Harmony option contributed: %+v", effect)
+	}
+	weapon.Level = 6
+	HarmonyManager.applyItemHarmonyEffect(weapon, &effect)
+	if effect.IncCriticalDamage != 12 {
+		t.Fatalf("critical damage contribution = %d, want 12", effect.IncCriticalDamage)
+	}
+
+	inv := &Inventory{PositionedItems: PositionedItems{Items: make([]*Item, 237)}}
+	inv.Items[0] = weapon
+	rightWeapon := NewItem(0, 0)
+	rightWeapon.Harmony = int(HarmonyEffectWeaponIncDamageMax)
+	inv.Items[1] = rightWeapon
+	inv.Items[12] = NewItem(0, 0)
+	var positions []int
+	HarmonyManager.ApplyHarmonyItemEffect(inv, func(got ItemHarmonyEffect, position int) {
+		positions = append(positions, position)
+		switch position {
+		case 0:
+			if got.IncCriticalDamage != 12 {
+				t.Errorf("left weapon Harmony contribution = %+v", got)
+			}
+		case 1:
+			if got.IncDamageMax != 3 {
+				t.Errorf("right weapon Harmony contribution = %+v", got)
+			}
+		}
+	})
+	if len(positions) != 2 || positions[0] != 0 || positions[1] != 1 {
+		t.Fatalf("Harmony callback positions = %v, want [0 1]", positions)
+	}
+}
+
+func TestHarmonyItemCalcReducesRequirements(t *testing.T) {
+	it := NewItem(0, 0)
+	strength, agility := it.ReqStrength, it.ReqDexterity
+	it.Harmony = int(HarmonyEffectWeaponDecReqStrength)
+	if it.RequiredStrength() != max(0, strength-6) || it.RequiredDexterity() != agility {
+		t.Fatalf("requirements after Harmony = %d/%d, want %d/%d", it.RequiredStrength(), it.RequiredDexterity(), max(0, strength-6), agility)
+	}
+}
+
 func TestContainerRestoreRejectsInvalidItemsWithoutChangingState(t *testing.T) {
 	for _, container := range []struct {
 		name string
@@ -163,8 +284,8 @@ func TestExcellentContributionsDescribeBonusesAndDivisors(t *testing.T) {
 		t.Fatalf("plain item contributed an effect: %+v", empty)
 	}
 	weapon := Item{
-		ItemBase: &ItemBase{KindA: KindAWeapon},
-		ExcellentAttackRate: true,
+		ItemBase:             &ItemBase{KindA: KindAWeapon},
+		ExcellentAttackRate:  true,
 		ExcellentAttackLevel: true, ExcellentAttackPercent: true,
 		ExcellentAttackSpeed: true, ExcellentAttackHP: true,
 		ExcellentDefenseHP: true, ExcellentDefenseMP: true, ExcellentDefenseRate: true,
@@ -173,9 +294,9 @@ func TestExcellentContributionsDescribeBonusesAndDivisors(t *testing.T) {
 	ExcellentManager.applyExcellentEffect(&weapon, &got)
 	want := ItemExcellentEffect{
 		ExcellentAttackRate: 10,
-		AttackLevel:   20,
-		AttackPercent: 2,
-		AttackSpeed:   7, MagicSpeed: 7, MonsterDieGetHP: 0.125,
+		AttackLevel:         20,
+		AttackPercent:       2,
+		AttackSpeed:         7, MagicSpeed: 7, MonsterDieGetHP: 0.125,
 		MaxHPPercent: 4, MaxMPPercent: 4, DefenseRatePercent: 10,
 	}
 	if got != want {

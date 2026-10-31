@@ -197,13 +197,16 @@ type Player struct {
 	curse                          int     // 诅咒力提升
 	curseAttackMin                 int     // 诅咒攻击min
 	curseAttackMax                 int     // 诅咒攻击max
+	magicSpeed                     int     // 魔攻速度
 	attackRatePVP                  int     // PVP攻击率(4维+380+大师技能)
 	attackBonusPVP                 int     // PVP攻击加成(380)
 	defenseRatePVP                 int     // PVP防御率(4维+380+大师技能)
 	defenseBonusPVP                int     // PVP防御加成(380)
+	harmonyIncSDRate               int     // PVP增加SD比率(再生)
+	harmonyDecSDRate               int     // PVP降低SD比率(再生)
+	harmonyIgnoreSDRate            int     // PVP无视SD概率(再生)
 	knightGladiatorCalcSkillBonus  float64 // 战士/魔剑技能伤害加成(4维)
 	impaleSkillCalc                float64 // 钻云枪技能伤害加成(4维)
-	magicSpeed                     int     // 魔攻速度
 	addSkillAttack                 int     // 增加技能攻击(套装+洞装+大师技能)
 	setAddDamage                   int     // 套装增加伤害(套装)
 	setIncreaseTwoHandWeaponDamage int     // 套装增加双手武器伤害(套装)
@@ -269,7 +272,6 @@ type Player struct {
 	// securityCode                  int
 	// RegisterLMS                   uint8
 	// registerLMSRoom               uint8
-	// jewelHarmonyEffect            item.JewelHarmonyItemEffect
 	// kanturuEntranceByNPC          bool
 	// gensInfoLoad                  bool
 	// questInfoLoad                 bool
@@ -1129,11 +1131,11 @@ func (p *Player) findAndUsePet() {
 			item.Code(13, 3),  // Horn of Dinorant 彩云兽
 			item.Code(13, 4),  // Dark Horse 黑王马之角
 			item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
-			if it.HarmonyOption == 1 {
+			if it.PetActive == 1 {
 				if p.pet == nil && it.Durability > 0 {
 					p.pet = it
 				} else {
-					it.HarmonyOption = 0
+					it.PetActive = 0
 				}
 			}
 		}

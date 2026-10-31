@@ -34,6 +34,9 @@ func (p *Player) calc() {
 	p.DefenseRate = 0
 	p.defenseRatePVP = 0
 	p.defenseBonusPVP = 0
+	p.harmonyIncSDRate = 0
+	p.harmonyDecSDRate = 0
+	p.harmonyIgnoreSDRate = 0
 	p.AttackSpeed = 0
 	p.magicSpeed = 0
 	p.MaxHP = 0
@@ -43,13 +46,13 @@ func (p *Player) calc() {
 	p.knightGladiatorCalcSkillBonus = 0
 	p.impaleSkillCalc = 0
 
+	p.addSkillAttack = 0
 	p.setAddDamage = 0
 	p.setIncreaseTwoHandWeaponDamage = 0
 	p.criticalAttackRate = 0
 	p.criticalAttackDamage = 0
 	p.excellentAttackRate = 0
 	p.excellentAttackDamage = 0
-	p.addSkillAttack = 0
 	p.doubleDamageRate = 0
 	p.ignoreDefenseRate = 0
 	p.monsterDieGetHP = 0
@@ -80,6 +83,7 @@ func (p *Player) calc() {
 	p.calcSocketItem()
 	p.calc380Item()
 	p.calcExcellentItem()
+	p.calcHarmonyItem()
 	p.convertAttack()
 	p.calcHelperItem()
 
@@ -535,6 +539,33 @@ func (p *Player) calcExcellentItem() {
 		p.returnDamage += effect.ReturnDamage
 		p.recoverMaxHP += effect.RecoverMaxHP
 		p.recoverMaxMP += effect.RecoverMaxMP
+	})
+}
+
+func (p *Player) calcHarmonyItem() {
+	item.HarmonyManager.ApplyHarmonyItemEffect(&p.inventory, func(effect item.ItemHarmonyEffect, position int) {
+		switch position {
+		case 0:
+			p.leftAttackMin += effect.IncDamageMin + effect.IncDamage
+			p.leftAttackMax += effect.IncDamageMax + effect.IncDamage
+		case 1:
+			p.rightAttackMin += effect.IncDamageMin + effect.IncDamage
+			p.rightAttackMax += effect.IncDamageMax + effect.IncDamage
+		}
+		p.magicAttackMin += effect.IncMagicDamage + effect.IncSkillDamage
+		p.magicAttackMax += effect.IncMagicDamage + effect.IncSkillDamage
+		p.criticalAttackDamage += effect.IncCriticalDamage
+		p.attackRatePVP += effect.IncAttackRate
+		p.defenseRatePVP += effect.IncDefenseRate
+		p.Defense += effect.IncDefense * 10 / 20
+		p.MaxAG += effect.IncMaxAG
+		p.MaxHP += effect.IncMaxHP
+		p.recoverHP += effect.IncAutoRecoveryHP
+		p.recoverMP += effect.IncAutoRecoveryMP
+		p.armorReduceDamage += effect.DecDamage
+		p.harmonyIncSDRate += effect.IncSDRate
+		p.harmonyDecSDRate += effect.DecSDRate
+		p.harmonyIgnoreSDRate += effect.IgnoreSDRate
 	})
 }
 

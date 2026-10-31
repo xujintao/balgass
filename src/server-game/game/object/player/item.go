@@ -1036,8 +1036,8 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 
 func (p *Player) canUseItem(it *item.Item) bool {
 	if p.Level < it.ReqLevel ||
-		p.strength+p.addStrength < it.ReqStrength ||
-		p.dexterity+p.addDexterity < it.ReqDexterity ||
+		p.strength+p.addStrength < it.RequiredStrength() ||
+		p.dexterity+p.addDexterity < it.RequiredDexterity() ||
 		p.vitality+p.addVitality < it.ReqVitality ||
 		p.energy+p.addEnergy < it.ReqEnergy ||
 		p.leadership+p.addLeadership < it.ReqCommand {
@@ -1123,17 +1123,17 @@ func (p *Player) UsePet(msg *model.MsgUsePet) {
 		item.Code(13, 37): // Horn of Fenrir 炎狼兽之角
 		switch msg.Value {
 		case 255: // stop riding
-			if p.pet != it || it.HarmonyOption != 1 {
+			if p.pet != it || it.PetActive != 1 {
 				return
 			}
-			it.HarmonyOption = 0
+			it.PetActive = 0
 			p.pet = nil
 			reply.Result = -1
 		case 254: // start riding
-			if p.pet != nil || it.HarmonyOption != 0 || it.Durability <= 0 {
+			if p.pet != nil || it.PetActive != 0 || it.Durability <= 0 {
 				return
 			}
-			it.HarmonyOption = 1
+			it.PetActive = 1
 			p.pet = it
 			reply.Result = -2
 		default:

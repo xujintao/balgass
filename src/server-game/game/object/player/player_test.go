@@ -60,6 +60,22 @@ func TestCanUseItemChecksRequirements(t *testing.T) {
 	if p.canUseItem(it) {
 		t.Fatal("canUseItem() = true without required change-up")
 	}
+
+	harmonyWeapon := &item.Item{
+		ItemBase: &item.ItemBase{
+			ReqStrength: 30,
+			ReqClass:    [8]int{class.Wizard: 1},
+		},
+		Section: 0,
+		Level:   0,
+		Harmony: 3,
+	}
+	harmonyWeapon.Calc()
+	p.changeUp = 0
+	p.strength = 24
+	if !p.canUseItem(harmonyWeapon) {
+		t.Fatal("active Harmony strength reduction was not applied to item requirements")
+	}
 }
 
 func TestAutoSaveSchedule(t *testing.T) {
@@ -681,6 +697,66 @@ func TestSetAndExcellentEquipmentRecalculation(t *testing.T) {
 	p.calc()
 	if p.AttackMin != baseMin || p.AttackMax != baseMax || p.MaxHP != baseHP || p.addStrength != 0 || p.addSkillAttack != 0 || p.criticalAttackRate != 0 || p.excellentAttackRate != 0 {
 		t.Fatal("set or excellent effects remained after unequipping")
+	}
+}
+
+func TestHarmonyEquipmentRecalculation(t *testing.T) {
+	p := newItemTestPlayer()
+	p.Class = int(class.Knight)
+	p.strength, p.dexterity, p.vitality, p.energy = 100, 100, 100, 100
+
+	weapon := item.NewItem(0, 0)
+	weapon.Calc()
+	p.inventory.Items[0] = weapon
+
+	armor := item.NewItem(6, 0)
+	armor.Level = 3
+	armor.Calc()
+	p.inventory.Items[2] = armor
+	p.calc()
+	baseAttackMin, baseHP := p.AttackMin, p.MaxHP
+
+	weapon.Harmony, weapon.Level = 1, 0
+	armor.Harmony, armor.Level = 3, 3
+	weapon.Calc()
+	armor.Calc()
+	p.calc()
+	if p.AttackMin != baseAttackMin+2 || p.MaxHP != baseHP+7 {
+		t.Fatalf("Harmony equipment attack/max HP = %d/%d, want %d/%d", p.AttackMin, p.MaxHP, baseAttackMin+2, baseHP+7)
+	}
+	p.calc()
+	if p.AttackMin != baseAttackMin+2 || p.MaxHP != baseHP+7 {
+		t.Fatal("Harmony effects accumulated across recalculation")
+	}
+	p.inventory.Items[0], p.inventory.Items[2] = nil, nil
+	p.calc()
+	basePlayer := newItemTestPlayer()
+	basePlayer.Class = int(class.Knight)
+	basePlayer.strength, basePlayer.dexterity, basePlayer.vitality, basePlayer.energy = 100, 100, 100, 100
+	basePlayer.calc()
+	if p.AttackMin != basePlayer.AttackMin || p.AttackMax != basePlayer.AttackMax ||
+		p.MaxHP != basePlayer.MaxHP || p.harmonyDecSDRate != 0 || p.harmonyIgnoreSDRate != 0 || p.harmonyIncSDRate != 0 {
+		t.Fatalf("Harmony effects remained after unequipping: attack=%d/%d want %d/%d, max HP=%d want %d, SD rates=%d/%d/%d", p.AttackMin, p.AttackMax, basePlayer.AttackMin, basePlayer.AttackMax, p.MaxHP, basePlayer.MaxHP, p.harmonyDecSDRate, p.harmonyIgnoreSDRate, p.harmonyIncSDRate)
+	}
+}
+
+func TestHarmonyAttackPanelBonusUsesEquippedHand(t *testing.T) {
+	p := newItemTestPlayer()
+	p.leftAttackMin, p.leftAttackMax = 10, 20
+	p.rightAttackMin, p.rightAttackMax = 30, 40
+
+	leftWeapon := item.NewItem(0, 0)
+	leftWeapon.Harmony = int(item.HarmonyEffectWeaponIncDamageMin)
+	rightWeapon := item.NewItem(0, 0)
+	rightWeapon.Harmony = int(item.HarmonyEffectWeaponIncDamageMax)
+	p.inventory.Items[0] = leftWeapon
+	p.inventory.Items[1] = rightWeapon
+
+	p.calcHarmonyItem()
+	if p.leftAttackMin != 12 || p.leftAttackMax != 20 ||
+		p.rightAttackMin != 30 || p.rightAttackMax != 43 {
+		t.Fatalf("Harmony hand attack panels = %d/%d, %d/%d; want 12/20, 30/43",
+			p.leftAttackMin, p.leftAttackMax, p.rightAttackMin, p.rightAttackMax)
 	}
 }
 

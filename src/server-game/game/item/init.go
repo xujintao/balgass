@@ -5,4 +5,5 @@ func init() {
 	SocketManager.init()
 	SetManager.init()
 	Item380Manager.init()
+	HarmonyManager.init()
 }
