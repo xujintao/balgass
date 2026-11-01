@@ -167,20 +167,6 @@ func (m *harmonyManager) init() {
 	}
 }
 
-func (m *harmonyManager) itemHarmoneyEffectDecReqStrength(it *Item) int {
-	return m.itemEffect(it).DecReqStrength
-}
-
-func (m *harmonyManager) itemHarmoneyEffectDecReqDexterity(it *Item) int {
-	return m.itemEffect(it).DecReqAgility
-}
-
-func (m *harmonyManager) itemEffect(it *Item) ItemHarmonyOption {
-	var option ItemHarmonyOption
-	m.applyItemHarmonyOption(it, &option)
-	return option
-}
-
 func (m *harmonyManager) ApplyHarmonyItemOption(inv *Inventory, apply func(ItemHarmonyOption, int)) {
 	if inv == nil || apply == nil {
 		return
@@ -301,6 +287,62 @@ func (m *harmonyManager) itemKind(it *Item) harmonyItemKind {
 	}
 }
 
+func (m *harmonyManager) itemHarmoneyEffectDecReqStrength(it *Item) int {
+	return m.itemEffect(it).DecReqStrength
+}
+
+func (m *harmonyManager) itemHarmoneyEffectDecReqDexterity(it *Item) int {
+	return m.itemEffect(it).DecReqAgility
+}
+
+func (m *harmonyManager) itemEffect(it *Item) ItemHarmonyOption {
+	var option ItemHarmonyOption
+	m.applyItemHarmonyOption(it, &option)
+	return option
+}
+
+func (m *harmonyManager) Config() HarmonyConfig {
+	return m.cfg
+}
+
+func (m *harmonyManager) CanMakeRefiningStone(it *Item) (bool, bool) {
+	if it == nil || it.Type == TypeSocket || it.HarmonyOption != 0 ||
+		it.IsSet() && !conf.Common.General.EnableUseSetHarmonyItem {
+		return false, false
+	}
+	eligible := false
+	switch it.Section {
+	case 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11:
+		eligible = true
+	case 4:
+		eligible = it.Index != 7 && it.Index != 15
+	}
+	if !eligible {
+		return false, false
+	}
+	if it.Section >= 0 && it.Section < len(m.items) {
+		if reqLevel, ok := m.items[it.Section][it.Index]; ok && it.Level < reqLevel {
+			return false, false
+		}
+	}
+	return true, it.IsExcellent() || it.IsSet()
+}
+
+func (m *harmonyManager) RestoreItemMoney(it *Item) (int, bool) {
+	if it == nil || it.HarmonyOption <= 0 || it.HarmonyLevel < 0 || it.HarmonyLevel >= 16 {
+		return 0, false
+	}
+	itemKind := m.itemKind(it)
+	if itemKind == harmonyItemKindNull {
+		return 0, false
+	}
+	options := m.harmonys[itemKind]
+	if it.HarmonyOption >= len(options) {
+		return 0, false
+	}
+	return options[it.HarmonyOption].levels[it.HarmonyLevel].reqMoney, true
+}
+
 func (m *harmonyManager) StrengthenItem(it *Item) (bool, error) {
 	return m.strengthenItem(it, false)
 }
@@ -367,33 +409,6 @@ func (m *harmonyManager) randomOption(it *Item, itemKind harmonyItemKind) (int, 
 	return option, ok && option > 0
 }
 
-func (m *harmonyManager) Config() HarmonyConfig {
-	return m.cfg
-}
-
-func (m *harmonyManager) CanMakeRefiningStone(it *Item) (bool, bool) {
-	if it == nil || it.Type == TypeSocket || it.HarmonyOption != 0 ||
-		it.IsSet() && !conf.Common.General.EnableUseSetHarmonyItem {
-		return false, false
-	}
-	eligible := false
-	switch it.Section {
-	case 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11:
-		eligible = true
-	case 4:
-		eligible = it.Index != 7 && it.Index != 15
-	}
-	if !eligible {
-		return false, false
-	}
-	if it.Section >= 0 && it.Section < len(m.items) {
-		if reqLevel, ok := m.items[it.Section][it.Index]; ok && it.Level < reqLevel {
-			return false, false
-		}
-	}
-	return true, it.IsExcellent() || it.IsSet()
-}
-
 func (m *harmonyManager) SmeltItem(it *Item, high bool) (bool, bool) {
 	if !m.cfg.HarmonySystem.EnableSmeltItem || it == nil || it.HarmonyOption <= 0 || it.HarmonyLevel >= it.Level || it.HarmonyLevel == 13 {
 		return false, false
@@ -423,19 +438,4 @@ func (m *harmonyManager) SmeltItem(it *Item, high bool) (bool, bool) {
 	}
 	it.HarmonyLevel++
 	return true, true
-}
-
-func (m *harmonyManager) RestoreItemMoney(it *Item) (int, bool) {
-	if it == nil || it.HarmonyOption <= 0 || it.HarmonyLevel < 0 || it.HarmonyLevel >= 16 {
-		return 0, false
-	}
-	itemKind := m.itemKind(it)
-	if itemKind == harmonyItemKindNull {
-		return 0, false
-	}
-	options := m.harmonys[itemKind]
-	if it.HarmonyOption >= len(options) {
-		return 0, false
-	}
-	return options[it.HarmonyOption].levels[it.HarmonyLevel].reqMoney, true
 }
