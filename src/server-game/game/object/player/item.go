@@ -393,6 +393,9 @@ func (p *Player) MoveItem(msg *model.MsgMoveItem) {
 }
 
 const (
+	mixHarmonyHarmonyJewel       = 0x21
+	mixHarmonyRefiningStone      = 0x22
+	mixHarmonyRestoreItem        = 0x23
 	mix380Option                 = 0x24
 	mixSocketSeedExtract         = 0x2a
 	mixSocketSeedSphereComposite = 0x2b
@@ -413,6 +416,156 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 		}
 	}
 	switch msg.Type {
+	case mixHarmonyHarmonyJewel:
+		// validate
+		cfg := item.HarmonyManager.Config()
+		count := msg.MixCount
+		if !cfg.HarmonySystem.EnableHarmonyJewelMix || count != len(items) {
+			return
+		}
+		for _, position := range items {
+			if p.chaosBox.Item(position).Code != item.Code(14, 41) { // 再生原石
+				return
+			}
+		}
+		// calculate the fee
+		fee := cfg.HarmonyMix.HarmonyJewelMixReqMoney * count
+		if p.Money < fee {
+			reply.Result = 2
+			return
+		}
+		p.Money -= fee
+		p.PushMoney()
+		// calculate the success rate
+		if count == 1 {
+			p.chaosBox.Clear()
+			if rand.Intn(100) < cfg.HarmonyMix.HarmonyJewelMixSuccessRate {
+				// success
+				reply.Result = 1
+				output := item.NewItem(14, 42) // 再生宝石
+				output.Durability = 1
+				output.Calc()
+				p.chaosBox.AddItem(0, output)
+			} else {
+				// failed
+				reply.Result = 0
+			}
+			p.pushChaosBoxItems()
+			return
+		}
+		reply.Result = 16
+		reply.Position = count
+		reply.MixResults = make([]bool, count)
+		successCount := 0
+		for i := range reply.MixResults {
+			reply.MixResults[i] = rand.Intn(100) < cfg.HarmonyMix.HarmonyJewelMixSuccessRate
+			if reply.MixResults[i] {
+				successCount++
+			}
+		}
+		p.chaosBox.Clear()
+		for i := 0; i < successCount; i++ {
+			output := item.NewItem(14, 42)
+			output.Durability = 1
+			output.Calc()
+			p.chaosBox.AddItem(i, output)
+		}
+		p.pushChaosBoxItems()
+		if successCount == 0 {
+			p.Push(&model.MsgMixItemsReply{Result: 0})
+		}
+	case mixHarmonyRefiningStone:
+		// validate
+		cfg := item.HarmonyManager.Config()
+		count := msg.MixCount
+		if !cfg.HarmonySystem.EnableRefiningStoneMix || len(items) != count {
+			return
+		}
+		valid := true
+		high := false
+		for i, position := range items {
+			ok, itemHigh := item.HarmonyManager.CanMakeRefiningStone(p.chaosBox.Item(position))
+			if !ok || i > 0 && itemHigh != high {
+				valid = false
+				break
+			}
+			high = itemHigh
+		}
+		if !valid {
+			return
+		}
+		// calculate the fee
+		fee := cfg.HarmonyMix.RefiningStoneMinxReqMoney * count
+		if p.Money < fee {
+			reply.Result = 2
+			return
+		}
+		p.Money -= fee
+		p.PushMoney()
+		// calculate the success rate
+		rate := cfg.HarmonyMix.RefiningStoneLowerMixSuccessRate
+		outputIndex := 43
+		if high {
+			rate = cfg.HarmonyMix.RefiningStoneHigherMixSuccessRate
+			outputIndex = 44
+		}
+		if count == 1 {
+			p.chaosBox.Clear()
+			if rand.Intn(100) < rate {
+				reply.Result = 1
+				output := item.NewItem(14, outputIndex)
+				output.Durability = 1
+				output.Calc()
+				p.chaosBox.AddItem(0, output)
+			} else {
+				reply.Result = 0
+			}
+			p.pushChaosBoxItems()
+			return
+		}
+		reply.Result = 16
+		reply.Position = count
+		reply.MixResults = make([]bool, count)
+		successCount := 0
+		for i := range reply.MixResults {
+			reply.MixResults[i] = rand.Intn(100) < rate
+			if reply.MixResults[i] {
+				successCount++
+			}
+		}
+		p.chaosBox.Clear()
+		for i := 0; i < successCount; i++ {
+			output := item.NewItem(14, outputIndex)
+			output.Durability = 1
+			output.Calc()
+			p.chaosBox.AddItem(i, output)
+		}
+		p.pushChaosBoxItems()
+		if successCount == 0 {
+			p.Push(&model.MsgMixItemsReply{Result: 0})
+		}
+	case mixHarmonyRestoreItem:
+		// validate
+		cfg := item.HarmonyManager.Config()
+		if !cfg.HarmonySystem.EnableRestoreItem || len(items) != 1 {
+			return
+		}
+		target := p.chaosBox.Item(items[0])
+		fee, ok := item.HarmonyManager.RestoreItemMoney(target)
+		if !ok {
+			return
+		}
+		if p.Money < fee {
+			reply.Result = 2
+			return
+		}
+		p.Money -= fee
+		p.PushMoney()
+		target.HarmonyOption = 0
+		target.HarmonyLevel = 0
+		reply.Result = 1
+		reply.Item = target
+		p.pushChaosBoxItems()
 	case mix380Option: // Enable a 380 option on an eligible equipped item.
 		mixConfig := item.Item380Manager.MixConfig()
 		if !mixConfig.Enable {
@@ -996,8 +1149,20 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 		p.SetDelayRecoverSD(sd, sd)
 		// decrease durability
 		p.decreaseItemDurability(msg.SrcPosition)
-	// case it.Code == item.Code(14, 42) && it2.Type != item.TypeSocket: // 再生强化
-	case it.Code >= item.Code(14, 43) && it.Code <= item.Code(14, 44): // 进化道具
+	case it.Code == item.Code(14, 42): // Jewel of Harmony 再生宝石
+		target := p.inventory.Item(msg.DstPosition)
+		if target == nil {
+			return
+		}
+		attempted, _ := item.HarmonyManager.StrengthenItem(target)
+		p.finishHarmonyItemUse(msg.SrcPosition, msg.DstPosition, target, attempted)
+	case it.Code == item.Code(14, 43) || it.Code == item.Code(14, 44): // Refining Stone 进化宝石
+		target := p.inventory.Item(msg.DstPosition)
+		if target == nil {
+			return
+		}
+		attempted, _ := item.HarmonyManager.SmeltItem(target, it.Code == item.Code(14, 44))
+		p.finishHarmonyItemUse(msg.SrcPosition, msg.DstPosition, target, attempted)
 	case it.Code >= item.Code(14, 46) && it.Code <= item.Code(14, 50): // Jack O'Lantern 南瓜灯饮料
 	case it.Code == item.Code(14, 70): // Elite HP Potion 精华HP药水
 	case it.Code == item.Code(14, 71): // Elite MP Potion 精华MP药水
@@ -1005,7 +1170,13 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 	case it.Code >= item.Code(14, 85) && it.Code <= item.Code(14, 87): // Cherry Blossom 樱花
 	case it.Code == item.Code(14, 133): // Elite SD Potion 精华防护值药水
 	case it.Code == item.Code(14, 160): // Jewel of Extension 延长宝石
-	case it.Code == item.Code(14, 161): // Jewel of Elevation 提高宝石
+	case it.Code == item.Code(14, 161): // Jewel of Rise 提高宝石
+		target := p.inventory.Item(msg.DstPosition)
+		if target == nil {
+			return
+		}
+		attempted, _ := item.HarmonyManager.StrengthenLuckyItem(target)
+		p.finishHarmonyItemUse(msg.SrcPosition, msg.DstPosition, target, attempted)
 	case it.Code == item.Code(14, 162): // Magic Backpack 魔法背书
 	case it.Code == item.Code(14, 163): // Vault Expansion Certificate 仓库拓展证书
 	case it.Code == item.Code(14, 209): // Tradeable Seal 交易印章
@@ -1032,6 +1203,19 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 			})
 		}
 	}
+}
+
+func (p *Player) finishHarmonyItemUse(sourcePosition, targetPosition int, target *item.Item, attempted bool) {
+	if !attempted {
+		return
+	}
+	source := p.inventory.Item(sourcePosition)
+	p.inventory.RemoveItem(sourcePosition, source)
+	p.pushDeleteItem(sourcePosition)
+	if targetPosition < 12 {
+		p.equipmentChanged()
+	}
+	p.Push(&model.MsgItemListReply{Items: p.inventory.Items})
 }
 
 func (p *Player) canUseItem(it *item.Item) bool {

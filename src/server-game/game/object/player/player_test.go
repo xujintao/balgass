@@ -66,9 +66,9 @@ func TestCanUseItemChecksRequirements(t *testing.T) {
 			ReqStrength: 30,
 			ReqClass:    [8]int{class.Wizard: 1},
 		},
-		Section: 0,
-		Level:   0,
-		Harmony: 3,
+		Section:       0,
+		Level:         0,
+		HarmonyOption: 3,
 	}
 	harmonyWeapon.Calc()
 	p.changeUp = 0
@@ -716,8 +716,8 @@ func TestHarmonyEquipmentRecalculation(t *testing.T) {
 	p.calc()
 	baseAttackMin, baseHP := p.AttackMin, p.MaxHP
 
-	weapon.Harmony, weapon.Level = 1, 0
-	armor.Harmony, armor.Level = 3, 3
+	weapon.HarmonyOption, weapon.Level = 1, 0
+	armor.HarmonyOption, armor.HarmonyLevel, armor.Level = 3, 3, 3
 	weapon.Calc()
 	armor.Calc()
 	p.calc()
@@ -746,9 +746,9 @@ func TestHarmonyAttackPanelBonusUsesEquippedHand(t *testing.T) {
 	p.rightAttackMin, p.rightAttackMax = 30, 40
 
 	leftWeapon := item.NewItem(0, 0)
-	leftWeapon.Harmony = int(item.HarmonyEffectWeaponIncDamageMin)
+	leftWeapon.HarmonyOption = 1
 	rightWeapon := item.NewItem(0, 0)
-	rightWeapon.Harmony = int(item.HarmonyEffectWeaponIncDamageMax)
+	rightWeapon.HarmonyOption = 2
 	p.inventory.Items[0] = leftWeapon
 	p.inventory.Items[1] = rightWeapon
 

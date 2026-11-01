@@ -74,7 +74,8 @@ type Item struct {
 	Set                          int  `json:"set,omitempty"`
 	Option380                    bool `json:"option380,omitempty"`
 	Period                       int  `json:"period,omitempty"`
-	Harmony                      int  `json:"harmony,omitempty"`
+	HarmonyOption                int  `json:"harmony_option,omitempty"`
+	HarmonyLevel                 int  `json:"harmony_level,omitempty"`
 	PetActive                    int  `json:"pet_active,omitempty"`
 	PentagramBonus               int  `json:"pentagram_bonus,omitempty"`
 	MuunRank                     int  `json:"muun_rank,omitempty"`
@@ -1230,8 +1231,8 @@ func (item *Item) Marshal() ([]byte, error) {
 	case item.KindA == KindAHelper && item.KindB == KindBEquipment: // helper equipment
 		data[6] = byte(item.PetActive)
 	default: // harmony
-		if item.Harmony != 0 {
-			data[6] = byte(item.Harmony<<4 | item.Level)
+		if item.HarmonyOption != 0 {
+			data[6] = byte(item.HarmonyOption&0x0F)<<4 | byte(item.HarmonyLevel&0x0F)
 		}
 	}
 	return data[:], nil

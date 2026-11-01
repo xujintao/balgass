@@ -479,6 +479,319 @@ func TestMix380OptionRejectsOverLimitCharmAndInsufficientMoney(t *testing.T) {
 	}
 }
 
+func TestHarmonyMixRestoresOptionAndChargesConfiguredFee(t *testing.T) {
+	p := newItemTestPlayer()
+	p.chaosBoxOpen = true
+	p.Money = 100_000
+	target := item.NewItem(0, 0)
+	target.Level, target.HarmonyOption, target.HarmonyLevel = 10, 1, 0
+	if !p.chaosBox.AddItem(0, target) {
+		t.Fatal("could not place strengthened item")
+	}
+
+	p.MixItems(&model.MsgMixItems{Type: mixHarmonyRestoreItem})
+	messages := itemTestMessages(p)
+	reply, found := lastMixReply(messages)
+	if !found || reply.Result != 1 || target.HarmonyOption != 0 || target.HarmonyLevel != 0 {
+		t.Fatalf("restore reply/item = %#v, Harmony %d/%d", reply, target.HarmonyOption, target.HarmonyLevel)
+	}
+	if p.Money != 0 || p.chaosBox.Item(0) != target {
+		t.Fatalf("restore left money/item = %d/%p, want 0/%p", p.Money, p.chaosBox.Item(0), target)
+	}
+}
+
+func TestHarmonyRestoreRejectsInsufficientMoney(t *testing.T) {
+	p := newItemTestPlayer()
+	p.chaosBoxOpen = true
+	target := item.NewItem(0, 0)
+	target.Level, target.HarmonyOption, target.HarmonyLevel = 10, 1, 0
+	fee, ok := item.HarmonyManager.RestoreItemMoney(target)
+	if !ok || fee <= 0 {
+		t.Fatalf("configured restore fee = %d, valid %t", fee, ok)
+	}
+	p.Money = fee - 1
+	if !p.chaosBox.AddItem(0, target) {
+		t.Fatal("could not place strengthened item")
+	}
+
+	p.MixItems(&model.MsgMixItems{Type: mixHarmonyRestoreItem})
+	reply, found := lastMixReply(itemTestMessages(p))
+	if !found || reply.Result != 2 || p.Money != fee-1 || target.HarmonyOption != 1 || target.HarmonyLevel != 0 {
+		t.Fatalf("insufficient-money restore = reply %#v, money %d, Harmony %d/%d", reply, p.Money, target.HarmonyOption, target.HarmonyLevel)
+	}
+}
+
+func TestHarmonyPurityMixConsumesInputAndReturnsBatchBitmap(t *testing.T) {
+	for _, count := range []int{1, 2} {
+		p := newItemTestPlayer()
+		p.chaosBoxOpen = true
+		for i := 0; i < count; i++ {
+			if !p.chaosBox.AddItem(i*2, item.NewItem(14, 41)) {
+				t.Fatal("could not place Gemstone")
+			}
+		}
+		p.MixItems(&model.MsgMixItems{Type: mixHarmonyHarmonyJewel, MixCount: count})
+		assertHarmonyMixOutputsCalculated(t, p)
+		messages := itemTestMessages(p)
+		reply, found := lastMixReply(messages)
+		if !found {
+			t.Fatalf("purity mix did not reply: box=%#v", p.chaosBox.Items())
+		}
+		if count == 1 {
+			if reply.Result != 0 && reply.Result != 1 {
+				t.Fatalf("single purity result = %d, want success or failure", reply.Result)
+			}
+			wantOutput := 0
+			if reply.Result == 1 {
+				wantOutput = 1
+			}
+			if got := countChaosBoxItem(p, item.Code(14, 42)); got != wantOutput {
+				t.Fatalf("single purity Chaos Box output count = %d, want %d", got, wantOutput)
+			}
+			if got := countInventoryItem(p, item.Code(14, 42)); got != 0 {
+				t.Fatalf("single purity put %d outputs in inventory", got)
+			}
+			if got := countMixReplies(messages); got != 1 {
+				t.Fatalf("single purity sent %d mix replies, want 1", got)
+			}
+			continue
+		}
+		for _, message := range messages {
+			if massReply, ok := message.(*model.MsgMixItemsReply); ok && massReply.Result == 16 {
+				reply = massReply
+				break
+			}
+		}
+		if reply.Result != 16 || reply.Position != count || len(reply.MixResults) != count {
+			t.Fatalf("batch purity reply = %#v", reply)
+		}
+		successes := 0
+		for _, success := range reply.MixResults {
+			if success {
+				successes++
+			}
+		}
+		if got := countChaosBoxItem(p, item.Code(14, 42)); got != successes {
+			t.Fatalf("batch purity Chaos Box output count = %d, want %d", got, successes)
+		}
+		if got := countInventoryItem(p, item.Code(14, 42)); got != 0 {
+			t.Fatalf("batch purity put %d outputs in inventory", got)
+		}
+		wantReplies := 1
+		if successes == 0 {
+			wantReplies++
+		}
+		if got := countMixReplies(messages); got != wantReplies {
+			t.Fatalf("batch purity sent %d mix replies, want %d", got, wantReplies)
+		}
+		data, err := reply.Marshal()
+		if err != nil || len(data) != 14 || data[13] != byte(count) {
+			t.Fatalf("batch purity wire data = %v, error %v", data, err)
+		}
+	}
+}
+
+func countMixReplies(messages []any) int {
+	count := 0
+	for _, message := range messages {
+		if _, ok := message.(*model.MsgMixItemsReply); ok {
+			count++
+		}
+	}
+	return count
+}
+
+func countChaosBoxItem(p *Player, code int) int {
+	count := 0
+	for _, it := range p.chaosBox.Items() {
+		if it != nil && it.Code == code {
+			count++
+		}
+	}
+	return count
+}
+
+func assertHarmonyMixOutputsCalculated(t *testing.T, p *Player) {
+	t.Helper()
+	for _, it := range p.chaosBox.Items() {
+		if it != nil && it.Section == 14 && it.Index >= 42 && it.Index <= 44 && it.BuyMoney != 18600 {
+			t.Errorf("Harmony mix output %d/%d has BuyMoney %d, want 18600", it.Section, it.Index, it.BuyMoney)
+		}
+	}
+}
+
+func countInventoryItem(p *Player, code int) int {
+	count := 0
+	for _, it := range p.inventory.Items[12:] {
+		if it != nil && it.Code == code {
+			count++
+		}
+	}
+	return count
+}
+
+func TestHarmonySmeltingStoneMixesSingleAndBatch(t *testing.T) {
+	for _, count := range []int{1, 2} {
+		p := newItemTestPlayer()
+		p.chaosBoxOpen = true
+		for i := 0; i < count; i++ {
+			stone := item.NewItem(0, 0)
+			stone.Level = 4
+			if !p.chaosBox.AddItem(i*2, stone) {
+				t.Fatal("could not place refining-stone material")
+			}
+		}
+
+		p.MixItems(&model.MsgMixItems{Type: mixHarmonyRefiningStone, MixCount: count})
+		assertHarmonyMixOutputsCalculated(t, p)
+		messages := itemTestMessages(p)
+		var reply *model.MsgMixItemsReply
+		for _, message := range messages {
+			if candidate, ok := message.(*model.MsgMixItemsReply); ok && (count == 1 || candidate.Result == 16) {
+				reply = candidate
+			}
+		}
+		if reply == nil {
+			t.Fatalf("missing refining-stone mix reply for count %d", count)
+		}
+		if count == 1 {
+			if reply.Result != 0 && reply.Result != 1 {
+				t.Fatalf("single refining-stone result = %d, want success or failure", reply.Result)
+			}
+			wantOutputs := 0
+			if reply.Result == 1 {
+				wantOutputs = 1
+			}
+			if got := countChaosBoxItem(p, item.Code(14, 43)) + countChaosBoxItem(p, item.Code(14, 44)); got != wantOutputs {
+				t.Fatalf("single refining-stone Chaos Box output count = %d, want %d", got, wantOutputs)
+			}
+			if got := countInventoryItem(p, item.Code(14, 43)) + countInventoryItem(p, item.Code(14, 44)); got != 0 {
+				t.Fatalf("single refining-stone put %d outputs in inventory", got)
+			}
+			if got := countMixReplies(messages); got != 1 {
+				t.Fatalf("single refining-stone sent %d mix replies, want 1", got)
+			}
+			continue
+		}
+
+		if reply.Position != count || len(reply.MixResults) != count {
+			t.Fatalf("batch refining-stone reply = %#v", reply)
+		}
+		successes := 0
+		for _, success := range reply.MixResults {
+			if success {
+				successes++
+			}
+		}
+		outputs := countChaosBoxItem(p, item.Code(14, 43)) + countChaosBoxItem(p, item.Code(14, 44))
+		inventoryOutputs := countInventoryItem(p, item.Code(14, 43)) + countInventoryItem(p, item.Code(14, 44))
+		if outputs != successes || inventoryOutputs != 0 {
+			t.Fatalf("batch refining-stone Chaos Box outputs=%d successes=%d inventory outputs=%d", outputs, successes, inventoryOutputs)
+		}
+		wantReplies := 1
+		if successes == 0 {
+			wantReplies++
+		}
+		if got := countMixReplies(messages); got != wantReplies {
+			t.Fatalf("batch refining-stone sent %d mix replies, want %d", got, wantReplies)
+		}
+	}
+}
+
+func TestUseHarmonyAndRefiningItemsConsumesAttemptedMaterial(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		sourceCode int
+		target     *item.Item
+	}{
+		{name: "Jewel of Harmony", sourceCode: item.Code(14, 42), target: item.NewItem(0, 0)},
+		{name: "Lower Refining Stone", sourceCode: item.Code(14, 43), target: item.NewItem(0, 0)},
+		{name: "Jewel of Rise", sourceCode: item.Code(14, 161), target: item.NewItem(7, 62)},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := newItemTestPlayer()
+			p.inventory.AddItem(12, item.NewItem(14, tc.sourceCode%512))
+			target := tc.target
+			target.Level = 15
+			if tc.sourceCode == item.Code(14, 43) {
+				target.HarmonyOption = 6
+				target.HarmonyLevel = 6
+			}
+			if !p.inventory.AddItem(13, target) {
+				t.Fatal("could not place target equipment")
+			}
+			p.UseItem(&model.MsgUseItem{SrcPosition: 12, DstPosition: 13})
+			if p.inventory.Item(12) != nil || p.inventory.Item(13) != target {
+				t.Fatal("attempted Harmony operation did not consume only its source item")
+			}
+			messages := itemTestMessages(p)
+			deleted := false
+			for _, message := range messages {
+				if reply, ok := message.(*model.MsgDeleteInventoryItemReply); ok && reply.Position == 12 {
+					deleted = true
+				}
+			}
+			if !deleted {
+				t.Fatal("source item deletion was not sent to the client")
+			}
+		})
+	}
+}
+
+func TestHarmonyNPCsOpenConfiguredMixWindows(t *testing.T) {
+	oldObjectManager := object.ObjectManager
+	t.Cleanup(func() { object.ObjectManager = oldObjectManager })
+	for _, tc := range []struct {
+		class, result, rate1, rate2 int
+	}{
+		{class: 368, result: 17},
+		{class: 369, result: 18},
+		{class: 370, result: 19},
+	} {
+		p := newItemTestPlayer()
+		npc, err := object.ObjectManager.AddMonster(func() *object.Object {
+			npc := &object.Object{Class: tc.class, NpcType: object.NpcTypeChaosMix}
+			npc.Init()
+			return npc
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		p.Talk(&model.MsgTalk{Target: npc.Index})
+		messages := itemTestMessages(p)
+		if len(messages) < 2 {
+			t.Fatalf("NPC %d did not open the Chaos Box", tc.class)
+		}
+		reply, ok := messages[0].(*model.MsgTalkReply)
+		if !ok || reply.Result != tc.result {
+			t.Fatalf("NPC %d talk reply = %#v, want result %d", tc.class, messages[0], tc.result)
+		}
+		cfg := item.HarmonyManager.Config()
+		switch tc.class {
+		case 368:
+			tc.rate1 = cfg.HarmonyMix.HarmonyJewelMixSuccessRate
+		case 369:
+			tc.rate1 = cfg.HarmonyMix.RefiningStoneLowerMixSuccessRate
+			tc.rate2 = cfg.HarmonyMix.RefiningStoneHigherMixSuccessRate
+		}
+		if reply.SuccessRate[0] != tc.rate1 || reply.SuccessRate[1] != tc.rate2 {
+			t.Fatalf("NPC %d advertised rates %v, want %d/%d", tc.class, reply.SuccessRate, tc.rate1, tc.rate2)
+		}
+		if !p.chaosBoxOpen {
+			t.Fatalf("NPC %d did not set Chaos Box open", tc.class)
+		}
+	}
+}
+
+func lastMixReply(messages []any) (*model.MsgMixItemsReply, bool) {
+	for i := len(messages) - 1; i >= 0; i-- {
+		if reply, ok := messages[i].(*model.MsgMixItemsReply); ok {
+			return reply, true
+		}
+	}
+	return nil, false
+}
+
 func TestMoveItemBetweenInventoryAndWarehouse(t *testing.T) {
 	p := newItemTestPlayer()
 	p.warehouse.Size = 240

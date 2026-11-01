@@ -11,52 +11,52 @@ import (
 type harmonyItemKind int
 
 const (
-	harmonyItemNull harmonyItemKind = iota
-	harmonyItemWeapon
-	harmonyItemStaff
-	harmonyItemDefense
+	harmonyItemKindNull harmonyItemKind = iota
+	harmonyItemKindWeapon
+	harmonyItemKindStaff
+	harmonyItemKindDefense
 )
 
-type HarmonyEffectType int
+type harmonyOption int
 
 const (
-	HarmonyEffectWeaponIncDamageMin HarmonyEffectType = iota + 1
-	HarmonyEffectWeaponIncDamageMax
-	HarmonyEffectWeaponDecReqStrength
-	HarmonyEffectWeaponDecReqAgility
-	HarmonyEffectWeaponIncDamage
-	HarmonyEffectWeaponIncCriticalDamage
-	HarmonyEffectWeaponIncSkillDamage
-	HarmonyEffectWeaponIncAttackRate
-	HarmonyEffectWeaponDecSDRate
-	HarmonyEffectWeaponIgnoreSDRate
-)
-
-const (
-	HarmonyEffectStaffIncMagicDamage HarmonyEffectType = iota + 1
-	HarmonyEffectStaffDecReqStrength
-	HarmonyEffectStaffDecReqAgility
-	HarmonyEffectStaffIncSkillDamage
-	HarmonyEffectStaffIncCriticalDamage
-	HarmonyEffectStaffDecSDRate
-	HarmonyEffectStaffIncAttackRate
-	HarmonyEffectStaffIgnoreSDRate
+	harmonyOptionWeaponIncDamageMin harmonyOption = iota + 1
+	harmonyOptionWeaponIncDamageMax
+	harmonyOptionWeaponDecReqStrength
+	harmonyOptionWeaponDecReqAgility
+	harmonyOptionWeaponIncDamage
+	harmonyOptionWeaponIncCriticalDamage
+	harmonyOptionWeaponIncSkillDamage
+	harmonyOptionWeaponIncAttackRate
+	harmonyOptionWeaponDecSDRate
+	harmonyOptionWeaponIgnoreSDRate
 )
 
 const (
-	HarmonyEffectDefenseIncDefense HarmonyEffectType = iota + 1
-	HarmonyEffectDefenseIncMaxAG
-	HarmonyEffectDefenseIncMaxHP
-	HarmonyEffectDefenseIncAutoRecoveryHP
-	HarmonyEffectDefenseIncAutoRecoveryMP
-	HarmonyEffectDefenseIncDefenseRate
-	HarmonyEffectDefenseDecDamage
-	HarmonyEffectDefenseIncSDRate
+	harmonyOptionStaffIncMagicDamage harmonyOption = iota + 1
+	harmonyOptionStaffDecReqStrength
+	harmonyOptionStaffDecReqAgility
+	harmonyOptionStaffIncSkillDamage
+	harmonyOptionStaffIncCriticalDamage
+	harmonyOptionStaffDecSDRate
+	harmonyOptionStaffIncAttackRate
+	harmonyOptionStaffIgnoreSDRate
+)
+
+const (
+	harmonyOptionDefenseIncDefense harmonyOption = iota + 1
+	harmonyOptionDefenseIncMaxAG
+	harmonyOptionDefenseIncMaxHP
+	harmonyOptionDefenseIncAutoRecoveryHP
+	harmonyOptionDefenseIncAutoRecoveryMP
+	harmonyOptionDefenseIncDefenseRate
+	harmonyOptionDefenseDecDamage
+	harmonyOptionDefenseIncSDRate
 )
 
 var HarmonyManager harmonyManager
 
-type ItemHarmonyEffect struct {
+type ItemHarmonyOption struct {
 	IncDamageMin      int
 	IncDamageMax      int
 	IncMagicDamage    int
@@ -77,8 +77,26 @@ type ItemHarmonyEffect struct {
 	DecDamage         int
 	IncSDRate         int
 }
-
-type HarmonyEffectLevel struct {
+type HarmonyConfig struct {
+	HarmonySystem struct {
+		EnableHarmonyJewelMix  bool `ini:"HarmonyJewelMix"`       // 使能再生宝石合成
+		EnableRefiningStoneMix bool `ini:"RefiningStoneMix"`      // 使能进化宝石合成
+		EnableStrengthenItem   bool `ini:"StrengthenItem"`        // 使能强化道具
+		EnableSmeltItem        bool `ini:"SmeltItem"`             // 使能进化道具
+		EnableRestoreItem      bool `ini:"RestoreStrengthenItem"` // 使能恢复道具
+	} `ini:"HarmonySystem"`
+	HarmonyMix struct {
+		HarmonyJewelMixSuccessRate        int `ini:"JewelOfHarmonyMixSuccessRate"`      // 再生宝石合成成功率
+		HarmonyJewelMixReqMoney           int `ini:"JewelOfHarmonyMixReqMoney"`         // 再生宝石合成费用
+		RefiningStoneLowerMixSuccessRate  int `ini:"LowerRefiningStoneMixSuccessRate"`  // 初级进化宝石合成成功率
+		RefiningStoneHigherMixSuccessRate int `ini:"HigherRefiningStoneMixSuccessRate"` // 高级进化宝石合成成功率
+		RefiningStoneMinxReqMoney         int `ini:"RefiningStoneMixReqMoney"`          // 进化宝石合成费用
+		StrengthenItemSuccessRate         int `ini:"StrengthenItemSuccessRate"`         // 强化道具成功率
+		SmeltItemLowerSuccessRate         int `ini:"SmeltingItemSuccessRate_Normal"`    // 进化道具初级成功率
+		SmeltItemHigherSuccessRate        int `ini:"SmeltingItemSuccessRate_Enhanced"`  // 进化道具高级成功率
+	} `ini:"HarmonyMix"`
+}
+type HarmonyLevel struct {
 	value    int
 	reqMoney int
 }
@@ -86,42 +104,17 @@ type HarmonyEffectLevel struct {
 type harmony struct {
 	weight   int
 	reqLevel int
-	levels   [16]HarmonyEffectLevel
-}
-
-type harmonySettings struct {
-	strengthenItemSuccessRate int
+	levels   [16]HarmonyLevel
 }
 
 type harmonyManager struct {
-	settings harmonySettings
+	cfg      HarmonyConfig
 	harmonys [][]harmony
 	items    []map[int]int
 }
 
 func (m *harmonyManager) init() {
-	type harmonyConfig struct {
-		HarmonySystem struct {
-			EnableHarmonyJewelMix bool `ini:"HarmonyJewelMix"`
-			EnableRefineStoneMix  bool `ini:"RefiningStoneMix"`
-			EnableStrengthenItem  bool `ini:"StrengthenItem"`
-			EnableRestoreItem     bool `ini:"RestoreStrengthenItem"`
-			EnableRefineItem      bool `ini:"SmeltItem"`
-		} `ini:"HarmonySystem"`
-		HarmonyMix struct {
-			HarmonyJewelMixSuccessRate      int `ini:"JewelOfHarmonyMixSuccessRate"`
-			HarmonyJewelMixReqMoney         int `ini:"JewelOfHarmonyMixReqMoney"`
-			RefineStoneLowerMixSuccessRate  int `ini:"LowerRefiningStoneMixSuccessRate"`
-			RefineStoneHigherMixSuccessRate int `ini:"HigherRefiningStoneMixSuccessRate"`
-			RefineStoneMinxReqMoney         int `ini:"RefiningStoneMixReqMoney"`
-			StrengthenItemSuccessRate       int `ini:"StrengthenItemSuccessRate"`
-			RefineItemLowerSuccessRate      int `ini:"SmeltingItemSuccessRate_Normal"`
-			RefineItemHigherSuccessRate     int `ini:"SmeltingItemSuccessRate_Enhanced"`
-		} `ini:"HarmonyMix"`
-	}
-	var cfg harmonyConfig
-	conf.INI(conf.PathCommon, "IGC_HarmonySystem.ini", &cfg)
-	m.settings.strengthenItemSuccessRate = cfg.HarmonyMix.StrengthenItemSuccessRate
+	conf.INI(conf.PathCommon, "IGC_HarmonySystem.ini", &m.cfg)
 	type harmonyOptionConfig struct {
 		Type []struct {
 			Description string `xml:"Description,attr"`
@@ -147,7 +140,7 @@ func (m *harmonyManager) init() {
 			h.weight = option.RandomWeight
 			h.reqLevel = option.ReqLevel
 			for i, effect := range option.Effect {
-				h.levels[i] = HarmonyEffectLevel{value: effect.Value, reqMoney: effect.ReqMoney}
+				h.levels[i] = HarmonyLevel{value: effect.Value, reqMoney: effect.ReqMoney}
 			}
 			options = append(options, h)
 		}
@@ -182,13 +175,13 @@ func (m *harmonyManager) itemHarmoneyEffectDecReqDexterity(it *Item) int {
 	return m.itemEffect(it).DecReqAgility
 }
 
-func (m *harmonyManager) itemEffect(it *Item) ItemHarmonyEffect {
-	var effect ItemHarmonyEffect
-	m.applyItemHarmonyEffect(it, &effect)
-	return effect
+func (m *harmonyManager) itemEffect(it *Item) ItemHarmonyOption {
+	var option ItemHarmonyOption
+	m.applyItemHarmonyOption(it, &option)
+	return option
 }
 
-func (m *harmonyManager) ApplyHarmonyItemEffect(inv *Inventory, apply func(ItemHarmonyEffect, int)) {
+func (m *harmonyManager) ApplyHarmonyItemOption(inv *Inventory, apply func(ItemHarmonyOption, int)) {
 	if inv == nil || apply == nil {
 		return
 	}
@@ -196,95 +189,96 @@ func (m *harmonyManager) ApplyHarmonyItemEffect(inv *Inventory, apply func(ItemH
 		if it == nil {
 			continue
 		}
-		var effect ItemHarmonyEffect
-		m.applyItemHarmonyEffect(it, &effect)
-		apply(effect, position)
+		var option ItemHarmonyOption
+		m.applyItemHarmonyOption(it, &option)
+		apply(option, position)
 	}
 }
 
-func (m *harmonyManager) applyItemHarmonyEffect(it *Item, effect *ItemHarmonyEffect) {
-	itemKind, option, ok := m.itemOption(it)
+func (m *harmonyManager) applyItemHarmonyOption(it *Item, option *ItemHarmonyOption) {
+	itemKind, itemOption, ok := m.itemKindOption(it)
 	if !ok {
 		return
 	}
-	value := option.levels[it.Level].value
+	value := itemOption.levels[it.HarmonyLevel].value
 	switch itemKind {
-	case harmonyItemWeapon:
-		switch HarmonyEffectType(it.Harmony) {
-		case HarmonyEffectWeaponIncDamageMin:
-			effect.IncDamageMin += value
-		case HarmonyEffectWeaponIncDamageMax:
-			effect.IncDamageMax += value
-		case HarmonyEffectWeaponDecReqStrength:
-			effect.DecReqStrength += value
-		case HarmonyEffectWeaponDecReqAgility:
-			effect.DecReqAgility += value
-		case HarmonyEffectWeaponIncDamage:
-			effect.IncDamage += value
-		case HarmonyEffectWeaponIncCriticalDamage:
-			effect.IncCriticalDamage += value
-		case HarmonyEffectWeaponIncSkillDamage:
-			effect.IncSkillDamage += value
-		case HarmonyEffectWeaponIncAttackRate:
-			effect.IncAttackRate += value
-		case HarmonyEffectWeaponDecSDRate:
-			effect.DecSDRate += value
-		case HarmonyEffectWeaponIgnoreSDRate:
-			effect.IgnoreSDRate += value
+	case harmonyItemKindWeapon:
+		switch harmonyOption(it.HarmonyOption) {
+		case harmonyOptionWeaponIncDamageMin:
+			option.IncDamageMin += value
+		case harmonyOptionWeaponIncDamageMax:
+			option.IncDamageMax += value
+		case harmonyOptionWeaponDecReqStrength:
+			option.DecReqStrength += value
+		case harmonyOptionWeaponDecReqAgility:
+			option.DecReqAgility += value
+		case harmonyOptionWeaponIncDamage:
+			option.IncDamage += value
+		case harmonyOptionWeaponIncCriticalDamage:
+			option.IncCriticalDamage += value
+		case harmonyOptionWeaponIncSkillDamage:
+			option.IncSkillDamage += value
+		case harmonyOptionWeaponIncAttackRate:
+			option.IncAttackRate += value
+		case harmonyOptionWeaponDecSDRate:
+			option.DecSDRate += value
+		case harmonyOptionWeaponIgnoreSDRate:
+			option.IgnoreSDRate += value
 		}
-	case harmonyItemStaff:
-		switch HarmonyEffectType(it.Harmony) {
-		case HarmonyEffectStaffIncMagicDamage:
-			effect.IncMagicDamage += value
-		case HarmonyEffectStaffDecReqStrength:
-			effect.DecReqStrength += value
-		case HarmonyEffectStaffDecReqAgility:
-			effect.DecReqAgility += value
-		case HarmonyEffectStaffIncSkillDamage:
-			effect.IncSkillDamage += value
-		case HarmonyEffectStaffIncCriticalDamage:
-			effect.IncCriticalDamage += value
-		case HarmonyEffectStaffDecSDRate:
-			effect.DecSDRate += value
-		case HarmonyEffectStaffIncAttackRate:
-			effect.IncAttackRate += value
-		case HarmonyEffectStaffIgnoreSDRate:
-			effect.IgnoreSDRate += value
+	case harmonyItemKindStaff:
+		switch harmonyOption(it.HarmonyOption) {
+		case harmonyOptionStaffIncMagicDamage:
+			option.IncMagicDamage += value
+		case harmonyOptionStaffDecReqStrength:
+			option.DecReqStrength += value
+		case harmonyOptionStaffDecReqAgility:
+			option.DecReqAgility += value
+		case harmonyOptionStaffIncSkillDamage:
+			option.IncSkillDamage += value
+		case harmonyOptionStaffIncCriticalDamage:
+			option.IncCriticalDamage += value
+		case harmonyOptionStaffDecSDRate:
+			option.DecSDRate += value
+		case harmonyOptionStaffIncAttackRate:
+			option.IncAttackRate += value
+		case harmonyOptionStaffIgnoreSDRate:
+			option.IgnoreSDRate += value
 		}
-	case harmonyItemDefense:
-		switch HarmonyEffectType(it.Harmony) {
-		case HarmonyEffectDefenseIncDefense:
-			effect.IncDefense += value
-		case HarmonyEffectDefenseIncMaxAG:
-			effect.IncMaxAG += value
-		case HarmonyEffectDefenseIncMaxHP:
-			effect.IncMaxHP += value
-		case HarmonyEffectDefenseIncAutoRecoveryHP:
-			effect.IncAutoRecoveryHP += value
-		case HarmonyEffectDefenseIncAutoRecoveryMP:
-			effect.IncAutoRecoveryMP += value
-		case HarmonyEffectDefenseIncDefenseRate:
-			effect.IncDefenseRate += value
-		case HarmonyEffectDefenseDecDamage:
-			effect.DecDamage += value
-		case HarmonyEffectDefenseIncSDRate:
-			effect.IncSDRate += value
+	case harmonyItemKindDefense:
+		switch harmonyOption(it.HarmonyOption) {
+		case harmonyOptionDefenseIncDefense:
+			option.IncDefense += value
+		case harmonyOptionDefenseIncMaxAG:
+			option.IncMaxAG += value
+		case harmonyOptionDefenseIncMaxHP:
+			option.IncMaxHP += value
+		case harmonyOptionDefenseIncAutoRecoveryHP:
+			option.IncAutoRecoveryHP += value
+		case harmonyOptionDefenseIncAutoRecoveryMP:
+			option.IncAutoRecoveryMP += value
+		case harmonyOptionDefenseIncDefenseRate:
+			option.IncDefenseRate += value
+		case harmonyOptionDefenseDecDamage:
+			option.DecDamage += value
+		case harmonyOptionDefenseIncSDRate:
+			option.IncSDRate += value
 		}
 	}
 }
 
-func (m *harmonyManager) itemOption(it *Item) (harmonyItemKind, harmony, bool) {
-	if it == nil || it.Harmony <= 0 || it.Level < 0 || it.Level >= 16 {
-		return harmonyItemNull, harmony{}, false
+func (m *harmonyManager) itemKindOption(it *Item) (harmonyItemKind, harmony, bool) {
+	if it == nil || it.HarmonyOption <= 0 || it.HarmonyLevel < 0 || it.HarmonyLevel >= 16 ||
+		it.Level < it.HarmonyLevel {
+		return harmonyItemKindNull, harmony{}, false
 	}
 	itemKind := m.itemKind(it)
-	if itemKind == harmonyItemNull {
-		return harmonyItemNull, harmony{}, false
+	if itemKind == harmonyItemKindNull || int(itemKind) >= len(m.harmonys) {
+		return harmonyItemKindNull, harmony{}, false
 	}
 	options := m.harmonys[itemKind]
-	index := it.Harmony
+	index := it.HarmonyOption
 	if index >= len(options) {
-		return harmonyItemNull, harmony{}, false
+		return harmonyItemKindNull, harmony{}, false
 	}
 	return itemKind, options[index], true
 }
@@ -292,50 +286,156 @@ func (m *harmonyManager) itemOption(it *Item) (harmonyItemKind, harmony, bool) {
 func (m *harmonyManager) itemKind(it *Item) harmonyItemKind {
 	switch it.Section {
 	case 0, 1, 2, 3:
-		return harmonyItemWeapon
+		return harmonyItemKindWeapon
 	case 4:
 		if it.Index == 7 || it.Index == 15 {
-			return harmonyItemNull
+			return harmonyItemKindNull
 		}
-		return harmonyItemWeapon
+		return harmonyItemKindWeapon
 	case 5:
-		return harmonyItemStaff
+		return harmonyItemKindStaff
 	case 6, 7, 8, 9, 10, 11:
-		return harmonyItemDefense
+		return harmonyItemKindDefense
 	default:
-		return harmonyItemNull
+		return harmonyItemKindNull
 	}
 }
 
 func (m *harmonyManager) StrengthenItem(it *Item) (bool, error) {
-	if it.Harmony != 0 {
-		return false, lang.MsgRestrengthen // already strengthened
+	return m.strengthenItem(it, false)
+}
+
+func (m *harmonyManager) StrengthenLuckyItem(it *Item) (bool, error) {
+	return m.strengthenItem(it, true)
+}
+
+func (m *harmonyManager) strengthenItem(it *Item, lucky bool) (bool, error) {
+	if !m.cfg.HarmonySystem.EnableStrengthenItem {
+		return false, lang.MsgStrengthenFailed
 	}
-	if it.Set > 0 && conf.Common.General.EnableUseSetHarmonyItem == false {
+	if it == nil || it.Type == TypeSocket || it.HarmonyOption != 0 {
+		if it != nil && it.HarmonyOption != 0 {
+			return false, lang.MsgRestrengthen
+		}
+		return false, lang.MsgStrengthenFailed
+	}
+	if lucky {
+		if it.Type != TypeLucky {
+			return false, lang.MsgStrengthenFailed
+		}
+	}
+	if !lucky && it.IsSet() && !conf.Common.General.EnableUseSetHarmonyItem {
 		return false, lang.MsgStrengthenSet // set can not be strengthened
 	}
 	itemKind := m.itemKind(it)
-	if itemKind == harmonyItemNull {
+	if itemKind == harmonyItemKindNull {
 		return false, lang.MsgStrengthenFailed // invalid harmony item
 	}
-	if rand.Intn(100)+1 > m.settings.strengthenItemSuccessRate {
+	option, ok := m.randomOption(it, itemKind)
+	if !ok {
+		return false, lang.MsgStrengthenFailed
+	}
+	if rand.Intn(100) >= m.cfg.HarmonyMix.StrengthenItemSuccessRate {
 		return true, lang.MsgStrengthenFailed // strengthen failed
 	}
-	m.addRandEffect(it, itemKind)
-	// can not find persistence
+	it.HarmonyOption = option
+	it.HarmonyLevel = m.harmonys[itemKind][option].reqLevel
 	return true, lang.MsgStrengthenSuccess
 }
 
-func (m *harmonyManager) addRandEffect(it *Item, itemKind harmonyItemKind) {
+func (m *harmonyManager) randomOption(it *Item, itemKind harmonyItemKind) (int, bool) {
 	rm := random.RandManager{}
+	if int(itemKind) >= len(m.harmonys) {
+		return 0, false
+	}
 	options := m.harmonys[itemKind]
 	for i := 1; i < len(options); i++ {
 		option := options[i]
 		if it.Level < option.reqLevel {
 			continue
 		}
+		if (itemKind == harmonyItemKindWeapon && (i == int(harmonyOptionWeaponDecReqStrength) || i == int(harmonyOptionWeaponDecReqAgility))) ||
+			(itemKind == harmonyItemKindStaff && (i == int(harmonyOptionStaffDecReqStrength) || i == int(harmonyOptionStaffDecReqAgility))) {
+			if it.ReqStrength == 0 && (i == int(harmonyOptionWeaponDecReqStrength) || i == int(harmonyOptionStaffDecReqStrength)) ||
+				it.ReqDexterity == 0 && (i == int(harmonyOptionWeaponDecReqAgility) || i == int(harmonyOptionStaffDecReqAgility)) {
+				continue
+			}
+		}
 		rm.Put(i, option.weight)
 	}
-	i, _ := rm.GetWithWeight().(int)
-	it.Harmony = i
+	option, ok := rm.GetWithWeight().(int)
+	return option, ok && option > 0
+}
+
+func (m *harmonyManager) Config() HarmonyConfig {
+	return m.cfg
+}
+
+func (m *harmonyManager) CanMakeRefiningStone(it *Item) (bool, bool) {
+	if it == nil || it.Type == TypeSocket || it.HarmonyOption != 0 ||
+		it.IsSet() && !conf.Common.General.EnableUseSetHarmonyItem {
+		return false, false
+	}
+	eligible := false
+	switch it.Section {
+	case 0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11:
+		eligible = true
+	case 4:
+		eligible = it.Index != 7 && it.Index != 15
+	}
+	if !eligible {
+		return false, false
+	}
+	if it.Section >= 0 && it.Section < len(m.items) {
+		if reqLevel, ok := m.items[it.Section][it.Index]; ok && it.Level < reqLevel {
+			return false, false
+		}
+	}
+	return true, it.IsExcellent() || it.IsSet()
+}
+
+func (m *harmonyManager) SmeltItem(it *Item, high bool) (bool, bool) {
+	if !m.cfg.HarmonySystem.EnableSmeltItem || it == nil || it.HarmonyOption <= 0 || it.HarmonyLevel >= it.Level || it.HarmonyLevel == 13 {
+		return false, false
+	}
+	itemKind := m.itemKind(it)
+	if itemKind == harmonyItemKindNull {
+		return false, false
+	}
+	options := m.harmonys[itemKind]
+	if it.HarmonyOption >= len(options) || it.HarmonyLevel < 0 || it.HarmonyLevel >= len(options[it.HarmonyOption].levels) {
+		return false, false
+	}
+	option := options[it.HarmonyOption]
+	if itemKind == harmonyItemKindWeapon && it.HarmonyOption == int(harmonyOptionWeaponIncDamageMin) {
+		next := it.HarmonyLevel + 1
+		if it.AttackMin+option.levels[next].value > it.AttackMax-1 {
+			return false, false
+		}
+	}
+	rate := m.cfg.HarmonyMix.SmeltItemLowerSuccessRate
+	if high {
+		rate = m.cfg.HarmonyMix.SmeltItemHigherSuccessRate
+	}
+	if rand.Intn(100) >= rate {
+		it.HarmonyLevel = option.reqLevel
+		return true, false
+	}
+	it.HarmonyLevel++
+	return true, true
+}
+
+func (m *harmonyManager) RestoreItemMoney(it *Item) (int, bool) {
+	if it == nil || it.HarmonyOption <= 0 || it.HarmonyLevel < 0 || it.HarmonyLevel >= 16 {
+		return 0, false
+	}
+	itemKind := m.itemKind(it)
+	if itemKind == harmonyItemKindNull {
+		return 0, false
+	}
+	options := m.harmonys[itemKind]
+	if it.HarmonyOption >= len(options) {
+		return 0, false
+	}
+	return options[it.HarmonyOption].levels[it.HarmonyLevel].reqMoney, true
 }

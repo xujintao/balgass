@@ -954,15 +954,33 @@ func (msg *MsgMixItems) Unmarshal(buf []byte) error {
 }
 
 type MsgMixItemsReply struct {
-	Result   int
-	Item     *item.Item
-	Position int
+	// Result values:
+	//
+	//     0: failed，合成失败
+	//     1: succeeded，合成成功
+	//     2: insufficient Zen，金币不足
+	//     6: no inventory space，背包空间不足
+	//     7: invalid mix，合成请求无效
+	//     16: batch results，批量合成结果
+	Result     int
+	Item       *item.Item
+	Position   int
+	MixResults []bool
 }
 
 func (msg *MsgMixItemsReply) Marshal() ([]byte, error) {
 	data := make([]byte, 14)
 	data[0], data[13] = byte(msg.Result), byte(msg.Position)
-	if msg.Item != nil {
+	if msg.Result == 16 {
+		for i, success := range msg.MixResults {
+			if i >= 96 {
+				break
+			}
+			if success {
+				data[1+i/8] |= 1 << (i % 8)
+			}
+		}
+	} else if msg.Item != nil {
 		frame, err := msg.Item.Marshal()
 		if err != nil {
 			return nil, err

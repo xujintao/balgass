@@ -543,29 +543,29 @@ func (p *Player) calcExcellentItem() {
 }
 
 func (p *Player) calcHarmonyItem() {
-	item.HarmonyManager.ApplyHarmonyItemEffect(&p.inventory, func(effect item.ItemHarmonyEffect, position int) {
+	item.HarmonyManager.ApplyHarmonyItemOption(&p.inventory, func(option item.ItemHarmonyOption, position int) {
 		switch position {
 		case 0:
-			p.leftAttackMin += effect.IncDamageMin + effect.IncDamage
-			p.leftAttackMax += effect.IncDamageMax + effect.IncDamage
+			p.leftAttackMin += option.IncDamageMin + option.IncDamage
+			p.leftAttackMax += option.IncDamageMax + option.IncDamage
 		case 1:
-			p.rightAttackMin += effect.IncDamageMin + effect.IncDamage
-			p.rightAttackMax += effect.IncDamageMax + effect.IncDamage
+			p.rightAttackMin += option.IncDamageMin + option.IncDamage
+			p.rightAttackMax += option.IncDamageMax + option.IncDamage
 		}
-		p.magicAttackMin += effect.IncMagicDamage + effect.IncSkillDamage
-		p.magicAttackMax += effect.IncMagicDamage + effect.IncSkillDamage
-		p.criticalAttackDamage += effect.IncCriticalDamage
-		p.attackRatePVP += effect.IncAttackRate
-		p.defenseRatePVP += effect.IncDefenseRate
-		p.Defense += effect.IncDefense * 10 / 20
-		p.MaxAG += effect.IncMaxAG
-		p.MaxHP += effect.IncMaxHP
-		p.recoverHP += effect.IncAutoRecoveryHP
-		p.recoverMP += effect.IncAutoRecoveryMP
-		p.armorReduceDamage += effect.DecDamage
-		p.harmonyIncSDRate += effect.IncSDRate
-		p.harmonyDecSDRate += effect.DecSDRate
-		p.harmonyIgnoreSDRate += effect.IgnoreSDRate
+		p.magicAttackMin += option.IncMagicDamage + option.IncSkillDamage
+		p.magicAttackMax += option.IncMagicDamage + option.IncSkillDamage
+		p.criticalAttackDamage += option.IncCriticalDamage
+		p.attackRatePVP += option.IncAttackRate
+		p.defenseRatePVP += option.IncDefenseRate
+		p.Defense += option.IncDefense * 10 / 20
+		p.MaxAG += option.IncMaxAG
+		p.MaxHP += option.IncMaxHP
+		p.recoverHP += option.IncAutoRecoveryHP
+		p.recoverMP += option.IncAutoRecoveryMP
+		p.armorReduceDamage += option.DecDamage
+		p.harmonyIncSDRate += option.IncSDRate
+		p.harmonyDecSDRate += option.DecSDRate
+		p.harmonyIgnoreSDRate += option.IgnoreSDRate
 	})
 }
 

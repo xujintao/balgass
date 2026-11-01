@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/lang"
 )
 
 func TestContainerItemPosition(t *testing.T) {
@@ -56,18 +59,32 @@ func TestWingExcellentInventoryJSON(t *testing.T) {
 
 func TestHarmonyItemJSONAndProtocolEncoding(t *testing.T) {
 	it := NewItem(0, 0)
-	it.Harmony = 3
-	it.Level = 6
+	it.HarmonyOption = 3
+	it.HarmonyLevel = 6
+	it.Level = 10
 	data, err := json.Marshal(it)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !strings.Contains(string(data), `"harmony_option":3`) || strings.Contains(string(data), `"harmony_effect":`) {
+		t.Fatalf("Harmony option JSON key = %s, want harmony_option", data)
 	}
 	var restored Item
 	if err := json.Unmarshal(data, &restored); err != nil {
 		t.Fatal(err)
 	}
-	if restored.Harmony != 3 || restored.Level != 6 {
-		t.Fatalf("restored Harmony option = %d at item level %d, want 3 at level 6", restored.Harmony, restored.Level)
+	if restored.HarmonyOption != 3 || restored.HarmonyLevel != 6 || restored.Level != 10 {
+		t.Fatalf("restored Harmony option = %d level %d at item level %d, want 3 level 6 at item level 10", restored.HarmonyOption, restored.HarmonyLevel, restored.Level)
+	}
+	if !strings.Contains(string(data), `"harmony_level":6`) {
+		t.Fatalf("Harmony option level missing from JSON: %s", data)
+	}
+	var oldJSON Item
+	if err := json.Unmarshal([]byte(`{"harmony_effect":3}`), &oldJSON); err != nil {
+		t.Fatal(err)
+	}
+	if oldJSON.HarmonyOption != 0 {
+		t.Fatalf("old harmony_effect JSON key unexpectedly restored Harmony option %d", oldJSON.HarmonyOption)
 	}
 	frame, err := it.Marshal()
 	if err != nil {
@@ -110,45 +127,169 @@ func TestHarmonyItemJSONAndProtocolEncoding(t *testing.T) {
 	}
 
 	for _, outOfRange := range []Item{
-		{ItemBase: it.ItemBase, Section: 0, Index: 0, Harmony: 16, Level: 0},
-		{ItemBase: it.ItemBase, Section: 0, Index: 0, Harmony: 1, Level: 16},
+		{ItemBase: it.ItemBase, Section: 0, Index: 0, HarmonyOption: 16, Level: 0},
+		{ItemBase: it.ItemBase, Section: 0, Index: 0, HarmonyOption: 1, HarmonyLevel: 16},
 	} {
-		if _, err := outOfRange.Marshal(); err != nil {
+		frame, err := outOfRange.Marshal()
+		if err != nil {
 			t.Fatalf("out-of-range Harmony value was rejected: %v", err)
+		}
+		want := byte(outOfRange.HarmonyOption&0x0F)<<4 | byte(outOfRange.HarmonyLevel&0x0F)
+		if frame[6] != want {
+			t.Fatalf("Harmony protocol byte = %#02x, want %#02x", frame[6], want)
+		}
+	}
+}
+
+func TestHarmonyEnhancementAndSmeltingUseSeparateOptionLevel(t *testing.T) {
+	cfg := HarmonyManager.cfg
+	options := append([]harmony(nil), HarmonyManager.harmonys[harmonyItemKindWeapon]...)
+	defer func() {
+		HarmonyManager.cfg = cfg
+		HarmonyManager.harmonys[harmonyItemKindWeapon] = options
+	}()
+	HarmonyManager.cfg.HarmonySystem.EnableStrengthenItem = true
+	HarmonyManager.cfg.HarmonyMix.StrengthenItemSuccessRate = 100
+	HarmonyManager.cfg.HarmonySystem.EnableSmeltItem = true
+	HarmonyManager.cfg.HarmonyMix.SmeltItemLowerSuccessRate = 100
+	for i := range HarmonyManager.harmonys[harmonyItemKindWeapon] {
+		HarmonyManager.harmonys[harmonyItemKindWeapon][i].weight = 0
+	}
+	HarmonyManager.harmonys[harmonyItemKindWeapon][harmonyOptionWeaponIncCriticalDamage].weight = 1
+
+	it := NewItem(0, 0)
+	it.Level = 10
+	attempted, result := HarmonyManager.StrengthenItem(it)
+	if !attempted || result != lang.MsgStrengthenSuccess || it.HarmonyOption == 0 {
+		t.Fatalf("Harmony strengthening = (%t, %v), option %d", attempted, result, it.HarmonyOption)
+	}
+	if it.Level != 10 || it.HarmonyLevel != HarmonyManager.harmonys[harmonyItemKindWeapon][it.HarmonyOption].reqLevel {
+		t.Fatalf("strengthening levels = item %d, Harmony %d, want item 10 and configured requirement", it.Level, it.HarmonyLevel)
+	}
+	initialHarmonyLevel := it.HarmonyLevel
+	attempted, success := HarmonyManager.SmeltItem(it, false)
+	if !attempted || !success || it.Level != 10 || it.HarmonyLevel != initialHarmonyLevel+1 {
+		t.Fatalf("smelting result = (%t, %t), item/Harmony levels %d/%d", attempted, success, it.Level, it.HarmonyLevel)
+	}
+	HarmonyManager.cfg.HarmonyMix.SmeltItemLowerSuccessRate = 0
+	attempted, success = HarmonyManager.SmeltItem(it, false)
+	if !attempted || success || it.HarmonyLevel != HarmonyManager.harmonys[harmonyItemKindWeapon][it.HarmonyOption].reqLevel {
+		t.Fatalf("failed smelting result = (%t, %t), Harmony level %d", attempted, success, it.HarmonyLevel)
+	}
+	if fee, ok := HarmonyManager.RestoreItemMoney(it); !ok || fee != HarmonyManager.harmonys[harmonyItemKindWeapon][it.HarmonyOption].levels[it.HarmonyLevel].reqMoney {
+		t.Fatalf("restore fee = %d, valid %t", fee, ok)
+	}
+}
+
+func TestHarmonyStrengtheningFailureDoesNotSetOption(t *testing.T) {
+	cfg := HarmonyManager.cfg
+	options := append([]harmony(nil), HarmonyManager.harmonys[harmonyItemKindWeapon]...)
+	defer func() {
+		HarmonyManager.cfg = cfg
+		HarmonyManager.harmonys[harmonyItemKindWeapon] = options
+	}()
+	HarmonyManager.cfg.HarmonySystem.EnableStrengthenItem = true
+	HarmonyManager.cfg.HarmonyMix.StrengthenItemSuccessRate = 0
+	for i := range HarmonyManager.harmonys[harmonyItemKindWeapon] {
+		HarmonyManager.harmonys[harmonyItemKindWeapon][i].weight = 0
+	}
+	HarmonyManager.harmonys[harmonyItemKindWeapon][harmonyOptionWeaponIncCriticalDamage].weight = 1
+
+	it := NewItem(0, 0)
+	it.Level = 10
+	attempted, err := HarmonyManager.StrengthenItem(it)
+	if !attempted || err != lang.MsgStrengthenFailed || it.HarmonyOption != 0 || it.HarmonyLevel != 0 {
+		t.Fatalf("failed strengthening = (%t, %v), option %d/%d", attempted, err, it.HarmonyOption, it.HarmonyLevel)
+	}
+}
+
+func TestCanMakeRefiningStoneUsesConfiguredLevelList(t *testing.T) {
+	it := NewItem(0, 0)
+	it.Level = 4
+	if valid, _ := HarmonyManager.CanMakeRefiningStone(it); !valid {
+		t.Fatal("configured level 4 item should be eligible to make a refining stone")
+	}
+	it.Level = 3
+	if valid, _ := HarmonyManager.CanMakeRefiningStone(it); valid {
+		t.Fatal("item below configured refining stone level was accepted")
+	}
+}
+
+func TestCanMakeRefiningStoneUsesEligibleMaterialCategories(t *testing.T) {
+	for _, tc := range []struct {
+		section, index int
+		want           bool
+	}{
+		{section: 0, index: 0, want: true},  // weapon
+		{section: 5, index: 0, want: true},  // staff
+		{section: 6, index: 0, want: true},  // armor
+		{section: 4, index: 7, want: false}, // excluded crossbow bolt
+		{section: 4, index: 15, want: false},
+		{section: 13, index: 0, want: false}, // non-equipment
+	} {
+		it := NewItem(tc.section, tc.index)
+		it.Level = 15
+		if got, _ := HarmonyManager.CanMakeRefiningStone(it); got != tc.want {
+			t.Errorf("CanMakeRefiningStone(%d/%d) = %t, want %t", tc.section, tc.index, got, tc.want)
+		}
+	}
+}
+
+func TestCanMakeRefiningStoneTreatsSetItemsAsHigh(t *testing.T) {
+	old := conf.Common.General.EnableUseSetHarmonyItem
+	conf.Common.General.EnableUseSetHarmonyItem = true
+	t.Cleanup(func() { conf.Common.General.EnableUseSetHarmonyItem = old })
+
+	for _, tc := range []struct {
+		name      string
+		set       int
+		excellent bool
+		wantHigh  bool
+	}{
+		{name: "set", set: 1, wantHigh: true},
+		{name: "excellent set", set: 1, excellent: true, wantHigh: true},
+		{name: "normal item", wantHigh: false},
+	} {
+		it := NewItem(6, 0)
+		it.Level, it.Set, it.ExcellentAttackHP = 15, tc.set, tc.excellent
+		ok, high := HarmonyManager.CanMakeRefiningStone(it)
+		if !ok || high != tc.wantHigh {
+			t.Errorf("%s material eligibility = (%t, %t), want (true, %t)", tc.name, ok, high, tc.wantHigh)
 		}
 	}
 }
 
 func TestHarmonyItemEffectsUseConfiguredOptionAndLevel(t *testing.T) {
 	weapon := NewItem(0, 0)
-	weapon.Harmony = int(HarmonyEffectWeaponIncDamageMin)
-	var effect ItemHarmonyEffect
-	HarmonyManager.applyItemHarmonyEffect(weapon, &effect)
-	if effect.IncDamageMin != 2 {
-		t.Fatalf("minimum damage contribution = %d, want 2", effect.IncDamageMin)
+	weapon.HarmonyOption = int(harmonyOptionWeaponIncDamageMin)
+	var option ItemHarmonyOption
+	HarmonyManager.applyItemHarmonyOption(weapon, &option)
+	if option.IncDamageMin != 2 {
+		t.Fatalf("minimum damage contribution = %d, want 2", option.IncDamageMin)
 	}
 
-	weapon.Harmony = int(HarmonyEffectWeaponIncCriticalDamage)
+	weapon.HarmonyOption = int(harmonyOptionWeaponIncCriticalDamage)
 	weapon.Level = 5
-	effect = ItemHarmonyEffect{}
-	HarmonyManager.applyItemHarmonyEffect(weapon, &effect)
-	if effect != (ItemHarmonyEffect{}) {
-		t.Fatalf("inactive Harmony option contributed: %+v", effect)
+	weapon.HarmonyLevel = 6
+	option = ItemHarmonyOption{}
+	HarmonyManager.applyItemHarmonyOption(weapon, &option)
+	if option != (ItemHarmonyOption{}) {
+		t.Fatalf("inactive Harmony option contributed: %+v", option)
 	}
 	weapon.Level = 6
-	HarmonyManager.applyItemHarmonyEffect(weapon, &effect)
-	if effect.IncCriticalDamage != 12 {
-		t.Fatalf("critical damage contribution = %d, want 12", effect.IncCriticalDamage)
+	HarmonyManager.applyItemHarmonyOption(weapon, &option)
+	if option.IncCriticalDamage != 12 {
+		t.Fatalf("critical damage contribution = %d, want 12", option.IncCriticalDamage)
 	}
 
 	inv := &Inventory{PositionedItems: PositionedItems{Items: make([]*Item, 237)}}
 	inv.Items[0] = weapon
 	rightWeapon := NewItem(0, 0)
-	rightWeapon.Harmony = int(HarmonyEffectWeaponIncDamageMax)
+	rightWeapon.HarmonyOption = int(harmonyOptionWeaponIncDamageMax)
 	inv.Items[1] = rightWeapon
 	inv.Items[12] = NewItem(0, 0)
 	var positions []int
-	HarmonyManager.ApplyHarmonyItemEffect(inv, func(got ItemHarmonyEffect, position int) {
+	HarmonyManager.ApplyHarmonyItemOption(inv, func(got ItemHarmonyOption, position int) {
 		positions = append(positions, position)
 		switch position {
 		case 0:
@@ -169,7 +310,7 @@ func TestHarmonyItemEffectsUseConfiguredOptionAndLevel(t *testing.T) {
 func TestHarmonyItemCalcReducesRequirements(t *testing.T) {
 	it := NewItem(0, 0)
 	strength, agility := it.ReqStrength, it.ReqDexterity
-	it.Harmony = int(HarmonyEffectWeaponDecReqStrength)
+	it.HarmonyOption = int(harmonyOptionWeaponDecReqStrength)
 	if it.RequiredStrength() != max(0, strength-6) || it.RequiredDexterity() != agility {
 		t.Fatalf("requirements after Harmony = %d/%d, want %d/%d", it.RequiredStrength(), it.RequiredDexterity(), max(0, strength-6), agility)
 	}

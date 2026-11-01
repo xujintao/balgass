@@ -1228,10 +1228,29 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		}
 		p.Push(&warehouseMoneyReply)
 	case object.NpcTypeChaosMix:
+		cfg := item.HarmonyManager.Config()
 		switch tobj.Class {
-		case 452:
+		case 368: // 艾尔菲丝 坎特鲁提炼之塔
+			if !cfg.HarmonySystem.EnableHarmonyJewelMix {
+				return
+			}
+			reply.Result = 17
+			reply.SuccessRate[0] = cfg.HarmonyMix.HarmonyJewelMixSuccessRate
+		case 369: // 奥斯本 幽暗森林
+			if !cfg.HarmonySystem.EnableRefiningStoneMix {
+				return
+			}
+			reply.Result = 18
+			reply.SuccessRate[0] = cfg.HarmonyMix.RefiningStoneLowerMixSuccessRate
+			reply.SuccessRate[1] = cfg.HarmonyMix.RefiningStoneHigherMixSuccessRate
+		case 370: // 杰瑞敦 幽暗森林
+			if !cfg.HarmonySystem.EnableRestoreItem {
+				return
+			}
+			reply.Result = 19
+		case 452: // 荧之石管理员 幻术园
 			reply.Result = 0x17 // Seed Master
-		case 453:
+		case 453: // 荧之石研究员 幻术园
 			reply.Result = 0x18 // Seed Researcher
 		default:
 			return
