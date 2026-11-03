@@ -54,20 +54,20 @@ func TestSetManagerCountsWornItemsAndAppliesEffects(t *testing.T) {
 	manager := setManager{sets: make([]*set, 4)}
 	manager.sets[1] = &set{
 		count: 2,
-		effects: [6]SetEffect{
-			{Index: SetEffectIncStrength, Value: 40},
-			{Index: SetEffectIncVitality, Value: 20},
+		options: [6]SetOption{
+			{Index: SetOptionIncStrength, Value: 40},
+			{Index: SetOptionIncVitality, Value: 20},
 		},
-		effectsFull: [5]SetEffect{
-			{Index: SetEffectIncAttackMin, Value: 20},
-			{Index: SetEffectIncAttackMax, Value: 30},
-			{Index: SetEffectIncMaxAG, Value: 10},
-			{Index: SetEffectIncAG, Value: 5},
-			{Index: SetEffectDoubleDamage, Value: 10},
+		fullOptions: [5]SetOption{
+			{Index: SetOptionIncAttackMin, Value: 20},
+			{Index: SetOptionIncAttackMax, Value: 30},
+			{Index: SetOptionIncMaxAG, Value: 10},
+			{Index: SetOptionIncAG, Value: 5},
+			{Index: SetOptionDoubleDamage, Value: 10},
 		},
 	}
-	manager.sets[2] = &set{count: 1, effects: [6]SetEffect{{Index: SetEffectIncStrength, Value: 100}}}
-	manager.sets[3] = &set{count: 1, effects: [6]SetEffect{{Index: SetEffectIncAgility, Value: 100}}}
+	manager.sets[2] = &set{count: 1, options: [6]SetOption{{Index: SetOptionIncStrength, Value: 100}}}
+	manager.sets[3] = &set{count: 1, options: [6]SetOption{{Index: SetOptionIncAgility, Value: 100}}}
 
 	items := [12]*Item{
 		0:  {Set: 1, Durability: 1},
@@ -81,18 +81,18 @@ func TestSetManagerCountsWornItemsAndAppliesEffects(t *testing.T) {
 	}
 	var inventory Inventory
 	inventory.Items = items[:]
-	var effect ItemSetEffect
+	var option ItemSetOption
 	calls := 0
-	manager.ApplySetItemEffect(&inventory, func(got ItemSetEffect) {
+	manager.ApplySetItemOption(&inventory, func(got ItemSetOption) {
 		calls++
-		effect = got
+		option = got
 	})
 	if calls != 1 {
-		t.Fatalf("effect callback called %d times, want once", calls)
+		t.Fatalf("option callback called %d times, want once", calls)
 	}
 
-	want := ItemSetEffect{Strength: 40, Vitality: 20, AttackMin: 20, AttackMax: 30, MaxAG: 15, DoubleDamageRate: 10}
-	if effect != want {
-		t.Fatalf("set effects = %+v, want %+v", effect, want)
+	want := ItemSetOption{Strength: 40, Vitality: 20, AttackMin: 20, AttackMax: 30, MaxAG: 15, DoubleDamageRate: 10}
+	if option != want {
+		t.Fatalf("set options = %+v, want %+v", option, want)
 	}
 }

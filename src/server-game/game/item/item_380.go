@@ -6,28 +6,21 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
 
-var Item380Manager item380Manager
-
-type item380EffectKind int
+type item380OptionType int
 
 const (
-	item380EffectNone item380EffectKind = iota
-	item380EffectIncPVPAttackRate
-	item380EffectIncPVPAttack
-	item380EffectIncPVPDefenseRate
-	item380EffectIncPVPDefense
-	item380EffectIncMaxHP
-	item380EffectIncMaxSD
-	item380EffectAutoRecoverySD
-	item380EffectIncRecoverySDRate
+	item380OptionNone item380OptionType = iota
+	item380OptionIncPVPAttackRate
+	item380OptionIncPVPAttack
+	item380OptionIncPVPDefenseRate
+	item380OptionIncPVPDefense
+	item380OptionIncMaxHP
+	item380OptionIncMaxSD
+	item380OptionAutoRecoverySD
+	item380OptionIncRecoverySDRate
 )
 
-type item380EffectPair struct {
-	Key   item380EffectKind
-	Value int
-}
-
-type Item380Effect struct {
+type Item380Option struct {
 	IncPVPAttackRate  int
 	IncPVPAttack      int
 	IncPVPDefenseRate int
@@ -38,12 +31,19 @@ type Item380Effect struct {
 	IncRecoverySDRate int
 }
 
+var Item380Manager item380Manager
+
+type item380Manager struct {
+	mix   Item380Mix
+	items map[int]map[int]*item380
+}
+
 type Item380Mix struct {
-	Enable               bool `xml:"Enable,attr"`
-	JewelOfHarmonyCount  int  `xml:"JewelOfHarmonyCount,attr"`
-	JewelOfGuardianCount int  `xml:"JewelOfGuardianCount,attr"`
-	ReqMoney             int  `xml:"ReqMoney,attr"`
-	SuccessRates         [4]int
+	Enable             bool `xml:"Enable,attr"`
+	HarmonyJewelCount  int  `xml:"JewelOfHarmonyCount,attr"`
+	GuardianJewelCount int  `xml:"JewelOfGuardianCount,attr"`
+	ReqMoney           int  `xml:"ReqMoney,attr"`
+	SuccessRates       [4]int
 }
 
 func (mix Item380Mix) SuccessRate(level, charm int) int {
@@ -62,23 +62,23 @@ func (mix Item380Mix) SuccessRate(level, charm int) int {
 }
 
 type item380 struct {
-	effects [2]item380EffectPair
+	options [2]item380Option
 }
 
-type item380Manager struct {
-	mix   Item380Mix
-	items map[int]map[int]*item380
+type item380Option struct {
+	Key   item380OptionType
+	Value int
 }
 
-func (o *item380Manager) init() {
+func (m *item380Manager) init() {
 	const file = "Items/IGC_Item380Option.xml"
 	type config struct {
 		Mix struct {
-			Enable               bool `xml:"Enable,attr"`
-			JewelOfHarmonyCount  int  `xml:"JewelOfHarmonyCount,attr"`
-			JewelOfGuardianCount int  `xml:"JewelOfGuardianCount,attr"`
-			ReqMoney             int  `xml:"ReqMoney,attr"`
-			SuccessRate          struct {
+			Enable             bool `xml:"Enable,attr"`
+			HarmonyJewelCount  int  `xml:"JewelOfHarmonyCount,attr"`
+			GuardianJewelCount int  `xml:"JewelOfGuardianCount,attr"`
+			ReqMoney           int  `xml:"ReqMoney,attr"`
+			SuccessRate        struct {
 				Grade1 int `xml:"Grade1,attr"`
 				Grade2 int `xml:"Grade2,attr"`
 				Grade3 int `xml:"Grade3,attr"`
@@ -89,9 +89,9 @@ func (o *item380Manager) init() {
 			Items []struct {
 				Cat     int               `xml:"Cat,attr"`
 				Index   int               `xml:"Index,attr"`
-				Option1 item380EffectKind `xml:"Option1,attr"`
+				Option1 item380OptionType `xml:"Option1,attr"`
 				Value1  int               `xml:"Value1,attr"`
-				Option2 item380EffectKind `xml:"Option2,attr"`
+				Option2 item380OptionType `xml:"Option2,attr"`
 				Value2  int               `xml:"Value2,attr"`
 				Time    int               `xml:"Time,attr"`
 			} `xml:"Item"`
@@ -100,10 +100,10 @@ func (o *item380Manager) init() {
 	var cfg config
 	conf.XML(conf.PathCommon, file, &cfg)
 	mix := Item380Mix{
-		Enable:               cfg.Mix.Enable,
-		JewelOfHarmonyCount:  cfg.Mix.JewelOfHarmonyCount,
-		JewelOfGuardianCount: cfg.Mix.JewelOfGuardianCount,
-		ReqMoney:             cfg.Mix.ReqMoney,
+		Enable:             cfg.Mix.Enable,
+		HarmonyJewelCount:  cfg.Mix.HarmonyJewelCount,
+		GuardianJewelCount: cfg.Mix.GuardianJewelCount,
+		ReqMoney:           cfg.Mix.ReqMoney,
 	}
 	mix.SuccessRates = [4]int{
 		cfg.Mix.SuccessRate.Grade1,
@@ -111,7 +111,7 @@ func (o *item380Manager) init() {
 		cfg.Mix.SuccessRate.Grade3,
 		cfg.Mix.SuccessRate.Grade4,
 	}
-	if mix.JewelOfHarmonyCount < 0 || mix.JewelOfGuardianCount < 0 || mix.ReqMoney < 0 {
+	if mix.HarmonyJewelCount < 0 || mix.GuardianJewelCount < 0 || mix.ReqMoney < 0 {
 		panic(fmt.Errorf("%s: negative mix requirement", file))
 	}
 	for _, rate := range mix.SuccessRates {
@@ -120,79 +120,77 @@ func (o *item380Manager) init() {
 		}
 	}
 	// convert
-	o.items = make(map[int]map[int]*item380)
+	m.items = make(map[int]map[int]*item380)
 	for _, item := range cfg.ItemOption.Items {
 		if _, err := ItemTable.GetItemBase(item.Cat, item.Index); err != nil {
 			panic(fmt.Errorf("%s: section %d index %d: %w", file, item.Cat, item.Index, err))
 		}
-		if item.Option1 < item380EffectNone || item.Option1 > item380EffectIncRecoverySDRate ||
-			item.Option2 < item380EffectNone || item.Option2 > item380EffectIncRecoverySDRate ||
+		if item.Option1 < item380OptionNone || item.Option1 > item380OptionIncRecoverySDRate ||
+			item.Option2 < item380OptionNone || item.Option2 > item380OptionIncRecoverySDRate ||
 			item.Value1 < 0 || item.Value2 < 0 {
 			panic(fmt.Errorf("%s: invalid options for section %d index %d", file, item.Cat, item.Index))
 		}
-		if o.items[item.Cat] == nil {
-			o.items[item.Cat] = make(map[int]*item380)
+		if m.items[item.Cat] == nil {
+			m.items[item.Cat] = make(map[int]*item380)
 		}
-		if o.items[item.Cat][item.Index] != nil {
+		if m.items[item.Cat][item.Index] != nil {
 			panic(fmt.Errorf("%s: duplicate item section %d index %d", file, item.Cat, item.Index))
 		}
 		i380 := new(item380)
-		i380.effects[0] = item380EffectPair{item.Option1, item.Value1}
-		i380.effects[1] = item380EffectPair{item.Option2, item.Value2}
-		o.items[item.Cat][item.Index] = i380
+		i380.options[0] = item380Option{item.Option1, item.Value1}
+		i380.options[1] = item380Option{item.Option2, item.Value2}
+		m.items[item.Cat][item.Index] = i380
 	}
-	o.mix = mix
+	m.mix = mix
 }
 
-func (o *item380Manager) MixConfig() Item380Mix {
-	return o.mix
+func (m *item380Manager) MixConfig() Item380Mix {
+	return m.mix
 }
 
-func (o *item380Manager) Is380Item(section, index int) bool {
-	_, ok := o.items[section][index]
+func (m *item380Manager) Is380Item(section, index int) bool {
+	_, ok := m.items[section][index]
 	return ok
 }
 
-func (o *item380Manager) Apply380ItemEffect(inventory *Inventory, apply func(Item380Effect)) {
+func (m *item380Manager) Apply380ItemOption(inventory *Inventory, apply func(Item380Option)) {
 	if inventory == nil || apply == nil {
 		return
 	}
-	var effect Item380Effect
+	var option Item380Option
 	for _, it := range inventory.WearingItems() {
-		o.apply380ItemEffect(it, &effect)
+		m.applyItem380Option(it, &option)
 	}
-	apply(effect)
+	apply(option)
 }
 
-func (o *item380Manager) apply380ItemEffect(it *Item, effect *Item380Effect) {
-	if it == nil || it.Durability <= 0 || !it.Option380 || effect == nil {
+func (m *item380Manager) applyItem380Option(it *Item, result *Item380Option) {
+	if it == nil || it.Durability <= 0 || !it.Option380 || result == nil {
 		return
 	}
-	entry := o.items[it.Section][it.Index]
+	entry := m.items[it.Section][it.Index]
 	if entry == nil {
 		return
 	}
-	pairs := entry.effects[:]
-	for _, pair := range pairs {
-		key := pair.Key
-		value := pair.Value
+	for _, option := range entry.options {
+		key, value := option.Key, option.Value
 		switch key {
-		case item380EffectIncPVPAttackRate:
-			effect.IncPVPAttackRate += value
-		case item380EffectIncPVPAttack:
-			effect.IncPVPAttack += value
-		case item380EffectIncPVPDefenseRate:
-			effect.IncPVPDefenseRate += value
-		case item380EffectIncPVPDefense:
-			effect.IncPVPDefense += value
-		case item380EffectIncMaxHP:
-			effect.IncMaxHP += value
-		case item380EffectIncMaxSD:
-			effect.IncMaxSD += value
-		case item380EffectAutoRecoverySD:
-			effect.AutoRecoverySD = true
-		case item380EffectIncRecoverySDRate:
-			effect.IncRecoverySDRate += value
+		case item380OptionIncPVPAttackRate:
+			result.IncPVPAttackRate += value
+		case item380OptionIncPVPAttack:
+			result.IncPVPAttack += value
+		case item380OptionIncPVPDefenseRate:
+			result.IncPVPDefenseRate += value
+		case item380OptionIncPVPDefense:
+			result.IncPVPDefense += value
+		case item380OptionIncMaxHP:
+			result.IncMaxHP += value
+		case item380OptionIncMaxSD:
+			result.IncMaxSD += value
+		case item380OptionAutoRecoverySD:
+			result.AutoRecoverySD = true
+		case item380OptionIncRecoverySDRate:
+			result.IncRecoverySDRate += value
 		}
 	}
 }

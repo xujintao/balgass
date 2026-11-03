@@ -340,8 +340,8 @@ func TestSocketSlotsJSONAndProtocol(t *testing.T) {
 }
 
 func TestSocketOptionsLoaded(t *testing.T) {
-	if len(SocketManager.seedOptions) != 27 || len(SocketManager.bonusOptions) != 12 || len(SocketManager.specialOptions) != 2 {
-		t.Fatalf("Socket option counts = %d/%d/%d", len(SocketManager.seedOptions), len(SocketManager.bonusOptions), len(SocketManager.specialOptions))
+	if len(SocketManager.seedOptions) != 27 || len(SocketManager.bonusOptions) != 12 || len(SocketManager.specialOptionsByIndex) != 2 {
+		t.Fatalf("Socket option counts = %d/%d/%d", len(SocketManager.seedOptions), len(SocketManager.bonusOptions), len(SocketManager.specialOptionsByIndex))
 	}
 	seed := SocketManager.seedOptions[36]
 	if seed.element != 6 || seed.values[0] != 30 || seed.values[4] != 38 || seed.itemSection != 12 || seed.itemIndex != 65 {
@@ -351,49 +351,64 @@ func TestSocketOptionsLoaded(t *testing.T) {
 	if bonus.minSection != 0 || bonus.maxSection != 4 || bonus.elements != [5]int{1, 5, 3, 0, 0} {
 		t.Fatalf("bonus option 0 = %#v", bonus)
 	}
-	special := SocketManager.specialOptions[1]
+	special := SocketManager.specialOptionsByIndex[1]
 	if special.rate != 100 || special.seedCounts != [6]int{1, 3, 1, 3, 1, 2} {
 		t.Fatalf("special option 1 = %#v", special)
 	}
 }
 
-func TestSocketEffectLookup(t *testing.T) {
+func TestSocketOptionLookup(t *testing.T) {
 	for _, slot := range []int{0, 1, 2, 199, 600, 650} {
-		if _, ok := SocketManager.SeedEffect(slot); ok {
-			t.Fatalf("invalid slot %d has a Seed effect", slot)
+		if _, _, ok := SocketManager.seedOption(slot); ok {
+			t.Fatalf("invalid slot %d has a Seed option", slot)
 		}
 	}
-	effect, ok := SocketManager.SeedEffect(201)
-	if !ok || effect.Index != SocketEffectAttackSpeed || effect.Element != 1 || effect.Value != 8 {
-		t.Fatalf("slot 201 effect = %+v, %t", effect, ok)
+	option, value, ok := SocketManager.seedOption(201)
+	if !ok || option.index != socketSeedOptionAttackSpeed || option.element != 1 || value != 8 {
+		t.Fatalf("slot 201 option = %+v, value = %d, %t", option, value, ok)
 	}
+
+	values := [5]int{3, 5, 7, 11, 13}
+	m := socketManager{seedOptions: map[int]socketSeedOption{
+		4: {index: socketSeedOptionAttack, values: values},
+	}}
+	for _, tc := range []struct{ slot, want int }{{104, 3}, {204, 5}, {504, 13}} {
+		if _, got, ok := m.seedOption(tc.slot); !ok || got != tc.want {
+			t.Errorf("slot %d Seed value = %d, %t; want %d", tc.slot, got, ok, tc.want)
+		}
+	}
+	if got := m.seedOptions[4].values; got != values {
+		t.Fatalf("Seed values changed after lookups: %v, want %v", got, values)
+	}
+
 	it := NewItem(0, 26)
 	it.SocketBonus = 7
-	bonus, ok := SocketManager.BonusEffect(it.SocketBonus)
-	if !ok || bonus.Index != SocketBonusWeaponAttack2 || bonus.Value != 22 {
+	bonus, ok := SocketManager.bonusOption(it.SocketBonus)
+	if !ok || bonus.Index != socketBonusWeaponAttack2 || bonus.value != 22 {
 		t.Fatalf("Socket bonus 6 = %+v, %t", bonus, ok)
 	}
-	specials := SocketManager.SpecialEffects([6]int{1, 3, 1, 3, 1, 2})
-	if len(specials) != 2 || specials[0].Index != SocketEffectDoubleDamage || specials[1].Index != SocketEffectIgnoreDefense {
-		t.Fatalf("Socket special effects = %+v", specials)
+	specials := SocketManager.specialOptions([6]int{1, 3, 1, 3, 1, 2})
+	if len(specials) != 2 || specials[0].index != socketSpecialOptionDoubleDamage || specials[1].index != socketSpecialOptionIgnoreDefense {
+		t.Fatalf("Socket special options = %+v", specials)
 	}
 	for _, invalid := range []int{0, 13} {
-		if _, ok := SocketManager.BonusEffect(invalid); ok {
+		if _, ok := SocketManager.bonusOption(invalid); ok {
 			t.Fatalf("invalid Socket bonus %d was accepted", invalid)
 		}
 	}
 }
 
-func TestApplySocketItemEffect(t *testing.T) {
+func TestApplySocketItemOption(t *testing.T) {
 	m := socketManager{
 		seedOptions: map[int]socketSeedOption{
-			18: {element: 1, valueType: 1, values: [5]int{37, 40}},
+			18: {index: socketSeedOptionSkillAttack, element: 1, valueType: 1, values: [5]int{37, 40}},
 		},
 		bonusOptions: map[int]socketBonusOption{
-			1: {minSection: 0, maxSection: 0, valueType: 1, value: 11},
+			1: {Index: socketBonusWeaponSkillAttack, minSection: 0, maxSection: 0, valueType: 1, value: 11},
 		},
-		specialOptions: map[int]socketSpecialOption{
-			0: {valueType: 1, value: 11, seedCounts: [6]int{2}},
+		specialOptionsByIndex: map[int]socketSpecialOption{
+			0: {index: socketSpecialOptionDoubleDamage, valueType: 1, value: 11, seedCounts: [6]int{2}},
+			1: {index: socketSpecialOptionIgnoreDefense, valueType: 1, value: 13, seedCounts: [6]int{2}},
 		},
 	}
 	inv := Inventory{PositionedItems: PositionedItems{Items: make([]*Item, INVENTORY_WEAR_SIZE)}}
@@ -406,30 +421,36 @@ func TestApplySocketItemEffect(t *testing.T) {
 
 	var calls int
 	var skillAttack []int
-	var doubleDamage bool
+	var doubleDamage, ignoreDefense int
 	var positions []int
-	m.ApplySocketItemEffect(&inv, func(effect ItemSocketEffect, position int) {
+	m.ApplySocketItemOption(&inv, func(option ItemSocketOption, position int) {
 		calls++
-		if effect.SkillAttack > 0 {
-			skillAttack = append(skillAttack, effect.SkillAttack)
+		if option.SkillAttack > 0 {
+			skillAttack = append(skillAttack, option.SkillAttack)
 			positions = append(positions, position)
 		}
-		if effect.BonusSkillAttack > 0 {
-			skillAttack = append(skillAttack, effect.BonusSkillAttack)
+		if option.BonusSkillAttack > 0 {
+			skillAttack = append(skillAttack, option.BonusSkillAttack)
 			positions = append(positions, position)
 		}
-		if effect.DoubleDamage != 0 {
+		if option.DoubleDamage > 0 {
 			if len(skillAttack) != 4 {
 				t.Fatalf("Special callback arrived after %d Seed/Bonus callbacks, want 4", len(skillAttack))
 			}
 			if position != -1 {
 				t.Fatalf("Special callback position = %d, want -1", position)
 			}
-			doubleDamage = true
+			doubleDamage = option.DoubleDamage
+		}
+		if option.IgnoreDefense > 0 {
+			if position != -1 {
+				t.Fatalf("Special callback position = %d, want -1", position)
+			}
+			ignoreDefense = option.IgnoreDefense
 		}
 	})
-	if calls != 5 {
-		t.Fatalf("effect callback called %d times, want 2 Seed, 2 Bonus, and 1 Special callback", calls)
+	if calls != 6 {
+		t.Fatalf("option callback called %d times, want 2 Seed, 2 Bonus, and 2 Special callbacks", calls)
 	}
 	if len(skillAttack) != 4 || skillAttack[0] != 37 || skillAttack[1] != 11 ||
 		skillAttack[2] != 11 || skillAttack[3] != 40 {
@@ -438,17 +459,17 @@ func TestApplySocketItemEffect(t *testing.T) {
 	if len(positions) != 4 || positions[0] != 0 || positions[1] != 0 || positions[2] != 1 || positions[3] != 5 {
 		t.Fatalf("Seed/Bonus positions = %v, want [0 0 1 5]", positions)
 	}
-	if !doubleDamage {
-		t.Fatal("Special effect was not applied after two Fire Seeds")
+	if doubleDamage != 11 || ignoreDefense != 13 {
+		t.Fatalf("Special option values: double damage=%d, ignore defense=%d; want 11 and 13", doubleDamage, ignoreDefense)
 	}
 
 	inv.Items[1] = nil
 	inv.Items[5] = nil
 	calls = 0
-	m.ApplySocketItemEffect(&inv, func(effect ItemSocketEffect, _ int) {
+	m.ApplySocketItemOption(&inv, func(option ItemSocketOption, _ int) {
 		calls++
-		if effect.DoubleDamage != 0 {
-			t.Fatalf("special effect applied without enough Seeds: %d", effect.DoubleDamage)
+		if option.DoubleDamage != 0 || option.IgnoreDefense != 0 {
+			t.Fatalf("special option applied without enough Seeds: %+v", option)
 		}
 	})
 	if calls != 2 {
@@ -456,16 +477,16 @@ func TestApplySocketItemEffect(t *testing.T) {
 	}
 }
 
-func TestSocketAttackEffectsRetainEquipmentPosition(t *testing.T) {
+func TestSocketAttackOptionsRetainEquipmentPosition(t *testing.T) {
 	m := socketManager{
 		seedOptions: map[int]socketSeedOption{
-			0: {element: 1, valueType: 1, values: [5]int{5}},
-			2: {element: 1, valueType: 1, values: [5]int{7}},
-			3: {element: 1, valueType: 1, values: [5]int{11}},
-			4: {element: 1, valueType: 1, values: [5]int{13}},
+			0: {index: socketSeedOptionLevelAttack, element: 1, valueType: 1, values: [5]int{5}},
+			2: {index: socketSeedOptionAttackMax, element: 1, valueType: 1, values: [5]int{7}},
+			3: {index: socketSeedOptionAttackMin, element: 1, valueType: 1, values: [5]int{11}},
+			4: {index: socketSeedOptionAttack, element: 1, valueType: 1, values: [5]int{13}},
 		},
 		bonusOptions: map[int]socketBonusOption{
-			0: {minSection: 0, maxSection: 0, valueType: 1, value: 17},
+			0: {Index: socketBonusWeaponAttack, minSection: 0, maxSection: 0, valueType: 1, value: 17},
 		},
 	}
 	inv := Inventory{PositionedItems: PositionedItems{Items: make([]*Item, INVENTORY_WEAR_SIZE)}}
@@ -482,32 +503,32 @@ func TestSocketAttackEffectsRetainEquipmentPosition(t *testing.T) {
 		}
 	}
 
-	type attackEffect struct {
+	type attackOption struct {
 		position int
-		effect   ItemSocketEffect
+		option   ItemSocketOption
 	}
-	var got []attackEffect
-	m.ApplySocketItemEffect(&inv, func(effect ItemSocketEffect, position int) {
-		if effect.LevelAttack != 0 || effect.AttackMax != 0 || effect.AttackMin != 0 || effect.Attack != 0 || effect.BonusAttack != 0 {
-			got = append(got, attackEffect{position: position, effect: effect})
+	var got []attackOption
+	m.ApplySocketItemOption(&inv, func(option ItemSocketOption, position int) {
+		if option.LevelAttack != 0 || option.AttackMax != 0 || option.AttackMin != 0 || option.Attack != 0 || option.BonusAttack != 0 {
+			got = append(got, attackOption{position: position, option: option})
 		}
 	})
 	if len(got) != 15 {
-		t.Fatalf("attack effect callbacks = %d, want 15", len(got))
+		t.Fatalf("attack option callbacks = %d, want 15", len(got))
 	}
 	for position := 0; position < 3; position++ {
 		start := position * 5
-		if got[start].position != position || got[start].effect.LevelAttack != 5 ||
-			got[start+1].effect.AttackMax != 7 || got[start+2].effect.AttackMin != 11 ||
-			got[start+3].effect.Attack != 13 || got[start+4].effect.BonusAttack != 17 {
-			t.Fatalf("attack effects at equipment position %d = %+v", position, got[start:start+5])
+		if got[start].position != position || got[start].option.LevelAttack != 5 ||
+			got[start+1].option.AttackMax != 7 || got[start+2].option.AttackMin != 11 ||
+			got[start+3].option.Attack != 13 || got[start+4].option.BonusAttack != 17 {
+			t.Fatalf("attack options at equipment position %d = %+v", position, got[start:start+5])
 		}
 	}
 }
 
-func TestApplySocketItemEffectShieldDefense(t *testing.T) {
+func TestApplySocketItemOptionShieldDefense(t *testing.T) {
 	m := socketManager{seedOptions: map[int]socketSeedOption{
-		12: {element: 1, valueType: 2, values: [5]int{7, 10}},
+		12: {index: socketSeedOptionShieldDefense, element: 1, valueType: 2, values: [5]int{7, 10}},
 	}}
 	inv := Inventory{PositionedItems: PositionedItems{Items: make([]*Item, INVENTORY_WEAR_SIZE)}}
 	inv.Items[0] = &Item{
@@ -526,9 +547,9 @@ func TestApplySocketItemEffectShieldDefense(t *testing.T) {
 		value    int
 	}
 	var got []callback
-	m.ApplySocketItemEffect(&inv, func(effect ItemSocketEffect, position int) {
-		if effect.ShieldDefense != 0 {
-			got = append(got, callback{position: position, value: effect.ShieldDefense})
+	m.ApplySocketItemOption(&inv, func(option ItemSocketOption, position int) {
+		if option.ShieldDefense != 0 {
+			got = append(got, callback{position: position, value: option.ShieldDefense})
 		}
 	})
 	if len(got) != 2 || got[0] != (callback{position: 0, value: 7}) ||
@@ -583,70 +604,72 @@ func TestSocketOptionConfigValidation(t *testing.T) {
 	}
 }
 
-func TestSocketBonusEffectsUseDistinctFields(t *testing.T) {
-	var effect ItemSocketEffect
-	SocketManager.applySocketEffect(SocketEffect{Index: SocketEffectAttack, ValueType: 1, Value: 10}, &effect)
-	if effect.Attack != 10 {
-		t.Fatalf("attack effect = %+v, want fixed attack 10", effect)
+func TestSocketBonusOptionsUseDistinctFields(t *testing.T) {
+	var option ItemSocketOption
+	SocketManager.applyItemSocketOption(socketSeedOptionAttack, 10, &option)
+	if option.Attack != 10 {
+		t.Fatalf("attack option = %+v, want fixed attack 10", option)
 	}
-	effect = ItemSocketEffect{}
-	SocketManager.applySocketEffect(SocketEffect{Index: SocketEffectLevelAttack, ValueType: 3, Value: 18}, &effect)
-	if effect.LevelAttack != 18 {
-		t.Fatalf("level attack effect = %+v, want raw divisor 18", effect)
+	option = ItemSocketOption{}
+	SocketManager.applyItemSocketOption(socketSeedOptionLevelAttack, 18, &option)
+	if option.LevelAttack != 18 {
+		t.Fatalf("level attack option = %+v, want raw divisor 18", option)
 	}
-	effect = ItemSocketEffect{}
-	SocketManager.applySocketBonusEffect(SocketBonusEffect{Index: SocketBonusWeaponAttack, ValueType: 1, Value: 11}, &effect)
-	if effect.BonusAttack != 11 || effect.LevelAttack != 0 {
-		t.Fatalf("weapon bonus = %+v, want distinct fixed bonus attack 11", effect)
+	option = ItemSocketOption{}
+	SocketManager.applySocketBonusOption(socketBonusOption{Index: socketBonusWeaponAttack, value: 11}, &option)
+	if option.BonusAttack != 11 || option.LevelAttack != 0 {
+		t.Fatalf("weapon bonus = %+v, want distinct fixed bonus attack 11", option)
 	}
 	for _, tc := range []struct {
-		index SocketBonusEffectType
-		want  ItemSocketEffect
+		index socketBonusOptionType
+		want  ItemSocketOption
 	}{
-		{SocketBonusWeaponAttack2, ItemSocketEffect{BonusAttack: 22}},
-		{SocketBonusStaffAttack, ItemSocketEffect{BonusMagicAttack: 5}},
-		{SocketBonusStaffAttack2, ItemSocketEffect{BonusMagicAttack: 10}},
-		{SocketBonusWeaponSkillAttack, ItemSocketEffect{BonusSkillAttack: 11}},
-		{SocketBonusArmorDefense, ItemSocketEffect{BonusDefense: 24}},
-		{SocketBonusArmorMaxHP, ItemSocketEffect{BonusMaxHP: 29}},
+		{socketBonusWeaponAttack2, ItemSocketOption{BonusAttack: 22}},
+		{socketBonusStaffAttack, ItemSocketOption{BonusMagicAttack: 5}},
+		{socketBonusStaffAttack2, ItemSocketOption{BonusMagicAttack: 10}},
+		{socketBonusWeaponSkillAttack, ItemSocketOption{BonusSkillAttack: 11}},
+		{socketBonusArmorDefense, ItemSocketOption{BonusDefense: 24}},
+		{socketBonusArmorMaxHP, ItemSocketOption{BonusMaxHP: 29}},
 	} {
-		var got ItemSocketEffect
-		SocketManager.applySocketBonusEffect(SocketBonusEffect{Index: tc.index, Value: tc.want.BonusAttack + tc.want.BonusMagicAttack + tc.want.BonusSkillAttack + tc.want.BonusDefense + tc.want.BonusMaxHP}, &got)
+		var got ItemSocketOption
+		SocketManager.applySocketBonusOption(socketBonusOption{Index: tc.index, value: tc.want.BonusAttack + tc.want.BonusMagicAttack + tc.want.BonusSkillAttack + tc.want.BonusDefense + tc.want.BonusMaxHP}, &got)
 		if got != tc.want {
-			t.Fatalf("bonus effect %d = %+v, want %+v", tc.index, got, tc.want)
+			t.Fatalf("bonus option %d = %+v, want %+v", tc.index, got, tc.want)
 		}
 	}
 }
 
 func TestSocketContributionsKeepResourceBasesAndFixedBonuses(t *testing.T) {
 	for _, tc := range []struct {
-		name   string
-		effect SocketEffect
-		want   ItemSocketEffect
+		name      string
+		index     socketSeedOptionType
+		valueType int
+		value     int
+		want      ItemSocketOption
 	}{
-		{"vitality", SocketEffect{Index: SocketEffectVitality, ValueType: 1, Value: 34}, ItemSocketEffect{Vitality: 34}},
-		{"max HP", SocketEffect{Index: SocketEffectMaxHP, ValueType: 2, Value: 4}, ItemSocketEffect{MaxHP: 4}},
-		{"max MP", SocketEffect{Index: SocketEffectMaxMP, ValueType: 2, Value: 4}, ItemSocketEffect{MaxMP: 4}},
-		{"max AG", SocketEffect{Index: SocketEffectMaxAG, ValueType: 1, Value: 50}, ItemSocketEffect{MaxAG: 50}},
-		{"kill HP", SocketEffect{Index: SocketEffectKillHP, ValueType: 4, Value: 8}, ItemSocketEffect{KillHP: 8}},
-		{"AG cost", SocketEffect{Index: SocketEffectReduceAGCost, ValueType: 2, Value: 40}, ItemSocketEffect{ReduceAGCost: 40}},
+		{"vitality", socketSeedOptionVitality, 1, 34, ItemSocketOption{Vitality: 34}},
+		{"max HP", socketSeedOptionMaxHP, 2, 4, ItemSocketOption{MaxHP: 4}},
+		{"max MP", socketSeedOptionMaxMP, 2, 4, ItemSocketOption{MaxMP: 4}},
+		{"max AG", socketSeedOptionMaxAG, 1, 50, ItemSocketOption{MaxAG: 50}},
+		{"kill HP", socketSeedOptionKillHP, 4, 8, ItemSocketOption{KillHP: 8}},
+		{"AG cost", socketSeedOptionReduceAGCost, 2, 40, ItemSocketOption{ReduceAGCost: 40}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			var got ItemSocketEffect
-			SocketManager.applySocketEffect(tc.effect, &got)
+			var got ItemSocketOption
+			SocketManager.applyItemSocketOption(tc.index, tc.value, &got)
 			if got != tc.want {
-				t.Fatalf("effect = %+v, want %+v", got, tc.want)
+				t.Fatalf("option = %+v, want %+v", got, tc.want)
 			}
 		})
 	}
-	var bonus ItemSocketEffect
-	SocketManager.applySocketBonusEffect(SocketBonusEffect{Index: SocketBonusArmorMaxHP, ValueType: 1, Value: 10}, &bonus)
+	var bonus ItemSocketOption
+	SocketManager.applySocketBonusOption(socketBonusOption{Index: socketBonusArmorMaxHP, value: 10}, &bonus)
 	if bonus.BonusMaxHP != 10 {
 		t.Fatalf("max HP bonus = %+v, want fixed 10", bonus)
 	}
-	var special ItemSocketEffect
-	SocketManager.applySocketEffect(SocketEffect{Index: SocketEffectDoubleDamage, ValueType: 1, Value: 3}, &special)
+	var special ItemSocketOption
+	SocketManager.applySocketSpecialOption(socketSpecialOptionDoubleDamage, 3, &special)
 	if special.DoubleDamage != 3 {
-		t.Fatalf("special effect = %+v, want double damage 3", special)
+		t.Fatalf("special option = %+v, want double damage 3", special)
 	}
 }

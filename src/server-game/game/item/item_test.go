@@ -143,19 +143,19 @@ func TestHarmonyItemJSONAndProtocolEncoding(t *testing.T) {
 
 func TestHarmonyEnhancementAndSmeltingUseSeparateOptionLevel(t *testing.T) {
 	cfg := HarmonyManager.cfg
-	options := append([]harmony(nil), HarmonyManager.harmonys[harmonyItemKindWeapon]...)
+	options := append([]harmonyOption(nil), HarmonyManager.harmonyOptions[harmonyItemWeapon]...)
 	defer func() {
 		HarmonyManager.cfg = cfg
-		HarmonyManager.harmonys[harmonyItemKindWeapon] = options
+		HarmonyManager.harmonyOptions[harmonyItemWeapon] = options
 	}()
 	HarmonyManager.cfg.HarmonySystem.EnableStrengthenItem = true
 	HarmonyManager.cfg.HarmonyMix.StrengthenItemSuccessRate = 100
 	HarmonyManager.cfg.HarmonySystem.EnableSmeltItem = true
 	HarmonyManager.cfg.HarmonyMix.SmeltItemLowerSuccessRate = 100
-	for i := range HarmonyManager.harmonys[harmonyItemKindWeapon] {
-		HarmonyManager.harmonys[harmonyItemKindWeapon][i].weight = 0
+	for i := range HarmonyManager.harmonyOptions[harmonyItemWeapon] {
+		HarmonyManager.harmonyOptions[harmonyItemWeapon][i].weight = 0
 	}
-	HarmonyManager.harmonys[harmonyItemKindWeapon][harmonyOptionWeaponIncCriticalDamage].weight = 1
+	HarmonyManager.harmonyOptions[harmonyItemWeapon][harmonyOptionWeaponIncCriticalDamage].weight = 1
 
 	it := NewItem(0, 0)
 	it.Level = 10
@@ -163,7 +163,7 @@ func TestHarmonyEnhancementAndSmeltingUseSeparateOptionLevel(t *testing.T) {
 	if !attempted || result != lang.MsgStrengthenSuccess || it.HarmonyOption == 0 {
 		t.Fatalf("Harmony strengthening = (%t, %v), option %d", attempted, result, it.HarmonyOption)
 	}
-	if it.Level != 10 || it.HarmonyLevel != HarmonyManager.harmonys[harmonyItemKindWeapon][it.HarmonyOption].reqLevel {
+	if it.Level != 10 || it.HarmonyLevel != HarmonyManager.harmonyOptions[harmonyItemWeapon][it.HarmonyOption].reqLevel {
 		t.Fatalf("strengthening levels = item %d, Harmony %d, want item 10 and configured requirement", it.Level, it.HarmonyLevel)
 	}
 	initialHarmonyLevel := it.HarmonyLevel
@@ -173,27 +173,27 @@ func TestHarmonyEnhancementAndSmeltingUseSeparateOptionLevel(t *testing.T) {
 	}
 	HarmonyManager.cfg.HarmonyMix.SmeltItemLowerSuccessRate = 0
 	attempted, success = HarmonyManager.SmeltItem(it, false)
-	if !attempted || success || it.HarmonyLevel != HarmonyManager.harmonys[harmonyItemKindWeapon][it.HarmonyOption].reqLevel {
+	if !attempted || success || it.HarmonyLevel != HarmonyManager.harmonyOptions[harmonyItemWeapon][it.HarmonyOption].reqLevel {
 		t.Fatalf("failed smelting result = (%t, %t), Harmony level %d", attempted, success, it.HarmonyLevel)
 	}
-	if fee, ok := HarmonyManager.RestoreItemMoney(it); !ok || fee != HarmonyManager.harmonys[harmonyItemKindWeapon][it.HarmonyOption].levels[it.HarmonyLevel].reqMoney {
+	if fee, ok := HarmonyManager.RestoreItemMoney(it); !ok || fee != HarmonyManager.harmonyOptions[harmonyItemWeapon][it.HarmonyOption].effects[it.HarmonyLevel].reqMoney {
 		t.Fatalf("restore fee = %d, valid %t", fee, ok)
 	}
 }
 
 func TestHarmonyStrengtheningFailureDoesNotSetOption(t *testing.T) {
 	cfg := HarmonyManager.cfg
-	options := append([]harmony(nil), HarmonyManager.harmonys[harmonyItemKindWeapon]...)
+	options := append([]harmonyOption(nil), HarmonyManager.harmonyOptions[harmonyItemWeapon]...)
 	defer func() {
 		HarmonyManager.cfg = cfg
-		HarmonyManager.harmonys[harmonyItemKindWeapon] = options
+		HarmonyManager.harmonyOptions[harmonyItemWeapon] = options
 	}()
 	HarmonyManager.cfg.HarmonySystem.EnableStrengthenItem = true
 	HarmonyManager.cfg.HarmonyMix.StrengthenItemSuccessRate = 0
-	for i := range HarmonyManager.harmonys[harmonyItemKindWeapon] {
-		HarmonyManager.harmonys[harmonyItemKindWeapon][i].weight = 0
+	for i := range HarmonyManager.harmonyOptions[harmonyItemWeapon] {
+		HarmonyManager.harmonyOptions[harmonyItemWeapon][i].weight = 0
 	}
-	HarmonyManager.harmonys[harmonyItemKindWeapon][harmonyOptionWeaponIncCriticalDamage].weight = 1
+	HarmonyManager.harmonyOptions[harmonyItemWeapon][harmonyOptionWeaponIncCriticalDamage].weight = 1
 
 	it := NewItem(0, 0)
 	it.Level = 10
@@ -419,9 +419,9 @@ func TestWarehouseAddAndMove(t *testing.T) {
 
 func TestExcellentContributionsDescribeBonusesAndDivisors(t *testing.T) {
 	var plain Item
-	var empty ItemExcellentEffect
-	ExcellentManager.applyExcellentEffect(&plain, &empty)
-	if empty != (ItemExcellentEffect{}) {
+	var empty ItemExcellentOption
+	ExcellentManager.applyItemExcellentOption(&plain, &empty)
+	if empty != (ItemExcellentOption{}) {
 		t.Fatalf("plain item contributed an effect: %+v", empty)
 	}
 	weapon := Item{
@@ -431,9 +431,9 @@ func TestExcellentContributionsDescribeBonusesAndDivisors(t *testing.T) {
 		ExcellentAttackSpeed: true, ExcellentAttackHP: true,
 		ExcellentDefenseHP: true, ExcellentDefenseMP: true, ExcellentDefenseRate: true,
 	}
-	var got ItemExcellentEffect
-	ExcellentManager.applyExcellentEffect(&weapon, &got)
-	want := ItemExcellentEffect{
+	var got ItemExcellentOption
+	ExcellentManager.applyItemExcellentOption(&weapon, &got)
+	want := ItemExcellentOption{
 		ExcellentAttackRate: 10,
 		AttackLevel:         20,
 		AttackPercent:       2,
@@ -444,8 +444,8 @@ func TestExcellentContributionsDescribeBonusesAndDivisors(t *testing.T) {
 		t.Fatalf("excellent contributions = %+v, want %+v", got, want)
 	}
 	wing := Item{Level: 9, Wing2ExcellentHP: true, Wing2ExcellentMP: true, Wing2ExcellentAG: true, Wing2ExcellentSpeed: true, Wing3ExcellentIgnore: true}
-	var wingEffect ItemExcellentEffect
-	ExcellentManager.applyExcellentEffect(&wing, &wingEffect)
+	var wingEffect ItemExcellentOption
+	ExcellentManager.applyItemExcellentOption(&wing, &wingEffect)
 	if wingEffect.MaxHP != 95 || wingEffect.MaxMP != 95 || wingEffect.MaxAG != 50 || wingEffect.AttackSpeed != 5 || wingEffect.MagicSpeed != 5 || wingEffect.IgnoreDefenseRate != 5 {
 		t.Fatalf("wing excellent contributions = %+v", wingEffect)
 	}
@@ -457,7 +457,7 @@ func TestExcellentManagerCallbackIncludesWearingPosition(t *testing.T) {
 	inventory.Items[1] = &Item{ItemBase: &ItemBase{KindA: KindAWeapon}, ExcellentAttackLevel: true}
 
 	var positions []int
-	ExcellentManager.ApplyExcellentItemEffect(inventory, func(effect ItemExcellentEffect, position int) {
+	ExcellentManager.ApplyExcellentItemOption(inventory, func(effect ItemExcellentOption, position int) {
 		positions = append(positions, position)
 		if effect.AttackLevel != 20 {
 			t.Errorf("position %d effect = %+v", position, effect)

@@ -7,49 +7,36 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
 
-var SetManager setManager
-
-type setItem struct {
-	sets     map[int]int
-	tiers    map[int]int
-	mixLevel [2]int
-}
-
-type SetEffectType int
+type SetOptionType int
 
 const (
-	SetEffectIncStrength        SetEffectType = iota // 力量增加
-	SetEffectIncAgility                              // 敏捷增加
-	SetEffectIncEnergy                               // 智力增加
-	SetEffectIncVitality                             // 体力增加
-	SetEffectIncLeadership                           // 统力增加
-	SetEffectIncAttackMin                            // 最小攻击力增加
-	SetEffectIncAttackMax                            // 最大攻击力增加
-	SetEffectIncMagicAttack                          // 魔法攻击力增加
-	SetEffectIncDamage                               // 伤害增加
-	SetEffectIncAttackRate                           // 攻击率增加
-	SetEffectIncDefense                              // 防御力增加
-	SetEffectIncMaxHP                                // 最大生命值增加
-	SetEffectIncMaxMP                                // 最大魔法值增加
-	SetEffectIncMaxAG                                // 最大AG增加
-	SetEffectIncAG                                   // AG增加
-	SetEffectIncCritiDamageRate                      // 幸运一击伤害几率增加
-	SetEffectIncCritiDamage                          // 幸运一击伤害增加
-	SetEffectIncExcelDamageRate                      // 卓越一击伤害几率增加
-	SetEffectIncExcelDamage                          // 卓越一击伤害增加
-	SetEffectIncSkillAttack                          // 技能攻击力增加
-	SetEffectDoubleDamage                            // 双倍伤害几率
-	SetEffectIgnoreDefense                           // 无视目标防御
-	SetEffectIncShieldDefense
-	SetEffectIncTwoHandSwordDamage
+	SetOptionIncStrength        SetOptionType = iota // 力量增加
+	SetOptionIncAgility                              // 敏捷增加
+	SetOptionIncEnergy                               // 智力增加
+	SetOptionIncVitality                             // 体力增加
+	SetOptionIncLeadership                           // 统力增加
+	SetOptionIncAttackMin                            // 最小攻击力增加
+	SetOptionIncAttackMax                            // 最大攻击力增加
+	SetOptionIncMagicAttack                          // 魔法攻击力增加
+	SetOptionIncDamage                               // 伤害增加
+	SetOptionIncAttackRate                           // 攻击率增加
+	SetOptionIncDefense                              // 防御力增加
+	SetOptionIncMaxHP                                // 最大生命值增加
+	SetOptionIncMaxMP                                // 最大魔法值增加
+	SetOptionIncMaxAG                                // 最大AG增加
+	SetOptionIncAG                                   // AG增加
+	SetOptionIncCritiDamageRate                      // 幸运一击伤害几率增加
+	SetOptionIncCritiDamage                          // 幸运一击伤害增加
+	SetOptionIncExcelDamageRate                      // 卓越一击伤害几率增加
+	SetOptionIncExcelDamage                          // 卓越一击伤害增加
+	SetOptionIncSkillAttack                          // 技能攻击力增加
+	SetOptionDoubleDamage                            // 双倍伤害几率
+	SetOptionIgnoreDefense                           // 无视目标防御
+	SetOptionIncShieldDefense
+	SetOptionIncTwoHandSwordDamage
 )
 
-type SetEffect struct {
-	Index SetEffectType
-	Value int
-}
-
-type ItemSetEffect struct {
+type ItemSetOption struct {
 	Strength              int
 	Dexterity             int
 	Energy                int
@@ -75,29 +62,31 @@ type ItemSetEffect struct {
 	TwoHandWeaponDamage   int
 }
 
-type setItemCounts struct {
-	sets       []setItemCount
-	sameWeapon int
-	sameRing   int
-}
+var SetManager setManager
 
-type setItemCount struct {
-	index int
-	count int
-}
-
-type set struct {
-	name        string
-	count       int
-	effects     [6]SetEffect
-	effectsFull [5]SetEffect
-	// class       [8]bool
+type setItem struct {
+	sets     map[int]int
+	tiers    map[int]int
+	mixLevel [2]int
 }
 
 type setManager struct {
 	items     []map[int]*setItem
 	dropRates []int
 	sets      []*set
+}
+
+type set struct {
+	name        string
+	count       int
+	options     [6]SetOption
+	fullOptions [5]SetOption
+	// class       [8]bool
+}
+
+type SetOption struct {
+	Index SetOptionType
+	Value int
 }
 
 func (m *setManager) init() {
@@ -171,43 +160,43 @@ func (m *setManager) init() {
 		Sets []struct {
 			Index          int           `xml:"Index,attr"`
 			Name           string        `xml:"Name,attr"`
-			OptIdx11       SetEffectType `xml:"OptIdx1_1,attr"`
+			OptIdx11       SetOptionType `xml:"OptIdx1_1,attr"`
 			OptVal11       int           `xml:"OptVal1_1,attr"`
-			OptIdx21       SetEffectType `xml:"OptIdx2_1,attr"`
+			OptIdx21       SetOptionType `xml:"OptIdx2_1,attr"`
 			OptVal21       int           `xml:"OptVal2_1,attr"`
-			OptIdx12       SetEffectType `xml:"OptIdx1_2,attr"`
+			OptIdx12       SetOptionType `xml:"OptIdx1_2,attr"`
 			OptVal12       int           `xml:"OptVal1_2,attr"`
-			OptIdx22       SetEffectType `xml:"OptIdx2_2,attr"`
+			OptIdx22       SetOptionType `xml:"OptIdx2_2,attr"`
 			OptVal22       int           `xml:"OptVal2_2,attr"`
-			OptIdx13       SetEffectType `xml:"OptIdx1_3,attr"`
+			OptIdx13       SetOptionType `xml:"OptIdx1_3,attr"`
 			OptVal13       int           `xml:"OptVal1_3,attr"`
-			OptIdx23       SetEffectType `xml:"OptIdx2_3,attr"`
+			OptIdx23       SetOptionType `xml:"OptIdx2_3,attr"`
 			OptVal23       int           `xml:"OptVal2_3,attr"`
-			OptIdx14       SetEffectType `xml:"OptIdx1_4,attr"`
+			OptIdx14       SetOptionType `xml:"OptIdx1_4,attr"`
 			OptVal14       int           `xml:"OptVal1_4,attr"`
-			OptIdx24       SetEffectType `xml:"OptIdx2_4,attr"`
+			OptIdx24       SetOptionType `xml:"OptIdx2_4,attr"`
 			OptVal24       int           `xml:"OptVal2_4,attr"`
-			OptIdx15       SetEffectType `xml:"OptIdx1_5,attr"`
+			OptIdx15       SetOptionType `xml:"OptIdx1_5,attr"`
 			OptVal15       int           `xml:"OptVal1_5,attr"`
-			OptIdx25       SetEffectType `xml:"OptIdx2_5,attr"`
+			OptIdx25       SetOptionType `xml:"OptIdx2_5,attr"`
 			OptVal25       int           `xml:"OptVal2_5,attr"`
-			OptIdx16       SetEffectType `xml:"OptIdx1_6,attr"`
+			OptIdx16       SetOptionType `xml:"OptIdx1_6,attr"`
 			OptVal16       int           `xml:"OptVal1_6,attr"`
-			OptIdx26       SetEffectType `xml:"OptIdx2_6,attr"`
+			OptIdx26       SetOptionType `xml:"OptIdx2_6,attr"`
 			OptVal26       int           `xml:"OptVal2_6,attr"`
-			SpecialOptIdx1 SetEffectType `xml:"SpecialOptIdx1,attr"`
+			SpecialOptIdx1 SetOptionType `xml:"SpecialOptIdx1,attr"`
 			SpecialOptVal1 int           `xml:"SpecialOptVal1,attr"`
-			SpecialOptIdx2 SetEffectType `xml:"SpecialOptIdx2,attr"`
+			SpecialOptIdx2 SetOptionType `xml:"SpecialOptIdx2,attr"`
 			SpecialOptVal2 int           `xml:"SpecialOptVal2,attr"`
-			FullOptIdx1    SetEffectType `xml:"FullOptIdx1,attr"`
+			FullOptIdx1    SetOptionType `xml:"FullOptIdx1,attr"`
 			FullOptVal1    int           `xml:"FullOptVal1,attr"`
-			FullOptIdx2    SetEffectType `xml:"FullOptIdx2,attr"`
+			FullOptIdx2    SetOptionType `xml:"FullOptIdx2,attr"`
 			FullOptVal2    int           `xml:"FullOptVal2,attr"`
-			FullOptIdx3    SetEffectType `xml:"FullOptIdx3,attr"`
+			FullOptIdx3    SetOptionType `xml:"FullOptIdx3,attr"`
 			FullOptVal3    int           `xml:"FullOptVal3,attr"`
-			FullOptIdx4    SetEffectType `xml:"FullOptIdx4,attr"`
+			FullOptIdx4    SetOptionType `xml:"FullOptIdx4,attr"`
 			FullOptVal4    int           `xml:"FullOptVal4,attr"`
-			FullOptIdx5    SetEffectType `xml:"FullOptIdx5,attr"`
+			FullOptIdx5    SetOptionType `xml:"FullOptIdx5,attr"`
 			FullOptVal5    int           `xml:"FullOptVal5,attr"`
 			DarkWizard     bool          `xml:"DarkWizard,attr"`
 			DarkKnight     bool          `xml:"DarkKnight,attr"`
@@ -225,47 +214,47 @@ func (m *setManager) init() {
 	for _, s := range setXml.Sets {
 		var set set
 		set.name = s.Name
-		set.effects[0].Index = s.OptIdx11
-		set.effects[0].Value = s.OptVal11
+		set.options[0].Index = s.OptIdx11
+		set.options[0].Value = s.OptVal11
 		if s.OptIdx11 != -1 {
 			set.count++
 		}
-		set.effects[1].Index = s.OptIdx12
-		set.effects[1].Value = s.OptVal12
+		set.options[1].Index = s.OptIdx12
+		set.options[1].Value = s.OptVal12
 		if s.OptIdx12 != -1 {
 			set.count++
 		}
-		set.effects[2].Index = s.OptIdx13
-		set.effects[2].Value = s.OptVal13
+		set.options[2].Index = s.OptIdx13
+		set.options[2].Value = s.OptVal13
 		if s.OptIdx13 != -1 {
 			set.count++
 		}
-		set.effects[3].Index = s.OptIdx14
-		set.effects[3].Value = s.OptVal14
+		set.options[3].Index = s.OptIdx14
+		set.options[3].Value = s.OptVal14
 		if s.OptIdx14 != -1 {
 			set.count++
 		}
-		set.effects[4].Index = s.OptIdx15
-		set.effects[4].Value = s.OptVal15
+		set.options[4].Index = s.OptIdx15
+		set.options[4].Value = s.OptVal15
 		if s.OptIdx15 != -1 {
 			set.count++
 		}
-		set.effects[5].Index = s.OptIdx16
-		set.effects[5].Value = s.OptVal16
+		set.options[5].Index = s.OptIdx16
+		set.options[5].Value = s.OptVal16
 		if s.OptIdx16 != -1 {
 			set.count++
 		}
 
-		set.effectsFull[0].Index = s.FullOptIdx1
-		set.effectsFull[0].Value = s.FullOptVal1
-		set.effectsFull[1].Index = s.FullOptIdx2
-		set.effectsFull[1].Value = s.FullOptVal2
-		set.effectsFull[2].Index = s.FullOptIdx3
-		set.effectsFull[2].Value = s.FullOptVal3
-		set.effectsFull[3].Index = s.FullOptIdx4
-		set.effectsFull[3].Value = s.FullOptVal4
-		set.effectsFull[4].Index = s.FullOptIdx5
-		set.effectsFull[4].Value = s.FullOptVal5
+		set.fullOptions[0].Index = s.FullOptIdx1
+		set.fullOptions[0].Value = s.FullOptVal1
+		set.fullOptions[1].Index = s.FullOptIdx2
+		set.fullOptions[1].Value = s.FullOptVal2
+		set.fullOptions[2].Index = s.FullOptIdx3
+		set.fullOptions[2].Value = s.FullOptVal3
+		set.fullOptions[3].Index = s.FullOptIdx4
+		set.fullOptions[3].Value = s.FullOptVal4
+		set.fullOptions[4].Index = s.FullOptIdx5
+		set.fullOptions[4].Value = s.FullOptVal5
 
 		m.sets[s.Index] = &set
 	}
@@ -327,15 +316,15 @@ func (m *setManager) GetTierIndex(section, index, setIndex int) int {
 	return si.tiers[setIndex]
 }
 
-func (m *setManager) getSetEffect(setIndex, effectIndex int) *SetEffect {
+func (m *setManager) getSetOption(setIndex, optionIndex int) SetOption {
 	set := m.sets[setIndex]
 	if set == nil {
-		return nil
+		return SetOption{}
 	}
-	return &set.effects[effectIndex]
+	return set.options[optionIndex]
 }
 
-func (m *setManager) getSetEffectCount(setIndex int) int {
+func (m *setManager) getSetOptionCount(setIndex int) int {
 	set := m.sets[setIndex]
 	if set == nil {
 		return 0
@@ -343,44 +332,51 @@ func (m *setManager) getSetEffectCount(setIndex int) int {
 	return set.count
 }
 
-func (m *setManager) ApplySetItemEffect(inventory *Inventory, apply func(ItemSetEffect)) {
+type setItemCounts struct {
+	sets       []setItemCount
+	sameWeapon int
+	sameRing   int
+}
+
+type setItemCount struct {
+	index int
+	count int
+}
+
+func (m *setManager) ApplySetItemOption(inventory *Inventory, apply func(ItemSetOption)) {
 	if inventory == nil || apply == nil {
 		return
 	}
-
 	var counts setItemCounts
 	for position, it := range inventory.WearingItems() {
 		m.countSetItem(&counts, position, it)
 	}
-
-	var effect ItemSetEffect
+	var option ItemSetOption
 	for _, setItem := range counts.sets {
 		if setItem.count < 2 {
 			continue
 		}
-
 		for i := 0; i < setItem.count-1; i++ {
-			m.applySetEffect(setItem.index, i, &effect)
+			setOption := m.getSetOption(setItem.index, i)
+			m.applySetItemOption(setOption, &option)
 		}
-
-		if setItem.count > m.getSetEffectCount(setItem.index) {
+		if setItem.count > m.getSetOptionCount(setItem.index) {
 			set := m.sets[setItem.index]
 			if set == nil {
 				continue
 			}
-			for _, setEffect := range set.effectsFull {
-				m.applySetItemEffect(setEffect, &effect)
+			for _, setOption := range set.fullOptions {
+				m.applySetItemOption(setOption, &option)
 			}
 		}
 	}
-	apply(effect)
+	apply(option)
 }
 
 func (m *setManager) countSetItem(counts *setItemCounts, position int, it *Item) {
 	if it == nil || it.Durability == 0 || it.Set <= 0 {
 		return
 	}
-
 	index := it.Set
 	if position == 0 {
 		counts.sameWeapon = index
@@ -394,7 +390,6 @@ func (m *setManager) countSetItem(counts *setItemCounts, position int, it *Item)
 	if position == 11 && counts.sameRing > 0 {
 		return
 	}
-
 	for i := range counts.sets {
 		if counts.sets[i].index == index {
 			counts.sets[i].count++
@@ -404,64 +399,57 @@ func (m *setManager) countSetItem(counts *setItemCounts, position int, it *Item)
 	counts.sets = append(counts.sets, setItemCount{index, 1})
 }
 
-func (m *setManager) applySetEffect(setIndex, effectIndex int, effect *ItemSetEffect) {
-	setEffect := m.getSetEffect(setIndex, effectIndex)
-	if setEffect != nil {
-		m.applySetItemEffect(*setEffect, effect)
-	}
-}
-
-func (m *setManager) applySetItemEffect(setEffect SetEffect, effect *ItemSetEffect) {
-	value := setEffect.Value
-	switch setEffect.Index {
-	case SetEffectIncStrength:
-		effect.Strength += value
-	case SetEffectIncAgility:
-		effect.Dexterity += value
-	case SetEffectIncEnergy:
-		effect.Energy += value
-	case SetEffectIncVitality:
-		effect.Vitality += value
-	case SetEffectIncLeadership:
-		effect.Leadership += value
-	case SetEffectIncAttackMin:
-		effect.AttackMin += value
-	case SetEffectIncAttackMax:
-		effect.AttackMax += value
-	case SetEffectIncMagicAttack:
-		effect.MagicAttack += value
-	case SetEffectIncDamage:
-		effect.Damage += value
-	case SetEffectIncAttackRate:
-		effect.AttackRate += value
-	case SetEffectIncDefense:
-		effect.Defense += value
-	case SetEffectIncMaxHP:
-		effect.MaxHP += value
-	case SetEffectIncMaxMP:
-		effect.MaxMP += value
-	case SetEffectIncMaxAG:
-		effect.MaxAG += value
-	case SetEffectIncAG:
-		effect.MaxAG += value
-	case SetEffectIncCritiDamageRate:
-		effect.CriticalAttackRate += value
-	case SetEffectIncCritiDamage:
-		effect.CriticalAttackDamage += value
-	case SetEffectIncExcelDamageRate:
-		effect.ExcellentAttackRate += value
-	case SetEffectIncExcelDamage:
-		effect.ExcellentAttackDamage += value
-	case SetEffectIncSkillAttack:
-		effect.SkillAttack += value
-	case SetEffectDoubleDamage:
-		effect.DoubleDamageRate += value
-	case SetEffectIgnoreDefense:
-		effect.IgnoreDefenseRate += value
-	case SetEffectIncShieldDefense:
-		effect.MaxSD += value
-	case SetEffectIncTwoHandSwordDamage:
-		effect.TwoHandWeaponDamage += value
+func (m *setManager) applySetItemOption(setOption SetOption, option *ItemSetOption) {
+	value := setOption.Value
+	switch setOption.Index {
+	case SetOptionIncStrength:
+		option.Strength += value
+	case SetOptionIncAgility:
+		option.Dexterity += value
+	case SetOptionIncEnergy:
+		option.Energy += value
+	case SetOptionIncVitality:
+		option.Vitality += value
+	case SetOptionIncLeadership:
+		option.Leadership += value
+	case SetOptionIncAttackMin:
+		option.AttackMin += value
+	case SetOptionIncAttackMax:
+		option.AttackMax += value
+	case SetOptionIncMagicAttack:
+		option.MagicAttack += value
+	case SetOptionIncDamage:
+		option.Damage += value
+	case SetOptionIncAttackRate:
+		option.AttackRate += value
+	case SetOptionIncDefense:
+		option.Defense += value
+	case SetOptionIncMaxHP:
+		option.MaxHP += value
+	case SetOptionIncMaxMP:
+		option.MaxMP += value
+	case SetOptionIncMaxAG:
+		option.MaxAG += value
+	case SetOptionIncAG:
+		option.MaxAG += value
+	case SetOptionIncCritiDamageRate:
+		option.CriticalAttackRate += value
+	case SetOptionIncCritiDamage:
+		option.CriticalAttackDamage += value
+	case SetOptionIncExcelDamageRate:
+		option.ExcellentAttackRate += value
+	case SetOptionIncExcelDamage:
+		option.ExcellentAttackDamage += value
+	case SetOptionIncSkillAttack:
+		option.SkillAttack += value
+	case SetOptionDoubleDamage:
+		option.DoubleDamageRate += value
+	case SetOptionIgnoreDefense:
+		option.IgnoreDefenseRate += value
+	case SetOptionIncShieldDefense:
+		option.MaxSD += value
+	case SetOptionIncTwoHandSwordDamage:
+		option.TwoHandWeaponDamage += value
 	}
 }
 

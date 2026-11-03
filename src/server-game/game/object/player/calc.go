@@ -79,11 +79,11 @@ func (p *Player) calc() {
 	// calc all stats
 	p.calcBaseStats()
 	p.calcNormalItem()
-	p.calcSetItem(false)
-	p.calcSocketItem()
-	p.calc380Item()
 	p.calcExcellentItem()
 	p.calcHarmonyItem()
+	p.calc380Item()
+	p.calcSocketItem()
+	p.calcSetItem(false)
 	p.convertAttack()
 	p.calcHelperItem()
 
@@ -104,8 +104,8 @@ func (p *Player) calcBaseStats() {
 	wing := p.inventory.Items[7]
 
 	// Earth seeds modify attributes used by the base character formulas.
-	item.SocketManager.ApplySocketItemEffect(&p.inventory, func(effect item.ItemSocketEffect, _ int) {
-		p.addVitality += effect.Vitality
+	item.SocketManager.ApplySocketItemOption(&p.inventory, func(option item.ItemSocketOption, _ int) {
+		p.addVitality += option.Vitality
 	})
 	// wing item contribution
 	if wing != nil && wing.Wing2ExcellentLeadership {
@@ -366,138 +366,11 @@ func (p *Player) calcNormalItem() {
 	}
 }
 
-func (p *Player) calcSetItem(base bool) {
-	item.SetManager.ApplySetItemEffect(&p.inventory, func(effect item.ItemSetEffect) {
-		if base {
-			p.addStrength += effect.Strength
-			p.addDexterity += effect.Dexterity
-			p.addEnergy += effect.Energy
-			p.addVitality += effect.Vitality
-			p.addLeadership += effect.Leadership
-		} else {
-			p.leftAttackMin += effect.AttackMin
-			p.rightAttackMin += effect.AttackMin
-			p.leftAttackMax += effect.AttackMax
-			p.rightAttackMax += effect.AttackMax
-			p.magicAttackMin += effect.MagicAttack
-			p.magicAttackMax += effect.MagicAttack
-			p.setAddDamage += effect.Damage
-			p.AttackRate += effect.AttackRate
-			p.Defense += effect.Defense
-			p.MaxHP += effect.MaxHP
-			p.MaxMP += effect.MaxMP
-			p.MaxAG += effect.MaxAG
-			p.criticalAttackRate += effect.CriticalAttackRate
-			p.criticalAttackDamage += effect.CriticalAttackDamage
-			p.excellentAttackRate += effect.ExcellentAttackRate
-			p.excellentAttackDamage += effect.ExcellentAttackDamage
-			p.addSkillAttack += effect.SkillAttack
-			p.doubleDamageRate += effect.DoubleDamageRate
-			p.ignoreDefenseRate += effect.IgnoreDefenseRate
-			p.MaxSD += effect.MaxSD
-			p.setIncreaseTwoHandWeaponDamage += effect.TwoHandWeaponDamage
-		}
-	})
-}
-
-func (p *Player) calcSocketItem() {
-	baseMaxHP, baseMaxMP := p.MaxHP, p.MaxMP
-	shield := p.inventory.Items[1]
-	hasShield := shield != nil && shield.KindB == item.KindBShield && shield.Durability > 0
-	item.SocketManager.ApplySocketItemEffect(&p.inventory, func(effect item.ItemSocketEffect, position int) {
-		if effect.LevelAttack != 0 {
-			value := (p.Level + p.masterLevel) / effect.LevelAttack
-			switch position {
-			case 0:
-				p.leftAttackMin += value
-				p.leftAttackMax += value
-			case 1:
-				p.rightAttackMin += value
-				p.rightAttackMax += value
-			}
-			p.magicAttackMin += value
-			p.magicAttackMax += value
-		}
-		p.AttackSpeed += effect.AttackSpeed
-		p.magicSpeed += effect.AttackSpeed
-		switch position {
-		case 0:
-			p.leftAttackMax += effect.AttackMax
-		case 1:
-			p.rightAttackMax += effect.AttackMax
-		}
-		p.magicAttackMax += effect.AttackMax
-		switch position {
-		case 0:
-			p.leftAttackMin += effect.AttackMin
-		case 1:
-			p.rightAttackMin += effect.AttackMin
-		}
-		p.magicAttackMin += effect.AttackMin
-		switch position {
-		case 0:
-			p.leftAttackMin += effect.Attack
-			p.leftAttackMax += effect.Attack
-		case 1:
-			p.rightAttackMin += effect.Attack
-			p.rightAttackMax += effect.Attack
-		}
-		p.magicAttackMin += effect.Attack
-		p.magicAttackMax += effect.Attack
-		p.agReduce += effect.ReduceAGCost
-		if p.agReduce > 100 {
-			p.agReduce = 100
-		}
-		p.DefenseRate += p.DefenseRate * effect.DefenseRate / 100
-		p.Defense += effect.Defense
-		p.MagicDefense += effect.Defense
-		if hasShield {
-			p.Defense += p.Defense * effect.ShieldDefense / 100
-		}
-		p.armorReduceDamage += effect.ReduceDamage
-		p.armorReflectDamage += effect.ReflectDamage
-		if effect.KillHP != 0 {
-			p.monsterDieGetHP += 1 / float64(effect.KillHP)
-		}
-		if effect.KillMP != 0 {
-			p.monsterDieGetMP += 1 / float64(effect.KillMP)
-		}
-		p.addSkillAttack += effect.SkillAttack
-		p.AttackRate += effect.AttackRate
-		p.recoverHP += effect.RecoverHP
-		p.recoverMP += effect.RecoverMP
-		p.MaxHP += baseMaxHP * effect.MaxHP / 100
-		p.MaxMP += baseMaxMP * effect.MaxMP / 100
-		p.recoverAG += effect.RecoverAG
-		p.MaxAG += effect.MaxAG
-		p.excellentAttackDamage += effect.ExcellentDamage
-		p.excellentAttackRate += effect.ExcellentRate
-		p.criticalAttackDamage += effect.CriticalDamage
-		p.criticalAttackRate += effect.CriticalRate
-		p.doubleDamageRate += effect.DoubleDamage
-		p.ignoreDefenseRate += effect.IgnoreDefense
-		switch position {
-		case 0:
-			p.leftAttackMin += effect.BonusAttack
-			p.leftAttackMax += effect.BonusAttack
-		case 1:
-			p.rightAttackMin += effect.BonusAttack
-			p.rightAttackMax += effect.BonusAttack
-		}
-		p.magicAttackMin += effect.BonusMagicAttack
-		p.magicAttackMax += effect.BonusMagicAttack
-		p.addSkillAttack += effect.BonusSkillAttack
-		p.Defense += effect.BonusDefense
-		p.MagicDefense += effect.BonusDefense
-		p.MaxHP += effect.BonusMaxHP
-	})
-}
-
 func (p *Player) calcExcellentItem() {
-	item.ExcellentManager.ApplyExcellentItemEffect(&p.inventory, func(effect item.ItemExcellentEffect, position int) {
-		p.excellentAttackRate += effect.ExcellentAttackRate
-		if effect.AttackLevel != 0 {
-			value := (p.Level + p.masterLevel) / effect.AttackLevel
+	item.ExcellentManager.ApplyExcellentItemOption(&p.inventory, func(option item.ItemExcellentOption, position int) {
+		p.excellentAttackRate += option.ExcellentAttackRate
+		if option.AttackLevel != 0 {
+			value := (p.Level + p.masterLevel) / option.AttackLevel
 			switch position {
 			case 0:
 				p.leftAttackMin += value
@@ -507,38 +380,38 @@ func (p *Player) calcExcellentItem() {
 				p.rightAttackMax += value
 			}
 		}
-		if effect.MagicAttackLevel != 0 {
-			value := (p.Level + p.masterLevel) / effect.MagicAttackLevel
+		if option.MagicAttackLevel != 0 {
+			value := (p.Level + p.masterLevel) / option.MagicAttackLevel
 			p.magicAttackMin += value
 			p.magicAttackMax += value
 		}
 		switch position {
 		case 0:
-			p.leftAttackMin += p.leftAttackMin * effect.AttackPercent / 100
-			p.leftAttackMax += p.leftAttackMax * effect.AttackPercent / 100
+			p.leftAttackMin += p.leftAttackMin * option.AttackPercent / 100
+			p.leftAttackMax += p.leftAttackMax * option.AttackPercent / 100
 		case 1:
-			p.rightAttackMin += p.rightAttackMin * effect.AttackPercent / 100
-			p.rightAttackMax += p.rightAttackMax * effect.AttackPercent / 100
+			p.rightAttackMin += p.rightAttackMin * option.AttackPercent / 100
+			p.rightAttackMax += p.rightAttackMax * option.AttackPercent / 100
 		}
-		p.magicAttackMin += p.magicAttackMin * effect.MagicAttackPercent / 100
-		p.magicAttackMax += p.magicAttackMax * effect.MagicAttackPercent / 100
-		p.AttackSpeed += effect.AttackSpeed
-		p.magicSpeed += effect.MagicSpeed
-		p.monsterDieGetHP += effect.MonsterDieGetHP
-		p.monsterDieGetMP += effect.MonsterDieGetMP
-		p.MaxHP += p.MaxHP * effect.MaxHPPercent / 100
-		p.MaxMP += p.MaxMP * effect.MaxMPPercent / 100
-		p.armorReduceDamage += effect.ReduceDamage
-		p.armorReflectDamage += effect.ReflectDamage
-		p.DefenseRate += p.DefenseRate * effect.DefenseRatePercent / 100
-		p.monsterDieGetMoney += effect.MonsterDieGetMoney
-		p.MaxHP += effect.MaxHP
-		p.MaxMP += effect.MaxMP
-		p.MaxAG += effect.MaxAG
-		p.ignoreDefenseRate += effect.IgnoreDefenseRate
-		p.returnDamage += effect.ReturnDamage
-		p.recoverMaxHP += effect.RecoverMaxHP
-		p.recoverMaxMP += effect.RecoverMaxMP
+		p.magicAttackMin += p.magicAttackMin * option.MagicAttackPercent / 100
+		p.magicAttackMax += p.magicAttackMax * option.MagicAttackPercent / 100
+		p.AttackSpeed += option.AttackSpeed
+		p.magicSpeed += option.MagicSpeed
+		p.monsterDieGetHP += option.MonsterDieGetHP
+		p.monsterDieGetMP += option.MonsterDieGetMP
+		p.MaxHP += p.MaxHP * option.MaxHPPercent / 100
+		p.MaxMP += p.MaxMP * option.MaxMPPercent / 100
+		p.armorReduceDamage += option.ReduceDamage
+		p.armorReflectDamage += option.ReflectDamage
+		p.DefenseRate += p.DefenseRate * option.DefenseRatePercent / 100
+		p.monsterDieGetMoney += option.MonsterDieGetMoney
+		p.MaxHP += option.MaxHP
+		p.MaxMP += option.MaxMP
+		p.MaxAG += option.MaxAG
+		p.ignoreDefenseRate += option.IgnoreDefenseRate
+		p.returnDamage += option.ReturnDamage
+		p.recoverMaxHP += option.RecoverMaxHP
+		p.recoverMaxMP += option.RecoverMaxMP
 	})
 }
 
@@ -566,6 +439,145 @@ func (p *Player) calcHarmonyItem() {
 		p.harmonyIncSDRate += option.IncSDRate
 		p.harmonyDecSDRate += option.DecSDRate
 		p.harmonyIgnoreSDRate += option.IgnoreSDRate
+	})
+}
+
+func (p *Player) calc380Item() {
+	item.Item380Manager.Apply380ItemOption(&p.inventory, func(option item.Item380Option) {
+		p.attackRatePVP += option.IncPVPAttackRate
+		p.attackBonusPVP += option.IncPVPAttack
+		p.defenseRatePVP += option.IncPVPDefenseRate
+		p.defenseBonusPVP += option.IncPVPDefense
+		p.MaxHP += option.IncMaxHP
+		p.MaxSD += option.IncMaxSD
+		p.autoRecoverSD = option.AutoRecoverySD
+		p.autoRecoverSDRate += option.IncRecoverySDRate
+	})
+}
+func (p *Player) calcSocketItem() {
+	baseMaxHP, baseMaxMP := p.MaxHP, p.MaxMP
+	shield := p.inventory.Items[1]
+	hasShield := shield != nil && shield.KindB == item.KindBShield && shield.Durability > 0
+	item.SocketManager.ApplySocketItemOption(&p.inventory, func(option item.ItemSocketOption, position int) {
+		if option.LevelAttack != 0 {
+			value := (p.Level + p.masterLevel) / option.LevelAttack
+			switch position {
+			case 0:
+				p.leftAttackMin += value
+				p.leftAttackMax += value
+			case 1:
+				p.rightAttackMin += value
+				p.rightAttackMax += value
+			}
+			p.magicAttackMin += value
+			p.magicAttackMax += value
+		}
+		p.AttackSpeed += option.AttackSpeed
+		p.magicSpeed += option.AttackSpeed
+		switch position {
+		case 0:
+			p.leftAttackMax += option.AttackMax
+		case 1:
+			p.rightAttackMax += option.AttackMax
+		}
+		p.magicAttackMax += option.AttackMax
+		switch position {
+		case 0:
+			p.leftAttackMin += option.AttackMin
+		case 1:
+			p.rightAttackMin += option.AttackMin
+		}
+		p.magicAttackMin += option.AttackMin
+		switch position {
+		case 0:
+			p.leftAttackMin += option.Attack
+			p.leftAttackMax += option.Attack
+		case 1:
+			p.rightAttackMin += option.Attack
+			p.rightAttackMax += option.Attack
+		}
+		p.magicAttackMin += option.Attack
+		p.magicAttackMax += option.Attack
+		p.agReduce += option.ReduceAGCost
+		if p.agReduce > 100 {
+			p.agReduce = 100
+		}
+		p.DefenseRate += p.DefenseRate * option.DefenseRate / 100
+		p.Defense += option.Defense
+		p.MagicDefense += option.Defense
+		if hasShield {
+			p.Defense += p.Defense * option.ShieldDefense / 100
+		}
+		p.armorReduceDamage += option.ReduceDamage
+		p.armorReflectDamage += option.ReflectDamage
+		if option.KillHP != 0 {
+			p.monsterDieGetHP += 1 / float64(option.KillHP)
+		}
+		if option.KillMP != 0 {
+			p.monsterDieGetMP += 1 / float64(option.KillMP)
+		}
+		p.addSkillAttack += option.SkillAttack
+		p.AttackRate += option.AttackRate
+		p.recoverHP += option.RecoverHP
+		p.recoverMP += option.RecoverMP
+		p.MaxHP += baseMaxHP * option.MaxHP / 100
+		p.MaxMP += baseMaxMP * option.MaxMP / 100
+		p.recoverAG += option.RecoverAG
+		p.MaxAG += option.MaxAG
+		p.excellentAttackDamage += option.ExcellentDamage
+		p.excellentAttackRate += option.ExcellentRate
+		p.criticalAttackDamage += option.CriticalDamage
+		p.criticalAttackRate += option.CriticalRate
+		p.doubleDamageRate += option.DoubleDamage
+		p.ignoreDefenseRate += option.IgnoreDefense
+		switch position {
+		case 0:
+			p.leftAttackMin += option.BonusAttack
+			p.leftAttackMax += option.BonusAttack
+		case 1:
+			p.rightAttackMin += option.BonusAttack
+			p.rightAttackMax += option.BonusAttack
+		}
+		p.magicAttackMin += option.BonusMagicAttack
+		p.magicAttackMax += option.BonusMagicAttack
+		p.addSkillAttack += option.BonusSkillAttack
+		p.Defense += option.BonusDefense
+		p.MagicDefense += option.BonusDefense
+		p.MaxHP += option.BonusMaxHP
+	})
+}
+
+func (p *Player) calcSetItem(base bool) {
+	item.SetManager.ApplySetItemOption(&p.inventory, func(option item.ItemSetOption) {
+		if base {
+			p.addStrength += option.Strength
+			p.addDexterity += option.Dexterity
+			p.addEnergy += option.Energy
+			p.addVitality += option.Vitality
+			p.addLeadership += option.Leadership
+		} else {
+			p.leftAttackMin += option.AttackMin
+			p.rightAttackMin += option.AttackMin
+			p.leftAttackMax += option.AttackMax
+			p.rightAttackMax += option.AttackMax
+			p.magicAttackMin += option.MagicAttack
+			p.magicAttackMax += option.MagicAttack
+			p.setAddDamage += option.Damage
+			p.AttackRate += option.AttackRate
+			p.Defense += option.Defense
+			p.MaxHP += option.MaxHP
+			p.MaxMP += option.MaxMP
+			p.MaxAG += option.MaxAG
+			p.criticalAttackRate += option.CriticalAttackRate
+			p.criticalAttackDamage += option.CriticalAttackDamage
+			p.excellentAttackRate += option.ExcellentAttackRate
+			p.excellentAttackDamage += option.ExcellentAttackDamage
+			p.addSkillAttack += option.SkillAttack
+			p.doubleDamageRate += option.DoubleDamageRate
+			p.ignoreDefenseRate += option.IgnoreDefenseRate
+			p.MaxSD += option.MaxSD
+			p.setIncreaseTwoHandWeaponDamage += option.TwoHandWeaponDamage
+		}
 	})
 }
 
@@ -703,17 +715,4 @@ func (p *Player) equippedItem(it *item.Item, code int) bool {
 		return false
 	}
 	return it.Code == code
-}
-
-func (p *Player) calc380Item() {
-	item.Item380Manager.Apply380ItemEffect(&p.inventory, func(effect item.Item380Effect) {
-		p.attackRatePVP += effect.IncPVPAttackRate
-		p.attackBonusPVP += effect.IncPVPAttack
-		p.defenseRatePVP += effect.IncPVPDefenseRate
-		p.defenseBonusPVP += effect.IncPVPDefense
-		p.MaxHP += effect.IncMaxHP
-		p.MaxSD += effect.IncMaxSD
-		p.autoRecoverSD = effect.AutoRecoverySD
-		p.autoRecoverSDRate += effect.IncRecoverySDRate
-	})
 }

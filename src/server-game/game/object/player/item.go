@@ -601,7 +601,7 @@ func (p *Player) MixItems(msg *model.MsgMixItems) {
 			}
 		}
 		// fee
-		if !valid || target == nil || harmonyCount != mixConfig.JewelOfHarmonyCount || guardianCount != mixConfig.JewelOfGuardianCount || charmRate > 10 {
+		if !valid || target == nil || harmonyCount != mixConfig.HarmonyJewelCount || guardianCount != mixConfig.GuardianJewelCount || charmRate > 10 {
 			return
 		}
 		if p.Money < mixConfig.ReqMoney {

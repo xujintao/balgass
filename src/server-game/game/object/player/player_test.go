@@ -214,7 +214,7 @@ func TestCharacterTableInitLoadsXML(t *testing.T) {
 	}
 }
 
-func TestSocketEquippedEffectsAndEvents(t *testing.T) {
+func TestSocketEquippedOptionsAndEvents(t *testing.T) {
 	p := Player{msgChan: make(chan any, 20)}
 	p.Object.Objecter = &p
 	p.inventory.Items = make([]*item.Item, 237)

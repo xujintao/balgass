@@ -2,7 +2,7 @@ package item
 
 import "testing"
 
-func TestConfigured380Effects(t *testing.T) {
+func TestConfigured380Options(t *testing.T) {
 	inventory := Inventory{}
 	inventory.Items = make([]*Item, INVENTORY_WEAR_SIZE)
 	for position, code := range [][2]int{{0, 22}, {7, 29}, {8, 29}, {9, 29}, {10, 29}, {11, 29}} {
@@ -14,16 +14,16 @@ func TestConfigured380Effects(t *testing.T) {
 			Section: section, Index: index, Durability: 1, Option380: true,
 		}
 	}
-	var got Item380Effect
+	var got Item380Option
 	calls := 0
-	Item380Manager.Apply380ItemEffect(&inventory, func(effect Item380Effect) {
+	Item380Manager.Apply380ItemOption(&inventory, func(option Item380Option) {
 		calls++
-		got = effect
+		got = option
 	})
 	if calls != 1 {
-		t.Fatalf("effect callback called %d times, want once", calls)
+		t.Fatalf("option callback called %d times, want once", calls)
 	}
-	want := Item380Effect{
+	want := Item380Option{
 		IncPVPAttackRate:  10,
 		IncPVPAttack:      200,
 		IncPVPDefenseRate: 50,
@@ -34,28 +34,28 @@ func TestConfigured380Effects(t *testing.T) {
 		IncRecoverySDRate: 20,
 	}
 	if got != want {
-		t.Fatalf("configured 380 effects = %+v, want %+v", got, want)
+		t.Fatalf("configured 380 options = %+v, want %+v", got, want)
 	}
 }
 
-func TestApply380ItemEffectIgnoresIneligibleItems(t *testing.T) {
+func TestApply380ItemOptionIgnoresIneligibleItems(t *testing.T) {
 	inventory := Inventory{}
 	inventory.Items = make([]*Item, INVENTORY_WEAR_SIZE)
 	inventory.Items[1] = &Item{Section: 0, Index: 22, Durability: 1}
 	inventory.Items[2] = &Item{Section: 0, Index: 22, Option380: true}
 	inventory.Items[3] = &Item{Section: -1, Index: -1, Durability: 1, Option380: true}
 
-	var got Item380Effect
+	var got Item380Option
 	calls := 0
-	Item380Manager.Apply380ItemEffect(&inventory, func(effect Item380Effect) {
+	Item380Manager.Apply380ItemOption(&inventory, func(option Item380Option) {
 		calls++
-		got = effect
+		got = option
 	})
 	if calls != 1 {
-		t.Fatalf("effect callback called %d times, want once", calls)
+		t.Fatalf("option callback called %d times, want once", calls)
 	}
-	if got != (Item380Effect{}) {
-		t.Fatalf("ineligible item effects = %+v, want zero value", got)
+	if got != (Item380Option{}) {
+		t.Fatalf("ineligible item options = %+v, want zero value", got)
 	}
 }
 

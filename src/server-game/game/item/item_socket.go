@@ -7,14 +7,66 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
 
+type socketSeedOptionType int
+
 const (
-	leftHandPosition  = 0
-	rightHandPosition = 1
+	socketSeedOptionLevelAttack     socketSeedOptionType = 0  // 等级火
+	socketSeedOptionAttackSpeed     socketSeedOptionType = 1  // 速度火
+	socketSeedOptionAttackMax       socketSeedOptionType = 2  // 最大火
+	socketSeedOptionAttackMin       socketSeedOptionType = 3  // 最小火
+	socketSeedOptionAttack          socketSeedOptionType = 4  // 攻击火
+	socketSeedOptionReduceAGCost    socketSeedOptionType = 5  // 减少AG火
+	socketSeedOptionDefenseRate     socketSeedOptionType = 10 // 防御率水
+	socketSeedOptionDefense         socketSeedOptionType = 11 // 防御力水
+	socketSeedOptionShieldDefense   socketSeedOptionType = 12 // 盾防水
+	socketSeedOptionReduceDamage    socketSeedOptionType = 13 // 减伤水
+	socketSeedOptionReflectDamage   socketSeedOptionType = 14 // 反伤水
+	socketSeedOptionKillHP          socketSeedOptionType = 16 // 杀怪回HP冰
+	socketSeedOptionKillMP          socketSeedOptionType = 17 // 杀怪回MP冰
+	socketSeedOptionSkillAttack     socketSeedOptionType = 18 // 技能攻击冰
+	socketSeedOptionAttackRate      socketSeedOptionType = 19 // 攻击率冰
+	socketSeedOptionItemDurability  socketSeedOptionType = 20 // 道具耐久冰
+	socketSeedOptionRecoverHP       socketSeedOptionType = 21 // HP恢复风
+	socketSeedOptionMaxHP           socketSeedOptionType = 22 // 最大HP风
+	socketSeedOptionMaxMP           socketSeedOptionType = 23 // 最大MP风
+	socketSeedOptionRecoverMP       socketSeedOptionType = 24 // MP恢复风
+	socketSeedOptionMaxAG           socketSeedOptionType = 25 // 最大AG风
+	socketSeedOptionRecoverAG       socketSeedOptionType = 26 // AG恢复风
+	socketSeedOptionExcellentDamage socketSeedOptionType = 29 // 卓越一击伤害雷
+	socketSeedOptionExcellentRate   socketSeedOptionType = 30 // 卓越一击率雷
+	socketSeedOptionCriticalDamage  socketSeedOptionType = 31 // 致命一击伤害雷
+	socketSeedOptionCriticalRate    socketSeedOptionType = 32 // 致命一击率雷
+	socketSeedOptionVitality        socketSeedOptionType = 36 // 体力土
+)
+
+type socketBonusOptionType int
+
+const (
+	socketBonusWeaponAttack       socketBonusOptionType = 0
+	socketBonusWeaponSkillAttack  socketBonusOptionType = 1
+	socketBonusStaffAttack        socketBonusOptionType = 2
+	socketBonusStaffSkillAttack   socketBonusOptionType = 3
+	socketBonusArmorDefense       socketBonusOptionType = 4
+	socketBonusArmorMaxHP         socketBonusOptionType = 5
+	socketBonusWeaponAttack2      socketBonusOptionType = 6
+	socketBonusWeaponSkillAttack2 socketBonusOptionType = 7
+	socketBonusStaffAttack2       socketBonusOptionType = 8
+	socketBonusStaffSkillAttack2  socketBonusOptionType = 9
+	socketBonusArmorDefense2      socketBonusOptionType = 10
+	socketBonusArmorMaxHP2        socketBonusOptionType = 11
+)
+
+type socketSpecialOptionType int
+
+const (
+	socketSpecialOptionDoubleDamage socketSpecialOptionType = iota
+	socketSpecialOptionIgnoreDefense
 )
 
 var SocketManager socketManager
 
 type socketSeedOption struct {
+	index       socketSeedOptionType
 	name        string
 	element     int
 	itemLevel   int
@@ -26,6 +78,7 @@ type socketSeedOption struct {
 }
 
 type socketBonusOption struct {
+	Index      socketBonusOptionType
 	name       string
 	minSection int
 	maxSection int
@@ -36,6 +89,7 @@ type socketBonusOption struct {
 }
 
 type socketSpecialOption struct {
+	index      socketSpecialOptionType
 	name       string
 	kind       int
 	valueType  int
@@ -45,19 +99,19 @@ type socketSpecialOption struct {
 }
 
 type socketManager struct {
-	sphereEnabled  bool
-	sphereRates    [5]int
-	sphereLevels   [5]int
-	tetraEnabled   bool
-	tetraRates     [3]int
-	tetraMinLevels [3]int
-	tetraMaxLevels [3]int
-	seedMoney      [4]int
-	rates          [12][5]int
-	twoHand        [5]int
-	seedOptions    map[int]socketSeedOption
-	bonusOptions   map[int]socketBonusOption
-	specialOptions map[int]socketSpecialOption
+	sphereEnabled         bool
+	sphereRates           [5]int
+	sphereLevels          [5]int
+	tetraEnabled          bool
+	tetraRates            [3]int
+	tetraMinLevels        [3]int
+	tetraMaxLevels        [3]int
+	seedMoney             [4]int
+	rates                 [12][5]int
+	twoHand               [5]int
+	seedOptions           map[int]socketSeedOption
+	bonusOptions          map[int]socketBonusOption
+	specialOptionsByIndex map[int]socketSpecialOption
 }
 
 func (m *socketManager) init() {
@@ -291,7 +345,8 @@ func (m *socketManager) init() {
 			panic(fmt.Errorf("%s: seed option %d: %w", file, index, err))
 		}
 		m.seedOptions[index] = socketSeedOption{
-			name: option.Name, element: element, itemLevel: itemLevel, valueType: valueType,
+			index: socketSeedOptionType(index),
+			name:  option.Name, element: element, itemLevel: itemLevel, valueType: valueType,
 			values: values, poolValue: weight, itemSection: itemSection, itemIndex: itemIndex,
 		}
 		totalSeedWeight += weight
@@ -326,15 +381,16 @@ func (m *socketManager) init() {
 			}
 		}
 		m.bonusOptions[index] = socketBonusOption{
-			name: option.Name, minSection: minSection, maxSection: maxSection,
+			Index: socketBonusOptionType(index),
+			name:  option.Name, minSection: minSection, maxSection: maxSection,
 			valueType: valueType, value: value, rate: rate, elements: elements,
 		}
 	}
 
-	m.specialOptions = make(map[int]socketSpecialOption, len(optionCfg.Specials))
+	m.specialOptionsByIndex = make(map[int]socketSpecialOption, len(optionCfg.Specials))
 	for _, option := range optionCfg.Specials {
 		index := optionIndex("special", option.Index, 2)
-		if _, exists := m.specialOptions[index]; exists {
+		if _, exists := m.specialOptionsByIndex[index]; exists {
 			panic(fmt.Errorf("%s: duplicate special option %d", file, index))
 		}
 		kind := required("special", index, "Type", option.Type)
@@ -357,8 +413,9 @@ func (m *socketManager) init() {
 				panic(fmt.Errorf("%s: special option %d has invalid seed count %d", file, index, count))
 			}
 		}
-		m.specialOptions[index] = socketSpecialOption{
-			name: option.Name, kind: kind, valueType: valueType, value: value, rate: rate, seedCounts: counts,
+		m.specialOptionsByIndex[index] = socketSpecialOption{
+			index: socketSpecialOptionType(index),
+			name:  option.Name, kind: kind, valueType: valueType, value: value, rate: rate, seedCounts: counts,
 		}
 	}
 }
@@ -469,9 +526,9 @@ func (m *socketManager) SeedItem(index int) (int, int, int, bool) {
 
 func (it *Item) SocketSlotAt(position int) (int, bool) {
 	switch position {
-	case leftHandPosition:
+	case 0:
 		return it.SocketSlot1, true
-	case rightHandPosition:
+	case 1:
 		return it.SocketSlot2, true
 	case 2:
 		return it.SocketSlot3, true
@@ -595,59 +652,8 @@ func (it *Item) MakeSocketSlots(count int) {
 	}
 }
 
-type SocketEffectType int
-
-const (
-	SocketEffectLevelAttack     SocketEffectType = 0  // 等级火
-	SocketEffectAttackSpeed     SocketEffectType = 1  // 速度火
-	SocketEffectAttackMax       SocketEffectType = 2  // 最大火
-	SocketEffectAttackMin       SocketEffectType = 3  // 最小火
-	SocketEffectAttack          SocketEffectType = 4  // 攻击火
-	SocketEffectReduceAGCost    SocketEffectType = 5  // 减少AG火
-	SocketEffectDefenseRate     SocketEffectType = 10 // 防御率水
-	SocketEffectDefense         SocketEffectType = 11 // 防御力水
-	SocketEffectShieldDefense   SocketEffectType = 12 // 盾防水
-	SocketEffectReduceDamage    SocketEffectType = 13 // 减伤水
-	SocketEffectReflectDamage   SocketEffectType = 14 // 反伤水
-	SocketEffectKillHP          SocketEffectType = 16 // 杀怪回HP冰
-	SocketEffectKillMP          SocketEffectType = 17 // 杀怪回MP冰
-	SocketEffectSkillAttack     SocketEffectType = 18 // 技能攻击冰
-	SocketEffectAttackRate      SocketEffectType = 19 // 攻击率冰
-	SocketEffectItemDurability  SocketEffectType = 20 // 道具耐久冰
-	SocketEffectRecoverHP       SocketEffectType = 21 // HP恢复风
-	SocketEffectMaxHP           SocketEffectType = 22 // 最大HP风
-	SocketEffectMaxMP           SocketEffectType = 23 // 最大MP风
-	SocketEffectRecoverMP       SocketEffectType = 24 // MP恢复风
-	SocketEffectMaxAG           SocketEffectType = 25 // 最大AG风
-	SocketEffectRecoverAG       SocketEffectType = 26 // AG恢复风
-	SocketEffectExcellentDamage SocketEffectType = 29 // 卓越一击伤害雷
-	SocketEffectExcellentRate   SocketEffectType = 30 // 卓越一击率雷
-	SocketEffectCriticalDamage  SocketEffectType = 31 // 致命一击伤害雷
-	SocketEffectCriticalRate    SocketEffectType = 32 // 致命一击率雷
-	SocketEffectVitality        SocketEffectType = 36 // 体力土
-	SocketEffectDoubleDamage    SocketEffectType = 44 // 双倍伤害
-	SocketEffectIgnoreDefense   SocketEffectType = 45 // 忽视防御
-)
-
-type SocketBonusEffectType int
-
-const (
-	SocketBonusWeaponAttack       SocketBonusEffectType = 0
-	SocketBonusWeaponSkillAttack  SocketBonusEffectType = 1
-	SocketBonusStaffAttack        SocketBonusEffectType = 2
-	SocketBonusStaffSkillAttack   SocketBonusEffectType = 3
-	SocketBonusArmorDefense       SocketBonusEffectType = 4
-	SocketBonusArmorMaxHP         SocketBonusEffectType = 5
-	SocketBonusWeaponAttack2      SocketBonusEffectType = 6
-	SocketBonusWeaponSkillAttack2 SocketBonusEffectType = 7
-	SocketBonusStaffAttack2       SocketBonusEffectType = 8
-	SocketBonusStaffSkillAttack2  SocketBonusEffectType = 9
-	SocketBonusArmorDefense2      SocketBonusEffectType = 10
-	SocketBonusArmorMaxHP2        SocketBonusEffectType = 11
-)
-
-// ItemSocketEffect contains the configured value of one Socket effect.
-type ItemSocketEffect struct {
+// ItemSocketOption contains the configured value of one Socket option.
+type ItemSocketOption struct {
 	LevelAttack      int
 	AttackSpeed      int
 	AttackMax        int
@@ -684,15 +690,7 @@ type ItemSocketEffect struct {
 	BonusMaxHP       int
 }
 
-// SocketEffect is a configured effect resolved to one value.
-type SocketEffect struct {
-	Index     SocketEffectType
-	Element   int
-	ValueType int
-	Value     int
-}
-
-func (m *socketManager) ApplySocketItemEffect(inventory *Inventory, apply func(ItemSocketEffect, int)) {
+func (m *socketManager) ApplySocketItemOption(inventory *Inventory, apply func(ItemSocketOption, int)) {
 	if inventory == nil || apply == nil {
 		return
 	}
@@ -702,78 +700,61 @@ func (m *socketManager) ApplySocketItemEffect(inventory *Inventory, apply func(I
 			continue
 		}
 		for _, slot := range []int{it.SocketSlot1, it.SocketSlot2, it.SocketSlot3, it.SocketSlot4, it.SocketSlot5} {
-			seedEffect, ok := m.SeedEffect(slot)
+			seedOption, value, ok := m.seedOption(slot)
 			if !ok {
 				continue
 			}
-			counts[seedEffect.Element-1]++
-			var effect ItemSocketEffect
-			m.applySocketEffect(seedEffect, &effect)
-			apply(effect, position)
+			counts[seedOption.element-1]++
+			var option ItemSocketOption
+			m.applyItemSocketOption(seedOption.index, value, &option)
+			apply(option, position)
 		}
-		if bonusEffect, ok := m.BonusEffect(it.SocketBonus); ok &&
-			it.Section >= bonusEffect.MinSection && it.Section <= bonusEffect.MaxSection {
-			var effect ItemSocketEffect
-			m.applySocketBonusEffect(bonusEffect, &effect)
-			apply(effect, position)
+		if bonusOption, ok := m.bonusOption(it.SocketBonus); ok &&
+			it.Section >= bonusOption.minSection && it.Section <= bonusOption.maxSection {
+			var option ItemSocketOption
+			m.applySocketBonusOption(bonusOption, &option)
+			apply(option, position)
 		}
 	}
 
-	for _, special := range m.SpecialEffects(counts) {
-		var effect ItemSocketEffect
-		m.applySocketEffect(special, &effect)
-		apply(effect, -1)
+	for _, specialOption := range m.specialOptions(counts) {
+		var option ItemSocketOption
+		m.applySocketSpecialOption(specialOption.index, specialOption.value, &option)
+		apply(option, -1)
 	}
 }
 
-func (m *socketManager) SeedEffect(slot int) (SocketEffect, bool) {
+func (m *socketManager) seedOption(slot int) (socketSeedOption, int, bool) {
 	if slot < 100 {
-		return SocketEffect{}, false
+		return socketSeedOption{}, 0, false
 	}
 	level, index := slot/100, slot%100
 	if level < 1 || level > 5 || index >= 50 {
-		return SocketEffect{}, false
+		return socketSeedOption{}, 0, false
 	}
 	option, ok := m.seedOptions[index]
 	if !ok {
-		return SocketEffect{}, false
+		return socketSeedOption{}, 0, false
 	}
-	return SocketEffect{
-		Index:     SocketEffectType(index),
-		Element:   option.element,
-		ValueType: option.valueType,
-		Value:     option.values[level-1]}, true
+	return option, option.values[level-1], true
 }
 
-type SocketBonusEffect struct {
-	Index      SocketBonusEffectType
-	MinSection int
-	MaxSection int
-	ValueType  int
-	Value      int
-}
-
-func (m *socketManager) BonusEffect(bonus int) (SocketBonusEffect, bool) {
+func (m *socketManager) bonusOption(bonus int) (socketBonusOption, bool) {
 	if bonus <= 0 {
-		return SocketBonusEffect{}, false
+		return socketBonusOption{}, false
 	}
 	index := bonus - 1
 	option, ok := m.bonusOptions[index]
 	if !ok {
-		return SocketBonusEffect{}, false
+		return socketBonusOption{}, false
 	}
-	return SocketBonusEffect{
-		Index:      SocketBonusEffectType(index),
-		MinSection: option.minSection,
-		MaxSection: option.maxSection,
-		ValueType:  option.valueType,
-		Value:      option.value}, true
+	return option, true
 }
 
-func (m *socketManager) SpecialEffects(counts [6]int) []SocketEffect {
-	var effects []SocketEffect
-	for index, effectType := range []SocketEffectType{SocketEffectDoubleDamage, SocketEffectIgnoreDefense} {
-		option, ok := m.specialOptions[index]
+func (m *socketManager) specialOptions(counts [6]int) []socketSpecialOption {
+	var options []socketSpecialOption
+	for index := 0; index < 2; index++ {
+		option, ok := m.specialOptionsByIndex[index]
 		if !ok {
 			continue
 		}
@@ -785,87 +766,92 @@ func (m *socketManager) SpecialEffects(counts [6]int) []SocketEffect {
 			}
 		}
 		if matched {
-			effects = append(effects, SocketEffect{Index: effectType, ValueType: option.valueType, Value: option.value})
+			options = append(options, option)
 		}
 	}
-	return effects
+	return options
 }
 
-func (m *socketManager) applySocketEffect(effect SocketEffect, result *ItemSocketEffect) {
-	switch effect.Index {
-	case SocketEffectLevelAttack:
-		result.LevelAttack = effect.Value
-	case SocketEffectAttackSpeed:
-		result.AttackSpeed = effect.Value
-	case SocketEffectAttackMax:
-		result.AttackMax = effect.Value
-	case SocketEffectAttackMin:
-		result.AttackMin = effect.Value
-	case SocketEffectAttack:
-		result.Attack = effect.Value
-	case SocketEffectReduceAGCost:
-		result.ReduceAGCost = effect.Value
-	case SocketEffectDefenseRate:
-		result.DefenseRate = effect.Value
-	case SocketEffectDefense:
-		result.Defense = effect.Value
-	case SocketEffectShieldDefense:
-		result.ShieldDefense = effect.Value
-	case SocketEffectReduceDamage:
-		result.ReduceDamage = effect.Value
-	case SocketEffectReflectDamage:
-		result.ReflectDamage = effect.Value
-	case SocketEffectKillHP:
-		result.KillHP = effect.Value
-	case SocketEffectKillMP:
-		result.KillMP = effect.Value
-	case SocketEffectSkillAttack:
-		result.SkillAttack = effect.Value
-	case SocketEffectAttackRate:
-		result.AttackRate = effect.Value
-	case SocketEffectItemDurability:
-		result.ItemDurability = effect.Value
-	case SocketEffectRecoverHP:
-		result.RecoverHP = effect.Value
-	case SocketEffectMaxHP:
-		result.MaxHP = effect.Value
-	case SocketEffectMaxMP:
-		result.MaxMP = effect.Value
-	case SocketEffectRecoverMP:
-		result.RecoverMP = effect.Value
-	case SocketEffectMaxAG:
-		result.MaxAG = effect.Value
-	case SocketEffectRecoverAG:
-		result.RecoverAG = effect.Value
-	case SocketEffectExcellentDamage:
-		result.ExcellentDamage = effect.Value
-	case SocketEffectExcellentRate:
-		result.ExcellentRate = effect.Value
-	case SocketEffectCriticalDamage:
-		result.CriticalDamage = effect.Value
-	case SocketEffectCriticalRate:
-		result.CriticalRate = effect.Value
-	case SocketEffectVitality:
-		result.Vitality = effect.Value
-	case SocketEffectDoubleDamage:
-		result.DoubleDamage = effect.Value
-	case SocketEffectIgnoreDefense:
-		result.IgnoreDefense = effect.Value
+func (m *socketManager) applyItemSocketOption(index socketSeedOptionType, value int, result *ItemSocketOption) {
+	switch index {
+	case socketSeedOptionLevelAttack:
+		result.LevelAttack = value
+	case socketSeedOptionAttackSpeed:
+		result.AttackSpeed = value
+	case socketSeedOptionAttackMax:
+		result.AttackMax = value
+	case socketSeedOptionAttackMin:
+		result.AttackMin = value
+	case socketSeedOptionAttack:
+		result.Attack = value
+	case socketSeedOptionReduceAGCost:
+		result.ReduceAGCost = value
+	case socketSeedOptionDefenseRate:
+		result.DefenseRate = value
+	case socketSeedOptionDefense:
+		result.Defense = value
+	case socketSeedOptionShieldDefense:
+		result.ShieldDefense = value
+	case socketSeedOptionReduceDamage:
+		result.ReduceDamage = value
+	case socketSeedOptionReflectDamage:
+		result.ReflectDamage = value
+	case socketSeedOptionKillHP:
+		result.KillHP = value
+	case socketSeedOptionKillMP:
+		result.KillMP = value
+	case socketSeedOptionSkillAttack:
+		result.SkillAttack = value
+	case socketSeedOptionAttackRate:
+		result.AttackRate = value
+	case socketSeedOptionItemDurability:
+		result.ItemDurability = value
+	case socketSeedOptionRecoverHP:
+		result.RecoverHP = value
+	case socketSeedOptionMaxHP:
+		result.MaxHP = value
+	case socketSeedOptionMaxMP:
+		result.MaxMP = value
+	case socketSeedOptionRecoverMP:
+		result.RecoverMP = value
+	case socketSeedOptionMaxAG:
+		result.MaxAG = value
+	case socketSeedOptionRecoverAG:
+		result.RecoverAG = value
+	case socketSeedOptionExcellentDamage:
+		result.ExcellentDamage = value
+	case socketSeedOptionExcellentRate:
+		result.ExcellentRate = value
+	case socketSeedOptionCriticalDamage:
+		result.CriticalDamage = value
+	case socketSeedOptionCriticalRate:
+		result.CriticalRate = value
+	case socketSeedOptionVitality:
+		result.Vitality = value
 	}
 }
 
-func (m *socketManager) applySocketBonusEffect(bonus SocketBonusEffect, result *ItemSocketEffect) {
+func (m *socketManager) applySocketBonusOption(bonus socketBonusOption, result *ItemSocketOption) {
 	switch bonus.Index {
-	case SocketBonusWeaponAttack, SocketBonusWeaponAttack2:
-		result.BonusAttack = bonus.Value
-	case SocketBonusStaffAttack, SocketBonusStaffAttack2:
-		result.BonusMagicAttack = bonus.Value
-	case SocketBonusWeaponSkillAttack, SocketBonusStaffSkillAttack,
-		SocketBonusWeaponSkillAttack2, SocketBonusStaffSkillAttack2:
-		result.BonusSkillAttack = bonus.Value
-	case SocketBonusArmorDefense, SocketBonusArmorDefense2:
-		result.BonusDefense = bonus.Value
-	case SocketBonusArmorMaxHP, SocketBonusArmorMaxHP2:
-		result.BonusMaxHP = bonus.Value
+	case socketBonusWeaponAttack, socketBonusWeaponAttack2:
+		result.BonusAttack = bonus.value
+	case socketBonusStaffAttack, socketBonusStaffAttack2:
+		result.BonusMagicAttack = bonus.value
+	case socketBonusWeaponSkillAttack, socketBonusStaffSkillAttack,
+		socketBonusWeaponSkillAttack2, socketBonusStaffSkillAttack2:
+		result.BonusSkillAttack = bonus.value
+	case socketBonusArmorDefense, socketBonusArmorDefense2:
+		result.BonusDefense = bonus.value
+	case socketBonusArmorMaxHP, socketBonusArmorMaxHP2:
+		result.BonusMaxHP = bonus.value
+	}
+}
+
+func (m *socketManager) applySocketSpecialOption(index socketSpecialOptionType, value int, result *ItemSocketOption) {
+	switch index {
+	case socketSpecialOptionDoubleDamage:
+		result.DoubleDamage = value
+	case socketSpecialOptionIgnoreDefense:
+		result.IgnoreDefense = value
 	}
 }

@@ -7,10 +7,6 @@ import (
 	"github.com/xujintao/balgass/src/server-game/conf"
 )
 
-func init() {
-	ExcellentManager.init()
-}
-
 var ExcellentManager excellentManager
 
 type excellentManager struct {
@@ -130,9 +126,9 @@ func (m *excellentManager) dropExcellentCount() int {
 	return 0
 }
 
-// ItemExcellentEffect describes the fixed bonuses, percentages and level divisors
+// ItemExcellentOption describes the fixed bonuses, percentages and level divisors
 // contributed by one item.
-type ItemExcellentEffect struct {
+type ItemExcellentOption struct {
 	ExcellentAttackRate int     // 卓越攻击几率10%
 	AttackLevel         int     // 攻击力增加等级/20
 	MagicAttackLevel    int     // 攻击力(魔法)增加等级/20
@@ -157,7 +153,7 @@ type ItemExcellentEffect struct {
 	RecoverMaxMP        int     // 魔法值完全恢复几率5%(3D)
 }
 
-func (m *excellentManager) ApplyExcellentItemEffect(inventory *Inventory, apply func(ItemExcellentEffect, int)) {
+func (m *excellentManager) ApplyExcellentItemOption(inventory *Inventory, apply func(ItemExcellentOption, int)) {
 	if inventory == nil || apply == nil {
 		return
 	}
@@ -165,34 +161,34 @@ func (m *excellentManager) ApplyExcellentItemEffect(inventory *Inventory, apply 
 		if it == nil {
 			continue
 		}
-		var effect ItemExcellentEffect
-		m.applyExcellentEffect(it, &effect)
-		apply(effect, position)
+		var option ItemExcellentOption
+		m.applyItemExcellentOption(it, &option)
+		apply(option, position)
 	}
 }
 
-func (m *excellentManager) applyExcellentEffect(it *Item, effect *ItemExcellentEffect) {
+func (m *excellentManager) applyItemExcellentOption(it *Item, option *ItemExcellentOption) {
 	if it.ExcellentAttackRate {
-		effect.ExcellentAttackRate += 10
+		option.ExcellentAttackRate += 10
 	}
 	if it.ExcellentAttackLevel {
 		switch it.KindA {
 		case KindAWeapon:
 			switch it.KindB {
 			case KindBSwordMagicGladiator:
-				effect.AttackLevel += 20
-				effect.MagicAttackLevel += 20
+				option.AttackLevel += 20
+				option.MagicAttackLevel += 20
 			case KindBStaffSummoner, KindBBookSummoner:
-				effect.MagicAttackLevel += 20
+				option.MagicAttackLevel += 20
 			default:
-				effect.AttackLevel += 20
+				option.AttackLevel += 20
 			}
 		case KindAPendant:
 			switch it.KindB {
 			case KindBPendantAttackPhysical:
-				effect.AttackLevel += 20
+				option.AttackLevel += 20
 			case KindBPendantAttackMagic:
-				effect.MagicAttackLevel += 20
+				option.MagicAttackLevel += 20
 			}
 		}
 	}
@@ -201,76 +197,76 @@ func (m *excellentManager) applyExcellentEffect(it *Item, effect *ItemExcellentE
 		case KindAWeapon:
 			switch it.KindB {
 			case KindBSwordMagicGladiator:
-				effect.AttackPercent += 2
-				effect.MagicAttackPercent += 2
+				option.AttackPercent += 2
+				option.MagicAttackPercent += 2
 			case KindBStaffSummoner, KindBBookSummoner:
-				effect.MagicAttackPercent += 2
+				option.MagicAttackPercent += 2
 			default:
-				effect.AttackPercent += 2
+				option.AttackPercent += 2
 			}
 		case KindAPendant:
 			switch it.KindB {
 			case KindBPendantAttackPhysical:
-				effect.AttackPercent += 2
+				option.AttackPercent += 2
 			case KindBPendantAttackMagic:
-				effect.MagicAttackPercent += 2
+				option.MagicAttackPercent += 2
 			}
 		}
 	}
 	if it.ExcellentAttackSpeed {
-		effect.AttackSpeed += 7
-		effect.MagicSpeed += 7
+		option.AttackSpeed += 7
+		option.MagicSpeed += 7
 	}
 	if it.ExcellentAttackHP {
-		effect.MonsterDieGetHP += 1.0 / 8
+		option.MonsterDieGetHP += 1.0 / 8
 	}
 	if it.ExcellentAttackMP {
-		effect.MonsterDieGetMP += 1.0 / 8
+		option.MonsterDieGetMP += 1.0 / 8
 	}
 	if it.ExcellentDefenseHP {
-		effect.MaxHPPercent += 4
+		option.MaxHPPercent += 4
 	}
 	if it.ExcellentDefenseMP {
-		effect.MaxMPPercent += 4
+		option.MaxMPPercent += 4
 	}
 	if it.ExcellentDefenseReduce {
-		effect.ReduceDamage += 4
+		option.ReduceDamage += 4
 	}
 	if it.ExcellentDefenseReflect {
-		effect.ReflectDamage += 5
+		option.ReflectDamage += 5
 	}
 	if it.ExcellentDefenseRate {
-		effect.DefenseRatePercent += 10
+		option.DefenseRatePercent += 10
 	}
 	if it.ExcellentDefenseMoney {
-		effect.MonsterDieGetMoney += float64(30) / 100
+		option.MonsterDieGetMoney += float64(30) / 100
 	}
 	if it.Wing2ExcellentSpeed {
-		effect.AttackSpeed += 5
-		effect.MagicSpeed += 5
+		option.AttackSpeed += 5
+		option.MagicSpeed += 5
 	}
 	if it.Wing2ExcellentHP {
-		effect.MaxHP += 50 + 5*it.Level
+		option.MaxHP += 50 + 5*it.Level
 	}
 	if it.Wing2ExcellentMP {
-		effect.MaxMP += 50 + 5*it.Level
+		option.MaxMP += 50 + 5*it.Level
 	}
 	if it.Wing2ExcellentAG {
-		effect.MaxAG += 50
+		option.MaxAG += 50
 	}
 	if it.Wing2ExcellentIgnore {
-		effect.IgnoreDefenseRate += 3
+		option.IgnoreDefenseRate += 3
 	}
 	if it.Wing3ExcellentIgnore {
-		effect.IgnoreDefenseRate += 5
+		option.IgnoreDefenseRate += 5
 	}
 	if it.Wing3ExcellentReturn {
-		effect.ReturnDamage += 5
+		option.ReturnDamage += 5
 	}
 	if it.Wing3ExcellentHP {
-		effect.RecoverMaxHP += 5
+		option.RecoverMaxHP += 5
 	}
 	if it.Wing3ExcellentMP {
-		effect.RecoverMaxMP += 5
+		option.RecoverMaxMP += 5
 	}
 }
