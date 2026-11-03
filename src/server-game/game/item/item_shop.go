@@ -1,4 +1,4 @@
-package shop
+package item
 
 import (
 	"encoding/xml"
@@ -6,17 +6,12 @@ import (
 	"path"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
-	"github.com/xujintao/balgass/src/server-game/game/item"
 )
 
 const MaxShopItemCount = 120 // 8*15
 
-func init() {
-	ShopManager.init()
-}
-
 type Shop struct {
-	*item.PositionedItems
+	*PositionedItems
 	NPCIndex     int    `xml:"NPCIndex,attr"`
 	MapNumber    int    `xml:"MapNumber,attr"`
 	PosX         int    `xml:"PosX,attr"`
@@ -30,7 +25,7 @@ type Shop struct {
 	BattleCore   bool   `xml:"BattleCore,attr"`
 }
 
-func (s *Shop) Scan(file string) {
+func (s *Shop) init(file string) {
 	// Shop was generated 2023-11-17 14:35:07 by https://xml-to-go.github.io/ in Ukraine.
 	type ShopInventory struct {
 		XMLName xml.Name `xml:"Shop"`
@@ -53,69 +48,66 @@ func (s *Shop) Scan(file string) {
 	}
 	var shopInventory ShopInventory
 	conf.XML(conf.PathCommon, file, &shopInventory)
-	for _, sitem := range shopInventory.Item {
-		it := item.NewItem(sitem.Cat, sitem.Index)
-		it.Level = sitem.Level
-		it.Durability = sitem.Durability
-		it.Skill = sitem.Skill
-		it.Lucky = sitem.Luck
-		it.Addition = sitem.Option << 2
-		if it.KindA == item.KindAWing {
+	for _, sit := range shopInventory.Item {
+		it := NewItem(sit.Cat, sit.Index)
+		it.Level = sit.Level
+		it.Durability = sit.Durability
+		it.Skill = sit.Skill
+		it.Lucky = sit.Luck
+		it.Addition = sit.Option << 2
+		if it.KindA == KindAWing {
 			it.RandWingAdditionKind()
 		}
-		it.DecodeExcellent(sitem.Exc)
+		it.DecodeExcellent(sit.Exc)
 		it.Calc()
 		if it.Durability == 0 {
 			it.Durability = it.MaxDurability
 		}
-		i := s.FindFreePositionForItem(it)
-		if i == -1 {
-			slog.Error("FindFreePositionForItem",
+		if !s.AddItem(it) {
+			slog.Error("Shop.AddItem",
 				"shop", s.FileName, "item", it.Name)
 			continue
 		}
-		s.SetFlagsForItem(i, it)
-		s.Items[i] = it
 	}
 }
 
-func (s *Shop) FindFreePositionForItem(it *item.Item) int {
-	maxHeight := len(s.Flags) / 8
-outer:
-	for i, v := range s.Flags {
-		if v {
-			continue
-		}
-		x := i % 8
-		y := i / 8
-		width := it.Width
-		height := it.Height
-		if x+width > 8 ||
-			y+height > maxHeight {
-			continue
-		}
-		for i := x; i < x+width; i++ {
-			for j := y; j < y+height; j++ {
-				if s.Flags[i+8*j] {
-					continue outer
+func (s *Shop) AddItem(it *Item) bool {
+	for i := 0; i < s.Size; i++ {
+		if s.CanPlace(i, it) {
+			s.Items[i] = it
+			x := i % 8
+			y := i / 8
+			for column := x; column < x+it.Width; column++ {
+				for row := y; row < y+it.Height; row++ {
+					s.Flags[column+8*row] = true
 				}
 			}
+			return true
 		}
-		return i
 	}
-	return -1
+	return false
 }
 
-func (s *Shop) SetFlagsForItem(position int, it *item.Item) {
+func (s *Shop) CanPlace(position int, it *Item) bool {
+	if it == nil {
+		return false
+	}
+	if position < 0 || position >= s.Size || it.Width <= 0 || it.Height <= 0 {
+		return false
+	}
 	x := position % 8
 	y := position / 8
-	width := it.Width
-	height := it.Height
-	for i := x; i < x+width; i++ {
-		for j := y; j < y+height; j++ {
-			s.Flags[i+8*j] = true
+	if x+it.Width > 8 || y+it.Height > s.Size/8 {
+		return false
+	}
+	for i := x; i < x+it.Width; i++ {
+		for j := y; j < y+it.Height; j++ {
+			if s.Flags[i+8*j] {
+				return false
+			}
 		}
 	}
+	return true
 }
 
 var ShopManager shopManager
@@ -133,19 +125,19 @@ func (m *shopManager) init() {
 	}
 	var shopList ShopList
 	conf.XML(conf.PathCommon, "IGC_ShopList.xml", &shopList)
-	shopItems := make(map[string]*item.PositionedItems)
+	shopItems := make(map[string]*PositionedItems)
 	m.shopTable = make(map[int]map[int]*Shop)
 	for _, shop := range shopList.Shop {
 		pi, ok := shopItems[shop.FileName]
 		if !ok {
-			pi = &item.PositionedItems{
+			pi = &PositionedItems{
 				Size:  MaxShopItemCount,
-				Items: make([]*item.Item, MaxShopItemCount),
+				Items: make([]*Item, MaxShopItemCount),
 				Flags: make([]bool, MaxShopItemCount),
 			}
 			shop.PositionedItems = pi
 			file := path.Join("Shops", shop.FileName)
-			shop.Scan(file)
+			shop.init(file)
 			shopItems[shop.FileName] = pi
 		} else {
 			shop.PositionedItems = pi
@@ -166,18 +158,25 @@ func (m *shopManager) ForEachShop(f func(int, int, int, int, int)) {
 	}
 }
 
-func (m *shopManager) GetShopInventory(npcIndex, mapNumber int) []*item.Item {
-	return m.shopTable[npcIndex][mapNumber].Items
+func (m *shopManager) GetShopInventory(npcIndex, mapNumber int) []*Item {
+	if m == nil {
+		return nil
+	}
+	shop := m.shopTable[npcIndex][mapNumber]
+	if shop == nil || shop.PositionedItems == nil {
+		return nil
+	}
+	return shop.Items
 }
 
-func (m *shopManager) GetShopItem(npcIndex, mapNumber, position int) *item.Item {
+func (m *shopManager) GetShopItem(npcIndex, mapNumber, position int) *Item {
 	inventory := m.GetShopInventory(npcIndex, mapNumber)
-	if inventory == nil {
+	if position < 0 || position >= len(inventory) {
 		return nil
 	}
-	shopItem := inventory[position]
-	if shopItem == nil {
+	sit := inventory[position]
+	if sit == nil {
 		return nil
 	}
-	return shopItem.Copy()
+	return sit.Copy()
 }

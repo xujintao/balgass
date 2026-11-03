@@ -7,4 +7,5 @@ func init() {
 	Item380Manager.init()
 	SocketManager.init()
 	SetManager.init()
+	ShopManager.init()
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
-	"github.com/xujintao/balgass/src/server-game/game/shop"
 )
 
 func (p *Player) PickItem(msg *model.MsgPickItem) {
@@ -167,7 +166,7 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 	}()
 	// validate
 	if msg.Position < 0 ||
-		msg.Position >= shop.MaxShopItemCount ||
+		msg.Position >= item.MaxShopItemCount ||
 		p.TargetNumber < 0 {
 		return
 	}
@@ -182,7 +181,7 @@ func (p *Player) BuyItem(msg *model.MsgBuyItem) {
 	if tobj.NpcType != object.NpcTypeShop {
 		return
 	}
-	sit := shop.ShopManager.GetShopItem(tobj.Class, tobj.MapNumber, msg.Position)
+	sit := item.ShopManager.GetShopItem(tobj.Class, tobj.MapNumber, msg.Position)
 	if sit == nil {
 		return
 	}

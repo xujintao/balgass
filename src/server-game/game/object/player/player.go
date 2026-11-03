@@ -19,7 +19,6 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
-	"github.com/xujintao/balgass/src/server-game/game/shop"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
 	"gorm.io/gorm"
 )
@@ -1200,7 +1199,7 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 	}
 	switch tobj.NpcType {
 	case object.NpcTypeShop:
-		inventory := shop.ShopManager.GetShopInventory(tobj.Class, tobj.MapNumber)
+		inventory := item.ShopManager.GetShopInventory(tobj.Class, tobj.MapNumber)
 		if tobj.Class == 492 {
 			reply.Result = 34
 		}

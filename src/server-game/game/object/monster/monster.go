@@ -11,10 +11,10 @@ import (
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	gameclass "github.com/xujintao/balgass/src/server-game/game/class"
+	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
-	"github.com/xujintao/balgass/src/server-game/game/shop"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
 
@@ -107,7 +107,7 @@ func SpawnMonster() {
 		}
 	}
 
-	shop.ShopManager.ForEachShop(func(class, mapNumber, x, y, dir int) {
+	item.ShopManager.ForEachShop(func(class, mapNumber, x, y, dir int) {
 		obj, err := object.ObjectManager.AddMonster(func() *object.Object {
 			m := newMonster(
 				class,
@@ -123,7 +123,7 @@ func SpawnMonster() {
 			return &m.Object
 		})
 		if err != nil {
-			slog.Error("shop.ShopManager.ForEachShop object.ObjectManager.AddMonster", "err", err)
+			slog.Error("item.ShopManager.ForEachShop object.ObjectManager.AddMonster", "err", err)
 			os.Exit(1)
 		}
 		obj.NpcType = object.NpcTypeShop
