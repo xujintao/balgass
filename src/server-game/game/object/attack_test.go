@@ -532,8 +532,14 @@ func (a *attackProcTestActor) GetFullSDRecoveryRate() float64 {
 	return a.fullSDRecovery
 }
 
-func (a *attackProcTestActor) GetMaceStunRate() float64 {
-	return a.maceStun
+func (a *attackProcTestActor) CanMaceStun() bool {
+	for _, position := range [...]int{0, 1} {
+		weapon := a.GetInventoryItem(position)
+		if weapon != nil && weapon.Durability > 0 && weapon.KindB == item.KindBMace {
+			return rollAttackRate(a.maceStun)
+		}
+	}
+	return false
 }
 
 func newDamageFormulaTestObject(index int, typ ObjectType) (*Object, *damageFormulaTestActor) {

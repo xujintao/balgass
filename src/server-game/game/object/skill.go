@@ -1352,3 +1352,14 @@ func (obj *Object) canReceiveSupportSkill() bool {
 	}
 	return obj.Index >= ObjectManager.maxMonsterCount && obj.Index < ObjectManager.playerStartIndex
 }
+
+func (obj *Object) useSkillStun(tobj *Object) {
+	if !tobj.addEffect(&effect.Effect{
+		BuffIndex: effect.BuffStun,
+		Stun:      true,
+		Expire:    time.Now().Add(2 * time.Second),
+	}) {
+		return
+	}
+	tobj.SetPosition(&model.MsgSetPosition{X: tobj.X, Y: tobj.Y})
+}

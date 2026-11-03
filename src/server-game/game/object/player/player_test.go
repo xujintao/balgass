@@ -14,26 +14,45 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
 
-func TestAttackProcRatesIncludeMasterSkills(t *testing.T) {
+func TestRecoveryRatesIncludeMasterSkills(t *testing.T) {
 	p := Player{
 		recoverMaxHP: 5,
 		recoverMaxMP: 5,
 	}
 	p.Skills = skill.Skills{
-		skill.SkillIndexMaceMastery:      {Level: 10},
 		skill.SkillIndexRecoverManaFully: {Level: 10},
 		skill.SkillIndexRecoverHPFully:   {Level: 10},
 		skill.SkillIndexRecoverSDFully:   {Level: 10},
 	}
 
-	if p.GetMaceStunRate() <= 0 {
-		t.Fatal("mace stun rate did not include master skill")
-	}
 	if p.GetFullHPRecoveryRate() <= 5 || p.GetFullMPRecoveryRate() <= 5 {
 		t.Fatal("HP/MP recovery rates did not combine wing and master skill values")
 	}
 	if p.GetFullSDRecoveryRate() <= 0 {
 		t.Fatal("SD recovery rate did not include master skill")
+	}
+}
+
+func TestCanMaceStunRequirements(t *testing.T) {
+	p := Player{}
+	p.inventory.Size = item.INVENTORY_WEAR_SIZE
+	p.inventory.Items = make([]*item.Item, p.inventory.Size)
+	p.Skills = skill.Skills{skill.SkillIndexMaceMastery: {Level: 10}}
+	if p.CanMaceStun() {
+		t.Fatal("stun triggered without a mace")
+	}
+	p.inventory.Items[0] = item.NewItem(2, 0)
+	if p.inventory.Items[0].KindB != item.KindBMace {
+		t.Fatal("test weapon is not a mace")
+	}
+	p.inventory.Items[0].Durability = 0
+	if p.CanMaceStun() {
+		t.Fatal("stun triggered with a broken mace")
+	}
+	p.inventory.Items[0].Durability = 1
+	delete(p.Skills, skill.SkillIndexMaceMastery)
+	if p.CanMaceStun() {
+		t.Fatal("stun triggered without mace mastery")
 	}
 }
 

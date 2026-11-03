@@ -371,33 +371,6 @@ func (obj *Object) queueFullRecovery(tobj *Object) {
 	}
 }
 
-func (obj *Object) hasMace() bool {
-	if obj.Type != ObjectTypePlayer {
-		return false
-	}
-	for _, position := range [...]int{0, 1} {
-		weapon := obj.GetInventoryItem(position)
-		if weapon != nil && weapon.Durability > 0 && weapon.KindB == item.KindBMace {
-			return true
-		}
-	}
-	return false
-}
-
-func (obj *Object) tryMaceStun(tobj *Object) {
-	if !obj.hasMace() || !rollAttackRate(obj.GetMaceStunRate()) {
-		return
-	}
-	if !tobj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffStun,
-		Stun:      true,
-		Expire:    time.Now().Add(2 * time.Second),
-	}) {
-		return
-	}
-	tobj.SetPosition(&model.MsgSetPosition{X: tobj.X, Y: tobj.Y})
-}
-
 func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	if tobj == nil || !tobj.Live || tobj.HP <= 0 {
 		return 0
@@ -541,8 +514,8 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 			}
 		}
 	}
-	if tobj.HP > 0 {
-		obj.tryMaceStun(tobj)
+	if tobj.HP > 0 && obj.CanMaceStun() {
+		obj.useSkillStun(tobj)
 	}
 
 	// Push attack damage reply

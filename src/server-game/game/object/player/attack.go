@@ -2,6 +2,7 @@ package player
 
 import (
 	"log/slog"
+	"math/rand"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
 	"github.com/xujintao/balgass/src/server-game/game/class"
@@ -126,12 +127,16 @@ func (p *Player) GetFullSDRecoveryRate() float64 {
 	return p.fullRecoveryMasterSkillRate(skill.SkillIndexRecoverSDFully)
 }
 
-func (p *Player) GetMaceStunRate() float64 {
+func (p *Player) CanMaceStun() bool {
+	if !p.hasMace() {
+		return false
+	}
 	s := p.Skills[skill.SkillIndexMaceMastery]
 	if s == nil {
-		return 0
+		return false
 	}
-	return float64(skill.SkillManager.GetMasterSkillValue(skill.SkillIndexMaceMastery, s.Level))
+	rate := float64(skill.SkillManager.GetMasterSkillValue(skill.SkillIndexMaceMastery, s.Level))
+	return rate > 0 && float64(rand.Intn(10000)) < rate*100
 }
 
 func (p *Player) fullRecoveryMasterSkillRate(index int) float64 {

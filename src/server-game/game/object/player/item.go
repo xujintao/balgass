@@ -1334,3 +1334,13 @@ func (p *Player) pushChangedEquipment(it *item.Item) {
 	}
 	p.PushViewport(&reply)
 }
+
+func (p *Player) hasMace() bool {
+	for _, position := range [...]int{0, 1} {
+		weapon := p.GetInventoryItem(position)
+		if weapon != nil && weapon.Durability > 0 && weapon.KindB == item.KindBMace {
+			return true
+		}
+	}
+	return false
+}

@@ -116,8 +116,8 @@ func (*Monster) GetFullSDRecoveryRate() float64 {
 	return 0
 }
 
-func (*Monster) GetMaceStunRate() float64 {
-	return 0
+func (*Monster) CanMaceStun() bool {
+	return false
 }
 
 func (*Monster) GetMonsterDieGetMoney() float64 {

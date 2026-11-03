@@ -91,7 +91,7 @@ func (a *skillTestActor) GetReturnDamageRate() int             { return a.return
 func (*skillTestActor) GetFullHPRecoveryRate() float64         { return 0 }
 func (*skillTestActor) GetFullMPRecoveryRate() float64         { return 0 }
 func (*skillTestActor) GetFullSDRecoveryRate() float64         { return 0 }
-func (*skillTestActor) GetMaceStunRate() float64               { return 0 }
+func (*skillTestActor) CanMaceStun() bool                      { return false }
 func (*skillTestActor) GetMonsterDieGetMoney() float64         { return 0 }
 func (a *skillTestActor) GetKnightGladiatorCalcSkillBonus() float64 {
 	if a.knightRate != 0 {

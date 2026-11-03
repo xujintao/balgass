@@ -698,7 +698,7 @@ type Objecter interface {
 	GetFullHPRecoveryRate() float64            // implemented by Player and Monster
 	GetFullMPRecoveryRate() float64            // implemented by Player and Monster
 	GetFullSDRecoveryRate() float64            // implemented by Player and Monster
-	GetMaceStunRate() float64                  // implemented by Player and Monster
+	CanMaceStun() bool                         // implemented by Player and Monster
 	GetMonsterDieGetMoney() float64            // implemented by Player and Monster
 	GetKnightGladiatorCalcSkillBonus() float64 // implemented by Player and Monster
 	GetImpaleSkillCalc() float64               // implemented by Player and Monster
