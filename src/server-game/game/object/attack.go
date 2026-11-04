@@ -304,9 +304,10 @@ const (
 )
 
 type attackRequest struct {
-	mode   attackMode
-	skill  *skill.Skill
-	damage int
+	mode       attackMode
+	skill      *skill.Skill
+	damage     int
+	barrageHit int
 }
 
 func (obj *Object) splitDamage(tobj *Object, damage int) (int, int) {
@@ -519,6 +520,17 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	}
 
 	// Push attack damage reply
+	if req.barrageHit > 0 && s != nil {
+		modulus := 4
+		if s.Index == skill.SkillIndexBeastUppercut {
+			modulus = 2
+		}
+		if req.barrageHit%modulus != 0 {
+			damageType |= 0x10
+		} else {
+			damageType |= 0x20
+		}
+	}
 	attackDamageReply := model.MsgAttackDamageReply{
 		Target:     tobj.Index,
 		Damage:     hpDamage,

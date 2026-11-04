@@ -126,6 +126,10 @@ func effectValue(eff *effect.Effect) int {
 		return eff.Reflect
 	case eff.DamageReduction != 0:
 		return eff.DamageReduction
+	case eff.AttackReduction != 0:
+		return eff.AttackReduction
+	case eff.DefenseReduction != 0:
+		return eff.DefenseReduction
 	case eff.Dot != 0:
 		return eff.Dot
 	}

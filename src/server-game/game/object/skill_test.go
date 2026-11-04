@@ -9,6 +9,7 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/effect"
 	"github.com/xujintao/balgass/src/server-game/game/item"
+	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
@@ -25,6 +26,8 @@ type skillTestActor struct {
 	knightRate        float64
 	impaleRate        float64
 	returnDamage      int
+	ammoDenied        bool
+	ammoUsed          int
 	skillAttackBonus  int
 	pvpAttackBonus    int
 	pvpDefenseBonus   int
@@ -53,46 +56,54 @@ func (*skillTestActor) GetCurseAttackMin() int                 { return 0 }
 func (*skillTestActor) GetCurseAttackMax() int                 { return 0 }
 func (*skillTestActor) GetCurse() int                          { return 0 }
 func (*skillTestActor) GetActivePetCode() int                  { return -1 }
-func (*skillTestActor) UseSkillAmmo(*skill.Skill, bool) bool   { return true }
-func (a *skillTestActor) GetStrength() int                     { return a.strength }
-func (a *skillTestActor) GetDexterity() int                    { return a.dexterity }
-func (a *skillTestActor) GetEnergy() int                       { return a.energy }
-func (a *skillTestActor) GetVitality() int                     { return a.vitality }
-func (a *skillTestActor) GetLeadership() int                   { return a.leadership }
-func (*skillTestActor) GetChangeUp() int                       { return 0 }
-func (*skillTestActor) GetInventory() *item.Inventory          { return nil }
-func (*skillTestActor) GetInventoryItem(int) *item.Item        { return nil }
-func (*skillTestActor) SetDelayRecoverHP(int, int)             {}
-func (*skillTestActor) SetDelayRecoverSD(int, int)             {}
-func (*skillTestActor) GetAttackRatePVP() int                  { return 1000 }
-func (*skillTestActor) GetDefenseRatePVP() int                 { return 1 }
-func (a *skillTestActor) GetAttackBonusPVP() int               { return a.pvpAttackBonus }
-func (a *skillTestActor) GetDefenseBonusPVP() int              { return a.pvpDefenseBonus }
-func (a *skillTestActor) GetHarmonyIncSDRate() int             { return a.harmonyAddSD }
-func (a *skillTestActor) GetHarmonyDecSDRate() int             { return a.harmonyDecreaseSD }
-func (a *skillTestActor) GetHarmonyIgnoreSDRate() int          { return a.harmonyIgnoreSD }
-func (*skillTestActor) GetIgnoreDefenseRate() int              { return 0 }
-func (*skillTestActor) GetCriticalAttackRate() int             { return 0 }
-func (*skillTestActor) GetCriticalAttackDamage() int           { return 0 }
-func (*skillTestActor) GetExcellentAttackRate() int            { return 0 }
-func (*skillTestActor) GetExcellentAttackDamage() int          { return 0 }
-func (*skillTestActor) GetMonsterDieGetHP() float64            { return 0 }
-func (*skillTestActor) GetMonsterDieGetMP() float64            { return 0 }
-func (*skillTestActor) GetAddDamage() int                      { return 0 }
-func (*skillTestActor) GetArmorReduceDamage() int              { return 0 }
-func (*skillTestActor) GetWingIncreaseDamage() int             { return 0 }
-func (*skillTestActor) GetWingReduceDamage() int               { return 0 }
-func (*skillTestActor) GetHelperReduceDamage() int             { return 0 }
-func (*skillTestActor) GetPetIncreaseDamage() int              { return 0 }
-func (*skillTestActor) GetPetReduceDamage() int                { return 0 }
-func (*skillTestActor) GetAttackSpeedForDelay() int            { return 0 }
-func (*skillTestActor) GetDoubleDamageRate() int               { return 0 }
-func (a *skillTestActor) GetReturnDamageRate() int             { return a.returnDamage }
-func (*skillTestActor) GetFullHPRecoveryRate() float64         { return 0 }
-func (*skillTestActor) GetFullMPRecoveryRate() float64         { return 0 }
-func (*skillTestActor) GetFullSDRecoveryRate() float64         { return 0 }
-func (*skillTestActor) CanMaceStun() bool                      { return false }
-func (*skillTestActor) GetMonsterDieGetMoney() float64         { return 0 }
+func (a *skillTestActor) UseSkillAmmo(_ *skill.Skill, consume bool) bool {
+	if a.ammoDenied {
+		return false
+	}
+	if consume {
+		a.ammoUsed++
+	}
+	return true
+}
+func (a *skillTestActor) GetStrength() int              { return a.strength }
+func (a *skillTestActor) GetDexterity() int             { return a.dexterity }
+func (a *skillTestActor) GetEnergy() int                { return a.energy }
+func (a *skillTestActor) GetVitality() int              { return a.vitality }
+func (a *skillTestActor) GetLeadership() int            { return a.leadership }
+func (*skillTestActor) GetChangeUp() int                { return 0 }
+func (*skillTestActor) GetInventory() *item.Inventory   { return nil }
+func (*skillTestActor) GetInventoryItem(int) *item.Item { return nil }
+func (*skillTestActor) SetDelayRecoverHP(int, int)      {}
+func (*skillTestActor) SetDelayRecoverSD(int, int)      {}
+func (*skillTestActor) GetAttackRatePVP() int           { return 1000 }
+func (*skillTestActor) GetDefenseRatePVP() int          { return 1 }
+func (a *skillTestActor) GetAttackBonusPVP() int        { return a.pvpAttackBonus }
+func (a *skillTestActor) GetDefenseBonusPVP() int       { return a.pvpDefenseBonus }
+func (a *skillTestActor) GetHarmonyIncSDRate() int      { return a.harmonyAddSD }
+func (a *skillTestActor) GetHarmonyDecSDRate() int      { return a.harmonyDecreaseSD }
+func (a *skillTestActor) GetHarmonyIgnoreSDRate() int   { return a.harmonyIgnoreSD }
+func (*skillTestActor) GetIgnoreDefenseRate() int       { return 0 }
+func (*skillTestActor) GetCriticalAttackRate() int      { return 0 }
+func (*skillTestActor) GetCriticalAttackDamage() int    { return 0 }
+func (*skillTestActor) GetExcellentAttackRate() int     { return 0 }
+func (*skillTestActor) GetExcellentAttackDamage() int   { return 0 }
+func (*skillTestActor) GetMonsterDieGetHP() float64     { return 0 }
+func (*skillTestActor) GetMonsterDieGetMP() float64     { return 0 }
+func (*skillTestActor) GetAddDamage() int               { return 0 }
+func (*skillTestActor) GetArmorReduceDamage() int       { return 0 }
+func (*skillTestActor) GetWingIncreaseDamage() int      { return 0 }
+func (*skillTestActor) GetWingReduceDamage() int        { return 0 }
+func (*skillTestActor) GetHelperReduceDamage() int      { return 0 }
+func (*skillTestActor) GetPetIncreaseDamage() int       { return 0 }
+func (*skillTestActor) GetPetReduceDamage() int         { return 0 }
+func (*skillTestActor) GetAttackSpeedForDelay() int     { return 0 }
+func (*skillTestActor) GetDoubleDamageRate() int        { return 0 }
+func (a *skillTestActor) GetReturnDamageRate() int      { return a.returnDamage }
+func (*skillTestActor) GetFullHPRecoveryRate() float64  { return 0 }
+func (*skillTestActor) GetFullMPRecoveryRate() float64  { return 0 }
+func (*skillTestActor) GetFullSDRecoveryRate() float64  { return 0 }
+func (*skillTestActor) CanMaceStun() bool               { return false }
+func (*skillTestActor) GetMonsterDieGetMoney() float64  { return 0 }
 func (a *skillTestActor) GetKnightGladiatorCalcSkillBonus() float64 {
 	if a.knightRate != 0 {
 		return a.knightRate
@@ -605,7 +616,10 @@ func TestUseSkillExpandedAttackSkills(t *testing.T) {
 		skill.SkillIndexPowerWave,
 		skill.SkillIndexDecay,
 		skill.SkillIndexIceStorm,
+		skill.SkillIndexCrescentMoonSlash,
+		skill.SkillIndexStarfall,
 		skill.SkillIndexIceArrow,
+		skill.SkillIndexSpiralSlash,
 		skill.SkillIndexForce,
 		skill.SkillIndexFireBurst,
 		skill.SkillIndexElectricSpike,
@@ -644,6 +658,205 @@ func TestUseSkillExpandedAttackSkills(t *testing.T) {
 			}
 			if !hasMessage[model.MsgMPReply](actor.messages) {
 				t.Fatal("resource reply was not sent")
+			}
+		})
+	}
+}
+
+func TestAttackSkillRequiresAmmo(t *testing.T) {
+	for _, index := range []int{skill.SkillIndexIceArrow} {
+		t.Run(fmt.Sprintf("skill_%d", index), func(t *testing.T) {
+			caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+			target, _ := newSkillTestObject(2, ObjectTypeMonster)
+			withTestObjectManager(t, caster, target)
+			actor.ammoDenied = true
+			learnSkillForTest(t, caster, index)
+			caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: index})
+			if caster.MP != 100 || caster.AG != 100 || target.HP != 100 || actor.ammoUsed != 0 {
+				t.Fatal("skill used resources or damaged target without ammo")
+			}
+		})
+	}
+}
+
+func TestDefenseDownSkill(t *testing.T) {
+	rand.Seed(1)
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypeMonster)
+	withTestObjectManager(t, caster, target)
+	if caster.useSkillDefenseDown(target) {
+		t.Fatal("non-Magumsa used defense down")
+	}
+	caster.Class = int(class.Magumsa)
+	for i := 0; i < 100 && !target.HasBuff(effect.BuffDefensePowerDec); i++ {
+		caster.useSkillDefenseDown(target)
+	}
+	if !target.HasBuff(effect.BuffDefensePowerDec) || target.HP != 100 {
+		t.Fatal("defense down did not apply without direct damage")
+	}
+	if target.effects[effect.BuffDefensePowerDec].DefenseReduction != 10 ||
+		hasMessage[model.MsgUseSkillReply](actor.messages) {
+		t.Fatal("defense down value or direct helper reply is wrong")
+	}
+}
+
+func TestMonsterFireSlash(t *testing.T) {
+	rand.Seed(1)
+	caster, actor := newSkillTestObject(1, ObjectTypeMonster)
+	target, _ := newSkillTestObject(2, ObjectTypePlayer)
+	withTestObjectManager(t, caster, target)
+	s := learnSkillForTest(t, caster, skill.SkillIndexFireSlash)
+	caster.MP, caster.AG = 1000, 1000
+	for i := 0; i < 100 && !target.HasBuff(effect.BuffDefensePowerDec); i++ {
+		delete(caster.skillUseTimes, s.Index)
+		caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
+	}
+	if !target.HasBuff(effect.BuffDefensePowerDec) {
+		t.Fatal("monster Fire Slash did not apply defense reduction")
+	}
+	if target.HP != 100 || hasMessage[model.MsgAttackDamageReply](actor.messages) {
+		t.Fatal("monster Fire Slash caused direct damage")
+	}
+}
+
+func TestFireSlashDurationHit(t *testing.T) {
+	rand.Seed(1)
+	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+	caster.Class = int(class.Magumsa)
+	target, _ := newSkillTestObject(2, ObjectTypeMonster)
+	outside, _ := newSkillTestObject(3, ObjectTypeMonster)
+	withTestObjectManager(t, caster, target, outside)
+	caster.MP, caster.MaxMP = 1000, 1000
+	caster.AG, caster.MaxAG = 1000, 1000
+	caster.AttackRate = 1_000_000
+	target.X, target.Y = 11, 10
+	outside.X, outside.Y = 10, 12
+	for _, obj := range []*Object{target, outside} {
+		obj.HP, obj.MaxHP = 1000, 1000
+		if !caster.addViewportObject(obj) {
+			t.Fatal("addViewportObject failed")
+		}
+	}
+	s := learnSkillForTest(t, caster, skill.SkillIndexFireSlash)
+	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
+	assertResourceUnchanged(t, caster, 1000, 1000)
+	if target.HP != 1000 || !caster.durationSkill.startedAt.IsZero() {
+		t.Fatal("regular skill message was accepted")
+	}
+	hit := &model.MsgUseSkillAttackMultiTarget{Skill: s.Index, Targets: []model.MultiTarget{{Target: target.Index}}}
+	caster.UseSkillAttackMultiTarget(hit)
+	if target.HP != 1000 {
+		t.Fatal("hit was accepted without duration cast")
+	}
+
+	rand.Seed(3) // The first roll would trigger defense reduction.
+	caster.UseSkillDuration(&model.MsgUseSkillDuration{Target: target.Index, Skill: s.Index})
+	if caster.durationSkill.index != s.Index || caster.durationSkill.startedAt.IsZero() {
+		t.Fatal("duration cast did not establish hit state")
+	}
+	wantMP, wantAG := 1000-s.ManaUsage, 1000-s.BPUsage
+	if caster.MP != wantMP || caster.AG != wantAG || target.HP != 1000 {
+		t.Fatal("duration cast resources or target HP are wrong")
+	}
+	if target.HasBuff(effect.BuffDefensePowerDec) {
+		t.Fatal("defense reduction unexpectedly applied during cast")
+	}
+	rand.Seed(1) // The first roll does not trigger defense reduction.
+	caster.UseSkillAttackMultiTarget(&model.MsgUseSkillAttackMultiTarget{
+		Skill: s.Index,
+		Targets: []model.MultiTarget{
+			{Target: target.Index},
+			{Target: outside.Index},
+		},
+	})
+	if target.HP >= 1000 || outside.HP != 1000 {
+		t.Fatalf("target HP = %d, outside HP = %d", target.HP, outside.HP)
+	}
+	if target.HasBuff(effect.BuffDefensePowerDec) || outside.HasBuff(effect.BuffDefensePowerDec) {
+		t.Fatal("defense reduction unexpectedly applied during hit")
+	}
+	hp := target.HP
+	rand.Seed(3)
+	caster.UseSkillAttackMultiTarget(hit)
+	if !target.HasBuff(effect.BuffDefensePowerDec) || target.HP >= hp {
+		t.Fatal("successful defense reduction did not accompany hit damage")
+	}
+	if caster.MP != wantMP || caster.AG != wantAG {
+		t.Fatal("hit consumed resources again")
+	}
+	if got := countMessages[model.MsgAttackDamageReply](actor.messages); got != 2 {
+		t.Fatalf("damage replies = %d, want 2", got)
+	}
+}
+
+func TestMonkBarrageHitCounts(t *testing.T) {
+	rand.Seed(1)
+	for _, tt := range []struct{ index, hits, buff int }{
+		{skill.SkillIndexKillingBlow, 4, effect.BuffWeakness},
+		{skill.SkillIndexBeastUppercut, 2, effect.BuffDefensePowerDec},
+		{skill.SkillIndexChainDrive, 8, effect.BuffCold},
+	} {
+		t.Run(fmt.Sprintf("skill_%d", tt.index), func(t *testing.T) {
+			caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+			target, _ := newSkillTestObject(2, ObjectTypeMonster)
+			withTestObjectManager(t, caster, target)
+			caster.AttackRate = 1000000
+			target.HP, target.MaxHP = 1000000, 1000000
+			s := learnSkillForTest(t, caster, tt.index)
+			caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: tt.index})
+			if got := countMessages[model.MsgAttackDamageReply](actor.messages); got != tt.hits {
+				t.Fatalf("hits = %d, want %d", got, tt.hits)
+			}
+			modulus := 4
+			if tt.index == skill.SkillIndexBeastUppercut {
+				modulus = 2
+			}
+			hit := 0
+			for _, message := range actor.messages {
+				reply, ok := message.(*model.MsgAttackDamageReply)
+				if !ok {
+					continue
+				}
+				hit++
+				flag := 0x10
+				if hit%modulus == 0 {
+					flag = 0x20
+				}
+				if reply.DamageType&0x30 != flag {
+					t.Fatalf("hit %d flag = %#x, want %#x", hit, reply.DamageType&0x30, flag)
+				}
+			}
+			if got := countMessages[model.MsgUseSkillReply](actor.messages); got != 1 {
+				t.Fatalf("skill replies = %d, want 1", got)
+			}
+			if caster.MP != 100-s.ManaUsage || caster.AG != 100-s.BPUsage {
+				t.Fatal("barrage did not consume resources once")
+			}
+			if tt.buff == effect.BuffCold {
+				found := false
+				for y := 0; y < 256 && !found; y++ {
+					for x := 0; x < 256; x++ {
+						if maps.MapManager.GetMapAttr(target.MapNumber, x, y)&5 == 0 {
+							target.X, target.Y = x, y
+							found = true
+							break
+						}
+					}
+				}
+				if !found {
+					t.Fatal("no walkable non-safe map tile found")
+				}
+			}
+			for i := 0; i < 100 && !target.HasBuff(tt.buff); i++ {
+				caster.useSkillMonkBarrage(target, s)
+			}
+			if !target.HasBuff(tt.buff) {
+				t.Fatal("barrage did not apply its secondary effect")
+			}
+			if tt.buff == effect.BuffCold && !target.effects[tt.buff].Slow ||
+				tt.buff == effect.BuffWeakness && target.effects[tt.buff].AttackReduction != 5 ||
+				tt.buff == effect.BuffDefensePowerDec && target.effects[tt.buff].DefenseReduction != 10 {
+				t.Fatal("barrage secondary effect has the wrong value")
 			}
 		})
 	}
@@ -1027,6 +1240,37 @@ func TestUseSkillDarkSideSelectsFiveTargets(t *testing.T) {
 	}
 	if extra := targets[5]; extra.HP != extra.MaxHP {
 		t.Fatalf("sixth target HP = %d, want %d", extra.HP, extra.MaxHP)
+	}
+}
+
+func TestDurationSkillTargetTypes(t *testing.T) {
+	for _, typ := range []ObjectType{ObjectTypePlayer, ObjectTypeMonster, ObjectTypeNPC} {
+		t.Run(fmt.Sprintf("type_%d", typ), func(t *testing.T) {
+			rand.Seed(1)
+			caster, actor := newSkillTestObject(1, ObjectTypePlayer)
+			target, _ := newSkillTestObject(2, typ)
+			withTestObjectManager(t, caster, target)
+			caster.Level = 1000
+			target.X, target.Y = 11, 10
+			target.HP, target.MaxHP = 1000, 1000
+			if !caster.addViewportObject(target) {
+				t.Fatal("addViewportObject failed")
+			}
+			s := learnSkillForTest(t, caster, skill.SkillIndexTwister)
+			caster.UseSkillDuration(&model.MsgUseSkillDuration{Target: target.Index, Skill: s.Index})
+			for i := 0; i < durationSkillMaxPackets; i++ {
+				caster.UseSkillAttackMultiTarget(&model.MsgUseSkillAttackMultiTarget{
+					Skill: s.Index, Targets: []model.MultiTarget{{Target: target.Index}},
+				})
+			}
+			if typ == ObjectTypeNPC {
+				if target.HP != 1000 || hasMessage[model.MsgAttackDamageReply](actor.messages) {
+					t.Fatal("duration skill attacked NPC")
+				}
+			} else if target.HP >= 1000 {
+				t.Fatal("duration skill did not damage target")
+			}
+		})
 	}
 }
 

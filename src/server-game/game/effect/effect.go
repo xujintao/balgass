@@ -20,6 +20,7 @@ const (
 	BuffPoison           = 55
 	BuffIce              = 56
 	BuffIceArrow         = 57
+	BuffDefensePowerDec  = 58
 	BuffStun             = 61
 	BuffDamageReflection = 71
 	BuffSleep            = 72

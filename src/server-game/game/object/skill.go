@@ -112,29 +112,19 @@ func (obj *Object) UseSkill(msg *model.MsgUseSkill) {
 		skill.SkillIndexCyclone,           // 22旋风斩(武器)
 		skill.SkillIndexSlash,             // 23天地十字剑(武器)
 		skill.SkillIndexCrescentMoonSlash, // 44半月斩(攻城)
-		skill.SkillIndexStarfall,          // 46天堂之箭(攻城)
 		skill.SkillIndexFireBreath,        // 49流星焰(彩云兽)
-		skill.SkillIndexIceArrow,          // 51冰封箭
-		skill.SkillIndexFireSlash,         // 55玄月斩
 		skill.SkillIndexSpiralSlash,       // 57风舞回旋斩(攻城)
 		skill.SkillIndexForceWave,         // 66冲击波
-		skill.SkillIndexKillingBlow,       // 260幽冥青狼拳
-		skill.SkillIndexBeastUppercut,     // 261斗气爆裂拳
-		skill.SkillIndexChainDrive,        // 262回旋踢
 		skill.SkillIndexDragonSlasher,     // 265噬血之龙
 		skill.SkillIndexCharge:            // 269冲锋(攻城)
-		switch s.Index {
-		case skill.SkillIndexStarfall, // 46天堂之箭(攻城)
-			skill.SkillIndexIceArrow: // 51冰封箭
-			if !obj.UseSkillAmmo(s, false) {
-				break
-			}
+		success = obj.useSkillAttack(tobj, s)
+	case skill.SkillIndexStarfall, // 46天堂之箭(攻城)
+		skill.SkillIndexIceArrow: // 51冰封箭
+		if obj.UseSkillAmmo(s, false) {
 			success = obj.useSkillAttack(tobj, s)
 			if success {
 				obj.UseSkillAmmo(s, true)
 			}
-		default:
-			success = obj.useSkillAttack(tobj, s)
 		}
 	case skill.SkillIndexSoulBarrier: // 16守护之魂
 		success = obj.useSkillSoulBarrier(tobj, s)
@@ -166,6 +156,8 @@ func (obj *Object) UseSkill(msg *model.MsgUseSkill) {
 		success = obj.useSkillDeathStab(s, tobj)
 	case skill.SkillIndexSwellHP: // 48生命之光
 		success = obj.useSkillSwellHP(tobj, s)
+	case skill.SkillIndexFireSlash: // 55玄月斩
+		success = obj.useSkillDefenseDown(tobj)
 	case skill.SkillIndexPowerSlash: // 56天雷闪(武器)
 		success = obj.useSkillAttackFrustum(tobj, s, 6.0, 6.0, 1.0, 0.0)
 	case skill.SkillIndexForce: // 60冲击(初始)
@@ -208,6 +200,10 @@ func (obj *Object) UseSkill(msg *model.MsgUseSkill) {
 		success = obj.useSkillAttackArea(tobj, s, 6)
 	case skill.SkillIndexChaoticDiseier: // 238黑暗之力
 		success = obj.useSkillAttackFrustum(tobj, s, 1.5, 6.0, 1.5, 0.0)
+	case skill.SkillIndexKillingBlow, // 260幽冥青狼拳
+		skill.SkillIndexBeastUppercut, // 261斗气爆裂拳
+		skill.SkillIndexChainDrive:    // 262回旋踢
+		success = obj.useSkillMonkBarrage(tobj, s)
 	case skill.SkillIndexDarkSide: // 263幽冥光速拳
 		success = obj.useSkillDarkSide(tobj, s)
 	case skill.SkillIndexDragonRoar: // 264炎龙拳
@@ -312,6 +308,16 @@ func (obj *Object) UseSkillDuration(msg *model.MsgUseSkillDuration) {
 		}
 	default:
 		switch s.Index {
+		case skill.SkillIndexFlame, // 5火龙
+			skill.SkillIndexTwister,    // 8龙卷风
+			skill.SkillIndexEvilSpirit, // 9黑龙波
+			skill.SkillIndexHellFire,   // 10地狱火
+			skill.SkillIndexAquaBeam,   // 12极光
+			skill.SkillIndexCometFall,  // 13爆炎
+			skill.SkillIndexInferno,    // 14毁灭烈焰
+			skill.SkillIndexImpale,     // 47钻云枪
+			skill.SkillIndexFireSlash,  // 55玄月斩
+			skill.SkillIndexFireScream: // 78火舞旋风
 		case skill.SkillIndexTripleShot, // 24多重箭(武器)
 			skill.SkillIndexPenetration: // 52穿透箭
 			if !obj.UseSkillAmmo(s, false) {
@@ -331,12 +337,21 @@ func (obj *Object) UseSkillDuration(msg *model.MsgUseSkillDuration) {
 		}
 		obj.durationSkill = state
 		switch s.Index {
+		case skill.SkillIndexFlame, // 5火龙
+			skill.SkillIndexTwister,    // 8龙卷风
+			skill.SkillIndexEvilSpirit, // 9黑龙波
+			skill.SkillIndexHellFire,   // 10地狱火
+			skill.SkillIndexAquaBeam,   // 12极光
+			skill.SkillIndexCometFall,  // 13爆炎
+			skill.SkillIndexInferno,    // 14毁灭烈焰
+			skill.SkillIndexImpale,     // 47钻云枪
+			skill.SkillIndexFireSlash,  // 55玄月斩
+			skill.SkillIndexFireScream: // 78火舞旋风
 		case skill.SkillIndexTripleShot, // 24多重箭(武器)
 			skill.SkillIndexPenetration: // 52穿透箭
 			obj.UseSkillAmmo(s, true)
 		}
 	}
-
 	now := time.Now()
 	obj.MP -= mp
 	obj.AG -= ag
@@ -405,7 +420,7 @@ func (obj *Object) UseSkillAttackMultiTarget(msg *model.MsgUseSkillAttackMultiTa
 		tobj := ObjectManager.GetObject(target.Target)
 		if tobj == nil ||
 			!tobj.Live ||
-			tobj.Type != ObjectTypeMonster ||
+			(tobj.Type != ObjectTypeMonster && tobj.Type != ObjectTypePlayer) ||
 			tobj.MapNumber != obj.MapNumber ||
 			obj.CalcDistance(tobj) > 13 {
 			continue
@@ -429,11 +444,15 @@ func (obj *Object) UseSkillAttackMultiTarget(msg *model.MsgUseSkillAttackMultiTa
 		if !obj.checkDurationTarget(tobj, s, state) {
 			continue
 		}
-		obj.attack(tobj, attackRequest{mode: attackModeCalculated, skill: s})
-		if s.Index == skill.SkillIndexFireScream &&
-			rand.Intn(10000) < skill.Settings.FireScreamExplosionRate {
-			obj.AddDelayMsg(8, s.Index, 300, tobj.Index)
+		switch s.Index {
+		case skill.SkillIndexFireSlash: // 55玄月斩
+			obj.useSkillDefenseDown(tobj)
+		case skill.SkillIndexFireScream: // 78火舞旋风
+			if rand.Intn(10000) < skill.Settings.FireScreamExplosionRate {
+				obj.AddDelayMsg(8, s.Index, 300, tobj.Index)
+			}
 		}
+		obj.attack(tobj, attackRequest{mode: attackModeCalculated, skill: s})
 	}
 }
 
@@ -547,6 +566,61 @@ func (obj *Object) useSkillAttack(tobj *Object, s *skill.Skill) bool {
 		skill.SkillIndexSlash,        // 23天地十字剑(武器)
 		skill.SkillIndexPhoenixShot:  // 270神圣气旋
 		obj.AddDelayMsg(2, 0, 150, tobj.Index) // delay knockback target
+	}
+	return true
+}
+
+func (obj *Object) useSkillDefenseDown(tobj *Object) bool {
+	if obj.Type == ObjectTypePlayer && obj.Class != int(class.Magumsa) {
+		return false
+	}
+	if rand.Intn(100) >= 45 {
+		return true
+	}
+	if !tobj.addEffect(&effect.Effect{
+		BuffIndex:        effect.BuffDefensePowerDec,
+		DefenseReduction: 10,
+		Expire:           time.Now().Add(10 * time.Second),
+	}) {
+		return false
+	}
+	return true
+}
+
+func (obj *Object) useSkillMonkBarrage(tobj *Object, s *skill.Skill) bool {
+	hits := 0
+	switch s.Index {
+	case skill.SkillIndexKillingBlow:
+		hits = 4
+		if rand.Intn(100) < 10 {
+			tobj.addEffect(&effect.Effect{
+				BuffIndex:       effect.BuffWeakness,
+				AttackReduction: 5,
+				Expire:          time.Now().Add(10 * time.Second),
+			})
+		}
+	case skill.SkillIndexBeastUppercut:
+		hits = 2
+		if rand.Intn(100) < 10 {
+			tobj.addEffect(&effect.Effect{
+				BuffIndex:        effect.BuffDefensePowerDec,
+				DefenseReduction: 10,
+				Expire:           time.Now().Add(10 * time.Second),
+			})
+		}
+	case skill.SkillIndexChainDrive:
+		hits = 8
+		if rand.Intn(100) < 40 && maps.MapManager.GetMapAttr(tobj.MapNumber, tobj.X, tobj.Y)&1 == 0 {
+			tobj.addEffect(&effect.Effect{
+				BuffIndex: effect.BuffCold,
+				Slow:      true,
+				Expire:    time.Now().Add(10 * time.Second),
+			})
+		}
+	}
+	obj.useSkillReply(tobj, s, true)
+	for i := 0; i < hits && tobj.Live; i++ {
+		obj.attack(tobj, attackRequest{mode: attackModeCalculated, skill: s, barrageHit: i + 1})
 	}
 	return true
 }
