@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/buff"
 	gameclass "github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
@@ -326,23 +327,85 @@ type actionState struct {
 
 type Monster struct {
 	object.Object
-	EventHerd           bool
-	PassiveUntilHit     bool
-	moveRange           int // 移动范围
-	spawnStartX         int
-	spawnStartY         int
-	spawnEndX           int
-	spawnEndY           int
-	spawnDir            int
-	spawnDis            int
-	actionState         actionState
-	lastActionTime      time.Time
-	nextActionInterval  int
-	delayActionInterval int
+	magicAttackMin       int
+	magicAttackMax       int
+	curseAttackMin       int
+	curseAttackMax       int
+	criticalAttackDamage int
+	ignoreDefenseRate    int
+	EventHerd            bool
+	PassiveUntilHit      bool
+	moveRange            int // 移动范围
+	spawnStartX          int
+	spawnStartY          int
+	spawnEndX            int
+	spawnEndY            int
+	spawnDir             int
+	spawnDis             int
+	actionState          actionState
+	lastActionTime       time.Time
+	nextActionInterval   int
+	delayActionInterval  int
 }
 
 func (m *Monster) Addr() string {
 	return fmt.Sprintf("%d", m.Class)
+}
+
+func (m *Monster) Calc() {
+	mc, ok := gameclass.MonsterTable[m.Class]
+	if !ok {
+		panic(fmt.Sprintf("monster invalid [class]%d", m.Class))
+	}
+	m.AttackMin = mc.DamageMin
+	m.AttackMax = mc.DamageMax
+	m.Defense = mc.Defense
+	m.DefenseRate = mc.BlockRate
+	m.MaxHP = mc.HP
+	m.MaxMP = mc.MP
+	m.magicAttackMin = 0
+	m.magicAttackMax = 0
+	m.curseAttackMin = 0
+	m.curseAttackMax = 0
+	m.criticalAttackDamage = 0
+	m.ignoreDefenseRate = 0
+	m.BuffDefenseReduction = 0
+	m.BuffAttackReduction = 0
+	m.BuffReflect = 0
+	delayLevel := 0
+	m.Buffs().ApplyBuffEffect(func(effect buff.BuffEffect) {
+		m.AttackMin += effect.Attack + effect.AttackMin
+		m.AttackMax += effect.Attack + effect.AttackMax
+		m.magicAttackMin += effect.MagicMin
+		m.magicAttackMax += effect.MagicMax
+		m.curseAttackMin += effect.CurseMin
+		m.curseAttackMax += effect.CurseMax
+		m.Defense += effect.Defense
+		m.DefenseRate += effect.DefenseRate
+		m.MaxHP += int(float64(m.MaxHP) * effect.IncMaxHP / 100)
+		m.MaxMP += int(float64(m.MaxMP) * effect.IncMaxMP / 100)
+		m.criticalAttackDamage += effect.CriticalDamage
+		m.ignoreDefenseRate += effect.IgnoreDefense
+		m.BuffDefenseReduction += effect.DefenseReduction
+		m.BuffAttackReduction += effect.AttackReduction
+		m.BuffReflect += effect.Reflect
+	})
+	for _, active := range m.Buffs() {
+		if active.Effect.Slow {
+			delayLevel++
+		}
+	}
+	m.SetEffectDelayLevel(delayLevel)
+	if m.HP > m.MaxHP {
+		m.HP = m.MaxHP
+	}
+	if m.MP > m.MaxMP {
+		m.MP = m.MaxMP
+	}
+	m.PushMaxHPSD(m.MaxHP, m.MaxSD)
+	m.PushMaxMPAG(m.MaxMP, m.MaxAG)
+	m.PushHPSD(m.HP, m.SD)
+	m.PushMPAG(m.MP, m.AG)
 }
 
 func (m *Monster) Offline() {}
@@ -699,8 +762,8 @@ func (m *Monster) Regen() {
 	m.spawnPosition()
 	maps.MapManager.SetMapAttrStand(m.MapNumber, m.TX, m.TY)
 	m.CreateFrustum()
-	m.HP = m.MaxHP + m.AddHP
-	m.MP = m.MaxMP + m.AddMP
+	m.HP = m.MaxHP
+	m.MP = m.MaxMP
 }
 
 func (m *Monster) GetChangeUp() int {

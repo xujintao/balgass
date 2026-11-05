@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
-	"github.com/xujintao/balgass/src/server-game/game/effect"
+	"github.com/xujintao/balgass/src/server-game/game/buff"
 	"github.com/xujintao/balgass/src/server-game/game/formula"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
@@ -345,13 +345,8 @@ func (obj *Object) SummonOwner() int {
 	return obj.summonOwner
 }
 
-func (obj *Object) HasBuff(index int) bool {
-	for _, eff := range obj.effects {
-		if eff.BuffIndex == index {
-			return true
-		}
-	}
-	return false
+func (obj *Object) HasBuff(index buff.BuffType) bool {
+	return obj.Buff(index) != nil
 }
 
 func (m *objectManager) GetPlayerByName(name string) *Object {
@@ -477,7 +472,7 @@ func (m *objectManager) Process1000ms() {
 			continue
 		}
 		obj.Process1000ms()
-		obj.processEffect()
+		obj.processBuffs()
 		obj.processViewport() // 1->2
 		obj.processRegen()    // 4->1
 	}
@@ -687,6 +682,7 @@ type Objecter interface {
 	GetMonsterDieGetMP() float64               // implemented by Player and Monster
 	GetAddDamage() int                         // implemented by Player and Monster
 	GetArmorReduceDamage() int                 // implemented by Player and Monster
+	GetArmorReflectDamage() int                // implemented by Player and Monster
 	GetWingIncreaseDamage() int                // implemented by Player and Monster
 	GetWingReduceDamage() int                  // implemented by Player and Monster
 	GetHelperReduceDamage() int                // implemented by Player and Monster
@@ -703,6 +699,7 @@ type Objecter interface {
 	GetKnightGladiatorCalcSkillBonus() float64 // implemented by Player and Monster
 	GetImpaleSkillCalc() float64               // implemented by Player and Monster
 	OnDamageTaken()                            // implemented by Player and Monster
+	Calc()                                     // implemented by Player and Monster
 
 	// object actions:
 	// 1. Move
@@ -784,10 +781,8 @@ type Object struct {
 	delayLevel                int
 	HP                        int // HP
 	MaxHP                     int // MaxHP
-	AddHP                     int // 临时生命上限加成
 	MP                        int // MP
 	MaxMP                     int // MaxMP
-	AddMP                     int // 临时魔法上限加成
 	SD                        int // SD
 	MaxSD                     int
 	AG                        int // AG
@@ -803,6 +798,9 @@ type Object struct {
 	MoveSpeed                 int // 移动速度
 	AttackRange               int // 攻击范围
 	AttackType                int // 攻击类型
+	BuffDefenseReduction      int
+	BuffAttackReduction       int
+	BuffReflect               int
 	ViewRange                 int // 视野范围
 	ItemDropRate              int // 道具掉落率
 	MoneyDropRate             int // 金钱掉落率
@@ -822,7 +820,7 @@ type Object struct {
 	PentagramDefense          int
 	Skills                    skill.Skills
 	skillUseTimes             map[int]time.Time
-	effects                   effect.Effects
+	buffs                     buff.Buffs
 	durationSkill             durationSkillState
 	novaSkill                 novaSkillState
 	chainLightningTarget      int
@@ -1104,7 +1102,7 @@ func (obj *Object) Init() {
 	obj.summonIndex = -1
 	obj.summonOwner = -1
 	obj.initSkill()
-	obj.initEffect()
+	obj.initBuff()
 	obj.initViewport()
 	obj.initMessage()
 }
@@ -1117,7 +1115,7 @@ func (obj *Object) Reset() {
 	obj.Live = false
 	obj.lastBasicAttackTime = time.Time{}
 	obj.clearSkill()
-	obj.clearEffect()
+	obj.clearBuff()
 	obj.clearViewport()
 }
 
@@ -1244,8 +1242,8 @@ func (obj *Object) processDelayMsg() {
 				addHP := 0
 				formula.SummonerDrainLifeMonster(obj.GetEnergy(), tobj.Level, &addHP)
 				obj.HP += addHP
-				if obj.HP > obj.MaxHP+obj.AddHP {
-					obj.HP = obj.MaxHP + obj.AddHP
+				if obj.HP > obj.MaxHP {
+					obj.HP = obj.MaxHP
 				}
 				obj.PushHPSD(obj.HP, obj.SD)
 			}
@@ -1300,13 +1298,13 @@ func (obj *Object) processDelayMsg() {
 			if !obj.Live || obj.HP <= 0 {
 				break
 			}
-			obj.HP = obj.MaxHP + obj.AddHP
+			obj.HP = obj.MaxHP
 			obj.PushHPSD(obj.HP, obj.SD)
 		case 14: // delayed full MP recovery
 			if !obj.Live || obj.HP <= 0 {
 				break
 			}
-			obj.MP = obj.MaxMP + obj.AddMP
+			obj.MP = obj.MaxMP
 			obj.PushMPAG(obj.MP, obj.AG)
 		case 15: // delayed full SD recovery
 			if !obj.Live || obj.HP <= 0 {

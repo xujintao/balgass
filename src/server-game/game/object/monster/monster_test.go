@@ -4,10 +4,63 @@ import (
 	"testing"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/game/buff"
+	gameclass "github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 )
+
+func TestEffectChangesRecalculateMonsterStats(t *testing.T) {
+	base := gameclass.MonsterTable[0]
+	if base == nil {
+		t.Fatal("monster class 0 is missing from configuration")
+	}
+	m := &Monster{
+		Object: object.Object{Class: 0},
+	}
+	m.Init()
+	m.Objecter = m
+	m.HP, m.MP = base.HP, base.MP
+
+	active := buff.NewBuff(buff.BuffTypeIncreaseAttackPower)
+	active.Expire = time.Now().Add(time.Minute)
+	active.Effect = buff.BuffEffect{
+		Attack: 5, MagicMin: 11, MagicMax: 12, CurseMin: 13, CurseMax: 14,
+		Defense: 7, IncMaxHP: 20, IncMaxMP: 10,
+		CriticalDamage: 15, IgnoreDefense: 16, DefenseReduction: 17,
+		AttackReduction: 18, Reflect: 19,
+	}
+	m.Buffs()[active.Index] = active
+	m.Calc()
+	if m.AttackMin != base.DamageMin+5 || m.AttackMax != base.DamageMax+5 || m.GetMagicAttackMin() != 11 || m.GetMagicAttackMax() != 12 ||
+		m.GetCurseAttackMin() != 13 || m.GetCurseAttackMax() != 14 || m.GetCriticalAttackDamage() != 15 ||
+		m.GetIgnoreDefenseRate() != 16 || m.BuffDefenseReduction != 17 || m.BuffAttackReduction != 18 ||
+		m.BuffReflect != 19 || m.Defense != base.Defense+7 || m.MaxHP != base.HP+base.HP*20/100 || m.MaxMP != base.MP+base.MP*10/100 {
+		t.Fatalf("stats after effect = attack %d/%d, magic %d/%d, curse %d/%d, crit/ignore %d/%d, reductions/reflect %d/%d/%d, defense %d, MaxHP/MaxMP %d/%d",
+			m.AttackMin, m.AttackMax, m.GetMagicAttackMin(), m.GetMagicAttackMax(), m.GetCurseAttackMin(),
+			m.GetCurseAttackMax(), m.GetCriticalAttackDamage(), m.GetIgnoreDefenseRate(), m.BuffDefenseReduction,
+			m.BuffAttackReduction, m.BuffReflect, m.Defense, m.MaxHP, m.MaxMP)
+	}
+	m.Calc()
+	if m.AttackMin != base.DamageMin+5 || m.AttackMax != base.DamageMax+5 || m.GetMagicAttackMin() != 11 || m.GetMagicAttackMax() != 12 ||
+		m.GetCurseAttackMin() != 13 || m.GetCurseAttackMax() != 14 || m.GetCriticalAttackDamage() != 15 ||
+		m.GetIgnoreDefenseRate() != 16 || m.BuffDefenseReduction != 17 || m.BuffAttackReduction != 18 ||
+		m.BuffReflect != 19 || m.Defense != base.Defense+7 || m.MaxHP != base.HP+base.HP*20/100 || m.MaxMP != base.MP+base.MP*10/100 {
+		t.Fatal("effect stats accumulated across recalculations")
+	}
+	delete(m.Buffs(), active.Index)
+	m.Calc()
+	if m.AttackMin != base.DamageMin || m.AttackMax != base.DamageMax || m.GetMagicAttackMin() != 0 || m.GetMagicAttackMax() != 0 ||
+		m.GetCurseAttackMin() != 0 || m.GetCurseAttackMax() != 0 || m.GetCriticalAttackDamage() != 0 ||
+		m.GetIgnoreDefenseRate() != 0 || m.BuffDefenseReduction != 0 || m.BuffAttackReduction != 0 ||
+		m.BuffReflect != 0 || m.Defense != base.Defense || m.MaxHP != base.HP || m.MaxMP != base.MP {
+		t.Fatalf("stats after effect removal = attack %d/%d, magic %d/%d, curse %d/%d, crit/ignore %d/%d, reductions/reflect %d/%d/%d, defense %d, MaxHP/MaxMP %d/%d",
+			m.AttackMin, m.AttackMax, m.GetMagicAttackMin(), m.GetMagicAttackMax(), m.GetCurseAttackMin(),
+			m.GetCurseAttackMax(), m.GetCriticalAttackDamage(), m.GetIgnoreDefenseRate(), m.BuffDefenseReduction,
+			m.BuffAttackReduction, m.BuffReflect, m.Defense, m.MaxHP, m.MaxMP)
+	}
+}
 
 func TestIsHiddenMonsterClass(t *testing.T) {
 	for _, tt := range []struct {

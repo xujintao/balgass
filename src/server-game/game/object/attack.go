@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
-	"github.com/xujintao/balgass/src/server-game/game/effect"
+	"github.com/xujintao/balgass/src/server-game/game/buff"
 	"github.com/xujintao/balgass/src/server-game/game/exp"
 	"github.com/xujintao/balgass/src/server-game/game/formula"
 	"github.com/xujintao/balgass/src/server-game/game/item"
@@ -81,7 +81,7 @@ func (obj *Object) getDefense(attacker *Object, t int) int {
 			}
 		}
 	}
-	reduction := obj.effects.DefenseReduction()
+	reduction := obj.BuffDefenseReduction
 	defense -= defense * reduction / 100
 	if defense < 0 {
 		defense = 0
@@ -117,8 +117,8 @@ func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 		skill.SkillIndexDrainLife,      // 214摄魂咒
 		skill.SkillIndexLightningShock, // 230烈光闪
 		skill.SkillIndexGiganticStorm:  // 237闪电轰顶
-		damageMin = obj.GetMagicAttackMin() + obj.effects.MagicMin() + s.DamageMin
-		damageMax = obj.GetMagicAttackMax() + obj.effects.MagicMax() + s.DamageMax
+		damageMin = obj.GetMagicAttackMin() + s.DamageMin
+		damageMax = obj.GetMagicAttackMax() + s.DamageMax
 	case skill.SkillIndexFallingSlash, // 19地裂斩(武器)
 		skill.SkillIndexLunge,             // 20牙突刺(武器)
 		skill.SkillIndexUppercut,          // 21升龙击(武器)
@@ -157,8 +157,8 @@ func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 	case skill.SkillIndexSummonerExplosion, // 223爆裂
 		skill.SkillIndexRequiem,   // 224刺袭
 		skill.SkillIndexPollution: // 225污染
-		damageMin = obj.GetCurseAttackMin() + obj.effects.CurseMin() + s.DamageMin
-		damageMax = obj.GetCurseAttackMax() + obj.effects.CurseMax() + s.DamageMax
+		damageMin = obj.GetCurseAttackMin() + s.DamageMin
+		damageMax = obj.GetCurseAttackMax() + s.DamageMax
 	case skill.SkillIndexNova: // 40星辰一怒
 		chargeTable := [...]int{0, 20, 50, 99, 160, 225, 325, 425, 550, 700, 880, 1090, 1320}
 		count := obj.novaSkill.count
@@ -277,7 +277,6 @@ func (obj *Object) getDamage(s *skill.Skill, t int, tobj *Object) int {
 	case 3:
 		damage = damageMax
 		damage += obj.GetCriticalAttackDamage()
-		damage += obj.effects.CriticalDamage()
 	case 2:
 		damage = damageMax
 		damage += damage * 20 / 100
@@ -409,7 +408,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 
 		// 1. calc target defense
 		// rand ignore target defense and get target defense
-		ignoreDefenseRate := obj.GetIgnoreDefenseRate() + obj.effects.IgnoreDefense()
+		ignoreDefenseRate := obj.GetIgnoreDefenseRate()
 		if rand.Intn(10000) < ignoreDefenseRate*100 {
 			damageType = 1
 		}
@@ -429,7 +428,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 		damage = obj.getDamage(s, damageType, tobj)
 		// 3. calc attack damage
 		damage = damage - defense
-		reduction := obj.effects.AttackReduction()
+		reduction := obj.BuffAttackReduction
 		damage -= damage * reduction / 100
 		minimumDamage := (obj.Level + obj.GetMasterLevel()) / 10
 		if minimumDamage < 1 {
@@ -449,11 +448,14 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 		damage += damage * obj.GetPetIncreaseDamage() / 100
 		damage -= damage * tobj.GetPetReduceDamage() / 100
 		// 8. effect reduce damage
-		if barrier := tobj.effect(effect.BuffSoulBarrier); barrier != nil && damage > 0 {
-			mana := tobj.MP * barrier.ManaRate / 1000
+		if barrier := tobj.Buff(buff.BuffTypeSoulBarrier4); barrier != nil && damage > 0 {
+			barrierBuffs := buff.Buffs{barrier.Index: barrier}
+			var barrierOption buff.BuffEffect
+			barrierBuffs.ApplyBuffEffect(func(option buff.BuffEffect) { barrierOption = option })
+			mana := tobj.MP * barrierOption.ManaRate / 1000
 			if mana < tobj.MP {
 				tobj.MP -= mana
-				damage -= damage * barrier.DamageReduction / 100
+				damage -= damage * barrierOption.DamageReduction / 100
 				tobj.PushMPAG(tobj.MP, tobj.AG)
 			}
 		}
@@ -488,10 +490,13 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	}
 	if damage > 0 {
 		tobj.OnDamageTaken()
-		tobj.removeSleepEffect()
-		obj.applySkillEffect(tobj, s, damage)
+		tobj.removeSleepBuff()
+		obj.applySkillBuff(tobj, s, damage)
 		if allowReflect {
-			reflect := tobj.effects.Reflect()
+			reflect := tobj.BuffReflect + tobj.GetArmorReflectDamage()
+			if reflect > conf.CalcChar.MaxDamageReflectPercent {
+				reflect = conf.CalcChar.MaxDamageReflectPercent
+			}
 			if reflect > 0 && obj.Live {
 				reflectedDamage := damage * reflect / 100
 				if reflectedDamage > 0 {
@@ -544,7 +549,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	attackEffectReply := model.MsgAttackEffectReply{
 		Target:       tobj.Index,
 		HP:           tobj.HP,
-		MaxHP:        tobj.MaxHP + tobj.AddHP,
+		MaxHP:        tobj.MaxHP,
 		Level:        tobj.Level,
 		IceEffect:    0,
 		PoisonEffect: 0,
@@ -554,7 +559,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 	// Push attack hp reply
 	attackHPReply := model.MsgAttackHPReply{
 		Target: tobj.Index,
-		MaxHP:  tobj.MaxHP + tobj.AddHP,
+		MaxHP:  tobj.MaxHP,
 		HP:     tobj.HP,
 	}
 	tobj.PushViewport(&attackHPReply)
@@ -564,7 +569,7 @@ func (obj *Object) attack(tobj *Object, req attackRequest) int {
 		tobj.Live = false
 		tobj.State = 4
 		tobj.dieTime = time.Now()
-		tobj.removeAllEffects()
+		tobj.removeAllBuffs()
 		tobj.durationSkill = durationSkillState{}
 		tobj.novaSkill = novaSkillState{}
 		tobj.Die(obj, hpDamage)
@@ -658,7 +663,7 @@ func (obj *Object) basicAttackBlockedInSafeZone(tobj *Object) bool {
 }
 
 func (obj *Object) consumeBasicAttackAmmo() bool {
-	if obj.Type != ObjectTypePlayer || obj.HasBuff(effect.BuffInfinityArrow) {
+	if obj.Type != ObjectTypePlayer || obj.HasBuff(buff.BuffTypeInfinityArrow6) {
 		return true
 	}
 	leftHand := obj.GetInventoryItem(0)
@@ -764,16 +769,16 @@ func (obj *Object) DieDropExperience() {
 
 func (obj *Object) DieRecoverHPMP(tobj *Object) {
 	if tobj.GetMonsterDieGetHP() != 0 {
-		tobj.HP += int(float64(tobj.MaxHP+tobj.AddHP) * tobj.GetMonsterDieGetHP())
-		if tobj.HP >= tobj.MaxHP+tobj.AddHP {
-			tobj.HP = tobj.MaxHP + tobj.AddHP
+		tobj.HP += int(float64(tobj.MaxHP) * tobj.GetMonsterDieGetHP())
+		if tobj.HP >= tobj.MaxHP {
+			tobj.HP = tobj.MaxHP
 		}
 		tobj.PushHPSD(tobj.HP, tobj.SD)
 	}
 	if tobj.GetMonsterDieGetMP() != 0 {
-		tobj.MP += int(float64(tobj.MaxMP+tobj.AddMP) * tobj.GetMonsterDieGetMP())
-		if tobj.MP >= tobj.MaxMP+tobj.AddMP {
-			tobj.MP = tobj.MaxMP + tobj.AddMP
+		tobj.MP += int(float64(tobj.MaxMP) * tobj.GetMonsterDieGetMP())
+		if tobj.MP >= tobj.MaxMP {
+			tobj.MP = tobj.MaxMP
 		}
 		tobj.PushMPAG(tobj.MP, tobj.AG)
 	}

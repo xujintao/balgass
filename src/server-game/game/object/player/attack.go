@@ -80,6 +80,10 @@ func (p *Player) GetArmorReduceDamage() int {
 	return p.armorReduceDamage
 }
 
+func (p *Player) GetArmorReflectDamage() int {
+	return p.armorReflectDamage
+}
+
 func (p *Player) GetWingIncreaseDamage() int {
 	return p.wingIncreaseDamage
 }
@@ -247,10 +251,10 @@ func (p *Player) LevelUp(addexp int) bool {
 		p.masterLevel++
 		p.masterPoint += conf.Common.General.MasterPointPerLevel
 	}
-	p.calc()
-	p.HP = p.MaxHP + p.AddHP
+	p.Calc()
+	p.HP = p.MaxHP
 	p.SD = p.MaxSD
-	p.MP = p.MaxMP + p.AddMP
+	p.MP = p.MaxMP
 	p.AG = p.MaxAG
 	p.PushHPSD(p.HP, p.SD)
 	p.PushMPAG(p.MP, p.AG)
@@ -258,8 +262,8 @@ func (p *Player) LevelUp(addexp int) bool {
 		reply := model.MsgLevelUpReply{
 			Level:      p.Level,
 			LevelPoint: p.levelPoint,
-			MaxHP:      p.MaxHP + p.AddHP,
-			MaxMP:      p.MaxMP + p.AddMP,
+			MaxHP:      p.MaxHP,
+			MaxMP:      p.MaxMP,
 			MaxSD:      p.MaxSD,
 			MaxAG:      p.MaxAG,
 		}
@@ -270,8 +274,8 @@ func (p *Player) LevelUp(addexp int) bool {
 			MasterPointPerLevel: conf.Common.General.MasterPointPerLevel,
 			MasterPoint:         p.masterPoint,
 			MaxMasterLevel:      conf.Common.General.MaxLevelMaster,
-			MaxHP:               p.MaxHP + p.AddHP,
-			MaxMP:               p.MaxMP + p.AddMP,
+			MaxHP:               p.MaxHP,
+			MaxMP:               p.MaxMP,
 			MaxSD:               p.MaxSD,
 			MaxAG:               p.MaxAG,
 		}

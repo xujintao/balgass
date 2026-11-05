@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
-	"github.com/xujintao/balgass/src/server-game/game/effect"
+	"github.com/xujintao/balgass/src/server-game/game/buff"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
@@ -162,7 +162,9 @@ func TestBasicAttackRejectsInvalidRequests(t *testing.T) {
 			attacker.State = 8
 		}},
 		{name: "attacker cannot act", mutate: func(attacker, _ *Object, _ **model.MsgAttack) {
-			attacker.effects[effect.BuffSleep] = &effect.Effect{Sleep: true}
+			active := buff.NewBuff(buff.BuffTypeSleep)
+			active.Effect.Sleep = true
+			attacker.buffs[active.Index] = active
 		}},
 		{name: "negative index", mutate: func(_ *Object, _ *Object, msg **model.MsgAttack) {
 			(*msg).Target = -1
@@ -374,10 +376,7 @@ func TestBasicAttackAmmo(t *testing.T) {
 			name: "infinity arrow bypasses ammo",
 			setup: func(t *testing.T, attacker *Object, actor *basicAttackTestActor) {
 				actor.inventory.Items[0] = item.NewItem(4, 0)
-				if !attacker.addEffect(&effect.Effect{
-					BuffIndex: effect.BuffInfinityArrow,
-					Expire:    time.Now().Add(time.Minute),
-				}) {
+				if !attacker.AddBuff(buff.BuffTypeInfinityArrow6, 60, buff.BuffEffect{}) {
 					t.Fatal("failed to add infinity arrow")
 				}
 			},
@@ -586,7 +585,10 @@ func TestCalculatedDamageStageOrder(t *testing.T) {
 	target.Level = 0
 	target.Defense = 100
 	targetActor.armorReduceDamage = 50
-	attacker.effects[9001] = &effect.Effect{AttackReduction: 50}
+	weakness := buff.NewBuff(buff.BuffTypeWeakness)
+	weakness.Effect = buff.BuffEffect{AttackReduction: 50}
+	attacker.buffs[weakness.Index] = weakness
+	attacker.Objecter.Calc()
 	withTestObjectManager(t, attacker, target)
 
 	damage := attacker.attack(target, attackRequest{mode: attackModeCalculated})
@@ -609,10 +611,9 @@ func TestCalculatedAddDamageAfterSoulBarrier(t *testing.T) {
 	target.Level = 0
 	attacker.AttackMin, attacker.AttackMax = 20, 20
 	attackerActor.addDamage = 10
-	target.effects[effect.BuffSoulBarrier] = &effect.Effect{
-		DamageReduction: 50,
-		ManaRate:        100,
-	}
+	barrier := buff.NewBuff(buff.BuffTypeSoulBarrier4)
+	barrier.Effect = buff.BuffEffect{DamageReduction: 50, ManaRate: 100}
+	target.buffs[barrier.Index] = barrier
 	withTestObjectManager(t, attacker, target)
 
 	damage := attacker.attack(target, attackRequest{mode: attackModeCalculated})
@@ -748,7 +749,7 @@ func TestMaceStunAppliesToFixedZeroDamage(t *testing.T) {
 
 	attacker.attack(target, attackRequest{mode: attackModeFixed})
 
-	if !target.HasBuff(effect.BuffStun) || !target.cannotAct() {
+	if !target.HasBuff(buff.BuffTypeStun) || !target.cannotAct() {
 		t.Fatal("mace attack did not stun target")
 	}
 	if target.PathMoving {
@@ -772,7 +773,9 @@ func TestReflectedAndReturnedDamageCanPassivelyStun(t *testing.T) {
 			name:    "reflected",
 			msgCode: 9,
 			setup: func(defender *Object, _ *attackProcTestActor) {
-				defender.effects[effect.BuffDamageReflection] = &effect.Effect{Reflect: 100}
+				reflection := buff.NewBuff(buff.BuffTypeDamageReflection)
+				reflection.Effect = buff.BuffEffect{Reflect: 100}
+				defender.buffs[reflection.Index] = reflection
 			},
 		},
 		{
@@ -790,6 +793,7 @@ func TestReflectedAndReturnedDamageCanPassivelyStun(t *testing.T) {
 			defenderActor.inventory.Items[0].Durability = 1
 			defenderActor.maceStun = 100
 			tt.setup(defender, defenderActor)
+			defender.Objecter.Calc()
 			withTestObjectManager(t, attacker, defender)
 
 			attacker.attack(defender, attackRequest{mode: attackModeFixed, damage: 20})
@@ -805,7 +809,7 @@ func TestReflectedAndReturnedDamageCanPassivelyStun(t *testing.T) {
 			}
 			defender.processDelayMsg()
 
-			if !attacker.HasBuff(effect.BuffStun) {
+			if !attacker.HasBuff(buff.BuffTypeStun) {
 				t.Fatal("passive damage did not stun original attacker")
 			}
 		})
@@ -1016,7 +1020,7 @@ func TestAttackSettlesDeathOnce(t *testing.T) {
 	if got := countMessages[model.MsgAttackDieReply](targetActor.messages); got != 1 {
 		t.Fatalf("death replies = %d, want 1", got)
 	}
-	if target.HasBuff(effect.BuffStun) {
+	if target.HasBuff(buff.BuffTypeStun) {
 		t.Fatal("killed target received mace stun")
 	}
 }
@@ -1073,24 +1077,32 @@ func TestDOTContinuesAfterSourceDeath(t *testing.T) {
 	sourceActor.inventory.Items[0].Durability = 1
 	sourceActor.maceStun = 100
 	withTestObjectManager(t, source, target)
-	if !target.addEffect(&effect.Effect{
-		BuffIndex: 9001,
-		Dot:       20,
-		Source:    source.Index,
-		Expire:    time.Now().Add(time.Minute),
-		NextTick:  time.Now().Add(-time.Second),
+	if !target.AddBuff(buff.BuffTypePoison55, 60, buff.BuffEffect{
+		Dot: buff.Dot{Damage: 20, Source: source.Index, NextTick: time.Now().Add(-time.Second)},
 	}) {
-		t.Fatal("addEffect() = false")
+		t.Fatal("AddBuff() = false")
 	}
+	poison := target.Buff(buff.BuffTypePoison55)
+	requiemTick := time.Now().Add(5 * time.Second)
+	if !target.AddBuff(buff.BuffTypeRequiem, 60, buff.BuffEffect{
+		Dot: buff.Dot{Damage: 35, Source: source.Index + 1, NextTick: requiemTick},
+	}) {
+		t.Fatal("AddBuff(requiem) = false")
+	}
+	requiem := target.Buff(buff.BuffTypeRequiem)
 	source.Live = false
 	source.HP = 0
 
-	target.processEffect()
+	target.processBuffs()
 
 	if target.HP != 80 {
 		t.Fatalf("target HP = %d, want 80", target.HP)
 	}
-	if !target.HasBuff(effect.BuffStun) {
+	if !poison.Effect.Dot.NextTick.After(time.Now()) || requiem.Effect.Dot.Source != source.Index+1 ||
+		!requiem.Effect.Dot.NextTick.Equal(requiemTick) {
+		t.Fatalf("DOT state was not kept independently: poison=%+v requiem=%+v", poison.Effect.Dot, requiem.Effect.Dot)
+	}
+	if !target.HasBuff(buff.BuffTypeStun) {
 		t.Fatal("dead DOT source did not stun target")
 	}
 }
@@ -1228,12 +1240,8 @@ func TestDamageReturnModePolicy(t *testing.T) {
 			target, targetActor := newSkillTestObject(2, ObjectTypePlayer)
 			withTestObjectManager(t, attacker, target)
 			targetActor.returnDamage = 100
-			if !target.addEffect(&effect.Effect{
-				BuffIndex: effect.BuffDamageReflection,
-				Reflect:   100,
-				Expire:    time.Now().Add(time.Minute),
-			}) {
-				t.Fatal("addEffect() = false")
+			if !target.AddBuff(buff.BuffTypeDamageReflection, 60, buff.BuffEffect{Reflect: 100}) {
+				t.Fatal("AddBuff() = false")
 			}
 
 			attacker.attack(target, attackRequest{
@@ -1257,6 +1265,46 @@ func TestDamageReturnModePolicy(t *testing.T) {
 			if gotReturn != tt.wantReturn {
 				t.Fatalf("queued return = %t, want %t", gotReturn, tt.wantReturn)
 			}
+		})
+	}
+}
+
+func TestDamageReflectionCombinesBuffAndArmorOptions(t *testing.T) {
+	oldLimit := conf.CalcChar.MaxDamageReflectPercent
+	t.Cleanup(func() { conf.CalcChar.MaxDamageReflectPercent = oldLimit })
+
+	for _, tt := range []struct {
+		name             string
+		buffReflect      int
+		armorReflect     int
+		reflectLimit     int
+		wantReflectedHit int
+	}{
+		{name: "armor only", armorReflect: 10, reflectLimit: 100, wantReflectedHit: 2},
+		{name: "buff and armor add", buffReflect: 10, armorReflect: 10, reflectLimit: 100, wantReflectedHit: 4},
+		{name: "combined rate is capped", buffReflect: 10, armorReflect: 10, reflectLimit: 15, wantReflectedHit: 3},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			conf.CalcChar.MaxDamageReflectPercent = tt.reflectLimit
+			attacker, _ := newSkillTestObject(1, ObjectTypePlayer)
+			target, targetActor := newSkillTestObject(2, ObjectTypePlayer)
+			targetActor.armorReflectDamage = tt.armorReflect
+			withTestObjectManager(t, attacker, target)
+			if tt.buffReflect > 0 && !target.AddBuff(buff.BuffTypeDamageReflection, 60, buff.BuffEffect{Reflect: tt.buffReflect}) {
+				t.Fatal("AddBuff() = false")
+			}
+
+			attacker.attack(target, attackRequest{mode: attackModeFixed, damage: 20})
+
+			for _, msg := range target.msgs {
+				if msg.code == 9 {
+					if msg.subcode != tt.wantReflectedHit {
+						t.Fatalf("queued reflected damage = %d, want %d", msg.subcode, tt.wantReflectedHit)
+					}
+					return
+				}
+			}
+			t.Fatal("reflected damage was not queued")
 		})
 	}
 }

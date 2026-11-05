@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/game/buff"
 	"github.com/xujintao/balgass/src/server-game/game/class"
-	"github.com/xujintao/balgass/src/server-game/game/effect"
 	"github.com/xujintao/balgass/src/server-game/game/formula"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
@@ -577,11 +577,7 @@ func (obj *Object) useSkillDefenseDown(tobj *Object) bool {
 	if rand.Intn(100) >= 45 {
 		return true
 	}
-	if !tobj.addEffect(&effect.Effect{
-		BuffIndex:        effect.BuffDefensePowerDec,
-		DefenseReduction: 10,
-		Expire:           time.Now().Add(10 * time.Second),
-	}) {
+	if !tobj.AddBuff(buff.BuffTypeDefensibilityReduction, 10, buff.BuffEffect{DefenseReduction: 10}) {
 		return false
 	}
 	return true
@@ -593,29 +589,17 @@ func (obj *Object) useSkillMonkBarrage(tobj *Object, s *skill.Skill) bool {
 	case skill.SkillIndexKillingBlow:
 		hits = 4
 		if rand.Intn(100) < 10 {
-			tobj.addEffect(&effect.Effect{
-				BuffIndex:       effect.BuffWeakness,
-				AttackReduction: 5,
-				Expire:          time.Now().Add(10 * time.Second),
-			})
+			tobj.AddBuff(buff.BuffTypeWeakness, 10, buff.BuffEffect{AttackReduction: 5})
 		}
 	case skill.SkillIndexBeastUppercut:
 		hits = 2
 		if rand.Intn(100) < 10 {
-			tobj.addEffect(&effect.Effect{
-				BuffIndex:        effect.BuffDefensePowerDec,
-				DefenseReduction: 10,
-				Expire:           time.Now().Add(10 * time.Second),
-			})
+			tobj.AddBuff(buff.BuffTypeDefensibilityReduction, 10, buff.BuffEffect{DefenseReduction: 10})
 		}
 	case skill.SkillIndexChainDrive:
 		hits = 8
 		if rand.Intn(100) < 40 && maps.MapManager.GetMapAttr(tobj.MapNumber, tobj.X, tobj.Y)&1 == 0 {
-			tobj.addEffect(&effect.Effect{
-				BuffIndex: effect.BuffCold,
-				Slow:      true,
-				Expire:    time.Now().Add(10 * time.Second),
-			})
+			tobj.AddBuff(buff.BuffTypeCold, 10, buff.BuffEffect{Slow: true})
 		}
 	}
 	obj.useSkillReply(tobj, s, true)
@@ -625,52 +609,48 @@ func (obj *Object) useSkillMonkBarrage(tobj *Object, s *skill.Skill) bool {
 	return true
 }
 
-func (obj *Object) applySkillEffect(tobj *Object, s *skill.Skill, damage int) {
+func (obj *Object) applySkillBuff(tobj *Object, s *skill.Skill, damage int) {
 	if s == nil || !tobj.Live {
 		return
 	}
 	now := time.Now()
 	switch s.Index {
 	case skill.SkillIndexPoison: // 1毒咒
-		tobj.addEffect(&effect.Effect{
-			BuffIndex: effect.BuffPoison, Dot: max(1, tobj.HP*3/100), Source: obj.Index,
-			Expire: now.Add(20 * time.Second), NextTick: now.Add(time.Second),
+		tobj.AddBuff(buff.BuffTypePoison55, 20, buff.BuffEffect{
+			Dot: buff.Dot{Damage: max(1, tobj.HP*3/100), Source: obj.Index, NextTick: now.Add(time.Second)},
 		})
 	case skill.SkillIndexIce: // 7冰封
-		tobj.addEffect(&effect.Effect{BuffIndex: effect.BuffIce, Slow: true, Expire: now.Add(10 * time.Second)})
+		tobj.AddBuff(buff.BuffTypeIce, 10, buff.BuffEffect{Slow: true})
 	case skill.SkillIndexDecay: // 38单毒炎
-		tobj.addEffect(&effect.Effect{
-			BuffIndex: effect.BuffPoison, Dot: max(1, tobj.HP*3/100), Source: obj.Index,
-			Expire: now.Add(20 * time.Second), NextTick: now.Add(time.Second),
+		tobj.AddBuff(buff.BuffTypePoison55, 20, buff.BuffEffect{
+			Dot: buff.Dot{Damage: max(1, tobj.HP*3/100), Source: obj.Index, NextTick: now.Add(time.Second)},
 		})
 	case skill.SkillIndexIceStorm: // 39暴风雪
-		tobj.addEffect(&effect.Effect{BuffIndex: effect.BuffIce, Slow: true, Expire: now.Add(10 * time.Second)})
+		tobj.AddBuff(buff.BuffTypeIce, 10, buff.BuffEffect{Slow: true})
 	case skill.SkillIndexIceArrow: // 51冰封箭
-		tobj.addEffect(&effect.Effect{BuffIndex: effect.BuffIceArrow, Sleep: true, Expire: now.Add(time.Duration(skill.Settings.IceArrowTime) * time.Second)})
+		tobj.AddBuff(buff.BuffTypeIcedArrow, skill.Settings.IceArrowTime, buff.BuffEffect{Sleep: true})
 	case skill.SkillIndexSummonerExplosion: // 223爆裂
 		dot, duration := 0, 0
 		formula.ExplosionDotDamage(damage, 0, &dot, &duration)
-		tobj.addEffect(&effect.Effect{
-			BuffIndex: effect.BuffExplosion, Dot: dot, Source: obj.Index,
-			Expire: now.Add(time.Duration(duration) * time.Second), NextTick: now.Add(time.Second),
+		tobj.AddBuff(buff.BuffTypeExplosion, duration, buff.BuffEffect{
+			Dot: buff.Dot{Damage: dot, Source: obj.Index, NextTick: now.Add(time.Second)},
 		})
 	case skill.SkillIndexRequiem: // 224刺袭
 		dot, duration := 0, 0
 		formula.RequiemDotDamage(damage, &dot, &duration)
-		tobj.addEffect(&effect.Effect{
-			BuffIndex: effect.BuffRequiem, Dot: dot, Source: obj.Index,
-			Expire: now.Add(time.Duration(duration) * time.Second), NextTick: now.Add(time.Second),
+		tobj.AddBuff(buff.BuffTypeRequiem, duration, buff.BuffEffect{
+			Dot: buff.Dot{Damage: dot, Source: obj.Index, NextTick: now.Add(time.Second)},
 		})
 	case skill.SkillIndexPollution: // 225污染
-		tobj.addEffect(&effect.Effect{BuffIndex: effect.BuffIce, Slow: true, Expire: now.Add(2 * time.Second)})
+		tobj.AddBuff(buff.BuffTypeIce, 2, buff.BuffEffect{Slow: true})
 	case skill.SkillIndexLightningShock: // 230烈光闪
-		tobj.addEffect(&effect.Effect{BuffIndex: effect.BuffLightningShock, Expire: now.Add(time.Second)})
+		tobj.AddBuff(buff.BuffTypeLightningShock, 1, buff.BuffEffect{})
 	case skill.SkillIndexStrikeDestruction: // 232破坏一击
-		tobj.addEffect(&effect.Effect{BuffIndex: effect.BuffCold, Slow: true, Expire: now.Add(10 * time.Second)})
+		tobj.AddBuff(buff.BuffTypeCold, 10, buff.BuffEffect{Slow: true})
 	case skill.SkillIndexFlameStrike: // 236火剑袭
-		tobj.addEffect(&effect.Effect{BuffIndex: effect.BuffFlameStrike, Expire: now.Add(time.Second)})
+		tobj.AddBuff(buff.BuffTypeFlameStrike, 1, buff.BuffEffect{})
 	case skill.SkillIndexGiganticStorm: // 237闪电轰顶
-		tobj.addEffect(&effect.Effect{BuffIndex: effect.BuffGiganticStorm, Expire: now.Add(time.Second)})
+		tobj.AddBuff(buff.BuffTypeGiganticStorm, 1, buff.BuffEffect{})
 	}
 }
 
@@ -684,11 +664,7 @@ func (obj *Object) useSkillSoulBarrier(tobj *Object, s *skill.Skill) bool {
 	if damageReduction <= 0 || duration <= 0 {
 		return false
 	}
-	if !tobj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffSoulBarrier, DamageReduction: int(damageReduction),
-		ManaRate: skill.Settings.SoulBarrierManaRate[0],
-		Expire:   time.Now().Add(time.Duration(duration) * time.Second),
-	}) {
+	if !tobj.AddBuff(buff.BuffTypeSoulBarrier4, duration, buff.BuffEffect{DamageReduction: int(damageReduction), ManaRate: skill.Settings.SoulBarrierManaRate[0]}) {
 		return false
 	}
 	obj.useSkillReply(tobj, s, true)
@@ -715,8 +691,8 @@ func (obj *Object) useSkillHeal(tobj *Object, s *skill.Skill) bool {
 		return false
 	}
 	tobj.HP += addLife
-	if tobj.HP > tobj.MaxHP+tobj.AddHP {
-		tobj.HP = tobj.MaxHP + tobj.AddHP
+	if tobj.HP > tobj.MaxHP {
+		tobj.HP = tobj.MaxHP
 	}
 	obj.useSkillReply(tobj, s, true)
 	tobj.PushHPSD(tobj.HP, tobj.SD)
@@ -732,11 +708,7 @@ func (obj *Object) useSkillGreaterDefense(tobj *Object, s *skill.Skill) bool {
 	if defense <= 0 || duration <= 0 {
 		return false
 	}
-	tobj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffDefensePower,
-		Defense:   int(defense),
-		Expire:    time.Now().Add(time.Duration(duration) * time.Second),
-	})
+	tobj.AddBuff(buff.BuffTypeIncreaseDefense, int(duration), buff.BuffEffect{Defense: int(defense)})
 	obj.useSkillReply(tobj, s, true)
 	return true
 }
@@ -750,15 +722,7 @@ func (obj *Object) useSkillGreaterAttack(tobj *Object, s *skill.Skill) bool {
 	if attack <= 0 || duration <= 0 {
 		return false
 	}
-	tobj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffAttackPower,
-		Attack:    int(attack),
-		MagicMin:  int(attack),
-		MagicMax:  int(attack),
-		CurseMin:  int(attack),
-		CurseMax:  int(attack),
-		Expire:    time.Now().Add(time.Duration(duration) * time.Second),
-	})
+	tobj.AddBuff(buff.BuffTypeIncreaseAttackPower, int(duration), buff.BuffEffect{Attack: int(attack), MagicMin: int(attack), MagicMax: int(attack), CurseMin: int(attack), CurseMax: int(attack)})
 	obj.useSkillReply(tobj, s, true)
 	return true
 }
@@ -933,20 +897,11 @@ func (obj *Object) useSkillSwellHP(tobj *Object, s *skill.Skill) bool {
 	addLifeRate := 0.0
 	duration := 0
 	formula.KnightSkillAddLife(obj.GetVitality(), obj.GetEnergy(), 0, &addLifeRate, &duration)
-	addHP := int(float64(tobj.MaxHP) * addLifeRate / 100)
-	if addHP <= 0 || duration <= 0 {
+	if addLifeRate <= 0 || duration <= 0 {
 		return false
 	}
-	hp := tobj.HP
-	tobj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffSwellHP,
-		AddHP:     addHP,
-		Expire:    time.Now().Add(time.Duration(duration) * time.Second),
-	})
-	tobj.HP = min(hp, tobj.MaxHP+tobj.AddHP)
+	tobj.AddBuff(buff.BuffTypeSwellLife8, duration, buff.BuffEffect{IncMaxHP: addLifeRate})
 	obj.useSkillReply(tobj, s, true)
-	tobj.PushMaxHPSD(tobj.MaxHP+tobj.AddHP, tobj.MaxSD)
-	tobj.PushHPSD(tobj.HP, tobj.SD)
 	return true
 }
 
@@ -959,10 +914,7 @@ func (obj *Object) useSkillAddCriticalDamage(s *skill.Skill) bool {
 	if value <= 0 || duration <= 0 {
 		return false
 	}
-	if !obj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffCriticalDamage, CriticalDamage: value,
-		Expire: time.Now().Add(time.Duration(duration) * time.Second),
-	}) {
+	if !obj.AddBuff(buff.BuffTypeCriticalDamageIncrease5, duration, buff.BuffEffect{CriticalDamage: value}) {
 		return false
 	}
 	obj.useSkillReply(obj, s, true)
@@ -973,10 +925,7 @@ func (obj *Object) useSkillInfinityArrow(s *skill.Skill) bool {
 	if obj.Class != int(class.Elf) || obj.Level < skill.Settings.InfinityArrowUseLevel {
 		return false
 	}
-	if !obj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffInfinityArrow,
-		Expire:    time.Now().Add(time.Duration(skill.Settings.InfinityArrowSkillTime) * time.Second),
-	}) {
+	if !obj.AddBuff(buff.BuffTypeInfinityArrow6, skill.Settings.InfinityArrowSkillTime, buff.BuffEffect{}) {
 		return false
 	}
 	obj.useSkillReply(obj, s, true)
@@ -992,10 +941,7 @@ func (obj *Object) useSkillDamageReflection(tobj *Object, s *skill.Skill) bool {
 	if value <= 0 || duration <= 0 {
 		return false
 	}
-	if !tobj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffDamageReflection, Reflect: value,
-		Expire: time.Now().Add(time.Duration(duration) * time.Second),
-	}) {
+	if !tobj.AddBuff(buff.BuffTypeDamageReflection, duration, buff.BuffEffect{Reflect: value}) {
 		return false
 	}
 	obj.useSkillReply(tobj, s, true)
@@ -1018,13 +964,7 @@ func (obj *Object) useSkillBerserker(s *skill.Skill) bool {
 	if hpRate < 10 {
 		hpRate = 10
 	}
-	if !obj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffBerserker, AttackMin: attackMin, AttackMax: attackMax,
-		MagicMin: int(magicMin), MagicMax: int(magicMax), CurseMin: int(curseMin), CurseMax: int(curseMax),
-		AddMP: obj.MaxMP * up / 100, AddHP: -obj.MaxHP * hpRate / 100,
-		Defense: -obj.Defense * hpRate / 100,
-		Expire:  time.Now().Add(time.Duration(duration) * time.Second),
-	}) {
+	if !obj.AddBuff(buff.BuffTypeBerserker81, duration, buff.BuffEffect{AttackMin: attackMin, AttackMax: attackMax, MagicMin: int(magicMin), MagicMax: int(magicMax), CurseMin: int(curseMin), CurseMax: int(curseMax), IncMaxMP: float64(up), IncMaxHP: -float64(hpRate), Defense: -obj.Defense * hpRate / 100}) {
 		return false
 	}
 	obj.useSkillReply(obj, s, true)
@@ -1040,10 +980,7 @@ func (obj *Object) useSkillSleep(tobj *Object, s *skill.Skill) bool {
 	if duration <= 0 || rand.Intn(100) >= rate {
 		return false
 	}
-	if !tobj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffSleep, Sleep: true,
-		Expire: time.Now().Add(time.Duration(duration) * time.Second),
-	}) {
+	if !tobj.AddBuff(buff.BuffTypeSleep, duration, buff.BuffEffect{Sleep: true}) {
 		return false
 	}
 	obj.useSkillReply(tobj, s, true)
@@ -1058,10 +995,7 @@ func (obj *Object) useSkillExpansionWizardry(s *skill.Skill) bool {
 	if value <= 0 {
 		return false
 	}
-	if !obj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffExpansionWizard, MagicMin: value,
-		Expire: time.Now().Add(1800 * time.Second),
-	}) {
+	if !obj.AddBuff(buff.BuffTypeExpansionOfWizardry82, 1800, buff.BuffEffect{MagicMin: value}) {
 		return false
 	}
 	obj.useSkillReply(obj, s, true)
@@ -1097,10 +1031,7 @@ func (obj *Object) useSkillIgnoreDefense(s *skill.Skill) bool {
 	if value > 10 {
 		value = 10
 	}
-	if !obj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffIgnoreDefense, IgnoreDefense: value,
-		Expire: time.Now().Add(time.Duration(obj.GetEnergy()/5+60) * time.Second),
-	}) {
+	if !obj.AddBuff(buff.BuffTypeIgnoreEnemiesDefense129, obj.GetEnergy()/5+60, buff.BuffEffect{IgnoreDefense: value}) {
 		return false
 	}
 	obj.useSkillReply(obj, s, true)
@@ -1115,10 +1046,7 @@ func (obj *Object) useSkillIncreaseHealth(s *skill.Skill) bool {
 	if value <= 0 {
 		return false
 	}
-	if !obj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffIncreaseHealth, AddHP: value,
-		Expire: time.Now().Add(time.Duration(obj.GetEnergy()/5+60) * time.Second),
-	}) {
+	if !obj.AddBuff(buff.BuffTypeIncreaseHealth, obj.GetEnergy()/5+60, buff.BuffEffect{IncMaxHP: float64(value)}) {
 		return false
 	}
 	obj.useSkillReply(obj, s, true)
@@ -1136,10 +1064,7 @@ func (obj *Object) useSkillIncreaseBlock(s *skill.Skill) bool {
 	if value <= 0 {
 		return false
 	}
-	if !obj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffIncreaseBlock, DefenseRate: value,
-		Expire: time.Now().Add(time.Duration(obj.GetEnergy()/5+60) * time.Second),
-	}) {
+	if !obj.AddBuff(buff.BuffTypeIncreaseDefenseRate, obj.GetEnergy()/5+60, buff.BuffEffect{DefenseRate: value}) {
 		return false
 	}
 	obj.useSkillReply(obj, s, true)
@@ -1261,17 +1186,13 @@ func (obj *Object) useSkillCurseDebuffTarget(tobj *Object, s *skill.Skill) {
 	if value <= 0 || duration <= 0 || rand.Intn(100) >= rate {
 		return
 	}
-	se := &effect.Effect{
-		BuffIndex:       effect.BuffWeakness,
-		AttackReduction: value,
-		Expire:          time.Now().Add(time.Duration(duration) * time.Second),
-	}
+	index := buff.BuffTypeWeakness
+	effect := buff.BuffEffect{AttackReduction: value}
 	if s.Index == skill.SkillIndexInnovation {
-		se.BuffIndex = effect.BuffInnovation
-		se.AttackReduction = 0
-		se.DefenseReduction = value
+		index = buff.BuffTypeInnovation
+		effect = buff.BuffEffect{DefenseReduction: value}
 	}
-	tobj.addEffect(se)
+	tobj.AddBuff(index, duration, effect)
 }
 
 func (obj *Object) useSkillNova(msg *model.MsgUseSkill) {
@@ -1428,11 +1349,7 @@ func (obj *Object) canReceiveSupportSkill() bool {
 }
 
 func (obj *Object) useSkillStun(tobj *Object) {
-	if !tobj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffStun,
-		Stun:      true,
-		Expire:    time.Now().Add(2 * time.Second),
-	}) {
+	if !tobj.AddBuff(buff.BuffTypeStun, 2, buff.BuffEffect{Stun: true}) {
 		return
 	}
 	tobj.SetPosition(&model.MsgSetPosition{X: tobj.X, Y: tobj.Y})

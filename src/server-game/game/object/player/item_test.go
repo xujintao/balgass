@@ -48,7 +48,7 @@ func TestUsePetFollowsRequestedAction(t *testing.T) {
 		t.Fatal("request for another pet changed the active pet")
 	}
 	pet.Durability = 0
-	p.calc()
+	p.Calc()
 	itemTestMessages(p)
 	if p.petIncreaseDamage != 0 || p.GetActivePetCode() != -1 {
 		t.Fatal("broken pet still gives an effect")

@@ -7,12 +7,67 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/buff"
 	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
 )
+
+func TestEffectChangesRecalculatePlayerStats(t *testing.T) {
+	p := newItemTestPlayer()
+	p.Class = int(class.Knight)
+	p.strength, p.dexterity, p.vitality, p.energy = 100, 50, 50, 50
+	p.Calc()
+	baseAttack, baseDefense, baseDefenseRate := p.AttackMin, p.Defense, p.DefenseRate
+	baseMagicMin, baseMagicMax := p.magicAttackMin, p.magicAttackMax
+	baseCurseMin, baseCurseMax := p.curseAttackMin, p.curseAttackMax
+	baseCriticalDamage, baseIgnoreDefense := p.criticalAttackDamage, p.ignoreDefenseRate
+	baseMaxHP := p.MaxHP
+	incMaxHP := int(float64(baseMaxHP) * 20 / 100)
+
+	active := buff.NewBuff(buff.BuffTypeIncreaseAttackPower)
+	active.Expire = time.Now().Add(time.Minute)
+	active.Effect = buff.BuffEffect{
+		Attack: 5, MagicMin: 11, MagicMax: 12, CurseMin: 13, CurseMax: 14,
+		Defense: 7, DefenseRate: 3, IncMaxHP: 20,
+		CriticalDamage: 15, IgnoreDefense: 16, DefenseReduction: 17,
+		AttackReduction: 18, Reflect: 19,
+	}
+	p.Buffs()[active.Index] = active
+	p.Calc()
+	if p.AttackMin != baseAttack+5 || p.Defense != baseDefense+7 || p.DefenseRate != baseDefenseRate+3 || p.MaxHP != baseMaxHP+incMaxHP ||
+		p.magicAttackMin != baseMagicMin+11 || p.magicAttackMax != baseMagicMax+12 ||
+		p.curseAttackMin != baseCurseMin+13 || p.curseAttackMax != baseCurseMax+14 ||
+		p.criticalAttackDamage != baseCriticalDamage+15 || p.ignoreDefenseRate != baseIgnoreDefense+16 ||
+		p.BuffDefenseReduction != 17 || p.BuffAttackReduction != 18 || p.BuffReflect != 19 {
+		t.Fatalf("stats after effect = attack %d, magic %d/%d, curse %d/%d, defense %d/%d, crit/ignore %d/%d, reductions/reflect %d/%d/%d, MaxHP %d",
+			p.AttackMin, p.magicAttackMin, p.magicAttackMax, p.curseAttackMin, p.curseAttackMax,
+			p.Defense, p.DefenseRate, p.criticalAttackDamage, p.ignoreDefenseRate,
+			p.BuffDefenseReduction, p.BuffAttackReduction, p.BuffReflect, p.MaxHP)
+	}
+	p.Calc()
+	if p.AttackMin != baseAttack+5 || p.Defense != baseDefense+7 || p.MaxHP != baseMaxHP+incMaxHP ||
+		p.magicAttackMin != baseMagicMin+11 || p.magicAttackMax != baseMagicMax+12 ||
+		p.curseAttackMin != baseCurseMin+13 || p.curseAttackMax != baseCurseMax+14 ||
+		p.criticalAttackDamage != baseCriticalDamage+15 || p.ignoreDefenseRate != baseIgnoreDefense+16 ||
+		p.BuffDefenseReduction != 17 || p.BuffAttackReduction != 18 || p.BuffReflect != 19 {
+		t.Fatal("effect stats accumulated across recalculations")
+	}
+	delete(p.Buffs(), active.Index)
+	p.Calc()
+	if p.AttackMin != baseAttack || p.Defense != baseDefense || p.DefenseRate != baseDefenseRate || p.MaxHP != baseMaxHP ||
+		p.magicAttackMin != baseMagicMin || p.magicAttackMax != baseMagicMax ||
+		p.curseAttackMin != baseCurseMin || p.curseAttackMax != baseCurseMax ||
+		p.criticalAttackDamage != baseCriticalDamage || p.ignoreDefenseRate != baseIgnoreDefense ||
+		p.BuffDefenseReduction != 0 || p.BuffAttackReduction != 0 || p.BuffReflect != 0 {
+		t.Fatalf("stats after effect removal = attack %d, magic %d/%d, curse %d/%d, defense %d/%d, crit/ignore %d/%d, reductions/reflect %d/%d/%d, MaxHP %d",
+			p.AttackMin, p.magicAttackMin, p.magicAttackMax, p.curseAttackMin, p.curseAttackMax,
+			p.Defense, p.DefenseRate, p.criticalAttackDamage, p.ignoreDefenseRate,
+			p.BuffDefenseReduction, p.BuffAttackReduction, p.BuffReflect, p.MaxHP)
+	}
+}
 
 func TestRecoveryRatesIncludeMasterSkills(t *testing.T) {
 	p := Player{
@@ -287,14 +342,14 @@ func TestSocketEquipmentRecalculation(t *testing.T) {
 	p.Level = 100
 	p.strength, p.dexterity, p.vitality, p.energy = 20, 20, 20, 100
 	p.inventory.Items = make([]*item.Item, 237)
-	p.calc()
+	p.Calc()
 	baseHP := p.MaxHP
 	it := item.NewItem(0, 26)
 	it.Durability = 100
 	it.SocketSlot1 = 122 // first-level maximum HP increase
 	it.SocketSlot2 = 116 // first-level HP recovery on kill
 	p.inventory.Items[0] = it
-	p.calc()
+	p.Calc()
 	if p.MaxHP <= baseHP {
 		t.Fatalf("Socket maximum HP = %d, base = %d", p.MaxHP, baseHP)
 	}
@@ -302,12 +357,12 @@ func TestSocketEquipmentRecalculation(t *testing.T) {
 		t.Fatalf("Socket kill HP recovery = %g, want 0.125", p.GetMonsterDieGetHP())
 	}
 	withItem := p.MaxHP
-	p.calc()
+	p.Calc()
 	if p.MaxHP != withItem {
 		t.Fatalf("Socket maximum HP accumulated across recalculations: %d, want %d", p.MaxHP, withItem)
 	}
 	p.inventory.Items[0] = nil
-	p.calc()
+	p.Calc()
 	if p.MaxHP != baseHP || p.GetMonsterDieGetHP() != 0 {
 		t.Fatalf("Socket effects after unequip = HP %d, kill recovery %g", p.MaxHP, p.GetMonsterDieGetHP())
 	}
@@ -453,22 +508,29 @@ func TestRecalculationPreservesTemporaryResources(t *testing.T) {
 	p.Level = 100
 	p.strength, p.dexterity, p.vitality, p.energy = 20, 20, 20, 100
 	p.inventory.Items = make([]*item.Item, 237)
-	p.calc()
+	p.Object.Init()
+	p.Calc()
 	baseHP, baseMP := p.MaxHP, p.MaxMP
-	p.AddHP = 100
-	p.HP = baseHP + 100
-	p.AddMP = 50
-	p.MP = baseMP + 50
-	p.calc()
-	if p.MaxHP != baseHP || p.AddHP != 100 || p.HP != baseHP+100 ||
-		p.MaxMP != baseMP || p.AddMP != 50 || p.MP != baseMP+50 {
-		t.Fatalf("recalculated HP/base/add and MP/base/add = %d/%d/%d and %d/%d/%d", p.HP, p.MaxHP, p.AddHP, p.MP, p.MaxMP, p.AddMP)
+	active := buff.NewBuff(buff.BuffTypeSwellLife8)
+	active.Expire = time.Now().Add(time.Minute)
+	active.Effect = buff.BuffEffect{IncMaxHP: 100, IncMaxMP: 50}
+	p.Buffs()[active.Index] = active
+	p.Calc()
+	maxHPWithBuff := baseHP + int(float64(baseHP)*active.Effect.IncMaxHP/100)
+	maxMPWithBuff := baseMP + int(float64(baseMP)*active.Effect.IncMaxMP/100)
+	p.HP = p.MaxHP
+	p.MP = p.MaxMP
+	p.Calc()
+	if p.MaxHP != maxHPWithBuff || p.HP != maxHPWithBuff || p.MaxMP != maxMPWithBuff || p.MP != maxMPWithBuff {
+		t.Fatalf("recalculated HP/MaxHP and MP/MaxMP = %d/%d and %d/%d", p.HP, p.MaxHP, p.MP, p.MaxMP)
 	}
-	p.AddHP = -20
-	p.AddMP = -20
-	p.calc()
-	if p.HP != p.MaxHP+p.AddHP || p.MP != p.MaxMP+p.AddMP {
-		t.Fatalf("resources after reduced caps = HP %d/%d, MP %d/%d", p.HP, p.MaxHP+p.AddHP, p.MP, p.MaxMP+p.AddMP)
+	active.Effect.IncMaxHP = -20
+	active.Effect.IncMaxMP = -20
+	p.Calc()
+	maxHPAfterDecrease := baseHP - int(float64(baseHP)*20/100)
+	maxMPAfterDecrease := baseMP - int(float64(baseMP)*20/100)
+	if p.HP != maxHPAfterDecrease || p.MaxHP != maxHPAfterDecrease || p.MP != maxMPAfterDecrease || p.MaxMP != maxMPAfterDecrease {
+		t.Fatalf("resources after reduced caps = HP %d/%d, MP %d/%d", p.HP, p.MaxHP, p.MP, p.MaxMP)
 	}
 }
 
@@ -482,20 +544,20 @@ func TestSocketAttackRecalculation(t *testing.T) {
 	weapon := item.NewItem(0, 26)
 	weapon.Durability = 100
 	p.inventory.Items[0] = weapon
-	p.calc()
+	p.Calc()
 	baseMin, baseMax := p.AttackMin, p.AttackMax
 	weapon.SocketSlot1 = 100
 	weapon.SocketBonus = 1
-	p.calc()
+	p.Calc()
 	if p.AttackMin != baseMin+16 || p.AttackMax != baseMax+16 {
 		t.Fatalf("Socket attack after hand merge = %d/%d, base %d/%d", p.AttackMin, p.AttackMax, baseMin, baseMax)
 	}
-	p.calc()
+	p.Calc()
 	if p.AttackMin != baseMin+16 || p.AttackMax != baseMax+16 {
 		t.Fatal("Socket attack accumulated across recalculations")
 	}
 	weapon.SocketSlot1, weapon.SocketBonus = 0, 0
-	p.calc()
+	p.Calc()
 	if p.AttackMin != baseMin || p.AttackMax != baseMax {
 		t.Fatalf("Socket attack after removing seed = %d/%d, want %d/%d", p.AttackMin, p.AttackMax, baseMin, baseMax)
 	}
@@ -686,7 +748,7 @@ func TestSetAndExcellentEquipmentRecalculation(t *testing.T) {
 	p := newItemTestPlayer()
 	p.Class = int(class.Knight)
 	p.strength, p.dexterity, p.vitality, p.energy = 1110, 500, 25, 303
-	p.calc()
+	p.Calc()
 	baseMin, baseMax, baseHP := p.AttackMin, p.AttackMax, p.MaxHP
 	for position := 2; position <= 6; position++ {
 		it := item.NewItem(position+5, 6)
@@ -701,19 +763,19 @@ func TestSetAndExcellentEquipmentRecalculation(t *testing.T) {
 	weapon.Calc()
 	weapon.Durability = weapon.MaxDurability
 	p.inventory.Items[0] = weapon
-	p.calc()
+	p.Calc()
 	if p.addStrength != 40 || p.addSkillAttack != 40 || p.criticalAttackRate != 5 || p.excellentAttackRate != 10 {
 		t.Fatalf("set and excellent effects = strength %d, skill attack %d, critical %d, excellent %d", p.addStrength, p.addSkillAttack, p.criticalAttackRate, p.excellentAttackRate)
 	}
 	attackMin, attackMax, maxHP := p.AttackMin, p.AttackMax, p.MaxHP
-	p.calc()
+	p.Calc()
 	if p.AttackMin != attackMin || p.AttackMax != attackMax || p.MaxHP != maxHP || p.addStrength != 40 || p.addSkillAttack != 40 {
 		t.Fatal("set or excellent effects accumulated across recalculations")
 	}
 	for position := range p.inventory.WearingItems() {
 		p.inventory.Items[position] = nil
 	}
-	p.calc()
+	p.Calc()
 	if p.AttackMin != baseMin || p.AttackMax != baseMax || p.MaxHP != baseHP || p.addStrength != 0 || p.addSkillAttack != 0 || p.criticalAttackRate != 0 || p.excellentAttackRate != 0 {
 		t.Fatal("set or excellent effects remained after unequipping")
 	}
@@ -732,27 +794,27 @@ func TestHarmonyEquipmentRecalculation(t *testing.T) {
 	armor.Level = 3
 	armor.Calc()
 	p.inventory.Items[2] = armor
-	p.calc()
+	p.Calc()
 	baseAttackMin, baseHP := p.AttackMin, p.MaxHP
 
 	weapon.HarmonyOption, weapon.Level = 1, 0
 	armor.HarmonyOption, armor.HarmonyLevel, armor.Level = 3, 3, 3
 	weapon.Calc()
 	armor.Calc()
-	p.calc()
+	p.Calc()
 	if p.AttackMin != baseAttackMin+2 || p.MaxHP != baseHP+7 {
 		t.Fatalf("Harmony equipment attack/max HP = %d/%d, want %d/%d", p.AttackMin, p.MaxHP, baseAttackMin+2, baseHP+7)
 	}
-	p.calc()
+	p.Calc()
 	if p.AttackMin != baseAttackMin+2 || p.MaxHP != baseHP+7 {
 		t.Fatal("Harmony effects accumulated across recalculation")
 	}
 	p.inventory.Items[0], p.inventory.Items[2] = nil, nil
-	p.calc()
+	p.Calc()
 	basePlayer := newItemTestPlayer()
 	basePlayer.Class = int(class.Knight)
 	basePlayer.strength, basePlayer.dexterity, basePlayer.vitality, basePlayer.energy = 100, 100, 100, 100
-	basePlayer.calc()
+	basePlayer.Calc()
 	if p.AttackMin != basePlayer.AttackMin || p.AttackMax != basePlayer.AttackMax ||
 		p.MaxHP != basePlayer.MaxHP || p.harmonyDecSDRate != 0 || p.harmonyIgnoreSDRate != 0 || p.harmonyIncSDRate != 0 {
 		t.Fatalf("Harmony effects remained after unequipping: attack=%d/%d want %d/%d, max HP=%d want %d, SD rates=%d/%d/%d", p.AttackMin, p.AttackMax, basePlayer.AttackMin, basePlayer.AttackMax, p.MaxHP, basePlayer.MaxHP, p.harmonyDecSDRate, p.harmonyIgnoreSDRate, p.harmonyIncSDRate)

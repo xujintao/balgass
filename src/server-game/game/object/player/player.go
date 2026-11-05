@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/buff"
 	"github.com/xujintao/balgass/src/server-game/game/class"
-	"github.com/xujintao/balgass/src/server-game/game/effect"
 	"github.com/xujintao/balgass/src/server-game/game/exp"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
@@ -345,7 +345,7 @@ func (p *Player) Process1000ms() {
 
 func (p *Player) recoverHPSD() {
 	change := false
-	if p.HP < p.MaxHP+p.AddHP {
+	if p.HP < p.MaxHP {
 		// auto recover HP
 		p.autoRecoverHPTick++
 		if p.autoRecoverHPTick >= 7 {
@@ -363,12 +363,12 @@ func (p *Player) recoverHPSD() {
 			percent += 0.0
 			if percent != 0.0 || p.recoverHP != 0 {
 				hp := p.HP
-				hp += int(float64(p.MaxHP+p.AddHP)*percent/100) + p.recoverHP
+				hp += int(float64(p.MaxHP)*percent/100) + p.recoverHP
 				switch {
 				case hp < 1:
 					hp = 1
-				case hp > p.MaxHP+p.AddHP:
-					hp = p.MaxHP + p.AddHP
+				case hp > p.MaxHP:
+					hp = p.MaxHP
 				}
 				p.HP = hp
 				change = true
@@ -421,13 +421,13 @@ func (p *Player) recoverHPSD() {
 			hp = p.delayRecoverHP
 			p.delayRecoverHP = 0
 		}
-		if p.HP < p.MaxHP+p.AddHP {
+		if p.HP < p.MaxHP {
 			hp += p.HP
 			switch {
 			case hp < 1:
 				hp = 1
-			case hp > p.MaxHP+p.AddHP:
-				hp = p.MaxHP + p.AddHP
+			case hp > p.MaxHP:
+				hp = p.MaxHP
 			}
 			p.HP = hp
 			change = true
@@ -465,18 +465,18 @@ func (p *Player) recoverMPAG() {
 	}
 	p.autoRecoverMPTick = 0
 	change := false
-	if p.MP < p.MaxMP+p.AddMP {
+	if p.MP < p.MaxMP {
 		// base recover MP
 		percent := 3.7
 		// master skill recover MP
 		percent += 0
 		mp := p.MP
-		mp += int(float64(p.MaxMP+p.AddMP)*percent/100) + p.recoverMP
+		mp += int(float64(p.MaxMP)*percent/100) + p.recoverMP
 		switch {
 		case mp < 1:
 			mp = 1
-		case mp > p.MaxMP+p.AddMP:
-			mp = p.MaxMP + p.AddMP
+		case mp > p.MaxMP:
+			mp = p.MaxMP
 		}
 		p.MP = mp
 		change = true
@@ -685,9 +685,9 @@ func (p *Player) Regen() {
 	p.spawnPosition()
 	maps.MapManager.SetMapAttrStand(p.MapNumber, p.TX, p.TY)
 	p.CreateFrustum()
-	p.HP = p.MaxHP + p.AddHP
+	p.HP = p.MaxHP
 	p.SD = p.MaxSD
-	p.MP = p.MaxMP + p.AddMP
+	p.MP = p.MaxMP
 	p.AG = p.MaxAG
 	reply := model.MsgReloadCharacterReply{
 		X:          p.X,
@@ -719,7 +719,7 @@ func (p *Player) IsMasterLevel() bool {
 
 func (p *Player) GetSkillMPAG(s *skill.Skill) (int, int) {
 	mp := s.ManaUsage
-	if p.HasBuff(effect.BuffInfinityArrow) {
+	if p.HasBuff(buff.BuffTypeInfinityArrow6) {
 		switch s.Index {
 		case skill.SkillIndexTripleShot, skill.SkillIndexIceArrow,
 			skill.SkillIndexPenetration, skill.SkillIndexMultiShot:
@@ -751,7 +751,7 @@ func (p *Player) UseSkillAmmo(s *skill.Skill, consume bool) bool {
 	default:
 		return true
 	}
-	if p.HasBuff(effect.BuffInfinityArrow) {
+	if p.HasBuff(buff.BuffTypeInfinityArrow6) {
 		return true
 	}
 	for _, position := range []int{0, 1} {
@@ -1112,7 +1112,7 @@ func (p *Player) LoadCharacter(msg *model.MsgLoadCharacter) {
 
 	// client will calculate character after receiving inventory msg and master msg
 	// calculate
-	p.calc()
+	p.Calc()
 
 	// go func() {
 	// 	time.Sleep(100 * time.Millisecond) // get character info
@@ -1307,13 +1307,13 @@ func (p *Player) AddLevelPoint(msg *model.MsgAddLevelPoint) {
 		return
 	}
 	p.levelPoint--
-	p.calc()
+	p.Calc()
 	reply.Type = 0x10 + msg.Type
 	switch msg.Type {
 	case 2:
-		reply.MaxHPMP = p.MaxHP + p.AddHP
+		reply.MaxHPMP = p.MaxHP
 	case 3:
-		reply.MaxHPMP = p.MaxMP + p.AddMP
+		reply.MaxHPMP = p.MaxMP
 	}
 	reply.MaxSD = p.MaxSD
 	reply.MaxAG = p.MaxAG

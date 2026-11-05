@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/xujintao/balgass/src/server-game/game/buff"
 	"github.com/xujintao/balgass/src/server-game/game/class"
-	"github.com/xujintao/balgass/src/server-game/game/effect"
+	"github.com/xujintao/balgass/src/server-game/game/formula"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
@@ -15,28 +16,71 @@ import (
 )
 
 type skillTestActor struct {
-	messages          []any
-	magicAttackMin    int
-	magicAttackMax    int
-	strength          int
-	dexterity         int
-	energy            int
-	vitality          int
-	leadership        int
-	knightRate        float64
-	impaleRate        float64
-	returnDamage      int
-	ammoDenied        bool
-	ammoUsed          int
-	skillAttackBonus  int
-	pvpAttackBonus    int
-	pvpDefenseBonus   int
-	harmonyDecreaseSD int
-	harmonyIgnoreSD   int
-	harmonyAddSD      int
+	obj                *Object
+	baseAttackMin      int
+	baseAttackMax      int
+	baseDefense        int
+	baseDefenseRate    int
+	baseMaxHP          int
+	baseMaxMP          int
+	messages           []any
+	magicAttackMin     int
+	magicAttackMax     int
+	strength           int
+	dexterity          int
+	energy             int
+	vitality           int
+	leadership         int
+	knightRate         float64
+	impaleRate         float64
+	returnDamage       int
+	armorReflectDamage int
+	ammoDenied         bool
+	ammoUsed           int
+	skillAttackBonus   int
+	pvpAttackBonus     int
+	pvpDefenseBonus    int
+	harmonyDecreaseSD  int
+	harmonyIgnoreSD    int
+	harmonyAddSD       int
 }
 
-func (*skillTestActor) Addr() string                           { return "test" }
+func (*skillTestActor) Addr() string { return "test" }
+func (a *skillTestActor) Calc() {
+	if a.obj == nil {
+		return
+	}
+	obj := a.obj
+	obj.AttackMin, obj.AttackMax = a.baseAttackMin, a.baseAttackMax
+	obj.Defense, obj.DefenseRate = a.baseDefense, a.baseDefenseRate
+	obj.MaxHP, obj.MaxMP = a.baseMaxHP, a.baseMaxMP
+	obj.BuffDefenseReduction = 0
+	obj.BuffAttackReduction = 0
+	obj.BuffReflect = 0
+	obj.delayLevel = 0
+	obj.Buffs().ApplyBuffEffect(func(option buff.BuffEffect) {
+		obj.AttackMin += option.Attack + option.AttackMin
+		obj.AttackMax += option.Attack + option.AttackMax
+		obj.Defense += option.Defense
+		obj.DefenseRate += option.DefenseRate
+		obj.MaxHP += int(float64(obj.MaxHP) * option.IncMaxHP / 100)
+		obj.MaxMP += int(float64(obj.MaxMP) * option.IncMaxMP / 100)
+		obj.BuffDefenseReduction += option.DefenseReduction
+		obj.BuffAttackReduction += option.AttackReduction
+		obj.BuffReflect += option.Reflect
+	})
+	for _, active := range obj.Buffs() {
+		if active.Effect.Slow {
+			obj.delayLevel++
+		}
+	}
+	if obj.HP > obj.MaxHP {
+		obj.HP = obj.MaxHP
+	}
+	if obj.MP > obj.MaxMP {
+		obj.MP = obj.MaxMP
+	}
+}
 func (*skillTestActor) Offline()                               {}
 func (a *skillTestActor) Push(msg any)                         { a.messages = append(a.messages, msg) }
 func (*skillTestActor) ProcessAction()                         {}
@@ -91,6 +135,7 @@ func (*skillTestActor) GetMonsterDieGetHP() float64     { return 0 }
 func (*skillTestActor) GetMonsterDieGetMP() float64     { return 0 }
 func (*skillTestActor) GetAddDamage() int               { return 0 }
 func (*skillTestActor) GetArmorReduceDamage() int       { return 0 }
+func (a *skillTestActor) GetArmorReflectDamage() int    { return a.armorReflectDamage }
 func (*skillTestActor) GetWingIncreaseDamage() int      { return 0 }
 func (*skillTestActor) GetWingReduceDamage() int        { return 0 }
 func (*skillTestActor) GetHelperReduceDamage() int      { return 0 }
@@ -186,6 +231,10 @@ func newSkillTestObject(index int, typ ObjectType) (*Object, *skillTestActor) {
 		DefenseRate:  1,
 	}
 	obj.Init()
+	actor.obj = obj
+	actor.baseAttackMin, actor.baseAttackMax = obj.AttackMin, obj.AttackMax
+	actor.baseDefense, actor.baseDefenseRate = obj.Defense, obj.DefenseRate
+	actor.baseMaxHP, actor.baseMaxMP = obj.MaxHP, obj.MaxMP
 	return obj, actor
 }
 
@@ -341,36 +390,58 @@ func TestUseSkillRejectsDurationSummonerSkillsWithoutResourceCost(t *testing.T) 
 
 func TestSkillEffectConflictAndExpiration(t *testing.T) {
 	target, _ := newSkillTestObject(1, ObjectTypePlayer)
-	first := &effect.Effect{
-		BuffIndex: 9001,
-		Category:  777,
-		Slow:      true,
-		Expire:    time.Now().Add(time.Minute),
-	}
-	if !target.addEffect(first) {
-		t.Fatal("addEffect(first) = false")
+	if !target.AddBuff(buff.BuffTypeIncreaseAttackPower, 60, buff.BuffEffect{Slow: true}) {
+		t.Fatal("AddBuff(first) = false")
 	}
 	if target.delayLevel != 1 {
 		t.Fatalf("delay level = %d, want 1", target.delayLevel)
 	}
 
-	second := &effect.Effect{
-		BuffIndex: 9002,
-		Category:  777,
-		Defense:   10,
-		Expire:    time.Now().Add(time.Minute),
+	if !target.AddBuff(buff.BuffTypeBerserker81, 60, buff.BuffEffect{Defense: 10}) {
+		t.Fatal("AddBuff(second) = false")
 	}
-	if !target.addEffect(second) {
-		t.Fatal("addEffect(second) = false")
-	}
-	if target.delayLevel != 0 || target.Defense != 10 || len(target.effects) != 1 {
-		t.Fatalf("replaced effect state = delay:%d defense:%d count:%d", target.delayLevel, target.Defense, len(target.effects))
+	second := target.Buff(buff.BuffTypeBerserker81)
+	if target.delayLevel != 0 || target.Defense != 10 || len(target.buffs) != 1 {
+		t.Fatalf("replaced effect state = delay:%d defense:%d count:%d", target.delayLevel, target.Defense, len(target.buffs))
 	}
 
 	second.Expire = time.Now().Add(-time.Second)
-	target.processEffect()
-	if target.Defense != 0 || len(target.effects) != 0 {
-		t.Fatalf("expired effect state = defense:%d count:%d", target.Defense, len(target.effects))
+	target.processBuffs()
+	if target.Defense != 0 || len(target.buffs) != 0 {
+		t.Fatalf("expired effect state = defense:%d count:%d", target.Defense, len(target.buffs))
+	}
+}
+
+func TestAddBuffUsesDuration(t *testing.T) {
+	target, _ := newSkillTestObject(1, ObjectTypePlayer)
+	duration := 60
+	start := time.Now()
+	if !target.AddBuff(buff.BuffTypeLightningShock, duration, buff.BuffEffect{}) {
+		t.Fatal("AddBuff() = false")
+	}
+	addedAt := time.Now()
+	expire := target.Buff(buff.BuffTypeLightningShock).Expire
+	if expire.Before(start.Add(time.Duration(duration)*time.Second)) || expire.After(addedAt.Add(time.Duration(duration)*time.Second)) {
+		t.Fatalf("buff expiration = %v, want between %v and %v", expire, start.Add(time.Duration(duration)*time.Second), addedAt.Add(time.Duration(duration)*time.Second))
+	}
+
+	for _, test := range []struct {
+		index    buff.BuffType
+		duration int
+	}{
+		{index: buff.BuffTypeFlameStrike, duration: 0},
+		{index: buff.BuffTypeGiganticStorm, duration: -1},
+	} {
+		if !target.AddBuff(test.index, test.duration, buff.BuffEffect{}) {
+			t.Fatalf("AddBuff(%d, %d seconds) = false", test.index, test.duration)
+		}
+		if target.Buff(test.index).Expire.After(time.Now()) {
+			t.Fatalf("buff %d with duration %d seconds expires in the future", test.index, test.duration)
+		}
+		target.processBuffs()
+		if target.HasBuff(test.index) {
+			t.Fatalf("buff %d with duration %d seconds remained after expiration processing", test.index, test.duration)
+		}
 	}
 }
 
@@ -378,12 +449,8 @@ func TestDamageReflectionIsDelayed(t *testing.T) {
 	attacker, _ := newSkillTestObject(1, ObjectTypePlayer)
 	target, _ := newSkillTestObject(2, ObjectTypeMonster)
 	withTestObjectManager(t, attacker, target)
-	if !target.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffDamageReflection,
-		Reflect:   100,
-		Expire:    time.Now().Add(time.Minute),
-	}) {
-		t.Fatal("addEffect() = false")
+	if !target.AddBuff(buff.BuffTypeDamageReflection, 60, buff.BuffEffect{Reflect: 100}) {
+		t.Fatal("AddBuff() = false")
 	}
 
 	attacker.attack(target, attackRequest{
@@ -416,8 +483,8 @@ func TestUseSkillSoulBarrierAddsDamageReduction(t *testing.T) {
 
 	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
 
-	barrier := target.effect(effect.BuffSoulBarrier)
-	if barrier == nil || barrier.DamageReduction <= 0 || barrier.ManaRate <= 0 {
+	barrier := target.Buff(buff.BuffTypeSoulBarrier4)
+	if barrier == nil || barrier.Effect.DamageReduction <= 0 || barrier.Effect.ManaRate <= 0 {
 		t.Fatalf("soul barrier effect = %#v", barrier)
 	}
 	if caster.MP != 1000-s.ManaUsage {
@@ -482,8 +549,8 @@ func TestUseSkillGreaterAttackExpires(t *testing.T) {
 	if damage := target.getDamage(skill.Skill0, 0, nil); damage <= 10 {
 		t.Fatalf("damage = %d, want above 10", damage)
 	}
-	target.effects[effect.BuffAttackPower].Expire = time.Now().Add(-time.Second)
-	target.processEffect()
+	target.buffs[buff.BuffTypeIncreaseAttackPower].Expire = time.Now().Add(-time.Second)
+	target.processBuffs()
 	if damage := target.getDamage(skill.Skill0, 0, nil); damage != 10 {
 		t.Fatalf("expired damage = %d, want 10", damage)
 	}
@@ -503,8 +570,8 @@ func TestUseSkillGreaterDefenseExpires(t *testing.T) {
 	if target.Defense <= 10 {
 		t.Fatalf("target defense = %d, want above 10", target.Defense)
 	}
-	target.effects[effect.BuffDefensePower].Expire = time.Now().Add(-time.Second)
-	target.processEffect()
+	target.buffs[buff.BuffTypeIncreaseDefense].Expire = time.Now().Add(-time.Second)
+	target.processBuffs()
 	if target.Defense != 10 {
 		t.Fatalf("expired target defense = %d, want 10", target.Defense)
 	}
@@ -512,7 +579,7 @@ func TestUseSkillGreaterDefenseExpires(t *testing.T) {
 
 func TestUseSkillSwellHPExpiresAndClampsHP(t *testing.T) {
 	caster, actor := newSkillTestObject(1, ObjectTypePlayer)
-	target, targetActor := newSkillTestObject(2, ObjectTypePlayer)
+	target, _ := newSkillTestObject(2, ObjectTypePlayer)
 	withTestObjectManager(t, caster, target)
 	caster.Class = int(class.Knight)
 	actor.energy = 100
@@ -523,26 +590,14 @@ func TestUseSkillSwellHPExpiresAndClampsHP(t *testing.T) {
 
 	caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: skill.SkillIndexSwellHP})
 
-	if target.MaxHP != 100 || target.AddHP <= 0 {
-		t.Fatalf("target MaxHP/AddHP = %d/%d, want base 100 and positive addition", target.MaxHP, target.AddHP)
+	if target.MaxHP <= 100 {
+		t.Fatalf("target MaxHP = %d, want above base 100", target.MaxHP)
 	}
-	foundMaxHP := false
-	for _, message := range targetActor.messages {
-		if reply, ok := message.(*model.MsgHPReply); ok && reply.Position == -2 && reply.HP == target.MaxHP+target.AddHP {
-			foundMaxHP = true
-		}
-	}
-	if !foundMaxHP {
-		t.Fatal("effective maximum HP was not sent to target")
-	}
-	target.HP = target.MaxHP + target.AddHP
-	target.effects[effect.BuffSwellHP].Expire = time.Now().Add(-time.Second)
-	target.processEffect()
-	if target.MaxHP != 100 || target.AddHP != 0 || target.HP != 100 {
-		t.Fatalf("expired HP/MaxHP/AddHP = %d/%d/%d, want 100/100/0", target.HP, target.MaxHP, target.AddHP)
-	}
-	if !hasMessage[model.MsgHPReply](targetActor.messages) {
-		t.Fatal("target HP reply was not sent")
+	target.HP = target.MaxHP
+	target.buffs[buff.BuffTypeSwellLife8].Expire = time.Now().Add(-time.Second)
+	target.processBuffs()
+	if target.MaxHP != 100 || target.HP != 100 {
+		t.Fatalf("expired HP/MaxHP = %d/%d, want 100/100", target.HP, target.MaxHP)
 	}
 }
 
@@ -553,23 +608,29 @@ func TestUseSkillSwellHPRefreshPreservesMaxAndCurrentHP(t *testing.T) {
 	actor.energy = 100
 	actor.vitality = 200
 	s := learnSkillForTest(t, caster, skill.SkillIndexSwellHP)
+	addLifeRate, duration := 0.0, 0
+	formula.KnightSkillAddLife(actor.vitality, actor.energy, 0, &addLifeRate, &duration)
 	if !caster.useSkillSwellHP(caster, s) {
 		t.Fatal("initial cast failed")
 	}
-	maxHP := caster.MaxHP + caster.AddHP
+	if got := caster.Buff(buff.BuffTypeSwellLife8).Effect.IncMaxHP; got != addLifeRate {
+		t.Fatalf("Swell Life IncMaxHP = %g, want rate %g", got, addLifeRate)
+	}
+	maxHP := caster.MaxHP
 	if maxHP <= 100 {
 		t.Fatalf("MaxHP = %d, want above 100", maxHP)
 	}
-	if caster.MaxHP != 100 || caster.AddHP != maxHP-100 {
-		t.Fatalf("base/add HP = %d/%d, want 100/%d", caster.MaxHP, caster.AddHP, maxHP-100)
+	wantMaxHP := actor.baseMaxHP + int(float64(actor.baseMaxHP)*addLifeRate/100)
+	if maxHP != wantMaxHP {
+		t.Fatalf("MaxHP = %d, want %d from %g%%", maxHP, wantMaxHP, addLifeRate)
 	}
 	caster.HP = maxHP
 	for i := 0; i < 3; i++ {
 		if !caster.useSkillSwellHP(caster, s) {
 			t.Fatal("refresh failed")
 		}
-		if caster.MaxHP != 100 || caster.AddHP != maxHP-100 || caster.HP != maxHP {
-			t.Fatalf("refresh HP/MaxHP/AddHP = %d/%d/%d, want %d/100/%d", caster.HP, caster.MaxHP, caster.AddHP, maxHP, maxHP-100)
+		if caster.MaxHP != maxHP || caster.HP != maxHP {
+			t.Fatalf("refresh HP/MaxHP = %d/%d, want %d/%d", caster.HP, caster.MaxHP, maxHP, maxHP)
 		}
 	}
 	actor.energy = 0
@@ -577,37 +638,23 @@ func TestUseSkillSwellHPRefreshPreservesMaxAndCurrentHP(t *testing.T) {
 	if !caster.useSkillSwellHP(caster, s) {
 		t.Fatal("weaker refresh failed")
 	}
-	if caster.MaxHP != 100 || caster.MaxHP+caster.AddHP >= maxHP || caster.HP != caster.MaxHP+caster.AddHP {
-		t.Fatalf("weaker refresh HP/base/add = %d/%d/%d, want clamped below %d", caster.HP, caster.MaxHP, caster.AddHP, maxHP)
-	}
-	lastHP := -1
-	for _, message := range actor.messages {
-		if reply, ok := message.(*model.MsgHPReply); ok && reply.Position == -1 {
-			lastHP = reply.HP
-		}
-	}
-	if lastHP != caster.HP {
-		t.Fatalf("last HP reply = %d, want %d", lastHP, caster.HP)
+	if caster.MaxHP >= maxHP || caster.HP != caster.MaxHP {
+		t.Fatalf("weaker refresh HP/MaxHP = %d/%d, want clamped below %d", caster.HP, caster.MaxHP, maxHP)
 	}
 }
 
-func TestTemporaryResourceEffectPreservesBaseMax(t *testing.T) {
+func TestTemporaryResourceEffectUpdatesMaxValues(t *testing.T) {
 	obj, _ := newSkillTestObject(1, ObjectTypePlayer)
-	if !obj.addEffect(&effect.Effect{
-		BuffIndex: effect.BuffBerserker,
-		AddHP:     -40,
-		AddMP:     40,
-		Expire:    time.Now().Add(time.Minute),
-	}) {
+	if !obj.AddBuff(buff.BuffTypeBerserker81, 60, buff.BuffEffect{IncMaxHP: -40, IncMaxMP: 40}) {
 		t.Fatal("adding negative HP effect failed")
 	}
-	if obj.MaxHP != 100 || obj.AddHP != -40 || obj.HP != 60 || obj.MaxMP != 100 || obj.AddMP != 40 {
-		t.Fatalf("buff resources = HP %d/%d/%d, MP %d/%d", obj.HP, obj.MaxHP, obj.AddHP, obj.MP, obj.MaxMP+obj.AddMP)
+	if obj.MaxHP != 60 || obj.HP != 60 || obj.MaxMP != 140 || obj.MP != 100 {
+		t.Fatalf("buff resources = HP %d/%d, MP %d/%d", obj.HP, obj.MaxHP, obj.MP, obj.MaxMP)
 	}
-	obj.MP = obj.MaxMP + obj.AddMP
-	obj.removeEffect(effect.BuffBerserker)
-	if obj.MaxHP != 100 || obj.AddHP != 0 || obj.HP != 60 || obj.MaxMP != 100 || obj.AddMP != 0 || obj.MP != 100 {
-		t.Fatalf("removed resources = HP %d/%d/%d, MP %d/%d/%d", obj.HP, obj.MaxHP, obj.AddHP, obj.MP, obj.MaxMP, obj.AddMP)
+	obj.MP = obj.MaxMP
+	obj.RemoveBuff(buff.BuffTypeBerserker81)
+	if obj.MaxHP != 100 || obj.HP != 60 || obj.MaxMP != 100 || obj.MP != 100 {
+		t.Fatalf("removed resources = HP %d/%d, MP %d/%d", obj.HP, obj.MaxHP, obj.MP, obj.MaxMP)
 	}
 }
 
@@ -688,13 +735,13 @@ func TestDefenseDownSkill(t *testing.T) {
 		t.Fatal("non-Magumsa used defense down")
 	}
 	caster.Class = int(class.Magumsa)
-	for i := 0; i < 100 && !target.HasBuff(effect.BuffDefensePowerDec); i++ {
+	for i := 0; i < 100 && !target.HasBuff(buff.BuffTypeDefensibilityReduction); i++ {
 		caster.useSkillDefenseDown(target)
 	}
-	if !target.HasBuff(effect.BuffDefensePowerDec) || target.HP != 100 {
+	if !target.HasBuff(buff.BuffTypeDefensibilityReduction) || target.HP != 100 {
 		t.Fatal("defense down did not apply without direct damage")
 	}
-	if target.effects[effect.BuffDefensePowerDec].DefenseReduction != 10 ||
+	if target.buffs[buff.BuffTypeDefensibilityReduction].Effect.DefenseReduction != 10 ||
 		hasMessage[model.MsgUseSkillReply](actor.messages) {
 		t.Fatal("defense down value or direct helper reply is wrong")
 	}
@@ -707,11 +754,11 @@ func TestMonsterFireSlash(t *testing.T) {
 	withTestObjectManager(t, caster, target)
 	s := learnSkillForTest(t, caster, skill.SkillIndexFireSlash)
 	caster.MP, caster.AG = 1000, 1000
-	for i := 0; i < 100 && !target.HasBuff(effect.BuffDefensePowerDec); i++ {
+	for i := 0; i < 100 && !target.HasBuff(buff.BuffTypeDefensibilityReduction); i++ {
 		delete(caster.skillUseTimes, s.Index)
 		caster.UseSkill(&model.MsgUseSkill{Target: target.Index, Skill: s.Index})
 	}
-	if !target.HasBuff(effect.BuffDefensePowerDec) {
+	if !target.HasBuff(buff.BuffTypeDefensibilityReduction) {
 		t.Fatal("monster Fire Slash did not apply defense reduction")
 	}
 	if target.HP != 100 || hasMessage[model.MsgAttackDamageReply](actor.messages) {
@@ -758,7 +805,7 @@ func TestFireSlashDurationHit(t *testing.T) {
 	if caster.MP != wantMP || caster.AG != wantAG || target.HP != 1000 {
 		t.Fatal("duration cast resources or target HP are wrong")
 	}
-	if target.HasBuff(effect.BuffDefensePowerDec) {
+	if target.HasBuff(buff.BuffTypeDefensibilityReduction) {
 		t.Fatal("defense reduction unexpectedly applied during cast")
 	}
 	rand.Seed(1) // The first roll does not trigger defense reduction.
@@ -772,13 +819,13 @@ func TestFireSlashDurationHit(t *testing.T) {
 	if target.HP >= 1000 || outside.HP != 1000 {
 		t.Fatalf("target HP = %d, outside HP = %d", target.HP, outside.HP)
 	}
-	if target.HasBuff(effect.BuffDefensePowerDec) || outside.HasBuff(effect.BuffDefensePowerDec) {
+	if target.HasBuff(buff.BuffTypeDefensibilityReduction) || outside.HasBuff(buff.BuffTypeDefensibilityReduction) {
 		t.Fatal("defense reduction unexpectedly applied during hit")
 	}
 	hp := target.HP
 	rand.Seed(3)
 	caster.UseSkillAttackMultiTarget(hit)
-	if !target.HasBuff(effect.BuffDefensePowerDec) || target.HP >= hp {
+	if !target.HasBuff(buff.BuffTypeDefensibilityReduction) || target.HP >= hp {
 		t.Fatal("successful defense reduction did not accompany hit damage")
 	}
 	if caster.MP != wantMP || caster.AG != wantAG {
@@ -791,10 +838,14 @@ func TestFireSlashDurationHit(t *testing.T) {
 
 func TestMonkBarrageHitCounts(t *testing.T) {
 	rand.Seed(1)
-	for _, tt := range []struct{ index, hits, buff int }{
-		{skill.SkillIndexKillingBlow, 4, effect.BuffWeakness},
-		{skill.SkillIndexBeastUppercut, 2, effect.BuffDefensePowerDec},
-		{skill.SkillIndexChainDrive, 8, effect.BuffCold},
+	for _, tt := range []struct {
+		index int
+		hits  int
+		buff  buff.BuffType
+	}{
+		{skill.SkillIndexKillingBlow, 4, buff.BuffTypeWeakness},
+		{skill.SkillIndexBeastUppercut, 2, buff.BuffTypeDefensibilityReduction},
+		{skill.SkillIndexChainDrive, 8, buff.BuffTypeCold},
 	} {
 		t.Run(fmt.Sprintf("skill_%d", tt.index), func(t *testing.T) {
 			caster, actor := newSkillTestObject(1, ObjectTypePlayer)
@@ -832,7 +883,7 @@ func TestMonkBarrageHitCounts(t *testing.T) {
 			if caster.MP != 100-s.ManaUsage || caster.AG != 100-s.BPUsage {
 				t.Fatal("barrage did not consume resources once")
 			}
-			if tt.buff == effect.BuffCold {
+			if tt.buff == buff.BuffTypeCold {
 				found := false
 				for y := 0; y < 256 && !found; y++ {
 					for x := 0; x < 256; x++ {
@@ -853,9 +904,9 @@ func TestMonkBarrageHitCounts(t *testing.T) {
 			if !target.HasBuff(tt.buff) {
 				t.Fatal("barrage did not apply its secondary effect")
 			}
-			if tt.buff == effect.BuffCold && !target.effects[tt.buff].Slow ||
-				tt.buff == effect.BuffWeakness && target.effects[tt.buff].AttackReduction != 5 ||
-				tt.buff == effect.BuffDefensePowerDec && target.effects[tt.buff].DefenseReduction != 10 {
+			if tt.buff == buff.BuffTypeCold && !target.buffs[tt.buff].Effect.Slow ||
+				tt.buff == buff.BuffTypeWeakness && target.buffs[tt.buff].Effect.AttackReduction != 5 ||
+				tt.buff == buff.BuffTypeDefensibilityReduction && target.buffs[tt.buff].Effect.DefenseReduction != 10 {
 				t.Fatal("barrage secondary effect has the wrong value")
 			}
 		})

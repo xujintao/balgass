@@ -36,16 +36,16 @@ func (*Monster) GetHarmonyIgnoreSDRate() int {
 	return 0
 }
 
-func (*Monster) GetIgnoreDefenseRate() int {
-	return 0
+func (m *Monster) GetIgnoreDefenseRate() int {
+	return m.ignoreDefenseRate
 }
 
 func (*Monster) GetCriticalAttackRate() int {
 	return 0
 }
 
-func (*Monster) GetCriticalAttackDamage() int {
-	return 0
+func (m *Monster) GetCriticalAttackDamage() int {
+	return m.criticalAttackDamage
 }
 
 func (*Monster) GetExcellentAttackRate() int {
@@ -69,6 +69,10 @@ func (*Monster) GetAddDamage() int {
 }
 
 func (*Monster) GetArmorReduceDamage() int {
+	return 0
+}
+
+func (*Monster) GetArmorReflectDamage() int {
 	return 0
 }
 
@@ -140,20 +144,20 @@ func (m *Monster) OnDamageTaken() {
 	m.PassiveUntilHit = false
 }
 
-func (*Monster) GetMagicAttackMin() int {
-	return 0
+func (m *Monster) GetMagicAttackMin() int {
+	return m.magicAttackMin
 }
 
-func (*Monster) GetMagicAttackMax() int {
-	return 0
+func (m *Monster) GetMagicAttackMax() int {
+	return m.magicAttackMax
 }
 
-func (*Monster) GetCurseAttackMin() int {
-	return 0
+func (m *Monster) GetCurseAttackMin() int {
+	return m.curseAttackMin
 }
 
-func (*Monster) GetCurseAttackMax() int {
-	return 0
+func (m *Monster) GetCurseAttackMax() int {
+	return m.curseAttackMax
 }
 
 func (*Monster) GetCurse() int {

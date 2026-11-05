@@ -2,13 +2,14 @@ package player
 
 import (
 	"github.com/xujintao/balgass/src/server-game/conf"
+	"github.com/xujintao/balgass/src/server-game/game/buff"
 	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/formula"
 	"github.com/xujintao/balgass/src/server-game/game/item"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 )
 
-func (p *Player) calc() {
+func (p *Player) Calc() {
 	p.addStrength = 0
 	p.addDexterity = 0
 	p.addVitality = 0
@@ -69,14 +70,15 @@ func (p *Player) calc() {
 	p.recoverMaxMP = 0
 	p.autoRecoverSD = false
 	p.autoRecoverSDRate = 0
+	p.BuffDefenseReduction = 0
+	p.BuffAttackReduction = 0
+	p.BuffReflect = 0
 
 	p.wingIncreaseDamage = 0
 	p.wingReduceDamage = 0
 	p.helperReduceDamage = 0
 	p.petIncreaseDamage = 0
 	p.petReduceDamage = 0
-
-	// calc all stats
 	p.calcBaseStats()
 	p.calcNormalItem()
 	p.calcExcellentItem()
@@ -86,14 +88,21 @@ func (p *Player) calc() {
 	p.calcSetItem(false)
 	p.convertAttack()
 	p.calcHelperItem()
+	p.calcBuff()
+	if p.HP > p.MaxHP {
+		p.HP = p.MaxHP
+	}
+	if p.MP > p.MaxMP {
+		p.MP = p.MaxMP
+	}
 
 	// Push
 	p.Push(&model.MsgAttackSpeedReply{
 		AttackSpeed: p.AttackSpeed,
 		MagicSpeed:  p.magicSpeed,
 	})
-	p.PushMaxHPSD(p.MaxHP+p.AddHP, p.MaxSD)
-	p.PushMaxMPAG(p.MaxMP+p.AddMP, p.MaxAG)
+	p.PushMaxHPSD(p.MaxHP, p.MaxSD)
+	p.PushMaxMPAG(p.MaxMP, p.MaxAG)
 	p.PushHPSD(p.HP, p.SD)
 	p.PushMPAG(p.MP, p.AG)
 }
@@ -696,12 +705,6 @@ func (p *Player) calcHelperItem() {
 		}
 	}
 	// ...
-	if p.HP > p.MaxHP+p.AddHP {
-		p.HP = p.MaxHP + p.AddHP
-	}
-	if p.MP > p.MaxMP+p.AddMP {
-		p.MP = p.MaxMP + p.AddMP
-	}
 	if p.SD > p.MaxSD {
 		p.SD = p.MaxSD
 	}
@@ -715,4 +718,31 @@ func (p *Player) equippedItem(it *item.Item, code int) bool {
 		return false
 	}
 	return it.Code == code
+}
+
+func (p *Player) calcBuff() {
+	delayLevel := 0
+	p.Buffs().ApplyBuffEffect(func(effect buff.BuffEffect) {
+		p.AttackMin += effect.Attack + effect.AttackMin
+		p.AttackMax += effect.Attack + effect.AttackMax
+		p.magicAttackMin += effect.MagicMin
+		p.magicAttackMax += effect.MagicMax
+		p.curseAttackMin += effect.CurseMin
+		p.curseAttackMax += effect.CurseMax
+		p.Defense += effect.Defense
+		p.DefenseRate += effect.DefenseRate
+		p.MaxHP += int(float64(p.MaxHP) * effect.IncMaxHP / 100)
+		p.MaxMP += int(float64(p.MaxMP) * effect.IncMaxMP / 100)
+		p.criticalAttackDamage += effect.CriticalDamage
+		p.ignoreDefenseRate += effect.IgnoreDefense
+		p.BuffDefenseReduction += effect.DefenseReduction
+		p.BuffAttackReduction += effect.AttackReduction
+		p.BuffReflect += effect.Reflect
+	})
+	for _, active := range p.Buffs() {
+		if active.Effect.Slow {
+			delayLevel++
+		}
+	}
+	p.SetEffectDelayLevel(delayLevel)
 }

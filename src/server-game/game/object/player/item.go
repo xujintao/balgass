@@ -1019,7 +1019,7 @@ func (p *Player) equipmentChanged() {
 		}
 	}
 	// 2, calculate player
-	p.calc()
+	p.Calc()
 }
 
 func (p *Player) pushItemDurability(position, dur int) {
@@ -1080,7 +1080,7 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 			addRate += 5
 		}
 		hp := 0
-		hp += (p.MaxHP + p.AddHP) * addRate / 100
+		hp += p.MaxHP * addRate / 100
 		// defer recover hp
 		p.SetDelayRecoverHP(hp, hp)
 		// decrease durability
@@ -1095,12 +1095,12 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 		case item.Code(14, 6):
 			addRate = 40
 		}
-		mp := (p.MaxMP + p.AddMP) * addRate / 100
+		mp := p.MaxMP * addRate / 100
 		// recover mp immediately
-		if p.MP < p.MaxMP+p.AddMP {
+		if p.MP < p.MaxMP {
 			p.MP += mp
-			if p.MP > p.MaxMP+p.AddMP {
-				p.MP = p.MaxMP + p.AddMP
+			if p.MP > p.MaxMP {
+				p.MP = p.MaxMP
 			}
 			p.PushMPAG(p.MP, p.AG)
 		}
@@ -1141,7 +1141,7 @@ func (p *Player) UseItem(msg *model.MsgUseItem) {
 			addHPRate = 45
 			addSDRate = 20
 		}
-		hp := (p.MaxHP + p.AddHP) * addHPRate / 100
+		hp := p.MaxHP * addHPRate / 100
 		sd := p.MaxSD * addSDRate / 100
 		// defer recover hp sd
 		p.SetDelayRecoverHP(hp, hp)
