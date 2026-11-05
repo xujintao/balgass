@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/xujintao/balgass/src/server-game/game/buff"
 	"github.com/xujintao/balgass/src/server-game/game/class"
 	"github.com/xujintao/balgass/src/server-game/game/item"
+	"github.com/xujintao/balgass/src/server-game/game/maps"
 	"github.com/xujintao/balgass/src/server-game/game/model"
 	"github.com/xujintao/balgass/src/server-game/game/object"
 	"github.com/xujintao/balgass/src/server-game/game/skill"
@@ -21,23 +23,26 @@ func TestEffectChangesRecalculatePlayerStats(t *testing.T) {
 	p.strength, p.dexterity, p.vitality, p.energy = 100, 50, 50, 50
 	p.Calc()
 	baseAttack, baseDefense, baseDefenseRate := p.AttackMin, p.Defense, p.DefenseRate
+	baseAttackSpeed, baseMagicSpeed := p.AttackSpeed, p.magicSpeed
 	baseMagicMin, baseMagicMax := p.magicAttackMin, p.magicAttackMax
 	baseCurseMin, baseCurseMax := p.curseAttackMin, p.curseAttackMax
 	baseCriticalDamage, baseIgnoreDefense := p.criticalAttackDamage, p.ignoreDefenseRate
-	baseMaxHP := p.MaxHP
-	incMaxHP := int(float64(baseMaxHP) * 20 / 100)
+	baseMaxHP, baseMaxMP := p.MaxHP, p.MaxMP
+	incMaxHP := int(float64(baseMaxHP+500) * 20 / 100)
 
 	active := buff.NewBuff(buff.BuffTypeIncreaseAttackPower)
 	active.Expire = time.Now().Add(time.Minute)
 	active.Effect = buff.BuffEffect{
 		Attack: 5, MagicMin: 11, MagicMax: 12, CurseMin: 13, CurseMax: 14,
 		Defense: 7, DefenseRate: 3, IncMaxHP: 20,
+		AddMaxHP: 500, AddMaxMP: 300, AttackSpeed: 15,
 		CriticalDamage: 15, IgnoreDefense: 16, DefenseReduction: 17,
 		AttackReduction: 18, Reflect: 19,
 	}
 	p.Buffs()[active.Index] = active
 	p.Calc()
-	if p.AttackMin != baseAttack+5 || p.Defense != baseDefense+7 || p.DefenseRate != baseDefenseRate+3 || p.MaxHP != baseMaxHP+incMaxHP ||
+	if p.AttackMin != baseAttack+5 || p.Defense != baseDefense+7 || p.DefenseRate != baseDefenseRate+3 || p.MaxHP != baseMaxHP+incMaxHP+500 || p.MaxMP != baseMaxMP+300 ||
+		p.AttackSpeed != baseAttackSpeed+15 || p.magicSpeed != baseMagicSpeed+15 ||
 		p.magicAttackMin != baseMagicMin+11 || p.magicAttackMax != baseMagicMax+12 ||
 		p.curseAttackMin != baseCurseMin+13 || p.curseAttackMax != baseCurseMax+14 ||
 		p.criticalAttackDamage != baseCriticalDamage+15 || p.ignoreDefenseRate != baseIgnoreDefense+16 ||
@@ -48,7 +53,8 @@ func TestEffectChangesRecalculatePlayerStats(t *testing.T) {
 			p.BuffDefenseReduction, p.BuffAttackReduction, p.BuffReflect, p.MaxHP)
 	}
 	p.Calc()
-	if p.AttackMin != baseAttack+5 || p.Defense != baseDefense+7 || p.MaxHP != baseMaxHP+incMaxHP ||
+	if p.AttackMin != baseAttack+5 || p.Defense != baseDefense+7 || p.MaxHP != baseMaxHP+incMaxHP+500 || p.MaxMP != baseMaxMP+300 ||
+		p.AttackSpeed != baseAttackSpeed+15 || p.magicSpeed != baseMagicSpeed+15 ||
 		p.magicAttackMin != baseMagicMin+11 || p.magicAttackMax != baseMagicMax+12 ||
 		p.curseAttackMin != baseCurseMin+13 || p.curseAttackMax != baseCurseMax+14 ||
 		p.criticalAttackDamage != baseCriticalDamage+15 || p.ignoreDefenseRate != baseIgnoreDefense+16 ||
@@ -57,7 +63,8 @@ func TestEffectChangesRecalculatePlayerStats(t *testing.T) {
 	}
 	delete(p.Buffs(), active.Index)
 	p.Calc()
-	if p.AttackMin != baseAttack || p.Defense != baseDefense || p.DefenseRate != baseDefenseRate || p.MaxHP != baseMaxHP ||
+	if p.AttackMin != baseAttack || p.Defense != baseDefense || p.DefenseRate != baseDefenseRate || p.MaxHP != baseMaxHP || p.MaxMP != baseMaxMP ||
+		p.AttackSpeed != baseAttackSpeed || p.magicSpeed != baseMagicSpeed ||
 		p.magicAttackMin != baseMagicMin || p.magicAttackMax != baseMagicMax ||
 		p.curseAttackMin != baseCurseMin || p.curseAttackMax != baseCurseMax ||
 		p.criticalAttackDamage != baseCriticalDamage || p.ignoreDefenseRate != baseIgnoreDefense ||
@@ -66,6 +73,158 @@ func TestEffectChangesRecalculatePlayerStats(t *testing.T) {
 			p.AttackMin, p.magicAttackMin, p.magicAttackMax, p.curseAttackMin, p.curseAttackMax,
 			p.Defense, p.DefenseRate, p.criticalAttackDamage, p.ignoreDefenseRate,
 			p.BuffDefenseReduction, p.BuffAttackReduction, p.BuffReflect, p.MaxHP)
+	}
+}
+
+func TestTalkAddsSantaNPCBuffs(t *testing.T) {
+	oldObjectManager := object.ObjectManager
+	t.Cleanup(func() { object.ObjectManager = oldObjectManager })
+
+	tests := []struct {
+		npcClass int
+		index    buff.BuffType
+		want     buff.BuffEffect
+	}{
+		{468, buff.BuffTypeSantaStrengthener, buff.BuffEffect{Attack: 30, MagicMin: 30, MagicMax: 30, CurseMin: 30, CurseMax: 30}},
+		{469, buff.BuffTypeSantaDefense, buff.BuffEffect{Defense: 100}},
+		{472, buff.BuffTypeSantaHealing, buff.BuffEffect{AddMaxHP: 500}},
+		{473, buff.BuffTypeSantaProtection, buff.BuffEffect{AddMaxMP: 500}},
+		{474, buff.BuffTypeSantaQuickness, buff.BuffEffect{AttackSpeed: 15}},
+		{475, buff.BuffTypeSantaFortune, buff.BuffEffect{}},
+	}
+	for _, tc := range tests {
+		t.Run(fmt.Sprint(tc.npcClass), func(t *testing.T) {
+			p := newItemTestPlayer()
+			p.Class = int(class.Knight)
+			npc, err := object.ObjectManager.AddMonster(func() *object.Object {
+				result := &object.Object{Class: tc.npcClass, NpcType: object.NpcTypeSanta}
+				result.Init()
+				return result
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			p.Talk(&model.MsgTalk{Target: npc.Index})
+			active := p.Buff(tc.index)
+			if active == nil || active.Effect != tc.want {
+				t.Fatalf("NPC %d buff = %#v, want effect %#v", tc.npcClass, active, tc.want)
+			}
+			if left := time.Until(active.Expire); left < 1790*time.Second || left > 1800*time.Second {
+				t.Fatalf("NPC %d buff duration = %s, want approximately 30 minutes", tc.npcClass, left)
+			}
+		})
+	}
+}
+
+func TestSantaNPCsRestoreHPAndMP(t *testing.T) {
+	oldObjectManager := object.ObjectManager
+	t.Cleanup(func() { object.ObjectManager = oldObjectManager })
+
+	for _, tc := range []struct {
+		class int
+	}{
+		{class: 470},
+		{class: 471},
+	} {
+		t.Run(fmt.Sprint(tc.class), func(t *testing.T) {
+			p := newItemTestPlayer()
+			p.HP, p.MaxHP, p.SD = 40, 120, 17
+			p.MP, p.MaxMP, p.AG = 30, 90, 11
+			npc, err := object.ObjectManager.AddMonster(func() *object.Object {
+				result := &object.Object{Class: tc.class, NpcType: object.NpcTypeSanta}
+				result.Init()
+				return result
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			p.Talk(&model.MsgTalk{Target: npc.Index})
+			messages := itemTestMessages(p)
+			switch tc.class {
+			case 470:
+				if p.HP != p.MaxHP || p.SD != 17 || p.MP != 30 || p.AG != 11 {
+					t.Fatalf("HP restore changed resources to HP/SD %d/%d and MP/AG %d/%d", p.HP, p.SD, p.MP, p.AG)
+				}
+				found := false
+				for _, message := range messages {
+					if reply, ok := message.(*model.MsgHPReply); ok && reply.Position == -1 && reply.HP == p.MaxHP && reply.SD == p.SD {
+						found = true
+					}
+				}
+				if !found {
+					t.Fatal("HP restore did not push the current HP and SD")
+				}
+			case 471:
+				if p.MP != p.MaxMP || p.AG != 11 || p.HP != 40 || p.SD != 17 {
+					t.Fatalf("MP restore changed resources to HP/SD %d/%d and MP/AG %d/%d", p.HP, p.SD, p.MP, p.AG)
+				}
+				found := false
+				for _, message := range messages {
+					if reply, ok := message.(*model.MsgMPReply); ok && reply.Position == -1 && reply.MP == p.MaxMP && reply.AG == p.AG {
+						found = true
+					}
+				}
+				if !found {
+					t.Fatal("MP restore did not push the current MP and AG")
+				}
+			}
+		})
+	}
+}
+
+func TestSantaFortuneImprovesAGRecoveryInSafeAndUnsafeZones(t *testing.T) {
+	var safeX, safeY, unsafeX, unsafeY int
+	foundSafe, foundUnsafe := false, false
+	for y := 0; y < 256 && (!foundSafe || !foundUnsafe); y++ {
+		for x := 0; x < 256 && (!foundSafe || !foundUnsafe); x++ {
+			safe := maps.MapManager.GetMapAttr(0, x, y)&1 != 0
+			if safe && !foundSafe {
+				safeX, safeY, foundSafe = x, y, true
+			} else if !safe && !foundUnsafe {
+				unsafeX, unsafeY, foundUnsafe = x, y, true
+			}
+		}
+	}
+	if !foundSafe || !foundUnsafe {
+		t.Fatal("map 0 must contain both safe and unsafe positions")
+	}
+
+	for _, tc := range []struct {
+		name        string
+		x, y        int
+		base, lucky int
+	}{
+		{name: "unsafe", x: unsafeX, y: unsafeY, base: 35, lucky: 38},
+		{name: "safe", x: safeX, y: safeY, base: 35, lucky: 40},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := newItemTestPlayer()
+			p.MapNumber, p.X, p.Y = 0, tc.x, tc.y
+			p.MaxAG, p.AG, p.MaxMP, p.MP = 1000, 0, 100, 100
+			p.autoRecoverMPTick = 2
+			p.recoverMPAG()
+			if got := p.AG; got != tc.base {
+				t.Fatalf("AG recovery without Santa Fortune = %d, want %d", got, tc.base)
+			}
+
+			p.AG = 0
+			p.autoRecoverMPTick = 2
+			fortune := buff.NewBuff(buff.BuffTypeSantaFortune)
+			p.Buffs()[fortune.Index] = fortune
+			p.recoverMPAG()
+			if got := p.AG; got != tc.lucky {
+				t.Fatalf("AG recovery with Santa Fortune = %d, want %d", got, tc.lucky)
+			}
+			delete(p.Buffs(), fortune.Index)
+			p.AG = 0
+			p.autoRecoverMPTick = 2
+			p.recoverMPAG()
+			if got := p.AG; got != tc.base {
+				t.Fatalf("AG recovery after Santa Fortune removal = %d, want %d", got, tc.base)
+			}
+		})
 	}
 }
 

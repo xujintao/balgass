@@ -582,6 +582,7 @@ const (
 	NpcTypeChaosMix
 	NpcTypeGoldarcher
 	NpcTypePentagramMix
+	NpcTypeSanta
 )
 
 type ConnectState int

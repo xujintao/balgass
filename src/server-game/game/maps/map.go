@@ -181,10 +181,12 @@ func (m *mapManager) GetMapStands(number int) []*Pot {
 	return pots
 }
 
-// bit0(1): 安全区标志
-// bit1(2): 被对象站立
-// bit2(4): 障碍物标志
-// bit3(8): ?
+// 地图属性位标志：
+//
+//	bit0（1）：安全区标志
+//	bit1（2）：被对象站立
+//	bit2（4）：障碍物标志
+//	bit3（8）：含义待确认
 func (m *mapManager) GetMapAttr(number, x, y int) int {
 	return m.maps[number].getAttr(x, y)
 }

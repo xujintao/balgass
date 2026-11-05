@@ -62,6 +62,15 @@ func TestEffectChangesRecalculateMonsterStats(t *testing.T) {
 	}
 }
 
+func TestSantaNPCsUseSantaNPCType(t *testing.T) {
+	for _, class := range []int{468, 469, 470, 471, 472, 473, 474, 475} {
+		m := newMonster(class, 0, 0, 0, 0, 0, 0, 0, 0)
+		if m.NpcType != object.NpcTypeSanta {
+			t.Errorf("newMonster(%d).NpcType = %d, want %d", class, m.NpcType, object.NpcTypeSanta)
+		}
+	}
+}
+
 func TestIsHiddenMonsterClass(t *testing.T) {
 	for _, tt := range []struct {
 		class int

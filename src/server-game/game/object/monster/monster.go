@@ -202,12 +202,21 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 	switch class {
 	case 240: // 仓库使者塞弗特
 		m.NpcType = object.NpcTypeWarehouse
-	case 238, 368, 369, 370, 452, 453, 478, 450:
+	case 238, // 玛雅哥布林
+		368, // 艾尔菲丝
+		369, // 奥斯本
+		370, // 杰瑞敦
+		452, // 荧之石管理员
+		453, // 荧之石研究员
+		478, // 德尔加多
+		450: // 樱花精灵
 		m.NpcType = object.NpcTypeChaosMix
-	case 236:
+	case 236: // 弓箭手洛斯
 		m.NpcType = object.NpcTypeGoldarcher
-	case 582:
+	case 582: // 艾德尼
 		m.NpcType = object.NpcTypePentagramMix
+	case 468, 469, 470, 471, 472, 473, 474, 475: // 假扮的圣诞老人
+		m.NpcType = object.NpcTypeSanta
 	default:
 		m.NpcType = object.NpcTypeNone
 	}

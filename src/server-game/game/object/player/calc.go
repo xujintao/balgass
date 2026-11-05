@@ -731,6 +731,10 @@ func (p *Player) calcBuff() {
 		p.curseAttackMax += effect.CurseMax
 		p.Defense += effect.Defense
 		p.DefenseRate += effect.DefenseRate
+		p.AttackSpeed += effect.AttackSpeed
+		p.magicSpeed += effect.AttackSpeed
+		p.MaxHP += effect.AddMaxHP
+		p.MaxMP += effect.AddMaxMP
 		p.MaxHP += int(float64(p.MaxHP) * effect.IncMaxHP / 100)
 		p.MaxMP += int(float64(p.MaxMP) * effect.IncMaxMP / 100)
 		p.criticalAttackDamage += effect.CriticalDamage

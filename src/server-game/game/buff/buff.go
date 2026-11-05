@@ -88,8 +88,11 @@ type BuffEffect struct {
 	CurseMax         int
 	Defense          int
 	DefenseRate      int
+	AddMaxHP         int     // fixed maximum HP increase
+	AddMaxMP         int     // fixed maximum MP increase
 	IncMaxHP         float64 // maximum HP increase percentage
 	IncMaxMP         float64 // maximum MP increase percentage
+	AttackSpeed      int
 	CriticalDamage   int
 	IgnoreDefense    int
 	Reflect          int
@@ -175,8 +178,11 @@ func (buffs Buffs) ApplyBuffEffect(apply func(BuffEffect)) {
 		effect.CurseMax += b.Effect.CurseMax
 		effect.Defense += b.Effect.Defense
 		effect.DefenseRate += b.Effect.DefenseRate
+		effect.AddMaxHP += b.Effect.AddMaxHP
+		effect.AddMaxMP += b.Effect.AddMaxMP
 		effect.IncMaxHP += b.Effect.IncMaxHP
 		effect.IncMaxMP += b.Effect.IncMaxMP
+		effect.AttackSpeed += b.Effect.AttackSpeed
 		effect.CriticalDamage += b.Effect.CriticalDamage
 		effect.IgnoreDefense += b.Effect.IgnoreDefense
 		effect.Reflect += b.Effect.Reflect

@@ -484,13 +484,20 @@ func (p *Player) recoverMPAG() {
 	if p.AG < p.MaxAG {
 		// base recover AG
 		percent := 3.0
+		recovery := 5
+		if p.HasBuff(buff.BuffTypeSantaFortune) {
+			recovery = 8
+			if maps.MapManager.GetMapAttr(p.MapNumber, p.X, p.Y)&1 != 0 {
+				recovery = 10
+			}
+		}
 		// master skill recover AG
 		percent += 0
 		if p.Class == int(class.Knight) {
 			percent = 5
 		}
 		ag := p.AG
-		ag += 5 + int(float64(p.MaxAG)*percent/100) + p.recoverAG
+		ag += recovery + int(float64(p.MaxAG)*percent/100) + p.recoverAG
 		switch {
 		case ag < 1:
 			ag = 1
@@ -1259,6 +1266,29 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		p.Push(&model.MsgTypeItemListReply{Type: 3, MsgItemListReply: model.MsgItemListReply{Items: p.chaosBox.Items()}})
 	case object.NpcTypeGoldarcher:
 	case object.NpcTypePentagramMix:
+	case object.NpcTypeSanta:
+		switch tobj.Class {
+		case 468:
+			p.AddBuff(buff.BuffTypeSantaStrengthener, 1800, buff.BuffEffect{
+				Attack: 30, MagicMin: 30, MagicMax: 30, CurseMin: 30, CurseMax: 30,
+			})
+		case 469:
+			p.AddBuff(buff.BuffTypeSantaDefense, 1800, buff.BuffEffect{Defense: 100})
+		case 470:
+			p.HP = p.MaxHP
+			p.PushHPSD(p.HP, p.SD)
+		case 471:
+			p.MP = p.MaxMP
+			p.PushMPAG(p.MP, p.AG)
+		case 472:
+			p.AddBuff(buff.BuffTypeSantaHealing, 1800, buff.BuffEffect{AddMaxHP: 500})
+		case 473:
+			p.AddBuff(buff.BuffTypeSantaProtection, 1800, buff.BuffEffect{AddMaxMP: 500})
+		case 474:
+			p.AddBuff(buff.BuffTypeSantaQuickness, 1800, buff.BuffEffect{AttackSpeed: 15})
+		case 475:
+			p.AddBuff(buff.BuffTypeSantaFortune, 1800, buff.BuffEffect{})
+		}
 	}
 }
 
