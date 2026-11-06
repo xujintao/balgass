@@ -21,7 +21,7 @@ func TestNewBuffPanicsForUnknownType(t *testing.T) {
 
 func TestApplyBuffEffectAggregatesMultipleEffects(t *testing.T) {
 	first, second := NewBuff(BuffTypeIncreaseAttackPower), NewBuff(BuffTypeIncreaseDefense)
-	first.Effect = BuffEffect{Attack: 5, AttackMin: 2, AttackMax: 4, Defense: 3, DefenseRate: 6, AddMaxHP: 500, IncMaxHP: 10.5, IncMaxMP: 7.25, AttackSpeed: 15, Slow: true}
+	first.Effect = BuffEffect{Attack: 5, AttackMin: 2, AttackMax: 4, Defense: 3, MagicDefense: 9, DefenseRate: 6, AddMaxHP: 500, IncMaxHP: 10.5, IncMaxMP: 7.25, AttackSpeed: 15, Slow: true}
 	second.Effect = BuffEffect{Attack: 8, Defense: 1, AddMaxMP: 300, IncMaxHP: -2.5, Dot: Dot{Damage: 4, Source: 7}}
 	buffs := Buffs{first.Index: first, second.Index: second}
 	var got BuffEffect
@@ -30,7 +30,7 @@ func TestApplyBuffEffectAggregatesMultipleEffects(t *testing.T) {
 		calls++
 		got = effect
 	})
-	want := BuffEffect{Attack: 13, AttackMin: 2, AttackMax: 4, Defense: 4, DefenseRate: 6, AddMaxHP: 500, AddMaxMP: 300, IncMaxHP: 8, IncMaxMP: 7.25, AttackSpeed: 15}
+	want := BuffEffect{Attack: 13, AttackMin: 2, AttackMax: 4, Defense: 4, MagicDefense: 9, DefenseRate: 6, AddMaxHP: 500, AddMaxMP: 300, IncMaxHP: 8, IncMaxMP: 7.25, AttackSpeed: 15}
 	if got != want {
 		t.Fatalf("aggregated option = %+v, want %+v", got, want)
 	}

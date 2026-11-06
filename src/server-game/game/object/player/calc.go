@@ -730,6 +730,7 @@ func (p *Player) calcBuff() {
 		p.curseAttackMin += effect.CurseMin
 		p.curseAttackMax += effect.CurseMax
 		p.Defense += effect.Defense
+		p.MagicDefense += effect.MagicDefense
 		p.DefenseRate += effect.DefenseRate
 		p.AttackSpeed += effect.AttackSpeed
 		p.magicSpeed += effect.AttackSpeed

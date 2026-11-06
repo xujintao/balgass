@@ -217,6 +217,8 @@ func newMonster(class, mapNumber, startX, startY, endX, endY, dir, dis, element 
 		m.NpcType = object.NpcTypePentagramMix
 	case 468, 469, 470, 471, 472, 473, 474, 475: // 假扮的圣诞老人
 		m.NpcType = object.NpcTypeSanta
+	case 257: // 幻影导师
+		m.NpcType = object.NpcTypeShadowPhantom
 	default:
 		m.NpcType = object.NpcTypeNone
 	}

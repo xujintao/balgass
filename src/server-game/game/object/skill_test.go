@@ -190,6 +190,7 @@ func (*skillTestActor) DeleteCharacter(*model.MsgDeleteCharacter)               
 func (*skillTestActor) CheckCharacter(*model.MsgCheckCharacter)                       {}
 func (*skillTestActor) LoadCharacter(*model.MsgLoadCharacter)                         {}
 func (*skillTestActor) Talk(*model.MsgTalk)                                           {}
+func (*skillTestActor) AddShadowPhantomBuff(*model.MsgEmpty)                          {}
 func (*skillTestActor) CloseTalkWindow(*model.MsgEmpty)                               {}
 func (*skillTestActor) CloseWarehouseWindow(*model.MsgEmpty)                          {}
 func (*skillTestActor) KeepLive(*model.MsgKeepLive)                                   {}

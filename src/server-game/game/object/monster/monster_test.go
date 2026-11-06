@@ -71,6 +71,13 @@ func TestSantaNPCsUseSantaNPCType(t *testing.T) {
 	}
 }
 
+func TestShadowPhantomUsesShadowPhantomNPCType(t *testing.T) {
+	m := newMonster(257, 0, 0, 0, 0, 0, 0, 0, 0)
+	if m.NpcType != object.NpcTypeShadowPhantom {
+		t.Fatalf("newMonster(257).NpcType = %d, want %d", m.NpcType, object.NpcTypeShadowPhantom)
+	}
+}
+
 func TestIsHiddenMonsterClass(t *testing.T) {
 	for _, tt := range []struct {
 		class int

@@ -26,6 +26,7 @@ func TestEffectChangesRecalculatePlayerStats(t *testing.T) {
 	baseAttackSpeed, baseMagicSpeed := p.AttackSpeed, p.magicSpeed
 	baseMagicMin, baseMagicMax := p.magicAttackMin, p.magicAttackMax
 	baseCurseMin, baseCurseMax := p.curseAttackMin, p.curseAttackMax
+	baseMagicDefense := p.MagicDefense
 	baseCriticalDamage, baseIgnoreDefense := p.criticalAttackDamage, p.ignoreDefenseRate
 	baseMaxHP, baseMaxMP := p.MaxHP, p.MaxMP
 	incMaxHP := int(float64(baseMaxHP+500) * 20 / 100)
@@ -34,14 +35,14 @@ func TestEffectChangesRecalculatePlayerStats(t *testing.T) {
 	active.Expire = time.Now().Add(time.Minute)
 	active.Effect = buff.BuffEffect{
 		Attack: 5, MagicMin: 11, MagicMax: 12, CurseMin: 13, CurseMax: 14,
-		Defense: 7, DefenseRate: 3, IncMaxHP: 20,
+		Defense: 7, MagicDefense: 9, DefenseRate: 3, IncMaxHP: 20,
 		AddMaxHP: 500, AddMaxMP: 300, AttackSpeed: 15,
 		CriticalDamage: 15, IgnoreDefense: 16, DefenseReduction: 17,
 		AttackReduction: 18, Reflect: 19,
 	}
 	p.Buffs()[active.Index] = active
 	p.Calc()
-	if p.AttackMin != baseAttack+5 || p.Defense != baseDefense+7 || p.DefenseRate != baseDefenseRate+3 || p.MaxHP != baseMaxHP+incMaxHP+500 || p.MaxMP != baseMaxMP+300 ||
+	if p.AttackMin != baseAttack+5 || p.Defense != baseDefense+7 || p.MagicDefense != baseMagicDefense+9 || p.DefenseRate != baseDefenseRate+3 || p.MaxHP != baseMaxHP+incMaxHP+500 || p.MaxMP != baseMaxMP+300 ||
 		p.AttackSpeed != baseAttackSpeed+15 || p.magicSpeed != baseMagicSpeed+15 ||
 		p.magicAttackMin != baseMagicMin+11 || p.magicAttackMax != baseMagicMax+12 ||
 		p.curseAttackMin != baseCurseMin+13 || p.curseAttackMax != baseCurseMax+14 ||
@@ -53,7 +54,7 @@ func TestEffectChangesRecalculatePlayerStats(t *testing.T) {
 			p.BuffDefenseReduction, p.BuffAttackReduction, p.BuffReflect, p.MaxHP)
 	}
 	p.Calc()
-	if p.AttackMin != baseAttack+5 || p.Defense != baseDefense+7 || p.MaxHP != baseMaxHP+incMaxHP+500 || p.MaxMP != baseMaxMP+300 ||
+	if p.AttackMin != baseAttack+5 || p.Defense != baseDefense+7 || p.MagicDefense != baseMagicDefense+9 || p.MaxHP != baseMaxHP+incMaxHP+500 || p.MaxMP != baseMaxMP+300 ||
 		p.AttackSpeed != baseAttackSpeed+15 || p.magicSpeed != baseMagicSpeed+15 ||
 		p.magicAttackMin != baseMagicMin+11 || p.magicAttackMax != baseMagicMax+12 ||
 		p.curseAttackMin != baseCurseMin+13 || p.curseAttackMax != baseCurseMax+14 ||
@@ -63,7 +64,7 @@ func TestEffectChangesRecalculatePlayerStats(t *testing.T) {
 	}
 	delete(p.Buffs(), active.Index)
 	p.Calc()
-	if p.AttackMin != baseAttack || p.Defense != baseDefense || p.DefenseRate != baseDefenseRate || p.MaxHP != baseMaxHP || p.MaxMP != baseMaxMP ||
+	if p.AttackMin != baseAttack || p.Defense != baseDefense || p.MagicDefense != baseMagicDefense || p.DefenseRate != baseDefenseRate || p.MaxHP != baseMaxHP || p.MaxMP != baseMaxMP ||
 		p.AttackSpeed != baseAttackSpeed || p.magicSpeed != baseMagicSpeed ||
 		p.magicAttackMin != baseMagicMin || p.magicAttackMax != baseMagicMax ||
 		p.curseAttackMin != baseCurseMin || p.curseAttackMax != baseCurseMax ||
@@ -73,6 +74,84 @@ func TestEffectChangesRecalculatePlayerStats(t *testing.T) {
 			p.AttackMin, p.magicAttackMin, p.magicAttackMax, p.curseAttackMin, p.curseAttackMax,
 			p.Defense, p.DefenseRate, p.criticalAttackDamage, p.ignoreDefenseRate,
 			p.BuffDefenseReduction, p.BuffAttackReduction, p.BuffReflect, p.MaxHP)
+	}
+}
+
+func TestAddShadowPhantomBuff(t *testing.T) {
+	oldLimit := conf.CommonServer.GameServerInfo.ShadowPhantomLevelLimit
+	conf.CommonServer.GameServerInfo.ShadowPhantomLevelLimit = 250
+	t.Cleanup(func() { conf.CommonServer.GameServerInfo.ShadowPhantomLevelLimit = oldLimit })
+
+	for _, level := range []int{180, 181} {
+		p := newItemTestPlayer()
+		p.Level = level
+		p.Calc()
+		itemTestMessages(p)
+		baseAttackMin, baseAttackMax := p.AttackMin, p.AttackMax
+		baseMagicMin, baseMagicMax := p.magicAttackMin, p.magicAttackMax
+		baseCurseMin, baseCurseMax := p.curseAttackMin, p.curseAttackMax
+		baseDefense, baseMagicDefense := p.Defense, p.MagicDefense
+		p.AddShadowPhantomBuff(&model.MsgEmpty{})
+
+		active := p.Buffs().Get(buff.BuffTypeShadowPhantomEffect)
+		if active == nil {
+			t.Fatalf("level %d did not receive Shadow Phantom buff", level)
+		}
+		attack, defense := 105, 86
+		if level <= 180 {
+			attack = level/3 + 45
+			defense = level/5 + 50
+		}
+		wantEffect := buff.BuffEffect{
+			Attack: attack, MagicMin: attack, MagicMax: attack, CurseMin: attack, CurseMax: attack,
+			Defense: defense, MagicDefense: defense,
+		}
+		if active.Effect != wantEffect {
+			t.Fatalf("level %d effect = %+v, want %+v", level, active.Effect, wantEffect)
+		}
+		wantDuration := time.Duration((level/6+30)*60) * time.Second
+		remaining := time.Until(active.Expire)
+		if remaining > wantDuration || remaining < wantDuration-time.Second {
+			t.Fatalf("level %d remaining buff duration = %s, want approximately %s", level, remaining, wantDuration)
+		}
+		if p.AttackMin != baseAttackMin+attack || p.AttackMax != baseAttackMax+attack || p.magicAttackMin != baseMagicMin+attack || p.magicAttackMax != baseMagicMax+attack ||
+			p.curseAttackMin != baseCurseMin+attack || p.curseAttackMax != baseCurseMax+attack || p.Defense != baseDefense+defense || p.MagicDefense != baseMagicDefense+defense {
+			t.Fatalf("level %d calculated stats do not include buff: attack %d/%d magic %d/%d curse %d/%d defense %d/%d",
+				level, p.AttackMin, p.AttackMax, p.magicAttackMin, p.magicAttackMax,
+				p.curseAttackMin, p.curseAttackMax, p.Defense, p.MagicDefense)
+		}
+	}
+}
+
+func TestAddShadowPhantomBuffRejectsIneligiblePlayers(t *testing.T) {
+	oldLimit := conf.CommonServer.GameServerInfo.ShadowPhantomLevelLimit
+	conf.CommonServer.GameServerInfo.ShadowPhantomLevelLimit = 180
+	t.Cleanup(func() { conf.CommonServer.GameServerInfo.ShadowPhantomLevelLimit = oldLimit })
+
+	for _, tc := range []struct {
+		name  string
+		level int
+		up    int
+	}{
+		{name: "over level limit", level: 181},
+		{name: "second class change", level: 100, up: 2},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := newItemTestPlayer()
+			p.Level, p.changeUp = tc.level, tc.up
+			p.AddShadowPhantomBuff(&model.MsgEmpty{})
+			if p.Buffs().Get(buff.BuffTypeShadowPhantomEffect) != nil {
+				t.Fatal("ineligible player received Shadow Phantom buff")
+			}
+			messages := itemTestMessages(p)
+			if len(messages) != 1 {
+				t.Fatalf("ineligible player messages = %d, want only server command", len(messages))
+			}
+			command, ok := messages[0].(*model.MsgServerCMDReply)
+			if !ok || command.Type != 13 || command.X != 0 || command.Y != 0 {
+				t.Fatalf("server command = %#v, want type 13 at (0,0)", messages[0])
+			}
+		})
 	}
 }
 
@@ -114,6 +193,34 @@ func TestTalkAddsSantaNPCBuffs(t *testing.T) {
 				t.Fatalf("NPC %d buff duration = %s, want approximately 30 minutes", tc.npcClass, left)
 			}
 		})
+	}
+}
+
+func TestTalkWithShadowPhantomSendsDialogReply(t *testing.T) {
+	oldObjectManager := object.ObjectManager
+	t.Cleanup(func() { object.ObjectManager = oldObjectManager })
+
+	p := newItemTestPlayer()
+	npc, err := object.ObjectManager.AddMonster(func() *object.Object {
+		result := &object.Object{Class: 257, NpcType: object.NpcTypeShadowPhantom}
+		result.Init()
+		return result
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	p.Talk(&model.MsgTalk{Target: npc.Index})
+	messages := itemTestMessages(p)
+	if len(messages) != 1 {
+		t.Fatalf("Talk messages = %d, want one NPC dialog reply", len(messages))
+	}
+	reply, ok := messages[0].(*model.MsgNpcDialogReply)
+	if !ok || reply.Class != 257 || reply.ContributePoint != 0 {
+		t.Fatalf("dialog reply = %#v, want NPC 257 and zero contribution", messages[0])
+	}
+	if p.Buff(buff.BuffTypeShadowPhantomEffect) != nil {
+		t.Fatal("Talk added the buff; it must remain on F6:31")
 	}
 }
 

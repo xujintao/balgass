@@ -87,6 +87,7 @@ type BuffEffect struct {
 	CurseMin         int
 	CurseMax         int
 	Defense          int
+	MagicDefense     int
 	DefenseRate      int
 	AddMaxHP         int     // fixed maximum HP increase
 	AddMaxMP         int     // fixed maximum MP increase
@@ -177,6 +178,7 @@ func (buffs Buffs) ApplyBuffEffect(apply func(BuffEffect)) {
 		effect.CurseMin += b.Effect.CurseMin
 		effect.CurseMax += b.Effect.CurseMax
 		effect.Defense += b.Effect.Defense
+		effect.MagicDefense += b.Effect.MagicDefense
 		effect.DefenseRate += b.Effect.DefenseRate
 		effect.AddMaxHP += b.Effect.AddMaxHP
 		effect.AddMaxMP += b.Effect.AddMaxMP

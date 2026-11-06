@@ -1289,7 +1289,29 @@ func (p *Player) Talk(msg *model.MsgTalk) {
 		case 475:
 			p.AddBuff(buff.BuffTypeSantaFortune, 1800, buff.BuffEffect{})
 		}
+	case object.NpcTypeShadowPhantom:
+		p.Push(&model.MsgNpcDialogReply{Class: tobj.Class})
 	}
+}
+
+func (p *Player) AddShadowPhantomBuff(*model.MsgEmpty) {
+	if p.Level > conf.CommonServer.GameServerInfo.ShadowPhantomLevelLimit || p.changeUp == 2 {
+		p.Push(&model.MsgServerCMDReply{Type: 13})
+		return
+	}
+
+	attack, defense := 105, 86
+	if p.Level <= 180 {
+		attack = p.Level/3 + 45
+		defense = p.Level/5 + 50
+	}
+	duration := (p.Level/6 + 30) * 60
+	p.AddBuff(buff.BuffTypeShadowPhantomEffect, duration, buff.BuffEffect{
+		Attack:   attack,
+		MagicMin: attack, MagicMax: attack,
+		CurseMin: attack, CurseMax: attack,
+		Defense: defense, MagicDefense: defense,
+	})
 }
 
 func (p *Player) loadWarehouse(account *model.Account) {

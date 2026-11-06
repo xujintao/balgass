@@ -11,6 +11,7 @@ import (
 	"github.com/xujintao/balgass/src/c1c2"
 	"github.com/xujintao/balgass/src/server-game/game"
 	"github.com/xujintao/balgass/src/server-game/game/model"
+	"github.com/xujintao/balgass/src/server-game/game/object"
 )
 
 func TestEventStateReplyProtocol(t *testing.T) {
@@ -30,6 +31,27 @@ func TestEventStateReplyProtocol(t *testing.T) {
 		if len(resp.Body())+2 != 5 {
 			t.Fatalf("C1 event state frame length = %d, want 5", len(resp.Body())+2)
 		}
+	}
+}
+
+func TestShadowPhantomBuffProtocolRoute(t *testing.T) {
+	api := C1C2Handle.apiIns[0xF631]
+	if api == nil || api.action != "AddShadowPhantomBuff" || reflect.TypeOf(api.msg) != reflect.TypeOf((*model.MsgEmpty)(nil)) {
+		t.Fatalf("F6:31 route = %#v, want AddShadowPhantomBuff with MsgEmpty", api)
+	}
+	if _, ok := reflect.TypeOf((*object.Object)(nil)).MethodByName(api.action); !ok {
+		t.Fatalf("object has no action %q", api.action)
+	}
+}
+
+func TestShadowPhantomDialogReplyProtocol(t *testing.T) {
+	msg := &model.MsgNpcDialogReply{Class: 257}
+	resp, err := C1C2Handle.marshal(0, msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []byte{0xF9, 0x01, 0x01, 0x01, 0, 0, 0, 0}; !bytes.Equal(resp.Body(), want) {
+		t.Fatalf("NPC dialog reply body = %x, want %x", resp.Body(), want)
 	}
 }
 

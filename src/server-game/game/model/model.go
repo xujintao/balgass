@@ -1137,6 +1137,22 @@ func (msg *MsgTalkReply) Marshal() ([]byte, error) {
 	return bw.Bytes(), nil
 }
 
+type MsgNpcDialogReply struct {
+	Class           int
+	ContributePoint int
+}
+
+func (msg *MsgNpcDialogReply) Marshal() ([]byte, error) {
+	var bw bytes.Buffer
+	if err := binary.Write(&bw, binary.LittleEndian, uint16(msg.Class)); err != nil {
+		return nil, err
+	}
+	if err := binary.Write(&bw, binary.LittleEndian, uint32(msg.ContributePoint)); err != nil {
+		return nil, err
+	}
+	return bw.Bytes(), nil
+}
+
 // pack(1)
 type MsgTypeItemListReply struct {
 	Type int

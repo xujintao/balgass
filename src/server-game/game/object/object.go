@@ -583,6 +583,7 @@ const (
 	NpcTypeGoldarcher
 	NpcTypePentagramMix
 	NpcTypeSanta
+	NpcTypeShadowPhantom
 )
 
 type ConnectState int
@@ -726,6 +727,7 @@ type Objecter interface {
 	CheckCharacter(*model.MsgCheckCharacter)     // implemented by Player
 	LoadCharacter(*model.MsgLoadCharacter)       // implemented by Player
 	Talk(*model.MsgTalk)                         // implemented by Player
+	AddShadowPhantomBuff(*model.MsgEmpty)        // implemented by Player
 	CloseTalkWindow(*model.MsgEmpty)             // implemented by Player
 	CloseWarehouseWindow(*model.MsgEmpty)        // implemented by Player
 	KeepLive(*model.MsgKeepLive)                 // implemented by Player

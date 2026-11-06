@@ -269,6 +269,7 @@ var apiIns = [...]*apiIn{
 	{0, false, game.PlayPhase, 0xF326, "BattleCoreNotice", (*model.MsgEmpty)(nil)},
 	{0, false, game.PlayPhase, 0xF330, "DefineMuKey", (*model.MsgDefineMuKey)(nil)},
 	{0, false, game.PlayPhase, 0xF352, "LearnMasterSkill", (*model.MsgLearnMasterSkill)(nil)},
+	{0, false, game.PlayPhase, 0xF631, "AddShadowPhantomBuff", (*model.MsgEmpty)(nil)},
 	{0, false, game.PlayPhase, 0xFFFF, "Test", (*model.MsgTest)(nil)},
 }
 
@@ -345,6 +346,7 @@ var apiOuts = [...]*apiOut{
 	{0, false, 0xC1, 0xF351, "MasterDataReply", (*model.MsgMasterLevelUpReply)(nil)},
 	{0, false, 0xC1, 0xF352, "LearnMasterSkillReply", (*model.MsgLearnMasterSkillReply)(nil)},
 	{0, false, 0xC2, 0xF353, "MasterSkillListReply", (*model.MsgMasterSkillListReply)(nil)},
+	{0, false, 0xC3, 0xF901, "NpcDialogReply", (*model.MsgNpcDialogReply)(nil)},
 	{0, false, 0xC1, 0xFA05, "AttackEffectReply", (*model.MsgAttackEffectReply)(nil)},
 	{0, false, 0xC1, 0xFA0A, "ResetCharacterReply", (*model.MsgResetCharacterReply)(nil)},
 	{0, false, 0xC1, 0xFA0B, "ResetGameReply", (*model.MsgResetGameReply)(nil)},
